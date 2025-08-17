@@ -6,6 +6,48 @@
     height: 100%;
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
+    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+  }
+  /* Root scrollbar styles */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.5);
+    border-radius: 10px;
+    border: 2px solid transparent;
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(155, 155, 155, 0.7);
+  }
+
+  /* Dark mode adjustments */
+  @media (prefers-color-scheme: dark) {
+    html,
+    body {
+      scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
+    }
+
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb {
+      background-color: rgba(100, 100, 100, 0.5);
+    }
+
+    html::-webkit-scrollbar-thumb:hover,
+    body::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(100, 100, 100, 0.7);
+    }
   }
   #root {
     height: 100%;
@@ -26,58 +68,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar styles */
-@layer components {
-  .vertical-scrollbar-container {
-    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
-    overflow: hidden;
-    overflow-y: auto;
-  }
-
-  .vertical-scrollbar-container::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .vertical-scrollbar-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .vertical-scrollbar-container::-webkit-scrollbar-thumb {
-    background-color: rgba(155, 155, 155, 0.5);
-    border-radius: 10px;
-    border: 2px solid transparent;
-  }
-
-  .vertical-scrollbar-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(155, 155, 155, 0.7);
-  }
-
-  /* Dark mode adjustments */
-  @media (prefers-color-scheme: dark) {
-    .vertical-scrollbar-container {
-      scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
-    }
-
-    .vertical-scrollbar-container::-webkit-scrollbar-thumb {
-      background-color: rgba(100, 100, 100, 0.5);
-    }
-
-    .vertical-scrollbar-container::-webkit-scrollbar-thumb:hover {
-      background-color: rgba(100, 100, 100, 0.7);
-    }
-  }
-}
-
-/* For dark mode class-based implementations */
-.dark .vertical-scrollbar-container {
+/* Root-level dark mode (class-based) */
+html.dark {
   scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
 }
 
-.dark .vertical-scrollbar-container::-webkit-scrollbar-thumb {
+html.dark::-webkit-scrollbar-thumb {
   background-color: rgba(100, 100, 100, 0.5);
 }
 
-.dark .vertical-scrollbar-container::-webkit-scrollbar-thumb:hover {
+html.dark::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.7);
+}
+
+.dark body {
+  scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
+}
+
+.dark body::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.5);
+}
+
+.dark body::-webkit-scrollbar-thumb:hover {
   background-color: rgba(100, 100, 100, 0.7);
 }

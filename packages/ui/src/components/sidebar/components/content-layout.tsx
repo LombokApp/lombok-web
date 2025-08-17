@@ -18,7 +18,7 @@ export function ContentLayout({
       <div
         className={cn(
           'flex flex-1 flex-col items-center overflow-hidden',
-          contentPadding && 'p-6',
+          contentPadding && 'px-6',
         )}
       >
         {children}
