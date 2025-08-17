@@ -1515,7 +1515,9 @@ export class AppService {
       }
     >
   > {
-    const apps = await this.ormService.db.query.appsTable.findMany()
+    const apps = await this.ormService.db.query.appsTable.findMany({
+      where: eq(appsTable.enabled, true),
+    })
 
     return apps.reduce((acc, nextApp) => {
       const contributions: AppContributions | undefined =

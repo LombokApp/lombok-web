@@ -1,4 +1,17 @@
 import {
+  Alert,
+  AlertDescription,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertTitle,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -13,6 +26,7 @@ import {
 import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
 import React from 'react'
 
+import { useServerContext } from '@/src/hooks/use-server-context'
 import { $api } from '@/src/services/api'
 
 import { AppAttributeList } from '../../../../components/app-attribute-list/app-attribute-list'
@@ -26,6 +40,7 @@ export function ServerAppDetailScreen({
 }: {
   appIdentifier: string
 }) {
+  const serverContext = useServerContext()
   // Remove useState and useEffect for app
   const appQuery = $api.useQuery('get', '/api/v1/server/apps/{appIdentifier}', {
     params: {
@@ -47,12 +62,101 @@ export function ServerAppDetailScreen({
     },
   )
 
+  const setEnabledMutation = $api.useMutation(
+    'put',
+    '/api/v1/server/apps/{appIdentifier}/enabled',
+    {
+      onSuccess: () => {
+        void appQuery.refetch()
+        void serverContext.refreshApps()
+      },
+    },
+  )
+
+  const handleSetEnabled = React.useCallback(
+    async (enabled: boolean) => {
+      await setEnabledMutation.mutateAsync({
+        params: { path: { appIdentifier } },
+        body: { enabled },
+      })
+    },
+    [appIdentifier, setEnabledMutation],
+  )
+
   return (
     <div className={'flex size-full flex-1 flex-col gap-8'}>
+      {!!app && app.enabled === false && (
+        <Alert variant="destructive" className="border-foreground/20">
+          <OctagonX className="size-4" />
+          <AlertTitle>App is disabled</AlertTitle>
+          <AlertDescription>
+            This app is currently disabled. Functionality provided by this app
+            may be unavailable until it is enabled.
+          </AlertDescription>
+        </Alert>
+      )}
       <Card className="flex-1 border-0 bg-transparent shadow-none">
         <CardHeader className="p-0 pb-4">
-          <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
-          <CardDescription>{app?.config.description}</CardDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
+              <CardDescription>{app?.config.description}</CardDescription>
+            </div>
+            {!!app && (
+              <div className="flex items-center gap-2">
+                {app.enabled ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">Disable app</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Disable this app?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Users will no longer be able to use features provided
+                          by this app until it is enabled again.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            void handleSetEnabled(false)
+                          }}
+                        >
+                          Disable
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="default">Enable app</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Enable this app?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          The app will be enabled and available for use.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            void handleSetEnabled(true)
+                          }}
+                        >
+                          Enable
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <StatCardGroup
