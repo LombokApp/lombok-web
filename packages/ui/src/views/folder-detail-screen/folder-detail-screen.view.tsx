@@ -389,8 +389,9 @@ export const FolderDetailScreen = () => {
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
-          <div className="flex size-full w-full flex-1 justify-between @4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem]">
-            <div className="flex min-w-0 flex-1">
+          {/* eslint-disable-next-line tailwindcss/no-unnecessary-arbitrary-value */}
+          <div className="flex size-full w-full flex-1 justify-between overflow-x-visible @4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem]">
+            <div className="flex min-w-0 flex-1 py-6">
               <div className="flex size-full flex-col gap-2">
                 <div className="flex justify-between">
                   <EditableTitle
@@ -587,8 +588,8 @@ export const FolderDetailScreen = () => {
             {sidebarOpen &&
               folderContext.folder &&
               folderContext.folderPermissions && (
-                <div className="flex max-w-0 @4xl:min-w-80 @4xl:max-w-[30rem] @4xl:grow">
-                  <div className="size-full">
+                <div className="flex max-w-0 overflow-x-visible @4xl:min-w-80 @4xl:max-w-[30rem] @4xl:grow">
+                  <div className="size-full overflow-x-visible">
                     <FolderSidebar
                       folderMetadata={folderContext.folderMetadata}
                       folderAndPermission={{

@@ -174,9 +174,9 @@ export const FolderObjectDetailScreen = ({
         setModalData={setDeleteModalData}
         onConfirm={handleDelete}
       />
-      <div className="flex size-full flex-1 justify-between">
+      <div className="flex size-full flex-1 justify-between overflow-x-visible">
         <div
-          className="flex max-w-full flex-col lg:w-1/2 xl:flex-1"
+          className="flex max-w-full flex-col py-6 lg:w-1/2 xl:flex-1"
           key={displayObjectKey}
         >
           <div className="flex items-start justify-between pb-2 pr-0 lg:pr-4">
@@ -282,7 +282,7 @@ export const FolderObjectDetailScreen = ({
           </div>
         </div>
         {sidebarOpen && folderObject && folderContext.folder && (
-          <div className="xs:w-0 max-w-[40rem] overflow-hidden lg:w-1/2 xl:w-1/3">
+          <div className="xs:w-0 max-w-[40rem] overflow-x-visible lg:w-1/2 xl:w-1/3">
             <FolderObjectSidebar
               folderAndPermission={
                 folderContext.folderPermissions && {
