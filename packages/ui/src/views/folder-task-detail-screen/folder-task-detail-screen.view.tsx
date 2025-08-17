@@ -25,10 +25,16 @@ export function FolderTaskDetailScreen() {
   )
 
   return (
-    <TaskDetailUI
-      taskData={taskQuery.data?.task}
-      isLoading={taskQuery.isLoading}
-      isError={taskQuery.isError}
-    />
+    <div className="flex flex-1 flex-col items-center">
+      <div className="container flex w-[calc(100%+1rem)] flex-1 flex-col overflow-y-scroll py-6 pr-4">
+        <div className="flex w-full flex-1 flex-col">
+          <TaskDetailUI
+            taskData={taskQuery.data?.task}
+            isLoading={taskQuery.isLoading}
+            isError={taskQuery.isError}
+          />
+        </div>
+      </div>
+    </div>
   )
 }

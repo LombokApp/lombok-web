@@ -27,34 +27,40 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
           }}
         />
       </div>
-      <div className="w-[calc(100%+1rem)] flex-1 overflow-y-scroll pr-4">
-        <div className="size-full pb-6">
-          {(serverPage[0] === 'overview' || !serverPage[0]) && (
-            <ServerOverviewContent />
-          )}
-          {serverPage[0] === 'users' && !serverPage[1] && <ServerUsersScreen />}
-          {serverPage[0] === 'events' && !serverPage[1] && (
-            <ServerEventsScreen />
-          )}
-          {serverPage[0] === 'apps' && !serverPage[1] && <ServerAppsScreen />}
-          {serverPage[0] === 'tasks' && !serverPage[1] && <ServerTasksScreen />}
-          {serverPage[0] === 'logs' && !serverPage[1] && <ServerLogsScreen />}
-          {serverPage[0] === 'settings' && !!serverPage[0] && (
+      <div className="flex w-[calc(100%+1rem)] flex-1 flex-col overflow-y-scroll pb-6 pr-4">
+        {(serverPage[0] === 'overview' || !serverPage[0]) && (
+          <ServerOverviewContent />
+        )}
+        {serverPage[0] === 'users' && !serverPage[1] && <ServerUsersScreen />}
+        {serverPage[0] === 'events' && !serverPage[1] && <ServerEventsScreen />}
+        {serverPage[0] === 'apps' && !serverPage[1] && <ServerAppsScreen />}
+        {serverPage[0] === 'tasks' && !serverPage[1] && <ServerTasksScreen />}
+        {serverPage[0] === 'logs' && !serverPage[1] && <ServerLogsScreen />}
+        {serverPage[0] === 'settings' && !!serverPage[0] && (
+          <div>
             <ServerSettingsScreen tab={paramParts[1] ?? 'general'} />
-          )}
-          {serverPage[0] === 'events' && serverPage[1] && (
+          </div>
+        )}
+        {serverPage[0] === 'events' && serverPage[1] && (
+          <div>
             <ServerEventDetailScreen eventId={serverPage[1]} />
-          )}
-          {serverPage[0] === 'apps' && !!serverPage[1] && (
+          </div>
+        )}
+        {serverPage[0] === 'apps' && !!serverPage[1] && (
+          <div>
             <ServerAppDetailScreen appIdentifier={serverPage[1]} />
-          )}
-          {serverPage[0] === 'users' && !!serverPage[1] && (
+          </div>
+        )}
+        {serverPage[0] === 'users' && !!serverPage[1] && (
+          <div>
             <ServerUserDetailScreen userId={serverPage[1]} />
-          )}
-          {serverPage[0] === 'tasks' && !!serverPage[1] && (
+          </div>
+        )}
+        {serverPage[0] === 'tasks' && !!serverPage[1] && (
+          <div>
             <ServerTaskDetailScreen taskId={serverPage[1]} />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

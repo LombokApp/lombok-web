@@ -1,10 +1,5 @@
 import type { FolderListRequest } from '@stellariscloud/types'
-import {
-  Button,
-  DataTable,
-  TypographyH3,
-  useToast,
-} from '@stellariscloud/ui-toolkit'
+import { Button, DataTable, useToast } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'
@@ -158,10 +153,11 @@ export const FoldersScreen = () => {
   })
 
   return (
-    <div className="container flex h-full flex-col gap-3 self-center">
+    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
       <div className="flex justify-between gap-2">
-        <div className="pl-2">
-          <TypographyH3>Folders</TypographyH3>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Folders</h1>
+          <p className="text-muted-foreground">Your folders</p>
         </div>
         <div>
           <Button
@@ -192,20 +188,21 @@ export const FoldersScreen = () => {
           />
         </div>
       </div>
-
-      <DataTable
-        enableSearch={true}
-        filters={filters}
-        onColumnFiltersChange={onFiltersChange}
-        searchPlaceholder="Search Folders..."
-        rowCount={folders?.meta.totalCount}
-        data={folders?.result ?? []}
-        columns={foldersTableColumns}
-        sorting={sorting}
-        pagination={pagination}
-        onPaginationChange={handlePaginationChange}
-        onSortingChange={handleSortingChange}
-      />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DataTable
+          enableSearch={true}
+          filters={filters}
+          onColumnFiltersChange={onFiltersChange}
+          searchPlaceholder="Search Folders..."
+          rowCount={folders?.meta.totalCount}
+          data={folders?.result ?? []}
+          columns={foldersTableColumns}
+          sorting={sorting}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+        />
+      </div>
     </div>
   )
 }

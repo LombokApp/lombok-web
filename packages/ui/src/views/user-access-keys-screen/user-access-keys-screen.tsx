@@ -1,5 +1,5 @@
 import type { AccessKeysListRequest } from '@stellariscloud/types'
-import { DataTable, Separator, TypographyH3 } from '@stellariscloud/ui-toolkit'
+import { DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -74,19 +74,22 @@ export function UserAccessKeysScreen() {
   }, [listAccessKeysQuery])
 
   return (
-    <div className="container flex flex-1 flex-col gap-3 self-center">
-      <TypographyH3>Access Keys</TypographyH3>
-      <Separator className="mb-3 bg-foreground/10" />
-
-      <DataTable
-        rowCount={accessKeys?.meta.totalCount}
-        data={accessKeys?.result ?? []}
-        columns={configureUserAccessKeysTableColumns(handleKeyRotate)}
-        onPaginationChange={handlePaginationChange}
-        onSortingChange={handleSortingChange}
-        sorting={sorting}
-        pagination={pagination}
-      />
+    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Access Keys</h1>
+        <p className="text-muted-foreground">Your access keys</p>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DataTable
+          rowCount={accessKeys?.meta.totalCount}
+          data={accessKeys?.result ?? []}
+          columns={configureUserAccessKeysTableColumns(handleKeyRotate)}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          sorting={sorting}
+          pagination={pagination}
+        />
+      </div>
     </div>
   )
 }
