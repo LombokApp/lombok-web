@@ -133,6 +133,19 @@ export const FolderDetailScreen = () => {
   const [pagination, setPagination] = React.useState<PaginationState>(
     readPaginationFromSearchParams(searchParams),
   )
+
+  // Keep local UI state in sync with URL params
+  React.useEffect(() => {
+    const syncedFilters = readFiltersFromSearchParams(
+      searchParams,
+      FILTER_CONFIGS,
+    )
+    const syncedSorting = readSortingFromSearchParams(searchParams)
+    const syncedPagination = readPaginationFromSearchParams(searchParams)
+    setFilters(syncedFilters)
+    setSorting(syncedSorting)
+    setPagination(syncedPagination)
+  }, [searchParams])
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
   const mediaTypeFilterValue = filters['mediaType'] ?? []

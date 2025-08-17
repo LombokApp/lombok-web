@@ -36,6 +36,15 @@ export const FoldersScreen = () => {
     readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
   )
 
+  // Keep local filters in sync with URL params
+  React.useEffect(() => {
+    const syncedFilters = readFiltersFromSearchParams(
+      searchParams,
+      FILTER_CONFIGS,
+    )
+    setFilters(syncedFilters)
+  }, [searchParams])
+
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
@@ -52,9 +61,20 @@ export const FoldersScreen = () => {
   const [sorting, setSorting] = React.useState<SortingState>(
     readSortingFromSearchParams(searchParams),
   )
+  // Keep local sorting in sync with URL params
+  React.useEffect(() => {
+    const syncedSorting = readSortingFromSearchParams(searchParams)
+    setSorting(syncedSorting)
+  }, [searchParams])
   const [pagination, setPagination] = React.useState<PaginationState>(
     readPaginationFromSearchParams(searchParams),
   )
+
+  // Keep local pagination in sync with URL params
+  React.useEffect(() => {
+    const syncedPagination = readPaginationFromSearchParams(searchParams)
+    setPagination(syncedPagination)
+  }, [searchParams])
 
   const handleSortingChange = React.useCallback(
     (newSorting: SortingState) => {
