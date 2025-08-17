@@ -2925,6 +2925,14 @@
             }
           },
           {
+            "name": "enabled",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "offset",
             "required": false,
             "in": "query",
@@ -2948,6 +2956,51 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AppListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/api/v1/server/apps/{appIdentifier}/enabled": {
+      "put": {
+        "operationId": "setAppEnabled",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAppEnabledInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppGetResponse"
                 }
               }
             }
@@ -6632,6 +6685,9 @@
                 "requiresStorage": {
                   "type": "boolean"
                 },
+                "enabled": {
+                  "type": "boolean"
+                },
                 "manifest": {
                   "type": "object",
                   "additionalProperties": {
@@ -6812,6 +6868,17 @@
         "required": [
           "meta",
           "result"
+        ]
+      },
+      "SetAppEnabledInputDTO": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
         ]
       },
       "AppGetResponse": {
@@ -7255,6 +7322,9 @@
                 ]
               },
               "requiresStorage": {
+                "type": "boolean"
+              },
+              "enabled": {
                 "type": "boolean"
               },
               "manifest": {

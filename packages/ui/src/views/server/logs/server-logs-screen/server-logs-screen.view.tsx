@@ -20,8 +20,10 @@ import { serverLogsTableColumns } from './server-logs-table-columns'
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
-  level: { paramPrefix: 'level' },
+  level: { paramPrefix: 'level', normalizeTo: 'upper' },
 }
+
+const DEFAULT_PAGE_SIZE = 10
 
 export function ServerLogsScreen() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -29,6 +31,15 @@ export function ServerLogsScreen() {
   const [filters, setFilters] = React.useState<Record<string, string[]>>(
     readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
   )
+
+  // Keep local filters in sync with URL params
+  React.useEffect(() => {
+    const syncedFilters = readFiltersFromSearchParams(
+      searchParams,
+      FILTER_CONFIGS,
+    )
+    setFilters(syncedFilters)
+  }, [searchParams])
 
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
@@ -47,6 +58,12 @@ export function ServerLogsScreen() {
     readSortingFromSearchParams(searchParams),
   )
 
+  // Keep local sorting in sync with URL params
+  React.useEffect(() => {
+    const syncedSorting = readSortingFromSearchParams(searchParams)
+    setSorting(syncedSorting)
+  }, [searchParams])
+
   const handleSortingChange = React.useCallback(
     (newSorting: SortingState) => {
       setSorting(newSorting)
@@ -57,8 +74,17 @@ export function ServerLogsScreen() {
   )
 
   const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams),
+    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
   )
+
+  // Keep local pagination in sync with URL params
+  React.useEffect(() => {
+    const syncedPagination = readPaginationFromSearchParams(
+      searchParams,
+      DEFAULT_PAGE_SIZE,
+    )
+    setPagination(syncedPagination)
+  }, [searchParams])
 
   const handlePaginationChange = React.useCallback(
     (newPagination: PaginationState) => {
@@ -66,6 +92,7 @@ export function ServerLogsScreen() {
       const newParams = convertPaginationToSearchParams(
         newPagination,
         searchParams,
+        DEFAULT_PAGE_SIZE,
       )
       setSearchParams(newParams)
     },

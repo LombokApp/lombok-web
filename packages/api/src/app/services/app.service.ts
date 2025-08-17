@@ -194,6 +194,30 @@ export class AppService {
     this.folderService = _folderService as FolderService
   }
 
+  public async setAppEnabledAsAdmin(
+    user: User,
+    appIdentifier: string,
+    enabled: boolean,
+  ): Promise<App> {
+    if (!user.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const app = await this.getAppAsAdmin(appIdentifier)
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    const now = new Date()
+    const [updated] = await this.ormService.db
+      .update(appsTable)
+      .set({ enabled, updatedAt: now })
+      .where(eq(appsTable.identifier, appIdentifier))
+      .returning()
+
+    return updated
+  }
+
   getAppAsAdmin(appIdentifier: string): Promise<App | undefined> {
     return this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, appIdentifier),
@@ -933,11 +957,13 @@ export class AppService {
       limit,
       sort = [AppSort.CreatedAtDesc],
       search,
+      enabled,
     }: {
       offset?: number
       limit?: number
       sort?: AppSort[]
       search?: string
+      enabled?: boolean
     } = {},
   ): Promise<{ meta: { totalCount: number }; result: App[] }> {
     if (!user.isAdmin) {
@@ -953,6 +979,10 @@ export class AppService {
           ilike(appsTable.identifier, `%${search}%`),
         ),
       )
+    }
+
+    if (typeof enabled === 'boolean') {
+      conditions.push(eq(appsTable.enabled, enabled))
     }
 
     const apps = await this.ormService.db.query.appsTable.findMany({
@@ -1386,6 +1416,7 @@ export class AppService {
         createdAt: now,
         updatedAt: now,
         contentHash: '', // TODO: calculate the exact content hash
+        enabled: true,
       },
     }
     return app
@@ -1484,7 +1515,9 @@ export class AppService {
       }
     >
   > {
-    const apps = await this.ormService.db.query.appsTable.findMany()
+    const apps = await this.ormService.db.query.appsTable.findMany({
+      where: eq(appsTable.enabled, true),
+    })
 
     return apps.reduce((acc, nextApp) => {
       const contributions: AppContributions | undefined =
