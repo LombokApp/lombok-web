@@ -1,5 +1,6 @@
 import type { FolderDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
+import { Badge } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { FolderIcon } from 'lucide-react'
 
@@ -31,7 +32,12 @@ export const foldersTableColumns: HideableColumnDef<{
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <FolderIcon className="size-4" />
-        {row.original.folder.name}
+        <span>{row.original.folder.name}</span>
+        {row.original.folder.accessError && (
+          <Badge variant="destructive" className="ml-2 text-[10px]">
+            {row.original.folder.accessError.code}
+          </Badge>
+        )}
       </div>
     ),
     enableSorting: true,

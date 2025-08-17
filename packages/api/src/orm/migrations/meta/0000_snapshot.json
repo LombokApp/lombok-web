@@ -1,5 +1,5 @@
 {
-  "id": "2c97f4d1-e78f-49da-b19d-ba4ac7358c22",
+  "id": "003f6410-cfff-47d0-a140-21d543c140cb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -524,6 +524,12 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "accessError": {
+          "name": "accessError",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",

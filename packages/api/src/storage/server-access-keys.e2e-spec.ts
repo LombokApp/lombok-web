@@ -1,5 +1,9 @@
 import type { TestApiClient, TestModule } from 'src/test/test.types'
-import { buildTestModule, createTestUser } from 'src/test/test.util'
+import {
+  buildTestModule,
+  createTestUser,
+  testS3Location,
+} from 'src/test/test.util'
 
 import { buildAccessKeyHashId } from './access-key.utils'
 
@@ -18,6 +22,7 @@ describe('Server Access Keys', () => {
 
   afterEach(async () => {
     await testModule?.resetAppState()
+    testModule?.cleanupMinioTestBuckets()
   })
 
   it(`should list DISTINCT server access keys`, async () => {
@@ -29,15 +34,20 @@ describe('Server Access Keys', () => {
       admin: true,
     })
 
+    const provisionBucketName = await testModule!.initMinioTestBucket()
+    const directContentBucketName = await testModule!.initMinioTestBucket([])
+    const directMetadataBucketName = await testModule!.initMinioTestBucket()
+    const s3Config = testModule!.testS3ClientConfig()
+
     const createProvisionResponse = await apiClient(accessToken).POST(
       '/api/v1/server/user-storage-provisions',
       {
         body: {
-          accessKeyId: 'dummyaccesskeyid',
-          secretAccessKey: 'dummysecretAccessKey',
-          endpoint: 'http://dummyendpoint',
-          bucket: 'dummybucket',
-          region: 'auto',
+          accessKeyId: s3Config.accessKeyId,
+          secretAccessKey: s3Config.secretAccessKey,
+          endpoint: s3Config.endpoint,
+          bucket: provisionBucketName,
+          region: s3Config.region,
           prefix: '',
           label: 'dummylabel',
           description: 'Test',
@@ -52,20 +62,12 @@ describe('Server Access Keys', () => {
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: 'Test Folder',
-        contentLocation: {
-          accessKeyId: 'testaccesskeyid',
-          secretAccessKey: 'testsecretaccesskey',
-          endpoint: 'http://localhost:9000',
-          bucket: 'testbucket',
-          region: 'us-east-1',
-        },
-        metadataLocation: {
-          accessKeyId: 'testaccesskeyid',
-          secretAccessKey: 'testsecretaccesskey',
-          endpoint: 'http://localhost:9000',
-          bucket: 'testbucket',
-          region: 'us-east-1',
-        },
+        contentLocation: testS3Location({
+          bucketName: directContentBucketName,
+        }),
+        metadataLocation: testS3Location({
+          bucketName: directMetadataBucketName,
+        }),
       },
     })
 
@@ -93,20 +95,20 @@ describe('Server Access Keys', () => {
     }
     expect(listServerAccessKeysResponse.data.result[0].accessKeyHashId).toEqual(
       buildAccessKeyHashId({
-        accessKeyId: 'dummyaccesskeyid',
-        secretAccessKey: 'dummysecretAccessKey',
-        region: 'auto',
-        endpoint: 'http://dummyendpoint',
+        accessKeyId: s3Config.accessKeyId,
+        secretAccessKey: s3Config.secretAccessKey,
+        region: s3Config.region,
+        endpoint: s3Config.endpoint,
       }),
     )
 
     expect(listServerAccessKeysResponse.response.status).toEqual(200)
     expect(listServerAccessKeysResponse.data.result.length).toEqual(1)
     expect(listServerAccessKeysResponse.data.result[0].accessKeyId).toEqual(
-      'dummyaccesskeyid',
+      s3Config.accessKeyId,
     )
     expect(listServerAccessKeysResponse.data.result[0].endpointDomain).toEqual(
-      'dummyendpoint',
+      new URL(s3Config.endpoint).host,
     )
     expect(listServerAccessKeysResponse.data.result[0].folderCount).toEqual(2)
   })

@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import nestjsConfig from '@nestjs/config'
 import { ModuleRef } from '@nestjs/core'
 import type {
   ContentMetadataType,
@@ -41,6 +42,7 @@ import mime from 'mime'
 import { AppService } from 'src/app/services/app.service'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
+import { platformConfig } from 'src/platform/config'
 import { parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
@@ -175,6 +177,10 @@ export class FolderService {
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly userService: UserService,
+    @Inject(platformConfig.KEY)
+    private readonly _platformConfig: nestjsConfig.ConfigType<
+      typeof platformConfig
+    >,
   ) {
     this.eventService = this.moduleRef.get(EventService)
     this.appService = this.moduleRef.get(AppService)
@@ -355,8 +361,11 @@ export class FolderService {
         })
         .returning()
     )[0]
+
+    await this.checkAndUpdateFolderAccessError(folder.id)
+
     return {
-      ...folder,
+      ...(await this.getFolder({ folderId: folder.id })),
       contentLocation,
       metadataLocation,
     }
@@ -370,6 +379,106 @@ export class FolderService {
       throw new FolderNotFoundException()
     }
     return folder
+  }
+
+  async checkAndUpdateFolderAccessError(folderId: string): Promise<void> {
+    const folder = await this.ormService.db.query.foldersTable.findFirst({
+      where: eq(foldersTable.id, folderId),
+      with: {
+        contentLocation: true,
+        metadataLocation: true,
+      },
+    })
+    if (!folder) {
+      throw new FolderNotFoundException()
+    }
+
+    let accessError: { message: string; code: string } | undefined
+
+    try {
+      const s3Client = configureS3Client({
+        accessKeyId: folder.contentLocation.accessKeyId,
+        secretAccessKey: folder.contentLocation.secretAccessKey,
+        endpoint: folder.contentLocation.endpoint,
+        region: folder.contentLocation.region,
+      })
+      // Try to list with limit 1 to validate access
+      try {
+        await this.s3Service.s3ListBucketObjects({
+          s3Client,
+          bucketName: folder.contentLocation.bucket,
+          prefix: folder.contentLocation.prefix,
+        })
+      } catch (e) {
+        accessError = {
+          code: 'S3_ACCESS_DENIED',
+          message:
+            e && typeof e === 'object' && 'message' in e
+              ? String((e as Error).message)
+              : 'Unable to access bucket',
+        }
+      }
+
+      // Only run CORS check if bucket access looked fine
+      if (!accessError) {
+        // Perform a CORS preflight (OPTIONS) with an Origin header; HEAD/GET without Origin
+        // won't include CORS headers even if CORS is properly configured.
+        const objectKey =
+          folder.contentLocation.prefix &&
+          folder.contentLocation.prefix.length > 0
+            ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.stellaris_cors_check_${folderId}`
+            : `.stellaris_cors_check_${folderId}`
+        const corsUrl = `${folder.contentLocation.endpoint.replace(/\/$/, '')}/${folder.contentLocation.bucket}/${objectKey}`
+        const appHostId: string = this._platformConfig.hostId
+        const originCandidates = [`https://${appHostId}`, `http://${appHostId}`]
+        let corsOk = false
+        for (const origin of originCandidates) {
+          try {
+            const response = await fetch(corsUrl, {
+              method: 'OPTIONS',
+              headers: {
+                Origin: origin,
+                'Access-Control-Request-Method': 'GET',
+              },
+            })
+            const acao = response.headers.get('access-control-allow-origin')
+            const acam = response.headers.get('access-control-allow-methods')
+            // Consider valid if ACAO is '*' or echoes our Origin or contains hostId
+            const originMatches =
+              !!acao &&
+              (acao === '*' || acao === origin || acao.includes(appHostId))
+            const methodsOk = !!acam && acam.toUpperCase().includes('GET')
+            if (originMatches && methodsOk) {
+              corsOk = true
+              break
+            }
+          } catch {
+            // try next origin variant
+          }
+        }
+
+        if (!corsOk) {
+          accessError = {
+            code: 'S3_CORS_INVALID',
+            message: `CORS configuration may not allow browser access from the configured frontend domain (${appHostId}).`,
+          }
+        }
+      }
+    } catch (e) {
+      accessError = {
+        code: 'S3_ACCESS_ERROR',
+        message:
+          e && typeof e === 'object' && 'message' in e
+            ? String((e as Error).message)
+            : 'Unknown S3 access error',
+      }
+    }
+
+    await this.ormService.db
+      .update(foldersTable)
+      .set({ accessError: accessError ?? null, updatedAt: new Date() })
+      .where(eq(foldersTable.id, folderId))
+      .execute()
   }
 
   async listFoldersAsUser(
@@ -402,6 +511,7 @@ export class FolderService {
         contentLocationId: foldersTable.contentLocationId,
         metadataLocationId: foldersTable.metadataLocationId,
         ownerId: foldersTable.ownerId,
+        accessError: foldersTable.accessError,
         createdAt: foldersTable.createdAt,
         updatedAt: foldersTable.updatedAt,
         contentLocation: contentLocationTable,
