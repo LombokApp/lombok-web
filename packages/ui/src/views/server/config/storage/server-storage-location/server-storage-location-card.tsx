@@ -1,6 +1,5 @@
 import type { ServerStorageDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 import {
   Globe,
   KeyRoundIcon,
