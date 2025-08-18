@@ -17,11 +17,11 @@ export function ServerStorageLocation() {
   ] = React.useState<{ open: boolean }>({ open: false })
 
   const { data: serverStorageLocation, refetch: refetchServerStorageLocation } =
-    $api.useQuery('get', '/api/v1/server/server-storage-location')
+    $api.useQuery('get', '/api/v1/server/server-storage')
 
   const setServerStorageLocationMutation = $api.useMutation(
     'post',
-    '/api/v1/server/server-storage-location',
+    '/api/v1/server/server-storage',
     {
       onSuccess: () => {
         setServerStorageLocationModalData({ open: false })
@@ -32,7 +32,7 @@ export function ServerStorageLocation() {
 
   const deleteServerStorageLocationMutation = $api.useMutation(
     'delete',
-    '/api/v1/server/server-storage-location',
+    '/api/v1/server/server-storage',
     {
       onSuccess: () => {
         setServerStorageLocationRemoveModalData({ open: false })

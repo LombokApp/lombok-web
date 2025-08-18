@@ -1,4 +1,4 @@
-import type { ServerStorageLocationInputDTO } from '@stellariscloud/types'
+import type { ServerStorageInputDTO } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ const ServerStorageLocationModal = ({
 }: {
   modalData: { open: boolean }
   setModalData: (modalData: { open: boolean }) => void
-  onSubmit: (values: ServerStorageLocationInputDTO) => Promise<void>
+  onSubmit: (values: ServerStorageInputDTO) => Promise<void>
 }) => {
   const { open } = modalData
 

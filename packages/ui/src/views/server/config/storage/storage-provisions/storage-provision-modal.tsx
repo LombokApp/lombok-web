@@ -1,4 +1,4 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,16 @@ import {
 
 import type {
   MutationType,
-  UserStorageProvisionFormValues,
-} from './user-storage-provision-form/user-storage-provision-form'
-import { UserStorageProvisionForm } from './user-storage-provision-form/user-storage-provision-form'
+  StorageProvisionFormValues,
+} from './storage-provision-form/storage-provision-form'
+import { StorageProvisionForm } from './storage-provision-form/storage-provision-form'
 
 interface ModalData {
-  userStorageProvision: UserStorageProvisionDTO | undefined
+  storageProvision: StorageProvisionDTO | undefined
   mutationType: MutationType
 }
 
-const UserStorageProvisionModal = ({
+export const StorageProvisionModal = ({
   modalData,
   setModalData,
   onSubmit,
@@ -28,17 +28,17 @@ const UserStorageProvisionModal = ({
   setModalData: (modalData: ModalData) => void
   onSubmit: (
     mutationType: MutationType,
-    values: UserStorageProvisionFormValues,
+    values: StorageProvisionFormValues,
   ) => Promise<void>
 }) => {
   const { toast } = useToast()
 
   return (
     <Dialog
-      open={!!modalData.userStorageProvision}
+      open={!!modalData.storageProvision}
       onOpenChange={(open) => {
         if (!open) {
-          setModalData({ ...modalData, userStorageProvision: undefined })
+          setModalData({ ...modalData, storageProvision: undefined })
         }
       }}
     >
@@ -46,14 +46,15 @@ const UserStorageProvisionModal = ({
         className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
         aria-description={
           modalData.mutationType === 'CREATE'
-            ? 'Add a user storage provision'
-            : 'Edit this user storage provision'
+            ? 'Provision a storage location'
+            : 'Edit this storage provision'
         }
       >
         <DialogHeader>
           <DialogTitle>
-            {modalData.mutationType === 'CREATE' ? 'Add a' : 'Edit a'} user
-            storage provision.
+            {modalData.mutationType === 'CREATE'
+              ? 'Provision a storage location'
+              : 'Edit this storage provision'}
           </DialogTitle>
           <DialogDescription>
             S3 locations that are provided to your users as managed storage
@@ -61,15 +62,21 @@ const UserStorageProvisionModal = ({
           </DialogDescription>
         </DialogHeader>
         <div className="w-full">
-          <UserStorageProvisionForm
+          <StorageProvisionForm
             mutationType={modalData.mutationType}
-            value={modalData.userStorageProvision}
+            value={modalData.storageProvision}
             onCancel={() =>
-              setModalData({ ...modalData, userStorageProvision: undefined })
+              setModalData({
+                ...modalData,
+                storageProvision: undefined,
+              })
             }
-            onSubmit={(userStorageProvision) => {
-              void onSubmit(modalData.mutationType, userStorageProvision)
-              setModalData({ ...modalData, userStorageProvision: undefined })
+            onSubmit={(storageProvision) => {
+              void onSubmit(modalData.mutationType, storageProvision)
+              setModalData({
+                ...modalData,
+                storageProvision: undefined,
+              })
               toast({
                 title: 'User storage provision created.',
               })
@@ -80,5 +87,3 @@ const UserStorageProvisionModal = ({
     </Dialog>
   )
 }
-
-export { UserStorageProvisionModal }

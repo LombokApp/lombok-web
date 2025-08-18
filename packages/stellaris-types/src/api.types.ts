@@ -49,13 +49,12 @@ export type AccessKeyPublicDTO =
 export type AccessKeysListRequest = NonNullable<
   paths['/api/v1/access-keys']['get']['parameters']['query']
 >
-export type UserStorageProvisionDTO =
-  paths['/api/v1/server/user-storage-provisions']['get']['responses']['200']['content']['application/json']['result'][number]
-export type ServerStorageLocationDTO = NonNullable<
-  paths['/api/v1/server/server-storage-location']['get']['responses']['200']['content']['application/json']['serverStorageLocation']
+
+export type ServerStorageDTO = NonNullable<
+  paths['/api/v1/server/server-storage']['get']['responses']['200']['content']['application/json']['serverStorageLocation']
 >
-export type ServerStorageLocationInputDTO =
-  paths['/api/v1/server/server-storage-location']['post']['requestBody']['content']['application/json']
+export type ServerStorageInputDTO =
+  paths['/api/v1/server/server-storage']['post']['requestBody']['content']['application/json']
 export type ServerSettingsGetResponse =
   paths['/api/v1/server/settings']['get']['responses']['200']['content']['application/json']
 

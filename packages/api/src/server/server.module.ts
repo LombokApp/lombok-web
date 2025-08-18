@@ -8,8 +8,8 @@ import { LogModule } from 'src/log/log.module'
 import { StorageModule } from 'src/storage/storage.module'
 
 import { ServerController } from './controllers/server.controller'
-import { ServerStorageLocationController } from './controllers/server-storage-location.controller'
-import { UserStorageProvisionsController } from './controllers/user-storage-provisions.controller'
+import { ServerStorageController } from './controllers/server-storage.controller'
+import { StorageProvisionsController } from './controllers/storage-provisions.controller'
 import { ServerConfigurationService } from './services/server-configuration.service'
 import { ServerMetricsService } from './services/server-metrics.service'
 
@@ -23,8 +23,8 @@ import { ServerMetricsService } from './services/server-metrics.service'
   ],
   controllers: [
     ServerController,
-    UserStorageProvisionsController,
-    ServerStorageLocationController,
+    StorageProvisionsController,
+    ServerStorageController,
   ],
   providers: [ServerConfigurationService, ServerMetricsService, AppService],
 })

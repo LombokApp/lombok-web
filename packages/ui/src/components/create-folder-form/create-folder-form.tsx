@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 import { s3LocationSchema } from '@stellariscloud/types'
 import {
   Badge,
@@ -41,11 +41,11 @@ export type FolderFormValues = z.infer<typeof formSchema>
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,
-  userStorageProvisions,
+  storageProvisions,
 }: {
   onSubmit: (values: FolderFormValues) => Promise<void>
   onCancel: () => void
-  userStorageProvisions: UserStorageProvisionDTO[]
+  storageProvisions: StorageProvisionDTO[]
 }) => {
   const [formConfig, setFormConfig] = useState({
     useCustomContentLocation: false,
@@ -61,7 +61,7 @@ export const CreateFolderForm = ({
   })
 
   const handleContentLocationStorageProvisionSelection = useCallback(
-    (storageProvision: UserStorageProvisionDTO) => {
+    (storageProvision: StorageProvisionDTO) => {
       setFormConfig((_c) => ({
         ..._c,
         useCustomContentLocation: false,
@@ -75,7 +75,7 @@ export const CreateFolderForm = ({
   )
 
   const handleMetadataLocationStorageProvisionSelection = useCallback(
-    (storageProvision: UserStorageProvisionDTO) => {
+    (storageProvision: StorageProvisionDTO) => {
       setFormConfig((_c) => ({
         ..._c,
         useCustomMetadataLocation: false,
@@ -162,9 +162,8 @@ export const CreateFolderForm = ({
     : undefined
 
   const serverProvisionMetadataLocationLabel = serverProvisionMetadataLocationId
-    ? (userStorageProvisions.find(
-        (l) => (l.id = serverProvisionMetadataLocationId),
-      )?.label ?? '')
+    ? (storageProvisions.find((l) => (l.id = serverProvisionMetadataLocationId))
+        ?.label ?? '')
     : ''
   const serverProvisionContentLocationId = safeZodParse(
     formValues.contentLocation,
@@ -174,9 +173,8 @@ export const CreateFolderForm = ({
     : undefined
 
   const serverProvisionContentLocationLabel = serverProvisionContentLocationId
-    ? (userStorageProvisions.find(
-        (l) => (l.id = serverProvisionContentLocationId),
-      )?.label ?? '')
+    ? (storageProvisions.find((l) => (l.id = serverProvisionContentLocationId))
+        ?.label ?? '')
     : ''
 
   const metadataLocation = form.getValues().metadataLocation
@@ -274,7 +272,7 @@ export const CreateFolderForm = ({
             ) : (
               <div>
                 <StorageLocationDropdown
-                  storageProvisions={userStorageProvisions.filter((p) =>
+                  storageProvisions={storageProvisions.filter((p) =>
                     p.provisionTypes.includes('CONTENT'),
                   )}
                   onSelectCustom={handleCustomContentLocationEditStart}
@@ -338,7 +336,7 @@ export const CreateFolderForm = ({
           ) : (
             <div>
               <StorageLocationDropdown
-                storageProvisions={userStorageProvisions.filter((p) =>
+                storageProvisions={storageProvisions.filter((p) =>
                   p.provisionTypes.includes('METADATA'),
                 )}
                 onSelectCustom={handleCustomMetadataLocationEditStart}

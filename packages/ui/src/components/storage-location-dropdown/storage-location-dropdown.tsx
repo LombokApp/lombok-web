@@ -1,4 +1,4 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 import {
   Button,
   DropdownMenu,
@@ -14,8 +14,8 @@ export function StorageLocationDropdown({
   onSelectStorageProvision,
   onSelectCustom,
 }: {
-  storageProvisions: UserStorageProvisionDTO[]
-  onSelectStorageProvision: (storageProvision: UserStorageProvisionDTO) => void
+  storageProvisions: StorageProvisionDTO[]
+  onSelectStorageProvision: (storageProvision: StorageProvisionDTO) => void
   onSelectCustom: () => void
 }) {
   return (

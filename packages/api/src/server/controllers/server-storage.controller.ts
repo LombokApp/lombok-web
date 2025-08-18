@@ -15,15 +15,15 @@ import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { ServerStorageLocationGetResponse } from '../dto/responses/server-storage-location-get-response.dto'
-import { ServerStorageLocationInputDTO } from '../dto/server-storage-location-input.dto'
+import { ServerStorageInputDTO } from '../dto/server-storage-input.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 
-@Controller('/api/v1/server/server-storage-location')
-@ApiTags('ServerStorageLocation')
+@Controller('/api/v1/server/server-storage')
+@ApiTags('ServerStorage')
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
-export class ServerStorageLocationController {
+export class ServerStorageController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
   ) {}
@@ -40,9 +40,7 @@ export class ServerStorageLocationController {
     }
 
     const result =
-      await this.serverConfigurationService.getServerStorageLocationAsAdmin(
-        req.user,
-      )
+      await this.serverConfigurationService.getServerStorageAsAdmin(req.user)
     return {
       serverStorageLocation: result,
     }
@@ -54,14 +52,14 @@ export class ServerStorageLocationController {
   @Post()
   async setServerStorageLocation(
     @Req() req: express.Request,
-    @Body() serverStorageLocation: ServerStorageLocationInputDTO,
+    @Body() serverStorageLocation: ServerStorageInputDTO,
   ): Promise<ServerStorageLocationGetResponse> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
 
     const setResult =
-      await this.serverConfigurationService.setServerStorageLocationAsAdmin(
+      await this.serverConfigurationService.setServerStorageAsAdmin(
         req.user,
         serverStorageLocation,
       )

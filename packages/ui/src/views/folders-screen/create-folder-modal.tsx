@@ -1,6 +1,6 @@
 import type {
   FolderCreateInputDTO,
-  UserStorageProvisionDTO,
+  StorageProvisionDTO,
 } from '@stellariscloud/types'
 import {
   Dialog,
@@ -13,7 +13,7 @@ import { CreateFolderForm } from '../../components/create-folder-form/create-fol
 
 export interface CreateFolderModalData {
   isOpen: boolean
-  userStorageProvisions: UserStorageProvisionDTO[]
+  storageProvisions: StorageProvisionDTO[]
 }
 
 const CreateFolderModal = ({
@@ -43,7 +43,7 @@ const CreateFolderModal = ({
           <CreateFolderForm
             onCancel={() => setModalData({ ...modalData, isOpen: false })}
             onSubmit={(v) => onSubmit(v)}
-            userStorageProvisions={modalData.userStorageProvisions}
+            storageProvisions={modalData.storageProvisions}
           />
         </div>
       </DialogContent>

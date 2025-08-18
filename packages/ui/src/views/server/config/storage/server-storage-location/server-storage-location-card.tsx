@@ -1,4 +1,4 @@
-import type { ServerStorageLocationDTO } from '@stellariscloud/types'
+import type { ServerStorageDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import {
   Globe,
@@ -15,7 +15,7 @@ export function ServerStorageLocationCard({
   serverStorageLocation,
   onRemoveClick,
 }: {
-  serverStorageLocation: ServerStorageLocationDTO
+  serverStorageLocation: ServerStorageDTO
   onRemoveClick: () => void
 }) {
   return (

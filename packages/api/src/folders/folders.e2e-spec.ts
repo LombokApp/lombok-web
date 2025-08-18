@@ -1,4 +1,4 @@
-import { UserStorageProvisionTypeEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeEnum } from '@stellariscloud/types'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -324,7 +324,7 @@ describe('Folders', () => {
 
     const serverProvisionBucket = await testModule!.initMinioTestBucket()
     const serverS3Config = testModule!.testS3ClientConfig()
-    const userStorageProvisionInput = {
+    const storageProvisionInput = {
       label: 'Test Provision',
       description: 'This is a test provision',
       accessKeyId: serverS3Config.accessKeyId,
@@ -333,22 +333,22 @@ describe('Folders', () => {
       prefix: 'someserverprefix',
       endpoint: serverS3Config.endpoint,
       region: serverS3Config.region,
-      provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
+      provisionTypes: [StorageProvisionTypeEnum.CONTENT],
     }
 
     const _storageProvision = await apiClient(accessToken).POST(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {
         body: {
-          label: userStorageProvisionInput.label,
-          description: userStorageProvisionInput.description,
-          accessKeyId: userStorageProvisionInput.accessKeyId,
-          secretAccessKey: userStorageProvisionInput.secretAccessKey,
-          bucket: userStorageProvisionInput.bucket,
-          prefix: userStorageProvisionInput.prefix,
-          endpoint: userStorageProvisionInput.endpoint,
-          region: userStorageProvisionInput.region,
-          provisionTypes: userStorageProvisionInput.provisionTypes,
+          label: storageProvisionInput.label,
+          description: storageProvisionInput.description,
+          accessKeyId: storageProvisionInput.accessKeyId,
+          secretAccessKey: storageProvisionInput.secretAccessKey,
+          bucket: storageProvisionInput.bucket,
+          prefix: storageProvisionInput.prefix,
+          endpoint: storageProvisionInput.endpoint,
+          region: storageProvisionInput.region,
+          provisionTypes: storageProvisionInput.provisionTypes,
         },
       },
     )
@@ -377,19 +377,19 @@ describe('Folders', () => {
       'SERVER',
     )
     expect(folderCreateResponse.data?.folder.contentLocation.endpoint).toBe(
-      userStorageProvisionInput.endpoint,
+      storageProvisionInput.endpoint,
     )
     expect(folderCreateResponse.data?.folder.contentLocation.bucket).toBe(
-      userStorageProvisionInput.bucket,
+      storageProvisionInput.bucket,
     )
     expect(folderCreateResponse.data?.folder.contentLocation.region).toBe(
-      userStorageProvisionInput.region,
+      storageProvisionInput.region,
     )
     expect(folderCreateResponse.data?.folder.contentLocation.accessKeyId).toBe(
-      userStorageProvisionInput.accessKeyId,
+      storageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data?.folder.contentLocation.prefix).toBe(
-      `${userStorageProvisionInput.prefix}/.stellaris_folder_content_${folderCreateResponse.data?.folder.id}`,
+      `${storageProvisionInput.prefix}/.stellaris_folder_content_${folderCreateResponse.data?.folder.id}`,
     )
 
     // validate metadata location
@@ -397,19 +397,19 @@ describe('Folders', () => {
       folderCreateResponse.data?.folder.metadataLocation.providerType,
     ).toBe('SERVER')
     expect(folderCreateResponse.data?.folder.metadataLocation.endpoint).toBe(
-      userStorageProvisionInput.endpoint,
+      storageProvisionInput.endpoint,
     )
     expect(folderCreateResponse.data?.folder.metadataLocation.bucket).toBe(
-      userStorageProvisionInput.bucket,
+      storageProvisionInput.bucket,
     )
     expect(folderCreateResponse.data?.folder.metadataLocation.region).toBe(
-      userStorageProvisionInput.region,
+      storageProvisionInput.region,
     )
     expect(folderCreateResponse.data?.folder.metadataLocation.accessKeyId).toBe(
-      userStorageProvisionInput.accessKeyId,
+      storageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data?.folder.metadataLocation.prefix).toBe(
-      `${userStorageProvisionInput.prefix}/.stellaris_folder_metadata_${folderCreateResponse.data?.folder.id}`,
+      `${storageProvisionInput.prefix}/.stellaris_folder_metadata_${folderCreateResponse.data?.folder.id}`,
     )
   })
 
@@ -504,11 +504,11 @@ describe('Folders', () => {
       prefix: 'someserverprefix',
       endpoint: serverPresignConfig.endpoint,
       region: serverPresignConfig.region,
-      provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
+      provisionTypes: [StorageProvisionTypeEnum.CONTENT],
     }
 
     const _storageProvision = await apiClient(accessToken).POST(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {
         body: {
           label: storageProvisionInput.label,

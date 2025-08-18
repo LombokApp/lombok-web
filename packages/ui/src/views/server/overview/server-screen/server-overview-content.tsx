@@ -105,13 +105,13 @@ export function ServerOverviewContent() {
           {
             title: 'Total Indexed Storage',
             label: formatBytes(metrics.totalIndexedSizeBytes),
-            subtitle: `${formatBytes(metrics.totalIndexedSizeBytesAcrossProvisionedStorageLocations)} in provisioned storage`,
+            subtitle: `${formatBytes(metrics.totalIndexedSizeBytesAcrossStorageProvisions)} in provisioned storage`,
             icon: HardDrive,
           },
           {
-            title: 'Provisioned Storage Locations',
-            label: metrics.provisionedStorageLocations.totalCount.toString(),
-            subtitle: metrics.provisionedStorageLocations.summary,
+            title: 'Storage Provisions',
+            label: metrics.provisionedStorage.totalCount.toString(),
+            subtitle: metrics.provisionedStorage.summary,
             icon: Database,
           },
           {

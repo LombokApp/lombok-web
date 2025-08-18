@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { UserStorageProvisionDTO } from '@stellariscloud/types'
+import { StorageProvisionDTO } from '@stellariscloud/types'
 import { eq, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'
@@ -14,8 +14,8 @@ import { usersTable } from 'src/users/entities/user.entity'
 
 import { ServerConfigurationService } from './server-configuration.service'
 
-function generateProvisionedStorageSummary(
-  allUserStorageProvisions: UserStorageProvisionDTO[],
+function generateStorageProvisionsSummary(
+  allUserStorageProvisions: StorageProvisionDTO[],
 ): string {
   const displayMax = 2
   return allUserStorageProvisions
@@ -182,27 +182,21 @@ export class ServerMetricsService {
       )
 
     // Get count of user storage provisions (count of storage locations with providerType = 'SERVER')
-    const allProvisionedStorageLocations =
-      await this.serverConfigurationService.listUserStorageProvisionsAsUser(
-        actor,
-      )
+    const allStorageProvisions =
+      await this.serverConfigurationService.listStorageProvisionsAsUser(actor)
 
     // Get total persisted size (sum of folderObject.sizeBytes for all folders)
-    const totalIndexedAcrossProvisionedStorageLocationsResult =
-      await this.ormService.db
-        .select({
-          totalSize: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)`,
-        })
-        .from(folderObjectsTable)
-        .innerJoin(
-          foldersTable,
-          eq(folderObjectsTable.folderId, foldersTable.id),
-        )
-        .innerJoin(
-          storageLocationsTable,
-          eq(foldersTable.contentLocationId, storageLocationsTable.id),
-        )
-        .where(eq(storageLocationsTable.providerType, 'SERVER'))
+    const totalIndexedAcrossStorageProvisionsResult = await this.ormService.db
+      .select({
+        totalSize: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)`,
+      })
+      .from(folderObjectsTable)
+      .innerJoin(foldersTable, eq(folderObjectsTable.folderId, foldersTable.id))
+      .innerJoin(
+        storageLocationsTable,
+        eq(foldersTable.contentLocationId, storageLocationsTable.id),
+      )
+      .where(eq(storageLocationsTable.providerType, 'SERVER'))
 
     return {
       totalUsers: parseInt(totalUsersResult[0]?.count ?? '0', 10),
@@ -227,16 +221,13 @@ export class ServerMetricsService {
         totalIndexedSizeResult[0]?.totalSize ?? '0',
         10,
       ),
-      provisionedStorageLocations: {
-        totalCount: allProvisionedStorageLocations.length,
-        summary: generateProvisionedStorageSummary(
-          allProvisionedStorageLocations,
-        ),
+      provisionedStorage: {
+        totalCount: allStorageProvisions.length,
+        summary: generateStorageProvisionsSummary(allStorageProvisions),
       },
-      totalProvisionedStorageLocations: allProvisionedStorageLocations.length,
-      totalIndexedSizeBytesAcrossProvisionedStorageLocations: parseInt(
-        totalIndexedAcrossProvisionedStorageLocationsResult[0]?.totalSize ??
-          '0',
+      totalStorageProvisions: allStorageProvisions.length,
+      totalIndexedSizeBytesAcrossStorageProvisions: parseInt(
+        totalIndexedAcrossStorageProvisionsResult[0]?.totalSize ?? '0',
         10,
       ),
       installedApps: {

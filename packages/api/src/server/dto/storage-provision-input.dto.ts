@@ -1,8 +1,8 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { UserStorageProvisionTypeZodEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeZodEnum } from '@stellariscloud/types'
 import { z } from 'zod'
 
-export const userStorageProvisionInputSchema = z.object({
+export const storageProvisionInputSchema = z.object({
   label: z.string().max(32),
   description: z.string().max(128),
   endpoint: z.string().refine((endpoint) => {
@@ -14,9 +14,9 @@ export const userStorageProvisionInputSchema = z.object({
   accessKeyId: z.string(),
   secretAccessKey: z.string(),
   prefix: z.string().optional(),
-  provisionTypes: z.array(UserStorageProvisionTypeZodEnum).min(1),
+  provisionTypes: z.array(StorageProvisionTypeZodEnum).min(1),
 })
 
-export class UserStorageProvisionInputDTO extends createZodDto(
-  userStorageProvisionInputSchema,
+export class StorageProvisionInputDTO extends createZodDto(
+  storageProvisionInputSchema,
 ) {}

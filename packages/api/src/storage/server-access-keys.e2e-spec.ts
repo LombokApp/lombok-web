@@ -40,7 +40,7 @@ describe('Server Access Keys', () => {
     const s3Config = testModule!.testS3ClientConfig()
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {
         body: {
           accessKeyId: s3Config.accessKeyId,

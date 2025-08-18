@@ -1,35 +1,38 @@
 #!/bin/bash
 set -e
 
-echo "Checking @stellariscloud/ui..."
-bun --cwd packages/ui lint:check
+run_checks() {
+  local name=$1
+  local path=$2
 
-echo "Checking @stellariscloud/api..."
-bun --cwd packages/api lint:check
+  echo "Prettier check ${name}..."
+  bun --cwd ${path} prettier:check
 
-echo "Checking @stellariscloud/core-worker..."
-bun --cwd packages/core-worker lint:check
+  echo "TypeScript check ${name}..."
+  bun --cwd ${path} tsc:check
 
-echo "Checking @stellariscloud/auth-utils..."
-bun --cwd packages/auth-utils lint:check
+  echo "ESLint check ${name}..."
+  bun --cwd ${path} lint:check
+}
 
-echo "Checking @stellariscloud/app-browser-sdk..."
-bun --cwd packages/app-browser-sdk lint:check
+run_checks "@stellariscloud/ui" packages/ui
 
-echo "Checking @stellariscloud/app-demo..."
-bun --cwd packages/app-demo lint:check
+run_checks "@stellariscloud/api" packages/api
 
-echo "Checking @stellariscloud/sdk..."
-bun --cwd packages/sdk lint:check
+run_checks "@stellariscloud/core-worker" packages/core-worker
 
-echo "Checking @stellariscloud/app-worker-sdk..."
-bun --cwd packages/app-worker-sdk lint:check
+run_checks "@stellariscloud/auth-utils" packages/auth-utils
 
-echo "Checking @stellariscloud/utils..."
-bun --cwd packages/stellaris-utils lint:check
+run_checks "@stellariscloud/app-browser-sdk" packages/app-browser-sdk
 
-echo "Checking @stellariscloud/types..."
-bun --cwd packages/stellaris-types lint:check
+run_checks "@stellariscloud/app-demo" packages/app-demo
 
-echo "Checking @stellariscloud/ui-toolkit..."
-bun --cwd packages/ui-toolkit lint:check
+run_checks "@stellariscloud/sdk" packages/sdk
+
+run_checks "@stellariscloud/app-worker-sdk" packages/app-worker-sdk
+
+run_checks "@stellariscloud/utils" packages/stellaris-utils
+
+run_checks "@stellariscloud/types" packages/stellaris-types
+
+run_checks "@stellariscloud/ui-toolkit" packages/ui-toolkit

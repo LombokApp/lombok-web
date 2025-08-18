@@ -1,66 +1,68 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import { Folder, Plus } from 'lucide-react'
 import React from 'react'
 
 import { EmptyState } from '@/src/components/empty-state/empty-state'
-import { UserStorageProvisionsTable } from '@/src/components/user-storage-provisions-table/user-storage-provisions-table'
+import { StorageProvisionsTable } from '@/src/components/storage-provisions-table/storage-provisions-table'
 import { $api } from '@/src/services/api'
 
-import type { MutationType } from './user-storage-provision-form/user-storage-provision-form'
-import { UserStorageProvisionModal } from './user-storage-provision-modal'
+import type { MutationType } from './storage-provision-form/storage-provision-form'
+import { StorageProvisionModal } from './storage-provision-modal'
 
 export function UserStorageProvisions() {
   const [modalData, setModalData] = React.useState<{
-    userStorageProvision: UserStorageProvisionDTO | undefined
+    storageProvision: StorageProvisionDTO | undefined
     mutationType: MutationType
   }>({
-    userStorageProvision: undefined,
+    storageProvision: undefined,
     mutationType: 'CREATE',
   })
 
-  const userStorageProvisionsQuery = $api.useQuery(
+  const storageProvisionsQuery = $api.useQuery(
     'get',
-    '/api/v1/server/user-storage-provisions',
+    '/api/v1/server/storage-provisions',
   )
 
   const addStorageProvisionMutation = $api.useMutation(
     'post',
-    '/api/v1/server/user-storage-provisions',
+    '/api/v1/server/storage-provisions',
     {
-      onSuccess: () => userStorageProvisionsQuery.refetch(),
+      onSuccess: () => storageProvisionsQuery.refetch(),
     },
   )
 
   const updateStorageProvisionMutation = $api.useMutation(
     'put',
-    '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
+    '/api/v1/server/storage-provisions/{storageProvisionId}',
     {
-      onSuccess: () => userStorageProvisionsQuery.refetch(),
+      onSuccess: () => storageProvisionsQuery.refetch(),
     },
   )
 
-  // Define the update handler to pass to the table
   const handleUpdate = React.useCallback(
-    (userStorageProvision: UserStorageProvisionDTO) => {
-      setModalData({ mutationType: 'UPDATE', userStorageProvision })
+    (storageProvision: StorageProvisionDTO) => {
+      setModalData({
+        mutationType: 'UPDATE',
+        storageProvision,
+      })
     },
     [],
   )
 
   return (
     <div className="w-full">
-      <UserStorageProvisionModal
+      <StorageProvisionModal
         onSubmit={async (mutationType, values) => {
           if (mutationType === 'CREATE') {
             await addStorageProvisionMutation.mutateAsync({
               body: values,
             })
-          } else if (modalData.userStorageProvision) {
+          } else if (modalData.storageProvision) {
             await updateStorageProvisionMutation.mutateAsync({
               params: {
                 path: {
-                  userStorageProvisionId: modalData.userStorageProvision.id,
+                  storageProvisionId: modalData.storageProvision.id,
                 },
               },
               body: {
@@ -75,16 +77,14 @@ export function UserStorageProvisions() {
         setModalData={setModalData}
         modalData={modalData}
       />
-      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+      <dl className="dark:divide-gray-700 divide-y divide-gray-100">
         <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
-            {(userStorageProvisionsQuery.data?.result.length ?? 0) > 0 ? (
+            {(storageProvisionsQuery.data?.result.length ?? 0) > 0 ? (
               <div className="flex flex-col items-start gap-4">
                 <div className="w-full">
-                  <UserStorageProvisionsTable
-                    userStorageProvisions={
-                      userStorageProvisionsQuery.data?.result ?? []
-                    }
+                  <StorageProvisionsTable
+                    storageProvision={storageProvisionsQuery.data?.result ?? []}
                     onUpdate={handleUpdate}
                   />
                 </div>
@@ -92,7 +92,7 @@ export function UserStorageProvisions() {
                   variant="outline"
                   onClick={() => {
                     setModalData({
-                      userStorageProvision: {
+                      storageProvision: {
                         accessKeyHashId: '',
                         bucket: '',
                         description: '',
@@ -118,12 +118,11 @@ export function UserStorageProvisions() {
                 icon={Folder}
                 text="No storage provisions have been created"
                 onButtonPress={() => {
-                  // TODO: Update add provision logic
                   console.log(
                     'Add provision button clicked - functionality needs update',
                   )
                   setModalData({
-                    userStorageProvision: {
+                    storageProvision: {
                       accessKeyHashId: '',
                       bucket: '',
                       description: '',

@@ -8,7 +8,7 @@ import {
 
 import { ServerAccessKeysTable } from '../server-access-keys/server-access-keys-table/server-access-keys-table.view'
 import { ServerStorageLocation } from '../server-storage-location/server-storage-location.view'
-import { UserStorageProvisions } from '../user-storage-provisions/user-storage-provisions.view'
+import { UserStorageProvisions } from '../storage-provisions/storage-provisions.view'
 
 export function ServerStorageConfigTab() {
   return (

@@ -592,6 +592,7 @@
             "bearer": []
           }
         ],
+        "summary": "Check S3 access and update folder accessError",
         "tags": [
           "Folders"
         ]
@@ -1950,9 +1951,9 @@
         ]
       }
     },
-    "/api/v1/server/user-storage-provisions": {
+    "/api/v1/server/storage-provisions": {
       "get": {
-        "operationId": "listUserStorageProvisions",
+        "operationId": "listStorageProvisions",
         "parameters": [
           {
             "name": "provisionType",
@@ -1974,7 +1975,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
                 }
               }
             }
@@ -1985,9 +1986,9 @@
             "bearer": []
           }
         ],
-        "summary": "List the user storage provisions.",
+        "summary": "List the storage provisions.",
         "tags": [
-          "UserStorageProvisions"
+          "StorageProvisions"
         ]
       },
       "post": {
@@ -1998,7 +1999,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserStorageProvisionInputDTO"
+                "$ref": "#/components/schemas/StorageProvisionInputDTO"
               }
             }
           }
@@ -2009,7 +2010,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
                 }
               }
             }
@@ -2022,16 +2023,16 @@
         ],
         "summary": "Create a new user storage provision.",
         "tags": [
-          "UserStorageProvisions"
+          "StorageProvisions"
         ]
       }
     },
-    "/api/v1/server/user-storage-provisions/{userStorageProvisionId}": {
+    "/api/v1/server/storage-provisions/{storageProvisionId}": {
       "get": {
-        "operationId": "getUserStorageProvision",
+        "operationId": "getStorageProvision",
         "parameters": [
           {
-            "name": "userStorageProvisionId",
+            "name": "storageProvisionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -2045,7 +2046,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStorageProvisionGetResponse"
+                  "$ref": "#/components/schemas/StorageProvisionGetResponse"
                 }
               }
             }
@@ -2056,16 +2057,16 @@
             "bearer": []
           }
         ],
-        "summary": "Get a user storage provision by id.",
+        "summary": "Get a storage provision by id.",
         "tags": [
-          "UserStorageProvisions"
+          "StorageProvisions"
         ]
       },
       "put": {
-        "operationId": "updateUserStorageProvision",
+        "operationId": "updateStorageProvision",
         "parameters": [
           {
-            "name": "userStorageProvisionId",
+            "name": "storageProvisionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -2078,7 +2079,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserStorageProvisionInputDTO"
+                "$ref": "#/components/schemas/StorageProvisionInputDTO"
               }
             }
           }
@@ -2089,7 +2090,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
                 }
               }
             }
@@ -2102,14 +2103,14 @@
         ],
         "summary": "Update a server provision by id.",
         "tags": [
-          "UserStorageProvisions"
+          "StorageProvisions"
         ]
       },
       "delete": {
-        "operationId": "deleteUserStorageProvision",
+        "operationId": "deleteStorageProvision",
         "parameters": [
           {
-            "name": "userStorageProvisionId",
+            "name": "storageProvisionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -2123,7 +2124,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
                 }
               }
             }
@@ -2134,13 +2135,13 @@
             "bearer": []
           }
         ],
-        "summary": "Delete a server provision by id.",
+        "summary": "Delete a storage provision by id.",
         "tags": [
-          "UserStorageProvisions"
+          "StorageProvisions"
         ]
       }
     },
-    "/api/v1/server/server-storage-location": {
+    "/api/v1/server/server-storage": {
       "get": {
         "operationId": "getServerStorageLocation",
         "parameters": [],
@@ -2163,7 +2164,7 @@
         ],
         "summary": "Get the server storage location.",
         "tags": [
-          "ServerStorageLocation"
+          "ServerStorage"
         ]
       },
       "post": {
@@ -2174,7 +2175,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ServerStorageLocationInputDTO"
+                "$ref": "#/components/schemas/ServerStorageInputDTO"
               }
             }
           }
@@ -2198,7 +2199,7 @@
         ],
         "summary": "Create a new server provision.",
         "tags": [
-          "ServerStorageLocation"
+          "ServerStorage"
         ]
       },
       "delete": {
@@ -2216,7 +2217,7 @@
         ],
         "summary": "Delete any set server storage location.",
         "tags": [
-          "ServerStorageLocation"
+          "ServerStorage"
         ]
       }
     },
@@ -5622,7 +5623,7 @@
           "sessionsCreatedPrevious24Hours": {
             "type": "number"
           },
-          "provisionedStorageLocations": {
+          "provisionedStorage": {
             "type": "object",
             "properties": {
               "totalCount": {
@@ -5637,7 +5638,7 @@
               "summary"
             ]
           },
-          "totalIndexedSizeBytesAcrossProvisionedStorageLocations": {
+          "totalIndexedSizeBytesAcrossStorageProvisions": {
             "type": "number"
           },
           "installedApps": {
@@ -5688,8 +5689,8 @@
           "totalIndexedSizeBytes",
           "sessionsCreatedPreviousWeek",
           "sessionsCreatedPrevious24Hours",
-          "provisionedStorageLocations",
-          "totalIndexedSizeBytesAcrossProvisionedStorageLocations",
+          "provisionedStorage",
+          "totalIndexedSizeBytesAcrossStorageProvisions",
           "installedApps",
           "tasksCreatedPreviousDay",
           "tasksCreatedPreviousHour",
@@ -5701,7 +5702,7 @@
           "folderEventsEmittedPreviousHour"
         ]
       },
-      "UserStorageProvisionListResponse": {
+      "StorageProvisionsListResponse": {
         "type": "object",
         "properties": {
           "result": {
@@ -5770,10 +5771,10 @@
           "result"
         ]
       },
-      "UserStorageProvisionGetResponse": {
+      "StorageProvisionGetResponse": {
         "type": "object",
         "properties": {
-          "userStorageProvision": {
+          "storageProvision": {
             "type": "object",
             "properties": {
               "id": {
@@ -5833,10 +5834,10 @@
           }
         },
         "required": [
-          "userStorageProvision"
+          "storageProvision"
         ]
       },
-      "UserStorageProvisionInputDTO": {
+      "StorageProvisionInputDTO": {
         "type": "object",
         "properties": {
           "label": {
@@ -5927,7 +5928,7 @@
           }
         }
       },
-      "ServerStorageLocationInputDTO": {
+      "ServerStorageInputDTO": {
         "type": "object",
         "properties": {
           "accessKeyId": {
