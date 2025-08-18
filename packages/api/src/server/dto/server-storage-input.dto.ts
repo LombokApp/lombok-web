@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-const serverStorageLocationInputSchema = z.object({
+const serverStorageInputSchema = z.object({
   accessKeyId: z.string().min(1),
   secretAccessKey: z.string().min(1),
   endpoint: z
@@ -24,6 +24,6 @@ const serverStorageLocationInputSchema = z.object({
   prefix: z.string().nonempty().nullable(),
 })
 
-export class ServerStorageLocationInputDTO extends createZodDto(
-  serverStorageLocationInputSchema,
+export class ServerStorageInputDTO extends createZodDto(
+  serverStorageInputSchema,
 ) {}

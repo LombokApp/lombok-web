@@ -1,10 +1,10 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 
-import type { UserStorageProvisionInputDTO } from '../user-storage-provision-input.dto'
+import type { StorageProvisionInputDTO } from '../storage-provision-input.dto'
 
-export function transformUserStorageProvisionToDTO(
-  storageProvision: UserStorageProvisionInputDTO & UserStorageProvisionDTO,
-): UserStorageProvisionDTO {
+export function transformStorageProvisionToDTO(
+  storageProvision: StorageProvisionInputDTO & StorageProvisionDTO,
+): StorageProvisionDTO {
   return {
     id: storageProvision.id,
     label: storageProvision.label,

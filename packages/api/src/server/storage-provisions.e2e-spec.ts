@@ -1,10 +1,10 @@
-import { UserStorageProvisionTypeEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeEnum } from '@stellariscloud/types'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 
-const TEST_MODULE_KEY = 'user_storage_provisions'
+const TEST_MODULE_KEY = 'storage_provisions'
 
-describe('Server - User Storage Provisions', () => {
+describe('Server - Storage Provisions', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
 
@@ -27,7 +27,7 @@ describe('Server - User Storage Provisions', () => {
     })
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {
         body: {
           accessKeyId: 'dummyaccesskeyid',
@@ -36,7 +36,7 @@ describe('Server - User Storage Provisions', () => {
           description: 'dummydescription',
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
-          provisionTypes: [UserStorageProvisionTypeEnum.REDUNDANCY],
+          provisionTypes: [StorageProvisionTypeEnum.REDUNDANCY],
           region: 'auto',
           prefix: '',
         },
@@ -51,7 +51,7 @@ describe('Server - User Storage Provisions', () => {
     )
   })
 
-  it(`should update a storage provision`, async () => {
+  it(`should update a storage provision location`, async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -61,7 +61,7 @@ describe('Server - User Storage Provisions', () => {
     })
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {
         body: {
           accessKeyId: 'dummyaccesskeyid',
@@ -70,7 +70,7 @@ describe('Server - User Storage Provisions', () => {
           description: 'dummydescription',
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
-          provisionTypes: [UserStorageProvisionTypeEnum.REDUNDANCY],
+          provisionTypes: [StorageProvisionTypeEnum.REDUNDANCY],
           region: 'auto',
           prefix: '',
         },
@@ -89,9 +89,9 @@ describe('Server - User Storage Provisions', () => {
       throw new Error('No provision id')
     }
     const updateProvisionResponse = await apiClient(accessToken).PUT(
-      '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
+      '/api/v1/server/storage-provisions/{storageProvisionId}',
       {
-        params: { path: { userStorageProvisionId: provisionId } },
+        params: { path: { storageProvisionId: provisionId } },
         body: {
           accessKeyId: 'dummyaccesskeyid',
           secretAccessKey: '__dummysecretAccessKey',
@@ -100,8 +100,8 @@ describe('Server - User Storage Provisions', () => {
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
           provisionTypes: [
-            UserStorageProvisionTypeEnum.CONTENT,
-            UserStorageProvisionTypeEnum.REDUNDANCY,
+            StorageProvisionTypeEnum.CONTENT,
+            StorageProvisionTypeEnum.REDUNDANCY,
           ],
           region: 'auto',
           prefix: 'prefix',
@@ -127,8 +127,8 @@ describe('Server - User Storage Provisions', () => {
       'dummydescription',
     )
     expect(updateProvisionResponse.data.result[0].provisionTypes).toEqual([
-      UserStorageProvisionTypeEnum.CONTENT,
-      UserStorageProvisionTypeEnum.REDUNDANCY,
+      StorageProvisionTypeEnum.CONTENT,
+      StorageProvisionTypeEnum.REDUNDANCY,
     ])
   })
 
@@ -142,7 +142,7 @@ describe('Server - User Storage Provisions', () => {
     })
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {
         body: {
           accessKeyId: 'dummyaccesskeyid',
@@ -151,7 +151,7 @@ describe('Server - User Storage Provisions', () => {
           description: 'dummydescription',
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
-          provisionTypes: [UserStorageProvisionTypeEnum.REDUNDANCY],
+          provisionTypes: [StorageProvisionTypeEnum.REDUNDANCY],
           region: 'auto',
           prefix: '',
         },
@@ -170,13 +170,13 @@ describe('Server - User Storage Provisions', () => {
       throw new Error('No provision id')
     }
     const deleteProvisionResponse = await apiClient(accessToken).DELETE(
-      '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
-      { params: { path: { userStorageProvisionId: provisionId } } },
+      '/api/v1/server/storage-provisions/{storageProvisionId}',
+      { params: { path: { storageProvisionId: provisionId } } },
     )
     expect(deleteProvisionResponse.response.status).toEqual(200)
 
     const listProvisionsResponse = await apiClient(accessToken).GET(
-      '/api/v1/server/user-storage-provisions',
+      '/api/v1/server/storage-provisions',
       {},
     )
 

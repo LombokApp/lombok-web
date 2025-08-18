@@ -1,4 +1,4 @@
-import type { ServerStorageLocationDTO } from '@stellariscloud/types'
+import type { ServerStorageDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import {
   Globe,
@@ -14,9 +14,11 @@ const DD_CLASS = 'mt-1 text-base text-muted-foreground font-mono'
 export function ServerStorageLocationCard({
   serverStorageLocation,
   onRemoveClick,
+  onRotateClick,
 }: {
-  serverStorageLocation: ServerStorageLocationDTO
+  serverStorageLocation: ServerStorageDTO
   onRemoveClick: () => void
+  onRotateClick: () => void
 }) {
   return (
     <div className="lg:col-start-3 lg:row-end-1">
@@ -114,7 +116,10 @@ export function ServerStorageLocationCard({
             </dd>
           </div>
         </dl>
-        <div className="mt-6 border-t border-gray-900/5 p-6">
+        <div className="mt-6 flex gap-3 border-t border-gray-900/5 p-6">
+          <Button onClick={onRotateClick} variant="secondary">
+            Rotate key
+          </Button>
           <Button onClick={onRemoveClick} variant="destructive">
             Remove
           </Button>

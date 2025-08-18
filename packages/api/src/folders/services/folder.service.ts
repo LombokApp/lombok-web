@@ -11,7 +11,7 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   S3ObjectInternal,
-  UserStorageProvisionType,
+  StorageProvisionType,
 } from '@stellariscloud/types'
 import {
   APP_NS_PREFIX,
@@ -20,7 +20,7 @@ import {
   MediaType,
   PLATFORM_IDENTIFIER,
   SignedURLsRequestMethod,
-  UserStorageProvisionTypeEnum,
+  StorageProvisionTypeEnum,
 } from '@stellariscloud/types'
 import {
   mediaTypeFromMimeType,
@@ -51,6 +51,7 @@ import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
+import { StorageProvisionNotFoundException } from 'src/storage/exceptions/storage-provision-not-found.exceptions'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -207,7 +208,7 @@ export class FolderService {
     const prospectiveFolderId = uuidV4()
     const now = new Date()
     const buildLocation = async (
-      storageProvisionType: UserStorageProvisionType,
+      storageProvisionType: StorageProvisionType,
       locationInput: StorageLocationInputDTO,
     ): Promise<StorageLocation> => {
       let location: StorageLocation | undefined = undefined
@@ -277,19 +278,19 @@ export class FolderService {
         }
       } else if (safeZodParse(locationInput, serverProvisionPayloadSchema)) {
         // user has provided a reference to a server supplied storage provision
-        const existingServerLocation =
-          await this.serverConfigurationService.getUserStorageProvisionById(
+        const storageProvision =
+          await this.serverConfigurationService.getStorageProvisionById(
             locationInput.storageProvisionId,
           )
 
-        if (!existingServerLocation) {
-          throw new StorageLocationNotFoundException()
+        if (!storageProvision) {
+          throw new StorageProvisionNotFoundException()
         }
 
         const prefixSuffix =
-          storageProvisionType === UserStorageProvisionTypeEnum.METADATA
+          storageProvisionType === StorageProvisionTypeEnum.METADATA
             ? `.stellaris_folder_metadata_${prospectiveFolderId}`
-            : storageProvisionType === UserStorageProvisionTypeEnum.CONTENT
+            : storageProvisionType === StorageProvisionTypeEnum.CONTENT
               ? `.stellaris_folder_content_${prospectiveFolderId}`
               : `.stellaris_folder_backup_${prospectiveFolderId}`
 
@@ -298,26 +299,24 @@ export class FolderService {
             .insert(storageLocationsTable)
             .values({
               id: uuidV4(),
-              label: `SERVER:${existingServerLocation.id}`,
+              label: `SERVER:${storageProvision.id}`,
               providerType: 'SERVER',
               userId,
-              endpoint: existingServerLocation.endpoint,
-              endpointDomain: new URL(existingServerLocation.endpoint).host,
-              accessKeyId: existingServerLocation.accessKeyId,
-              secretAccessKey: existingServerLocation.secretAccessKey,
+              endpoint: storageProvision.endpoint,
+              endpointDomain: new URL(storageProvision.endpoint).host,
+              accessKeyId: storageProvision.accessKeyId,
+              secretAccessKey: storageProvision.secretAccessKey,
               accessKeyHashId: buildAccessKeyHashId({
-                accessKeyId: existingServerLocation.accessKeyId,
-                secretAccessKey: existingServerLocation.secretAccessKey,
-                region: existingServerLocation.region,
-                endpoint: existingServerLocation.endpoint,
+                accessKeyId: storageProvision.accessKeyId,
+                secretAccessKey: storageProvision.secretAccessKey,
+                region: storageProvision.region,
+                endpoint: storageProvision.endpoint,
               }),
-              region: existingServerLocation.region,
-              bucket: existingServerLocation.bucket,
+              region: storageProvision.region,
+              bucket: storageProvision.bucket,
               prefix: `${
-                existingServerLocation.prefix
-                  ? existingServerLocation.prefix
-                  : ''
-              }${!existingServerLocation.prefix || existingServerLocation.prefix.endsWith('/') ? '' : '/'}${prefixSuffix}`,
+                storageProvision.prefix ? storageProvision.prefix : ''
+              }${!storageProvision.prefix || storageProvision.prefix.endsWith('/') ? '' : '/'}${prefixSuffix}`,
               createdAt: now,
               updatedAt: now,
             })
@@ -338,12 +337,12 @@ export class FolderService {
     }
 
     const contentLocation = await buildLocation(
-      UserStorageProvisionTypeEnum.CONTENT,
+      StorageProvisionTypeEnum.CONTENT,
       body.contentLocation,
     )
 
     const metadataLocation = await buildLocation(
-      UserStorageProvisionTypeEnum.METADATA,
+      StorageProvisionTypeEnum.METADATA,
       body.metadataLocation,
     )
 

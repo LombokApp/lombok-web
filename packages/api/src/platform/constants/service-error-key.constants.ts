@@ -27,6 +27,8 @@ export enum ServiceErrorKey {
   ServerConfigurationNotFoundError = 'serverConfiguration.notFound',
   ServerConfigurationInvalid = 'serverConfiguration.invalid',
 
+  StorageProvisionNotFoundError = 'storageProvision.notFound',
+
   LocationNotFoundError = 'location.notFound',
   LocationInvalidError = 'location.invalid',
 }

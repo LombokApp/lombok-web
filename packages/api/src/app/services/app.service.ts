@@ -586,7 +586,7 @@ export class AppService {
             }
 
             const serverStorageLocation =
-              await this.serverConfigurationService.getServerStorageLocation()
+              await this.serverConfigurationService.getServerStorage()
 
             if (!serverStorageLocation) {
               return {
@@ -919,7 +919,7 @@ export class AppService {
     }
 
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorageLocation()
+      await this.serverConfigurationService.getServerStorage()
 
     if (!serverStorageLocation) {
       return {
@@ -1010,7 +1010,7 @@ export class AppService {
 
   public async uninstallApp(app: App) {
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorageLocation()
+      await this.serverConfigurationService.getServerStorage()
     const appRequiresStorage = Object.keys(app.manifest).filter(
       (manifestItemPath) =>
         manifestItemPath.startsWith('/ui') ||
@@ -1044,7 +1044,7 @@ export class AppService {
     )
 
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorageLocation()
+      await this.serverConfigurationService.getServerStorage()
     const appRequiresStorage = assetManifestEntryPaths.length > 0
 
     if (appRequiresStorage && !serverStorageLocation) {

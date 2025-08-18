@@ -26,7 +26,7 @@ describe('Server - Server Storage Location', () => {
     })
 
     const setServerStorageLocationResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/server-storage-location',
+      '/api/v1/server/server-storage',
       {
         body: {
           accessKeyId: 'key',
@@ -73,7 +73,7 @@ describe('Server - Server Storage Location', () => {
       }
       const setServerStorageLocationResponse = await apiClient(
         accessToken,
-      ).POST('/api/v1/server/server-storage-location', {
+      ).POST('/api/v1/server/server-storage', {
         body: serverStorageLocation,
       })
       expect(setServerStorageLocationResponse.response.status).toEqual(400)
@@ -100,7 +100,7 @@ describe('Server - Server Storage Location', () => {
       }
       const setServerStorageLocationResponse = await apiClient(
         accessToken,
-      ).POST('/api/v1/server/server-storage-location', {
+      ).POST('/api/v1/server/server-storage', {
         body: serverStorageLocation,
       })
 
@@ -128,7 +128,7 @@ describe('Server - Server Storage Location', () => {
       }
       const setServerStorageLocationResponse = await apiClient(
         accessToken,
-      ).POST('/api/v1/server/server-storage-location', {
+      ).POST('/api/v1/server/server-storage', {
         body: serverStorageLocation,
       })
 
@@ -160,7 +160,7 @@ describe('Server - Server Storage Location', () => {
       }
       const setServerStorageLocationResponse = await apiClient(
         accessToken,
-      ).POST('/api/v1/server/server-storage-location', {
+      ).POST('/api/v1/server/server-storage', {
         body: serverStorageLocation,
       })
 
@@ -188,7 +188,7 @@ describe('Server - Server Storage Location', () => {
       }
       const setServerStorageLocationResponse = await apiClient(
         accessToken,
-      ).POST('/api/v1/server/server-storage-location', {
+      ).POST('/api/v1/server/server-storage', {
         body: serverStorageLocation,
       })
 

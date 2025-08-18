@@ -1,10 +1,10 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import {
-  SERVER_STORAGE_LOCATION_CONFIG,
-  USER_STORAGE_PROVISIONS_CONFIG,
+  SERVER_STORAGE_CONFIG,
+  STORAGE_PROVISIONS_CONFIG,
 } from 'src/server/constants/server.constants'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
@@ -176,7 +176,7 @@ async function main(): Promise<void> {
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
   // add server storage provisions
-  const storageProvision: UserStorageProvisionDTO = {
+  const storageProvision: StorageProvisionDTO = {
     ...S3_CREDENTIALS,
     id: uuidV4(),
     bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
@@ -196,14 +196,14 @@ async function main(): Promise<void> {
   }
 
   await db.insert(serverSettingsTable).values({
-    key: USER_STORAGE_PROVISIONS_CONFIG.key,
+    key: STORAGE_PROVISIONS_CONFIG.key,
     value: [storageProvision],
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
 
   await db.insert(serverSettingsTable).values({
-    key: SERVER_STORAGE_LOCATION_CONFIG.key,
+    key: SERVER_STORAGE_CONFIG.key,
     value: {
       accessKeyHashId: buildAccessKeyHashId({
         accessKeyId: S3_CREDENTIALS.accessKeyId,

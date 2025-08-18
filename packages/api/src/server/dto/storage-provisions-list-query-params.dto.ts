@@ -1,9 +1,9 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { UserStorageProvisionTypeZodEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeZodEnum } from '@stellariscloud/types'
 import { z } from 'zod'
 
 export const storageProvisionsListQueryParamsSchema = z.object({
-  provisionType: UserStorageProvisionTypeZodEnum.optional(),
+  provisionType: StorageProvisionTypeZodEnum.optional(),
 })
 
 export class StorageProvisionsListQueryParamsDTO extends createZodDto(

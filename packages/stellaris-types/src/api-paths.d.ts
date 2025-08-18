@@ -169,6 +169,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Check S3 access and update folder accessError */
         post: operations["checkFolderAccess"];
         delete?: never;
         options?: never;
@@ -556,15 +557,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/user-storage-provisions": {
+    "/api/v1/server/storage-provisions": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List the user storage provisions. */
-        get: operations["listUserStorageProvisions"];
+        /** List the storage provisions. */
+        get: operations["listStorageProvisions"];
         put?: never;
         /** Create a new user storage provision. */
         post: operations["createUserStorageProvision"];
@@ -574,26 +575,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/user-storage-provisions/{userStorageProvisionId}": {
+    "/api/v1/server/storage-provisions/{storageProvisionId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get a user storage provision by id. */
-        get: operations["getUserStorageProvision"];
+        /** Get a storage provision by id. */
+        get: operations["getStorageProvision"];
         /** Update a server provision by id. */
-        put: operations["updateUserStorageProvision"];
+        put: operations["updateStorageProvision"];
         post?: never;
-        /** Delete a server provision by id. */
-        delete: operations["deleteUserStorageProvision"];
+        /** Delete a storage provision by id. */
+        delete: operations["deleteStorageProvision"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/server-storage-location": {
+    "/api/v1/server/server-storage": {
         parameters: {
             query?: never;
             header?: never;
@@ -1460,11 +1461,11 @@ export interface components {
             totalIndexedSizeBytes: number;
             sessionsCreatedPreviousWeek: number;
             sessionsCreatedPrevious24Hours: number;
-            provisionedStorageLocations: {
+            provisionedStorage: {
                 totalCount: number;
                 summary: string;
             };
-            totalIndexedSizeBytesAcrossProvisionedStorageLocations: number;
+            totalIndexedSizeBytesAcrossStorageProvisions: number;
             installedApps: {
                 totalCount: number;
                 summary: string;
@@ -1478,7 +1479,7 @@ export interface components {
             folderEventsEmittedPreviousDay: number;
             folderEventsEmittedPreviousHour: number;
         };
-        UserStorageProvisionListResponse: {
+        StorageProvisionsListResponse: {
             result: {
                 /** Format: uuid */
                 id: string;
@@ -1493,8 +1494,8 @@ export interface components {
                 description: string;
             }[];
         };
-        UserStorageProvisionGetResponse: {
-            userStorageProvision: {
+        StorageProvisionGetResponse: {
+            storageProvision: {
                 /** Format: uuid */
                 id: string;
                 accessKeyHashId: string;
@@ -1508,7 +1509,7 @@ export interface components {
                 description: string;
             };
         };
-        UserStorageProvisionInputDTO: {
+        StorageProvisionInputDTO: {
             label: string;
             description: string;
             endpoint: string;
@@ -1529,7 +1530,7 @@ export interface components {
                 prefix: string | null;
             };
         };
-        ServerStorageLocationInputDTO: {
+        ServerStorageInputDTO: {
             accessKeyId: string;
             secretAccessKey: string;
             /** Format: uri */
@@ -3044,7 +3045,7 @@ export interface operations {
             };
         };
     };
-    listUserStorageProvisions: {
+    listStorageProvisions: {
         parameters: {
             query?: {
                 provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
@@ -3060,7 +3061,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
         };
@@ -3074,7 +3075,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserStorageProvisionInputDTO"];
+                "application/json": components["schemas"]["StorageProvisionInputDTO"];
             };
         };
         responses: {
@@ -3083,17 +3084,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
         };
     };
-    getUserStorageProvision: {
+    getStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                userStorageProvisionId: string;
+                storageProvisionId: string;
             };
             cookie?: never;
         };
@@ -3104,23 +3105,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserStorageProvisionGetResponse"];
+                    "application/json": components["schemas"]["StorageProvisionGetResponse"];
                 };
             };
         };
     };
-    updateUserStorageProvision: {
+    updateStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                userStorageProvisionId: string;
+                storageProvisionId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserStorageProvisionInputDTO"];
+                "application/json": components["schemas"]["StorageProvisionInputDTO"];
             };
         };
         responses: {
@@ -3129,17 +3130,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
         };
     };
-    deleteUserStorageProvision: {
+    deleteStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                userStorageProvisionId: string;
+                storageProvisionId: string;
             };
             cookie?: never;
         };
@@ -3150,7 +3151,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
         };
@@ -3183,7 +3184,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ServerStorageLocationInputDTO"];
+                "application/json": components["schemas"]["ServerStorageInputDTO"];
             };
         };
         responses: {

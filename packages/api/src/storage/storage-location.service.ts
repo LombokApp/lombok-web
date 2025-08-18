@@ -5,11 +5,22 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { accessKeyPublicSchema, accessKeySchema } from '@stellariscloud/types'
+import {
+  accessKeyPublicSchema,
+  accessKeySchema,
+  ServerStorageDTO,
+  StorageProvisionDTO,
+} from '@stellariscloud/types'
 import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { parseSort } from 'src/platform/utils/sort.util'
+import {
+  SERVER_STORAGE_CONFIG,
+  STORAGE_PROVISIONS_CONFIG,
+} from 'src/server/constants/server.constants'
+import { StorageProvisionInputDTO } from 'src/server/dto/storage-provision-input.dto'
+import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
 import { z } from 'zod'
@@ -471,38 +482,94 @@ export class StorageLocationService {
       throw new UnauthorizedException()
     }
 
-    // the where clause for all storage locations owned by the server and matching the given input
-    const where = and(
-      eq(storageLocationsTable.accessKeyHashId, input.accessKeyHashId),
-      eq(storageLocationsTable.providerType, 'SERVER'),
-    )
+    const newHashId = await this.ormService.db.transaction(async (tx) => {
+      // the where clause for all storage locations owned by the server and matching the given input
+      const where = and(
+        eq(storageLocationsTable.accessKeyHashId, input.accessKeyHashId),
+        eq(storageLocationsTable.providerType, 'SERVER'),
+      )
 
-    const accessKeyLocation =
-      await this.ormService.db.query.storageLocationsTable.findFirst({
+      const accessKeyLocation = await tx.query.storageLocationsTable.findFirst({
         where,
       })
 
-    if (!accessKeyLocation) {
-      // no storage locations exist matching the given input
-      throw new NotFoundException()
-    }
-    const newHashId = buildAccessKeyHashId({
-      ...input.newAccessKey,
-      endpoint: accessKeyLocation.endpoint,
-      region: accessKeyLocation.region,
-    })
-    await this.ormService.db
-      .update(storageLocationsTable)
-      .set({
-        accessKeyId: input.newAccessKey.accessKeyId,
-        secretAccessKey: input.newAccessKey.secretAccessKey,
-        accessKeyHashId: buildAccessKeyHashId({
-          ...input.newAccessKey,
-          endpoint: accessKeyLocation.endpoint,
-          region: accessKeyLocation.region,
-        }),
+      if (!accessKeyLocation) {
+        // no storage locations exist matching the given input
+        throw new NotFoundException()
+      }
+
+      const computedNewHashId = buildAccessKeyHashId({
+        ...input.newAccessKey,
+        endpoint: accessKeyLocation.endpoint,
+        region: accessKeyLocation.region,
       })
-      .where(where)
+
+      await tx
+        .update(storageLocationsTable)
+        .set({
+          accessKeyId: input.newAccessKey.accessKeyId,
+          secretAccessKey: input.newAccessKey.secretAccessKey,
+          accessKeyHashId: computedNewHashId,
+        })
+        .where(where)
+
+      // Also update any saved server settings that reference this access key
+      const now = new Date()
+
+      // Update SERVER_STORAGE (single record)
+      const existingServerStorage =
+        await tx.query.serverSettingsTable.findFirst({
+          where: eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key),
+        })
+      type ServerStorageValue = ServerStorageDTO & { secretAccessKey: string }
+      const serverStorageValue = existingServerStorage?.value as
+        | ServerStorageValue
+        | undefined
+      if (serverStorageValue?.accessKeyHashId === input.accessKeyHashId) {
+        await tx
+          .update(serverSettingsTable)
+          .set({
+            value: {
+              ...serverStorageValue,
+              accessKeyId: input.newAccessKey.accessKeyId,
+              secretAccessKey: input.newAccessKey.secretAccessKey,
+              accessKeyHashId: computedNewHashId,
+            },
+            updatedAt: now,
+          })
+          .where(eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key))
+      }
+
+      // Update STORAGE_PROVISIONS (array, possibly many records)
+      const existingProvisions = await tx.query.serverSettingsTable.findFirst({
+        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
+      })
+      const provisionsRaw = existingProvisions?.value
+      if (Array.isArray(provisionsRaw) && provisionsRaw.length > 0) {
+        type StorageProvisionValue = StorageProvisionDTO &
+          StorageProvisionInputDTO
+        const updatedProvisions: StorageProvisionValue[] = (
+          provisionsRaw as StorageProvisionValue[]
+        ).map((prov) =>
+          prov.accessKeyHashId === input.accessKeyHashId
+            ? {
+                ...prov,
+                accessKeyId: input.newAccessKey.accessKeyId,
+                secretAccessKey: input.newAccessKey.secretAccessKey,
+                accessKeyHashId: computedNewHashId,
+              }
+            : prov,
+        )
+
+        await tx
+          .update(serverSettingsTable)
+          .set({ value: updatedProvisions, updatedAt: now })
+          .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key))
+      }
+
+      return computedNewHashId
+    })
+
     return newHashId
   }
 }

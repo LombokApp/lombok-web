@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@stellariscloud/types'
 import {
   s3LocationEndpointSchema,
-  UserStorageProvisionTypeEnum,
-  UserStorageProvisionTypeZodEnum,
+  StorageProvisionTypeEnum,
+  StorageProvisionTypeZodEnum,
 } from '@stellariscloud/types'
 import {
   Button,
@@ -30,39 +30,39 @@ const formSchema = z.object({
   accessKeyId: z.string().nonempty(),
   secretAccessKey: z.string().nonempty(),
   description: z.string().nonempty(),
-  provisionTypes: z.array(UserStorageProvisionTypeZodEnum),
+  provisionTypes: z.array(StorageProvisionTypeZodEnum),
   bucket: z.string().nonempty(),
   region: z.string(),
   prefix: z.string(),
 })
 
-export type UserStorageProvisionFormValues = z.infer<typeof formSchema>
+export type StorageProvisionFormValues = z.infer<typeof formSchema>
 
-export const UserStorageProvisionForm = ({
+export const StorageProvisionForm = ({
   onSubmit,
   onCancel,
-  value: userStorageProvision,
+  value: storageProvision,
   className,
   submitText = 'Save',
   mutationType,
 }: {
   submitText?: string
-  onSubmit: (values: UserStorageProvisionFormValues) => void
+  onSubmit: (values: StorageProvisionFormValues) => void
   onCancel: () => void
-  value?: Partial<UserStorageProvisionDTO>
+  value?: Partial<StorageProvisionDTO>
   className?: string
   mutationType: MutationType
 }) => {
-  const form = useForm<UserStorageProvisionFormValues>({
+  const form = useForm<StorageProvisionFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: userStorageProvision
-      ? { ...userStorageProvision, secretAccessKey: '' }
+    defaultValues: storageProvision
+      ? { ...storageProvision, secretAccessKey: '' }
       : {
           label: '',
           description: '',
           provisionTypes: [
-            UserStorageProvisionTypeEnum.CONTENT,
-            UserStorageProvisionTypeEnum.METADATA,
+            StorageProvisionTypeEnum.CONTENT,
+            StorageProvisionTypeEnum.METADATA,
           ],
           accessKeyId: '',
           secretAccessKey: '',
@@ -74,16 +74,16 @@ export const UserStorageProvisionForm = ({
   })
 
   React.useEffect(() => {
-    if (userStorageProvision?.id) {
-      form.reset(userStorageProvision)
+    if (storageProvision?.id) {
+      form.reset(storageProvision)
       form.setValue('secretAccessKey', '********')
     } else {
       form.reset({
         label: '',
         description: '',
         provisionTypes: [
-          UserStorageProvisionTypeEnum.CONTENT,
-          UserStorageProvisionTypeEnum.METADATA,
+          StorageProvisionTypeEnum.CONTENT,
+          StorageProvisionTypeEnum.METADATA,
         ],
         accessKeyId: '',
         secretAccessKey: '',
@@ -93,7 +93,7 @@ export const UserStorageProvisionForm = ({
         region: '',
       })
     }
-  }, [userStorageProvision, form.reset, form])
+  }, [storageProvision, form.reset, form])
 
   return (
     <div className={cn('grid gap-6', className)}>
@@ -150,7 +150,7 @@ export const UserStorageProvisionForm = ({
                 <FormItem>
                   <FormLabel>Access Key Id</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} disabled={mutationType === 'UPDATE'} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,12 +159,11 @@ export const UserStorageProvisionForm = ({
             <FormField
               control={form.control}
               name="secretAccessKey"
-              disabled={mutationType === 'UPDATE'}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Secret Access Key</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} disabled={mutationType === 'UPDATE'} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

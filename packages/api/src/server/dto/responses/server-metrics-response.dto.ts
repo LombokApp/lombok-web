@@ -9,11 +9,11 @@ export const serverMetricsResponseSchema = z.object({
   totalIndexedSizeBytes: z.number(),
   sessionsCreatedPreviousWeek: z.number(),
   sessionsCreatedPrevious24Hours: z.number(),
-  provisionedStorageLocations: z.object({
+  provisionedStorage: z.object({
     totalCount: z.number(),
     summary: z.string(),
   }),
-  totalIndexedSizeBytesAcrossProvisionedStorageLocations: z.number(),
+  totalIndexedSizeBytesAcrossStorageProvisions: z.number(),
   installedApps: z.object({
     totalCount: z.number(),
     summary: z.string(),

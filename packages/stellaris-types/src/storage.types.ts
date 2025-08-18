@@ -7,15 +7,13 @@ export enum SignedURLsRequestMethod {
   HEAD = 'HEAD',
 }
 
-export const UserStorageProvisionTypeZodEnum = z.enum([
+export const StorageProvisionTypeZodEnum = z.enum([
   'CONTENT',
   'METADATA',
   'REDUNDANCY',
 ])
-export type UserStorageProvisionType = z.infer<
-  typeof UserStorageProvisionTypeZodEnum
->
-export const UserStorageProvisionTypeEnum = UserStorageProvisionTypeZodEnum.Enum
+export type StorageProvisionType = z.infer<typeof StorageProvisionTypeZodEnum>
+export const StorageProvisionTypeEnum = StorageProvisionTypeZodEnum.Enum
 
 export const s3LocationEndpointSchema = z
   .string()
@@ -57,7 +55,7 @@ export const accessKeySchema = z
   })
   .extend(accessKeyPublicSchema.shape)
 
-export const userStorageProvisionSchema = z.object({
+export const storageProvisionSchema = z.object({
   id: z.string().uuid(),
   accessKeyHashId: z.string(),
   endpoint: z.string(),
@@ -65,12 +63,12 @@ export const userStorageProvisionSchema = z.object({
   region: z.string(),
   accessKeyId: z.string(),
   prefix: z.string().optional(),
-  provisionTypes: z.array(UserStorageProvisionTypeZodEnum).min(1),
+  provisionTypes: z.array(StorageProvisionTypeZodEnum).min(1),
   label: z.string().max(32),
   description: z.string().max(128),
 })
 
-export const serverStorageLocationSchema = z.object({
+export const serverStorageSchema = z.object({
   accessKeyHashId: z.string(),
   accessKeyId: z.string(),
   endpoint: z.string(),
@@ -78,3 +76,5 @@ export const serverStorageLocationSchema = z.object({
   region: z.string(),
   prefix: z.string().nonempty().nullable(),
 })
+
+export type StorageProvisionDTO = z.infer<typeof storageProvisionSchema>
