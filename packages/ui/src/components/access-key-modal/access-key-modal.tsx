@@ -7,8 +7,7 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import type { QueryObserverResult } from '@tanstack/react-query'
-
-import { AccessKeyRotateForm } from '../access-key-rotate-form/access-key-rotate-form'
+import React from 'react'
 
 export interface AccessKeyModalData {
   isOpen: boolean
@@ -18,16 +17,11 @@ export interface AccessKeyModalData {
 export const AccessKeyModal = ({
   modalData,
   setModalData,
-  onSubmit,
   loadBuckets,
   buckets,
 }: {
   modalData: AccessKeyModalData
   setModalData: (modalData: AccessKeyModalData) => void
-  onSubmit: (input: {
-    accessKeyId: string
-    secretAccessKey: string
-  }) => Promise<void>
   buckets: { name: string }[]
   loadBuckets: () => Promise<
     QueryObserverResult<
@@ -41,7 +35,11 @@ export const AccessKeyModal = ({
     >
   >
 }) => {
-  void loadBuckets()
+  React.useEffect(() => {
+    if (modalData.isOpen) {
+      void loadBuckets()
+    }
+  }, [modalData.isOpen, loadBuckets])
   return (
     <Dialog
       open={!!modalData.isOpen}
@@ -80,17 +78,7 @@ export const AccessKeyModal = ({
             </p>
           </div>
         )}
-        <div className="pt-4">
-          <div className="flex flex-col">
-            <span className="text-lg font-medium">Rotate key</span>
-            <span className="text-sm text-muted-foreground">
-              Update the access key id and secret access key below.
-            </span>
-          </div>
-          <div className="py-4">
-            <AccessKeyRotateForm onSubmit={onSubmit} />
-          </div>
-        </div>
+        {/* Rotate form removed; now a dedicated rotate modal is used elsewhere */}
         <div className="flex flex-col gap-2">
           <div>
             <TypographyH3>Buckets</TypographyH3>

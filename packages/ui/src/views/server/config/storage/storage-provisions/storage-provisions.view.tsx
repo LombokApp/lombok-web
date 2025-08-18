@@ -10,7 +10,18 @@ import { $api } from '@/src/services/api'
 import type { MutationType } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionModal } from './storage-provision-modal'
 
-export function UserStorageProvisions() {
+export function UserStorageProvisions({
+  openRotateModal,
+  refreshKey,
+}: {
+  openRotateModal: (accessKey: {
+    accessKeyHashId: string
+    accessKeyId: string
+    endpoint: string
+    region: string
+  }) => void
+  refreshKey: string
+}) {
   const [modalData, setModalData] = React.useState<{
     storageProvision: StorageProvisionDTO | undefined
     mutationType: MutationType
@@ -19,16 +30,14 @@ export function UserStorageProvisions() {
     mutationType: 'CREATE',
   })
 
-  const storageProvisionsQuery = $api.useQuery(
-    'get',
-    '/api/v1/server/storage-provisions',
-  )
+  const { data: storageProvisions, refetch: refetchStorageProvisions } =
+    $api.useQuery('get', '/api/v1/server/storage-provisions')
 
   const addStorageProvisionMutation = $api.useMutation(
     'post',
     '/api/v1/server/storage-provisions',
     {
-      onSuccess: () => storageProvisionsQuery.refetch(),
+      onSuccess: () => refetchStorageProvisions(),
     },
   )
 
@@ -36,9 +45,13 @@ export function UserStorageProvisions() {
     'put',
     '/api/v1/server/storage-provisions/{storageProvisionId}',
     {
-      onSuccess: () => storageProvisionsQuery.refetch(),
+      onSuccess: () => refetchStorageProvisions(),
     },
   )
+
+  React.useEffect(() => {
+    void refetchStorageProvisions()
+  }, [refetchStorageProvisions, refreshKey])
 
   const handleUpdate = React.useCallback(
     (storageProvision: StorageProvisionDTO) => {
@@ -77,15 +90,16 @@ export function UserStorageProvisions() {
         setModalData={setModalData}
         modalData={modalData}
       />
-      <dl className="dark:divide-gray-700 divide-y divide-gray-100">
+      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
         <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
-            {(storageProvisionsQuery.data?.result.length ?? 0) > 0 ? (
+            {(storageProvisions?.result.length ?? 0) > 0 ? (
               <div className="flex flex-col items-start gap-4">
                 <div className="w-full">
                   <StorageProvisionsTable
-                    storageProvision={storageProvisionsQuery.data?.result ?? []}
+                    storageProvision={storageProvisions?.result ?? []}
                     onUpdate={handleUpdate}
+                    openRotateModal={openRotateModal}
                   />
                 </div>
                 <Button
@@ -118,9 +132,7 @@ export function UserStorageProvisions() {
                 icon={Folder}
                 text="No storage provisions have been created"
                 onButtonPress={() => {
-                  console.log(
-                    'Add provision button clicked - functionality needs update',
-                  )
+                  // open create provision modal
                   setModalData({
                     storageProvision: {
                       accessKeyHashId: '',

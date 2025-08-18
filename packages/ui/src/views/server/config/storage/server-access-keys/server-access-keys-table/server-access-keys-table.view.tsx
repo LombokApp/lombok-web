@@ -7,7 +7,18 @@ import { $api } from '@/src/services/api'
 
 import { configureServerAccessKeysTableColumns } from './server-access-keys-table-columns'
 
-export function ServerAccessKeysTable() {
+export function ServerAccessKeysTable({
+  openRotateModal,
+  refreshKey,
+}: {
+  openRotateModal: (accessKey: {
+    accessKeyHashId: string
+    accessKeyId: string
+    endpoint: string
+    region: string
+  }) => void
+  refreshKey: string
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -34,13 +45,17 @@ export function ServerAccessKeysTable() {
     },
   )
 
+  React.useEffect(() => {
+    void refetch()
+  }, [refetch, refreshKey])
+
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <DataTable
         rowCount={accessKeys?.meta.totalCount}
         data={accessKeys?.result ?? []}
-        columns={configureServerAccessKeysTableColumns(() => {
-          void refetch()
+        columns={configureServerAccessKeysTableColumns((accessKey) => {
+          openRotateModal(accessKey)
         })}
         onPaginationChange={setPagination}
         onSortingChange={setSorting}

@@ -1,6 +1,6 @@
 import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { useToast } from '@stellariscloud/ui-toolkit'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
@@ -10,8 +10,13 @@ import { AccessKeyModal } from '@/src/components/access-key-modal/access-key-mod
 import { $api } from '@/src/services/api'
 
 export const configureServerAccessKeysTableColumns: (
-  onKeyRotate: (accessKey: AccessKeyPublicDTO) => void,
-) => HideableColumnDef<AccessKeyPublicDTO>[] = (onKeyRotate) => [
+  openRotateModal: (accessKey: {
+    accessKeyHashId: string
+    accessKeyId: string
+    endpoint: string
+    region: string
+  }) => void,
+) => HideableColumnDef<AccessKeyPublicDTO>[] = (openRotateModal) => [
   {
     id: 'link',
     cell: ({ row }) => {
@@ -24,7 +29,6 @@ export const configureServerAccessKeysTableColumns: (
         })
 
       const accessKey = row.original
-      const { toast } = useToast()
 
       const bucketsQuery = $api.useQuery(
         'get',
@@ -35,39 +39,14 @@ export const configureServerAccessKeysTableColumns: (
         { enabled: false },
       )
 
-      const rotateAccessKeyMutation = $api.useMutation(
-        'post',
-        '/api/v1/server/access-keys/{accessKeyHashId}/rotate',
-        {
-          onSuccess: () => {
-            setRotateAccessKeyModalData({ isOpen: false })
-            onKeyRotate(accessKey)
-            toast({
-              title: 'Access key rotated successfully',
-              description: 'The access key has been rotated successfully',
-            })
-          },
-        },
-      )
-
       return (
         <div className="size-0 max-w-0 overflow-hidden">
-          {rotateAccessKeyModalData.isOpen && (
-            <AccessKeyModal
-              modalData={rotateAccessKeyModalData}
-              setModalData={setRotateAccessKeyModalData}
-              buckets={bucketsQuery.data?.result ?? []}
-              loadBuckets={bucketsQuery.refetch}
-              onSubmit={async (input) => {
-                await rotateAccessKeyMutation.mutateAsync({
-                  params: {
-                    path: { accessKeyHashId: accessKey.accessKeyHashId },
-                  },
-                  body: input,
-                })
-              }}
-            />
-          )}
+          <AccessKeyModal
+            modalData={rotateAccessKeyModalData}
+            setModalData={setRotateAccessKeyModalData}
+            buckets={bucketsQuery.data?.result ?? []}
+            loadBuckets={bucketsQuery.refetch}
+          />
 
           <Link
             onClick={(e) => {
@@ -121,7 +100,23 @@ export const configureServerAccessKeysTableColumns: (
     cell: ({ row: { original: accessKey } }) => {
       return (
         <div className="flex items-center gap-2 font-normal">
-          {accessKey.accessKeyId}
+          <span>{accessKey.accessKeyId}</span>
+          <Button
+            className="relative"
+            size="xs"
+            variant="outline"
+            onClick={(e) => {
+              e.preventDefault()
+              openRotateModal({
+                accessKeyHashId: accessKey.accessKeyHashId,
+                accessKeyId: accessKey.accessKeyId,
+                endpoint: accessKey.endpoint,
+                region: accessKey.region,
+              })
+            }}
+          >
+            Rotate key
+          </Button>
         </div>
       )
     },
@@ -166,4 +161,5 @@ export const configureServerAccessKeysTableColumns: (
     enableSorting: false,
     enableHiding: false,
   },
+  // removed per-row action; rotation handled by central modal trigger in Access Key Id column
 ]
