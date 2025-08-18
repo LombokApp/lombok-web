@@ -2,9 +2,9 @@ import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
-import { AppService } from 'src/app/services/app.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
+import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 
 import { ServerController } from './controllers/server.controller'
@@ -12,7 +12,6 @@ import { ServerStorageController } from './controllers/server-storage.controller
 import { StorageProvisionsController } from './controllers/storage-provisions.controller'
 import { ServerConfigurationService } from './services/server-configuration.service'
 import { ServerMetricsService } from './services/server-metrics.service'
-import { SocketModule } from 'src/socket/socket.module'
 
 @Module({
   imports: [

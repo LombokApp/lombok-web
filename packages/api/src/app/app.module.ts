@@ -10,6 +10,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
 import { StorageModule } from 'src/storage/storage.module'
 
@@ -17,8 +18,6 @@ import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
 import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
-
-import { SocketModule } from 'src/socket/socket.module'
 
 @Module({
   imports: [

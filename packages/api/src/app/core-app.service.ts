@@ -7,13 +7,13 @@ import { eq } from 'drizzle-orm'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import path from 'path'
 import { authConfig } from 'src/auth/config'
+import { APP_JWT_SUB_PREFIX } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { v4 as uuidV4 } from 'uuid'
 
 import { CoreWorkerProcessDataPayload } from './core-app-worker'
 import { appsTable } from './entities/app.entity'
-import { APP_JWT_SUB_PREFIX } from 'src/auth/services/jwt.service'
 
 @Injectable()
 export class CoreAppService {
@@ -50,7 +50,7 @@ export class CoreAppService {
     const coreApp = await this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, CORE_APP_IDENTIFIER),
     })
-    if (!coreApp || !coreApp.enabled) {
+    if (!coreApp?.enabled) {
       this.logger.warn('Core app not enabled, skipping thread start')
       return
     }

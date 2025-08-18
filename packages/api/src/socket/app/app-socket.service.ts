@@ -72,7 +72,6 @@ export class AppSocketService {
           : undefined
 
       if (!appIdentifier) {
-        // eslint-disable-next-line no-console
         this.logger.warn(`No app identifier in jwt - sub: ${sub}`)
         socket.disconnect(true)
         throw new UnauthorizedException()
@@ -81,7 +80,6 @@ export class AppSocketService {
         enabled: true,
       })
       if (!app) {
-        // eslint-disable-next-line no-console
         this.logger.warn(
           'App "%s" not recognised. Disconnecting...',
           appIdentifier,
@@ -199,7 +197,7 @@ export class AppSocketService {
       )
     } else {
       // auth payload does not match expected
-      // eslint-disable-next-line no-console
+
       this.logger.warn('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()

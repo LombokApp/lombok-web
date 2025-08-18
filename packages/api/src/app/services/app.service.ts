@@ -68,13 +68,13 @@ import { User } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
 import { appConfig } from '../config'
+import { CoreAppService } from '../core-app.service'
 import { AppSort } from '../dto/apps-list-query-params.dto'
 import { App, appsTable } from '../entities/app.entity'
 import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
-import { CoreAppService } from '../core-app.service'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -224,7 +224,7 @@ export class AppService {
       .set({ enabled, updatedAt: now })
       .where(eq(appsTable.identifier, appIdentifier))
       .returning()
-    if (enabled === false) {
+    if (!enabled) {
       this.appSocketService.disconnectAllClientsByAppIdentifier(appIdentifier)
     } else {
       void this.coreAppService.startCoreAppThread()
@@ -547,7 +547,7 @@ export class AppService {
                 ),
               )
               .limit(1)
-            const task = taskWithApp[0]?.task
+            const task = taskWithApp[0]?.task as Task | undefined
             if (!task) {
               return {
                 result: undefined,
