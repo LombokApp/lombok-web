@@ -1,4 +1,4 @@
-import type { TaskDTO } from '@stellariscloud/types'
+import { PLATFORM_IDENTIFIER, type TaskDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
@@ -42,9 +42,11 @@ export function configureTasksTableColumns(
             actorIdentifier={row.original.ownerIdentifier}
             title={row.original.taskIdentifier}
             showSubtitle={config.showOwnerSubtext}
-            subtitle={
-              config.showOwnerSubtext ? row.original.ownerIdentifier : undefined
-            }
+            subtitle={`owned by ${
+              row.original.ownerIdentifier === PLATFORM_IDENTIFIER
+                ? 'internal:platform'
+                : `app:${row.original.ownerIdentifier}`
+            }`}
           />
         </div>
       ),

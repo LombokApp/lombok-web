@@ -58,7 +58,7 @@ const EventCard = ({
             <div className="font-mono">
               {event.emitterIdentifier === PLATFORM_IDENTIFIER
                 ? PLATFORM_IDENTIFIER
-                : `app:${event.emitterIdentifier.split(':').at(-1)?.toLowerCase()}`}
+                : `app:${event.emitterIdentifier[0]}`}
             </div>
           </div>
         </div>

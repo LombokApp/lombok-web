@@ -22,10 +22,8 @@ export function ActorFeedback({
       <div
         className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
         style={{
-          background: actorIdentifier.includes(':')
-            ? stringToColour(actorIdentifier.split(':')[1] ?? '')
-            : '',
-          color: actorIdentifier.includes(':')
+          background: stringToColour(actorIdentifier),
+          color: actorIdentifier
             ? invertColour(stringToColour(actorIdentifier))
             : undefined,
         }}
@@ -33,9 +31,7 @@ export function ActorFeedback({
         {actorIdentifier === PLATFORM_IDENTIFIER ? (
           <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
         ) : (
-          <span className="truncate uppercase">
-            {actorIdentifier.split(':')[1]?.[0] ?? ''}
-          </span>
+          <span className="truncate uppercase">{actorIdentifier[0] ?? ''}</span>
         )}
       </div>
 
