@@ -3,78 +3,51 @@ import type {
   RotateAccessKeyInputDTO,
 } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { useToast } from '@stellariscloud/ui-toolkit'
+import { Button, useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { AccessKeyModal } from '@/src/components/access-key-modal/access-key-modal'
+import { AccessKeyRotateModal } from '@/src/components/access-key-rotate-modal/access-key-rotate-modal'
 import { $api } from '@/src/services/api'
-
-import { AccessKeyModal } from '../../components/access-key-modal/access-key-modal'
 
 export const configureUserAccessKeysTableColumns: (
   onKeyRotate: (accessKey: AccessKeyPublicDTO) => void,
-) => HideableColumnDef<AccessKeyPublicDTO>[] = (onKeyRotate) => [
-  {
-    id: 'modal',
-    cell: ({ row }) => {
-      const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
-        React.useState<{
-          isOpen: boolean
-          accessKey?: AccessKeyPublicDTO
-        }>({
-          isOpen: false,
-        })
+) => HideableColumnDef<AccessKeyPublicDTO>[] = (onKeyRotate) => {
+  return [
+    {
+      id: 'link',
+      cell: ({ row }) => {
+        const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
+          React.useState<{
+            isOpen: boolean
+            accessKey?: AccessKeyPublicDTO
+          }>({
+            isOpen: false,
+          })
 
-      const accessKey = row.original
-      const bucketsQuery = $api.useQuery(
-        'get',
-        '/api/v1/access-keys/{accessKeyHashId}/buckets',
-        {
-          params: { path: { accessKeyHashId: accessKey.accessKeyHashId } },
-        },
-        { enabled: false },
-      )
+        const accessKey = row.original
 
-      const { toast } = useToast()
-
-      const rotateAccessKeyMutation = $api.useMutation(
-        'post',
-        '/api/v1/access-keys/{accessKeyHashId}/rotate',
-        {
-          onSuccess: () => {
-            setRotateAccessKeyModalData({ isOpen: false })
-            onKeyRotate(accessKey)
-            toast({
-              title: 'Access key rotated successfully',
-              description: 'The access key has been rotated successfully',
-            })
+        const bucketsQuery = $api.useQuery(
+          'get',
+          '/api/v1/access-keys/{accessKeyHashId}/buckets',
+          {
+            params: { path: { accessKeyHashId: accessKey.accessKeyHashId } },
           },
-        },
-      )
+          { enabled: false },
+        )
 
-      return (
-        <>
-          {rotateAccessKeyModalData.isOpen && (
+        return (
+          <div className="size-0 max-w-0 overflow-hidden">
             <AccessKeyModal
               modalData={rotateAccessKeyModalData}
               setModalData={setRotateAccessKeyModalData}
-              loadBuckets={bucketsQuery.refetch}
               buckets={bucketsQuery.data?.result ?? []}
-              onSubmit={async (input: RotateAccessKeyInputDTO) => {
-                await rotateAccessKeyMutation.mutateAsync({
-                  params: {
-                    path: {
-                      accessKeyHashId: accessKey.accessKeyHashId,
-                    },
-                  },
-                  body: input,
-                })
-              }}
+              loadBuckets={bucketsQuery.refetch}
             />
-          )}
-          <div className="size-0 max-w-0 overflow-hidden">
+
             <Link
               onClick={(e) => {
                 e.preventDefault()
@@ -83,113 +56,184 @@ export const configureUserAccessKeysTableColumns: (
                   accessKey: row.original,
                 })
               }}
-              to=""
+              to={``}
               className="absolute inset-0"
             />
           </div>
-        </>
-      )
+        )
+      },
+      enableSorting: false,
+      enableHiding: false,
+      zeroWidth: true,
     },
-    zeroWidth: true,
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'accessKeyHashId',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="HashId"
-      />
-    ),
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <KeyRoundIcon className="size-4" />
-          <div className="w-[80px] truncate">
-            {row.original.accessKeyHashId}
+    {
+      accessorKey: 'accessKeyHashId',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          canHide={column.getCanHide()}
+          column={column}
+          title="HashId"
+        />
+      ),
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <KeyRoundIcon className="size-4" />
+            <div className="w-[80px] truncate">
+              {row.original.accessKeyHashId}
+            </div>
           </div>
         </div>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'accessKeyId',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Access Key Id"
-      />
-    ),
-    cell: ({ row: { original: accessKey } }) => {
-      return (
-        <div className="flex items-center gap-2 font-normal">
-          {accessKey.accessKeyId}
-        </div>
-      )
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'endpointDomain',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Endpoint"
-      />
-    ),
-    cell: ({ row: { original: accessKey } }) => {
-      return (
-        <div className="flex items-center gap-2 font-normal">
-          {accessKey.endpointDomain}
-        </div>
-      )
+    {
+      accessorKey: 'accessKeyId',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          canHide={column.getCanHide()}
+          column={column}
+          title="Access Key Id"
+        />
+      ),
+      cell: ({ row }) => {
+        const accessKey = row.original
+        const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
+          React.useState<{
+            isOpen: boolean
+            accessKey?: AccessKeyPublicDTO
+          }>({
+            isOpen: false,
+          })
+
+        const { toast } = useToast()
+
+        const rotateAccessKeyMutation = $api.useMutation(
+          'post',
+          '/api/v1/access-keys/{accessKeyHashId}/rotate',
+          {
+            onSuccess: () => {
+              setRotateAccessKeyModalData({ isOpen: false })
+              onKeyRotate(accessKey)
+              toast({
+                title: 'Access key rotated successfully',
+                description: 'The access key has been rotated successfully',
+              })
+            },
+          },
+        )
+
+        return (
+          <>
+            {rotateAccessKeyModalData.isOpen && (
+              <AccessKeyRotateModal
+                isOpen={rotateAccessKeyModalData.isOpen}
+                setIsOpen={(isOpen) =>
+                  setRotateAccessKeyModalData({
+                    isOpen,
+                    accessKey: rotateAccessKeyModalData.accessKey,
+                  })
+                }
+                accessKey={{
+                  accessKeyHashId: accessKey.accessKeyHashId,
+                  accessKeyId: accessKey.accessKeyId,
+                  endpoint: accessKey.endpointDomain,
+                  region: accessKey.region,
+                }}
+                scope="user"
+                onSubmit={async (input: RotateAccessKeyInputDTO) => {
+                  await rotateAccessKeyMutation.mutateAsync({
+                    params: {
+                      path: {
+                        accessKeyHashId: accessKey.accessKeyHashId,
+                      },
+                    },
+                    body: input,
+                  })
+                }}
+              />
+            )}
+            <div className="flex items-center gap-2 font-normal">
+              <span>{accessKey.accessKeyId}</span>
+              <Button
+                className="relative"
+                size="xs"
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault()
+                  onKeyRotate(row.original)
+                  setRotateAccessKeyModalData({
+                    isOpen: true,
+                    accessKey: row.original,
+                  })
+                }}
+              >
+                Rotate key
+              </Button>
+            </div>
+          </>
+        )
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'region',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Region"
-      />
-    ),
-    cell: ({ row: { original: accessKey } }) => {
-      return (
-        <div className="flex items-center gap-2 font-normal">
-          {accessKey.region}
-        </div>
-      )
+    {
+      accessorKey: 'endpointDomain',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          canHide={column.getCanHide()}
+          column={column}
+          title="Endpoint"
+        />
+      ),
+      cell: ({ row: { original: accessKey } }) => {
+        return (
+          <div className="flex items-center gap-2 font-normal">
+            {accessKey.endpointDomain}
+          </div>
+        )
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'folderCount',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Folders"
-      />
-    ),
-    cell: ({ row: { original: accessKey } }) => {
-      return (
-        <div className="flex items-center gap-2 font-normal">
-          {accessKey.folderCount}
-        </div>
-      )
+    {
+      accessorKey: 'region',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          canHide={column.getCanHide()}
+          column={column}
+          title="Region"
+        />
+      ),
+      cell: ({ row: { original: accessKey } }) => {
+        return (
+          <div className="flex items-center gap-2 font-normal">
+            {accessKey.region}
+          </div>
+        )
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-]
+    {
+      accessorKey: 'folderCount',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          canHide={column.getCanHide()}
+          column={column}
+          title="Folders"
+        />
+      ),
+      cell: ({ row: { original: accessKey } }) => {
+        return (
+          <div className="flex items-center gap-2 font-normal">
+            {accessKey.folderCount}
+          </div>
+        )
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+  ]
+}

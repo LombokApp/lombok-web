@@ -11,13 +11,12 @@ import { AccessKeyRotateForm } from '@/src/components/access-key-rotate-form/acc
 export const AccessKeyRotateModal = ({
   isOpen,
   setIsOpen,
-  title = 'Rotate key',
   onSubmit,
   accessKey,
+  scope = 'server',
 }: {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
-  title?: string
   onSubmit: (input: {
     accessKeyId: string
     secretAccessKey: string
@@ -28,6 +27,7 @@ export const AccessKeyRotateModal = ({
     endpoint: string
     region: string
   }
+  scope?: 'server' | 'user'
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(isNowOpen) => setIsOpen(isNowOpen)}>
@@ -35,7 +35,7 @@ export const AccessKeyRotateModal = ({
         <DialogHeader>
           <DialogTitle>
             <div className="flex flex-col">
-              {title}
+              Rotate Access Key
               <div className="font-normal">
                 <TypographySubtitle>
                   Access Key Hash Id: {accessKey?.accessKeyHashId}
@@ -45,9 +45,11 @@ export const AccessKeyRotateModal = ({
           </DialogTitle>
         </DialogHeader>
         {accessKey && (
-          <div className="rounded-md border p-3 text-sm text-muted-foreground">
+          <div className="rounded-md border p-2 text-sm text-muted-foreground">
             <div className="mb-2 font-medium text-foreground">
-              You are rotating this server key:
+              {scope === 'server'
+                ? 'You are rotating this server key:'
+                : 'You are rotating your access key:'}
             </div>
             <div className="flex flex-col gap-2">
               <div>
@@ -64,17 +66,26 @@ export const AccessKeyRotateModal = ({
               </div>
             </div>
             <div className="mt-3 text-xs">
-              This rotation updates the credentials everywhere they are used on
-              the server:
-              <ul className="ml-5 list-disc">
-                <li>Server Storage Location</li>
-                <li>User Storage Provisions</li>
-                <li>User folders using those provisions</li>
-              </ul>
+              {scope === 'server' ? (
+                <>
+                  This rotation updates the credentials everywhere they are used
+                  on the server:
+                  <ul className="ml-5 list-disc">
+                    <li>Server Storage Location</li>
+                    <li>User Storage Provisions</li>
+                    <li>User folders using those provisions</li>
+                  </ul>
+                </>
+              ) : (
+                <>
+                  This rotation updates your credentials for all existing
+                  folders you have configured with it.
+                </>
+              )}
             </div>
           </div>
         )}
-        <div className="py-2">
+        <div className="pb-2">
           <AccessKeyRotateForm onSubmit={onSubmit} />
         </div>
       </DialogContent>

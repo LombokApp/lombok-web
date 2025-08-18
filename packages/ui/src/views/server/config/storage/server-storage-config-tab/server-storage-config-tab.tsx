@@ -65,7 +65,6 @@ export function ServerStorageConfigTab() {
       <AccessKeyRotateModal
         isOpen={rotateKeyModalData.open}
         setIsOpen={(open) => setRotateKeyModalData((s) => ({ ...s, open }))}
-        title={'Rotate key'}
         accessKey={rotateKeyModalData.accessKey}
         onSubmit={async (input) => {
           if (!rotateKeyModalData.accessKey) {
