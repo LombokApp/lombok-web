@@ -6,8 +6,8 @@ import {
   Get,
   NotFoundException,
   Param,
-  Post,
   Put,
+  Post,
   Query,
   Req,
   UnauthorizedException,
@@ -20,7 +20,10 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { StorageProvisionGetResponse } from '../dto/responses/storage-provision-get-response.dto'
 import { StorageProvisionsListResponse } from '../dto/responses/storage-provision-list-response.dto'
-import { StorageProvisionInputDTO } from '../dto/storage-provision-input.dto'
+import {
+  StorageProvisionInputDTO,
+  StorageProvisionUpdateDTO,
+} from '../dto/storage-provision-input.dto'
 import { StorageProvisionsListQueryParamsDTO } from '../dto/storage-provisions-list-query-params.dto'
 import { transformStorageProvisionToDTO } from '../dto/transforms/storage-provision.transforms'
 import { ServerConfigurationService } from '../services/server-configuration.service'
@@ -116,7 +119,7 @@ export class StorageProvisionsController {
   async updateStorageProvision(
     @Req() req: express.Request,
     @Param('storageProvisionId') storageProvisionId: string,
-    @Body() storageProvision: StorageProvisionInputDTO,
+    @Body() storageProvision: StorageProvisionUpdateDTO,
   ): Promise<StorageProvisionsListResponse> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()

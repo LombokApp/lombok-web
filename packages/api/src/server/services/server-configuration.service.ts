@@ -25,7 +25,10 @@ import {
 } from '../constants/server.constants'
 import { ServerStorageInputDTO } from '../dto/server-storage-input.dto'
 import { SettingsDTO } from '../dto/settings.dto'
-import { StorageProvisionInputDTO } from '../dto/storage-provision-input.dto'
+import {
+  StorageProvisionInputDTO,
+  StorageProvisionUpdateDTO,
+} from '../dto/storage-provision-input.dto'
 import type { NewServerSetting } from '../entities/server-configuration.entity'
 import { serverSettingsTable } from '../entities/server-configuration.entity'
 import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
@@ -187,19 +190,21 @@ export class ServerConfigurationService {
   async updateStorageProvisionAsAdmin(
     actor: User,
     storageProvisionId: string,
-    storageProvision: StorageProvisionInputDTO,
+    storageProvision: StorageProvisionInputDTO | StorageProvisionUpdateDTO,
   ) {
     const now = new Date()
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
 
-    for (const provisionType of storageProvision.provisionTypes) {
-      if (
-        z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
-        provisionType
-      ) {
-        throw new ServerConfigurationInvalidException()
+    if (storageProvision.provisionTypes) {
+      for (const provisionType of storageProvision.provisionTypes) {
+        if (
+          z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
+          provisionType
+        ) {
+          throw new ServerConfigurationInvalidException()
+        }
       }
     }
 
@@ -219,29 +224,35 @@ export class ServerConfigurationService {
     if (!existingLocation) {
       throw new NotFoundException()
     } else {
+      // Merge partial updates and recompute hash id using existing credentials
+      const updatedValue = existingSettingRecord.map(
+        (sp: StorageProvisionDTO & StorageProvisionInputDTO) => {
+          if (sp.id !== storageProvisionId) {
+            return sp
+          }
+          const merged: StorageProvisionDTO & StorageProvisionInputDTO = {
+            ...sp,
+            ...storageProvision,
+            accessKeyId: sp.accessKeyId,
+            secretAccessKey: sp.secretAccessKey,
+          }
+          const accessKeyHashId = buildAccessKeyHashId({
+            accessKeyId: merged.accessKeyId,
+            secretAccessKey: merged.secretAccessKey,
+            region: merged.region,
+            endpoint: merged.endpoint,
+          })
+          return { ...merged, accessKeyHashId }
+        },
+      )
+
       await this.ormService.db
         .update(serverSettingsTable)
-        .set({
-          value: existingSettingRecord.map((sp: StorageProvisionDTO) =>
-            sp.id === storageProvisionId
-              ? {
-                  ...storageProvision,
-                  id: storageProvisionId,
-                  accessKeyHashId: buildAccessKeyHashId({
-                    accessKeyId: storageProvision.accessKeyId,
-                    secretAccessKey: storageProvision.secretAccessKey,
-                    region: storageProvision.region,
-                    endpoint: storageProvision.endpoint,
-                  }),
-                }
-              : sp,
-          ),
-          updatedAt: now,
-        })
+        .set({ value: updatedValue, updatedAt: now })
         .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key))
     }
 
-    return storageProvision
+    // no return value
   }
 
   async deleteStorageProvisionAsAdmin(actor: User, storageProvisionId: string) {

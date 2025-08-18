@@ -150,7 +150,7 @@ export const StorageProvisionForm = ({
                 <FormItem>
                   <FormLabel>Access Key Id</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} disabled={mutationType === 'UPDATE'} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,12 +159,11 @@ export const StorageProvisionForm = ({
             <FormField
               control={form.control}
               name="secretAccessKey"
-              disabled={mutationType === 'UPDATE'}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Secret Access Key</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} disabled={mutationType === 'UPDATE'} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

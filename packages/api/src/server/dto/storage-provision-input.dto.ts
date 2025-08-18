@@ -20,3 +20,21 @@ export const storageProvisionInputSchema = z.object({
 export class StorageProvisionInputDTO extends createZodDto(
   storageProvisionInputSchema,
 ) {}
+
+// For updates, allow partial updates of non-credential fields
+export const storageProvisionUpdateSchema = storageProvisionInputSchema
+  .partial({
+    label: true,
+    description: true,
+    endpoint: true,
+    bucket: true,
+    region: true,
+    prefix: true,
+    provisionTypes: true,
+    // Intentionally exclude credentials from partial, they will be rotated via a dedicated endpoint
+  })
+  .omit({ accessKeyId: true, secretAccessKey: true })
+
+export class StorageProvisionUpdateDTO extends createZodDto(
+  storageProvisionUpdateSchema,
+) {}
