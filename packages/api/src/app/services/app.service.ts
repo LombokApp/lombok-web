@@ -16,8 +16,8 @@ import type {
   ExternalAppWorker,
 } from '@stellariscloud/types'
 import {
-  APP_NS_PREFIX,
   appConfigSchema,
+  AppSocketApiRequest,
   CORE_APP_IDENTIFIER,
   metadataEntrySchema,
   SignedURLsRequestMethod,
@@ -27,11 +27,11 @@ import { safeZodParse } from '@stellariscloud/utils'
 import { spawn } from 'bun'
 import {
   and,
-  arrayContains,
   count,
   eq,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   or,
   SQL,
@@ -44,7 +44,6 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
-import { RUN_WORKER_SCRIPT_TASK_KEY } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
@@ -57,7 +56,10 @@ import { readDirRecursive } from 'src/platform/utils/fs.util'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
-import { APP_WORKER_INFO_CACHE_KEY_PREFIX } from 'src/socket/app/app-socket.service'
+import {
+  APP_WORKER_INFO_CACHE_KEY_PREFIX,
+  AppSocketService,
+} from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
@@ -66,13 +68,13 @@ import { User } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
 import { appConfig } from '../config'
-import { AppSocketAPIRequest } from '../constants/app-api-messages'
 import { AppSort } from '../dto/apps-list-query-params.dto'
 import { App, appsTable } from '../entities/app.entity'
 import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import { CoreAppService } from '../core-app.service'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -158,6 +160,10 @@ const failHandleTaskSchema = z.object({
   }),
 })
 
+const completeHandleTaskSchema = z.object({
+  taskId: z.string().uuid(),
+})
+
 export interface AppDefinition {
   config: AppConfig
   ui: Record<
@@ -179,9 +185,11 @@ export interface AppDefinition {
 @Injectable()
 export class AppService {
   folderService: FolderService
+  private readonly appSocketService: AppSocketService
   constructor(
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
+    private readonly coreAppService: CoreAppService,
     private readonly ormService: OrmService,
     private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
@@ -189,9 +197,11 @@ export class AppService {
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
+    @Inject(forwardRef(() => AppSocketService)) _appSocketService,
     private readonly s3Service: S3Service,
   ) {
     this.folderService = _folderService as FolderService
+    this.appSocketService = _appSocketService as AppSocketService
   }
 
   public async setAppEnabledAsAdmin(
@@ -214,18 +224,33 @@ export class AppService {
       .set({ enabled, updatedAt: now })
       .where(eq(appsTable.identifier, appIdentifier))
       .returning()
-
+    if (enabled === false) {
+      this.appSocketService.disconnectAllClientsByAppIdentifier(appIdentifier)
+    } else {
+      void this.coreAppService.startCoreAppThread()
+    }
     return updated
   }
 
-  getAppAsAdmin(appIdentifier: string): Promise<App | undefined> {
+  getAppAsAdmin(
+    appIdentifier: string,
+    {
+      enabled,
+    }: {
+      enabled?: boolean
+    } = {},
+  ): Promise<App | undefined> {
+    const idCondition = eq(appsTable.identifier, appIdentifier)
     return this.ormService.db.query.appsTable.findFirst({
-      where: eq(appsTable.identifier, appIdentifier),
+      where:
+        typeof enabled === 'boolean'
+          ? and(idCondition, eq(appsTable.enabled, enabled))
+          : idCondition,
     })
   }
 
   async createAppUserSession(user: User, appIdentifier: string) {
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getAppAsAdmin(appIdentifier, { enabled: true })
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -233,29 +258,19 @@ export class AppService {
     return this.sessionService.createAppUserSession(user, appIdentifier)
   }
 
-  async getWorkerScriptRunnerApp() {
-    return this.ormService.db.query.appsTable.findFirst({
-      where: arrayContains(appsTable.implementedTasks, [
-        RUN_WORKER_SCRIPT_TASK_KEY,
-      ]),
-    })
-  }
-
   async handleAppRequest(
     handlerId: string,
     requestingAppIdentifier: string,
     message: unknown,
   ) {
-    if (safeZodParse(message, AppSocketAPIRequest)) {
+    if (safeZodParse(message, AppSocketApiRequest)) {
       const requestData = message.data
-      const appIdentifierPrefixed = `${APP_NS_PREFIX}${requestingAppIdentifier.toLowerCase()}`
-      const isCoreApp =
-        appIdentifierPrefixed === `${APP_NS_PREFIX}${CORE_APP_IDENTIFIER}`
+      const isCoreApp = requestingAppIdentifier === CORE_APP_IDENTIFIER
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, logEntrySchema)) {
             await this.logEntryService.emitLog({
-              emitterIdentifier: `${APP_NS_PREFIX}${requestingAppIdentifier}`,
+              emitterIdentifier: requestingAppIdentifier,
               logMessage: requestData.message,
               data: requestData.data,
               level: requestData.level,
@@ -323,27 +338,35 @@ export class AppService {
           }
         }
         case 'COMPLETE_HANDLE_TASK': {
-          if (safeZodParse(requestData, z.string())) {
+          if (safeZodParse(requestData, completeHandleTaskSchema)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: isCoreApp
-                ? eq(tasksTable.id, requestData)
-                : and(
-                    eq(tasksTable.id, requestData),
-                    isNull(tasksTable.workerIdentifier),
-                    eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-                  ),
+              where: and(
+                eq(tasksTable.id, requestData.taskId),
+                isNull(tasksTable.completedAt),
+                isNull(tasksTable.errorAt),
+                eq(
+                  tasksTable.handlerId,
+                  `${requestingAppIdentifier}:${handlerId}`,
+                ),
+                ...(isCoreApp
+                  ? [
+                      or(
+                        isNotNull(tasksTable.workerIdentifier),
+                        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+                      ),
+                    ]
+                  : [
+                      isNull(tasksTable.workerIdentifier),
+                      eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+                    ]),
+              ),
             })
-            if (
-              !task ||
-              task.completedAt ||
-              task.handlerId !== handlerId ||
-              !task.startedAt
-            ) {
+            if (!task) {
               return {
                 error: {
                   code: 400,
                   message: 'Invalid request.',
-                  details: z.string().safeParse(requestData).error,
+                  details: 'No task found.',
                 },
               }
             }
@@ -357,13 +380,13 @@ export class AppService {
           }
           break
         }
-        case 'ATTEMPT_START_HANDLE_TASK': {
+        case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
           if (safeZodParse(requestData, attemptStartHandleTaskSchema)) {
             let securedTask: Task | undefined = undefined
             for (let attempt = 0; attempt < 5; attempt++) {
               const task = await this.ormService.db.query.tasksTable.findFirst({
                 where: and(
-                  eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
                   inArray(
                     tasksTable.taskIdentifier,
                     requestData.taskIdentifiers,
@@ -388,7 +411,7 @@ export class AppService {
                   .set({
                     startedAt: now,
                     updatedAt: now,
-                    handlerId,
+                    handlerId: `${requestingAppIdentifier}:${handlerId}`,
                   })
                   .where(
                     and(
@@ -428,19 +451,28 @@ export class AppService {
             },
           }
         }
-        case 'ATTEMPT_START_HANDLE_TASK_BY_ID': {
+        case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
           if (safeZodParse(requestData, attemptStartHandleTaskByIdSchema)) {
-            const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: eq(tasksTable.id, requestData.taskId),
-            })
+            if (!isCoreApp) {
+              return {
+                result: undefined,
+                error: {
+                  code: 403,
+                  message: 'Unauthorized to handle worker tasks.',
+                },
+              }
+            }
 
-            if (
-              !task ||
-              (task.workerIdentifier && !isCoreApp) ||
-              (isCoreApp &&
-                !task.workerIdentifier &&
-                task.ownerIdentifier !== appIdentifierPrefixed)
-            ) {
+            const rows = await this.ormService.db
+              .select({ task: tasksTable, app: appsTable })
+              .from(tasksTable)
+              .innerJoin(
+                appsTable,
+                eq(tasksTable.ownerIdentifier, appsTable.identifier),
+              )
+              .where(eq(tasksTable.id, requestData.taskId))
+              .limit(1)
+            if (rows.length === 0) {
               return {
                 result: undefined,
                 error: {
@@ -448,7 +480,10 @@ export class AppService {
                   message: 'Invalid request (no task found by id).',
                 },
               }
-            } else if (task.startedAt || task.completedAt || task.handlerId) {
+            }
+            const { task } = rows[0]
+
+            if (task.startedAt || task.completedAt || task.handlerId) {
               return {
                 result: undefined,
                 error: {
@@ -465,10 +500,7 @@ export class AppService {
                   .set({
                     startedAt: now,
                     updatedAt: now,
-                    handlerId:
-                      requestData.taskHandlerId && isCoreApp
-                        ? requestData.taskHandlerId
-                        : handlerId,
+                    handlerId: `${requestingAppIdentifier}:${handlerId}`,
                   })
                   .where(eq(tasksTable.id, task.id))
                   .returning()
@@ -481,16 +513,42 @@ export class AppService {
           if (safeZodParse(requestData, failHandleTaskSchema)) {
             const parsedFailHandleTaskMessage =
               failHandleTaskSchema.parse(requestData)
-            const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(eq(tasksTable.id, parsedFailHandleTaskMessage.taskId)),
-            })
-            if (
-              !task?.startedAt ||
-              task.completedAt ||
-              (!isCoreApp &&
-                (task.ownerIdentifier !== appIdentifierPrefixed ||
-                  task.handlerId !== handlerId))
-            ) {
+            const taskWithApp = await this.ormService.db
+              .select({ task: tasksTable, app: appsTable })
+              .from(tasksTable)
+              .innerJoin(
+                appsTable,
+                eq(tasksTable.ownerIdentifier, appsTable.identifier),
+              )
+              .where(
+                and(
+                  eq(tasksTable.id, requestData.taskId),
+                  isNotNull(tasksTable.workerIdentifier),
+                  isNull(tasksTable.completedAt),
+                  isNull(tasksTable.errorAt),
+                  eq(
+                    tasksTable.handlerId,
+                    `${requestingAppIdentifier}:${handlerId}`,
+                  ),
+                  ...(!isCoreApp
+                    ? [
+                        isNull(tasksTable.workerIdentifier),
+                        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+                      ]
+                    : [
+                        or(
+                          isNotNull(tasksTable.workerIdentifier),
+                          eq(
+                            tasksTable.ownerIdentifier,
+                            requestingAppIdentifier,
+                          ),
+                        ),
+                      ]),
+                ),
+              )
+              .limit(1)
+            const task = taskWithApp[0]?.task
+            if (!task) {
               return {
                 result: undefined,
                 error: {
@@ -511,7 +569,7 @@ export class AppService {
                   errorAt: now,
                   updatedAt: now,
                 })
-                .where(and(eq(tasksTable.id, task.id))),
+                .where(eq(tasksTable.id, task.id)),
             }
           } else {
             // eslint-disable-next-line no-console
@@ -562,6 +620,7 @@ export class AppService {
 
             const workerApp = await this.getAppAsAdmin(
               requestData.appIdentifier,
+              { enabled: true },
             )
             if (!workerApp) {
               // app by appIdentifier not found
@@ -892,7 +951,9 @@ export class AppService {
       }
     }
 
-    const workerApp = await this.getAppAsAdmin(requestData.appIdentifier)
+    const workerApp = await this.getAppAsAdmin(requestData.appIdentifier, {
+      enabled: true,
+    })
     if (!workerApp) {
       // app by appIdentifier not found
       return {

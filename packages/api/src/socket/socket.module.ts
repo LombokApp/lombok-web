@@ -22,6 +22,7 @@ import { FolderSocketGateway } from './folder/folder-socket.gateway'
 import { FolderSocketService } from './folder/folder-socket.service'
 import { UserSocketGateway } from './user/user-socket.gateway'
 import { UserSocketService } from './user/user-socket.service'
+import { CoreAppService } from 'src/app/core-app.service'
 
 @Module({
   controllers: [],
@@ -29,13 +30,14 @@ import { UserSocketService } from './user/user-socket.service'
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
     forwardRef(() => AuthModule),
-    ServerModule,
     StorageModule,
     forwardRef(() => EventModule),
     forwardRef(() => LogModule),
+    forwardRef(() => ServerModule),
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(platformConfig),
     ConfigModule.forFeature(appConfig),
+    SocketModule,
   ],
   providers: [
     JWTService,
@@ -49,6 +51,7 @@ import { UserSocketService } from './user/user-socket.service'
     EventService,
     AppService,
     ServerConfigurationService,
+    CoreAppService,
   ],
   exports: [
     UserSocketService,

@@ -80,7 +80,9 @@ export const connectAndPerformWork = (
         try {
           concurrentTasks++
           const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleTask(taskIdentifiers)
+            await serverClient.attemptStartHandleAnyAvailableTask(
+              taskIdentifiers,
+            )
           const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`

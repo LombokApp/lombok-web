@@ -12,6 +12,7 @@ import { ServerStorageController } from './controllers/server-storage.controller
 import { StorageProvisionsController } from './controllers/storage-provisions.controller'
 import { ServerConfigurationService } from './services/server-configuration.service'
 import { ServerMetricsService } from './services/server-metrics.service'
+import { SocketModule } from 'src/socket/socket.module'
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     StorageModule,
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
+    forwardRef(() => SocketModule),
     forwardRef(() => LogModule),
   ],
   controllers: [
@@ -26,7 +28,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     StorageProvisionsController,
     ServerStorageController,
   ],
-  providers: [ServerConfigurationService, ServerMetricsService, AppService],
+  providers: [ServerConfigurationService, ServerMetricsService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class ServerModule {}

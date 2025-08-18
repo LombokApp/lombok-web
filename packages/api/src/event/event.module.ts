@@ -16,6 +16,8 @@ import { StorageModule } from 'src/storage/storage.module'
 import { FolderEventsController } from './controllers/folder-events.controller'
 import { ServerEventsController } from './controllers/server-events.controller'
 import { EventService } from './services/event.service'
+import { CoreAppService } from 'src/app/core-app.service'
+import { authConfig } from 'src/auth/config'
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { EventService } from './services/event.service'
     forwardRef(() => FoldersModule),
     AuthModule,
     nestjsConfig.ConfigModule.forFeature(platformConfig),
+    nestjsConfig.ConfigModule.forFeature(authConfig),
     nestjsConfig.ConfigModule.forFeature(appConfig),
     forwardRef(() => StorageModule),
     forwardRef(() => LogModule),
@@ -35,6 +38,7 @@ import { EventService } from './services/event.service'
     FolderService,
     ServerConfigurationService,
     AppService,
+    CoreAppService,
   ],
   exports: [EventService],
 })

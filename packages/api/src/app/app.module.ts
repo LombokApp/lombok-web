@@ -18,6 +18,8 @@ import { AppsController } from './controllers/apps.controller'
 import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
 
+import { SocketModule } from 'src/socket/socket.module'
+
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
@@ -27,6 +29,7 @@ import { AppService } from './services/app.service'
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,
+    forwardRef(() => SocketModule),
     forwardRef(() => ServerModule),
     forwardRef(() => FoldersModule),
   ],
@@ -57,6 +60,6 @@ export class AppModule implements OnModuleInit {
           return this.appService.installAllAppsFromDisk()
         }
       })
-      .then(() => this.coreAppService.startCoreAppThread('embedded_worker_1'))
+      .then(() => this.coreAppService.startCoreAppThread())
   }
 }

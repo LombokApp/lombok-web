@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { APP_NS_PREFIX, CORE_APP_IDENTIFIER } from '@stellariscloud/types'
+import { CORE_APP_IDENTIFIER } from '@stellariscloud/types'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
@@ -13,6 +13,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { CoreWorkerProcessDataPayload } from './core-app-worker'
 import { appsTable } from './entities/app.entity'
+import { APP_JWT_SUB_PREFIX } from 'src/auth/services/jwt.service'
 
 @Injectable()
 export class CoreAppService {
@@ -44,7 +45,15 @@ export class CoreAppService {
     process.once('exit', terminate)
   }
 
-  async startCoreAppThread(appWorkerId: string) {
+  async startCoreAppThread() {
+    const appWorkerId = `embedded_worker_1_${crypto.randomUUID()}`
+    const coreApp = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, CORE_APP_IDENTIFIER),
+    })
+    if (!coreApp || !coreApp.enabled) {
+      this.logger.warn('Core app not enabled, skipping thread start')
+      return
+    }
     const isEmbeddedCoreAppEnabled =
       !this._platformConfig.disableEmbeddedCoreAppWorker
     if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
@@ -97,7 +106,7 @@ export class CoreAppService {
               if (!hasScheduledRetry) {
                 hasScheduledRetry = true
                 setTimeout(() => {
-                  void this.startCoreAppThread(appWorkerId)
+                  void this.startCoreAppThread()
                 }, 1000)
               }
             }
@@ -141,7 +150,7 @@ export class CoreAppService {
           if (!hasScheduledRetry) {
             hasScheduledRetry = true
             setTimeout(() => {
-              void this.startCoreAppThread(appWorkerId)
+              void this.startCoreAppThread()
             }, 1000)
           }
         }
@@ -199,7 +208,7 @@ export class CoreAppService {
       aud: this._platformConfig.hostId,
       jti: uuidV4(),
       scp: [],
-      sub: `${APP_NS_PREFIX}${CORE_APP_IDENTIFIER}`,
+      sub: `${APP_JWT_SUB_PREFIX}${CORE_APP_IDENTIFIER}`,
     }
 
     const token = jwt.sign(payload, keys.privateKey, {

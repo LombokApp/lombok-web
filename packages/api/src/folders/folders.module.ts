@@ -17,6 +17,8 @@ import { TaskModule } from 'src/task/task.module'
 import { FoldersController } from './controllers/folders.controller'
 import { ReindexFolderProcessor } from './processors/reindex-folder.task-processor'
 import { FolderService } from './services/folder.service'
+import { CoreAppService } from 'src/app/core-app.service'
+import { authConfig } from 'src/auth/config'
 
 @Module({
   controllers: [FoldersController],
@@ -25,6 +27,7 @@ import { FolderService } from './services/folder.service'
     ServerModule,
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(authConfig),
     forwardRef(() => TaskModule),
     forwardRef(() => EventModule),
     forwardRef(() => SocketModule),
@@ -38,6 +41,7 @@ import { FolderService } from './services/folder.service'
     LogEntryService,
     ServerConfigurationService,
     ReindexFolderProcessor,
+    CoreAppService,
   ],
   exports: [FolderService, ReindexFolderProcessor],
 })
