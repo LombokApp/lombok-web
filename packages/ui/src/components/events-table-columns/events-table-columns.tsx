@@ -1,4 +1,4 @@
-import type { EventDTO } from '@stellariscloud/types'
+import { type EventDTO, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 
@@ -40,7 +40,7 @@ export function configureEventsTableColumns(
           actorIdentifier={row.original.emitterIdentifier}
           title={row.getValue('eventIdentifier')}
           showSubtitle={config.showActorSubtext}
-          subtitle={`emitted by: ${row.original.emitterIdentifier}`}
+          subtitle={`emitted by ${row.original.emitterIdentifier === PLATFORM_IDENTIFIER ? 'internal:platform' : `app:${row.original.emitterIdentifier}`}`}
         />
       ),
       enableSorting: true,

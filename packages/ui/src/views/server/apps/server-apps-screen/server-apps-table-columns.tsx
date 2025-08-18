@@ -1,4 +1,4 @@
-import type { AppDTO } from '@stellariscloud/types'
+import { type AppDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 
@@ -30,8 +30,9 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     cell: ({ row }) => (
       <ActorFeedback
         title={row.original.label}
-        actorIdentifier={`app:${row.original.identifier}`}
+        actorIdentifier={row.original.identifier}
         showSubtitle={true}
+        subtitle={row.original.identifier}
       />
     ),
     enableSorting: false,

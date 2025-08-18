@@ -1,4 +1,4 @@
-import type { LogEntryDTO } from '@stellariscloud/types'
+import { type LogEntryDTO, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
@@ -20,10 +20,13 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
     cell: ({ row }) => (
       <ActorFeedback
         actorIdentifier={row.original.emitterIdentifier}
-        title={(
-          row.original.emitterIdentifier.split(':')[1] ?? ''
-        ).toUpperCase()}
+        title={row.original.emitterIdentifier.toUpperCase()}
         showSubtitle={true}
+        subtitle={
+          row.original.emitterIdentifier === PLATFORM_IDENTIFIER
+            ? 'internal:platform'
+            : `app:${row.original.emitterIdentifier}`
+        }
       />
     ),
     enableHiding: false,
