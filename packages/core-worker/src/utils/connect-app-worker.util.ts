@@ -69,6 +69,7 @@ export const connectAndPerformWork = (
       // eslint-disable-next-line no-console
       void ((socket.disconnected ? console.log : log) as typeof log)({
         message: 'Got event in worker thread',
+        level: 'DEBUG',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: _data,
       })

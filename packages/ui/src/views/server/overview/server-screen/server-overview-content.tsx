@@ -1,8 +1,11 @@
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
+  DataTable,
   TypographyH3,
+  TypographySubtitle,
 } from '@stellariscloud/ui-toolkit'
 import {
   AppWindow,
@@ -14,10 +17,11 @@ import {
   OctagonAlert,
   Users,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
+import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api } from '@/src/services/api'
-
-import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
+import { serverLogsTableColumns } from '@/src/views/server/logs/server-logs-screen/server-logs-table-columns'
 
 // Utility function to format bytes to human readable format
 const formatBytes = (bytes: number): string => {
@@ -31,10 +35,20 @@ const formatBytes = (bytes: number): string => {
 }
 
 export function ServerOverviewContent() {
+  const navigate = useNavigate()
   const { data: metrics, isLoading } = $api.useQuery(
     'get',
     '/api/v1/server/metrics',
   )
+
+  const { data: recentLogs } = $api.useQuery('get', '/api/v1/server/logs', {
+    params: {
+      query: {
+        limit: 20,
+        sort: ['createdAt-desc'],
+      },
+    },
+  })
 
   if (isLoading) {
     return (
@@ -63,6 +77,7 @@ export function ServerOverviewContent() {
 
   return (
     <div className="flex flex-col gap-4">
+      <TypographyH3>Server Metrics</TypographyH3>
       <StatCardGroup
         stats={[
           {
@@ -157,6 +172,32 @@ export function ServerOverviewContent() {
           </CardContent>
         </Card>
       </div>
+      <Card className="border-0 bg-transparent shadow-none">
+        <CardHeader className="p-0 pb-4 pt-3">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <TypographyH3>Recent Logs</TypographyH3>
+              <TypographySubtitle>Level ≥ INFO</TypographySubtitle>
+            </div>
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => {
+                void navigate('/server/logs')
+              }}
+            >
+              View all logs
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <DataTable
+            columns={serverLogsTableColumns}
+            data={(recentLogs?.result ?? []).slice(0, 20)}
+            pagination={{ pageIndex: 0, pageSize: 20 }}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
