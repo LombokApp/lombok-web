@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import {
-  APP_NS_PREFIX,
+  CORE_APP_IDENTIFIER,
   FolderPushMessage,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
@@ -72,7 +72,7 @@ export class EventService {
     subjectContext,
     userId,
   }: {
-    emitterIdentifier: 'platform' | `${typeof APP_NS_PREFIX}${string}`
+    emitterIdentifier: string
     eventIdentifier: PlatformEvent | string
     data: unknown
     subjectContext?: { folderId: string; objectKey?: string }
@@ -80,14 +80,14 @@ export class EventService {
   }) {
     const now = new Date()
 
-    const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
     const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
-    const appIdentifier = isAppEmitter
-      ? emitterIdentifier.slice(APP_NS_PREFIX.length)
-      : undefined
+    const isAppEmitter = !isPlatformEmitter
+    const appIdentifier = isAppEmitter ? emitterIdentifier : undefined
 
     const app = appIdentifier
-      ? await this.appService.getAppAsAdmin(appIdentifier.toLowerCase())
+      ? await this.appService.getAppAsAdmin(appIdentifier.toLowerCase(), {
+          enabled: true,
+        })
       : undefined
 
     if (appIdentifier && !app) {
@@ -168,7 +168,7 @@ export class EventService {
                   taskDescription: taskDefinition.identifier,
                   taskIdentifier: taskDefinition.identifier,
                   inputData: {},
-                  ownerIdentifier: `${APP_NS_PREFIX}${subscribedApp.identifier.toLowerCase()}`,
+                  ownerIdentifier: subscribedApp.identifier,
                   createdAt: now,
                   updatedAt: now,
                   workerIdentifier: taskDefinition.worker,
@@ -176,36 +176,24 @@ export class EventService {
                 // The run_worker_script task (only if above task is worker based)
                 if (isWorkerExecutedTask) {
                   // Load the app that implements the run_worker_script task
-                  const workerScriptRunnerApp =
-                    await this.appService.getWorkerScriptRunnerApp()
-                  const runWorkerScriptOwnerIdentifier = workerScriptRunnerApp
-                    ? `${APP_NS_PREFIX}${workerScriptRunnerApp.identifier.toLowerCase()}`
-                    : undefined
 
                   const inputData: TaskInputData = {
                     appIdentifier: subscribedApp.identifier,
                     workerIdentifier: taskDefinition.worker ?? '',
                     taskId: newTaskId,
                   }
-                  if (runWorkerScriptOwnerIdentifier) {
-                    tasks.push({
-                      id: uuidV4(),
-                      triggeringEventId: event.id,
-                      subjectFolderId: subjectContext?.folderId,
-                      subjectObjectKey: subjectContext?.objectKey,
-                      taskDescription: RUN_WORKER_SCRIPT_TASK_KEY,
-                      taskIdentifier: RUN_WORKER_SCRIPT_TASK_KEY,
-                      inputData,
-                      ownerIdentifier: runWorkerScriptOwnerIdentifier,
-                      createdAt: now,
-                      updatedAt: now,
-                    })
-                  } else {
-                    this.logger.error(
-                      `No installed app implements the "${RUN_WORKER_SCRIPT_TASK_KEY}" task, so this worker task will not be executed.`,
-                    )
-                    return Promise.resolve()
-                  }
+                  tasks.push({
+                    id: uuidV4(),
+                    triggeringEventId: event.id,
+                    subjectFolderId: subjectContext?.folderId,
+                    subjectObjectKey: subjectContext?.objectKey,
+                    taskDescription: RUN_WORKER_SCRIPT_TASK_KEY,
+                    taskIdentifier: RUN_WORKER_SCRIPT_TASK_KEY,
+                    inputData,
+                    ownerIdentifier: CORE_APP_IDENTIFIER,
+                    createdAt: now,
+                    updatedAt: now,
+                  })
                 }
                 return Promise.resolve()
               }

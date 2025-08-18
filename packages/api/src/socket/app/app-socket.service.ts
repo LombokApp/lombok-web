@@ -1,6 +1,11 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import {
+  Injectable,
+  Logger,
+  Scope,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { APP_NS_PREFIX, ExternalAppWorker } from '@stellariscloud/types'
+import { ExternalAppWorker } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
@@ -21,9 +26,10 @@ const AppAuthPayload = z.object({
 
 export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class AppSocketService {
-  private readonly connectedExternalAppWorkers = new Map<string, Socket>()
+  private readonly connectedAppWorkers = new Map<string, Socket>()
+  private readonly appIdentifierToClientIds = new Map<string, Set<string>>()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -47,10 +53,7 @@ export class AppSocketService {
     )
 
     const clientId = socket.id
-    this.connectedExternalAppWorkers.set(clientId, socket)
-    socket.on('disconnect', () => {
-      this.connectedExternalAppWorkers.delete(clientId)
-    })
+    this.connectedAppWorkers.set(clientId, socket)
 
     // Handle other messages from the client
     const auth = socket.handshake.auth
@@ -59,6 +62,7 @@ export class AppSocketService {
       const sub = jwt.payload.sub as string | undefined
       const isExternalAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
       const isAppWorkerToken = sub?.startsWith(APP_WORKER_JWT_SUB_PREFIX)
+
       const appIdentifier = isExternalAppToken
         ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           sub!.slice(APP_JWT_SUB_PREFIX.length)
@@ -68,15 +72,18 @@ export class AppSocketService {
           : undefined
 
       if (!appIdentifier) {
-        // eslint-disable-next-line no-console
-        console.log('No app identifier in jwt')
+        this.logger.warn(`No app identifier in jwt - sub: ${sub}`)
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const app = await this.appService.getAppAsAdmin(appIdentifier)
+      const app = await this.appService.getAppAsAdmin(appIdentifier, {
+        enabled: true,
+      })
       if (!app) {
-        // eslint-disable-next-line no-console
-        console.log('App "%s" not recognised. Disconnecting...', appIdentifier)
+        this.logger.warn(
+          'App "%s" not recognised. Disconnecting...',
+          appIdentifier,
+        )
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
@@ -114,6 +121,14 @@ export class AppSocketService {
         JSON.stringify(workerInfo),
       )
 
+      // track socket by app identifier for bulk disconnects
+      const existingSet = this.appIdentifierToClientIds.get(appIdentifier)
+      if (existingSet) {
+        existingSet.add(socket.id)
+      } else {
+        this.appIdentifierToClientIds.set(appIdentifier, new Set([socket.id]))
+      }
+
       // register listener for requests from the app
       socket.on(
         'APP_API',
@@ -126,8 +141,7 @@ export class AppSocketService {
           const response = await this.appService
             .handleAppRequest(auth.appWorkerId, appIdentifier, message)
             .catch((error: unknown) => {
-              // eslint-disable-next-line no-console
-              console.log('Unexpected error during message handling:', {
+              this.logger.error('Unexpected error during message handling:', {
                 message,
                 error,
               })
@@ -156,6 +170,17 @@ export class AppSocketService {
       )
 
       socket.on('disconnect', () => {
+        // cleanup app -> clientId mapping
+        const appClientIds = this.appIdentifierToClientIds.get(appIdentifier)
+        if (appClientIds) {
+          appClientIds.delete(socket.id)
+          if (appClientIds.size === 0) {
+            this.appIdentifierToClientIds.delete(appIdentifier)
+          }
+        }
+        // Also cleanup from connectedAppWorkers
+        this.connectedAppWorkers.delete(socket.id)
+
         void this.kvService.ops.del(
           `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
         )
@@ -172,15 +197,45 @@ export class AppSocketService {
       )
     } else {
       // auth payload does not match expected
-      // eslint-disable-next-line no-console
-      console.log('Bad auth payload.', auth)
+
+      this.logger.warn('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
     }
   }
 
   getRoomKeyForAppAndTask(appIdentifier: string, taskIdentifier: string) {
-    return `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}__task:${taskIdentifier}`
+    return `${appIdentifier}__task:${taskIdentifier}`
+  }
+
+  disconnectAllClientsByAppIdentifier(appIdentifier: string) {
+    const clientIds = this.appIdentifierToClientIds.get(appIdentifier)
+    if (!clientIds || clientIds.size === 0) {
+      this.logger.log(
+        `No connected clients to disconnect for app "${appIdentifier}"`,
+      )
+      return
+    }
+
+    this.logger.log(
+      `Disconnecting ${clientIds.size} clients for app "${appIdentifier}"`,
+    )
+
+    // copy to avoid mutation during disconnect events
+    const idsToDisconnect = Array.from(clientIds)
+    for (const clientId of idsToDisconnect) {
+      const socket = this.connectedAppWorkers.get(clientId)
+      if (socket) {
+        try {
+          socket.disconnect(true)
+        } catch (error) {
+          this.logger.error(
+            `Error disconnecting client ${clientId} for app ${appIdentifier}`,
+            error as Error,
+          )
+        }
+      }
+    }
   }
 
   notifyAppWorkersOfPendingTasks(
@@ -188,8 +243,7 @@ export class AppSocketService {
     taskIdentifier: string,
     count: number,
   ) {
-    // eslint-disable-next-line no-console
-    console.log('Broadcasting pending tasks message:', {
+    this.logger.verbose('Broadcasting pending tasks message:', {
       appIdentifier,
       taskIdentifier,
       count,
@@ -202,8 +256,7 @@ export class AppSocketService {
           count,
         })
     } else {
-      // eslint-disable-next-line no-console
-      console.log(
+      this.logger.error(
         'Namespace not yet set when emitting PENDING_TASKS_NOTIFICATION.',
       )
     }

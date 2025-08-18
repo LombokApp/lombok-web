@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import {
   and,
   count,
@@ -12,10 +13,12 @@ import {
   ilike,
   isNotNull,
   isNull,
+  ne,
   or,
   SQL,
   sql,
 } from 'drizzle-orm'
+import { appsTable } from 'src/app/entities/app.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
@@ -210,22 +213,26 @@ export class TaskService {
         count: sql<number>`cast(count(${tasksTable.id}) as int)`,
       })
       .from(tasksTable)
+      .innerJoin(
+        appsTable,
+        eq(tasksTable.ownerIdentifier, appsTable.identifier),
+      )
       .where(
         and(
           isNull(tasksTable.startedAt),
           isNull(tasksTable.workerIdentifier),
-          ilike(tasksTable.ownerIdentifier, 'app:%'),
+          ne(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
+          eq(appsTable.enabled, true),
         ),
       )
       .groupBy(tasksTable.taskIdentifier, tasksTable.ownerIdentifier)
     const pendingTasksByApp = pendingTasks.reduce<
       Record<string, Record<string, number>>
     >((acc, next) => {
-      const appIdentifier = next.ownerIdentifier.split(':').slice(1).join(':')
       return {
         ...acc,
-        [appIdentifier]: {
-          ...(appIdentifier in acc ? acc[appIdentifier] : {}),
+        [next.ownerIdentifier]: {
+          ...(next.ownerIdentifier in acc ? acc[next.ownerIdentifier] : {}),
           [next.taskIdentifier]: next.count,
         },
       }

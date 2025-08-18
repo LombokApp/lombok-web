@@ -2,9 +2,9 @@ import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
-import { AppService } from 'src/app/services/app.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
+import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 
 import { ServerController } from './controllers/server.controller'
@@ -19,6 +19,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     StorageModule,
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
+    forwardRef(() => SocketModule),
     forwardRef(() => LogModule),
   ],
   controllers: [
@@ -26,7 +27,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     StorageProvisionsController,
     ServerStorageController,
   ],
-  providers: [ServerConfigurationService, ServerMetricsService, AppService],
+  providers: [ServerConfigurationService, ServerMetricsService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class ServerModule {}

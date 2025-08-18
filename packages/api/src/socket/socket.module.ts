@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
+import { CoreAppService } from 'src/app/core-app.service'
 import { AppService } from 'src/app/services/app.service'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
@@ -29,10 +30,10 @@ import { UserSocketService } from './user/user-socket.service'
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
     forwardRef(() => AuthModule),
-    ServerModule,
     StorageModule,
     forwardRef(() => EventModule),
     forwardRef(() => LogModule),
+    forwardRef(() => ServerModule),
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(platformConfig),
     ConfigModule.forFeature(appConfig),
@@ -49,6 +50,7 @@ import { UserSocketService } from './user/user-socket.service'
     EventService,
     AppService,
     ServerConfigurationService,
+    CoreAppService,
   ],
   exports: [
     UserSocketService,

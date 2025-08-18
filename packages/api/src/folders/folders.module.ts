@@ -2,7 +2,9 @@ import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
+import { CoreAppService } from 'src/app/core-app.service'
 import { AppService } from 'src/app/services/app.service'
+import { authConfig } from 'src/auth/config'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { LogEntryService } from 'src/log/services/log-entry.service'
@@ -25,6 +27,7 @@ import { FolderService } from './services/folder.service'
     ServerModule,
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(authConfig),
     forwardRef(() => TaskModule),
     forwardRef(() => EventModule),
     forwardRef(() => SocketModule),
@@ -38,6 +41,7 @@ import { FolderService } from './services/folder.service'
     LogEntryService,
     ServerConfigurationService,
     ReindexFolderProcessor,
+    CoreAppService,
   ],
   exports: [FolderService, ReindexFolderProcessor],
 })

@@ -14,7 +14,6 @@ import type {
   StorageProvisionType,
 } from '@stellariscloud/types'
 import {
-  APP_NS_PREFIX,
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
@@ -1084,7 +1083,7 @@ export class FolderService {
     //   objectKey,
     // })
     await this.eventService.emitEvent({
-      emitterIdentifier: `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`,
+      emitterIdentifier: appIdentifier,
       subjectContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
       data: { inputParams },

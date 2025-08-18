@@ -1,10 +1,12 @@
 import type {
   AppLogEntry,
   AppManifest,
+  AppSocketMessage,
   ContentMetadataType,
   WorkerErrorDetails,
 } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
+import type { z } from 'zod'
 
 const SOCKET_RESPONSE_TIMEOUT = 2000
 
@@ -50,7 +52,7 @@ export interface PlatformServerMessageInterface {
     taskId: string,
     taskHandlerId?: string,
   ) => Promise<AppAPIResponse<AppTask>>
-  attemptStartHandleTask: (
+  attemptStartHandleAnyAvailableTask: (
     taskIdentifiers: string[],
   ) => Promise<AppAPIResponse<AppTask>>
   failHandleTask: (
@@ -102,7 +104,10 @@ export const buildAppClient = (
   socket: Socket,
   serverBaseUrl: string,
 ): PlatformServerMessageInterface => {
-  const emitWithAck = async (name: string, data: unknown) => {
+  const emitWithAck = async (
+    name: z.infer<typeof AppSocketMessage>,
+    data: unknown,
+  ) => {
     const response = (await socket
       .timeout(SOCKET_RESPONSE_TIMEOUT)
       .emitWithAck('APP_API', {
@@ -155,22 +160,24 @@ export const buildAppClient = (
       }) as ReturnType<PlatformServerMessageInterface['updateContentMetadata']>
     },
     completeHandleTask(taskId) {
-      return emitWithAck('COMPLETE_HANDLE_TASK', taskId) as ReturnType<
+      return emitWithAck('COMPLETE_HANDLE_TASK', { taskId }) as ReturnType<
         PlatformServerMessageInterface['completeHandleTask']
       >
     },
     attemptStartHandleTaskById(taskId: string, taskHandlerId?: string) {
-      return emitWithAck('ATTEMPT_START_HANDLE_TASK_BY_ID', {
+      return emitWithAck('ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID', {
         taskId,
         taskHandlerId,
       }) as ReturnType<
         PlatformServerMessageInterface['attemptStartHandleTaskById']
       >
     },
-    attemptStartHandleTask(taskIdentifiers: string[]) {
-      return emitWithAck('ATTEMPT_START_HANDLE_TASK', {
+    attemptStartHandleAnyAvailableTask(taskIdentifiers: string[]) {
+      return emitWithAck('ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK', {
         taskIdentifiers,
-      }) as ReturnType<PlatformServerMessageInterface['attemptStartHandleTask']>
+      }) as ReturnType<
+        PlatformServerMessageInterface['attemptStartHandleAnyAvailableTask']
+      >
     },
     failHandleTask(taskId, error) {
       return emitWithAck('FAIL_HANDLE_TASK', { taskId, error }) as ReturnType<

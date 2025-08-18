@@ -10,6 +10,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
 import { StorageModule } from 'src/storage/storage.module'
 
@@ -27,6 +28,7 @@ import { AppService } from './services/app.service'
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,
+    forwardRef(() => SocketModule),
     forwardRef(() => ServerModule),
     forwardRef(() => FoldersModule),
   ],
@@ -57,6 +59,6 @@ export class AppModule implements OnModuleInit {
           return this.appService.installAllAppsFromDisk()
         }
       })
-      .then(() => this.coreAppService.startCoreAppThread('embedded_worker_1'))
+      .then(() => this.coreAppService.startCoreAppThread())
   }
 }
