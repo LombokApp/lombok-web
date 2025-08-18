@@ -89,7 +89,7 @@ export function Menu({
                                   isOpen ? 'justify-start' : 'justify-center',
                                   active
                                     ? 'bg-accent text-accent-foreground'
-                                    : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground',
+                                    : 'text-foreground/70 hover:bg-accent/50 hover:text-accent-foreground',
                                 )}
                                 asChild
                               >
@@ -169,7 +169,7 @@ export function Menu({
                 variant="ghost"
                 className={cn(
                   !isOpen ? 'justify-center' : 'justify-start',
-                  'h-9 w-full px-2 font-normal text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground',
+                  'h-9 w-full px-2 font-normal text-foreground/70 hover:bg-accent/50 hover:text-accent-foreground',
                 )}
               >
                 <span className={cn(isOpen && 'mr-3')}>
