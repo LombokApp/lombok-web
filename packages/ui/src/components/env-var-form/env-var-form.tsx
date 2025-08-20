@@ -12,31 +12,33 @@ import {
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-const envVarSchema = z.object({
+const environmentVariableschema = z.object({
   key: z.string().min(1, 'Key is required'),
   value: z.string(),
 })
 
 const formSchema = z.object({
-  envVars: z.array(envVarSchema),
+  environmentVariables: z.array(environmentVariableschema),
 })
 
 export type EnvVarFormValues = z.infer<typeof formSchema>
 
 export function EnvVarForm({
-  envVars = [],
+  environmentVariables = [],
   onSubmit,
 }: {
-  envVars: { key: string; value: string }[]
-  onSubmit: (envVars: { key: string; value: string }[]) => Promise<void>
+  environmentVariables: { key: string; value: string }[]
+  onSubmit: (
+    environmentVariables: { key: string; value: string }[],
+  ) => Promise<void>
 }) {
   const form = useForm<EnvVarFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { envVars },
+    defaultValues: { environmentVariables },
   })
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'envVars',
+    name: 'environmentVariables',
   })
 
   return (
@@ -46,7 +48,9 @@ export function EnvVarForm({
           e.preventDefault()
           void form.trigger().then(() => {
             if (form.formState.isValid) {
-              void form.handleSubmit((values) => onSubmit(values.envVars))(e)
+              void form.handleSubmit((values) =>
+                onSubmit(values.environmentVariables),
+              )(e)
             }
           })
         }}
@@ -56,7 +60,7 @@ export function EnvVarForm({
           <div key={item.id} className="flex items-end gap-2">
             <FormField
               control={form.control}
-              name={`envVars.${index}.key`}
+              name={`environmentVariables.${index}.key`}
               render={({ field: keyField }) => (
                 <FormItem>
                   <FormLabel>Key</FormLabel>
@@ -69,7 +73,7 @@ export function EnvVarForm({
             />
             <FormField
               control={form.control}
-              name={`envVars.${index}.value`}
+              name={`environmentVariables.${index}.value`}
               render={({ field: valueField }) => (
                 <FormItem>
                   <FormLabel>Value</FormLabel>

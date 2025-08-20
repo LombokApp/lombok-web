@@ -78,12 +78,7 @@ export function UserStorageProvisions({
                   storageProvisionId: modalData.storageProvision.id,
                 },
               },
-              body: {
-                ...values,
-                secretAccessKey: values.secretAccessKey.length
-                  ? values.secretAccessKey
-                  : '',
-              },
+              body: values,
             })
           }
         }}

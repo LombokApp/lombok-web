@@ -54,9 +54,9 @@ export function ServerAppDetailScreen({
   const [showRawConfig, setShowRawConfig] = React.useState(false)
 
   // React Query mutation for saving env vars
-  const setEnvVarsMutation = $api.useMutation(
+  const setEnvironmentVariablesMutation = $api.useMutation(
     'put',
-    '/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars',
+    '/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables',
     {
       onSuccess: () => appQuery.refetch(),
     },
@@ -192,10 +192,17 @@ export function ServerAppDetailScreen({
         </CardHeader>
         <CardContent className="p-0">
           <DataTable
-            data={app?.workerScripts ?? []}
+            data={
+              app?.workers
+                ? Object.entries(app.workers).map(([workerKey, worker]) => ({
+                    identifier: workerKey,
+                    ...worker,
+                  }))
+                : []
+            }
             columns={configureServerAppWorkerScriptTableColumns(
               appIdentifier,
-              setEnvVarsMutation,
+              setEnvironmentVariablesMutation,
             )}
           />
         </CardContent>

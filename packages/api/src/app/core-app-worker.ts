@@ -25,7 +25,7 @@ const coreWorkerProcessDataPayloadSchema = z.object({
   executionOptions: z
     .object({
       printWorkerOutput: z.boolean().optional(),
-      emptyWorkerTmpDir: z.boolean().optional(),
+      removeWorkerDirectory: z.boolean().optional(),
     })
     .optional(),
 })

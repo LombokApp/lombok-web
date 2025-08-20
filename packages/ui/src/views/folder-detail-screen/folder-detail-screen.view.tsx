@@ -43,6 +43,7 @@ import {
 } from '@/src/components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
 import { useServerContext } from '@/src/hooks/use-server-context'
+import { useFocusedFolderObjectContext } from '@/src/pages/folders/focused-folder-object.context'
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api, $apiClient } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
@@ -82,7 +83,7 @@ export const FolderDetailScreen = () => {
   const params = useParams()
   const folderPathParts = params['*']?.split('/') ?? []
   const folderId = folderPathParts[0] ?? ''
-  const focusedObjectKeyFromParams = folderPathParts[1] ?? ''
+  const { focusedFolderObject } = useFocusedFolderObjectContext()
 
   const [filters, setFilters] = React.useState<Record<string, string[]>>(
     readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
@@ -404,11 +405,11 @@ export const FolderDetailScreen = () => {
           className={cn(
             'z-10 flex size-full flex-1',
             '@container justify-around',
-            focusedObjectKeyFromParams && 'opacity-0',
+            focusedFolderObject && 'opacity-0',
           )}
         >
           {/* eslint-disable-next-line tailwindcss/no-unnecessary-arbitrary-value */}
-          <div className="@8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem] flex size-full w-full flex-1 justify-between overflow-x-visible @4xl:flex-none @4xl:gap-4">
+          <div className="flex size-full w-full flex-1 justify-between overflow-x-visible @4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem]">
             <div className="flex min-w-0 flex-1 py-6">
               <div className="flex size-full flex-col gap-2">
                 <div className="flex justify-between">

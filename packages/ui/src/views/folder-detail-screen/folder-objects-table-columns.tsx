@@ -27,7 +27,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
     id: 'link',
     cell: ({ row }) => (
       <TableLinkColumn
-        to={`/folders/${row.original.folderId}/objects/${row.original.objectKey}`}
+        to={`/folders/${row.original.folderId}/objects/${encodeURIComponent(row.original.objectKey)}`}
       />
     ),
     enableSorting: false,

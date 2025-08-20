@@ -322,13 +322,6 @@ export class FolderService {
             .returning()
         )[0]
       } else {
-        console.log(
-          'Got bad folder create %s location input:',
-          storageProvisionType.toLowerCase(),
-          {
-            locationInput,
-          },
-        )
         throw new BadRequestException()
       }
 
@@ -1101,69 +1094,71 @@ export class FolderService {
     const extension =
       objectKeyParts.length > 1 ? objectKeyParts.at(-1) : undefined
 
-    let record: FolderObject | undefined = undefined
-    // attempt to load existing record
-    const previousRecord =
-      await this.ormService.db.query.folderObjectsTable.findFirst({
-        where: and(
-          eq(folderObjectsTable.folderId, folderId),
-          eq(folderObjectsTable.objectKey, objectKey),
-        ),
-      })
-    if (previousRecord) {
-      record = (
-        await this.ormService.db
-          .update(folderObjectsTable)
-          .set({
-            sizeBytes: updateRecord.size ?? 0,
-            lastModified: updateRecord.lastModified ?? 0,
-            eTag: updateRecord.eTag ?? '',
-            mimeType: updateRecord.mimeType ?? previousRecord.mimeType,
-            mediaType: updateRecord.mimeType
-              ? mediaTypeFromMimeType(updateRecord.mimeType)
-              : previousRecord.mediaType,
-          })
-          .returning()
-      )[0]
-    } else {
-      const mimeTypeFromExtension = extension
-        ? (mime.getType(extension) ?? '')
-        : ''
-      record = (
-        await this.ormService.db
-          .insert(folderObjectsTable)
-          .values({
-            id: uuidV4(),
-            folderId,
-            objectKey,
-            lastModified: updateRecord.lastModified ?? 0,
-            eTag: updateRecord.eTag ?? '',
-            contentMetadata: {},
-            sizeBytes: updateRecord.size ?? 0,
-            mediaType: extension
-              ? mediaTypeFromMimeType(mimeTypeFromExtension)
-              : MediaType.Unknown,
-            mimeType: mimeTypeFromExtension,
-            createdAt: now,
-            updatedAt: now,
-          })
-          .returning()
-      )[0]
+    const mimeTypeFromExtension = extension
+      ? (mime.getType(extension) ?? '')
+      : ''
+    const insertMimeType = updateRecord.mimeType ?? mimeTypeFromExtension
+    const insertMediaType = updateRecord.mimeType
+      ? mediaTypeFromMimeType(updateRecord.mimeType)
+      : extension
+        ? mediaTypeFromMimeType(mimeTypeFromExtension)
+        : MediaType.Unknown
+
+    const insertValues = {
+      id: uuidV4(),
+      folderId,
+      objectKey,
+      lastModified: updateRecord.lastModified ?? 0,
+      eTag: updateRecord.eTag ?? '',
+      contentMetadata: {},
+      sizeBytes: updateRecord.size ?? 0,
+      mediaType: insertMediaType,
+      mimeType: insertMimeType,
+      createdAt: now,
+      updatedAt: now,
     }
+
+    const updateSet: Record<string, unknown> = {
+      sizeBytes: insertValues.sizeBytes,
+      lastModified: insertValues.lastModified,
+      eTag: insertValues.eTag,
+      updatedAt: now,
+    }
+
+    if (updateRecord.mimeType) {
+      Object.assign(updateSet, {
+        mimeType: insertValues.mimeType,
+        mediaType: insertValues.mediaType,
+      })
+    }
+
+    const record = (
+      await this.ormService.db
+        .insert(folderObjectsTable)
+        .values(insertValues)
+        .onConflictDoUpdate({
+          target: [folderObjectsTable.folderId, folderObjectsTable.objectKey],
+          set: updateSet as never,
+        })
+        .returning()
+    )[0]
+
+    // Decide event type based on createdAt vs updatedAt: insert sets both to now, update changes only updatedAt
+    const wasAdded = record.createdAt.getTime() === record.updatedAt.getTime()
 
     this.folderSocketService.sendToFolderRoom(
       folderId,
-      previousRecord
-        ? FolderPushMessage.OBJECT_UPDATED
-        : FolderPushMessage.OBJECT_ADDED,
+      wasAdded
+        ? FolderPushMessage.OBJECT_ADDED
+        : FolderPushMessage.OBJECT_UPDATED,
       { folderObject: record },
     )
 
     await this.eventService.emitEvent({
       emitterIdentifier: PLATFORM_IDENTIFIER,
-      eventIdentifier: previousRecord
-        ? `${PLATFORM_IDENTIFIER}:object_updated`
-        : `${PLATFORM_IDENTIFIER}:object_added`,
+      eventIdentifier: wasAdded
+        ? `${PLATFORM_IDENTIFIER}:object_added`
+        : `${PLATFORM_IDENTIFIER}:object_updated`,
       subjectContext: {
         folderId: record.folderId,
         objectKey: record.objectKey,

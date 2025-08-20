@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import type { SafeParseReturnType } from 'zod'
 
 import {
   appConfigSchema,
@@ -14,6 +15,44 @@ import {
   triggerSchema,
 } from '../apps.types'
 
+// Helper assertions that print zod errors only if the expectation fails
+const expectZodSuccess = (result: SafeParseReturnType<unknown, unknown>) => {
+  try {
+    expect(result.success).toBe(true)
+  } catch (err) {
+    if (!result.success) {
+      const { issues } = result.error
+      // eslint-disable-next-line no-console
+      console.error(
+        'Zod validation failed. Issues:\n' + JSON.stringify(issues, null, 2),
+      )
+    }
+    throw err
+  }
+}
+
+const expectZodFailure = (result: SafeParseReturnType<unknown, unknown>) => {
+  try {
+    expect(result.success).toBe(false)
+  } catch (err) {
+    if (result.success) {
+      // eslint-disable-next-line no-console
+      console.error(
+        'Expected zod validation to fail, but it succeeded. Parsed value:\n' +
+          JSON.stringify(result.data, null, 2),
+      )
+    } else {
+      const { issues } = result.error
+      // eslint-disable-next-line no-console
+      console.error(
+        'Zod validation failed as expected. Issues:\n' +
+          JSON.stringify(issues, null, 2),
+      )
+    }
+    throw err
+  }
+}
+
 describe('apps.types', () => {
   describe('paramConfigSchema', () => {
     it('should validate boolean parameter config', () => {
@@ -22,7 +61,7 @@ describe('apps.types', () => {
         default: true,
       }
       const result = paramConfigSchema.safeParse(validConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate string parameter config', () => {
@@ -31,7 +70,7 @@ describe('apps.types', () => {
         default: 'test',
       }
       const result = paramConfigSchema.safeParse(validConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate number parameter config', () => {
@@ -40,7 +79,7 @@ describe('apps.types', () => {
         default: 42,
       }
       const result = paramConfigSchema.safeParse(validConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate parameter config without default', () => {
@@ -48,7 +87,7 @@ describe('apps.types', () => {
         type: ConfigParamType.string,
       }
       const result = paramConfigSchema.safeParse(validConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject invalid parameter type', () => {
@@ -57,7 +96,7 @@ describe('apps.types', () => {
         default: 'test',
       }
       const result = paramConfigSchema.safeParse(invalidConfig)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 
@@ -69,7 +108,7 @@ describe('apps.types', () => {
         inputParams: { param1: 'value1' },
       }
       const result = triggerSchema.safeParse(validTrigger)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate object action trigger', () => {
@@ -79,7 +118,7 @@ describe('apps.types', () => {
         inputParams: { param1: 'value1' },
       }
       const result = triggerSchema.safeParse(validTrigger)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate folder action trigger', () => {
@@ -89,7 +128,7 @@ describe('apps.types', () => {
         inputParams: { param1: 'value1' },
       }
       const result = triggerSchema.safeParse(validTrigger)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject invalid trigger type', () => {
@@ -98,7 +137,7 @@ describe('apps.types', () => {
         event: 'test.event',
       }
       const result = triggerSchema.safeParse(invalidTrigger)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 
@@ -124,7 +163,7 @@ describe('apps.types', () => {
         worker: 'test-worker',
       }
       const result = taskConfigSchema.safeParse(validTask)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate minimal task config', () => {
@@ -134,7 +173,7 @@ describe('apps.types', () => {
         description: 'A test task',
       }
       const result = taskConfigSchema.safeParse(validTask)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject task without required fields', () => {
@@ -143,7 +182,7 @@ describe('apps.types', () => {
         // missing label and description
       }
       const result = taskConfigSchema.safeParse(invalidTask)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 
@@ -162,26 +201,20 @@ describe('apps.types', () => {
           },
         ],
         externalWorkers: ['worker1'],
-        workerScripts: {
+        workers: {
           script1: {
             description: 'Test script',
-            envVars: { VAR1: 'value1' },
+            environmentVariables: { VAR1: 'value1' },
           },
         },
-        uis: {
+        ui: {
           main: {
             description: 'Main UI',
-            menuItems: [
-              {
-                label: 'Menu Item',
-                uiIdentifier: 'main',
-              },
-            ],
           },
         },
       }
       const result = appConfigSchema.safeParse(validApp)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate minimal app config', () => {
@@ -199,7 +232,7 @@ describe('apps.types', () => {
         ],
       }
       const result = appConfigSchema.safeParse(validApp)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject app with invalid identifier', () => {
@@ -217,7 +250,7 @@ describe('apps.types', () => {
         ],
       }
       const result = appConfigSchema.safeParse(invalidApp)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
 
     it("should reject app with 'platform' identifier", () => {
@@ -235,7 +268,7 @@ describe('apps.types', () => {
         ],
       }
       const result = appConfigSchema.safeParse(invalidApp)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
 
     it('should reject app with empty identifier', () => {
@@ -253,7 +286,7 @@ describe('apps.types', () => {
         ],
       }
       const result = appConfigSchema.safeParse(invalidApp)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 
@@ -272,7 +305,7 @@ describe('apps.types', () => {
         },
       }
       const result = appManifestSchema.safeParse(validManifest)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject manifest with invalid entry', () => {
@@ -283,7 +316,7 @@ describe('apps.types', () => {
         },
       }
       const result = appManifestSchema.safeParse(invalidManifest)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 
@@ -297,7 +330,7 @@ describe('apps.types', () => {
         ip: '192.168.1.1',
       }
       const result = externalAppWorkerSchema.safeParse(validWorker)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject external app worker with missing fields', () => {
@@ -306,7 +339,7 @@ describe('apps.types', () => {
         // missing other required fields
       }
       const result = externalAppWorkerSchema.safeParse(invalidWorker)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 
@@ -317,7 +350,7 @@ describe('apps.types', () => {
         iconPath: '/icons/test.svg',
       }
       const result = appUILinkSchema.safeParse(validMenuItem)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate menu item config without icon', () => {
@@ -325,7 +358,7 @@ describe('apps.types', () => {
         label: 'Test Menu',
       }
       const result = appUILinkSchema.safeParse(validMenuItem)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
   })
 
@@ -333,14 +366,9 @@ describe('apps.types', () => {
     it('should validate UI config', () => {
       const validUIConfig = {
         description: 'Test UI',
-        menuItems: [
-          {
-            label: 'Menu Item',
-          },
-        ],
       }
       const result = appUIConfigSchema.safeParse(validUIConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
   })
 
@@ -348,13 +376,13 @@ describe('apps.types', () => {
     it('should validate worker script config', () => {
       const validScriptConfig = {
         description: 'Test script',
-        envVars: {
-          NODE_ENV: 'production',
+        environmentVariables: {
+          SOME_ENV_VAR: 'production',
           API_URL: 'https://api.example.com',
         },
       }
       const result = appWorkerScriptConfigSchema.safeParse(validScriptConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should validate worker script config without env vars', () => {
@@ -362,7 +390,7 @@ describe('apps.types', () => {
         description: 'Test script',
       }
       const result = appWorkerScriptConfigSchema.safeParse(validScriptConfig)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
   })
 
@@ -371,7 +399,7 @@ describe('apps.types', () => {
       const validContributions = {
         routes: [
           {
-            title: 'Home',
+            label: 'Home',
             uiIdentifier: 'main_ui',
             iconPath: '/icons/home.svg',
             path: '/home',
@@ -401,21 +429,21 @@ describe('apps.types', () => {
         ],
         folderSidebarEmbeds: [
           {
-            title: 'Folder Stats',
+            label: 'Folder Stats',
             uiIdentifier: 'analytics_ui',
             path: '/folders/:id/stats',
           },
         ],
         objectSidebarEmbeds: [
           {
-            title: 'Object Preview',
+            label: 'Object Preview',
             uiIdentifier: 'viewer_ui',
             path: '/objects/:id/preview',
           },
         ],
       }
       const result = appContributionsSchema.safeParse(validContributions)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should allow empty arrays for all contribution sections', () => {
@@ -428,7 +456,7 @@ describe('apps.types', () => {
         objectSidebarEmbeds: [],
       }
       const result = appContributionsSchema.safeParse(validContributions)
-      expect(result.success).toBe(true)
+      expectZodSuccess(result)
     })
 
     it('should reject contributions missing a required section', () => {
@@ -443,14 +471,14 @@ describe('apps.types', () => {
       const result = appContributionsSchema.safeParse(
         invalidContributions as unknown,
       )
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
 
     it('should reject a route entry with empty required fields', () => {
       const invalidContributions = {
         routes: [
           {
-            title: '',
+            label: '',
             uiIdentifier: '',
             path: '',
           },
@@ -462,7 +490,7 @@ describe('apps.types', () => {
         objectSidebarEmbeds: [],
       }
       const result = appContributionsSchema.safeParse(invalidContributions)
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
 
     it('should reject when a section has the wrong type', () => {
@@ -477,7 +505,7 @@ describe('apps.types', () => {
       const result = appContributionsSchema.safeParse(
         invalidContributions as unknown,
       )
-      expect(result.success).toBe(false)
+      expectZodFailure(result)
     })
   })
 })

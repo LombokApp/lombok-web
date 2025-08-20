@@ -124,6 +124,9 @@ export class CoreAppService {
           const line = stdoutBuffer.slice(0, idx)
           stdoutBuffer = stdoutBuffer.slice(idx + 1)
           handleStatusLine(line)
+          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+            this.logger.debug(`[core-worker stdout] ${line}`)
+          }
           idx = stdoutBuffer.indexOf('\n')
         }
       })
@@ -137,7 +140,28 @@ export class CoreAppService {
           const line = stderrBuffer.slice(0, idx)
           stderrBuffer = stderrBuffer.slice(idx + 1)
           handleStatusLine(line)
+          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+            this.logger.error(`[core-worker stderr] ${line}`)
+          }
           idx = stderrBuffer.indexOf('\n')
+        }
+      })
+
+      // Flush any remaining buffered content on stream end
+      child.stdout.on('end', () => {
+        if (stdoutBuffer.length > 0) {
+          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+            this.logger.debug(`[core-worker stdout] ${stdoutBuffer}`)
+          }
+          stdoutBuffer = ''
+        }
+      })
+      child.stderr.on('end', () => {
+        if (stderrBuffer.length > 0) {
+          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+            this.logger.error(`[core-worker stderr] ${stderrBuffer}`)
+          }
+          stderrBuffer = ''
         }
       })
 
@@ -155,6 +179,11 @@ export class CoreAppService {
           }
         }
       })
+      child.on('error', (err) => {
+        this.logger.error(
+          `Embedded core app worker process error: ${String(err.message)}`,
+        )
+      })
       const appToken = await this.generateEmbeddedAppKeys()
       setTimeout(() => {
         // send the config as the first message
@@ -167,9 +196,9 @@ export class CoreAppService {
           hostId: this._platformConfig.hostId,
           executionOptions: {
             printWorkerOutput:
-              this._platformConfig.printCoreProcessWorkerOutput,
-            emptyWorkerTmpDir:
-              this._platformConfig.emptyCoreProcessWorkerTmpDirs,
+              this._platformConfig.printEmbeddedCoreAppWorkerOutput,
+            removeWorkerDirectory:
+              this._platformConfig.removeEmbeddedCoreAppWorkerDirectories,
           },
         }
 

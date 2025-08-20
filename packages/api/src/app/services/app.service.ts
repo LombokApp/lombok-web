@@ -12,7 +12,7 @@ import type {
   AppContributions,
   AppManifest,
   AppUIMap,
-  AppWorkerScriptMap,
+  AppWorkersMap,
   ExternalAppWorker,
 } from '@stellariscloud/types'
 import {
@@ -633,7 +633,7 @@ export class AppService {
               }
             }
 
-            if (!(requestData.workerIdentifier in workerApp.workerScripts)) {
+            if (!(requestData.workerIdentifier in workerApp.workers)) {
               // worker by workerIdentifier not found in app by appIdentifier
               return {
                 result: undefined,
@@ -659,7 +659,7 @@ export class AppService {
             const presignedGetURL = this.s3Service.createS3PresignedUrls([
               {
                 method: SignedURLsRequestMethod.GET,
-                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/workers/${requestData.workerIdentifier}.zip`,
+                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/workers/${requestData.workerIdentifier}-${workerApp.workers[requestData.workerIdentifier].hash}.zip`,
                 accessKeyId: serverStorageLocation.accessKeyId,
                 secretAccessKey: serverStorageLocation.secretAccessKey,
                 bucket: serverStorageLocation.bucket,
@@ -671,11 +671,13 @@ export class AppService {
             return {
               result: {
                 payloadUrl: presignedGetURL[0],
-                envVars:
-                  workerApp.workerScripts[requestData.workerIdentifier].envVars,
+                environmentVariables:
+                  workerApp.workers[requestData.workerIdentifier]
+                    .environmentVariables,
                 workerToken: await this.jwtService.createAppWorkerToken(
                   requestData.appIdentifier,
                 ),
+                hash: workerApp.workers[requestData.workerIdentifier].hash,
               },
             }
           } else {
@@ -995,7 +997,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiIdentifier}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiIdentifier}-${workerApp.ui[requestData.uiIdentifier].hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -1122,7 +1124,7 @@ export class AppService {
       const groupedAssets = new Map<
         string,
         {
-          groupType: 'ui' | 'worker'
+          groupType: 'ui' | 'workers'
           groupName: string
           entries: typeof assetManifestEntryPaths
         }
@@ -1137,7 +1139,7 @@ export class AppService {
         const key = `${type}__${name}`
         if (!groupedAssets.has(key)) {
           groupedAssets.set(key, {
-            groupType: type as 'ui' | 'worker',
+            groupType: type as 'ui' | 'workers',
             groupName: name,
             entries: [],
           })
@@ -1153,6 +1155,15 @@ export class AppService {
         groupKey,
         { groupType, groupName, entries },
       ] of groupedAssets) {
+        // Omit any group whose name does not appear as a key in the config[type] map
+        if (
+          (groupType === 'ui' &&
+            (!app.config.ui || !(groupName in app.config.ui))) ||
+          (groupType === 'workers' &&
+            (!app.config.workers || !(groupName in app.config.workers)))
+        ) {
+          continue
+        }
         // Create a temp dir for this group
         const tempDir = await fsPromises.mkdtemp(
           path.join(os.tmpdir(), `appzip-${groupKey}-`),
@@ -1190,8 +1201,24 @@ export class AppService {
           throw new Error(`Failed to zip assets for group ${groupKey}`)
         }
 
+        // Compute hash of the zipped worker bundle (used for cache keying and integrity)
+        const zipHash = await hashLocalFile(zipPath)
+        // Ensure workers entry carries the hash
+        app[groupType][groupName] = {
+          ...(app[groupType][groupName] ?? {}),
+          hash: zipHash,
+        }
+
         // Upload zip to app storage
-        const objectKey = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${app.identifier}/${groupType}/${zipName}`
+        const objectKey = [
+          serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '', // only trim trailing slashes
+          app.identifier,
+          groupType,
+          `${zipName.slice(0, -4)}-${zipHash}.zip`,
+        ]
+          .filter(Boolean)
+          .join('/')
+
         // eslint-disable-next-line no-console
         console.log('Uploading app asset zip:', {
           objectKey,
@@ -1286,6 +1313,7 @@ export class AppService {
 
   public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
     if (!fs.existsSync(appsDirectoryPath)) {
+      // eslint-disable-next-line no-console
       console.log('Apps directory "%s" not found.', appsDirectoryPath)
       return []
     }
@@ -1364,8 +1392,8 @@ export class AppService {
     }, {})
 
     const workerScriptDefinitions = Object.entries(
-      config.workerScripts ?? {},
-    ).reduce<AppWorkerScriptMap>((acc, [workerIdentifier, value]) => {
+      config.workers ?? {},
+    ).reduce<AppWorkersMap>((acc, [workerIdentifier, value]) => {
       return {
         ...acc,
         [workerIdentifier]: {
@@ -1385,7 +1413,8 @@ export class AppService {
               }),
               {},
             ),
-          envVars: value.envVars ?? {},
+          environmentVariables: value.environmentVariables ?? {},
+          hash: '',
         },
       }
     }, {})
@@ -1412,6 +1441,7 @@ export class AppService {
         ...acc,
         [uiIdentifier]: {
           ...value,
+          hash: '',
           files: Object.keys(manifest)
             .filter((manifestEntryPath) =>
               manifestEntryPath.startsWith(`/ui/${uiIdentifier}/`),
@@ -1445,59 +1475,58 @@ export class AppService {
     }
     const parseResult = appConfigSchema.safeParse(config)
 
-    const implementedTasks = config.tasks.map((t) => t.identifier)
-    const subscribedEvents = config.tasks.reduce<string[]>(
-      (acc, task) =>
-        acc.concat(
-          (task.triggers ?? [])
-            .filter((t) => t.type === 'event')
-            .map((t) => t.event),
-        ),
-      [],
-    )
-
     const app = {
       validation: {
         value: parseResult.success,
         error: parseResult.success ? undefined : parseResult.error,
       },
-      definition: {
-        identifier: appIdentifier,
-        label: config.label,
-        manifest,
-        publicKey,
-        workerScripts: workerScriptDefinitions,
-        subscribedEvents,
-        implementedTasks,
-        requiresStorage:
-          Object.keys(uiDefinitions).length > 0 ||
-          Object.keys(workerScriptDefinitions).length > 0,
-        ui: uiDefinitions,
-        config,
-        createdAt: now,
-        updatedAt: now,
-        contentHash: '', // TODO: calculate the exact content hash
-        enabled: true,
-      },
+      definition: parseResult.success
+        ? {
+            identifier: appIdentifier,
+            label: config.label,
+            manifest,
+            publicKey,
+            workers: workerScriptDefinitions,
+            subscribedEvents: config.tasks.reduce<string[]>(
+              (acc, task) =>
+                acc.concat(
+                  (task.triggers ?? [])
+                    .filter((t) => t.type === 'event')
+                    .map((t) => t.event),
+                ),
+              [],
+            ),
+            implementedTasks: config.tasks.map((t) => t.identifier),
+            requiresStorage:
+              Object.keys(uiDefinitions).length > 0 ||
+              Object.keys(workerScriptDefinitions).length > 0,
+            ui: uiDefinitions,
+            config,
+            createdAt: now,
+            updatedAt: now,
+            contentHash: '', // TODO: calculate the exact content hash
+            enabled: true,
+          }
+        : undefined,
     }
     return app
   }
 
   /**
-   * Update the envVars for a specific worker script in an app.
+   * Update the environmentVariables for a specific worker script in an app.
    * @param params.appIdentifier - The app's identifier
    * @param params.workerIdentifier - The worker script's identifier
-   * @param params.envVars - The new environment variables
-   * @returns The updated envVars object
+   * @param params.environmentVariables - The new environment variables
+   * @returns The updated environmentVariables object
    */
-  async setAppWorkerEnvVars({
+  async setAppWorkerEnvironmentVariables({
     appIdentifier,
     workerIdentifier,
-    envVars,
+    environmentVariables,
   }: {
     appIdentifier: string
     workerIdentifier: string
-    envVars: Record<string, string>
+    environmentVariables: Record<string, string>
   }): Promise<Record<string, string>> {
     // Fetch the app
     const app = await this.getAppAsAdmin(appIdentifier)
@@ -1505,23 +1534,23 @@ export class AppService {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!app.workerScripts[workerIdentifier]) {
+    if (!app.workers[workerIdentifier]) {
       throw new NotFoundException(
         `Worker script not found: ${workerIdentifier}`,
       )
     }
-    // Update envVars for the specified worker
-    app.workerScripts[workerIdentifier] = {
-      ...app.workerScripts[workerIdentifier],
-      envVars: { ...envVars },
+    // Update environmentVariables for the specified worker
+    app.workers[workerIdentifier] = {
+      ...app.workers[workerIdentifier],
+      environmentVariables: { ...environmentVariables },
     }
     // Persist the change
     await this.ormService.db
       .update(appsTable)
-      .set({ workerScripts: app.workerScripts })
+      .set({ workers: app.workers })
       .where(eq(appsTable.identifier, appIdentifier))
 
-    return app.workerScripts[workerIdentifier].envVars
+    return app.workers[workerIdentifier].environmentVariables
   }
 
   getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {

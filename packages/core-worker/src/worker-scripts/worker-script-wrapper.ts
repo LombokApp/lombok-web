@@ -1,3 +1,5 @@
+import { appendFile } from 'node:fs/promises'
+
 import type {
   AppTask,
   RequestHandler,
@@ -76,7 +78,7 @@ void (async () => {
     await Bun.file(workerModuleStartContext.errorLogFilepath).write(output)
   }
   const writeOutput = async (output: string) => {
-    await Bun.file(workerModuleStartContext.outputLogFilepath).write(output)
+    await appendFile(workerModuleStartContext.outputLogFilepath, output)
   }
 
   // Helper to log to stderr with timestamp
@@ -91,7 +93,7 @@ void (async () => {
         .join(' ')}\n`,
     )
   }
-  // Override console methods to redirect all logging to stderr
+  // Override console methods to redirect all logging
   console.log = (...args: unknown[]) => logToStdout('LOG', ...args)
   console.error = (...args: unknown[]) => logToStdout('ERROR', ...args)
   console.warn = (...args: unknown[]) => logToStdout('WARN', ...args)
@@ -172,7 +174,7 @@ void (async () => {
     // Output error result to stdout using process.stdout.write
     const serializedError = serializeWorkerError(
       err instanceof WorkerError
-        ? err
+        ? (err.innerError ?? err)
         : new WorkerExecutorError(
             'Internal server error executing worker',
             err instanceof Error ? err : new Error(String(err)),

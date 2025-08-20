@@ -1018,48 +1018,6 @@
         "tags": [
           "Folders"
         ]
-      },
-      "post": {
-        "operationId": "refreshFolderObjectS3Metadata",
-        "parameters": [
-          {
-            "name": "folderId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "objectKey",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FolderObjectGetResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Scan the object again in the underlying storage, and update its state in our db.",
-        "tags": [
-          "Folders"
-        ]
       }
     },
     "/api/v1/folders/{folderId}/presigned-urls": {
@@ -1103,6 +1061,50 @@
           }
         ],
         "summary": "Create presigned urls for objects in a folder.",
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/objects/{objectKey}/refresh": {
+      "post": {
+        "operationId": "refreshFolderObjectS3Metadata",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderObjectGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Scan the object again in the underlying storage, and update its state in our db.",
         "tags": [
           "Folders"
         ]
@@ -2079,7 +2081,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StorageProvisionInputDTO"
+                "$ref": "#/components/schemas/StorageProvisionUpdateDTO"
               }
             }
           }
@@ -3080,9 +3082,9 @@
         ]
       }
     },
-    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
       "put": {
-        "operationId": "setWorkerScriptEnvVars",
+        "operationId": "setWorkerEnvironmentVariables",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -3106,7 +3108,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetWorkerScriptEnvVarsInputDTO"
+                "$ref": "#/components/schemas/SetWorkerEnvironmentVariablesInputDTO"
               }
             }
           }
@@ -3117,7 +3119,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/StringMapDTO"
                 }
               }
             }
@@ -5890,6 +5892,43 @@
           "provisionTypes"
         ]
       },
+      "StorageProvisionUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "provisionTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CONTENT",
+                "METADATA",
+                "REDUNDANCY"
+              ]
+            },
+            "minItems": 1
+          }
+        }
+      },
       "ServerStorageLocationGetResponse": {
         "type": "object",
         "properties": {
@@ -6357,6 +6396,9 @@
                 "config": {
                   "type": "object",
                   "properties": {
+                    "requiresStorage": {
+                      "type": "boolean"
+                    },
                     "identifier": {
                       "type": "string",
                       "minLength": 1,
@@ -6414,10 +6456,7 @@
                                       "type": "string"
                                     },
                                     "inputParams": {
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      }
+                                      "$ref": "#/components/schemas/StringMapDTO"
                                     }
                                   },
                                   "required": [
@@ -6439,10 +6478,7 @@
                                       "type": "string"
                                     },
                                     "inputParams": {
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      }
+                                      "$ref": "#/components/schemas/StringMapDTO"
                                     }
                                   },
                                   "required": [
@@ -6464,10 +6500,7 @@
                                       "type": "string"
                                     },
                                     "inputParams": {
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      }
+                                      "$ref": "#/components/schemas/StringMapDTO"
                                     }
                                   },
                                   "required": [
@@ -6555,7 +6588,7 @@
                         "minLength": 1
                       }
                     },
-                    "workerScripts": {
+                    "workers": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -6563,11 +6596,8 @@
                           "description": {
                             "type": "string"
                           },
-                          "envVars": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            }
+                          "environmentVariables": {
+                            "$ref": "#/components/schemas/StringMapDTO"
                           }
                         },
                         "required": [
@@ -6844,9 +6874,9 @@
                     ]
                   }
                 },
-                "workerScripts": {
-                  "type": "array",
-                  "items": {
+                "workers": {
+                  "type": "object",
+                  "additionalProperties": {
                     "type": "object",
                     "properties": {
                       "description": {
@@ -6874,23 +6904,18 @@
                           ]
                         }
                       },
-                      "envVars": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                      "environmentVariables": {
+                        "$ref": "#/components/schemas/StringMapDTO"
                       },
-                      "identifier": {
-                        "type": "string",
-                        "minLength": 1,
-                        "pattern": "^[a-z0-9_]+$"
+                      "hash": {
+                        "type": "string"
                       }
                     },
                     "required": [
                       "description",
                       "files",
-                      "envVars",
-                      "identifier"
+                      "environmentVariables",
+                      "hash"
                     ]
                   }
                 },
@@ -6954,7 +6979,7 @@
                 "requiresStorage",
                 "manifest",
                 "externalWorkers",
-                "workerScripts",
+                "workers",
                 "ui",
                 "createdAt",
                 "updatedAt"
@@ -6996,6 +7021,9 @@
               "config": {
                 "type": "object",
                 "properties": {
+                  "requiresStorage": {
+                    "type": "boolean"
+                  },
                   "identifier": {
                     "type": "string",
                     "minLength": 1,
@@ -7053,10 +7081,7 @@
                                     "type": "string"
                                   },
                                   "inputParams": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                      "type": "string"
-                                    }
+                                    "$ref": "#/components/schemas/StringMapDTO"
                                   }
                                 },
                                 "required": [
@@ -7078,10 +7103,7 @@
                                     "type": "string"
                                   },
                                   "inputParams": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                      "type": "string"
-                                    }
+                                    "$ref": "#/components/schemas/StringMapDTO"
                                   }
                                 },
                                 "required": [
@@ -7103,10 +7125,7 @@
                                     "type": "string"
                                   },
                                   "inputParams": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                      "type": "string"
-                                    }
+                                    "$ref": "#/components/schemas/StringMapDTO"
                                   }
                                 },
                                 "required": [
@@ -7194,7 +7213,7 @@
                       "minLength": 1
                     }
                   },
-                  "workerScripts": {
+                  "workers": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
@@ -7202,11 +7221,8 @@
                         "description": {
                           "type": "string"
                         },
-                        "envVars": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
+                        "environmentVariables": {
+                          "$ref": "#/components/schemas/StringMapDTO"
                         }
                       },
                       "required": [
@@ -7483,6 +7499,51 @@
                   ]
                 }
               },
+              "workers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "files": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
+                      }
+                    },
+                    "environmentVariables": {
+                      "$ref": "#/components/schemas/StringMapDTO"
+                    },
+                    "hash": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "files",
+                    "environmentVariables",
+                    "hash"
+                  ]
+                }
+              },
               "ui": {
                 "type": "array",
                 "items": {
@@ -7533,56 +7594,6 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
-              },
-              "workerScripts": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "description": {
-                      "type": "string"
-                    },
-                    "files": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "hash": {
-                            "type": "string"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mimeType": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "hash",
-                          "size",
-                          "mimeType"
-                        ]
-                      }
-                    },
-                    "envVars": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    },
-                    "identifier": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "^[a-z0-9_]+$"
-                    }
-                  },
-                  "required": [
-                    "description",
-                    "files",
-                    "envVars",
-                    "identifier"
-                  ]
-                }
               }
             },
             "required": [
@@ -7593,10 +7604,10 @@
               "requiresStorage",
               "manifest",
               "externalWorkers",
+              "workers",
               "ui",
               "createdAt",
-              "updatedAt",
-              "workerScripts"
+              "updatedAt"
             ]
           }
         },
@@ -7604,19 +7615,22 @@
           "app"
         ]
       },
-      "SetWorkerScriptEnvVarsInputDTO": {
+      "SetWorkerEnvironmentVariablesInputDTO": {
         "type": "object",
         "properties": {
-          "envVars": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
+          "environmentVariables": {
+            "$ref": "#/components/schemas/StringMapDTO"
           }
         },
         "required": [
-          "envVars"
+          "environmentVariables"
         ]
+      },
+      "StringMapDTO": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
       },
       "AppContributionsResponse": {
         "type": "object",

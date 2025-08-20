@@ -24,8 +24,9 @@ import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppContributionsResponse } from '../dto/responses/app-contributions-response.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
+import { StringMapDTO } from '../dto/responses/string-map.dto'
 import { SetAppEnabledInputDTO } from '../dto/set-app-enabled-input.dto'
-import { SetWorkerScriptEnvVarsInputDTO } from '../dto/set-worker-script-env-vars-input.dto'
+import { SetWorkerEnvironmentVariablesInputDTO } from '../dto/set-worker-environment-variables-input.dto'
 import { transformAppToDTO } from '../dto/transforms/app.transforms'
 
 @Controller('/api/v1/server')
@@ -115,23 +116,24 @@ export class AppsController {
     }
   }
 
-  @Put('/apps/:appIdentifier/workers/:workerIdentifier/env-vars')
-  async setWorkerScriptEnvVars(
+  @Put('/apps/:appIdentifier/workers/:workerIdentifier/environment-variables')
+  async setWorkerEnvironmentVariables(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
     @Param('workerIdentifier') workerIdentifier: string,
-    @Body() { envVars }: SetWorkerScriptEnvVarsInputDTO,
-  ): Promise<AppGetResponse['app']['workerScripts'][0]['envVars']> {
+    @Body() { environmentVariables }: SetWorkerEnvironmentVariablesInputDTO,
+  ): Promise<StringMapDTO> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const savedEnvVars = await this.appService.setAppWorkerEnvVars({
-      appIdentifier,
-      workerIdentifier,
-      envVars,
-    })
+    const savedEnvironmentVariables =
+      await this.appService.setAppWorkerEnvironmentVariables({
+        appIdentifier,
+        workerIdentifier,
+        environmentVariables,
+      })
 
-    return savedEnvVars
+    return savedEnvironmentVariables
   }
 
   @Post('/apps/:appIdentifier/user-access-token')

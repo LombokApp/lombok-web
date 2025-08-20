@@ -7,16 +7,18 @@ import {
 
 import { EnvVarForm } from '../env-var-form/env-var-form'
 
-export function EnvVarModal({
+export function EnvironmentVariablesModal({
   isOpen,
   onClose,
-  envVars,
+  environmentVariables,
   onSubmit,
 }: {
   isOpen: boolean
   onClose: () => void
-  envVars: Record<string, string>
-  onSubmit: (envVars: { key: string; value: string }[]) => Promise<void>
+  environmentVariables: Record<string, string>
+  onSubmit: (
+    environmentVariables: { key: string; value: string }[],
+  ) => Promise<void>
 }) {
   return (
     <Dialog
@@ -35,10 +37,12 @@ export function EnvVarModal({
           <DialogTitle>Edit Worker Environment Variables</DialogTitle>
         </DialogHeader>
         <EnvVarForm
-          envVars={Object.entries(envVars).map(([key, value]) => ({
-            key,
-            value,
-          }))}
+          environmentVariables={Object.entries(environmentVariables).map(
+            ([key, value]) => ({
+              key,
+              value,
+            }),
+          )}
           onSubmit={onSubmit}
         />
       </DialogContent>

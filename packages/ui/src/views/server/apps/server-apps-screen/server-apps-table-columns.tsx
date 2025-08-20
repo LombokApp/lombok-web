@@ -99,11 +99,13 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => {
-      const scriptWorkers = row.original.workerScripts.map((w) => w.identifier)
-      const configWorkers = row.original.config.workerScripts
-        ? Object.keys(row.original.config.workerScripts)
+      const workers = Object.keys(row.original.workers).map(
+        (identifier) => identifier,
+      )
+      const configWorkers = row.original.config.workers
+        ? Object.keys(row.original.config.workers)
         : []
-      const allWorkers = [...scriptWorkers, ...configWorkers].filter(
+      const allWorkers = [...workers, ...configWorkers].filter(
         (v, i, a) => a.indexOf(v) === i,
       )
       return <span>{allWorkers.join(', ')}</span>

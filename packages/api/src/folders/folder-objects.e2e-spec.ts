@@ -63,7 +63,7 @@ describe('Folder Objects', () => {
 
   it(`should 401 on refresh folder object S3 metadata without token`, async () => {
     const { response } = await apiClient().POST(
-      '/api/v1/folders/{folderId}/objects/{objectKey}',
+      '/api/v1/folders/{folderId}/objects/{objectKey}/refresh',
       {
         params: { path: { folderId: '__dummy__', objectKey: '__dummy__' } },
       },
@@ -301,7 +301,7 @@ describe('Folder Objects', () => {
     expect(initialListObjectsResponse.data.meta.totalCount).toBe(1)
 
     await apiClient(accessToken).POST(
-      '/api/v1/folders/{folderId}/objects/{objectKey}',
+      '/api/v1/folders/{folderId}/objects/{objectKey}/refresh',
       {
         params: {
           path: {

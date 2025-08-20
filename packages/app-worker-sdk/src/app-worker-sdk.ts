@@ -40,7 +40,8 @@ export interface PlatformServerMessageInterface {
     AppAPIResponse<{
       payloadUrl: string
       workerToken: string
-      envVars: Record<string, string>
+      environmentVariables: Record<string, string>
+      hash: string
     }>
   >
   getAppUIbundle: (
