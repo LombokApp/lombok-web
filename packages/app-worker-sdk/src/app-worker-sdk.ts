@@ -3,6 +3,7 @@ import type {
   AppManifest,
   AppSocketMessage,
   ContentMetadataType,
+  SignedURLsRequestMethod,
   WorkerErrorDetails,
 } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
@@ -71,7 +72,7 @@ export interface PlatformServerMessageInterface {
       objectKey: string
       contentHash: string
       metadataHash: string
-      method: 'GET' | 'PUT' | 'DELETE'
+      method: SignedURLsRequestMethod
     }[],
   ) => Promise<
     AppAPIResponse<{
@@ -82,7 +83,7 @@ export interface PlatformServerMessageInterface {
     objects: {
       folderId: string
       objectKey: string
-      method: 'GET' | 'PUT' | 'DELETE'
+      method: SignedURLsRequestMethod
     }[],
     eventId?: string,
   ) => Promise<
@@ -90,6 +91,12 @@ export interface PlatformServerMessageInterface {
       urls: { url: string; folderId: string; objectKey: string }[]
     }>
   >
+  getAppStorageSignedUrls: (
+    requests: {
+      objectKey: string
+      method: SignedURLsRequestMethod
+    }[],
+  ) => Promise<AppAPIResponse<{ urls: string[] }>>
   updateContentMetadata: (
     updates: {
       folderId: string
@@ -153,6 +160,13 @@ export const buildAppClient = (
       return emitWithAck('GET_METADATA_SIGNED_URLS', {
         requests,
       }) as ReturnType<PlatformServerMessageInterface['getMetadataSignedUrls']>
+    },
+    getAppStorageSignedUrls(requests) {
+      return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', {
+        requests,
+      }) as ReturnType<
+        PlatformServerMessageInterface['getAppStorageSignedUrls']
+      >
     },
     updateContentMetadata(updates, taskId) {
       return emitWithAck('UPDATE_CONTENT_METADATA', {

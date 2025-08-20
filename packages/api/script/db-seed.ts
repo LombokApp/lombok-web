@@ -216,7 +216,7 @@ async function main(): Promise<void> {
       bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
       endpoint: process.env.DEV_S3_ENDPOINT ?? '',
       region: process.env.DEV_S3_REGION ?? '',
-      prefix: `${process.env.DEV_S3_PREFIX}/app-storage`,
+      prefix: `${process.env.DEV_S3_PREFIX}/server-storage`,
     },
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
