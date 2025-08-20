@@ -4,7 +4,7 @@ import type {
 } from '@stellariscloud/app-worker-sdk'
 import { AppAPIError } from '@stellariscloud/app-worker-sdk'
 import type { ContentMetadataEntry } from '@stellariscloud/types'
-import { MediaType } from '@stellariscloud/types'
+import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { mediaTypeFromMimeType } from '@stellariscloud/utils'
 import fs from 'fs'
 import os from 'os'
@@ -47,7 +47,7 @@ export const analyzeObjectTaskHandler = async (
       {
         folderId: task.subjectFolderId,
         objectKey: task.subjectObjectKey,
-        method: 'GET',
+        method: SignedURLsRequestMethod.GET,
       },
     ],
     task.id,
@@ -146,7 +146,7 @@ export const analyzeObjectTaskHandler = async (
           contentHash,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           objectKey: task.subjectObjectKey!,
-          method: 'PUT',
+          method: SignedURLsRequestMethod.PUT,
           metadataHash: metadataHashes[k as keyof typeof metadataHashes],
         })),
       )

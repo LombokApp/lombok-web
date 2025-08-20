@@ -124,7 +124,6 @@ const getContentSignedUrlsSchema = z.object({
       method: z.nativeEnum(SignedURLsRequestMethod),
     }),
   ),
-  eventId: z.string().optional(),
 })
 
 const getMetadataSignedUrlsSchema = z.object({
@@ -148,7 +147,6 @@ export const updateMetadataSchema = z.object({
       metadata: z.record(z.string(), metadataEntrySchema),
     }),
   ),
-  eventId: z.string().optional(),
 })
 
 const failHandleTaskSchema = z.object({
@@ -162,6 +160,15 @@ const failHandleTaskSchema = z.object({
 
 const completeHandleTaskSchema = z.object({
   taskId: z.string().uuid(),
+})
+
+const getAppStorageSignedUrlsSchema = z.object({
+  requests: z.array(
+    z.object({
+      objectKey: z.string().min(1),
+      method: z.nativeEnum(SignedURLsRequestMethod),
+    }),
+  ),
 })
 
 export interface AppDefinition {
@@ -659,7 +666,7 @@ export class AppService {
             const presignedGetURL = this.s3Service.createS3PresignedUrls([
               {
                 method: SignedURLsRequestMethod.GET,
-                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/workers/${requestData.workerIdentifier}-${workerApp.workers[requestData.workerIdentifier].hash}.zip`,
+                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${requestData.workerIdentifier}-${workerApp.workers[requestData.workerIdentifier].hash}.zip`,
                 accessKeyId: serverStorageLocation.accessKeyId,
                 secretAccessKey: serverStorageLocation.secretAccessKey,
                 bucket: serverStorageLocation.bucket,
@@ -694,6 +701,23 @@ export class AppService {
                 message: 'Malformed GET_WORKER_EXECUTION_DETAILS request.',
               },
             }
+          }
+        }
+        case 'GET_APP_STORAGE_SIGNED_URLS': {
+          if (safeZodParse(requestData, getAppStorageSignedUrlsSchema)) {
+            return {
+              result: await this.createSignedAppStorageUrls(
+                requestingAppIdentifier,
+                requestData,
+              ),
+            }
+          }
+          return {
+            result: undefined,
+            error: {
+              code: 400,
+              message: 'Malformed GET_APP_STORAGE_SIGNED_URLS request.',
+            },
           }
         }
       }
@@ -850,6 +874,37 @@ export class AppService {
     }
   }
 
+  async createSignedAppStorageUrls(
+    requestingAppIdentifier: string,
+    payload: {
+      requests: {
+        objectKey: string
+        method: SignedURLsRequestMethod
+      }[]
+    },
+  ) {
+    const serverStorage =
+      await this.serverConfigurationService.getServerStorage()
+    if (!serverStorage) {
+      throw new Error('Server storage not found')
+    }
+    const urls = this.s3Service.createS3PresignedUrls(
+      payload.requests.map(({ method, objectKey }) => ({
+        method,
+        objectKey: `${serverStorage.prefix}${!serverStorage.prefix || serverStorage.prefix.endsWith('/') ? '' : '/'}app-runtime-storage/${requestingAppIdentifier}${objectKey.startsWith('/') ? '' : '/'}${objectKey}`,
+        accessKeyId: serverStorage.accessKeyId,
+        secretAccessKey: serverStorage.secretAccessKey,
+        bucket: serverStorage.bucket,
+        endpoint: serverStorage.endpoint,
+        expirySeconds: 3600,
+        region: serverStorage.region,
+      })),
+    )
+    return {
+      urls,
+    }
+  }
+
   async _createSignedUrls(
     signedUrlRequests: {
       method:
@@ -997,7 +1052,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiIdentifier}-${workerApp.ui[requestData.uiIdentifier].hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/ui/${requestData.uiIdentifier}-${workerApp.ui[requestData.uiIdentifier].hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -1212,6 +1267,7 @@ export class AppService {
         // Upload zip to app storage
         const objectKey = [
           serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '', // only trim trailing slashes
+          'app-bundle-storage',
           app.identifier,
           groupType,
           `${zipName.slice(0, -4)}-${zipHash}.zip`,
