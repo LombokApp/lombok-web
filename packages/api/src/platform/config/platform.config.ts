@@ -10,8 +10,14 @@ export const platformConfig = registerAs('platform', () => {
     INITIAL_USER: z.string().optional(),
     DISABLE_EMBEDDED_CORE_APP_WORKER: z.string().refine(isBoolean).optional(),
     INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),
-    PRINT_CORE_PROCESS_WORKER_OUTPUT: z.string().refine(isBoolean).optional(),
-    EMPTY_CORE_PROCESS_WORKER_TMP_DIRS: z.string().refine(isBoolean).optional(),
+    PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT: z
+      .string()
+      .refine(isBoolean)
+      .optional(),
+    REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES: z
+      .string()
+      .refine(isBoolean)
+      .optional(),
   })
   return {
     installAppsOnStart: !!(
@@ -24,11 +30,11 @@ export const platformConfig = registerAs('platform', () => {
       env.DISABLE_EMBEDDED_CORE_APP_WORKER === 'true',
     initEventJobs:
       env.INIT_EVENT_JOBS === '1' || env.INIT_EVENT_JOBS === 'true',
-    printCoreProcessWorkerOutput:
-      env.PRINT_CORE_PROCESS_WORKER_OUTPUT === '1' ||
-      env.PRINT_CORE_PROCESS_WORKER_OUTPUT === 'true',
-    emptyCoreProcessWorkerTmpDirs:
-      env.EMPTY_CORE_PROCESS_WORKER_TMP_DIRS !== '0' &&
-      env.EMPTY_CORE_PROCESS_WORKER_TMP_DIRS !== 'false',
+    printEmbeddedCoreAppWorkerOutput:
+      env.PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT === '1' ||
+      env.PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT === 'true',
+    removeEmbeddedCoreAppWorkerDirectories:
+      env.REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES !== '0' &&
+      env.REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES !== 'false',
   }
 })

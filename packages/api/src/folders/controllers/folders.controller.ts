@@ -250,7 +250,7 @@ export class FoldersController {
     }
     const result = await this.folderService.getFolderObjectAsUser(req.user, {
       folderId,
-      objectKey,
+      objectKey: decodeURIComponent(objectKey),
     })
     return {
       folderObject: transformFolderObjectToDTO(result),
@@ -271,7 +271,7 @@ export class FoldersController {
     }
     await this.folderService.deleteFolderObjectAsUser(req.user, {
       folderId,
-      objectKey,
+      objectKey: decodeURIComponent(objectKey),
     })
   }
 
@@ -297,7 +297,7 @@ export class FoldersController {
   /**
    * Scan the object again in the underlying storage, and update its state in our db.
    */
-  @Post('/:folderId/objects/:objectKey')
+  @Post('/:folderId/objects/:objectKey/refresh')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -312,7 +312,7 @@ export class FoldersController {
     const folderObject =
       await this.folderService.refreshFolderObjectS3MetadataAsUser(req.user, {
         folderId,
-        objectKey,
+        objectKey: decodeURIComponent(objectKey),
       })
 
     return {

@@ -1,5 +1,5 @@
 {
-  "id": "003f6410-cfff-47d0-a140-21d543c140cb",
+  "id": "17ee6308-7446-45ed-bcbf-de66d0eb131c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -58,8 +58,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "workerScripts": {
-          "name": "workerScripts",
+        "workers": {
+          "name": "workers",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true

@@ -256,8 +256,7 @@ export interface paths {
         /** Get a folder object by folderId and objectKey. */
         get: operations["getFolderObject"];
         put?: never;
-        /** Scan the object again in the underlying storage, and update its state in our db. */
-        post: operations["refreshFolderObjectS3Metadata"];
+        post?: never;
         /** Delete a folder object by folderId and objectKey. */
         delete: operations["deleteFolderObject"];
         options?: never;
@@ -276,6 +275,23 @@ export interface paths {
         put?: never;
         /** Create presigned urls for objects in a folder. */
         post: operations["createPresignedUrls"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects/{objectKey}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scan the object again in the underlying storage, and update its state in our db. */
+        post: operations["refreshFolderObjectS3Metadata"];
         delete?: never;
         options?: never;
         head?: never;
@@ -797,7 +813,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
         parameters: {
             query?: never;
             header?: never;
@@ -805,7 +821,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["setWorkerScriptEnvVars"];
+        put: operations["setWorkerEnvironmentVariables"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1520,6 +1536,15 @@ export interface components {
             prefix?: string;
             provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
         };
+        StorageProvisionUpdateDTO: {
+            label?: string;
+            description?: string;
+            endpoint?: string;
+            bucket?: string;
+            region?: string;
+            prefix?: string;
+            provisionTypes?: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+        };
         ServerStorageLocationGetResponse: {
             serverStorageLocation?: {
                 accessKeyHashId: string;
@@ -1668,6 +1693,7 @@ export interface components {
                 label: string;
                 publicKey: string;
                 config: {
+                    requiresStorage?: boolean;
                     identifier: string;
                     label: string;
                     description: string;
@@ -1679,23 +1705,17 @@ export interface components {
                             /** @enum {string} */
                             type: "event";
                             event: string;
-                            inputParams: {
-                                [key: string]: string;
-                            };
+                            inputParams: components["schemas"]["StringMapDTO"];
                         } | {
                             /** @enum {string} */
                             type: "objectAction";
                             description: string;
-                            inputParams: {
-                                [key: string]: string;
-                            };
+                            inputParams: components["schemas"]["StringMapDTO"];
                         } | {
                             /** @enum {string} */
                             type: "folderAction";
                             actionLabel: string;
-                            inputParams: {
-                                [key: string]: string;
-                            };
+                            inputParams: components["schemas"]["StringMapDTO"];
                         })[];
                         folderAction?: {
                             description: string;
@@ -1714,12 +1734,10 @@ export interface components {
                         worker?: string;
                     }[];
                     externalWorkers?: string[];
-                    workerScripts?: {
+                    workers?: {
                         [key: string]: {
                             description: string;
-                            envVars?: {
-                                [key: string]: string;
-                            };
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
                     ui?: {
@@ -1782,20 +1800,20 @@ export interface components {
                     socketClientId: string;
                     ip: string;
                 }[];
-                workerScripts: {
-                    description: string;
-                    files: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
+                workers: {
+                    [key: string]: {
+                        description: string;
+                        files: {
+                            [key: string]: {
+                                hash: string;
+                                size: number;
+                                mimeType: string;
+                            };
                         };
+                        environmentVariables: components["schemas"]["StringMapDTO"];
+                        hash: string;
                     };
-                    envVars: {
-                        [key: string]: string;
-                    };
-                    identifier: string;
-                }[];
+                };
                 ui: {
                     description: string;
                     files: {
@@ -1822,6 +1840,7 @@ export interface components {
                 label: string;
                 publicKey: string;
                 config: {
+                    requiresStorage?: boolean;
                     identifier: string;
                     label: string;
                     description: string;
@@ -1833,23 +1852,17 @@ export interface components {
                             /** @enum {string} */
                             type: "event";
                             event: string;
-                            inputParams: {
-                                [key: string]: string;
-                            };
+                            inputParams: components["schemas"]["StringMapDTO"];
                         } | {
                             /** @enum {string} */
                             type: "objectAction";
                             description: string;
-                            inputParams: {
-                                [key: string]: string;
-                            };
+                            inputParams: components["schemas"]["StringMapDTO"];
                         } | {
                             /** @enum {string} */
                             type: "folderAction";
                             actionLabel: string;
-                            inputParams: {
-                                [key: string]: string;
-                            };
+                            inputParams: components["schemas"]["StringMapDTO"];
                         })[];
                         folderAction?: {
                             description: string;
@@ -1868,12 +1881,10 @@ export interface components {
                         worker?: string;
                     }[];
                     externalWorkers?: string[];
-                    workerScripts?: {
+                    workers?: {
                         [key: string]: {
                             description: string;
-                            envVars?: {
-                                [key: string]: string;
-                            };
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
                     ui?: {
@@ -1936,6 +1947,20 @@ export interface components {
                     socketClientId: string;
                     ip: string;
                 }[];
+                workers: {
+                    [key: string]: {
+                        description: string;
+                        files: {
+                            [key: string]: {
+                                hash: string;
+                                size: number;
+                                mimeType: string;
+                            };
+                        };
+                        environmentVariables: components["schemas"]["StringMapDTO"];
+                        hash: string;
+                    };
+                };
                 ui: {
                     description: string;
                     files: {
@@ -1951,26 +1976,13 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                workerScripts: {
-                    description: string;
-                    files: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    envVars: {
-                        [key: string]: string;
-                    };
-                    identifier: string;
-                }[];
             };
         };
-        SetWorkerScriptEnvVarsInputDTO: {
-            envVars: {
-                [key: string]: string;
-            };
+        SetWorkerEnvironmentVariablesInputDTO: {
+            environmentVariables: components["schemas"]["StringMapDTO"];
+        };
+        StringMapDTO: {
+            [key: string]: string;
         };
         AppContributionsResponse: {
             [key: string]: {
@@ -2556,28 +2568,6 @@ export interface operations {
             };
         };
     };
-    refreshFolderObjectS3Metadata: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                objectKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderObjectGetResponse"];
-                };
-            };
-        };
-    };
     deleteFolderObject: {
         parameters: {
             query?: never;
@@ -2619,6 +2609,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderCreateSignedUrlsResponse"];
+                };
+            };
+        };
+    };
+    refreshFolderObjectS3Metadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                objectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderObjectGetResponse"];
                 };
             };
         };
@@ -3121,7 +3133,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["StorageProvisionInputDTO"];
+                "application/json": components["schemas"]["StorageProvisionUpdateDTO"];
             };
         };
         responses: {
@@ -3486,7 +3498,7 @@ export interface operations {
             };
         };
     };
-    setWorkerScriptEnvVars: {
+    setWorkerEnvironmentVariables: {
         parameters: {
             query?: never;
             header?: never;
@@ -3498,7 +3510,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetWorkerScriptEnvVarsInputDTO"];
+                "application/json": components["schemas"]["SetWorkerEnvironmentVariablesInputDTO"];
             };
         };
         responses: {
@@ -3507,7 +3519,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["StringMapDTO"];
                 };
             };
         };

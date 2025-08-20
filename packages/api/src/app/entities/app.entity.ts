@@ -2,7 +2,7 @@ import type {
   AppConfig,
   AppManifest,
   AppUIMap,
-  AppWorkerScriptMap,
+  AppWorkersMap,
 } from '@stellariscloud/types'
 import { sql } from 'drizzle-orm'
 import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
@@ -22,7 +22,7 @@ export const appsTable = pgTable('apps', {
     .default(sql`ARRAY[]::text[]`),
   contentHash: text('contentHash').notNull(),
   config: jsonb('config').$type<AppConfig>().notNull(),
-  workerScripts: jsonb('workerScripts').$type<AppWorkerScriptMap>().notNull(),
+  workers: jsonb('workers').$type<AppWorkersMap>().notNull(),
   ui: jsonb('ui').$type<AppUIMap>().notNull(),
   manifest: jsonb('manifest').$type<AppManifest>().notNull(),
   enabled: boolean('enabled').notNull().default(false),

@@ -15,12 +15,7 @@ export function transformAppToDTO(
     externalWorkers,
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,
-    workerScripts: Object.keys(app.workerScripts).map(
-      (workerScriptIdentifier) => ({
-        identifier: workerScriptIdentifier,
-        ...app.workerScripts[workerScriptIdentifier],
-      }),
-    ),
+    workers: app.workers,
     ui: Object.keys(app.ui).map((uiIdentifier) => ({
       identifier: uiIdentifier,
       ...app.ui[uiIdentifier],

@@ -14,5 +14,8 @@
   },
   "devDependencies": {
     "prettier": "3.4.2"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.14.0"
   }
 }

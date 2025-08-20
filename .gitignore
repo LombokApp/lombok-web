@@ -38,3 +38,7 @@ env.dev
 .test-data
 .env
 .aider*
+
+/apps/*
+!/apps/core
+!/apps/demo

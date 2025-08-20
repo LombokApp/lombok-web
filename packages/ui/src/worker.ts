@@ -315,7 +315,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
 
         // have the app ingest the file
         await $apiClient.POST(
-          '/api/v1/folders/{folderId}/objects/{objectKey}',
+          '/api/v1/folders/{folderId}/objects/{objectKey}/refresh',
           {
             params: {
               path: {

@@ -83,7 +83,14 @@ export const taskConfigSchema = z.object({
   worker: z.string().optional(),
 })
 
-export const appWorkersSchema = z.record(z.string(), z.object({}))
+export const appWorkersArraySchema = z.array(
+  z.object({
+    description: z.string(),
+    identifier: z.string(),
+    hash: z.string(),
+    environmentVariables: z.record(z.string(), z.string()).optional(),
+  }),
+)
 
 export const appUILinkSchema = z.object({
   label: z.string(),
@@ -104,16 +111,21 @@ export const appManifestEntrySchema = z.object({
 
 export const appManifestSchema = z.record(z.string(), appManifestEntrySchema)
 
-export const appWorkerScriptConfigSchema = z.object({
-  description: z.string(),
-  envVars: z.record(z.string(), z.string()).optional(),
-})
+export const appWorkerScriptConfigSchema = z
+  .object({
+    description: z.string(),
+    environmentVariables: z.record(z.string(), z.string()).optional(),
+  })
+  .strict()
 
-export const appUIConfigSchema = z.object({
-  description: z.string(),
-})
+export const appUIConfigSchema = z
+  .object({
+    description: z.string(),
+  })
+  .strict()
 
 export const appUISchema = z.object({
+  hash: z.string(),
   description: z.string(),
   files: appManifestSchema,
 })
@@ -129,108 +141,72 @@ export const appIdentifierSchema = z
     message: "App identifier cannot be 'platform'",
   })
 
-export const appContributionsSchema = z.object({
-  routes: z.array(
-    z.object({
-      title: z.string().nonempty(),
-      uiIdentifier: z.string().nonempty(),
-      iconPath: z.string().optional(),
-      path: z.string().nonempty(),
-    }),
-  ),
-  sidebarMenuLinks: z.array(
-    z.object({
-      label: z.string().nonempty(),
-      uiIdentifier: z.string().nonempty(),
-      iconPath: z.string().optional(),
-      path: z.string().nonempty(),
-    }),
-  ),
-  folderActionMenuLinks: z.array(
-    z.object({
-      label: z.string().nonempty(),
-      uiIdentifier: z.string().nonempty(),
-      iconPath: z.string().optional(),
-      path: z.string().nonempty(),
-    }),
-  ),
-  objectActionMenuLinks: z.array(
-    z.object({
-      label: z.string().nonempty(),
-      uiIdentifier: z.string().nonempty(),
-      iconPath: z.string().optional(),
-      path: z.string().nonempty(),
-    }),
-  ),
-  folderSidebarEmbeds: z.array(
-    z.object({
-      title: z.string().nonempty(),
-      uiIdentifier: z.string().nonempty(),
-      iconPath: z.string().optional(),
-      path: z.string().nonempty(),
-    }),
-  ),
-  objectSidebarEmbeds: z.array(
-    z.object({
-      title: z.string().nonempty(),
-      uiIdentifier: z.string().nonempty(),
-      iconPath: z.string().optional(),
-      path: z.string().nonempty(),
-    }),
-  ),
-})
+export const appContributionRouteLinkSchema = z
+  .object({
+    label: z.string().nonempty(),
+    uiIdentifier: z.string().nonempty(),
+    iconPath: z.string().optional(),
+    path: z.string().nonempty(),
+  })
+  .strict()
 
-export const appConfigSchema = z.object({
-  identifier: appIdentifierSchema,
-  label: z.string().nonempty().min(1).max(128),
-  description: z.string().nonempty().min(1).max(1024),
-  emittableEvents: z.array(z.string().nonempty()),
-  tasks: z.array(taskConfigSchema),
-  externalWorkers: z.array(z.string().nonempty()).optional(),
-  workerScripts: z
-    .record(
-      z
-        .string()
-        .nonempty()
-        .regex(/^[a-z0-9_]+$/)
-        .refine((v) => v.toLowerCase() === v),
-      appWorkerScriptConfigSchema,
-    )
-    .optional(),
-  ui: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
-  contributions: appContributionsSchema.optional(),
-})
+export const appContributionsSchema = z
+  .object({
+    routes: z.array(appContributionRouteLinkSchema),
+    sidebarMenuLinks: z.array(appContributionRouteLinkSchema),
+    folderActionMenuLinks: z.array(appContributionRouteLinkSchema),
+    objectActionMenuLinks: z.array(appContributionRouteLinkSchema),
+    folderSidebarEmbeds: z.array(appContributionRouteLinkSchema),
+    objectSidebarEmbeds: z.array(appContributionRouteLinkSchema),
+  })
+  .strict()
 
-export const appWorkerScriptSchema = z.object({
+export const appConfigSchema = z
+  .object({
+    requiresStorage: z.boolean().optional(),
+    identifier: appIdentifierSchema,
+    label: z.string().nonempty().min(1).max(128),
+    description: z.string().nonempty().min(1).max(1024),
+    emittableEvents: z.array(z.string().nonempty()),
+    tasks: z.array(taskConfigSchema),
+    externalWorkers: z.array(z.string().nonempty()).optional(),
+    workers: z
+      .record(
+        z
+          .string()
+          .nonempty()
+          .regex(/^[a-z0-9_]+$/)
+          .refine((v) => v.toLowerCase() === v),
+        appWorkerScriptConfigSchema,
+      )
+      .optional(),
+    ui: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
+    contributions: appContributionsSchema.optional(),
+  })
+  .strict()
+
+export const appWorkerSchema = z.object({
   description: z.string(),
   files: appManifestSchema,
-  envVars: z.record(z.string(), z.string()),
+  environmentVariables: z.record(z.string(), z.string()),
+  hash: z.string(),
 })
+export const appWorkersSchema = z.record(z.string(), appWorkerSchema)
 
-export const appWorkerScriptMapSchema = z.record(
-  z.string(),
-  appWorkerScriptSchema,
-)
+export const appWorkersMapSchema = z.record(z.string(), appWorkerSchema)
 
 export const appWorkerScriptIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z0-9_]+$/)
 
-export const appWorkerScriptsSchema = z.array(
-  appWorkerScriptSchema.merge(
-    z.object({
-      identifier: appWorkerScriptIdentifierSchema,
-    }),
-  ),
-)
 export const appUiIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z0-9_]+$/)
   .refine((v) => v.toLowerCase() === v)
 
-export const appUIsSchema = z.array(
+export const appUiArraySchema = z.array(
   appUISchema.merge(
     z.object({
       identifier: appUiIdentifierSchema,
@@ -238,7 +214,7 @@ export const appUIsSchema = z.array(
   ),
 )
 
-export const appUIMapSchema = z.record(z.string(), appUISchema)
+export const appUiMapSchema = z.record(z.string(), appUISchema)
 
 export const externalAppWorkerSchema = z.object({
   appIdentifier: appIdentifierSchema,
@@ -256,11 +232,11 @@ export type AppUILink = z.infer<typeof appUILinkSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 
-export type AppWorkerScript = z.infer<typeof appWorkerScriptSchema>
+export type AppWorker = z.infer<typeof appWorkerSchema>
 
-export type AppWorkerScriptMap = z.infer<typeof appWorkerScriptMapSchema>
+export type AppWorkersMap = z.infer<typeof appWorkersMapSchema>
 
-export type AppUIMap = z.infer<typeof appUIMapSchema>
+export type AppUIMap = z.infer<typeof appUiMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 

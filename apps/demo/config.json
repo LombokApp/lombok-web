@@ -20,10 +20,10 @@
       "worker": "special_worker"
     }
   ],
-  "workerScripts": {
+  "workers": {
     "special_worker": {
       "description": "Manages special things for objects.",
-      "envVars": {
+      "environmentVariables": {
         "SPECIAL_THING_ENV_VAR": "<some_dummy_env_var_value>"
       }
     }
@@ -36,19 +36,19 @@
   "contributions": {
     "routes": [
       {
-        "title": "Demo",
+        "label": "Demo",
         "uiIdentifier": "main",
         "iconPath": "/assets/logo.png",
         "path": "/demo-page"
       },
       {
-        "title": "Landing Page",
+        "label": "Landing Page",
         "uiIdentifier": "main",
         "iconPath": "/assets/logo.png",
         "path": "/"
       },
       {
-        "title": "Thing Doer",
+        "label": "Thing Doer",
         "uiIdentifier": "main",
         "iconPath": "/assets/logo.png",
         "path": "/thing-doer"
@@ -86,7 +86,7 @@
     ],
     "folderSidebarEmbeds": [
       {
-        "title": "Demo Folder Sidebar Embed",
+        "label": "Demo Folder Sidebar Embed",
         "iconPath": "/assets/logo.png",
         "uiIdentifier": "main",
         "path": "/demo-page"
@@ -94,7 +94,7 @@
     ],
     "objectSidebarEmbeds": [
       {
-        "title": "Demo Object Sidebar Embed",
+        "label": "Demo Object Sidebar Embed",
         "iconPath": "/assets/logo.png",
         "uiIdentifier": "main",
         "path": "/demo-page"

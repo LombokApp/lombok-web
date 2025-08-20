@@ -9,11 +9,18 @@ import type {
 } from '@stellariscloud/core-worker'
 import { serializeWorkerError, WorkerError } from '@stellariscloud/core-worker'
 import fs from 'fs'
+import fsPromises from 'fs/promises'
 import os from 'os'
 import path from 'path'
 
 import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
 import { downloadFileToDisk } from '../utils/file.util'
+
+const cacheRoot = path.join(os.tmpdir(), 'stellaris-worker-cache')
+if (fs.existsSync(cacheRoot)) {
+  // Clean previous worker cache directory before starting
+  await fsPromises.rmdir(cacheRoot, { recursive: true })
+}
 
 // Helper function to parse request body based on Content-Type and HTTP method
 async function parseRequestBody(request: Request): Promise<unknown> {
@@ -75,15 +82,129 @@ export function reconstructResponse(
   })
 }
 
+// Prepare and cache worker bundle by app/work/hash. Ensures only one setup runs at a time.
+async function prepareWorkerBundle({
+  appIdentifier,
+  workerIdentifier,
+  payloadUrl,
+  bundleHash,
+}: {
+  appIdentifier: string
+  workerIdentifier: string
+  payloadUrl: string
+  bundleHash: string
+}): Promise<{ cacheDir: string; entrypoint: 'index.js' | 'index.ts' }> {
+  const workerCacheRoot = path.join(cacheRoot, appIdentifier, workerIdentifier)
+  const cacheDir = path.join(workerCacheRoot, bundleHash)
+  const readyMarker = path.join(cacheDir, '.READY')
+  const lockFile = path.join(workerCacheRoot, `.lock.${bundleHash}`)
+
+  // Fast-path if already prepared
+  if (fs.existsSync(readyMarker)) {
+    const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
+      path.join(cacheDir, workerIdentifier, 'index.js'),
+    )
+      ? 'index.js'
+      : 'index.ts'
+    return { cacheDir, entrypoint }
+  }
+
+  fs.mkdirSync(workerCacheRoot, { recursive: true })
+
+  // Try to acquire lock atomically
+  let haveLock = false
+  try {
+    fs.openSync(lockFile, 'wx')
+    haveLock = true
+  } catch {
+    // lock exists; wait for READY up to 30s
+    // intentionally empty
+  }
+
+  if (!haveLock) {
+    const start = Date.now()
+    const timeoutMs = 30_000
+    // Busy-wait with small delay until READY appears or timeout
+    while (Date.now() - start < timeoutMs) {
+      if (fs.existsSync(readyMarker)) {
+        const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
+          path.join(cacheDir, workerIdentifier, 'index.js'),
+        )
+          ? 'index.js'
+          : 'index.ts'
+        return { cacheDir, entrypoint }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200))
+    }
+    throw new Error(
+      `Timed out waiting for worker bundle preparation for ${appIdentifier}/${workerIdentifier}@${bundleHash}`,
+    )
+  }
+
+  // We have the lock; double-check another process didn't finish in between
+  try {
+    if (fs.existsSync(readyMarker)) {
+      const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
+        path.join(cacheDir, workerIdentifier, 'index.js'),
+      )
+        ? 'index.js'
+        : 'index.ts'
+      return { cacheDir, entrypoint }
+    }
+
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'worker-prep-'))
+    const zipPath = path.join(tmpRoot, 'worker-module.zip')
+    await downloadFileToDisk(payloadUrl, zipPath)
+
+    const unzipProc = Bun.spawn({
+      cmd: ['unzip', zipPath, '-d', tmpRoot],
+      stdout: 'inherit',
+      stderr: 'inherit',
+    })
+    const unzipCode = await unzipProc.exited
+    if (unzipCode !== 0) {
+      throw new Error('Failed to unzip worker payload during prepare')
+    }
+
+    // Move prepared contents into versioned cacheDir
+    fs.mkdirSync(cacheDir, { recursive: true })
+    // Copy all files from tmpRoot except the zip itself into cacheDir
+    for (const entry of fs.readdirSync(tmpRoot)) {
+      if (entry === 'worker-module.zip') {
+        continue
+      }
+      const src = path.join(tmpRoot, entry)
+      const dest = path.join(cacheDir, entry)
+      fs.cpSync(src, dest, { recursive: true })
+    }
+    // Mark as ready
+    fs.writeFileSync(readyMarker, '')
+
+    const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
+      path.join(cacheDir, workerIdentifier, 'index.js'),
+    )
+      ? 'index.js'
+      : 'index.ts'
+    return { cacheDir, entrypoint }
+  } finally {
+    // Release lock
+    try {
+      fs.rmSync(lockFile, { force: true })
+    } catch {
+      // ignore
+    }
+  }
+}
+
 export const runWorkerScript = async ({
   requestOrTask,
   server,
   appIdentifier,
   workerIdentifier,
   workerExecutionId,
-  options: { printWorkerOutput = true, emptyWorkerTmpDir = true } = {
+  options: { printWorkerOutput = true, removeWorkerDirectory = true } = {
     printWorkerOutput: true,
-    emptyWorkerTmpDir: true,
+    removeWorkerDirectory: true,
   },
 }: {
   server: PlatformServerMessageInterface
@@ -93,12 +214,11 @@ export const runWorkerScript = async ({
   workerExecutionId: string
   options?: {
     printWorkerOutput?: boolean
-    emptyWorkerTmpDir?: boolean
+    removeWorkerDirectory?: boolean
   }
 }): Promise<SerializeableResponse | undefined> => {
   const isRequest = requestOrTask instanceof Request
   const workerRootPath = path.join(os.tmpdir(), workerExecutionId)
-  const inFilepath = path.join(workerRootPath, `worker-module.zip`)
   const logsDir = path.join(workerRootPath, 'logs')
   const workerTmpDir = path.join(workerRootPath, 'tmp')
   const builtinsDir = path.join(workerRootPath, 'builtins')
@@ -122,31 +242,24 @@ export const runWorkerScript = async ({
   const { result: workerExecutionDetails } =
     await server.getWorkerExecutionDetails(appIdentifier, workerIdentifier)
 
-  const workerScriptEnvVars = Object.keys(
-    workerExecutionDetails.envVars,
+  const workerEnvVars = Object.keys(
+    workerExecutionDetails.environmentVariables,
   ).reduce<string[]>(
     (acc, next) =>
       acc.concat(
-        `WORKER_SCRIPT_VAR_${next.trim()}=${workerExecutionDetails.envVars[next].trim()}`,
+        `WORKER_ENV_${next.trim()}=${workerExecutionDetails.environmentVariables[next].trim()}`,
       ),
     [],
   )
 
-  console.log(
-    'Downloading worker module payload:',
-    workerExecutionDetails.payloadUrl,
-  )
-  await downloadFileToDisk(workerExecutionDetails.payloadUrl, inFilepath)
-
-  const unzipProc = Bun.spawn({
-    cmd: ['unzip', inFilepath, '-d', workerRootPath],
-    stdout: 'inherit',
-    stderr: 'inherit',
+  // Prepare or reuse cached worker bundle by hash
+  const { cacheDir, entrypoint } = await prepareWorkerBundle({
+    appIdentifier,
+    workerIdentifier,
+    payloadUrl: workerExecutionDetails.payloadUrl,
+    bundleHash: workerExecutionDetails.hash,
   })
-  const unzipCode = await unzipProc.exited
-  if (unzipCode !== 0) {
-    throw new Error('Failed to unzip worker payload')
-  }
+
   const workerWrapperScript = './worker-script-wrapper.ts'
   const workerScriptWrapperPath = path.join(__dirname, workerWrapperScript)
   fs.copyFileSync(
@@ -154,13 +267,7 @@ export const runWorkerScript = async ({
     path.join(workerRootPath, workerWrapperScript),
   )
 
-  const envVars = workerScriptEnvVars.map((v) => v.trim())
-
-  const entrypoint = fs.existsSync(
-    path.join(workerRootPath, workerIdentifier, 'index.js'),
-  )
-    ? `index.js`
-    : `index.ts`
+  const environmentVariables = workerEnvVars.map((v) => v.trim())
 
   // Serialize the request or task for the sandbox
   const serializedRequestOrTask = isRequest
@@ -171,7 +278,7 @@ export const runWorkerScript = async ({
         ), // Trim the "/worker-api/${workerIdentifier}" prefix
         method: requestOrTask.method,
         headers: Object.fromEntries(requestOrTask.headers.entries()),
-        body: await parseRequestBody(requestOrTask),
+        body: (await parseRequestBody(requestOrTask)) ?? '',
         // Add other properties you need from the Request
       }
     : requestOrTask
@@ -180,7 +287,7 @@ export const runWorkerScript = async ({
     resultFilepath: resultOutputPath.replace(workerRootPath, ''),
     outputLogFilepath: outLogPath.replace(workerRootPath, ''),
     errorLogFilepath: errOutputPath.replace(workerRootPath, ''),
-    scriptPath: `./${workerIdentifier}/${entrypoint}`,
+    scriptPath: `./app/${workerIdentifier}/${entrypoint}`,
     workerToken: workerExecutionDetails.workerToken,
     executionId: workerExecutionId,
     executionType: isRequest ? 'request' : 'task',
@@ -205,7 +312,8 @@ export const runWorkerScript = async ({
       '--user=1001',
       '--group=1001',
       `--bindmount=${logsDir}:/logs`,
-      '--tmpfsmount=/tmp',
+      `--bindmount=${workerTmpDir}:/tmp`,
+      `--bindmount_ro=${cacheDir}:/app`,
       '--bindmount_ro=/usr/src/app/node_modules:/node_modules',
       '--bindmount_ro=/usr/src/app/packages:/node_modules/@stellariscloud',
       '--bindmount_ro=/usr/src/app/packages/stellaris-utils:/node_modules/@stellariscloud/utils',
@@ -220,9 +328,11 @@ export const runWorkerScript = async ({
       '--bindmount=/dev/null:/dev/null',
       '--bindmount=/dev/random:/dev/random',
       '--bindmount=/dev/urandom:/dev/urandom',
-      ...envVars.map((v) => `-E${v}`),
+      ...environmentVariables.map((v) => `-E${v}`),
+      `-ETMPDIR=${workerTmpDir.replace(workerRootPath, '')}`,
       '-Mo',
       '-v',
+      '--log_fd=1',
       '--',
       '/usr/local/bin/bun',
       `./${workerWrapperScript}`,
@@ -231,89 +341,100 @@ export const runWorkerScript = async ({
     stdout: 'inherit',
     stderr: 'inherit',
   })
-
-  if (emptyWorkerTmpDir && fs.existsSync(workerTmpDir)) {
-    console.log('Emptying worker tmp dir:', workerTmpDir)
-    fs.rmSync(workerTmpDir, { recursive: true })
-  }
-
-  const exitCode = await proc.exited
-  if (printWorkerOutput) {
-    console.log(
-      ...[
-        '',
-        'WORKER LOG OUTPUT',
-        '==================',
-        await Bun.file(outLogPath).text(),
-        '==================',
-      ].map((line) => `${line}\n`),
-    )
-  }
-
-  if (exitCode !== 0) {
-    let parsedErr: SerializeableError
-    const errStr = await Bun.file(errOutputPath).text()
-
-    try {
-      const parsedErrObj = JSON.parse(errStr) as SerializeableError | undefined
-      parsedErr = !parsedErrObj
-        ? (JSON.parse(
-            serializeWorkerError(new WorkerError(String(errStr))),
-          ) as SerializeableError)
-        : (parsedErrObj.innerError ?? parsedErrObj)
-    } catch (err: unknown) {
-      parsedErr = JSON.parse(
-        serializeWorkerError(new WorkerError(String(errStr), err)),
-      ) as SerializeableError
-    }
-    const errorClassName = parsedErr.className
-
-    console.log(
-      ...[
-        '',
-        `WORKER ERROR: ${errorClassName}`,
-        '==================',
-        `ERROR: ${parsedErr.name}: ${parsedErr.message}`,
-        parsedErr.stack,
-        '==================',
-      ].map((line) => `${line}\n`),
-    )
-
-    throw new WorkerScriptRuntimeError(
-      `Failure during worker script execution. Exit code: ${exitCode}`,
-      {
-        className: parsedErr.className,
-        name: parsedErr.name,
-        message: parsedErr.message,
-        stack: parsedErr.stack ?? '',
-        ...(parsedErr.innerError && {
-          innerError: {
-            className: parsedErr.innerError.className,
-            name: parsedErr.innerError.name,
-            message: parsedErr.innerError.message,
-            stack: parsedErr.innerError.stack ?? '',
-          },
-        }),
-      },
-    )
-  }
-
-  if (!isRequest) {
-    return
-  }
-
-  // Parse the result from the response output file
-  let response: SerializeableResponse
   try {
-    response = JSON.parse(
-      await Bun.file(resultOutputPath).text(),
-    ) as SerializeableResponse
-  } catch (parseError) {
-    throw new ScriptExecutionError('Failed to parse worker response', {
+    const exitCode = await proc.exited
+    if (printWorkerOutput) {
+      console.log(
+        ...[
+          '',
+          'WORKER LOG OUTPUT',
+          '==================',
+          await Bun.file(outLogPath).text(),
+          '==================',
+        ].map((line) => `${line}\n`),
+      )
+    }
+
+    if (exitCode !== 0) {
+      let parsedErr: SerializeableError
+      const errStr = await Bun.file(errOutputPath).text()
+
+      try {
+        const parsedErrObj = JSON.parse(errStr) as
+          | SerializeableError
+          | undefined
+        parsedErr = !parsedErrObj
+          ? (JSON.parse(
+              serializeWorkerError(new WorkerError(String(errStr))),
+            ) as SerializeableError)
+          : (parsedErrObj.innerError ?? parsedErrObj)
+      } catch (err: unknown) {
+        parsedErr = JSON.parse(
+          serializeWorkerError(new WorkerError(String(errStr), err)),
+        ) as SerializeableError
+      }
+      const errorClassName = parsedErr.className
+
+      console.log(
+        ...[
+          '',
+          `WORKER ERROR: ${errorClassName}`,
+          '==================',
+          `ERROR: ${parsedErr.name}: ${parsedErr.message}`,
+          parsedErr.stack,
+          '==================',
+        ].map((line) => `${line}\n`),
+      )
+
+      throw new WorkerScriptRuntimeError(
+        `Failure during worker script execution. Exit code: ${exitCode}`,
+        {
+          className: parsedErr.className,
+          name: parsedErr.name,
+          message: parsedErr.message,
+          stack: parsedErr.stack ?? '',
+          ...(parsedErr.innerError && {
+            innerError: {
+              className: parsedErr.innerError.className,
+              name: parsedErr.innerError.name,
+              message: parsedErr.innerError.message,
+              stack: parsedErr.innerError.stack ?? '',
+            },
+          }),
+        },
+      )
+    }
+
+    if (!isRequest) {
+      return
+    }
+
+    // Parse the result from the response output file
+    let response: SerializeableResponse
+    try {
+      response = JSON.parse(
+        await Bun.file(resultOutputPath).text(),
+      ) as SerializeableResponse
+    } catch (parseError) {
+      throw new ScriptExecutionError('Failed to parse worker response', {
+        parseError:
+          parseError instanceof Error ? parseError.message : String(parseError),
+        exitCode,
+      })
+    }
+    return response
+  } catch (executeError) {
+    throw new ScriptExecutionError('Failed to execute worker', {
       parseError:
-        parseError instanceof Error ? parseError.message : String(parseError),
-      exitCode,
+        executeError instanceof Error
+          ? executeError.message
+          : String(executeError),
+      exitCode: process.exitCode,
     })
+  } finally {
+    if (removeWorkerDirectory && fs.existsSync(workerRootPath)) {
+      console.log('Removing worker directory:', workerRootPath)
+      fs.rmSync(workerRootPath, { recursive: true })
+    }
   }
-  return response
 }

@@ -7,7 +7,7 @@ CREATE TABLE "apps" (
 	"implementedTasks" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,
-	"workerScripts" jsonb NOT NULL,
+	"workers" jsonb NOT NULL,
 	"ui" jsonb NOT NULL,
 	"manifest" jsonb NOT NULL,
 	"enabled" boolean DEFAULT false NOT NULL,

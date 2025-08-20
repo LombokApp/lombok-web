@@ -7,21 +7,23 @@ import { Settings } from 'lucide-react'
 import type { FetchOptions } from 'openapi-fetch'
 import { useState } from 'react'
 
-import { EnvVarModal } from '@/src/components/env-var-modal/env-var-modal'
+import { EnvironmentVariablesModal } from '@/src/components/environment-variables-modal/environment-variables-modal'
 
 export function configureServerAppWorkerScriptTableColumns(
   appIdentifier: string,
-  setEnvVarsMutation: UseMutationResult<
+  setEnvironmentVariablesMutation: UseMutationResult<
     unknown,
     unknown,
     FetchOptions<{
       parameters: { path: { appIdentifier: string; workerIdentifier: string } }
       requestBody: {
-        content: { 'application/json': { envVars: Record<string, string> } }
+        content: {
+          'application/json': { environmentVariables: Record<string, string> }
+        }
       }
     }>
   >,
-): ColumnDef<AppDTO['workerScripts'][0]>[] {
+): ColumnDef<AppDTO['workers'][string] & { identifier: string }>[] {
   return [
     {
       accessorKey: 'identifier',
@@ -102,24 +104,24 @@ export function configureServerAppWorkerScriptTableColumns(
                 <Settings className="size-5" />
               </Button>
             </div>
-            <EnvVarModal
+            <EnvironmentVariablesModal
               isOpen={modalOpen}
               onClose={() => setModalOpen(false)}
-              envVars={appWorker.envVars}
+              environmentVariables={appWorker.environmentVariables}
               onSubmit={async (envVarArray) => {
                 // Convert array of {key, value} to Record<string, string>
-                const envVars: Record<string, string> = {}
+                const environmentVariables: Record<string, string> = {}
                 for (const { key, value } of envVarArray) {
-                  envVars[key] = value
+                  environmentVariables[key] = value
                 }
-                await setEnvVarsMutation.mutateAsync({
+                await setEnvironmentVariablesMutation.mutateAsync({
                   params: {
                     path: {
                       appIdentifier,
                       workerIdentifier: appWorker.identifier,
                     },
                   },
-                  body: { envVars },
+                  body: { environmentVariables },
                 })
                 setModalOpen(false)
               }}

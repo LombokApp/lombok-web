@@ -17,7 +17,7 @@ function FolderObjectRootInner() {
     pathParts.length > 2 && pathParts[1] === 'objects'
   const folderContext = useFolderContext()
   const focusedFolderObjectKey = isFolderObjectDetailPage
-    ? pathParts[2]
+    ? pathParts.slice(2).join('/')
     : undefined
   return focusedFolderObjectKey ? (
     <FocusedFolderObjectContextProvider
@@ -41,7 +41,7 @@ function FolderRootInner() {
   const isFolderObjectDetailPage =
     pathParts.length > 2 && pathParts[1] === 'objects'
   const focusedFolderObjectKey = isFolderObjectDetailPage
-    ? pathParts[2]
+    ? pathParts.slice(2).join('/')
     : undefined
 
   const isTaskListPage = pathParts.length === 2 && pathParts[1] === 'tasks'
