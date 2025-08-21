@@ -10,7 +10,7 @@ import {
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import type { AppMenuLink } from '@/src/contexts/server.context'
+import type { AppRouteDescription } from '@/src/contexts/server.context'
 
 import { Menu } from './menu'
 
@@ -21,7 +21,7 @@ export function SheetMenu({
 }: {
   onSignout: () => Promise<void>
   viewer: NonNullable<IAuthContext['viewer']>
-  appMenuItems: AppMenuLink[]
+  appMenuItems: AppRouteDescription[]
 }) {
   return (
     <Sheet>

@@ -13,7 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 
-import type { AppMenuLink } from '@/src/contexts/server.context'
+import type { AppRouteDescription } from '@/src/contexts/server.context'
 
 interface Submenu {
   href: string
@@ -38,7 +38,7 @@ interface Group {
 export function getMenuList(
   pathname: string | undefined,
   viewer: UserDTO,
-  sidebarMenuLinkContributions: AppMenuLink[],
+  sidebarMenuLinkContributions: AppRouteDescription[],
 ): Group[] {
   return [
     {

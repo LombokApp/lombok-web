@@ -348,6 +348,7 @@ describe('apps.types', () => {
       const validMenuItem = {
         label: 'Test Menu',
         iconPath: '/icons/test.svg',
+        path: '/',
       }
       const result = appUILinkSchema.safeParse(validMenuItem)
       expectZodSuccess(result)
@@ -356,6 +357,7 @@ describe('apps.types', () => {
     it('should validate menu item config without icon', () => {
       const validMenuItem = {
         label: 'Test Menu',
+        path: '/',
       }
       const result = appUILinkSchema.safeParse(validMenuItem)
       expectZodSuccess(result)

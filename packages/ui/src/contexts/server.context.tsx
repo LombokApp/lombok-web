@@ -27,33 +27,23 @@ export interface Notification {
   id?: string
 }
 
-export type AppMenuLink = {
+export type AppRouteDescription = {
   href: string
   appIdentifier: string
   appLabel: string
   uiIdentifier: string
 } & AppUILink
 
-export interface AppSidebarEmbed {
-  href: string
-  appIdentifier: string
-  appLabel: string
-  uiIdentifier: string
-  title: string
-  iconPath?: string
-  path: string
-}
-
 export interface IServerContext {
   refreshApps: () => Promise<QueryObserverResult<AppContributionsResponse>>
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
-  sidebarMenuLinkContributions: AppMenuLink[]
-  folderActionMenuLinkContributions: AppMenuLink[]
-  objectActionMenuLinkContributions: AppMenuLink[]
-  folderSidebarEmbedContributions: AppSidebarEmbed[]
-  objectSidebarEmbedContributions: AppSidebarEmbed[]
+  sidebarMenuLinkContributions: AppRouteDescription[]
+  folderActionMenuLinkContributions: AppRouteDescription[]
+  objectActionMenuLinkContributions: AppRouteDescription[]
+  folderSidebarEmbedContributions: AppRouteDescription[]
+  objectSidebarEmbedContributions: AppRouteDescription[]
   settings?: ServerSettingsListResponse['settings']
   appContributions?: AppContributionsResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
@@ -107,7 +97,7 @@ export const ServerContextProvider = ({
     () => ({
       sidebarMenuLinkContributions: Object.keys(
         appContributionsResult ?? {},
-      ).reduce<AppMenuLink[]>((acc, nextAppIdentifier) => {
+      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
         const appIdentifier =
           appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
         const appLabel =
@@ -127,7 +117,7 @@ export const ServerContextProvider = ({
       }, []),
       folderSidebarEmbedContributions: Object.keys(
         appContributionsResult ?? {},
-      ).reduce<AppSidebarEmbed[]>((acc, nextAppIdentifier) => {
+      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
         const appIdentifier =
           appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
         const appLabel =
@@ -145,7 +135,7 @@ export const ServerContextProvider = ({
       }, []),
       objectSidebarEmbedContributions: Object.keys(
         appContributionsResult ?? {},
-      ).reduce<AppSidebarEmbed[]>((acc, nextAppIdentifier) => {
+      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
         const appIdentifier =
           appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
         const appLabel =
@@ -163,7 +153,7 @@ export const ServerContextProvider = ({
       }, []),
       folderActionMenuLinkContributions: Object.keys(
         appContributionsResult ?? {},
-      ).reduce<AppMenuLink[]>((acc, nextAppIdentifier) => {
+      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
         const appIdentifier =
           appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
         const appLabel =
@@ -183,7 +173,7 @@ export const ServerContextProvider = ({
       }, []),
       objectActionMenuLinkContributions: Object.keys(
         appContributionsResult ?? {},
-      ).reduce<AppMenuLink[]>((acc, nextAppIdentifier) => {
+      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
         const appIdentifier =
           appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
         const appLabel =

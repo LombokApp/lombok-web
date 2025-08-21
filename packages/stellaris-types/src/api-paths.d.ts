@@ -1747,7 +1747,7 @@ export interface components {
                     };
                     contributions?: {
                         routes: {
-                            title: string;
+                            label: string;
                             uiIdentifier: string;
                             iconPath?: string;
                             path: string;
@@ -1771,13 +1771,13 @@ export interface components {
                             path: string;
                         }[];
                         folderSidebarEmbeds: {
-                            title: string;
+                            label: string;
                             uiIdentifier: string;
                             iconPath?: string;
                             path: string;
                         }[];
                         objectSidebarEmbeds: {
-                            title: string;
+                            label: string;
                             uiIdentifier: string;
                             iconPath?: string;
                             path: string;
@@ -1815,6 +1815,7 @@ export interface components {
                     };
                 };
                 ui: {
+                    hash: string;
                     description: string;
                     files: {
                         [key: string]: {
@@ -1894,7 +1895,7 @@ export interface components {
                     };
                     contributions?: {
                         routes: {
-                            title: string;
+                            label: string;
                             uiIdentifier: string;
                             iconPath?: string;
                             path: string;
@@ -1918,13 +1919,13 @@ export interface components {
                             path: string;
                         }[];
                         folderSidebarEmbeds: {
-                            title: string;
+                            label: string;
                             uiIdentifier: string;
                             iconPath?: string;
                             path: string;
                         }[];
                         objectSidebarEmbeds: {
-                            title: string;
+                            label: string;
                             uiIdentifier: string;
                             iconPath?: string;
                             path: string;
@@ -1962,6 +1963,7 @@ export interface components {
                     };
                 };
                 ui: {
+                    hash: string;
                     description: string;
                     files: {
                         [key: string]: {
@@ -1990,7 +1992,7 @@ export interface components {
                 appIdentifier: string;
                 contributions: {
                     routes: {
-                        title: string;
+                        label: string;
                         uiIdentifier: string;
                         iconPath?: string;
                         path: string;
@@ -2014,13 +2016,13 @@ export interface components {
                         path: string;
                     }[];
                     folderSidebarEmbeds: {
-                        title: string;
+                        label: string;
                         uiIdentifier: string;
                         iconPath?: string;
                         path: string;
                     }[];
                     objectSidebarEmbeds: {
-                        title: string;
+                        label: string;
                         uiIdentifier: string;
                         iconPath?: string;
                         path: string;

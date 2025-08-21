@@ -96,7 +96,7 @@ export const appWorkersArraySchema = z.array(
 export const appUILinkSchema = z.object({
   label: z.string(),
   iconPath: z.string().optional(),
-  url: z.string().optional(),
+  path: z.string(),
 })
 
 export const appIdentitySchema = z.object({
