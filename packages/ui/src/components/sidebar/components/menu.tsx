@@ -11,7 +11,7 @@ import {
 import { Ellipsis, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import type { AppMenuLink } from '@/src/contexts/server.context'
+import type { AppRouteDescription } from '@/src/contexts/server.context'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
@@ -19,7 +19,7 @@ import { CollapseMenuButton } from './collapse-menu-button'
 interface MenuProps {
   isOpen: boolean | undefined
   viewer: NonNullable<IAuthContext['viewer']>
-  sidebarMenuLinkContributions: AppMenuLink[]
+  sidebarMenuLinkContributions: AppRouteDescription[]
 }
 
 const protocol = window.location.protocol

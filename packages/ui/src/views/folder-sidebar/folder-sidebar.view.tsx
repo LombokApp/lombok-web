@@ -169,7 +169,7 @@ export const FolderSidebar = ({
                           alt={`${embed.appLabel} icon`}
                           className="size-6"
                         />
-                        {embed.title}
+                        {embed.label}
                       </div>
                     </TypographyH3>
                   </CardHeader>
