@@ -21,7 +21,7 @@ const coreWorkerProcessDataPayloadSchema = z.object({
   appToken: z.string(),
   socketBaseUrl: z.string(),
   jwtSecret: z.string(),
-  hostId: z.string(),
+  platformHost: z.string(),
   executionOptions: z
     .object({
       printWorkerOutput: z.boolean().optional(),
@@ -64,18 +64,18 @@ function verifyAppUserJWT({
   userId,
   token,
   jwtSecret,
-  hostId,
+  platformHost,
 }: {
   appIdentifier: string
   userId: string
   token: string
   jwtSecret: string
-  hostId: string
+  platformHost: string
 }) {
   try {
     return jwt.verify(token, jwtSecret, {
       algorithms: [ALGORITHM],
-      audience: hostId,
+      audience: platformHost,
       subject: `${APP_USER_JWT_SUB_PREFIX}${userId}:${appIdentifier}`,
     })
   } catch (error) {
@@ -94,7 +94,7 @@ function authenticateAppUserRequest(
   req: Request,
   appIdentifier: string,
   jwtSecret: string,
-  hostId: string,
+  platformHost: string,
 ): { userId: string } {
   const authHeader = req.headers.get('Authorization')
 
@@ -139,7 +139,7 @@ function authenticateAppUserRequest(
       userId,
       token,
       jwtSecret,
-      hostId,
+      platformHost,
     })
 
     return { userId }
@@ -200,7 +200,7 @@ process.stdin.once('data', (data) => {
           data: {
             workerData: {
               socketBaseUrl: workerData.socketBaseUrl,
-              host: workerData.hostId,
+              host: workerData.platformHost,
               executionOptions: workerData.executionOptions,
               appWorkerId: workerData.appWorkerId,
               appToken: '[REDACTED]',
@@ -299,7 +299,7 @@ process.stdin.once('data', (data) => {
                   req,
                   appIdentifier,
                   workerData.jwtSecret,
-                  workerData.hostId,
+                  workerData.platformHost,
                 )
                 void log({
                   message: `Authenticated user: ${userId} for app: ${appIdentifier}`,

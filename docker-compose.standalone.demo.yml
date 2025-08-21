@@ -4,13 +4,12 @@ services:
     container_name: stellariscloud-standalone-demo-app
     platform: linux/amd64
     environment:
-      APP_HOST_ID: http://stellarisclouddemo.localhost
+      PLATFORM_HOST: stellarisclouddemo.localhost
       INITIAL_USER: demo
       AUTH_JWT_SECRET: 00000000000000000000000000000000 # replace with a random string
       DB_NAME: stellariscloud_demo
       DB_USER: stellariscloud_demo
       DB_PASSWORD: demodemodemodemodemodemo
-      ROOT_DOMAIN: stellarisclouddemo.localhost
       LOG_LEVEL: debug
       INIT_EVENT_JOBS: true
       INSTALL_APPS_ON_START: true

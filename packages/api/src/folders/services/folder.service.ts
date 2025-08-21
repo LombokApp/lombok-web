@@ -420,8 +420,11 @@ export class FolderService {
             ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.stellaris_cors_check_${folderId}`
             : `.stellaris_cors_check_${folderId}`
         const corsUrl = `${folder.contentLocation.endpoint.replace(/\/$/, '')}/${folder.contentLocation.bucket}/${objectKey}`
-        const appHostId: string = this._platformConfig.hostId
-        const originCandidates = [`https://${appHostId}`, `http://${appHostId}`]
+        const appPlatformHost: string = this._platformConfig.platformHost
+        const originCandidates = [
+          `https://${appPlatformHost}`,
+          `http://${appPlatformHost}`,
+        ]
         let corsOk = false
         for (const origin of originCandidates) {
           try {
@@ -437,7 +440,9 @@ export class FolderService {
             // Consider valid if ACAO is '*' or echoes our Origin or contains hostId
             const originMatches =
               !!acao &&
-              (acao === '*' || acao === origin || acao.includes(appHostId))
+              (acao === '*' ||
+                acao === origin ||
+                acao.includes(appPlatformHost))
             const methodsOk = !!acam && acam.toUpperCase().includes('GET')
             if (originMatches && methodsOk) {
               corsOk = true
@@ -451,7 +456,7 @@ export class FolderService {
         if (!corsOk) {
           accessError = {
             code: 'S3_CORS_INVALID',
-            message: `CORS configuration may not allow browser access from the configured frontend domain (${appHostId}).`,
+            message: `CORS configuration may not allow browser access from the configured frontend domain (${appPlatformHost}).`,
           }
         }
       }

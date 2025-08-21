@@ -121,7 +121,7 @@ export class JWTService {
   async createAppWorkerToken(appIdentifier: string) {
     return jwt.sign(
       {
-        aud: this._platformConfig.hostId,
+        aud: this._platformConfig.platformHost,
         jti: `${uuidV4()}`,
         scp: [],
         sub: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
@@ -136,7 +136,7 @@ export class JWTService {
 
   async createSessionAccessToken(session: Session): Promise<string> {
     const payload: AccessTokenJWT = {
-      aud: this._platformConfig.hostId,
+      aud: this._platformConfig.platformHost,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
       sub: `${USER_JWT_SUB_PREFIX}${session.userId}`,
@@ -165,7 +165,7 @@ export class JWTService {
     appIdentifier: string,
   ): Promise<string> {
     const payload: AccessTokenJWT = {
-      aud: this._platformConfig.hostId,
+      aud: this._platformConfig.platformHost,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
       sub: `${APP_USER_JWT_SUB_PREFIX}${session.userId}:${appIdentifier}`,
@@ -193,7 +193,7 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._platformConfig.hostId,
+        audience: this._platformConfig.platformHost,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -265,7 +265,7 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._platformConfig.hostId,
+        audience: this._platformConfig.platformHost,
         subject: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
