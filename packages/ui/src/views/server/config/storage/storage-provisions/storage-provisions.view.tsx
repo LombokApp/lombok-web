@@ -49,6 +49,14 @@ export function UserStorageProvisions({
     },
   )
 
+  const deleteStorageProvisionMutation = $api.useMutation(
+    'delete',
+    '/api/v1/server/storage-provisions/{storageProvisionId}',
+    {
+      onSuccess: () => refetchStorageProvisions(),
+    },
+  )
+
   React.useEffect(() => {
     void refetchStorageProvisions()
   }, [refetchStorageProvisions, refreshKey])
@@ -61,6 +69,19 @@ export function UserStorageProvisions({
       })
     },
     [],
+  )
+
+  const handleDelete = React.useCallback(
+    (storageProvision: StorageProvisionDTO) => {
+      void deleteStorageProvisionMutation.mutateAsync({
+        params: {
+          path: {
+            storageProvisionId: storageProvision.id,
+          },
+        },
+      })
+    },
+    [deleteStorageProvisionMutation],
   )
 
   return (
@@ -95,6 +116,7 @@ export function UserStorageProvisions({
                     storageProvision={storageProvisions?.result ?? []}
                     onUpdate={handleUpdate}
                     openRotateModal={openRotateModal}
+                    onDelete={handleDelete}
                   />
                 </div>
                 <Button
