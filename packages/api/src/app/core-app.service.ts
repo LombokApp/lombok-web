@@ -193,7 +193,7 @@ export class CoreAppService {
           appToken,
           appWorkerId,
           jwtSecret: this._authConfig.authJwtSecret,
-          hostId: this._platformConfig.hostId,
+          platformHost: this._platformConfig.platformHost,
           executionOptions: {
             printWorkerOutput:
               this._platformConfig.printEmbeddedCoreAppWorkerOutput,
@@ -234,7 +234,7 @@ export class CoreAppService {
     )
 
     const payload: JwtPayload = {
-      aud: this._platformConfig.hostId,
+      aud: this._platformConfig.platformHost,
       jti: uuidV4(),
       scp: [],
       sub: `${APP_JWT_SUB_PREFIX}${CORE_APP_IDENTIFIER}`,
