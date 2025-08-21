@@ -8,6 +8,7 @@ export function StorageProvisionsTable({
   storageProvision,
   onUpdate,
   openRotateModal,
+  onDelete,
 }: {
   storageProvision: StorageProvisionDTO[]
   onUpdate: (storageProvision: StorageProvisionDTO) => void
@@ -17,10 +18,11 @@ export function StorageProvisionsTable({
     endpoint: string
     region: string
   }) => void
+  onDelete: (storageProvision: StorageProvisionDTO) => void
 }) {
   const columns = React.useMemo(
-    () => storageProvisionsTableColumns(onUpdate, openRotateModal),
-    [onUpdate, openRotateModal],
+    () => storageProvisionsTableColumns(onUpdate, openRotateModal, onDelete),
+    [onUpdate, openRotateModal, onDelete],
   )
 
   return <DataTable data={storageProvision} columns={columns} />

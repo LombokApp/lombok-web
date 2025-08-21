@@ -1,10 +1,21 @@
 import type { StorageProvisionDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Badge,
   Button,
+  buttonVariants,
   DataTableColumnHeader,
 } from '@stellariscloud/ui-toolkit'
+import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export const storageProvisionsTableColumns = (
@@ -15,6 +26,7 @@ export const storageProvisionsTableColumns = (
     endpoint: string
     region: string
   }) => void,
+  onDelete?: (storageProvisions: StorageProvisionDTO) => void,
 ): HideableColumnDef<StorageProvisionDTO>[] => [
   {
     id: 'link',
@@ -150,6 +162,51 @@ export const storageProvisionsTableColumns = (
         </div>
       )
     },
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'actions',
+    cell: ({ row: { original } }) => (
+      <div className="flex justify-end">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              className="relative"
+              variant="outline"
+              size="icon"
+              aria-label="Delete"
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete storage provision?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will prevent users from using this storage provision for
+                new folders. Existing user folders using this location will
+                continue to function.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className={buttonVariants({ variant: 'destructive' })}
+                onClick={() => {
+                  onDelete?.(original)
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    ),
     enableSorting: false,
     enableHiding: true,
   },
