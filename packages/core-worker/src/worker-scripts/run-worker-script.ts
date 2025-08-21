@@ -9,7 +9,6 @@ import type {
 } from '@stellariscloud/core-worker'
 import { serializeWorkerError, WorkerError } from '@stellariscloud/core-worker'
 import fs from 'fs'
-import fsPromises from 'fs/promises'
 import os from 'os'
 import path from 'path'
 
@@ -19,7 +18,7 @@ import { downloadFileToDisk } from '../utils/file.util'
 const cacheRoot = path.join(os.tmpdir(), 'stellaris-worker-cache')
 if (fs.existsSync(cacheRoot)) {
   // Clean previous worker cache directory before starting
-  await fsPromises.rmdir(cacheRoot, { recursive: true })
+  fs.rmdirSync(cacheRoot, { recursive: true })
 }
 
 // Helper function to parse request body based on Content-Type and HTTP method
