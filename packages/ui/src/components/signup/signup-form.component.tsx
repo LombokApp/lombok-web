@@ -40,6 +40,7 @@ const formSchema = z.object({
       message: 'Email must be at least 2 characters.',
     })
     .refine((v) => EMAIL_VALIDATORS_COMBINED.safeParse(v).success)
+    .or(z.literal(''))
     .optional(),
 })
 export type SignupFormValues = z.infer<typeof formSchema>
@@ -53,7 +54,10 @@ export function SignupForm({
 }) {
   // eslint-disable-next-line @typescript-eslint/require-await
   async function handleSubmit(values: SignupFormValues) {
-    void onSubmit(values)
+    void onSubmit({
+      ...values,
+      email: values.email && values.email.length > 0 ? values.email : undefined,
+    })
   }
 
   const form = useForm<SignupFormValues>({
