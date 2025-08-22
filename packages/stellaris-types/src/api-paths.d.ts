@@ -1571,7 +1571,7 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
-                fromEventId: string;
+                triggeringEventId: string;
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
@@ -1612,7 +1612,7 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
-                fromEventId: string;
+                triggeringEventId: string;
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
@@ -1701,36 +1701,8 @@ export interface components {
                     tasks: {
                         identifier: string;
                         label: string;
-                        triggers?: ({
-                            /** @enum {string} */
-                            type: "event";
-                            event: string;
-                            inputParams: components["schemas"]["StringMapDTO"];
-                        } | {
-                            /** @enum {string} */
-                            type: "objectAction";
-                            description: string;
-                            inputParams: components["schemas"]["StringMapDTO"];
-                        } | {
-                            /** @enum {string} */
-                            type: "folderAction";
-                            actionLabel: string;
-                            inputParams: components["schemas"]["StringMapDTO"];
-                        })[];
-                        folderAction?: {
-                            description: string;
-                        };
-                        objectAction?: {
-                            description: string;
-                        };
+                        triggers: string[];
                         description: string;
-                        inputParams?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                type: "boolean" | "string" | "number";
-                                default?: (string | number | boolean) | null;
-                            };
-                        };
                         worker?: string;
                     }[];
                     externalWorkers?: string[];
@@ -1849,36 +1821,8 @@ export interface components {
                     tasks: {
                         identifier: string;
                         label: string;
-                        triggers?: ({
-                            /** @enum {string} */
-                            type: "event";
-                            event: string;
-                            inputParams: components["schemas"]["StringMapDTO"];
-                        } | {
-                            /** @enum {string} */
-                            type: "objectAction";
-                            description: string;
-                            inputParams: components["schemas"]["StringMapDTO"];
-                        } | {
-                            /** @enum {string} */
-                            type: "folderAction";
-                            actionLabel: string;
-                            inputParams: components["schemas"]["StringMapDTO"];
-                        })[];
-                        folderAction?: {
-                            description: string;
-                        };
-                        objectAction?: {
-                            description: string;
-                        };
+                        triggers: string[];
                         description: string;
-                        inputParams?: {
-                            [key: string]: {
-                                /** @enum {string} */
-                                type: "boolean" | "string" | "number";
-                                default?: (string | number | boolean) | null;
-                            };
-                        };
                         worker?: string;
                     }[];
                     externalWorkers?: string[];
