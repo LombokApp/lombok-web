@@ -3,6 +3,7 @@ import type {
   AppManifest,
   AppSocketMessage,
   ContentMetadataType,
+  EventDTO,
   SignedURLsRequestMethod,
   WorkerErrorDetails,
 } from '@stellariscloud/types'
@@ -28,6 +29,7 @@ export interface AppTask {
   id: string
   taskIdentifier: string
   inputData: unknown
+  event: EventDTO
   subjectFolderId?: string
   subjectObjectKey?: string
 }

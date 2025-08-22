@@ -1571,7 +1571,7 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
-                triggeringEventId: string;
+                fromEventId: string;
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
@@ -1612,7 +1612,7 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
-                triggeringEventId: string;
+                fromEventId: string;
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;

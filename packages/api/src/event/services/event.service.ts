@@ -10,11 +10,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import {
-  CORE_APP_IDENTIFIER,
   FolderPushMessage,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
-  TaskInputData,
+  WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
 } from '@stellariscloud/types'
 import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
@@ -24,6 +23,8 @@ import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { PlatformTaskName } from 'src/task/task.constants'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -59,6 +60,7 @@ export class EventService {
 
   constructor(
     private readonly ormService: OrmService,
+    private readonly platformTaskService: PlatformTaskService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
@@ -68,16 +70,19 @@ export class EventService {
   async emitEvent({
     emitterIdentifier,
     eventIdentifier,
-    data,
+    data = {},
     subjectContext,
     userId,
+    _db,
   }: {
     emitterIdentifier: string
     eventIdentifier: PlatformEvent | string
-    data: unknown
+    data?: unknown
     subjectContext?: { folderId: string; objectKey?: string }
     userId?: string
+    _db?: OrmService['db']
   }) {
+    const db = _db ?? this.ormService.db
     const now = new Date()
 
     const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
@@ -105,13 +110,15 @@ export class EventService {
     //   emitterIdentifier,
     //   data,
     //   authorized,
+    //   subjectContext,
+    //   userId,
     // })
 
     if (!authorized) {
       throw new HttpException('ForbiddenEmitEvent', HttpStatus.FORBIDDEN)
     }
 
-    await this.ormService.db.transaction(async (db) => {
+    await db.transaction(async (tx) => {
       const [event] = await db
         .insert(eventsTable)
         .values([
@@ -128,17 +135,8 @@ export class EventService {
         ])
         .returning()
 
-      // Emit EVENT_CREATED to folder room if folderId is present
-      if (subjectContext?.folderId) {
-        this.folderSocketService.sendToFolderRoom(
-          subjectContext.folderId,
-          FolderPushMessage.EVENT_CREATED as FolderPushMessage,
-          { event },
-        )
-      }
-
       // regular event, so we should lookup apps that have subscribed to this event
-      const subscribedApps = await this.ormService.db.query.appsTable.findMany({
+      const subscribedApps = await tx.query.appsTable.findMany({
         where: arrayContains(appsTable.subscribedEvents, [eventIdentifier]),
         limit: 100, // TODO: manage this limit somehow
       })
@@ -150,10 +148,8 @@ export class EventService {
           return Promise.all(
             subscribedApp.config.tasks.map(async (taskDefinition) => {
               if (
-                taskDefinition.triggers?.find(
-                  (trigger) =>
-                    trigger.type === 'event' &&
-                    trigger.event === eventIdentifier,
+                taskDefinition.triggers.find(
+                  (trigger) => trigger === eventIdentifier,
                 )
               ) {
                 const isWorkerExecutedTask = !!taskDefinition.worker?.length
@@ -161,11 +157,11 @@ export class EventService {
                 // Build the base task object
                 // If the task has a worker property, add workerIdentifier
                 tasks.push({
-                  id: isWorkerExecutedTask ? newTaskId : uuidV4(),
+                  id: newTaskId,
                   triggeringEventId: event.id,
                   subjectFolderId: subjectContext?.folderId,
                   subjectObjectKey: subjectContext?.objectKey,
-                  taskDescription: taskDefinition.identifier,
+                  taskDescription: taskDefinition.description,
                   taskIdentifier: taskDefinition.identifier,
                   inputData: {},
                   ownerIdentifier: subscribedApp.identifier,
@@ -173,26 +169,16 @@ export class EventService {
                   updatedAt: now,
                   workerIdentifier: taskDefinition.worker,
                 })
-                // The run_worker_script task (only if above task is worker based)
+                // Emit the run_worker_script event (only if above task is worker based)
                 if (isWorkerExecutedTask) {
-                  // Load the app that implements the run_worker_script task
-
-                  const inputData: TaskInputData = {
-                    appIdentifier: subscribedApp.identifier,
-                    workerIdentifier: taskDefinition.worker ?? '',
-                    taskId: newTaskId,
-                  }
-                  tasks.push({
-                    id: uuidV4(),
-                    triggeringEventId: event.id,
-                    subjectFolderId: subjectContext?.folderId,
-                    subjectObjectKey: subjectContext?.objectKey,
-                    taskDescription: RUN_WORKER_SCRIPT_TASK_KEY,
-                    taskIdentifier: RUN_WORKER_SCRIPT_TASK_KEY,
-                    inputData,
-                    ownerIdentifier: CORE_APP_IDENTIFIER,
-                    createdAt: now,
-                    updatedAt: now,
+                  await this.emitEvent({
+                    emitterIdentifier: PLATFORM_IDENTIFIER,
+                    eventIdentifier: WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
+                    data: {
+                      taskId: newTaskId,
+                      appIdentifier: subscribedApp.identifier,
+                      workerIdentifier: taskDefinition.worker,
+                    },
                   })
                 }
                 return Promise.resolve()
@@ -201,8 +187,12 @@ export class EventService {
           )
         }),
       )
+
+      // Insert platform tasks that are subscribed to this event
+      tasks.push(...this.gatherPlatformTasksForEvent(event, now))
+
       if (tasks.length) {
-        await db.insert(tasksTable).values(tasks)
+        await tx.insert(tasksTable).values(tasks)
         // notify folder rooms of new tasks
         tasks.forEach((_task) => {
           if (_task.subjectFolderId) {
@@ -214,7 +204,53 @@ export class EventService {
           }
         })
       }
+      // Emit EVENT_CREATED to folder room if folderId is present
+      if (subjectContext?.folderId) {
+        this.folderSocketService.sendToFolderRoom(
+          subjectContext.folderId,
+          FolderPushMessage.EVENT_CREATED as FolderPushMessage,
+          { event },
+        )
+      }
     })
+    void this.platformTaskService.drainPlatformTasks()
+  }
+
+  gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
+    const platformEventSubscriptions = {
+      [`${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`]:
+        [
+          {
+            taskIdentifier: PlatformTaskName.ReindexFolder,
+            taskDescription: 'Reindex folder on user request',
+            shouldKeepEventSubjectContext: true,
+          },
+        ],
+    }
+
+    const platformTasks =
+      event.eventIdentifier in platformEventSubscriptions
+        ? platformEventSubscriptions[
+            event.eventIdentifier as keyof typeof platformEventSubscriptions
+          ].map((taskDefinition) => ({
+            id: uuidV4(),
+            triggeringEventId: event.id,
+            ...(taskDefinition.shouldKeepEventSubjectContext
+              ? {
+                  userId: event.userId,
+                  subjectFolderId: event.subjectFolderId,
+                  subjectObjectKey: event.subjectObjectKey,
+                }
+              : {}),
+            taskDescription: taskDefinition.taskDescription,
+            taskIdentifier: taskDefinition.taskIdentifier,
+            inputData: {},
+            ownerIdentifier: PLATFORM_IDENTIFIER,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          }))
+        : []
+    return platformTasks
   }
 
   async getFolderEventAsUser(

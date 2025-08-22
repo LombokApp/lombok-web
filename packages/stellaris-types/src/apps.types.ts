@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
+import { PLATFORM_IDENTIFIER } from './platform.types'
+
 export const CORE_APP_IDENTIFIER = 'core'
+export const WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:worker_task_enqueued`
 
 export const AppSocketMessage = z.enum([
   'GET_WORKER_EXECUTION_DETAILS',
@@ -38,29 +41,6 @@ export const paramConfigSchema = z.object({
   default: z.union([z.string(), z.number(), z.boolean()]).optional().nullable(),
 })
 
-export const eventTriggerSchema = z.object({
-  type: z.literal('event'),
-  event: z.string(),
-  inputParams: z.record(z.string(), z.string()),
-})
-
-export const objectActionTriggerSchema = z.object({
-  type: z.literal('objectAction'),
-  description: z.string(),
-  inputParams: z.record(z.string(), z.string()),
-})
-
-export const folderActionTriggerSchema = z.object({
-  type: z.literal('folderAction'),
-  actionLabel: z.string(),
-  inputParams: z.record(z.string(), z.string()),
-})
-
-export const triggerSchema = z.discriminatedUnion('type', [
-  eventTriggerSchema,
-  objectActionTriggerSchema,
-  folderActionTriggerSchema,
-])
 export const genericIdentifierSchema = z
   .string()
   .nonempty()
@@ -76,11 +56,8 @@ export const taskIdentifierSchema = genericIdentifierSchema.refine(
 export const taskConfigSchema = z.object({
   identifier: taskIdentifierSchema,
   label: z.string().nonempty().min(1).max(128),
-  triggers: z.array(triggerSchema).optional(),
-  folderAction: z.object({ description: z.string() }).optional(),
-  objectAction: z.object({ description: z.string() }).optional(),
+  triggers: z.array(z.string()),
   description: z.string(),
-  inputParams: z.record(z.string(), paramConfigSchema).optional(),
   worker: z.string().optional(),
 })
 

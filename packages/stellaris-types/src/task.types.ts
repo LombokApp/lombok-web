@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export interface TaskInputData {
-  [key: string]: string | number | TaskInputData
+  [key: string]: string | number | TaskInputData | undefined
 }
 
 export interface WorkerErrorDetails {

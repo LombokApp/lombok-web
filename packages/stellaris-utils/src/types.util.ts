@@ -37,3 +37,5 @@ export type NullablePartial<
   }[keyof T],
   NP = Partial<Pick<T, NK>> & Pick<T, Exclude<keyof T, NK>>,
 > = { [K in keyof NP]: NP[K] }
+
+export type Maybe<T> = T | undefined

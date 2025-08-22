@@ -1,5 +1,12 @@
-import { forwardRef, Module } from '@nestjs/common'
+import {
+  forwardRef,
+  Module,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common'
 import * as nestjsConfig from '@nestjs/config'
+import { PLATFORM_IDENTIFIER } from '@stellariscloud/types'
+import { CronJob } from 'cron'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
 import { CoreAppService } from 'src/app/core-app.service'
@@ -42,5 +49,69 @@ import { EventService } from './services/event.service'
   ],
   exports: [EventService],
 })
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class EventModule {}
+export class EventModule implements OnModuleInit, OnModuleDestroy {
+  constructor(private readonly eventService: EventService) {}
+
+  jobs: CronJob[] | undefined = undefined
+
+  onModuleDestroy() {
+    this.jobs?.map((job) => job.stop())
+  }
+
+  onModuleInit() {
+    // Periodic platform schedule events for apps to subscribe to
+    this.jobs = [
+      // every minute
+      new CronJob(
+        '* * * * *',
+        () =>
+          void this.eventService.emitEvent({
+            emitterIdentifier: PLATFORM_IDENTIFIER,
+            eventIdentifier: 'platform:schedule:every_minute',
+            data: {},
+          }),
+        null,
+        true,
+      ),
+
+      // every 5 minutes
+      new CronJob(
+        '*/5 * * * *',
+        () =>
+          void this.eventService.emitEvent({
+            emitterIdentifier: PLATFORM_IDENTIFIER,
+            eventIdentifier: 'platform:schedule:every_5_minutes',
+            data: {},
+          }),
+        null,
+        true,
+      ),
+
+      // hourly
+      new CronJob(
+        '0 * * * *',
+        () =>
+          void this.eventService.emitEvent({
+            emitterIdentifier: PLATFORM_IDENTIFIER,
+            eventIdentifier: 'platform:schedule:hourly',
+            data: {},
+          }),
+        null,
+        true,
+      ),
+
+      // daily at midnight
+      new CronJob(
+        '0 0 * * *',
+        () =>
+          void this.eventService.emitEvent({
+            emitterIdentifier: PLATFORM_IDENTIFIER,
+            eventIdentifier: 'platform:schedule:daily',
+            data: {},
+          }),
+        null,
+        true,
+      ),
+    ]
+  }
+}

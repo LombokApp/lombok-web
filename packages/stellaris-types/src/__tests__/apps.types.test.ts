@@ -12,7 +12,6 @@ import {
   externalAppWorkerSchema,
   paramConfigSchema,
   taskConfigSchema,
-  triggerSchema,
 } from '../apps.types'
 
 // Helper assertions that print zod errors only if the expectation fails
@@ -100,66 +99,13 @@ describe('apps.types', () => {
     })
   })
 
-  describe('triggerSchema', () => {
-    it('should validate event trigger', () => {
-      const validTrigger = {
-        type: 'event',
-        event: 'test.event',
-        inputParams: { param1: 'value1' },
-      }
-      const result = triggerSchema.safeParse(validTrigger)
-      expectZodSuccess(result)
-    })
-
-    it('should validate object action trigger', () => {
-      const validTrigger = {
-        type: 'objectAction',
-        description: 'Test action',
-        inputParams: { param1: 'value1' },
-      }
-      const result = triggerSchema.safeParse(validTrigger)
-      expectZodSuccess(result)
-    })
-
-    it('should validate folder action trigger', () => {
-      const validTrigger = {
-        type: 'folderAction',
-        actionLabel: 'Test Action',
-        inputParams: { param1: 'value1' },
-      }
-      const result = triggerSchema.safeParse(validTrigger)
-      expectZodSuccess(result)
-    })
-
-    it('should reject invalid trigger type', () => {
-      const invalidTrigger = {
-        type: 'invalid',
-        event: 'test.event',
-      }
-      const result = triggerSchema.safeParse(invalidTrigger)
-      expectZodFailure(result)
-    })
-  })
-
   describe('taskConfigSchema', () => {
     it('should validate complete task config', () => {
       const validTask = {
         identifier: 'test_task',
         label: 'Test Task',
         description: 'A test task',
-        triggers: [
-          {
-            type: 'event',
-            event: 'test.event',
-            inputParams: {},
-          },
-        ],
-        inputParams: {
-          param1: {
-            type: ConfigParamType.string,
-            default: 'default',
-          },
-        },
+        triggers: ['test.event'],
         worker: 'test-worker',
       }
       const result = taskConfigSchema.safeParse(validTask)
@@ -171,6 +117,7 @@ describe('apps.types', () => {
         identifier: 'test_task',
         label: 'Test Task',
         description: 'A test task',
+        triggers: ['test.event'],
       }
       const result = taskConfigSchema.safeParse(validTask)
       expectZodSuccess(result)
@@ -179,7 +126,7 @@ describe('apps.types', () => {
     it('should reject task without required fields', () => {
       const invalidTask = {
         identifier: 'test_task',
-        // missing label and description
+        // missing label and description and triggers
       }
       const result = taskConfigSchema.safeParse(invalidTask)
       expectZodFailure(result)
@@ -198,6 +145,7 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
+            triggers: ['test.event'],
           },
         ],
         externalWorkers: ['worker1'],
@@ -228,6 +176,7 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
+            triggers: ['test.event'],
           },
         ],
       }

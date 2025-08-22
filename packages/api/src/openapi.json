@@ -6021,7 +6021,7 @@
               "ownerIdentifier": {
                 "type": "string"
               },
-              "triggeringEventId": {
+              "fromEventId": {
                 "type": "string",
                 "format": "uuid"
               },
@@ -6099,7 +6099,7 @@
               "id",
               "taskIdentifier",
               "ownerIdentifier",
-              "triggeringEventId",
+              "fromEventId",
               "inputData",
               "taskDescription",
               "updates",
@@ -6141,7 +6141,7 @@
                 "ownerIdentifier": {
                   "type": "string"
                 },
-                "triggeringEventId": {
+                "fromEventId": {
                   "type": "string",
                   "format": "uuid"
                 },
@@ -6219,7 +6219,7 @@
                 "id",
                 "taskIdentifier",
                 "ownerIdentifier",
-                "triggeringEventId",
+                "fromEventId",
                 "inputData",
                 "taskDescription",
                 "updates",
