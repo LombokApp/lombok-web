@@ -1,3 +1,3 @@
 export enum PlatformTaskName {
-  REINDEX_FOLDER = 'REINDEX_FOLDER',
+  ReindexFolder = 'reindex_folder',
 }

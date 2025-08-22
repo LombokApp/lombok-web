@@ -1,22 +1,16 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
+import { Maybe } from '@stellariscloud/utils'
 import { and, count, eq, isNull } from 'drizzle-orm'
-import { eventsTable, NewEvent } from 'src/event/entities/event.entity'
+import { eventsTable } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { PlatformTaskName } from 'src/task/task.constants'
-import { v4 as uuidV4 } from 'uuid'
 
 import { BaseProcessor, ProcessorError } from '../base.processor'
-import { NewTask, tasksTable } from '../entities/task.entity'
+import { tasksTable } from '../entities/task.entity'
 
 const MAX_CONCURRENT_PLATFORM_TASKS = 10
-
-export type PlatformTaskInputData<K extends PlatformTaskName> =
-  K extends PlatformTaskName.REINDEX_FOLDER
-    ? { folderId: string; userId: string }
-    : never
-
 @Injectable()
 export class PlatformTaskService {
   processors: Record<string, BaseProcessor<PlatformTaskName>> = {}
@@ -90,12 +84,20 @@ export class PlatformTaskService {
   }
 
   async executePlatformTask(taskId: string) {
-    const task = await this.ormService.db.query.tasksTable.findFirst({
-      where: eq(tasksTable.id, taskId),
-    })
-    if (task?.startedAt) {
+    const rows = await this.ormService.db
+      .select({ task: tasksTable, event: eventsTable })
+      .from(tasksTable)
+      .innerJoin(eventsTable, eq(tasksTable.triggeringEventId, eventsTable.id))
+      .where(eq(tasksTable.id, taskId))
+      .limit(1)
+    const row = rows[0] as Maybe<(typeof rows)[number]>
+    if (!row) {
+      throw new Error(`Task not found by ID "${taskId}".`)
+    }
+    const { task, event } = row
+    if (task.startedAt) {
       // console.log('Task already started.')
-    } else if (task?.ownerIdentifier === PLATFORM_IDENTIFIER) {
+    } else if (task.ownerIdentifier === PLATFORM_IDENTIFIER) {
       const startedTimestamp = new Date()
       const updateResult = await this.ormService.db
         .update(tasksTable)
@@ -118,7 +120,7 @@ export class PlatformTaskService {
         const processor = this.processors[processorName]
         this.runningTasksCount++
         await processor
-          ._run(task.inputData)
+          ._run(event)
           .then(() => {
             // handle successful completion
             const completedTimestamp = new Date()
@@ -172,55 +174,6 @@ export class PlatformTaskService {
     } else {
       throw new Error(`Task not found by ID "${taskId}".`)
     }
-  }
-
-  async addAsyncTask<K extends PlatformTaskName>(
-    taskIdentifier: K,
-    inputData: PlatformTaskInputData<K>,
-    context: { folderId?: string; objectKey?: string; userId?: string } = {},
-  ) {
-    const now = new Date()
-
-    const event: NewEvent = {
-      id: uuidV4(),
-      eventIdentifier: `TRIGGER_PLATFORM_TASK_${taskIdentifier}`,
-      data: inputData,
-      emitterIdentifier: 'platform',
-      subjectFolderId: context.folderId,
-      subjectObjectKey: context.objectKey,
-      userId: context.userId,
-      createdAt: now,
-    }
-
-    const task: NewTask = {
-      id: uuidV4(),
-      inputData,
-      ownerIdentifier: 'platform',
-      taskDescription: `Task '${taskIdentifier}'`,
-      subjectFolderId: context.folderId,
-      subjectObjectKey: context.objectKey,
-      taskIdentifier,
-      triggeringEventId: event.id,
-      createdAt: now,
-      updatedAt: now,
-    }
-
-    await this.ormService.db.transaction(async (tx) => {
-      await tx.insert(eventsTable).values(event)
-      await tx.insert(tasksTable).values(task)
-    })
-
-    if (context.folderId) {
-      // notify folder rooms of new task
-      this.folderSocketService.sendToFolderRoom(
-        context.folderId,
-        FolderPushMessage.TASK_ADDED,
-        { task },
-      )
-    }
-
-    // kickoff platform task processing
-    void this.drainPlatformTasks()
   }
 
   registerProcessor = <K extends PlatformTaskName>(

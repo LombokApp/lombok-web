@@ -905,15 +905,15 @@ export class FolderService {
     )
   }
 
-  queueReindexFolder(folderId: string, userId: string) {
-    return this.platformTaskService.addAsyncTask(
-      PlatformTaskName.REINDEX_FOLDER,
-      {
+  async queueReindexFolder(folderId: string, userId: string) {
+    await this.eventService.emitEvent({
+      emitterIdentifier: PLATFORM_IDENTIFIER,
+      eventIdentifier: `${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`,
+      subjectContext: {
         folderId,
-        userId,
       },
-      { folderId },
-    )
+      userId,
+    })
   }
 
   async reindexFolder({

@@ -4,27 +4,37 @@
   "label": "Demo App",
   "tasks": [
     {
-      "identifier": "do_special_thing",
-      "label": "Do Special Thing",
-      "description": "Do special thing for each new object.",
-      "triggers": [
-        {
-          "type": "event",
-          "event": "platform:object_added",
-          "inputParams": {
-            "folderId": "event:folderId",
-            "objectKey": "event:objectKey"
-          }
-        }
-      ],
-      "worker": "special_worker"
+      "identifier": "demo_object_added_worker_task",
+      "label": "Demo Object Added Worker",
+      "description": "A task that runs for every newly added object.",
+      "triggers": ["platform:object_added"],
+      "worker": "demo_object_added_worker"
+    },
+    {
+      "identifier": "demo_scheduled_worker_task",
+      "label": "Demo Scheduled Worker",
+      "description": "A task that runs in response to a schedule event.",
+      "triggers": ["platform:schedule:hourly"],
+      "worker": "demo_scheduled_worker"
     }
   ],
   "workers": {
-    "special_worker": {
-      "description": "Manages special things for objects.",
+    "demo_object_added_worker": {
+      "description": "Runs for every newly added object.",
       "environmentVariables": {
-        "SPECIAL_THING_ENV_VAR": "<some_dummy_env_var_value>"
+        "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
+      }
+    },
+    "demo_scheduled_worker": {
+      "description": "Runs in response to a schedule event.",
+      "environmentVariables": {
+        "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
+      }
+    },
+    "demo_api_request_worker": {
+      "description": "Is run to service and incoming API request.",
+      "environmentVariables": {
+        "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
       }
     }
   },

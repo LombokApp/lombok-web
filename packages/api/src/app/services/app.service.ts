@@ -44,6 +44,7 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import { eventsTable } from 'src/event/entities/event.entity'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
@@ -445,8 +446,11 @@ export class AppService {
                 },
               }
             }
+            const event = await this.ormService.db.query.eventsTable.findFirst({
+              where: eq(eventsTable.id, securedTask.triggeringEventId),
+            })
             return {
-              result: securedTask,
+              result: { ...securedTask, event },
             }
           }
           return {
@@ -500,19 +504,22 @@ export class AppService {
               }
             }
             const now = new Date()
-            return {
-              result: (
-                await this.ormService.db
-                  .update(tasksTable)
-                  .set({
-                    startedAt: now,
-                    updatedAt: now,
-                    handlerId: `${requestingAppIdentifier}:${handlerId}`,
-                  })
-                  .where(eq(tasksTable.id, task.id))
-                  .returning()
-              )[0],
-            }
+            const updatedTask = (
+              await this.ormService.db
+                .update(tasksTable)
+                .set({
+                  startedAt: now,
+                  updatedAt: now,
+                  handlerId: `${requestingAppIdentifier}:${handlerId}`,
+                })
+                .where(eq(tasksTable.id, task.id))
+                .returning()
+            )[0]
+            const event = await this.ormService.db.query.eventsTable.findFirst({
+              where: eq(eventsTable.id, updatedTask.triggeringEventId),
+            })
+
+            return { result: { ...updatedTask, event } }
           }
           break
         }
@@ -530,7 +537,7 @@ export class AppService {
               .where(
                 and(
                   eq(tasksTable.id, requestData.taskId),
-                  isNotNull(tasksTable.workerIdentifier),
+                  isNotNull(tasksTable.startedAt),
                   isNull(tasksTable.completedAt),
                   isNull(tasksTable.errorAt),
                   eq(
@@ -545,10 +552,7 @@ export class AppService {
                     : [
                         or(
                           isNotNull(tasksTable.workerIdentifier),
-                          eq(
-                            tasksTable.ownerIdentifier,
-                            requestingAppIdentifier,
-                          ),
+                          eq(tasksTable.ownerIdentifier, CORE_APP_IDENTIFIER),
                         ),
                       ]),
                 ),
@@ -1544,12 +1548,7 @@ export class AppService {
             publicKey,
             workers: workerScriptDefinitions,
             subscribedEvents: config.tasks.reduce<string[]>(
-              (acc, task) =>
-                acc.concat(
-                  (task.triggers ?? [])
-                    .filter((t) => t.type === 'event')
-                    .map((t) => t.event),
-                ),
+              (acc, task) => acc.concat(task.triggers),
               [],
             ),
             implementedTasks: config.tasks.map((t) => t.identifier),

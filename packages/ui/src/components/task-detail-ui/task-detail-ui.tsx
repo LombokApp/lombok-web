@@ -149,15 +149,15 @@ export function TaskDetailUI({
             errorDetails.stack) ??
           '',
         message:
-          (taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-            errorDetails.message) ??
-          taskData.errorMessage ??
-          '',
+          taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+          errorDetails.message
+            ? errorDetails.errorMessage
+            : taskData.errorMessage,
         code:
-          (taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-            errorDetails.name) ??
-          errorDetails.name ??
-          '',
+          taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+          errorDetails.name
+            ? errorDetails.name
+            : taskData.errorCode,
       }
     : {}
 
@@ -326,10 +326,10 @@ export function TaskDetailUI({
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Triggering Event ID
+                        From Event
                       </label>
                       <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.triggeringEventId}
+                        {taskData.fromEventId}
                       </p>
                     </div>
                     {taskData.subjectFolderId && !taskData.subjectContext && (
@@ -535,7 +535,7 @@ export function TaskDetailUI({
                       Error Code
                     </label>
                     <p className="mt-1 font-mono text-sm text-destructive">
-                      {errorToDisplay.code ?? 'Unknown'}
+                      {errorToDisplay.code ?? errorDetails.code ?? 'Unknown'}
                     </p>
                   </div>
                   <div>

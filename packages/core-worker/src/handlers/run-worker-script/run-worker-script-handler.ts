@@ -22,7 +22,7 @@ export const runWorkerScriptTaskHandler = async (
 ) => {
   if (
     !safeZodParse(
-      runWorkerScriptTask.inputData,
+      runWorkerScriptTask.event.data,
       runWorkerScriptTaskInputDataSchema,
     )
   ) {
@@ -30,7 +30,7 @@ export const runWorkerScriptTaskHandler = async (
   }
 
   const attemptStartHandleResponse = await server.attemptStartHandleTaskById(
-    runWorkerScriptTask.inputData.taskId,
+    runWorkerScriptTask.event.data.taskId,
   )
   if (attemptStartHandleResponse.error) {
     throw new AppAPIError(
@@ -39,10 +39,9 @@ export const runWorkerScriptTaskHandler = async (
     )
   }
   const workerScriptTask = attemptStartHandleResponse.result
-  const appIdentifier = runWorkerScriptTask.inputData.appIdentifier
-  const workerIdentifier = runWorkerScriptTask.inputData.workerIdentifier
+  const appIdentifier = runWorkerScriptTask.event.data.appIdentifier
+  const workerIdentifier = runWorkerScriptTask.event.data.workerIdentifier
   const workerExecutionId = `${workerIdentifier.toLowerCase()}__task__${uniqueExecutionKey()}`
-
   try {
     await runWorkerScript({
       requestOrTask: workerScriptTask,

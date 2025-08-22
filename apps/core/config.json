@@ -8,56 +8,13 @@
       "identifier": "analyze_object",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
-      "inputParams": {
-        "folderId": { "type": "string" },
-        "objectKey": { "type": "string" }
-      },
-      "triggers": [
-        {
-          "type": "event",
-          "event": "platform:object_added",
-          "inputParams": {
-            "folderId": "{event.folderId}",
-            "objectKey": "{event.objectKey}"
-          }
-        },
-        {
-          "type": "objectAction",
-          "description": "Analyze the content of this file",
-          "inputParams": {
-            "folderId": "{object.folderId}",
-            "objectKey": "{object.objectKey}"
-          }
-        }
-      ]
-    },
-    {
-      "identifier": "analyze_all_objects",
-      "label": "Analyze All Objects",
-      "description": "Analyze all files in a folder",
-      "triggers": [
-        {
-          "type": "folderAction",
-          "actionLabel": "Analyze all files in this folder",
-          "inputParams": {
-            "folderId": "{folder.id}"
-          }
-        }
-      ],
-      "folderAction": { "description": "Analyze all files in this folder" },
-      "inputParams": {
-        "folderId": { "type": "string" }
-      }
+      "triggers": ["platform:object_added"]
     },
     {
       "identifier": "run_worker_script",
       "label": "Run Worker",
       "description": "Run a worker script.",
-      "inputParams": {
-        "appIdentifier": { "type": "string" },
-        "workerIdentifier": { "type": "string" },
-        "taskId": { "type": "string" }
-      }
+      "triggers": ["platform:worker_task_enqueued"]
     }
   ],
   "emittableEvents": []

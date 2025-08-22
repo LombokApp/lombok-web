@@ -1,7 +1,6 @@
-import type { TaskInputData } from '@stellariscloud/types'
+import type { Event } from 'src/event/entities/event.entity'
 import { getApp } from 'src/shared/app-helper'
 
-import type { PlatformTaskInputData } from './services/platform-task.service'
 import { PlatformTaskService } from './services/platform-task.service'
 import type { PlatformTaskName } from './task.constants'
 
@@ -20,11 +19,11 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
     setTimeout(() => void this.registerProcessor(), 100)
   }
 
-  _run(inputData: TaskInputData) {
-    return this.run(inputData as never)
+  _run(event: Event) {
+    return this.run(event)
   }
 
-  abstract run(inputData: PlatformTaskInputData<K>): Promise<void>
+  abstract run(event: Event): Promise<void>
 
   async registerProcessor() {
     const app = await getApp()

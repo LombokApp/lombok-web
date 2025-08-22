@@ -1,33 +1,12 @@
-import {
-  RequestHandler,
-  sendResponse,
-  TaskHandler,
-} from '@stellariscloud/app-worker-sdk'
-
-export const handleTask: TaskHandler = async function handleTask(
-  task,
-  { serverClient },
-) {
-  const urls = await serverClient.getContentSignedUrls([
-    {
-      folderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
-      objectKey: 'testobjectkey',
-      method: 'GET',
-    },
-  ])
-
-  console.log('From inside worker task handler:', {
-    generatedPresignedUrls: urls,
-    envVars: process.env,
-  })
-}
+import { RequestHandler, sendResponse } from '@stellariscloud/app-worker-sdk'
+import { SignedURLsRequestMethod } from '@stellariscloud/types'
 
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
   { serverClient },
 ) {
   console.log(
-    'SPECIAL THING WORKER REQUEST HANDLER:',
+    'DEMO API REQUEST WORKER REQUEST HANDLER:',
     new URL(request.url).pathname,
   )
 
@@ -62,22 +41,10 @@ export const handleRequest: RequestHandler = async function handleRequest(
     }
   }
 
-  const urls = await serverClient.getContentSignedUrls([
-    {
-      folderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
-      objectKey: 'testobjectkey',
-      method: 'GET',
-    },
-  ])
-  console.log('From inside worker request handler:', {
-    generatedPresignedUrls: urls,
-    envVars: process.env,
-  })
-
   return sendResponse(
     {
-      message: 'Hello, world (from special worker)!',
+      message: 'Hello, world (from demo API request worker)!',
     },
-    201,
+    200,
   )
 }
