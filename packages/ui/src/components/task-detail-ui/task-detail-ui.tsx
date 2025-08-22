@@ -329,7 +329,7 @@ export function TaskDetailUI({
                         From Event
                       </label>
                       <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.fromEventId}
+                        {taskData.triggeringEventId}
                       </p>
                     </div>
                     {taskData.subjectFolderId && !taskData.subjectContext && (

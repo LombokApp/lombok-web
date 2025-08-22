@@ -6021,7 +6021,7 @@
               "ownerIdentifier": {
                 "type": "string"
               },
-              "fromEventId": {
+              "triggeringEventId": {
                 "type": "string",
                 "format": "uuid"
               },
@@ -6099,7 +6099,7 @@
               "id",
               "taskIdentifier",
               "ownerIdentifier",
-              "fromEventId",
+              "triggeringEventId",
               "inputData",
               "taskDescription",
               "updates",
@@ -6141,7 +6141,7 @@
                 "ownerIdentifier": {
                   "type": "string"
                 },
-                "fromEventId": {
+                "triggeringEventId": {
                   "type": "string",
                   "format": "uuid"
                 },
@@ -6219,7 +6219,7 @@
                 "id",
                 "taskIdentifier",
                 "ownerIdentifier",
-                "fromEventId",
+                "triggeringEventId",
                 "inputData",
                 "taskDescription",
                 "updates",
@@ -6439,136 +6439,11 @@
                           "triggers": {
                             "type": "array",
                             "items": {
-                              "discriminator": {
-                                "propertyName": "type"
-                              },
-                              "oneOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "enum": [
-                                        "event"
-                                      ]
-                                    },
-                                    "event": {
-                                      "type": "string"
-                                    },
-                                    "inputParams": {
-                                      "$ref": "#/components/schemas/StringMapDTO"
-                                    }
-                                  },
-                                  "required": [
-                                    "type",
-                                    "event",
-                                    "inputParams"
-                                  ]
-                                },
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "enum": [
-                                        "objectAction"
-                                      ]
-                                    },
-                                    "description": {
-                                      "type": "string"
-                                    },
-                                    "inputParams": {
-                                      "$ref": "#/components/schemas/StringMapDTO"
-                                    }
-                                  },
-                                  "required": [
-                                    "type",
-                                    "description",
-                                    "inputParams"
-                                  ]
-                                },
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "enum": [
-                                        "folderAction"
-                                      ]
-                                    },
-                                    "actionLabel": {
-                                      "type": "string"
-                                    },
-                                    "inputParams": {
-                                      "$ref": "#/components/schemas/StringMapDTO"
-                                    }
-                                  },
-                                  "required": [
-                                    "type",
-                                    "actionLabel",
-                                    "inputParams"
-                                  ]
-                                }
-                              ]
+                              "type": "string"
                             }
-                          },
-                          "folderAction": {
-                            "type": "object",
-                            "properties": {
-                              "description": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "description"
-                            ]
-                          },
-                          "objectAction": {
-                            "type": "object",
-                            "properties": {
-                              "description": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "description"
-                            ]
                           },
                           "description": {
                             "type": "string"
-                          },
-                          "inputParams": {
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "boolean",
-                                    "string",
-                                    "number"
-                                  ]
-                                },
-                                "default": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    },
-                                    {
-                                      "type": "boolean"
-                                    }
-                                  ],
-                                  "nullable": true
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ]
-                            }
                           },
                           "worker": {
                             "type": "string"
@@ -6577,6 +6452,7 @@
                         "required": [
                           "identifier",
                           "label",
+                          "triggers",
                           "description"
                         ]
                       }
@@ -7078,136 +6954,11 @@
                         "triggers": {
                           "type": "array",
                           "items": {
-                            "discriminator": {
-                              "propertyName": "type"
-                            },
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "event"
-                                    ]
-                                  },
-                                  "event": {
-                                    "type": "string"
-                                  },
-                                  "inputParams": {
-                                    "$ref": "#/components/schemas/StringMapDTO"
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "event",
-                                  "inputParams"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "objectAction"
-                                    ]
-                                  },
-                                  "description": {
-                                    "type": "string"
-                                  },
-                                  "inputParams": {
-                                    "$ref": "#/components/schemas/StringMapDTO"
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "description",
-                                  "inputParams"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "folderAction"
-                                    ]
-                                  },
-                                  "actionLabel": {
-                                    "type": "string"
-                                  },
-                                  "inputParams": {
-                                    "$ref": "#/components/schemas/StringMapDTO"
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "actionLabel",
-                                  "inputParams"
-                                ]
-                              }
-                            ]
+                            "type": "string"
                           }
-                        },
-                        "folderAction": {
-                          "type": "object",
-                          "properties": {
-                            "description": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "description"
-                          ]
-                        },
-                        "objectAction": {
-                          "type": "object",
-                          "properties": {
-                            "description": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "description"
-                          ]
                         },
                         "description": {
                           "type": "string"
-                        },
-                        "inputParams": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "boolean",
-                                  "string",
-                                  "number"
-                                ]
-                              },
-                              "default": {
-                                "oneOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "boolean"
-                                  }
-                                ],
-                                "nullable": true
-                              }
-                            },
-                            "required": [
-                              "type"
-                            ]
-                          }
                         },
                         "worker": {
                           "type": "string"
@@ -7216,6 +6967,7 @@
                       "required": [
                         "identifier",
                         "label",
+                        "triggers",
                         "description"
                       ]
                     }
