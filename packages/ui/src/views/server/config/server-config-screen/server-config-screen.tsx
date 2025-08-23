@@ -1,5 +1,5 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
-import { cn } from '@stellariscloud/ui-toolkit'
+import { cn, ScrollArea } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
@@ -63,7 +63,7 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
   )
 
   return (
-    <div className="flex w-full items-start gap-6 pl-4 sm:gap-16">
+    <div className="flex max-h-max min-h-0 w-full items-start gap-6 pl-4 sm:gap-16">
       <nav
         className="flex flex-col gap-4 text-sm text-muted-foreground"
         x-chunk="dashboard-04-chunk-0"
@@ -87,27 +87,29 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
           Apps
         </Link>
       </nav>
-      <div className="flex size-full flex-1 flex-col gap-8 overflow-hidden overflow-y-auto">
-        {tab === 'storage' ? (
-          <ServerStorageConfigTab />
-        ) : tab === 'general' ? (
-          <ServerGeneralConfigTab
-            settings={
-              data?.settings
-                ? {
-                    ...data.settings,
-                    SERVER_HOSTNAME: data.settings.SERVER_HOSTNAME ?? '',
-                  }
-                : undefined
-            }
-            onSaveServerHostname={handleUpdateServerHostname}
-            onSaveEnableNewSignups={handleUpdateSignupEnabled}
-          />
-        ) : tab === 'apps' ? (
-          <ServerAppsConfigTab />
-        ) : (
-          <></>
-        )}
+      <div className="flex size-full max-h-max min-h-0 flex-1 flex-col gap-8">
+        <ScrollArea>
+          {tab === 'storage' ? (
+            <ServerStorageConfigTab />
+          ) : tab === 'general' ? (
+            <ServerGeneralConfigTab
+              settings={
+                data?.settings
+                  ? {
+                      ...data.settings,
+                      SERVER_HOSTNAME: data.settings.SERVER_HOSTNAME ?? '',
+                    }
+                  : undefined
+              }
+              onSaveServerHostname={handleUpdateServerHostname}
+              onSaveEnableNewSignups={handleUpdateSignupEnabled}
+            />
+          ) : tab === 'apps' ? (
+            <ServerAppsConfigTab />
+          ) : (
+            <></>
+          )}
+        </ScrollArea>
       </div>
     </div>
   )

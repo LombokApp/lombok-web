@@ -17,7 +17,7 @@ export function ContentLayout({
       <Navbar breadcrumbs={breadcrumbs} />
       <div
         className={cn(
-          'flex flex-1 flex-col items-center overflow-hidden',
+          'flex flex-1 flex-col items-center overflow-y-hidden',
           contentPadding && 'px-6',
         )}
       >

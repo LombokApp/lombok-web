@@ -18,6 +18,7 @@ import * as React from 'react'
 
 import { cn } from '@/utils'
 
+import { ScrollArea } from '../scroll-area'
 import {
   Table,
   TableBody,
@@ -139,89 +140,95 @@ export function DataTable<TData, TValue>({
           onFiltersChange={onColumnFiltersChange}
         />
       )}
-      <div className="w-[calc(100%+1rem)] overflow-y-scroll pr-4">
-        <div className="flex max-h-max min-h-0 flex-1 rounded-md border bg-background">
-          <Table
-            className={cn('w-full max-w-full', fixedLayout && 'table-fixed')}
-          >
-            <TableHeader className={cn(hideHeader && 'hidden')}>
-              {table.getHeaderGroups().map((headerGroup) => {
-                return (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead
-                          key={header.id}
-                          colSpan={header.colSpan}
-                          className={
-                            (
-                              header.column
-                                .columnDef as HideableColumnDef<TData>
-                            ).zeroWidth
-                              ? 'w-0 p-0'
-                              : undefined
-                          }
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      )
-                    })}
+      <div className="size-full min-h-0">
+        <ScrollArea type="always" className="h-full">
+          <div className="flex flex-1 rounded-md border bg-background">
+            <Table
+              className={cn('w-full max-w-full', fixedLayout && 'table-fixed')}
+            >
+              <TableHeader className={cn(hideHeader && 'hidden')}>
+                {table.getHeaderGroups().map((headerGroup) => {
+                  return (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            className={
+                              (
+                                header.column
+                                  .columnDef as HideableColumnDef<TData>
+                              ).zeroWidth
+                                ? 'w-0 p-0'
+                                : undefined
+                            }
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                          </TableHead>
+                        )
+                      })}
+                    </TableRow>
+                  )
+                })}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                      className="relative"
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        return (
+                          <TableCell
+                            width={
+                              (
+                                cell.column
+                                  .columnDef as HideableColumnDef<TData>
+                              ).zeroWidth
+                                ? 0
+                                : undefined
+                            }
+                            key={cell.id}
+                            className={
+                              (
+                                cell.column
+                                  .columnDef as HideableColumnDef<TData>
+                              ).zeroWidth
+                                ? 'w-0 p-0'
+                                : `${cellPadding}`
+                            }
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
                   </TableRow>
-                )
-              })}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className="relative"
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      return (
-                        <TableCell
-                          width={
-                            (cell.column.columnDef as HideableColumnDef<TData>)
-                              .zeroWidth
-                              ? 0
-                              : undefined
-                          }
-                          key={cell.id}
-                          className={
-                            (cell.column.columnDef as HideableColumnDef<TData>)
-                              .zeroWidth
-                              ? 'w-0 p-0'
-                              : `${cellPadding}`
-                          }
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
       {rowCount > data.length && <DataTablePagination table={table} />}
     </div>
