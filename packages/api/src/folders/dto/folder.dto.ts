@@ -13,7 +13,7 @@ export const folderSchema = z.object({
       message: z.string(),
       code: z.string(),
     })
-    .nullable(),
+    .nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

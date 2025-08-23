@@ -1120,7 +1120,7 @@ export interface components {
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
-                accessError: {
+                accessError?: {
                     message: string;
                     code: string;
                 } | null;
@@ -1177,7 +1177,7 @@ export interface components {
                         accessKeyId: string;
                         accessKeyHashId: string;
                     };
-                    accessError: {
+                    accessError?: {
                         message: string;
                         code: string;
                     } | null;
@@ -1260,7 +1260,7 @@ export interface components {
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
-                accessError: {
+                accessError?: {
                     message: string;
                     code: string;
                 } | null;
@@ -1396,7 +1396,7 @@ export interface components {
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
-                accessError: {
+                accessError?: {
                     message: string;
                     code: string;
                 } | null;
