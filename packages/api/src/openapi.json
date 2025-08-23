@@ -4333,7 +4333,6 @@
               "name",
               "metadataLocation",
               "contentLocation",
-              "accessError",
               "createdAt",
               "updatedAt"
             ]
@@ -4551,7 +4550,6 @@
                     "name",
                     "metadataLocation",
                     "contentLocation",
-                    "accessError",
                     "createdAt",
                     "updatedAt"
                   ]
@@ -4864,7 +4862,6 @@
               "name",
               "metadataLocation",
               "contentLocation",
-              "accessError",
               "createdAt",
               "updatedAt"
             ]
@@ -5379,7 +5376,6 @@
               "name",
               "metadataLocation",
               "contentLocation",
-              "accessError",
               "createdAt",
               "updatedAt"
             ]
