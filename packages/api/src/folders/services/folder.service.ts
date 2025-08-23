@@ -39,6 +39,7 @@ import {
 } from 'drizzle-orm'
 import mime from 'mime'
 import { AppService } from 'src/app/services/app.service'
+import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
@@ -577,6 +578,9 @@ export class FolderService {
       await tx
         .delete(tasksTable)
         .where(eq(tasksTable.subjectFolderId, folderId))
+      await tx
+        .delete(eventsTable)
+        .where(eq(eventsTable.subjectFolderId, folderId))
       await tx.delete(foldersTable).where(eq(foldersTable.id, folderId))
     })
 
