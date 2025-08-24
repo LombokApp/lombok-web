@@ -5,12 +5,7 @@ import { z } from 'zod'
 export const createSignedUrlInputSchema = z.array(
   z.object({
     objectIdentifier: z.string(),
-    method: z.enum([
-      SignedURLsRequestMethod.DELETE,
-      SignedURLsRequestMethod.PUT,
-      SignedURLsRequestMethod.GET,
-      SignedURLsRequestMethod.HEAD,
-    ]),
+    method: z.nativeEnum(SignedURLsRequestMethod),
   }),
 )
 

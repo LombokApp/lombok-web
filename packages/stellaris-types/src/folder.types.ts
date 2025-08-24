@@ -95,7 +95,7 @@ export interface S3Object {
 export interface PresignedURLResult {
   objectKey: string
   url: string
-  method: 'PUT' | 'DELETE' | 'GET' | 'HEAD'
+  method: 'PUT' | 'DELETE' | 'GET'
 }
 
 export const FolderPermissionZodEnum = z.enum([

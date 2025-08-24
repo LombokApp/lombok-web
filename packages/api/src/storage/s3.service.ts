@@ -116,42 +116,62 @@ export class S3Service {
   }
 
   async s3HeadObject({
-    s3Client,
-    bucketName,
+    accessKeyId,
+    secretAccessKey,
+    region = 'auto',
+    bucket,
+    endpoint,
     objectKey,
-    eTag,
-    retries = 3,
   }: {
-    s3Client: S3Client
-    bucketName: string
+    accessKeyId: string
+    secretAccessKey: string
+    region?: string
+    endpoint: string
+    bucket: string
     objectKey: string
-    eTag?: string
-    retries?: number
   }) {
-    let obj: S3ObjectInternal | undefined
-    let attempts = 0
-    while (!obj && attempts < retries) {
-      if (attempts > 0) {
-        const timeout = attempts * 500
-        await new Promise((resolve) => setTimeout(resolve, timeout))
-      }
-      attempts += 1
-      const objects = await this.s3ListBucketObjects({
-        s3Client,
-        bucketName,
-        prefix: objectKey,
-      })
-      obj = objects.result.find((o) => {
-        if (eTag && eTag !== o.eTag) {
-          return false
-        }
-        return o.key === objectKey
-      })
-    }
-    if (!obj) {
+    const [url] = this.createS3PresignedUrls([
+      {
+        endpoint,
+        region,
+        accessKeyId,
+        secretAccessKey,
+        bucket,
+        objectKey,
+        method: SignedURLsRequestMethod.GET,
+        expirySeconds: 300,
+      },
+    ])
+
+    const headObjectResponse = await fetch(url, { method: 'HEAD' }).catch(
+      (e) => {
+        // eslint-disable-next-line no-console
+        console.log('Error getting object:', e)
+        throw e
+      },
+    )
+
+    if (headObjectResponse.status === 404) {
       throw new Error(`Object not found by key: ${objectKey}.`)
     }
-    return obj
+
+    if (headObjectResponse.status !== 200) {
+      throw new Error(
+        `Error (${headObjectResponse.status}) getting HEAD for object key "${objectKey}".`,
+      )
+    }
+    const lastModified = headObjectResponse.headers.get('last-modified')
+    const lastModifiedDate = lastModified
+      ? new Date(lastModified).getMilliseconds()
+      : undefined
+    const sizeStr =
+      headObjectResponse.headers.get('content-length') ?? undefined
+    return {
+      mimeType: headObjectResponse.headers.get('content-type') ?? undefined,
+      eTag: headObjectResponse.headers.get('etag') ?? undefined,
+      lastModified: lastModifiedDate,
+      size: sizeStr ? parseInt(sizeStr, 10) : undefined,
+    }
   }
 
   async s3GetBucketObject({

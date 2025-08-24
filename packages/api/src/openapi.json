@@ -5035,10 +5035,9 @@
             "method": {
               "type": "string",
               "enum": [
-                "DELETE",
                 "PUT",
-                "GET",
-                "HEAD"
+                "DELETE",
+                "GET"
               ]
             }
           },
