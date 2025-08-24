@@ -4,7 +4,6 @@ export enum SignedURLsRequestMethod {
   PUT = 'PUT',
   DELETE = 'DELETE',
   GET = 'GET',
-  HEAD = 'HEAD',
 }
 
 export const StorageProvisionTypeZodEnum = z.enum([

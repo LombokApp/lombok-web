@@ -1022,41 +1022,19 @@ export class FolderService {
 
     const absoluteObjectKey = `${contentStorageLocation.prefix}${contentStorageLocation.prefix.endsWith('/') ? '' : '/'}${objectKey}`
 
-    const s3Client = configureS3Client({
-      accessKeyId: contentStorageLocation.accessKeyId,
-      secretAccessKey: contentStorageLocation.secretAccessKey,
+    const headResponse = await this.s3Service.s3HeadObject({
       endpoint: contentStorageLocation.endpoint,
       region: contentStorageLocation.region,
-    })
-
-    const response = await this.s3Service.s3HeadObject({
-      s3Client,
-      bucketName: contentStorageLocation.bucket,
+      accessKeyId: contentStorageLocation.accessKeyId,
+      secretAccessKey: contentStorageLocation.secretAccessKey,
+      bucket: contentStorageLocation.bucket,
       objectKey: absoluteObjectKey,
-      eTag,
     })
-
-    const [objHeadUrlResult] = this.s3Service.createS3PresignedUrls([
-      {
-        endpoint: contentStorageLocation.endpoint,
-        region: contentStorageLocation.region,
-        accessKeyId: contentStorageLocation.accessKeyId,
-        secretAccessKey: contentStorageLocation.secretAccessKey,
-        bucket: contentStorageLocation.bucket,
-        objectKey,
-        method: SignedURLsRequestMethod.HEAD,
-        expirySeconds: 60,
-      },
-    ])
-    const objectHeadFetchResult = await fetch(objHeadUrlResult, {
-      method: 'HEAD',
-    })
-    const mimeType =
-      objectHeadFetchResult.headers.get('content-type') ?? undefined
-
+    if (eTag && headResponse.eTag !== eTag) {
+      throw new NotFoundException(`Object ${objectKey} eTag mismatch.`)
+    }
     return this.updateFolderObjectInDB(folderId, objectKey, {
-      ...response,
-      mimeType,
+      ...headResponse,
     })
   }
 

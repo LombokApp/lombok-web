@@ -911,11 +911,7 @@ export class AppService {
 
   async _createSignedUrls(
     signedUrlRequests: {
-      method:
-        | SignedURLsRequestMethod.GET
-        | SignedURLsRequestMethod.PUT
-        | SignedURLsRequestMethod.DELETE
-        | SignedURLsRequestMethod.HEAD
+      method: SignedURLsRequestMethod
       folderId: string
       objectKey: string
     }[],
