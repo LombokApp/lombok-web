@@ -1,7 +1,7 @@
-import type { FolderObjectDTO } from '@stellariscloud/types'
-import { MediaType } from '@stellariscloud/types'
-import { cn } from '@stellariscloud/ui-toolkit'
-import { dataURLToText, isRenderableTextMimeType } from '@stellariscloud/utils'
+import type { FolderObjectDTO } from '@lombokapp/types'
+import { MediaType } from '@lombokapp/types'
+import { cn } from '@lombokapp/ui-toolkit'
+import { dataURLToText, isRenderableTextMimeType } from '@lombokapp/utils'
 import React from 'react'
 
 import { AudioPlayer } from '@/src/components/audio-player/audio-player'

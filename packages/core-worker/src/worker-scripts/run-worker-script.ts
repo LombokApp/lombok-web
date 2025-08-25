@@ -2,12 +2,12 @@ import type {
   AppTask,
   PlatformServerMessageInterface,
   SerializeableResponse,
-} from '@stellariscloud/app-worker-sdk'
+} from '@lombokapp/app-worker-sdk'
 import type {
   SerializeableError,
   WorkerModuleStartContext,
-} from '@stellariscloud/core-worker'
-import { serializeWorkerError, WorkerError } from '@stellariscloud/core-worker'
+} from '@lombokapp/core-worker'
+import { serializeWorkerError, WorkerError } from '@lombokapp/core-worker'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -15,7 +15,7 @@ import path from 'path'
 import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
 import { downloadFileToDisk } from '../utils/file.util'
 
-const cacheRoot = path.join(os.tmpdir(), 'stellaris-worker-cache')
+const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
 if (fs.existsSync(cacheRoot)) {
   // Clean previous worker cache directory before starting
   fs.rmdirSync(cacheRoot, { recursive: true })
@@ -314,9 +314,7 @@ export const runWorkerScript = async ({
       `--bindmount=${workerTmpDir}:/tmp`,
       `--bindmount_ro=${cacheDir}:/app`,
       '--bindmount_ro=/usr/src/app/node_modules:/node_modules',
-      '--bindmount_ro=/usr/src/app/packages:/node_modules/@stellariscloud',
-      '--bindmount_ro=/usr/src/app/packages/stellaris-utils:/node_modules/@stellariscloud/utils',
-      '--bindmount_ro=/usr/src/app/packages/stellaris-types:/node_modules/@stellariscloud/types',
+      '--bindmount_ro=/usr/src/app/packages:/node_modules/@lombokapp',
       '--bindmount_ro=/usr/bin/ldd:/usr/bin/ldd',
       '--bindmount_ro=/usr/local/bin/bun:/usr/local/bin/bun',
       '--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf',

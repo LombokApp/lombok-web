@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { UserDTO } from '@stellariscloud/types'
+import type { UserDTO } from '@lombokapp/types'
 import {
   Button,
   Form,
@@ -10,7 +10,7 @@ import {
   FormMessage,
   Input,
   Switch,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 

@@ -1,4 +1,4 @@
-import type { TaskDTO } from '@stellariscloud/types'
+import type { TaskDTO } from '@lombokapp/types'
 
 import { TasksListCard } from './task-list-card.component'
 

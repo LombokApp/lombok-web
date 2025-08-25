@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
   Icons,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import React from 'react'
 
 import { $api } from '@/src/services/api'

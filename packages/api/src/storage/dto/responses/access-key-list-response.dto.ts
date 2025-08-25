@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { accessKeyPublicSchema } from '@stellariscloud/types'
+import { accessKeyPublicSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const accessKeyListResponseSchema = z.object({

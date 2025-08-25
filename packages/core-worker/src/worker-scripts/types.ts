@@ -1,7 +1,4 @@
-import type {
-  AppTask,
-  SerializeableRequest,
-} from '@stellariscloud/app-worker-sdk'
+import type { AppTask, SerializeableRequest } from '@lombokapp/app-worker-sdk'
 
 export interface WorkerModuleStartContext {
   resultFilepath: string

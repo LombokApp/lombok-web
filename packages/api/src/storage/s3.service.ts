@@ -3,9 +3,14 @@ import {
   ListObjectsV2Command,
   S3Client,
 } from '@aws-sdk/client-s3'
-import { Injectable } from '@nestjs/common'
-import type { S3Object, S3ObjectInternal } from '@stellariscloud/types'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
+import type { S3Object, S3ObjectInternal } from '@lombokapp/types'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import aws4 from 'aws4'
 
 export const transformFolderObjectToInternal = (
@@ -138,7 +143,7 @@ export class S3Service {
         secretAccessKey,
         bucket,
         objectKey,
-        method: SignedURLsRequestMethod.GET,
+        method: SignedURLsRequestMethod.HEAD,
         expirySeconds: 300,
       },
     ])
@@ -152,14 +157,21 @@ export class S3Service {
     )
 
     if (headObjectResponse.status === 404) {
-      throw new Error(`Object not found by key: ${objectKey}.`)
+      throw new NotFoundException(`Object not found by key: ${objectKey}.`)
+    }
+
+    if (headObjectResponse.status === 403) {
+      throw new UnauthorizedException(
+        `Access denied to object by key: ${objectKey}.`,
+      )
     }
 
     if (headObjectResponse.status !== 200) {
-      throw new Error(
+      throw new InternalServerErrorException(
         `Error (${headObjectResponse.status}) getting HEAD for object key "${objectKey}".`,
       )
     }
+
     const lastModified = headObjectResponse.headers.get('last-modified')
     const lastModifiedDate = lastModified
       ? new Date(lastModified).getMilliseconds()

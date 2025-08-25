@@ -3,8 +3,8 @@ import type {
   FolderDTO,
   FolderGetResponse,
   FolderObjectDTO,
-} from '@stellariscloud/types'
-import { MediaType } from '@stellariscloud/types'
+} from '@lombokapp/types'
+import { MediaType } from '@lombokapp/types'
 import {
   Button,
   Card,
@@ -12,13 +12,13 @@ import {
   CardHeader,
   cn,
   TypographyH3,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import {
   extensionFromMimeType,
   formatBytes,
   mediaTypeFromMimeType,
   toMetadataObjectIdentifier,
-} from '@stellariscloud/utils'
+} from '@lombokapp/utils'
 import {
   Box,
   Download,

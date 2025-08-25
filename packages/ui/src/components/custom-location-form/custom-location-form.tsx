@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { s3LocationSchema } from '@stellariscloud/types'
+import { s3LocationSchema } from '@lombokapp/types'
 import {
   Button,
   Form,
@@ -9,7 +9,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
 

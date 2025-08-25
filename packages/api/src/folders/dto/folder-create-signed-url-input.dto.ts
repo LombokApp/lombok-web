@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const createSignedUrlInputSchema = z.array(

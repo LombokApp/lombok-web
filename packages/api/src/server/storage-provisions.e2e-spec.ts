@@ -1,4 +1,4 @@
-import { StorageProvisionTypeEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeEnum } from '@lombokapp/types'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 

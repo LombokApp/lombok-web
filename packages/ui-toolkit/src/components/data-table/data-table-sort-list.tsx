@@ -223,7 +223,7 @@ export function DataTableSortList<TData>({
 
   const onSortAdd = React.useCallback(() => {
     const firstColumn = columns[0]
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     if (!firstColumn) {
       return
     }

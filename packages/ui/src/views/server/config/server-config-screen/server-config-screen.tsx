@@ -1,5 +1,5 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
-import { cn, ScrollArea } from '@stellariscloud/ui-toolkit'
+import { useAuthContext } from '@lombokapp/auth-utils'
+import { cn, ScrollArea } from '@lombokapp/ui-toolkit'
 import React from 'react'
 import { Link } from 'react-router-dom'
 

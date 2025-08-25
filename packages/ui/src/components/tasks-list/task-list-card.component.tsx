@@ -1,5 +1,5 @@
-import { PLATFORM_IDENTIFIER, type TaskDTO } from '@stellariscloud/types'
-import { cn } from '@stellariscloud/ui-toolkit'
+import { PLATFORM_IDENTIFIER, type TaskDTO } from '@lombokapp/types'
+import { cn } from '@lombokapp/ui-toolkit'
 
 export function TasksListCard({ task }: { task: TaskDTO }) {
   return (

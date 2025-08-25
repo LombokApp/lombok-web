@@ -1,5 +1,5 @@
-import type { Authenticator } from '@stellariscloud/auth-utils'
-import type { StellarisApiClient, StellarisCloudSdk } from '@stellariscloud/sdk'
+import type { Authenticator } from '@lombokapp/auth-utils'
+import type { LombokApiClient, LombokSdk } from '@lombokapp/sdk'
 
 import type { IframeCommunicator } from './iframe-communicator'
 
@@ -19,9 +19,9 @@ export interface AppBrowserSdkConfig {
 }
 
 export interface AppBrowserSdkInstance {
-  sdk: StellarisCloudSdk
+  sdk: LombokSdk
   communicator: Promise<IframeCommunicator>
-  apiClient: StellarisApiClient
+  apiClient: LombokApiClient
   authenticator: Authenticator
   isInitialized: boolean
   destroy: () => void

@@ -1,4 +1,4 @@
-import type { TaskInputData, WorkerErrorDetails } from '@stellariscloud/types'
+import type { TaskInputData, WorkerErrorDetails } from '@lombokapp/types'
 import { relations } from 'drizzle-orm'
 import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { foldersTable } from 'src/folders/entities/folder.entity'

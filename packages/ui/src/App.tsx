@@ -5,8 +5,8 @@ import {
   AuthContextProvider,
   SIDEBAR_PAGES,
   useAuthContext,
-} from '@stellariscloud/auth-utils'
-import { cn, Toaster } from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/auth-utils'
+import { cn, Toaster } from '@lombokapp/ui-toolkit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   BrowserRouter as Router,

@@ -1,3 +1,21 @@
+import { hashLocalFile } from '@lombokapp/core-worker'
+import type {
+  AppConfig,
+  AppContributions,
+  AppManifest,
+  AppUIMap,
+  AppWorkersMap,
+  ExternalAppWorker,
+} from '@lombokapp/types'
+import {
+  appConfigSchema,
+  AppSocketApiRequest,
+  CORE_APP_IDENTIFIER,
+  metadataEntrySchema,
+  SignedURLsRequestMethod,
+  workerErrorDetailsSchema,
+} from '@lombokapp/types'
+import { safeZodParse } from '@lombokapp/utils'
 import {
   forwardRef,
   Inject,
@@ -6,24 +24,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
-import { hashLocalFile } from '@stellariscloud/core-worker'
-import type {
-  AppConfig,
-  AppContributions,
-  AppManifest,
-  AppUIMap,
-  AppWorkersMap,
-  ExternalAppWorker,
-} from '@stellariscloud/types'
-import {
-  appConfigSchema,
-  AppSocketApiRequest,
-  CORE_APP_IDENTIFIER,
-  metadataEntrySchema,
-  SignedURLsRequestMethod,
-  workerErrorDetailsSchema,
-} from '@stellariscloud/types'
-import { safeZodParse } from '@stellariscloud/utils'
 import { spawn } from 'bun'
 import {
   and,

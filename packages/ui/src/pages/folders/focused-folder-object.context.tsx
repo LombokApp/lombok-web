@@ -1,4 +1,4 @@
-import type { FolderObjectDTO } from '@stellariscloud/types'
+import type { FolderObjectDTO } from '@lombokapp/types'
 import React from 'react'
 
 import { $api } from '@/src/services/api'

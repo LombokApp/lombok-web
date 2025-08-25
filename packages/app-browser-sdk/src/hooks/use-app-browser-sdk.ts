@@ -1,4 +1,4 @@
-import type { AuthenticatorStateType } from '@stellariscloud/auth-utils'
+import type { AuthenticatorStateType } from '@lombokapp/auth-utils'
 import React from 'react'
 
 import { AppBrowserSdk } from '../app-browser-sdk'

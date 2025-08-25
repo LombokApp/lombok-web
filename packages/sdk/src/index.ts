@@ -1,2 +1,2 @@
-export { StellarisCloudSdk } from './stellariscloud-sdk'
-export * from '@stellariscloud/types'
+export { LombokSdk } from './lombok-sdk'
+export * from '@lombokapp/types'

@@ -1,10 +1,9 @@
 import type {
   AccessKeyPublicDTO,
   RotateAccessKeyInputDTO,
-} from '@stellariscloud/types'
-import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { Button, useToast } from '@stellariscloud/ui-toolkit'
-import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+} from '@lombokapp/types'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
+import { Button, DataTableColumnHeader, useToast } from '@lombokapp/ui-toolkit'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'

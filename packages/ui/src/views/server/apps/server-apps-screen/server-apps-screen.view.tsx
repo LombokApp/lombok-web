@@ -1,5 +1,5 @@
-import type { ServerAppsListRequest } from '@stellariscloud/types'
-import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { ServerAppsListRequest } from '@lombokapp/types'
+import { cn, DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'

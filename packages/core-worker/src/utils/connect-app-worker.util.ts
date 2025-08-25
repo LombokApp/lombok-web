@@ -1,13 +1,13 @@
 import type {
   AppTask,
   PlatformServerMessageInterface,
-} from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
+} from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
 import {
   AppAPIError,
   buildAppClient,
-} from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
-import type { AppLogEntry, WorkerErrorDetails } from '@stellariscloud/types'
-import { serializeError } from '@stellariscloud/utils'
+} from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
+import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
+import { serializeError } from '@lombokapp/utils'
 import { io } from 'socket.io-client'
 
 import type { SerializeableError } from '../errors/errors'

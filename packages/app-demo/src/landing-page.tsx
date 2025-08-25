@@ -14,9 +14,7 @@ export const App = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="size-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                <span className="text-xl font-bold text-white">
-                  StellarisCloud
-                </span>
+                <span className="text-xl font-bold text-white">Lombok</span>
               </div>
               <nav className="hidden space-x-6 md:flex">
                 <a
@@ -26,7 +24,7 @@ export const App = () => {
                   Features
                 </a>
                 <a
-                  href="https://stellariscloud.com"
+                  href="https://lombokapp.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/70 transition-colors hover:text-white"
@@ -53,7 +51,7 @@ export const App = () => {
             <h1 className="mb-6 text-5xl font-bold text-white md:text-7xl">
               Welcome to{' '}
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                StellarisCloud
+                Lombok
               </span>
             </h1>
             <p className="mx-auto mb-8 max-w-3xl text-xl text-white/70">
@@ -76,7 +74,7 @@ export const App = () => {
         <section className="container mx-auto px-4 py-20">
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-4xl font-bold text-white">
-              Why Choose StellarisCloud?
+              Why Choose Lombok?
             </h2>
             <p className="mx-auto max-w-2xl text-xl text-white/70">
               Discover the features that make our platform the preferred choice
@@ -188,7 +186,7 @@ export const App = () => {
         <footer className="border-t border-white/10 bg-white/5 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-8">
             <div className="text-center text-white/70">
-              <p>&copy; 2024 StellarisCloud. All rights reserved.</p>
+              <p>&copy; 2024 Lombok. All rights reserved.</p>
             </div>
           </div>
         </footer>

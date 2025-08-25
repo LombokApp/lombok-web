@@ -1,6 +1,6 @@
+import type { FolderDTO } from '@lombokapp/types'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { Test } from '@nestjs/testing'
-import type { FolderDTO } from '@stellariscloud/types'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'

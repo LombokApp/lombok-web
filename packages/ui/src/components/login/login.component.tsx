@@ -3,7 +3,7 @@ import {
   CardContent,
   TypographyH2,
   TypographyH3,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import React from 'react'
 
 import type { LoginFormValues } from './login-form.component'
@@ -32,12 +32,8 @@ export const LoginComponent = ({
       <Card className="min-w-[30rem]">
         <CardContent className="px-6 py-12 lg:px-8">
           <div className="mb-6 flex flex-col items-center gap-6">
-            <img
-              className="mx-auto h-24 w-auto"
-              src="/stellariscloud.png"
-              alt="StellarisCloud"
-            />
-            <TypographyH2>Stellaris Cloud</TypographyH2>
+            <img className="mx-auto h-24 w-auto" src="/logo.png" alt="Lombok" />
+            <TypographyH2>Lombok</TypographyH2>
             <TypographyH3>Create an Account</TypographyH3>
           </div>
           <LoginForm onSubmit={handleSubmit} />

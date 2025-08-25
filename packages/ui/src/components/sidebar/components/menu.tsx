@@ -1,4 +1,4 @@
-import type { IAuthContext } from '@stellariscloud/auth-utils'
+import type { IAuthContext } from '@lombokapp/auth-utils'
 import {
   Button,
   cn,
@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { Ellipsis, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 

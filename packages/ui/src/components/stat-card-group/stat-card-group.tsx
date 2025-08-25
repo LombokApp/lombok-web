@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
   cn,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 export interface Stat {
   title: string

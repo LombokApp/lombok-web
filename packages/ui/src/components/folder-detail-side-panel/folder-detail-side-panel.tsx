@@ -1,7 +1,7 @@
-import type { FolderGetResponse, FolderMetadata } from '@stellariscloud/types'
-import { FolderPermissionEnum } from '@stellariscloud/types'
-import { Button } from '@stellariscloud/ui-toolkit'
-import { formatBytes } from '@stellariscloud/utils'
+import type { FolderGetResponse, FolderMetadata } from '@lombokapp/types'
+import { FolderPermissionEnum } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit'
+import { formatBytes } from '@lombokapp/utils'
 
 export const FolderDetailSidePanel = ({
   folderAndPermissions,

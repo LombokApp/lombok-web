@@ -4,7 +4,7 @@ import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
-import StellarisWorker from '../worker.ts?worker'
+import LombokWorker from '../worker.ts?worker'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
 
@@ -128,7 +128,7 @@ export const LocalFileCacheContextProvider = ({
 
   React.useEffect(() => {
     if (!workerRef.current) {
-      workerRef.current = new StellarisWorker()
+      workerRef.current = new LombokWorker()
       sdkInstance.authenticator.addEventListener('onStateChanged', () => {
         updateWorkerWithAuth()
       })

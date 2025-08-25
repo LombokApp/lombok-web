@@ -1,4 +1,4 @@
-import type { paths } from '@stellariscloud/types'
+import type { paths } from '@lombokapp/types'
 import createFetchClient from 'openapi-fetch'
 
 import { verifyToken } from './jwt.util'

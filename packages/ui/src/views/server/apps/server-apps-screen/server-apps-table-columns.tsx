@@ -1,11 +1,10 @@
-import { type AppDTO } from '@stellariscloud/types'
-import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { type AppDTO } from '@lombokapp/types'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
 
 import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'
-
-import { TableLinkColumn } from '../../../../components/table-link-column/table-link-column'
+import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
 
 export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
   {

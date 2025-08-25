@@ -1,14 +1,14 @@
-import { MediaType } from '@stellariscloud/types'
+import { MediaType } from '@lombokapp/types'
 import type {
   AudioMediaMimeTypes,
   ImageMediaMimeTypes,
   VideoMediaMimeTypes,
-} from '@stellariscloud/utils'
+} from '@lombokapp/utils'
 import {
   AUDIO_MEDIA_MIME_TYPES,
   IMAGE_MEDIA_MIME_TYPES,
   VIDEO_MEDIA_MIME_TYPES,
-} from '@stellariscloud/utils'
+} from '@lombokapp/utils'
 import { FileIcon, Film, Image, Music } from 'lucide-react'
 
 export const iconForMimeType = (mimeType: string) => {

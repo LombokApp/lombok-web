@@ -1,4 +1,4 @@
-import { useAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
+import { useAppBrowserSdk } from '@lombokapp/app-browser-sdk'
 import createClient from 'openapi-react-query'
 import React from 'react'
 

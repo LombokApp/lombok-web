@@ -1,5 +1,5 @@
-import type { FolderListRequest } from '@stellariscloud/types'
-import { Button, DataTable, useToast } from '@stellariscloud/ui-toolkit'
+import type { FolderListRequest } from '@lombokapp/types'
+import { Button, DataTable, useToast } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'

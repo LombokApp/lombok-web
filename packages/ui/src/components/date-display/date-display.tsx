@@ -1,4 +1,4 @@
-import { dateToHumanReadable, timeSinceOrUntil } from '@stellariscloud/utils'
+import { dateToHumanReadable, timeSinceOrUntil } from '@lombokapp/utils'
 
 interface DateDisplayProps {
   date: Date | string

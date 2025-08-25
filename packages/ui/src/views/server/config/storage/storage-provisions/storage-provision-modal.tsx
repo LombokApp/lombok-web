@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@lombokapp/types'
 import {
   Dialog,
   DialogContent,
@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   useToast,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 import type {
   MutationType,

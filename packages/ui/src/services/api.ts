@@ -1,10 +1,10 @@
 // TODO: Modify this with a better name.
-const STORAGE_KEY_PREFIX = 'stellariscloud:auth'
+const STORAGE_KEY_PREFIX = 'lombok:auth'
 const STORAGE_ACCESS_TOKEN = `${STORAGE_KEY_PREFIX}:accessToken`
 const STORAGE_REFRESH_TOKEN = `${STORAGE_KEY_PREFIX}:refreshToken`
 
-import type { TokensType } from '@stellariscloud/auth-utils'
-import { StellarisCloudSdk } from '@stellariscloud/sdk'
+import type { TokensType } from '@lombokapp/auth-utils'
+import { LombokSdk } from '@lombokapp/sdk'
 import createClient from 'openapi-react-query'
 
 export const basePath =
@@ -25,7 +25,7 @@ const saveTokens = ({ accessToken, refreshToken }: TokensType) => {
   localStorage.setItem(STORAGE_REFRESH_TOKEN, refreshToken)
 }
 
-export const sdkInstance = new StellarisCloudSdk({
+export const sdkInstance = new LombokSdk({
   basePath,
   accessToken: () => loadTokens().accessToken,
   refreshToken: () => loadTokens().refreshToken,

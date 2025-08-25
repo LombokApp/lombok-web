@@ -1,6 +1,6 @@
-import type { AppDTOManifestInner } from '@stellariscloud/types'
-import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { formatBytes } from '@stellariscloud/utils'
+import type { AppDTOManifestInner } from '@lombokapp/types'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
+import { formatBytes } from '@lombokapp/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 
 export const serverAppManifestTableColumns: ColumnDef<

@@ -1,4 +1,4 @@
-import { StorageProvisionTypeEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeEnum } from '@lombokapp/types'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -389,7 +389,7 @@ describe('Folders', () => {
       storageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data?.folder.contentLocation.prefix).toBe(
-      `${storageProvisionInput.prefix}/.stellaris_folder_content_${folderCreateResponse.data?.folder.id}`,
+      `${storageProvisionInput.prefix}/.lombok_folder_content_${folderCreateResponse.data?.folder.id}`,
     )
 
     // validate metadata location
@@ -409,7 +409,7 @@ describe('Folders', () => {
       storageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data?.folder.metadataLocation.prefix).toBe(
-      `${storageProvisionInput.prefix}/.stellaris_folder_metadata_${folderCreateResponse.data?.folder.id}`,
+      `${storageProvisionInput.prefix}/.lombok_folder_metadata_${folderCreateResponse.data?.folder.id}`,
     )
   })
 
@@ -566,12 +566,12 @@ describe('Folders', () => {
 
     expect(presignedUrls.response.status).toBe(201)
 
-    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.stellaris_folder_content_${folderCreateResponse.data?.folder.id}/someobjectkey?`
+    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.lombok_folder_content_${folderCreateResponse.data?.folder.id}/someobjectkey?`
     expect(
       presignedUrls.data?.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.stellaris_folder_metadata_${folderCreateResponse.data?.folder.id}/someobjectkey/somehash`
+    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.lombok_folder_metadata_${folderCreateResponse.data?.folder.id}/someobjectkey/somehash`
     expect(
       presignedUrls.data?.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)

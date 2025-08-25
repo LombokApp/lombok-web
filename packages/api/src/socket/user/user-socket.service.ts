@@ -1,6 +1,6 @@
+import type { UserPushMessage } from '@lombokapp/types'
+import { safeZodParse } from '@lombokapp/utils'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import type { UserPushMessage } from '@stellariscloud/types'
-import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import { z } from 'zod'
 

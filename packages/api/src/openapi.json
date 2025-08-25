@@ -3601,8 +3601,8 @@
     }
   },
   "info": {
-    "title": "@stellariscloud/api",
-    "description": "The Stellaris Cloud core API",
+    "title": "@lombokapp/api",
+    "description": "The Lombok core API",
     "version": "1.0",
     "contact": {}
   },
@@ -5037,7 +5037,8 @@
               "enum": [
                 "PUT",
                 "DELETE",
-                "GET"
+                "GET",
+                "HEAD"
               ]
             }
           },

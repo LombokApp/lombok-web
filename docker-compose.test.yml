@@ -1,6 +1,6 @@
 services:
   apitestwatch:
-    container_name: 'stellariscloud-api-test-watch'
+    container_name: 'lombok-api-test-watch'
     build:
       context: .
       dockerfile: docker/app.Dockerfile
@@ -14,7 +14,7 @@ services:
       WAIT_HOSTS: db:${DB_PORT:-0}
     entrypoint: ['bun', 'test:e2e:watch']
   apitest:
-    container_name: 'stellariscloud-api-test'
+    container_name: 'lombok-api-test'
     build:
       context: .
       dockerfile: docker/app.Dockerfile
@@ -29,10 +29,11 @@ services:
     entrypoint: ['bun', '--cwd', './packages/api', 'test:e2e']
   dbtest:
     image: postgres
+    container_name: lombok-db-test
     environment:
-      - POSTGRES_USER=stellariscloud_test
+      - POSTGRES_USER=lombok_test
       - POSTGRES_PASSWORD=XXXXXXXXXXXXXXXXXXXXXXXX
-      - POSTGRES_DB=stellariscloud_test
+      - POSTGRES_DB=lombok_test
     ports:
       - 5435:5432
   miniotest:

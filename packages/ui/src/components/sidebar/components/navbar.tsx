@@ -1,4 +1,4 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
+import { useAuthContext } from '@lombokapp/auth-utils'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,7 +7,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   cn,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import React from 'react'
 import { Link } from 'react-router-dom'
 

@@ -1,5 +1,5 @@
-import type { FolderGetResponse, TaskDTO } from '@stellariscloud/types'
-import { FolderPushMessage } from '@stellariscloud/types'
+import type { FolderGetResponse, TaskDTO } from '@lombokapp/types'
+import { FolderPushMessage } from '@lombokapp/types'
 import {
   Card,
   CardContent,
@@ -7,7 +7,7 @@ import {
   cn,
   Skeleton,
   TypographyH3,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { ListChecks } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'

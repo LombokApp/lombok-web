@@ -2,7 +2,7 @@ import type {
   LoginCredentialsDTO,
   SignupCredentialsDTO,
   ViewerGetResponse,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 

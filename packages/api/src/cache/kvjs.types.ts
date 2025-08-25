@@ -1,5 +1,5 @@
 import type kvjs from '@heyputer/kv.js'
-import type { Promisify } from '@stellariscloud/utils'
+import type { Promisify } from '@lombokapp/utils'
 
 export type KVJSOperations = Omit<
   {

@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/app-browser-sdk",
+  "name": "@lombokapp/app-browser-sdk",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -7,7 +7,7 @@
     "default": "./index.ts"
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @stellariscloud/sdk --external @stellariscloud/types --external @stellariscloud/auth-utils",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @lombokapp/sdk --external @lombokapp/types --external @lombokapp/auth-utils",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
     "build:clean": "rm -rf dist && bun run build && bun run build:types",
     "dev": "bun --watch src/index.ts",
@@ -18,9 +18,9 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
-    "@stellariscloud/sdk": "workspace:*",
-    "@stellariscloud/types": "workspace:*",
-    "@stellariscloud/auth-utils": "workspace:*"
+    "@lombokapp/sdk": "workspace:*",
+    "@lombokapp/types": "workspace:*",
+    "@lombokapp/auth-utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0"

@@ -1,6 +1,6 @@
+import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { CORE_APP_IDENTIFIER } from '@stellariscloud/types'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'

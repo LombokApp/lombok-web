@@ -1,5 +1,5 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
-import type { EventDTO } from '@stellariscloud/types'
+import { useAuthContext } from '@lombokapp/auth-utils'
+import type { EventDTO } from '@lombokapp/types'
 import {
   Card,
   CardContent,
@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
   cn,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { Link } from 'react-router-dom'
 
 import { DateDisplay } from '@/src/components/date-display'

@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@lombokapp/types'
 
 import type { StorageProvisionInputDTO } from '../storage-provision-input.dto'
 

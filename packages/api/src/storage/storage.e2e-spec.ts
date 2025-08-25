@@ -1,5 +1,5 @@
 import type { S3Client } from '@aws-sdk/client-s3'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { buildTestModule } from 'src/test/test.util'
 
 import { S3Service } from './s3.service'

@@ -1,13 +1,14 @@
-import type { FolderPermissionName } from '@stellariscloud/types'
+import type { FolderPermissionName } from '@lombokapp/types'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
-import { $api } from '../../../services/api'
+import { $api } from '@/src/services/api'
+
 import { FolderShareForm } from '../folder-share-form/folder-share-form'
 
 interface ModalData {

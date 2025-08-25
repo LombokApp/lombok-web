@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 export interface DeleteFolderModalData {
   isOpen: boolean

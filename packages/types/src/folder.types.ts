@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import type { SignedURLsRequestMethod } from './storage.types'
+
 export interface Owner {
   /**
    * <p>Container for the display name of the owner.</p>
@@ -95,7 +97,7 @@ export interface S3Object {
 export interface PresignedURLResult {
   objectKey: string
   url: string
-  method: 'PUT' | 'DELETE' | 'GET'
+  method: SignedURLsRequestMethod
 }
 
 export const FolderPermissionZodEnum = z.enum([

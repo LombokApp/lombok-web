@@ -1,19 +1,19 @@
-# @stellariscloud/app-browser-sdk
+# @lombokapp/app-browser-sdk
 
-A browser SDK for StellarisCloud iframe applications that provides automatic communication with the parent window, token management, and API client access.
+A browser SDK for Lombok iframe applications that provides automatic communication with the parent window, token management, and API client access.
 
 ## Features
 
 - **Automatic Iframe Communication**: Secure communication between iframe and parent window with automatic initialization
 - **Token Management**: Automatic handling of authentication tokens received from parent
-- **API Client**: Direct access to pre-configured StellarisCloud API client
+- **API Client**: Direct access to pre-configured Lombok API client
 - **React Hooks**: Easy integration with React applications including auth state management
 - **URL-based Configuration**: Automatic base path detection from URL parameters
 
 ## Installation
 
 ```bash
-npm install @stellariscloud/app-browser-sdk
+npm install @lombokapp/app-browser-sdk
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ npm install @stellariscloud/app-browser-sdk
 ### Basic Usage
 
 ```typescript
-import { AppBrowserSdk } from '@stellariscloud/app-browser-sdk'
+import { AppBrowserSdk } from '@lombokapp/app-browser-sdk'
 
 const sdk = new AppBrowserSdk({
   onInitialize: () => {
@@ -51,7 +51,7 @@ if (sdk.isInitialized) {
 ### React Hook Usage
 
 ```typescript
-import { useAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
+import { useAppBrowserSdk } from '@lombokapp/app-browser-sdk'
 
 function MyApp() {
   const { isInitialized, error, apiClient, authState } = useAppBrowserSdk({
@@ -109,7 +109,7 @@ interface AppBrowserSdkConfig {
 
 #### Properties
 
-- `apiClient` - Direct access to the StellarisCloud API client
+- `apiClient` - Direct access to the Lombok API client
 - `authenticator` - Access to the authenticator instance for auth state management
 - `isInitialized: boolean` - Whether the SDK has received initial authentication
 - `communicator: Promise<IframeCommunicator>` - Promise that resolves to the iframe communicator
@@ -134,7 +134,7 @@ useAppBrowserSdk(config?: AppBrowserSdkConfig)
 {
   isInitialized: boolean
   error: Error | undefined
-  apiClient: StellarisApiClient
+  apiClient: LombokApiClient
   authState: AuthenticatorStateType
 }
 ```
@@ -158,7 +158,7 @@ The API base path is automatically determined from URL parameters:
 - Checks for `basePath` URL parameter
 - Falls back to `http://localhost:3000` if not provided
 
-Example URL: `https://your-app.com/iframe?basePath=https://api.stellariscloud.com`
+Example URL: `https://your-app.com/iframe?basePath=https://api.mylombokinstance.com`
 
 ## Message Protocol
 
@@ -202,7 +202,7 @@ bun run lint:check
 
 ## Dependencies
 
-- `@stellariscloud/sdk` - Core StellarisCloud SDK
-- `@stellariscloud/auth-utils` - Authentication utilities
-- `@stellariscloud/types` - Shared type definitions
+- `@lombokapp/sdk` - Core Lombok SDK
+- `@lombokapp/auth-utils` - Authentication utilities
+- `@lombokapp/types` - Shared type definitions
 - React 18+ (peer dependency for hooks)

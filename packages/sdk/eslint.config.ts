@@ -11,7 +11,7 @@ const conf: ConfigArray = tseslint.config(
   nodeConfig,
   strictConfig,
   {
-    ignores: ['dist/*', 'src/api-paths.d.ts'],
+    ignores: ['dist/*'],
   },
   {
     languageOptions: {

@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { storageProvisionSchema } from '@stellariscloud/types'
+import { storageProvisionSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const storageProvisionsListResponseSchema = z.object({

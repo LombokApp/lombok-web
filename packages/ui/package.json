@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/ui",
+  "name": "@lombokapp/ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,10 +14,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stellariscloud/sdk": "workspace:*",
-    "@stellariscloud/types": "workspace:*",
-    "@stellariscloud/ui-toolkit": "workspace:*",
-    "@stellariscloud/utils": "workspace:*",
+    "@lombokapp/sdk": "workspace:*",
+    "@lombokapp/types": "workspace:*",
+    "@lombokapp/ui-toolkit": "workspace:*",
+    "@lombokapp/utils": "workspace:*",
     "autoprefixer": "^10.4.20",
     "idb": "^8.0.2",
     "immer": "^10.1.1",

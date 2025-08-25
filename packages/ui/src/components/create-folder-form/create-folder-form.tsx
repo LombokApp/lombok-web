@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { StorageProvisionDTO } from '@stellariscloud/types'
-import { s3LocationSchema } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@lombokapp/types'
+import { s3LocationSchema } from '@lombokapp/types'
 import {
   Badge,
   Button,
@@ -13,8 +13,8 @@ import {
   FormLabel,
   FormMessage,
   Input,
-} from '@stellariscloud/ui-toolkit'
-import { safeZodParse } from '@stellariscloud/utils'
+} from '@lombokapp/ui-toolkit'
+import { safeZodParse } from '@lombokapp/utils'
 import { X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'

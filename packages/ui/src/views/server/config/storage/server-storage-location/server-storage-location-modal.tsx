@@ -1,11 +1,11 @@
-import type { ServerStorageInputDTO } from '@stellariscloud/types'
+import type { ServerStorageInputDTO } from '@lombokapp/types'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 import { ServerStorageLocationForm } from './server-storage-location-form/server-storage-location-form.component'
 

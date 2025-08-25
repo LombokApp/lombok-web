@@ -1,9 +1,9 @@
 import type {
   AppTask,
   PlatformServerMessageInterface,
-} from '@stellariscloud/app-worker-sdk'
-import { AppAPIError } from '@stellariscloud/app-worker-sdk'
-import { safeZodParse } from '@stellariscloud/utils'
+} from '@lombokapp/app-worker-sdk'
+import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import { safeZodParse } from '@lombokapp/utils'
 import { z } from 'zod'
 
 import { WorkerScriptRuntimeError } from '../../errors'

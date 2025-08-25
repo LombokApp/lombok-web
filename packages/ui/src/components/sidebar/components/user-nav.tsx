@@ -1,4 +1,4 @@
-import type { UserDTO } from '@stellariscloud/types'
+import type { UserDTO } from '@lombokapp/types'
 import {
   Avatar,
   AvatarFallback,
@@ -14,7 +14,7 @@ import {
   Tooltip,
   TooltipProvider,
   TooltipTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { LayoutGrid, LogOut, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
 

@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-stellaris-types:
-    name: Check @stellariscloud/types package
+  check-lombok-types:
+    name: Check @lombokapp/types package
     runs-on: ubuntu-latest
 
     steps:
@@ -20,9 +20,9 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun --cwd packages/stellaris-types test:unit
+      - run: bun --cwd packages/types test:unit
   check-api:
-    name: Check @stellariscloud/api package
+    name: Check @lombokapp/api package
     runs-on: ubuntu-latest
 
     steps:

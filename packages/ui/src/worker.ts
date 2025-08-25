@@ -1,6 +1,6 @@
-import type { paths, StellarisApiClient } from '@stellariscloud/types'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
-import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
+import type { LombokApiClient, paths } from '@lombokapp/types'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { objectIdentifierToObjectKey } from '@lombokapp/utils'
 import createFetchClient from 'openapi-fetch'
 
 export enum LogLevel {
@@ -17,7 +17,7 @@ import { addFileToLocalFileStorage } from './services/local-cache/local-cache.se
 const downloading: Record<string, { progressPercent: number } | undefined> = {}
 
 // updated on incoming auth udpate message
-let $apiClient: StellarisApiClient
+let $apiClient: LombokApiClient
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsyncWorkerMessage = [string, any]
@@ -303,8 +303,8 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
             }
           })
 
-          xhr.addEventListener('error', () => {
-            reject(new Error('Upload failed'))
+          xhr.addEventListener('error', (e: unknown) => {
+            reject(e instanceof Error ? e : new Error(String(e)))
           })
 
           xhr.open('PUT', uploadSlot)

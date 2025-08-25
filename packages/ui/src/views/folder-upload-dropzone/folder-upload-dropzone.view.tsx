@@ -1,4 +1,4 @@
-import { cn } from '@stellariscloud/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit'
 import { CloudUpload } from 'lucide-react'
 import type { FileRejection } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'

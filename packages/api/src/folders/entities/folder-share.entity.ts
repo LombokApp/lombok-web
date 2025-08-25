@@ -1,4 +1,4 @@
-import type { FolderPermissionName } from '@stellariscloud/types'
+import type { FolderPermissionName } from '@lombokapp/types'
 import { relations, sql } from 'drizzle-orm'
 import { index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 

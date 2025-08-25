@@ -1,6 +1,6 @@
 services:
   api:
-    container_name: 'stellariscloud-api'
+    container_name: lombok-api
     build:
       context: .
       dockerfile: docker/app.Dockerfile
@@ -41,8 +41,8 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
 
-      /usr/bin/mc rm -r --force myminio/stellaris-dev;
-      /usr/bin/mc mb myminio/stellaris-dev;
+      /usr/bin/mc rm -r --force myminio/lombok-dev;
+      /usr/bin/mc mb myminio/lombok-dev;
 
       /usr/bin/mc admin user add myminio ${DEV_S3_ACCESS_KEY_ID} ${DEV_S3_SECRET_ACCESS_KEY};
       /usr/bin/mc admin policy attach myminio readwrite --user ${DEV_S3_ACCESS_KEY_ID};

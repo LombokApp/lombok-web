@@ -1,9 +1,9 @@
 import { Cross2Icon } from '@radix-ui/react-icons'
-import { Button, Input, TypographyH3 } from '@stellariscloud/ui-toolkit'
 import type { Table } from '@tanstack/react-table'
 import { Filter } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
+import { Button, Input, TypographyH3 } from '../'
 import { DataTableFilter } from './data-table-filter'
 import { DataTableSortList } from './data-table-sort-list'
 export interface ColumnFilterOptions {

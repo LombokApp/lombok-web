@@ -1,5 +1,4 @@
-import { MediaType } from '@stellariscloud/types'
-
+import { MediaType } from '../../types'
 import type {
   AudioMediaMimeTypes,
   ImageMediaMimeTypes,

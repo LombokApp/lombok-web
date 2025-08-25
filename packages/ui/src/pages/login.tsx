@@ -1,4 +1,4 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
+import { useAuthContext } from '@lombokapp/auth-utils'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 

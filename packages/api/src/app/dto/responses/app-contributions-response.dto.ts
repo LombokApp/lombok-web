@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { appContributionsSchema } from '@stellariscloud/types'
+import { appContributionsSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const appContributionsResponseSchema = z.record(

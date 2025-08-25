@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/utils",
+  "name": "@lombokapp/types",
   "private": true,
   "scripts": {
     "build": "bun build . --target bun --outdir dist",
@@ -10,18 +10,12 @@
     "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "test:unit": "jest"
+    "test:unit": "bun test"
   },
   "devDependencies": {
-    "@stellariscloud/types": "workspace:*",
-    "@types/jest": "29.5.14",
-    "jest": "29.7.0",
-    "prettier": "3.4.2",
-    "ts-jest": "29.2.5"
+    "prettier": "3.4.2"
   },
   "dependencies": {
-    "fast-json-stable-stringify": "2.1.0",
-    "fast-memoize": "2.5.2",
-    "utility-types": "3.11.0"
+    "openapi-fetch": "^0.14.0"
   }
 }

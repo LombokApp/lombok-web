@@ -1,15 +1,15 @@
 import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common'
-import {
   ServerStorageDTO,
   StorageProvisionDTO,
   StorageProvisionType,
   StorageProvisionTypeEnum,
   StorageProvisionTypeZodEnum,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { eq, inArray } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'

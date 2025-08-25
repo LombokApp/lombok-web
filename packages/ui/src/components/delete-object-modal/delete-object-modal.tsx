@@ -1,4 +1,4 @@
-import type { FolderObjectDTO } from '@stellariscloud/types'
+import type { FolderObjectDTO } from '@lombokapp/types'
 import {
   Button,
   Dialog,
@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { Trash } from 'lucide-react'
 
 export interface DeleteObjectModalData {

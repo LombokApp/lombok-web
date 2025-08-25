@@ -7,10 +7,10 @@ import { defineConfig } from 'rollup'
 import dts from 'rollup-plugin-dts'
 
 const workspaceAliases = {
-  '@stellariscloud/api-client': fileURLToPath(
+  '@lombokapp/api-client': fileURLToPath(
     new URL('../api-client/dist', import.meta.url),
   ),
-  '@stellariscloud/utils': fileURLToPath(
+  '@lombokapp/utils': fileURLToPath(
     new URL('../shared/packages/utils/dist', import.meta.url),
   ),
 }

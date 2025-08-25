@@ -6,16 +6,16 @@ import type {
   SerializeableRequest,
   SerializeableResponse,
   TaskHandler,
-} from '@stellariscloud/app-worker-sdk'
-import { buildAppClient } from '@stellariscloud/app-worker-sdk'
-import type { WorkerModuleStartContext } from '@stellariscloud/core-worker'
+} from '@lombokapp/app-worker-sdk'
+import { buildAppClient } from '@lombokapp/app-worker-sdk'
+import type { WorkerModuleStartContext } from '@lombokapp/core-worker'
 import {
   serializeWorkerError,
   WorkerError,
   WorkerExecutorError,
   WorkerInvalidError,
   WorkerRuntimeError,
-} from '@stellariscloud/core-worker'
+} from '@lombokapp/core-worker'
 import { io } from 'socket.io-client'
 void (async () => {
   // Helper function to reconstruct a Request object from serialized data

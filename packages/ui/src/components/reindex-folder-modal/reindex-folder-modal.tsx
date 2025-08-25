@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { FolderSync } from 'lucide-react'
 export interface ReindexFolderModalData {
   isOpen: boolean

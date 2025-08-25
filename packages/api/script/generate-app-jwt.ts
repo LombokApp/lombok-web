@@ -12,7 +12,7 @@ if (!appIdentifier) {
 }
 
 const payload: JwtPayload = {
-  aud: 'stellariscloud.localhost',
+  aud: 'lombok.localhost',
   jti: uuidV4(),
   scp: [],
   sub: `app:${appIdentifier}`,

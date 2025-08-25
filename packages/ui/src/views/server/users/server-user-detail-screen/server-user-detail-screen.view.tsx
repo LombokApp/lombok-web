@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
   DataTable,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { format } from 'date-fns'
 import { Folders, HandshakeIcon, KeyIcon, Pencil } from 'lucide-react'
 import React from 'react'

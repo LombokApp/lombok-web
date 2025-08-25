@@ -2,9 +2,9 @@ import type {
   FolderGetMetadataResponse,
   FolderGetResponse,
   FolderMetadata,
-} from '@stellariscloud/types'
-import { FolderPushMessage } from '@stellariscloud/types'
-import { useToast } from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/types'
+import { FolderPushMessage } from '@lombokapp/types'
+import { useToast } from '@lombokapp/ui-toolkit'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 import type { Socket } from 'socket.io-client'

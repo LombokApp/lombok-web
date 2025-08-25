@@ -1,11 +1,11 @@
-import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
 import {
   Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
+import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
 
 import { useTheme } from '../../contexts/theme.context'
 

@@ -1,4 +1,4 @@
-import type { ServerStorageDTO } from '@stellariscloud/types'
+import type { ServerStorageDTO } from '@lombokapp/types'
 
 import type { ServerStorageInputDTO } from '../server-storage-input.dto'
 

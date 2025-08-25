@@ -1,9 +1,9 @@
-import type { ContentMetadataEntry } from '@stellariscloud/types'
+import type { ContentMetadataEntry } from '@lombokapp/types'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import {
   Button,
   cn,
@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
   TypographyH3,
   useToast,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { Download, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'

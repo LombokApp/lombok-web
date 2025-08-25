@@ -18,17 +18,15 @@ export const App = () => {
                 <div className="size-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
                   <img
                     src="/assets/logo.png"
-                    alt="StellarisCloud"
+                    alt="Lombok"
                     className="size-full"
                   />
                 </div>
-                <span className="text-xl font-bold text-white">
-                  StellarisCloud
-                </span>
+                <span className="text-xl font-bold text-white">Lombok</span>
               </div>
               <nav className="hidden space-x-6 md:flex">
                 <a
-                  href="https://stellariscloud.com/docs/introduction"
+                  href="https://lombokapp.com/docs/introduction"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/70 transition-colors hover:text-white"
@@ -44,21 +42,21 @@ export const App = () => {
         <section className="container mx-auto px-4 py-20">
           <div className="text-center">
             <div className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-white/90">
-              🚀 Stellaris Cloud App Platform
+              🚀 Lombok App Platform
             </div>
             <h1 className="mb-6 text-5xl font-bold text-white md:text-7xl">
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Stellaris Cloud App Platform
+                Lombok App Platform
               </span>
             </h1>
             <p className="mx-auto mb-8 max-w-3xl text-xl text-white/70">
-              Build and deploy apps that integrate seamlessly with Stellaris
-              Cloud: respond to platform events, publish embedded UIs, and
-              orchestrate asynchronous work with Tasks.
+              Build and deploy apps that integrate seamlessly with Lombok:
+              respond to platform events, publish embedded UIs, and orchestrate
+              asynchronous work with Tasks.
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <a
-                href="https://stellariscloud.com/docs/technical-design/app-platform"
+                href="https://lombokapp.com/docs/technical-design/app-platform"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 font-semibold text-white transition-all duration-200 hover:scale-105 hover:from-blue-600 hover:to-purple-700"
@@ -66,7 +64,7 @@ export const App = () => {
                 Read the App Platform Guide
               </a>
               <a
-                href="https://stellariscloud.com/docs/introduction"
+                href="https://lombokapp.com/docs/introduction"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg border border-white/20 px-8 py-3 font-semibold text-white transition-all duration-200 hover:bg-white/10"
@@ -81,7 +79,7 @@ export const App = () => {
         <section className="container mx-auto px-4 py-10">
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-4xl font-bold text-white">
-              Build apps that extend Stellaris Cloud
+              Build apps that extend Lombok
             </h2>
             <p className="mx-auto max-w-2xl text-xl text-white/70">
               The App Platform lets you integrate deeply with the core product
@@ -113,7 +111,7 @@ export const App = () => {
               <p className="text-white/70">
                 Respond to events like <code>object_created</code> and{' '}
                 <code>object_updated</code>. Run as external services or managed
-                worker scripts inside Stellaris Cloud.
+                worker scripts inside Lombok.
               </p>
             </div>
 
@@ -159,11 +157,11 @@ export const App = () => {
                 </svg>
               </div>
               <h3 className="mb-2 text-xl font-semibold text-white">
-                Embedded UIs inside Stellaris Cloud
+                Embedded UIs inside Lombok
               </h3>
               <p className="text-white/70">
                 Publish secure, embedded user interfaces that render directly
-                within the Stellaris Cloud UI for a seamless experience.
+                within the Lombok UI for a seamless experience.
               </p>
             </div>
           </div>
@@ -189,7 +187,7 @@ export const App = () => {
         <footer className="border-t border-white/10 bg-white/5 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-8">
             <div className="text-center text-white/70">
-              <p>&copy; 2025 StellarisCloud. All rights reserved.</p>
+              <p>&copy; 2025 Lombok. All rights reserved.</p>
             </div>
           </div>
         </footer>

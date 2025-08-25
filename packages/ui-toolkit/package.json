@@ -1,9 +1,9 @@
 {
-  "name": "@stellariscloud/ui-toolkit",
+  "name": "@lombokapp/ui-toolkit",
   "version": "0.0.1",
-  "description": "The Stellaris Cloud UI Toolkit",
-  "author": "Stellaris Cloud",
-  "repository": "git@github.com:stellariscloud/ui-toolkit.git",
+  "description": "The Lombok UI Toolkit",
+  "author": "Lombok",
+  "repository": "git@github.com:lombokapp/ui-toolkit.git",
   "scripts": {
     "test": "tsc --project tsconfig.json",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",

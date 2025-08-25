@@ -1,6 +1,6 @@
-import type { FolderObjectDTO } from '@stellariscloud/types'
-import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
+import type { FolderObjectDTO } from '@lombokapp/types'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
+import { toMetadataObjectIdentifier } from '@lombokapp/utils'
 
 import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
 

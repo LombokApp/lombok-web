@@ -1,11 +1,11 @@
 import type {
   AppTask,
   PlatformServerMessageInterface,
-} from '@stellariscloud/app-worker-sdk'
-import { AppAPIError } from '@stellariscloud/app-worker-sdk'
-import type { ContentMetadataEntry } from '@stellariscloud/types'
-import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
-import { mediaTypeFromMimeType } from '@stellariscloud/utils'
+} from '@lombokapp/app-worker-sdk'
+import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import type { ContentMetadataEntry } from '@lombokapp/types'
+import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
+import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -58,7 +58,7 @@ export const analyzeObjectTaskHandler = async (
   }
 
   const tempDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), `stellaris_task_${task.id}_`),
+    path.join(os.tmpdir(), `lombok_task_${task.id}_`),
   )
 
   const fileUUID = uuidV4()

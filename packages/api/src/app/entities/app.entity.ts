@@ -3,7 +3,7 @@ import type {
   AppManifest,
   AppUIMap,
   AppWorkersMap,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
 import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 

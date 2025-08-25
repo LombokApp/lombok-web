@@ -1,7 +1,4 @@
-import type {
-  accessKeyPublicSchema,
-  accessKeySchema,
-} from '@stellariscloud/types'
+import type { accessKeyPublicSchema, accessKeySchema } from '@lombokapp/types'
 import type { z } from 'zod'
 
 export function transformAccessKeyToPublicDTO(
