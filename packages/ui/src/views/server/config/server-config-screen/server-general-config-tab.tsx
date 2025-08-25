@@ -1,4 +1,4 @@
-import type { ServerSettingsGetResponse } from '@stellariscloud/types'
+import type { ServerSettingsGetResponse } from '@lombokapp/types'
 import {
   Button,
   Card,
@@ -9,7 +9,7 @@ import {
   CardTitle,
   Checkbox,
   Input,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import React from 'react'
 
 interface ServerGeneralConfigTabProps {

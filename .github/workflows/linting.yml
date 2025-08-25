@@ -9,7 +9,7 @@ on:
 
 jobs:
   check-ui:
-    name: Check @stellariscloud/ui package
+    name: Check @lombokapp/ui package
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
       - run: bun --cwd packages/ui tsc:check
 
   check-api:
-    name: Check @stellariscloud/api package
+    name: Check @lombokapp/api package
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
       - run: bun --cwd packages/api tsc:check
 
   check-core-worker:
-    name: Check @stellariscloud/core-worker package
+    name: Check @lombokapp/core-worker package
     runs-on: ubuntu-latest
 
     steps:
@@ -57,7 +57,7 @@ jobs:
       - run: bun --cwd packages/core-worker tsc:check
 
   check-app-browser-sdk:
-    name: Check @stellariscloud/app-browser-sdk package
+    name: Check @lombokapp/app-browser-sdk package
     runs-on: ubuntu-latest
 
     steps:
@@ -73,7 +73,7 @@ jobs:
       - run: bun --cwd packages/app-browser-sdk tsc:check
 
   check-app-worker-sdk:
-    name: Check @stellariscloud/app-worker-sdk package
+    name: Check @lombokapp/app-worker-sdk package
     runs-on: ubuntu-latest
 
     steps:
@@ -89,7 +89,7 @@ jobs:
       - run: bun --cwd packages/app-worker-sdk tsc:check
 
   check-app-demo:
-    name: Check @stellariscloud/app-demo package
+    name: Check @lombokapp/app-demo package
     runs-on: ubuntu-latest
 
     steps:
@@ -105,7 +105,7 @@ jobs:
       - run: bun --cwd packages/app-demo tsc:check
 
   check-sdk:
-    name: Check @stellariscloud/sdk package
+    name: Check @lombokapp/sdk package
     runs-on: ubuntu-latest
 
     steps:
@@ -121,7 +121,7 @@ jobs:
       - run: bun --cwd packages/sdk tsc:check
 
   check-auth-utils:
-    name: Check @stellariscloud/auth-utils package
+    name: Check @lombokapp/auth-utils package
     runs-on: ubuntu-latest
 
     steps:
@@ -136,8 +136,8 @@ jobs:
       - run: bun --cwd packages/auth-utils lint:check
       - run: bun --cwd packages/auth-utils tsc:check
 
-  check-stellaris-utils:
-    name: Check @stellariscloud/utils package
+  check-lombok-utils:
+    name: Check @lombokapp/utils package
     runs-on: ubuntu-latest
 
     steps:
@@ -148,12 +148,12 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun --cwd packages/stellaris-utils prettier:check
-      - run: bun --cwd packages/stellaris-utils lint:check
-      - run: bun --cwd packages/stellaris-utils tsc:check
+      - run: bun --cwd packages/utils prettier:check
+      - run: bun --cwd packages/utils lint:check
+      - run: bun --cwd packages/utils tsc:check
 
-  check-stellaris-types:
-    name: Check @stellariscloud/types package
+  check-lombok-types:
+    name: Check @lombokapp/types package
     runs-on: ubuntu-latest
 
     steps:
@@ -164,12 +164,12 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun --cwd packages/stellaris-types prettier:check
-      - run: bun --cwd packages/stellaris-types lint:check
-      - run: bun --cwd packages/stellaris-types tsc:check
+      - run: bun --cwd packages/types prettier:check
+      - run: bun --cwd packages/types lint:check
+      - run: bun --cwd packages/types tsc:check
 
   check-ui-toolkit:
-    name: Check @stellariscloud/ui-toolkit package
+    name: Check @lombokapp/ui-toolkit package
     runs-on: ubuntu-latest
 
     steps:

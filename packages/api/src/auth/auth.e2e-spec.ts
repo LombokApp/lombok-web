@@ -23,7 +23,7 @@ describe('Auth', () => {
       .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
-        email: 'steven@stellariscloud.com',
+        email: 'steven@lombokapp.com',
         password: '123',
       })
       .expect(201)
@@ -46,7 +46,7 @@ describe('Auth', () => {
       .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
-        email: 'steven@stellariscloud.com',
+        email: 'steven@lombokapp.com',
         password: '123',
       })
       .expect(201)
@@ -57,7 +57,7 @@ describe('Auth', () => {
       .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans2',
-        email: 'steven@stellariscloud.com',
+        email: 'steven@lombokapp.com',
         password: '123',
       })
       .expect(409)
@@ -68,7 +68,7 @@ describe('Auth', () => {
       .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
-        email: 'steven2@stellariscloud.com',
+        email: 'steven2@lombokapp.com',
         password: '123',
       })
       .expect(409)
@@ -79,7 +79,7 @@ describe('Auth', () => {
       .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans2',
-        email: 'steven2@stellariscloud.com',
+        email: 'steven2@lombokapp.com',
         password: '123',
       })
       .expect(201)
@@ -89,18 +89,18 @@ describe('Auth', () => {
     const inputs = [
       {
         INVALID_KEY: 'mekpans',
-        email: 'steven@stellariscloud.com',
+        email: 'steven@lombokapp.com',
         password: '123',
       },
       {
         username:
           'mekpans_toolong__________________________________________________',
-        email: 'steven@stellariscloud.com',
+        email: 'steven@lombokapp.com',
         password: '123',
       },
       {
         username: 'mekpans',
-        email: 'steven@stellariscloud.com',
+        email: 'steven@lombokapp.com',
         INVALID_KEY: '123',
       },
       {

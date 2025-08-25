@@ -1,3 +1,5 @@
+import { ExternalAppWorker } from '@lombokapp/types'
+import { safeZodParse } from '@lombokapp/utils'
 import {
   Injectable,
   Logger,
@@ -5,8 +7,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { ExternalAppWorker } from '@stellariscloud/types'
-import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'

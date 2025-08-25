@@ -1,3 +1,4 @@
+import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
 import {
   forwardRef,
   Module,
@@ -5,7 +6,6 @@ import {
   OnModuleInit,
 } from '@nestjs/common'
 import * as nestjsConfig from '@nestjs/config'
-import { PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import { CronJob } from 'cron'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'

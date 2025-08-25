@@ -9,7 +9,7 @@ import {
   FormLabel,
   FormMessage,
   Switch,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 

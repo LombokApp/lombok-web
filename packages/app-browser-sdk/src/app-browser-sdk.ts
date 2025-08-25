@@ -1,4 +1,4 @@
-import { StellarisCloudSdk } from '@stellariscloud/sdk'
+import { LombokSdk } from '@lombokapp/sdk'
 
 import { IframeCommunicator } from './iframe-communicator'
 import type {
@@ -13,7 +13,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   private static isInitialized = false
   private static initRequested = false
   private static tokens?: TokenData
-  private static sdk: StellarisCloudSdk | undefined = undefined
+  private static sdk: LombokSdk | undefined = undefined
 
   public get communicator(): Promise<IframeCommunicator> {
     if (!AppBrowserSdk._communicator && !AppBrowserSdk.initRequested) {
@@ -50,9 +50,9 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return basePathParam || 'http://localhost:3000'
   })()
 
-  public get sdk(): StellarisCloudSdk {
+  public get sdk(): LombokSdk {
     if (!AppBrowserSdk.sdk) {
-      AppBrowserSdk.sdk = new StellarisCloudSdk({
+      AppBrowserSdk.sdk = new LombokSdk({
         basePath: this.basePath,
         accessToken: () => AppBrowserSdk.tokens?.accessToken,
         refreshToken: () => AppBrowserSdk.tokens?.refreshToken,
@@ -83,7 +83,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
       const _error = new Error(
         (message.payload as { message: string }).message || 'Unknown error',
       )
-      console.error('Stellaris Cloud IFrame Communication Error:', _error)
+      console.error('Lombok ifrrame communication error:', _error)
     })
   }
 

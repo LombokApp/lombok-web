@@ -1,5 +1,5 @@
-import { RequestHandler, sendResponse } from '@stellariscloud/app-worker-sdk'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
+import { RequestHandler, sendResponse } from '@lombokapp/app-worker-sdk'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 
 export const handleRequest: RequestHandler = async function handleRequest(
   request,

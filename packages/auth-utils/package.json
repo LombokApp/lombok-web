@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/auth-utils",
+  "name": "@lombokapp/auth-utils",
   "private": true,
   "scripts": {
     "build": "bun build .",
@@ -19,8 +19,8 @@
     "ts-jest": "29.2.4"
   },
   "dependencies": {
-    "@stellariscloud/utils": "workspace:*",
-    "@stellariscloud/types": "workspace:*",
+    "@lombokapp/utils": "workspace:*",
+    "@lombokapp/types": "workspace:*",
     "openapi-fetch": "^0.14.0",
     "jwt-decode": "4.0.0",
     "react": "18.3.1",

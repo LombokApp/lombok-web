@@ -1,3 +1,3 @@
 export enum Cookie {
-  auth = 'stellariscloud:auth',
+  auth = 'lombok:auth',
 }

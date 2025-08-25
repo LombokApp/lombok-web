@@ -22,8 +22,8 @@ export async function getMediaDimensionsWithSharp(
   }
 }
 
-import { MediaType } from '@stellariscloud/types'
-import { mediaTypeFromMimeType } from '@stellariscloud/utils'
+import { MediaType } from '@lombokapp/types'
+import { mediaTypeFromMimeType } from '@lombokapp/utils'
 
 import {
   getExifTagsFromImage,
@@ -163,7 +163,7 @@ export const resizeContent = async ({
 
   const tempDir = path.join(
     os.tmpdir(),
-    `stellaris_resize_image_${uuidV5(inFilepath, uuidV5.URL)}`,
+    `lombok_resize_image_${uuidV5(inFilepath, uuidV5.URL)}`,
   )
   if (mimeType === 'image/heic') {
     finalInFilepath = path.join(tempDir, 'converted.jpg')

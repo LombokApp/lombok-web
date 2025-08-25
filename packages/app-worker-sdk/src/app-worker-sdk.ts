@@ -6,7 +6,7 @@ import type {
   EventDTO,
   SignedURLsRequestMethod,
   WorkerErrorDetails,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 

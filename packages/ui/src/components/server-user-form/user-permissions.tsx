@@ -1,4 +1,4 @@
-import { Switch } from '@stellariscloud/ui-toolkit'
+import { Switch } from '@lombokapp/ui-toolkit'
 
 const PERMISSIONS = ['one_permission', 'two_permission']
 

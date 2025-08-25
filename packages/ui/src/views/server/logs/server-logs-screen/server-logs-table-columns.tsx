@@ -1,7 +1,6 @@
-import { type LogEntryDTO, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
-import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { cn } from '@stellariscloud/ui-toolkit'
-import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { type LogEntryDTO, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
+import { cn, DataTableColumnHeader } from '@lombokapp/ui-toolkit'
 
 import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'

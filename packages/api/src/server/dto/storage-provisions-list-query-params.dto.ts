@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { StorageProvisionTypeZodEnum } from '@stellariscloud/types'
+import { StorageProvisionTypeZodEnum } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const storageProvisionsListQueryParamsSchema = z.object({

@@ -19,8 +19,8 @@ jobs:
             --target release \
             --platform linux/amd64,linux/arm64 \
             -f "./docker/app.Dockerfile" \
-            -t ghcr.io/${{ github.repository_owner }}/stellariscloud:${{ github.ref_name }} \
-            -t ghcr.io/${{ github.repository_owner }}/stellariscloud:latest \
+            -t ghcr.io/${{ github.repository_owner }}/lombok:${{ github.ref_name }} \
+            -t ghcr.io/${{ github.repository_owner }}/lombok:latest \
             --push .
 
   build-and-push-standalone:
@@ -39,6 +39,6 @@ jobs:
             --target standalone-release \
             --platform linux/amd64,linux/arm64 \
             -f "./docker/app.Dockerfile" \
-            -t ghcr.io/${{ github.repository_owner }}/stellariscloud-standalone:${{ github.ref_name }} \
-            -t ghcr.io/${{ github.repository_owner }}/stellariscloud-standalone:latest \
+            -t ghcr.io/${{ github.repository_owner }}/lombok-standalone:${{ github.ref_name }} \
+            -t ghcr.io/${{ github.repository_owner }}/lombok-standalone:latest \
             --push .

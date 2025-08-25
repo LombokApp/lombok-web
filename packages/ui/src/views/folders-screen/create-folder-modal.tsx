@@ -1,13 +1,13 @@
 import type {
   FolderCreateInputDTO,
   StorageProvisionDTO,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 

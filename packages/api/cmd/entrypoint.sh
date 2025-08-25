@@ -1,7 +1,11 @@
 #!/bin/sh
 
-# Set default domain if not provided
-PLATFORM_HOST=${PLATFORM_HOST:-"stellariscloudtest.localhost"}
+if [ -z "$PLATFORM_HOST" ]; then
+    echo "Error: PLATFORM_HOST environment variable is required but not set"
+    exit 1
+fi
+
+
 APP_UI_HOST=${APP_UI_HOST:-"http://127.0.0.1:3001"}
 
 # Copy the NGINX configuration and replace the domain placeholder

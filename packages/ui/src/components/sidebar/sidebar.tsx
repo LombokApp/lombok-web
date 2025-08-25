@@ -1,5 +1,5 @@
-import type { IAuthContext } from '@stellariscloud/auth-utils'
-import { Button, cn } from '@stellariscloud/ui-toolkit'
+import type { IAuthContext } from '@lombokapp/auth-utils'
+import { Button, cn } from '@lombokapp/ui-toolkit'
 import { Link } from 'react-router-dom'
 
 import type { AppRouteDescription } from '../../contexts/server.context'
@@ -34,7 +34,7 @@ export function Sidebar({
       <div
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
-        className="dark:shadow-zinc-900 relative flex h-screen flex-col overflow-y-auto border-r shadow-md"
+        className="relative flex h-screen flex-col overflow-y-auto border-r shadow-md dark:shadow-zinc-900"
       >
         <div className="border-b bg-black/5 pb-0 pl-4 pr-2 pt-1">
           <Button
@@ -47,10 +47,10 @@ export function Sidebar({
             <Link to="/folders" className="flex gap-4 p-0">
               <img
                 className="rounded-full"
-                src="/stellariscloud.png"
+                src="/logo.png"
                 width={24}
                 height={24}
-                alt="Stellaris Cloud logo"
+                alt="Lombok logo"
               />
               <h1
                 className={cn(
@@ -60,7 +60,7 @@ export function Sidebar({
                     : 'translate-x-0 opacity-100',
                 )}
               >
-                Stellaris Cloud
+                Lombok
               </h1>
             </Link>
           </Button>

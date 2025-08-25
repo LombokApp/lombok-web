@@ -1,5 +1,5 @@
-import type { ServerLogsListRequest } from '@stellariscloud/types'
-import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { ServerLogsListRequest } from '@lombokapp/types'
+import { cn, DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'

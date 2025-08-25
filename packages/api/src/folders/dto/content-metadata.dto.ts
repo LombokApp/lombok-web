@@ -4,7 +4,7 @@ import {
   externalMetadataEntrySchema,
   inlineMetadataEntrySchema,
   metadataEntrySchema,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 
 export class ExternalMetadataEntryDTO extends createZodDto(
   externalMetadataEntrySchema,

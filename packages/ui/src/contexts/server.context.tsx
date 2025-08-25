@@ -1,11 +1,11 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
+import { useAuthContext } from '@lombokapp/auth-utils'
 import type {
   AppContributionsResponse,
   AppPushMessage,
   AppUILink,
   ServerSettingsListResponse,
-} from '@stellariscloud/types'
-import { ServerPushMessage } from '@stellariscloud/types'
+} from '@lombokapp/types'
+import { ServerPushMessage } from '@lombokapp/types'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 import type { Socket } from 'socket.io-client'

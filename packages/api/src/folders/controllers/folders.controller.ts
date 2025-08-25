@@ -1,4 +1,5 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
+import { FolderPermissionEnum } from '@lombokapp/types'
 import {
   Body,
   Controller,
@@ -15,7 +16,6 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
-import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {

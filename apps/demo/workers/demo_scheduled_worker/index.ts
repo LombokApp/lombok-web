@@ -1,4 +1,4 @@
-import { TaskHandler } from '@stellariscloud/app-worker-sdk'
+import { TaskHandler } from '@lombokapp/app-worker-sdk'
 
 export const handleTask: TaskHandler = async function handleTask(
   task,

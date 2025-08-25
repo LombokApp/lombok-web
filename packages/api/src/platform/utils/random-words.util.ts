@@ -1,4 +1,4 @@
-import { randomHex } from '@stellariscloud/utils'
+import { randomHex } from '@lombokapp/utils'
 
 const NOUNS = [
   'armour',

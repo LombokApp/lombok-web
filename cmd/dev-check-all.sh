@@ -15,24 +15,24 @@ run_checks() {
   bun --cwd ${path} lint:check
 }
 
-run_checks "@stellariscloud/ui" packages/ui
+run_checks "@lombokapp/ui" packages/ui
 
-run_checks "@stellariscloud/api" packages/api
+run_checks "@lombokapp/api" packages/api
 
-run_checks "@stellariscloud/core-worker" packages/core-worker
+run_checks "@lombokapp/core-worker" packages/core-worker
 
-run_checks "@stellariscloud/auth-utils" packages/auth-utils
+run_checks "@lombokapp/auth-utils" packages/auth-utils
 
-run_checks "@stellariscloud/app-browser-sdk" packages/app-browser-sdk
+run_checks "@lombokapp/app-browser-sdk" packages/app-browser-sdk
 
-run_checks "@stellariscloud/app-demo" packages/app-demo
+run_checks "@lombokapp/app-demo" packages/app-demo
 
-run_checks "@stellariscloud/sdk" packages/sdk
+run_checks "@lombokapp/sdk" packages/sdk
 
-run_checks "@stellariscloud/app-worker-sdk" packages/app-worker-sdk
+run_checks "@lombokapp/app-worker-sdk" packages/app-worker-sdk
 
-run_checks "@stellariscloud/utils" packages/stellaris-utils
+run_checks "@lombokapp/utils" packages/utils
 
-run_checks "@stellariscloud/types" packages/stellaris-types
+run_checks "@lombokapp/types" packages/types
 
-run_checks "@stellariscloud/ui-toolkit" packages/ui-toolkit
+run_checks "@lombokapp/ui-toolkit" packages/ui-toolkit

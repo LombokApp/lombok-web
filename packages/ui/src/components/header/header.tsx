@@ -1,5 +1,5 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
-import { Button, cn } from '@stellariscloud/ui-toolkit'
+import { useAuthContext } from '@lombokapp/auth-utils'
+import { Button, cn } from '@lombokapp/ui-toolkit'
 import { ArrowRight, FolderOpen } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import React from 'react'
@@ -39,10 +39,10 @@ export const Header = () => {
           <div className="flex items-center gap-4">
             <img
               className="rounded-full"
-              src="/stellariscloud.png"
+              src="/logo.png"
               width={24}
               height={24}
-              alt="Stellaris cloud logo"
+              alt="Lombok Logo"
             />
             <div
               className={cn(
@@ -50,7 +50,7 @@ export const Header = () => {
                 location.pathname === '/' && 'text-white',
               )}
             >
-              Stellaris Cloud
+              Lombok
             </div>
           </div>
         </NavLink>

@@ -1,5 +1,5 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
-import { Button, ButtonVariant } from '@stellariscloud/ui-toolkit'
+import { useAuthContext } from '@lombokapp/auth-utils'
+import { Button, ButtonVariant } from '@lombokapp/ui-toolkit'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -19,7 +19,7 @@ export const LandingPage = () => {
       <div className="relative isolate size-full min-h-[calc(100vh-56px)] overflow-hidden pt-14">
         <img
           src="/home-bg.jpeg"
-          alt="Stellaris Cloud background"
+          alt="Lombok background"
           className="absolute inset-0 -z-20 size-full object-cover"
         />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
@@ -40,12 +40,12 @@ export const LandingPage = () => {
               storage and compute infrastructure.
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-200">
-              Stellaris Cloud is a zero cost, zero lock-in, secure file storage
-              and compute solution that you can run anywhere on any hardware.
+              Lombok is a zero cost, zero lock-in, secure file storage and
+              compute solution that you can run anywhere on any hardware.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Button onClick={handleGetStarted}>Get started</Button>
-              <a className="flex" href="https://stellariscloud.com">
+              <a className="flex" href="https://lombokapp.com">
                 <Button
                   variant={ButtonVariant.link}
                   className="text-sm font-semibold leading-6 text-white"

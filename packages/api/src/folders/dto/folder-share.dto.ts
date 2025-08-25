@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { FolderPermissionZodEnum } from '@stellariscloud/types'
+import { FolderPermissionZodEnum } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const folderShareSchema = z.object({

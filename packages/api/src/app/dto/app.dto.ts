@@ -5,7 +5,7 @@ import {
   appUiArraySchema,
   appWorkersSchema,
   externalAppWorkerSchema,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import { z } from 'zod'
 
 export const appSchema = z.object({

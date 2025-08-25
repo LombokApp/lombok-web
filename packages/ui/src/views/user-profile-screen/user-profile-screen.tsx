@@ -1,6 +1,6 @@
-import type { UserDTO } from '@stellariscloud/types'
-import { cn, TypographyH2 } from '@stellariscloud/ui-toolkit'
-import type { NullablePartial } from '@stellariscloud/utils'
+import type { UserDTO } from '@lombokapp/types'
+import { cn, TypographyH2 } from '@lombokapp/ui-toolkit'
+import type { NullablePartial } from '@lombokapp/utils'
 import React from 'react'
 
 import { $api } from '@/src/services/api'

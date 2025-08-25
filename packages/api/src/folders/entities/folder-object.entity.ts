@@ -1,4 +1,4 @@
-import type { ContentMetadataByHash, MediaType } from '@stellariscloud/types'
+import type { ContentMetadataByHash, MediaType } from '@lombokapp/types'
 import {
   bigint,
   index,

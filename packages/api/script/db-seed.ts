@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@lombokapp/types'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
     ),
     user1Folder1Metadata: buildDevSeedLocation(
       USER_1_ID,
-      `user-1-folder-1-prefix/.stellaris_folder_metadata_${USER_1_FOLDER_1_ID}`,
+      `user-1-folder-1-prefix/.lombok_folder_metadata_${USER_1_FOLDER_1_ID}`,
     ),
     user1Folder2Content: buildDevSeedLocation(
       USER_1_ID,
@@ -117,7 +117,7 @@ async function main(): Promise<void> {
     ),
     user1Folder2Metadata: buildDevSeedLocation(
       USER_1_ID,
-      `user-1-folder-2-prefix/.stellaris_folder_metadata_${USER_1_FOLDER_2_ID}`,
+      `user-1-folder-2-prefix/.lombok_folder_metadata_${USER_1_FOLDER_2_ID}`,
     ),
     admin1Folder1Content: buildDevSeedLocation(
       ADMIN_1_ID,
@@ -125,12 +125,12 @@ async function main(): Promise<void> {
     ),
     admin1Folder1Metadata: buildDevSeedLocation(
       ADMIN_1_ID,
-      `admin-1-folder-1-prefix/.stellaris_folder_metadata_${ADMIN_1_FOLDER_1_ID}`,
+      `admin-1-folder-1-prefix/.lombok_folder_metadata_${ADMIN_1_FOLDER_1_ID}`,
     ),
     admin1BigFolderContent: buildDevSeedLocation(ADMIN_1_ID, 'big-folder-test'),
     admin1BigFolderMetadata: buildDevSeedLocation(
       ADMIN_1_ID,
-      `big-folder-test/.stellaris_folder_metadata_${ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID}`,
+      `big-folder-test/.lombok_folder_metadata_${ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID}`,
     ),
   }
   const locations = Object.keys(locationsMap).map(

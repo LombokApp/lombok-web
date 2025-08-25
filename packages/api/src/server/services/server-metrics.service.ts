@@ -1,5 +1,5 @@
+import { StorageProvisionDTO } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { StorageProvisionDTO } from '@stellariscloud/types'
 import { eq, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'

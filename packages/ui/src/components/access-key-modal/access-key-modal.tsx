@@ -1,11 +1,11 @@
-import type { AccessKeyPublicDTO } from '@stellariscloud/types'
+import type { AccessKeyPublicDTO } from '@lombokapp/types'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   TypographyH3,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 

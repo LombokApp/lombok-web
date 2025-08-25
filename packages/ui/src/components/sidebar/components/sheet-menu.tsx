@@ -1,4 +1,4 @@
-import type { IAuthContext } from '@stellariscloud/auth-utils'
+import type { IAuthContext } from '@lombokapp/auth-utils'
 import {
   Button,
   Sheet,
@@ -6,7 +6,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 

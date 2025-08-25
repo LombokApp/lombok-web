@@ -1,5 +1,5 @@
+import type { paths } from '@lombokapp/types'
 import type { INestApplication } from '@nestjs/common'
-import type { paths } from '@stellariscloud/types'
 import createFetch from 'openapi-fetch'
 import request from 'supertest'
 import type { App } from 'supertest/types'

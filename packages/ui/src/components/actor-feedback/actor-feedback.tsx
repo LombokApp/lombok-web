@@ -1,4 +1,4 @@
-import { PLATFORM_IDENTIFIER } from '@stellariscloud/types'
+import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
 
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
@@ -29,7 +29,7 @@ export function ActorFeedback({
         }}
       >
         {actorIdentifier === PLATFORM_IDENTIFIER ? (
-          <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
+          <img width={32} height={32} alt="Core" src="/logo.png" />
         ) : (
           <span className="truncate uppercase">{actorIdentifier[0] ?? ''}</span>
         )}

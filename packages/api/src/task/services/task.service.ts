@@ -1,3 +1,4 @@
+import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
 import {
   forwardRef,
   Inject,
@@ -5,7 +6,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import {
   and,
   count,

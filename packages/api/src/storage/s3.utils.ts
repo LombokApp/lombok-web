@@ -1,4 +1,4 @@
-import type { SignedURLsRequestMethod } from '@stellariscloud/types'
+import type { SignedURLsRequestMethod } from '@lombokapp/types'
 import aws4 from 'aws4'
 
 export function createS3PresignedUrls(

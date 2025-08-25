@@ -22,15 +22,15 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
 import React from 'react'
 
+import { AppAttributeList } from '@/src/components/app-attribute-list/app-attribute-list'
+import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { useServerContext } from '@/src/hooks/use-server-context'
 import { $api } from '@/src/services/api'
 
-import { AppAttributeList } from '../../../../components/app-attribute-list/app-attribute-list'
-import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'

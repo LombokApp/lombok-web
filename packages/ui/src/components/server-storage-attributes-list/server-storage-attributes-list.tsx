@@ -1,5 +1,5 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
-import { Badge, cn } from '@stellariscloud/ui-toolkit'
+import type { StorageProvisionDTO } from '@lombokapp/types'
+import { Badge, cn } from '@lombokapp/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity-50'
@@ -11,7 +11,7 @@ export function ServerStorageAttributesList({
   storageProvision?: StorageProvisionDTO
 }) {
   return (
-    <div className="dark:rounded-none rounded-lg pl-4">
+    <div className="rounded-lg pl-4 dark:rounded-none">
       <dl className="divide-y divide-white/10">
         <div
           className={cn('sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0', ROW_SPACING)}

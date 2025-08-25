@@ -1,4 +1,4 @@
-import type { FolderGetResponse, FolderMetadata } from '@stellariscloud/types'
+import type { FolderGetResponse, FolderMetadata } from '@lombokapp/types'
 import {
   Button,
   Card,
@@ -7,8 +7,8 @@ import {
   cn,
   Label,
   TypographyH3,
-} from '@stellariscloud/ui-toolkit'
-import { formatBytes } from '@stellariscloud/utils'
+} from '@lombokapp/ui-toolkit'
+import { formatBytes } from '@lombokapp/utils'
 import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
 
 import { useServerContext } from '@/src/hooks/use-server-context'

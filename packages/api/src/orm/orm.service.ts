@@ -46,7 +46,7 @@ export const dbSchema = {
   folderSharesTable,
 }
 
-export const TEST_DB_PREFIX = 'stellaris_test__'
+export const TEST_DB_PREFIX = 'lombok_test__'
 
 @Injectable()
 export class OrmService {

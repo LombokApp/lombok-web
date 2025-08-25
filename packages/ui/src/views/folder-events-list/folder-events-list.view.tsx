@@ -1,12 +1,12 @@
-import type { EventDTO, FolderGetResponse } from '@stellariscloud/types'
-import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
+import type { EventDTO, FolderGetResponse } from '@lombokapp/types'
+import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@lombokapp/types'
 import {
   Card,
   CardContent,
   CardHeader,
   Skeleton,
   TypographyH3,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { ActivityIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'

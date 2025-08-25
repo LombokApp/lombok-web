@@ -1,4 +1,4 @@
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit'
 import type { LucideProps } from 'lucide-react'
 
 export function EmptyState({

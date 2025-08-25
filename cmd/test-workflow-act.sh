@@ -15,8 +15,8 @@ JOBS=(
   "check-app-demo"
   "check-sdk"
   "check-auth-utils"
-  "check-stellaris-utils"
-  "check-stellaris-types"
+  "check-utils"
+  "check-types"
   "check-ui-toolkit"
 )
 

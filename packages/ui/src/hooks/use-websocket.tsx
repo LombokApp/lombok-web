@@ -1,5 +1,5 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
-import type { FolderPushMessage } from '@stellariscloud/types'
+import { useAuthContext } from '@lombokapp/auth-utils'
+import type { FolderPushMessage } from '@lombokapp/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'

@@ -1,4 +1,4 @@
-import { CORE_APP_IDENTIFIER } from '@stellariscloud/types'
+import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 

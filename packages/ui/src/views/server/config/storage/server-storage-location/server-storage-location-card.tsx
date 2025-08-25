@@ -1,5 +1,5 @@
-import type { ServerStorageDTO } from '@stellariscloud/types'
-import { Button } from '@stellariscloud/ui-toolkit'
+import type { ServerStorageDTO } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit'
 import {
   Globe,
   KeyRoundIcon,

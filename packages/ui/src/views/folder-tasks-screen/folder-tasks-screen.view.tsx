@@ -1,5 +1,5 @@
-import type { ServerTasksApiListTasksRequest } from '@stellariscloud/types'
-import { DataTable } from '@stellariscloud/ui-toolkit'
+import type { ServerTasksApiListTasksRequest } from '@lombokapp/types'
+import { DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'

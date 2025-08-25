@@ -1,5 +1,5 @@
-import type { ServerUsersListRequest } from '@stellariscloud/types'
-import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { ServerUsersListRequest } from '@lombokapp/types'
+import { Button, cn, DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
 import React from 'react'

@@ -1,5 +1,5 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
-import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
+import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,7 @@ import {
   Button,
   buttonVariants,
   DataTableColumnHeader,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 

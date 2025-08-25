@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
   useToast,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import React from 'react'
 
 import { AccessKeyRotateModal } from '@/src/components/access-key-rotate-modal/access-key-rotate-modal'

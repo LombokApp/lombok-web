@@ -1,13 +1,13 @@
 services:
   app:
-    image: ghcr.io/stellariscloud/stellariscloud:latest
-    container_name: stellariscloud-demo-app
+    image: ghcr.io/lombokapp/lombok:latest
+    container_name: lombok-demo-app
     environment:
-      PLATFORM_HOST: http://stellarisclouddemo.localhost
+      PLATFORM_HOST: http://lombokdemo.localhost
       INITIAL_USER: demo
       AUTH_JWT_SECRET: 00000000000000000000000000000000 # replace with a random string
-      DB_NAME: stellariscloud_demo_db
-      DB_USER: stellariscloud_demo_user
+      DB_NAME: lombok_demo_db
+      DB_USER: lombok_demo_user
       DB_PASSWORD: demodemodemodemodemodemo
       DB_HOST: db
       DB_PORT: 5432
@@ -24,10 +24,10 @@ services:
 
   db:
     image: postgres
-    container_name: stellaris-demo-db
+    container_name: lombok-demo-db
     environment:
-      POSTGRES_DB: stellariscloud_demo_db
-      POSTGRES_USER: stellariscloud_demo_user
+      POSTGRES_DB: lombok_demo_db
+      POSTGRES_USER: lombok_demo_user
       POSTGRES_PASSWORD: demodemodemodemodemodemo
     ports:
       - 5432:5432

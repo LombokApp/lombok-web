@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 

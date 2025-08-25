@@ -6,7 +6,7 @@ import {
   DataTable,
   TypographyH3,
   TypographySubtitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import {
   AppWindow,
   ChartLine,

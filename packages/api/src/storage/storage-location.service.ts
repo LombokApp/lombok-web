@@ -1,16 +1,16 @@
 import { S3ServiceException } from '@aws-sdk/client-s3'
 import {
+  accessKeyPublicSchema,
+  accessKeySchema,
+  ServerStorageDTO,
+  StorageProvisionDTO,
+} from '@lombokapp/types'
+import {
   BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import {
-  accessKeyPublicSchema,
-  accessKeySchema,
-  ServerStorageDTO,
-  StorageProvisionDTO,
-} from '@stellariscloud/types'
 import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'

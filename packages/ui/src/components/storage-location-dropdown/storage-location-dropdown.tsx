@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@lombokapp/types'
 import {
   Button,
   DropdownMenu,
@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 export function StorageLocationDropdown({
   storageProvisions,

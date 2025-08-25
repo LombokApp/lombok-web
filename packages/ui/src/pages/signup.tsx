@@ -1,5 +1,5 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
-import { useToast } from '@stellariscloud/ui-toolkit'
+import { useAuthContext } from '@lombokapp/auth-utils'
+import { useToast } from '@lombokapp/ui-toolkit'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 

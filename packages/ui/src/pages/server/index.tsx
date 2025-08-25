@@ -1,4 +1,4 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
+import { useAuthContext } from '@lombokapp/auth-utils'
 import { useParams } from 'react-router-dom'
 
 import { ContentLayout } from '../../components/sidebar/components/content-layout'

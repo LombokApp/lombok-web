@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { subjectContextSchema } from '@stellariscloud/types'
+import { subjectContextSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const eventSchema = z.object({

@@ -3,7 +3,7 @@ import {
   subjectContextSchema,
   taskInputDataSchema,
   workerErrorDetailsSchema,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import { z } from 'zod'
 
 export const taskSchema = z.object({

@@ -1,4 +1,4 @@
-import { cn } from '@stellariscloud/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit'
 
 export const ProgressBar = ({
   progress,

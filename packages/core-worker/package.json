@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/core-worker",
+  "name": "@lombokapp/core-worker",
   "private": true,
   "scripts": {
     "build": "bun build . --target bun --outdir dist",
@@ -13,7 +13,7 @@
     "test:unit": "jest"
   },
   "devDependencies": {
-    "@stellariscloud/types": "workspace:*",
+    "@lombokapp/types": "workspace:*",
     "@types/exif": "0.6.5",
     "@types/fluent-ffmpeg": "2.1.27",
     "@types/jest": "29.5.14",
@@ -22,8 +22,8 @@
     "ts-jest": "29.2.5"
   },
   "dependencies": {
-    "@stellariscloud/utils": "workspace:*",
-    "@stellariscloud/app-worker-sdk": "workspace:*",
+    "@lombokapp/utils": "workspace:*",
+    "@lombokapp/app-worker-sdk": "workspace:*",
     "exifr": "7.1.3",
     "fast-json-stable-stringify": "2.1.0",
     "fluent-ffmpeg": "2.1.3",

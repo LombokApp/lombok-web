@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { MediaType } from '@stellariscloud/types'
+import { MediaType } from '@lombokapp/types'
 import { z } from 'zod'
 
 import { mappingExtendedMetadataEntrySchema } from './content-metadata.dto'

@@ -1,4 +1,4 @@
-import { buildAppClient } from '@stellariscloud/app-worker-sdk'
+import { buildAppClient } from '@lombokapp/app-worker-sdk'
 import {
   analyzeObjectTaskHandler,
   connectAndPerformWork,
@@ -6,8 +6,8 @@ import {
   runWorkerScript,
   runWorkerScriptTaskHandler,
   uniqueExecutionKey,
-} from '@stellariscloud/core-worker'
-import type { AppManifest } from '@stellariscloud/types'
+} from '@lombokapp/core-worker'
+import type { AppManifest } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
@@ -252,7 +252,7 @@ process.stdin.once('data', (data) => {
 
     const bundleCacheRoot = path.join(
       os.tmpdir(),
-      'stellaris-bundle-cache',
+      'lombok-bundle-cache',
       workerData.appWorkerId,
     )
 
@@ -391,7 +391,7 @@ process.stdin.once('data', (data) => {
             const bundleCacheKey = `${appIdentifier}-${uiIdentifier}`
             const bundleCacheDir = path.join(
               bundleCacheRoot,
-              `stellaris-bundle-${bundleCacheKey}`,
+              `lombok-bundle-${bundleCacheKey}`,
             )
             const manifestFilePath = path.join(bundleCacheDir, 'manifest.json')
 

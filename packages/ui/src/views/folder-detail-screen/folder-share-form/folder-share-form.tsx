@@ -3,8 +3,8 @@ import type {
   FolderPermissionName,
   FolderShareListResponse,
   FolderShareUserListResponse,
-} from '@stellariscloud/types'
-import { FolderPermissionEnum } from '@stellariscloud/types'
+} from '@lombokapp/types'
+import { FolderPermissionEnum } from '@lombokapp/types'
 import {
   Button,
   cn,
@@ -19,7 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import type { FetchOptions } from 'openapi-fetch'
 import React from 'react'

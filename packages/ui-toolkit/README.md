@@ -1,6 +1,6 @@
 # UI Toolkit
 
-This is Stellaris Cloud's UI Toolkit. It is a collection of components, hooks, and utilities that are designed to help us build consistent and beautiful user interfaces.
+This is Lombok's UI Toolkit. It is a collection of components, hooks, and utilities that are designed to help us build consistent and beautiful user interfaces.
 
 ## Technologies
 
@@ -10,7 +10,6 @@ This library is built with the following technologies:
 - [TailwindCSS](https://tailwindcss.com/) (for styling)
 - [TypeScript](https://www.typescriptlang.org/) (for type safety)
 - [Storybook](https://storybook.js.org/) (for documentation and development)
-- [Plop](https://plopjs.com/) (for generating new components)
 
 ## What's Inside
 
@@ -26,23 +25,17 @@ This library is built with the following technologies:
 ### Install Dependencies
 
 ```bash
-yarn install
+bun install
 ```
 
 ### Run Storybook
 
 ```bash
-yarn storybook
+bun storybook
 ```
 
 ### Build
 
 ```bash
-yarn build
-```
-
-### Generate a New Component
-
-```bash
-yarn generate:component
+bun build
 ```

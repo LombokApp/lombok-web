@@ -1,5 +1,5 @@
-import type { AccessKeysListRequest } from '@stellariscloud/sdk'
-import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { AccessKeysListRequest } from '@lombokapp/sdk'
+import { cn, DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 

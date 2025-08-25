@@ -1,8 +1,8 @@
 import type {
   FolderObjectsListRequest,
   FolderPermissionName,
-} from '@stellariscloud/types'
-import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
+} from '@lombokapp/types'
+import { FolderPermissionEnum, FolderPushMessage } from '@lombokapp/types'
 import {
   Button,
   cn,
@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   useToast,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/table-core'
 import {
   CloudUpload,

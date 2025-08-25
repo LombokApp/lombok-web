@@ -1,4 +1,4 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { taskConfigSchema } from '@stellariscloud/types'
+import { taskConfigSchema } from '@lombokapp/types'
 
 export class TaskConfigDTO extends createZodDto(taskConfigSchema) {}

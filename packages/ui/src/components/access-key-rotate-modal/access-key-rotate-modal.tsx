@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
   TypographySubtitle,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 
 import { AccessKeyRotateForm } from '@/src/components/access-key-rotate-form/access-key-rotate-form'
 

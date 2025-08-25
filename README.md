@@ -1,10 +1,10 @@
-# StellarisCloud
+# Lombok
 
-## What is StellarisCloud?
+## What is Lombok?
 
-Stellaris Cloud is a free, open-source and self-hostable storage and compute platform that runs on any S3-compatible storage service. Deploy on minimal hardware, sync your files, and run custom apps — all while keeping your data sovereign.
+Lombok is a free, open-source and self-hostable storage and compute platform that runs on any S3-compatible storage service. Deploy on minimal hardware, sync your files, and run custom apps — all while keeping your data sovereign.
 
-To learn more, visit the [public site](https://stellariscloud.com) and read the [documentation](https://stellariscloud.com/docs).
+To learn more, visit the [public site](https://lombokapp.com) and read the [documentation](https://lombokapp.com/docs).
 
 ## Running for development
 
@@ -14,8 +14,8 @@ To learn more, visit the [public site](https://stellariscloud.com) and read the 
 4. `bun db:dev` -- run the db
 5. `bun api:dev` -- run the backend
 6. `bun ui:dev` -- run the ui
-7. Add `stellariscloud.localhost` and `minio` to your /etc/hosts file (pointing at 127.0.0.1)
-8. Visit http://stellariscloud.localhost:5173
+7. Add `lombok.localhost` and `minio` to your /etc/hosts file (pointing at 127.0.0.1)
+8. Visit http://lombok.localhost:5173
 
 ### Other helpful commands
 
@@ -33,7 +33,7 @@ bun api:dev:build
 bun dev:restart:api:clean
 ```
 
-##### Regenerate [openapi.json](packages/api/src/openapi.json) & [api-paths.d.ts](packages/stellaris-types/src/api-paths.d.ts)
+##### Regenerate [openapi.json](packages/api/src/openapi.json) & [api-paths.d.ts](packages/types/src/api-paths.d.ts)
 
 ```
 bun generate:openapi
@@ -87,7 +87,7 @@ bun dev:prettier-all
 bun dev:lint-all
 ```
 
-#### Run the demo app frontend in dev mode (in [@stellariscloud/app-demo](./packages/app-demo))
+#### Run the demo app frontend in dev mode (in [@lombokapp/app-demo](./packages/app-demo))
 
 1. `echo 'SC_APP_FRONTEND_PROXY_HOST_DEV_MAIN=http://localhost:5175' > ./packages/ui/.env.development.local` -- tell the UI to proxy frontend requests for the `main` frontend of the `dev` app to `http://localhost:5175`
 2. `bun appuidemo:dev` -- run the demo app frontend

@@ -1,5 +1,5 @@
-import type { AccessKeyPublicDTO } from '@stellariscloud/types'
-import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
+import type { AccessKeyPublicDTO } from '@lombokapp/types'
+import { Card, CardContent, cn } from '@lombokapp/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity-50'

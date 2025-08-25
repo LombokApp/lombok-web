@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
   echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
   apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec zip unzip nsjail && \
-  adduser -D -u 1001 stellaris
+  adduser -D -u 1001 lombok
 
 FROM base AS local
 
@@ -29,8 +29,8 @@ RUN cd /temp/dev && \
   bun install --frozen-lockfile && \
   # build the packages
   bun --cwd ./packages/core-worker build && \
-  bun --cwd ./packages/stellaris-types build && \
-  bun --cwd ./packages/stellaris-utils build && \
+  bun --cwd ./packages/types build && \
+  bun --cwd ./packages/utils build && \
   # bun --cwd ./packages/ui-toolkit build && \
   bun --cwd ./packages/api build && \
   bun --cwd ./packages/ui build && mv ./packages/ui/dist ./frontend && \
@@ -47,9 +47,9 @@ RUN cd /temp/dev && \
   rm -rf ./packages/auth-utils && \
   rm -rf ./packages/app-worker-sdk/node_modules && \
   rm -rf ./packages/sdk && \
-  rm -rf ./packages/stellaris-types/node_modules && \
+  rm -rf ./packages/types/node_modules && \
   rm -rf ./packages/ui-toolkit && \
-  rm -rf ./packages/stellaris-utils/node_modules/ && \
+  rm -rf ./packages/utils/node_modules/ && \
   rm -rf ./packages/core-worker/node_modules/ && \
   rm -rf ./eslint-config && \
   mkdir /usr/src/app/apps

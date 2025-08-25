@@ -1,5 +1,5 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
-import { Button } from '@stellariscloud/ui-toolkit'
+import type { StorageProvisionDTO } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit'
 import { Folder, Plus } from 'lucide-react'
 import React from 'react'
 

@@ -1,15 +1,15 @@
 services:
   app:
-    image: ghcr.io/stellariscloud/stellariscloud-standalone:latest
-    container_name: stellariscloud-standalone-demo-app
+    image: ghcr.io/lombokapp/lombok-standalone:latest
+    container_name: lombok-standalone-demo-app
     platform: linux/amd64
     environment:
-      PLATFORM_HOST: stellarisclouddemo.localhost
+      PLATFORM_HOST: lombokdemo.localhost
       INITIAL_USER: demo
       AUTH_JWT_SECRET: 00000000000000000000000000000000 # replace with a random string
-      DB_NAME: stellariscloud_demo
-      DB_USER: stellariscloud_demo
       DB_PASSWORD: demodemodemodemodemodemo
+      DB_NAME: lombok_demo
+      DB_USER: lombok_demo
       LOG_LEVEL: debug
       INIT_EVENT_JOBS: true
       INSTALL_APPS_ON_START: true

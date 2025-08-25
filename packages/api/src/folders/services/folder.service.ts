@@ -1,3 +1,22 @@
+import type {
+  ContentMetadataType,
+  FolderPermissionName,
+  S3ObjectInternal,
+  StorageProvisionType,
+} from '@lombokapp/types'
+import {
+  FolderPermissionEnum,
+  FolderPushMessage,
+  MediaType,
+  PLATFORM_IDENTIFIER,
+  SignedURLsRequestMethod,
+  StorageProvisionTypeEnum,
+} from '@lombokapp/types'
+import {
+  mediaTypeFromMimeType,
+  objectIdentifierToObjectKey,
+  safeZodParse,
+} from '@lombokapp/utils'
 import {
   BadRequestException,
   forwardRef,
@@ -7,25 +26,6 @@ import {
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { ModuleRef } from '@nestjs/core'
-import type {
-  ContentMetadataType,
-  FolderPermissionName,
-  S3ObjectInternal,
-  StorageProvisionType,
-} from '@stellariscloud/types'
-import {
-  FolderPermissionEnum,
-  FolderPushMessage,
-  MediaType,
-  PLATFORM_IDENTIFIER,
-  SignedURLsRequestMethod,
-  StorageProvisionTypeEnum,
-} from '@stellariscloud/types'
-import {
-  mediaTypeFromMimeType,
-  objectIdentifierToObjectKey,
-  safeZodParse,
-} from '@stellariscloud/utils'
 import {
   aliasedTable,
   and,
@@ -289,10 +289,10 @@ export class FolderService {
 
         const prefixSuffix =
           storageProvisionType === StorageProvisionTypeEnum.METADATA
-            ? `.stellaris_folder_metadata_${prospectiveFolderId}`
+            ? `.lombok_folder_metadata_${prospectiveFolderId}`
             : storageProvisionType === StorageProvisionTypeEnum.CONTENT
-              ? `.stellaris_folder_content_${prospectiveFolderId}`
-              : `.stellaris_folder_backup_${prospectiveFolderId}`
+              ? `.lombok_folder_content_${prospectiveFolderId}`
+              : `.lombok_folder_backup_${prospectiveFolderId}`
 
         location = (
           await this.ormService.db
@@ -418,8 +418,8 @@ export class FolderService {
         const objectKey =
           folder.contentLocation.prefix &&
           folder.contentLocation.prefix.length > 0
-            ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.stellaris_cors_check_${folderId}`
-            : `.stellaris_cors_check_${folderId}`
+            ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.lombok_cors_check_${folderId}`
+            : `.lombok_cors_check_${folderId}`
         const corsUrl = `${folder.contentLocation.endpoint.replace(/\/$/, '')}/${folder.contentLocation.bucket}/${objectKey}`
         const appPlatformHost: string = this._platformConfig.platformHost
         const originCandidates = [
@@ -970,7 +970,7 @@ export class FolderService {
                 (folder.contentLocation.prefix.endsWith('/') ? 0 : 1),
             )
           : obj.key
-        if (objectKey.startsWith('.stellaris_')) {
+        if (objectKey.startsWith('.lombok_')) {
           continue
         }
         if (obj.size > 0) {

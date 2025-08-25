@@ -1,3 +1,4 @@
+import { addMs, earliest } from '@lombokapp/utils'
 import {
   ConflictException,
   ForbiddenException,
@@ -5,7 +6,6 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common'
-import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'

@@ -1,5 +1,5 @@
-import { TaskHandler } from '@stellariscloud/app-worker-sdk'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
+import { TaskHandler } from '@lombokapp/app-worker-sdk'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 
 export const handleTask: TaskHandler = async function handleTask(
   task,

@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { StorageProvisionDTO } from '@stellariscloud/types'
+import type { StorageProvisionDTO } from '@lombokapp/types'
 import {
   s3LocationEndpointSchema,
   StorageProvisionTypeEnum,
   StorageProvisionTypeZodEnum,
-} from '@stellariscloud/types'
+} from '@lombokapp/types'
 import {
   Button,
   cn,
@@ -17,7 +17,7 @@ import {
   FormMessage,
   Icons,
   Input,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'

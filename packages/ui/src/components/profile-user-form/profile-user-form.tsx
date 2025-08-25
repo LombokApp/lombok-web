@@ -11,11 +11,11 @@ import {
   FormMessage,
   Icons,
   Input,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
 import {
   NAME_VALIDATORS_COMBINED,
   PASSWORD_VALIDATORS_COMBINED,
-} from '@stellariscloud/utils'
+} from '@lombokapp/utils'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 

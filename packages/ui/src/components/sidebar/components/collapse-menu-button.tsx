@@ -1,4 +1,3 @@
-import { DropdownMenuArrow } from '@radix-ui/react-dropdown-menu'
 import {
   Button,
   cn,
@@ -15,7 +14,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@stellariscloud/ui-toolkit'
+} from '@lombokapp/ui-toolkit'
+import { DropdownMenuArrow } from '@radix-ui/react-dropdown-menu'
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, Dot } from 'lucide-react'
 import { useState } from 'react'

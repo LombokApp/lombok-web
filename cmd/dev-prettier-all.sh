@@ -1,35 +1,35 @@
 #!/bin/bash
 set -e
 
-echo "Checking @stellariscloud/ui..."
+echo "Checking @lombokapp/ui..."
 bun --cwd packages/ui prettier:check
 
-echo "Checking @stellariscloud/api..."
+echo "Checking @lombokapp/api..."
 bun --cwd packages/api prettier:check
 
-echo "Checking @stellariscloud/core-worker..."
+echo "Checking @lombokapp/core-worker..."
 bun --cwd packages/core-worker prettier:check
 
-echo "Checking @stellariscloud/auth-utils..."
+echo "Checking @lombokapp/auth-utils..."
 bun --cwd packages/auth-utils prettier:check
 
-echo "Checking @stellariscloud/app-browser-sdk..."
+echo "Checking @lombokapp/app-browser-sdk..."
 bun --cwd packages/app-browser-sdk prettier:check
 
-echo "Checking @stellariscloud/app-demo..."
+echo "Checking @lombokapp/app-demo..."
 bun --cwd packages/app-demo prettier:check
 
-echo "Checking @stellariscloud/sdk..."
+echo "Checking @lombokapp/sdk..."
 bun --cwd packages/sdk prettier:check
 
-echo "Checking @stellariscloud/app-worker-sdk..."
+echo "Checking @lombokapp/app-worker-sdk..."
 bun --cwd packages/app-worker-sdk prettier:check
 
-echo "Checking @stellariscloud/utils..."
-bun --cwd packages/stellaris-utils prettier:check
+echo "Checking @lombokapp/utils..."
+bun --cwd packages/utils prettier:check
 
-echo "Checking @stellariscloud/types..."
-bun --cwd packages/stellaris-types prettier:check
+echo "Checking @lombokapp/types..."
+bun --cwd packages/types prettier:check
 
-echo "Checking @stellariscloud/ui-toolkit..."
+echo "Checking @lombokapp/ui-toolkit..."
 bun --cwd packages/ui-toolkit prettier:check

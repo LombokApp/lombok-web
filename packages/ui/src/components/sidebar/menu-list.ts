@@ -1,4 +1,4 @@
-import type { UserDTO } from '@stellariscloud/types'
+import type { UserDTO } from '@lombokapp/types'
 import type { LucideIcon } from 'lucide-react'
 import {
   AppWindow,

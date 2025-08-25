@@ -1,5 +1,5 @@
-import type { StorageProvisionDTO } from '@stellariscloud/types'
-import { DataTable } from '@stellariscloud/ui-toolkit'
+import type { StorageProvisionDTO } from '@lombokapp/types'
+import { DataTable } from '@lombokapp/ui-toolkit'
 import React from 'react'
 
 import { storageProvisionsTableColumns } from './storage-provisions-table-columns'

@@ -1,4 +1,4 @@
-import type { WorkerErrorDetails } from '@stellariscloud/types'
+import type { WorkerErrorDetails } from '@lombokapp/types'
 
 export class WorkerError extends Error {
   constructor(

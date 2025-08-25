@@ -1,8 +1,8 @@
-import { Authenticator } from '@stellariscloud/auth-utils'
-import type { paths } from '@stellariscloud/types'
+import { Authenticator } from '@lombokapp/auth-utils'
+import type { paths } from '@lombokapp/types'
 import createFetchClient from 'openapi-fetch'
 
-export class StellarisCloudSdk {
+export class LombokSdk {
   public apiClient: ReturnType<typeof createFetchClient<paths>>
   public authenticator: Authenticator
   constructor({
