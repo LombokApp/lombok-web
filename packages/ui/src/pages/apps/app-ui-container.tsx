@@ -1,7 +1,6 @@
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import { ContentLayout } from '@/src/components/sidebar/components/content-layout'
 import { useServerContext } from '@/src/hooks/use-server-context'
 import { $apiClient } from '@/src/services/api'
 import { AppUI } from '@/src/views/app-ui/app-ui.view'
@@ -17,17 +16,17 @@ export const AppUIContainer = () => {
   const [searchParams] = useSearchParams()
   const pathParts = subPath?.split('/') ?? []
   const appIdentifier = pathParts[0] ?? ''
-  const uiIdentifier = pathParts[1]
+  const routeIdentifier = pathParts[1]
   const url = `/${pathParts.slice(2).join('/')}`
   const serverContext = useServerContext()
-  const uiLabel =
-    serverContext.appContributions?.[
-      appIdentifier
-    ]?.contributions.sidebarMenuLinks.find(
-      (sidebarMenuLink) => sidebarMenuLink.path === url,
-    )?.label ?? ''
+  // const uiLabel =
+  //   serverContext.appContributions?.[
+  //     appIdentifier
+  //   ]?.contributions.sidebarMenuLinks.find(
+  //     (sidebarMenuLink) => sidebarMenuLink.path === url,
+  //   )?.label ?? ''
 
-  if (!appIdentifier || !uiIdentifier) {
+  if (!appIdentifier || !routeIdentifier) {
     void navigate('/folders')
     return null
   }
@@ -61,23 +60,20 @@ export const AppUIContainer = () => {
   )
 
   return (
-    <ContentLayout
-      breadcrumbs={[{ label: `App: ${appIdentifier}` }].concat(
-        uiLabel ? [{ label: uiLabel }] : [],
-      )}
-      contentPadding={false}
-    >
-      <div className="flex size-full">
-        <AppUI
-          getAccessTokens={getAppAccessTokens}
-          appIdentifier={appIdentifier}
-          uiIdentifier={uiIdentifier}
-          queryParams={queryParams}
-          url={url}
-          host={API_HOST}
-          scheme={protocol}
-        />
-      </div>
-    </ContentLayout>
+    <div className="flex size-full">
+      <AppUI
+        getAccessTokens={getAppAccessTokens}
+        appIdentifier={appIdentifier}
+        uiIdentifier={
+          serverContext.appContributions.routes[appIdentifier]?.[
+            routeIdentifier
+          ]?.uiIdentifier ?? ''
+        }
+        queryParams={queryParams}
+        url={url}
+        host={API_HOST}
+        scheme={protocol}
+      />
+    </div>
   )
 }

@@ -10,18 +10,18 @@ import {
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import type { AppRouteDescription } from '@/src/contexts/server.context'
+import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
 
 import { Menu } from './menu'
 
 export function SheetMenu({
   onSignout,
   viewer,
-  appMenuItems,
+  sidebarMenuContributions,
 }: {
   onSignout: () => Promise<void>
   viewer: NonNullable<IAuthContext['viewer']>
-  appMenuItems: AppRouteDescription[]
+  sidebarMenuContributions: AppRouteLinkContribution[]
 }) {
   return (
     <Sheet>
@@ -46,7 +46,7 @@ export function SheetMenu({
         <Menu
           isOpen
           onSignOut={onSignout}
-          sidebarMenuLinkContributions={appMenuItems}
+          sidebarMenuLinkContributions={sidebarMenuContributions}
           viewer={viewer}
         />
       </SheetContent>

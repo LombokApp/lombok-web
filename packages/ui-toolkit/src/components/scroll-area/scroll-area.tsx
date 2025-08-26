@@ -41,25 +41,24 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn(
-        'relative',
-        'pr-4 w-[calc(100%+1rem)]',
-        'min-h-0',
-        className,
-      )}
+      className={cn('pr-4 w-[calc(100%+1rem)]', 'min-h-0', className)}
       type={type}
       {...props}
     >
-      <ScrollAreaPrimitive.Viewport
-        data-slot="scroll-area-viewport"
-        className={cn(
-          'size-full rounded-[inherit] outline-none',
-          'transition-[color,box-shadow]',
-          'focus-visible:outline-1 focus-visible:ring focus-visible:ring-ring/50',
-        )}
-      >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
+      <div className="relative h-full min-w-fit">
+        <ScrollAreaPrimitive.Viewport
+          data-slot="scroll-area-viewport"
+          className={cn(
+            'size-full rounded-[inherit] outline-none',
+            'transition-[color,box-shadow]',
+            'focus-visible:outline-1 focus-visible:ring focus-visible:ring-ring/50',
+            // '[&>*:first-child]:max-w-full [&>*:first-child]:min-w-0',
+            '[&>*:first-child]:inherit',
+          )}
+        >
+          {children}
+        </ScrollAreaPrimitive.Viewport>
+      </div>
       <ScrollBar />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>

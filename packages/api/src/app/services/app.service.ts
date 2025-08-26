@@ -1669,12 +1669,13 @@ export class AppService {
           appLabel: nextApp.label,
           appIdentifier: nextApp.identifier,
           contributions: {
-            routes: contributions?.routes ?? [],
+            routes: contributions?.routes ?? {},
             sidebarMenuLinks: contributions?.sidebarMenuLinks ?? [],
             folderActionMenuLinks: contributions?.folderActionMenuLinks ?? [],
             objectActionMenuLinks: contributions?.objectActionMenuLinks ?? [],
-            folderSidebarEmbeds: contributions?.folderSidebarEmbeds ?? [],
-            objectSidebarEmbeds: contributions?.objectSidebarEmbeds ?? [],
+            folderSidebarViews: contributions?.folderSidebarViews ?? [],
+            objectSidebarViews: contributions?.objectSidebarViews ?? [],
+            objectDetailViews: contributions?.objectDetailViews ?? [],
           },
         },
       }

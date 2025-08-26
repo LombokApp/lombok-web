@@ -175,7 +175,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Created At</p>
-              <p className="font-medium">
+              <div className="font-medium">
                 {userQuery.data?.user.createdAt ? (
                   <DateDisplay
                     date={userQuery.data.user.createdAt}
@@ -184,11 +184,11 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
                 ) : (
                   '-'
                 )}
-              </p>
+              </div>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Last Updated</p>
-              <p className="font-medium">
+              <div className="font-medium">
                 {userQuery.data?.user.updatedAt ? (
                   <DateDisplay
                     date={userQuery.data.user.updatedAt}
@@ -197,7 +197,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
                 ) : (
                   '-'
                 )}
-              </p>
+              </div>
             </div>
           </div>
         </div>

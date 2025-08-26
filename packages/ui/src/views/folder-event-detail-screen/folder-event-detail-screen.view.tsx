@@ -22,7 +22,7 @@ export function FolderEventDetailScreen() {
 
   return (
     <div className="flex flex-1 flex-col items-center">
-      <div className="container flex w-[calc(100%+1rem)] flex-1 flex-col overflow-y-scroll py-6 pr-4">
+      <div className="container flex flex-1 flex-col overflow-y-scroll py-6">
         <div className="flex w-full flex-1 flex-col">
           <EventDetailUI
             eventData={eventQuery.data?.event}

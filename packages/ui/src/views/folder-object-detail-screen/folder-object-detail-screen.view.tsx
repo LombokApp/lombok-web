@@ -18,13 +18,17 @@ import { Download, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
+import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
 import { useServerContext } from '@/src/hooks/use-server-context'
+import { $apiClient } from '@/src/services/api'
 
 import type { DeleteObjectModalData } from '../../components/delete-object-modal/delete-object-modal'
 import { DeleteObjectModal } from '../../components/delete-object-modal/delete-object-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { useFocusedFolderObjectContext } from '../../pages/folders/focused-folder-object.context'
 import { useFolderContext } from '../../pages/folders/folder.context'
+import { AppUI } from '../app-ui/app-ui.view'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
 
@@ -163,6 +167,20 @@ export const FolderObjectDetailScreen = ({
       }
     }
   }
+  const [selectedFolderObjectDetailView, setSelectedFolderObjectDetailView] =
+    React.useState<AppRouteLinkContribution>()
+
+  const getAccessTokens = (appIdentifier: string) =>
+    $apiClient
+      .POST('/api/v1/server/apps/{appIdentifier}/user-access-token', {
+        params: { path: { appIdentifier } },
+      })
+      .then((res) => {
+        if (!res.data) {
+          throw new Error('Failed to generate app access token')
+        }
+        return res.data.session
+      })
 
   return (
     <>
@@ -187,6 +205,26 @@ export const FolderObjectDetailScreen = ({
             {folderObject?.objectKey && (
               <div className="pl-2">
                 <div className="flex gap-2">
+                  {serverContext.appContributions.objectDetailViewContributions
+                    .all.length > 0 ? (
+                    <FolderObjectDetailViewEmbedSelector
+                      options={
+                        serverContext.appContributions
+                          .objectDetailViewContributions.all
+                      }
+                      value={
+                        selectedFolderObjectDetailView?.routeIdentifier ??
+                        'default'
+                      }
+                      onSelect={(routeIdentifier) =>
+                        setSelectedFolderObjectDetailView(
+                          serverContext.appContributions.objectDetailViewContributions.all.find(
+                            (o) => o.routeIdentifier === routeIdentifier,
+                          ) ?? undefined,
+                        )
+                      }
+                    />
+                  ) : null}
                   {folderContext.folderPermissions?.includes(
                     FolderPermissionEnum.OBJECT_EDIT,
                   ) && (
@@ -219,13 +257,13 @@ export const FolderObjectDetailScreen = ({
                       <TooltipContent side="bottom">Download</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  {serverContext.objectActionMenuLinkContributions.map(
+                  {serverContext.appContributions.objectDetailViewContributions.all.map(
                     (linkContribution) => (
                       <TooltipProvider key={linkContribution.href}>
                         <Tooltip delayDuration={100}>
                           <TooltipTrigger asChild>
                             <Button
-                              className="px-1"
+                              className="shrink-0 px-1"
                               size="sm"
                               variant={'outline'}
                               onClick={() =>
@@ -262,7 +300,21 @@ export const FolderObjectDetailScreen = ({
           >
             {folderObject && (
               <div className={'flex max-w-full flex-1 flex-col justify-around'}>
-                {folderObject.hash ? (
+                {selectedFolderObjectDetailView ? (
+                  <AppUI
+                    getAccessTokens={getAccessTokens}
+                    appIdentifier={selectedFolderObjectDetailView.appIdentifier}
+                    uiIdentifier={selectedFolderObjectDetailView.uiIdentifier}
+                    url={selectedFolderObjectDetailView.path}
+                    queryParams={{
+                      basePath: `${protocol}//${API_HOST}`,
+                      folderId,
+                      objectKey,
+                    }}
+                    host={API_HOST}
+                    scheme={protocol}
+                  />
+                ) : folderObject.hash ? (
                   <FolderObjectPreview
                     folderId={folderId}
                     objectKey={objectKey}

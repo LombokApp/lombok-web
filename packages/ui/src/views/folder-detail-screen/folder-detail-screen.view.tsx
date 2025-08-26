@@ -409,7 +409,7 @@ export const FolderDetailScreen = () => {
           )}
         >
           {/* eslint-disable-next-line tailwindcss/no-unnecessary-arbitrary-value */}
-          <div className="flex size-full w-full flex-1 justify-between overflow-x-visible @4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem]">
+          <div className="@4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem] flex size-full w-full flex-1 justify-between overflow-x-visible">
             <div className="flex min-w-0 flex-1 py-6">
               <div className="flex size-full flex-col gap-2">
                 <div className="flex justify-between">
@@ -485,7 +485,7 @@ export const FolderDetailScreen = () => {
                           Delete
                         </DropdownMenuItem>
                       )}
-                      {serverContext.folderActionMenuLinkContributions.map(
+                      {serverContext.appContributions.folderActionMenuContributions.all.map(
                         (linkContribution) => (
                           <DropdownMenuItem
                             key={linkContribution.href}
@@ -515,7 +515,7 @@ export const FolderDetailScreen = () => {
                 {folderContext.folderMetadata?.totalCount === 0 ? (
                   <div className="flex size-full items-center justify-center">
                     <div className="flex w-full max-w-md flex-col items-center p-8">
-                      <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
+                      <div className="bg-foreground/[.04] mb-6 flex size-20 items-center justify-center rounded-full p-4">
                         <Folder
                           className="size-20 text-gray-400"
                           strokeWidth={1}
@@ -607,7 +607,7 @@ export const FolderDetailScreen = () => {
             {sidebarOpen &&
               folderContext.folder &&
               folderContext.folderPermissions && (
-                <div className="flex max-w-0 overflow-x-visible @4xl:min-w-80 @4xl:max-w-[30rem] @4xl:grow">
+                <div className="@4xl:min-w-80 @4xl:max-w-[30rem] @4xl:grow flex max-w-0 overflow-x-visible">
                   <div className="size-full overflow-x-visible">
                     <FolderSidebar
                       onFolderAccessErrorCheck={async () => {

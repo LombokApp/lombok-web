@@ -9,7 +9,9 @@ export function AppUI({
   getAccessTokens,
   queryParams,
 }: {
-  getAccessTokens: () => Promise<{ accessToken: string; refreshToken: string }>
+  getAccessTokens: (
+    appIdentifier: string,
+  ) => Promise<{ accessToken: string; refreshToken: string }>
   appIdentifier: string
   uiIdentifier: string
   url: string
@@ -54,7 +56,8 @@ export function AppUI({
           switch (message.type) {
             case 'APP_READY': {
               // Iframe is ready, we can send initial data if needed
-              const { accessToken, refreshToken } = await getAccessTokens()
+              const { accessToken, refreshToken } =
+                await getAccessTokens(appIdentifier)
               if (!accessToken) {
                 throw new Error('No access token available')
               }
@@ -102,7 +105,7 @@ export function AppUI({
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [getAccessTokens])
+  }, [getAccessTokens, appIdentifier])
 
   return (
     <div className="flex size-full flex-col justify-stretch">

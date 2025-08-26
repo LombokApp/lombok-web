@@ -1705,7 +1705,6 @@ export interface components {
                         description: string;
                         worker?: string;
                     }[];
-                    externalWorkers?: string[];
                     workers?: {
                         [key: string]: {
                             description: string;
@@ -1719,40 +1718,40 @@ export interface components {
                     };
                     contributions?: {
                         routes: {
-                            label: string;
-                            uiIdentifier: string;
-                            iconPath?: string;
-                            path: string;
-                        }[];
+                            [key: string]: {
+                                uiIdentifier: string;
+                                path: string;
+                            };
+                        };
                         sidebarMenuLinks: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
                         folderActionMenuLinks: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
                         objectActionMenuLinks: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
-                        folderSidebarEmbeds: {
+                        folderSidebarViews: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
-                        objectSidebarEmbeds: {
+                        objectSidebarViews: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
+                        }[];
+                        objectDetailViews: {
+                            routeIdentifier: string;
+                            label: string;
+                            iconPath?: string;
                         }[];
                     };
                 };
@@ -1825,7 +1824,6 @@ export interface components {
                         description: string;
                         worker?: string;
                     }[];
-                    externalWorkers?: string[];
                     workers?: {
                         [key: string]: {
                             description: string;
@@ -1839,40 +1837,40 @@ export interface components {
                     };
                     contributions?: {
                         routes: {
-                            label: string;
-                            uiIdentifier: string;
-                            iconPath?: string;
-                            path: string;
-                        }[];
+                            [key: string]: {
+                                uiIdentifier: string;
+                                path: string;
+                            };
+                        };
                         sidebarMenuLinks: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
                         folderActionMenuLinks: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
                         objectActionMenuLinks: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
-                        folderSidebarEmbeds: {
+                        folderSidebarViews: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
                         }[];
-                        objectSidebarEmbeds: {
+                        objectSidebarViews: {
+                            routeIdentifier: string;
                             label: string;
-                            uiIdentifier: string;
                             iconPath?: string;
-                            path: string;
+                        }[];
+                        objectDetailViews: {
+                            routeIdentifier: string;
+                            label: string;
+                            iconPath?: string;
                         }[];
                     };
                 };
@@ -1936,40 +1934,40 @@ export interface components {
                 appIdentifier: string;
                 contributions: {
                     routes: {
-                        label: string;
-                        uiIdentifier: string;
-                        iconPath?: string;
-                        path: string;
-                    }[];
+                        [key: string]: {
+                            uiIdentifier: string;
+                            path: string;
+                        };
+                    };
                     sidebarMenuLinks: {
+                        routeIdentifier: string;
                         label: string;
-                        uiIdentifier: string;
                         iconPath?: string;
-                        path: string;
                     }[];
                     folderActionMenuLinks: {
+                        routeIdentifier: string;
                         label: string;
-                        uiIdentifier: string;
                         iconPath?: string;
-                        path: string;
                     }[];
                     objectActionMenuLinks: {
+                        routeIdentifier: string;
                         label: string;
-                        uiIdentifier: string;
                         iconPath?: string;
-                        path: string;
                     }[];
-                    folderSidebarEmbeds: {
+                    folderSidebarViews: {
+                        routeIdentifier: string;
                         label: string;
-                        uiIdentifier: string;
                         iconPath?: string;
-                        path: string;
                     }[];
-                    objectSidebarEmbeds: {
+                    objectSidebarViews: {
+                        routeIdentifier: string;
                         label: string;
-                        uiIdentifier: string;
                         iconPath?: string;
-                        path: string;
+                    }[];
+                    objectDetailViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
                     }[];
                 };
             };

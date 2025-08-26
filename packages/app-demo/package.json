@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bunx vite",
-    "build": "bunx --bun vite build --mode production",
+    "build": "bun x --bun vite build --mode production",
     "build:package": "bun run build && rm -rf ../../apps/demo/ui/main && cp -r dist ../../apps/demo/ui/main",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
@@ -28,11 +28,11 @@
     "@eslint/js": "^9.0.0",
     "@types/react": "18.3.1",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react-swc": "^3.11.0",
+    "@vitejs/plugin-react-swc": "^4.0.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.0.0",
     "globals": "^15.14.0",
     "tailwindcss": "^3.4.17",
-    "vite": "^7.0.6"
+    "vite": "^7.1.3"
   }
 }

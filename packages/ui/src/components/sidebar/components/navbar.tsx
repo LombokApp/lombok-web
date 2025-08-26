@@ -27,7 +27,7 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
         <div className="flex flex-1 items-center truncate">
           {authContext.viewer && (
             <SheetMenu
-              appMenuItems={[]}
+              sidebarMenuContributions={[]}
               onSignout={() => authContext.logout()}
               viewer={authContext.viewer}
             />

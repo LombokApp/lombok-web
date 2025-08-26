@@ -2,7 +2,7 @@ import type { IAuthContext } from '@lombokapp/auth-utils'
 import { Button, cn } from '@lombokapp/ui-toolkit'
 import { Link } from 'react-router-dom'
 
-import type { AppRouteDescription } from '../../contexts/server.context'
+import type { AppRouteLinkContribution } from '../../contexts/server.context'
 import { useStore } from '../../hooks/use-store'
 import { Menu } from './components/menu'
 import { SidebarToggle } from './components/sidebar-toggle'
@@ -11,11 +11,11 @@ import { useSidebar } from './use-sidebar'
 export function Sidebar({
   onSignOut,
   authContext,
-  sidebarMenuLinkContributions: sidebarMenuLinks,
+  sidebarMenuLinkContributions,
 }: {
   onSignOut: () => Promise<void>
   authContext: IAuthContext
-  sidebarMenuLinkContributions: AppRouteDescription[]
+  sidebarMenuLinkContributions: AppRouteLinkContribution[]
 }) {
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {
@@ -71,7 +71,7 @@ export function Sidebar({
               viewer={authContext.viewer}
               isOpen={getOpenState()}
               onSignOut={onSignOut}
-              sidebarMenuLinkContributions={sidebarMenuLinks}
+              sidebarMenuLinkContributions={sidebarMenuLinkContributions}
             />
           )}
         </div>

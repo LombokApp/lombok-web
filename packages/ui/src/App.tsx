@@ -86,7 +86,7 @@ const UnauthenticatedContent = () => {
 const AuthenticatedContent = () => {
   const authContext = useAuthContext()
   const location = useLocation()
-  const { sidebarMenuLinkContributions } = useServerContext()
+  const { appContributions } = useServerContext()
 
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {
@@ -105,7 +105,9 @@ const AuthenticatedContent = () => {
         <Sidebar
           onSignOut={authContext.logout}
           authContext={authContext}
-          sidebarMenuLinkContributions={sidebarMenuLinkContributions}
+          sidebarMenuLinkContributions={
+            appContributions.sidebarMenuContributions.all
+          }
         />
       )}
       <main
