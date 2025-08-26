@@ -42,6 +42,9 @@ export type HideableColumnDef<
 interface DataTableProps<TData, TValue> {
   columns: HideableColumnDef<TData, TValue>[]
   data: TData[]
+  className?: string
+  bodyCellClassName?: string
+  headerCellClassName?: string
   fixedLayout?: boolean
   title?: string
   filters?: Record<string, string[]>
@@ -66,6 +69,9 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   title,
+  className = '',
+  bodyCellClassName = '',
+  headerCellClassName = '',
   fixedLayout = false,
   filters = {},
   sorting = [],
@@ -142,11 +148,18 @@ export function DataTable<TData, TValue>({
       )}
       <div className="size-full min-h-0">
         <ScrollArea type="always" className="h-full">
-          <div className="flex flex-1 rounded-md border bg-background">
+          <div
+            className={cn(
+              'flex flex-1 rounded-md border bg-background',
+              className,
+            )}
+          >
             <Table
               className={cn('w-full max-w-full', fixedLayout && 'table-fixed')}
             >
-              <TableHeader className={cn(hideHeader && 'hidden')}>
+              <TableHeader
+                className={cn(hideHeader && 'hidden', 'overflow-hidden')}
+              >
                 {table.getHeaderGroups().map((headerGroup) => {
                   return (
                     <TableRow key={headerGroup.id}>
@@ -155,14 +168,15 @@ export function DataTable<TData, TValue>({
                           <TableHead
                             key={header.id}
                             colSpan={header.colSpan}
-                            className={
+                            className={cn(
                               (
                                 header.column
                                   .columnDef as HideableColumnDef<TData>
                               ).zeroWidth
                                 ? 'w-0 p-0'
-                                : undefined
-                            }
+                                : undefined,
+                              headerCellClassName,
+                            )}
                           >
                             {header.isPlaceholder
                               ? null
@@ -197,14 +211,15 @@ export function DataTable<TData, TValue>({
                                 : undefined
                             }
                             key={cell.id}
-                            className={
+                            className={cn(
                               (
                                 cell.column
                                   .columnDef as HideableColumnDef<TData>
                               ).zeroWidth
                                 ? 'w-0 p-0'
-                                : `${cellPadding}`
-                            }
+                                : `${cellPadding}`,
+                              bodyCellClassName,
+                            )}
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -219,7 +234,7 @@ export function DataTable<TData, TValue>({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
+                      className={cn('h-24 text-center', bodyCellClassName)}
                     >
                       No results.
                     </TableCell>

@@ -3,6 +3,7 @@ import type {
   AppConfig,
   AppContributions,
   AppManifest,
+  AppMetrics,
   AppUIMap,
   AppWorkersMap,
   ExternalAppWorker,
@@ -35,6 +36,7 @@ import {
   isNull,
   or,
   SQL,
+  sql,
 } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
@@ -50,7 +52,10 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
-import { LogEntryLevel } from 'src/log/entities/log-entry.entity'
+import {
+  logEntriesTable,
+  LogEntryLevel,
+} from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
 import { readDirRecursive } from 'src/platform/utils/fs.util'
@@ -1680,5 +1685,82 @@ export class AppService {
         },
       }
     }, {})
+  }
+
+  async calculateAppMetrics(appIdentifier: string): Promise<AppMetrics> {
+    const now = new Date()
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000)
+
+    // Calculate tasks executed in the last 24 hours
+    const tasksLast24Hours = await this.ormService.db
+      .select({
+        completed: count(tasksTable.id),
+        failed: count(tasksTable.errorAt),
+      })
+      .from(tasksTable)
+      .where(
+        and(
+          eq(tasksTable.ownerIdentifier, appIdentifier),
+          or(
+            and(
+              isNotNull(tasksTable.completedAt),
+              sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+            ),
+            and(
+              isNotNull(tasksTable.errorAt),
+              sql`${tasksTable.errorAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+            ),
+          ),
+        ),
+      )
+
+    // Calculate errors in the last 24 hours
+    const errorsLast24Hours = await this.ormService.db
+      .select({
+        total: count(logEntriesTable.id),
+        last10Minutes: count(
+          sql`CASE WHEN ${logEntriesTable.createdAt} >= ${tenMinutesAgo.toISOString()}::timestamp THEN 1 END`,
+        ),
+      })
+      .from(logEntriesTable)
+      .where(
+        and(
+          eq(logEntriesTable.emitterIdentifier, appIdentifier),
+          eq(logEntriesTable.level, LogEntryLevel.ERROR),
+          sql`${logEntriesTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+        ),
+      )
+
+    // Calculate events emitted in the last 24 hours
+    const eventsLast24Hours = await this.ormService.db
+      .select({
+        total: count(eventsTable.id),
+        last10Minutes: count(
+          sql`CASE WHEN ${eventsTable.createdAt} >= ${tenMinutesAgo.toISOString()}::timestamp THEN 1 END`,
+        ),
+      })
+      .from(eventsTable)
+      .where(
+        and(
+          eq(eventsTable.emitterIdentifier, appIdentifier),
+          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+        ),
+      )
+
+    return {
+      tasksExecutedLast24Hours: {
+        completed: Number(tasksLast24Hours[0]?.completed ?? 0),
+        failed: Number(tasksLast24Hours[0]?.failed ?? 0),
+      },
+      errorsLast24Hours: {
+        total: Number(errorsLast24Hours[0]?.total ?? 0),
+        last10Minutes: Number(errorsLast24Hours[0]?.last10Minutes ?? 0),
+      },
+      eventsEmittedLast24Hours: {
+        total: Number(eventsLast24Hours[0]?.total ?? 0),
+        last10Minutes: Number(eventsLast24Hours[0]?.last10Minutes ?? 0),
+      },
+    }
   }
 }

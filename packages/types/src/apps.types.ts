@@ -266,6 +266,21 @@ export const externalAppWorkerSchema = z.object({
   ip: z.string(),
 })
 
+export const appMetricsSchema = z.object({
+  tasksExecutedLast24Hours: z.object({
+    completed: z.number(),
+    failed: z.number(),
+  }),
+  errorsLast24Hours: z.object({
+    total: z.number(),
+    last10Minutes: z.number(),
+  }),
+  eventsEmittedLast24Hours: z.object({
+    total: z.number(),
+    last10Minutes: z.number(),
+  }),
+})
+
 export type AppTaskConfig = z.infer<typeof taskConfigSchema>
 
 export type AppWorkersConfig = z.infer<typeof appWorkersSchema>
@@ -287,3 +302,5 @@ export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>
 export type AppContributions = z.infer<typeof appContributionsSchema>
 
 export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>
+
+export type AppMetrics = z.infer<typeof appMetricsSchema>
