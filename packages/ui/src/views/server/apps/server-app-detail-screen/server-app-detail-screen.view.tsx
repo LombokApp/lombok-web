@@ -17,23 +17,60 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
   DataTable,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
 } from '@lombokapp/ui-toolkit'
-import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
+import { HardDrive, KeyIcon, Menu, OctagonX } from 'lucide-react'
 import React from 'react'
 
-import { AppAttributeList } from '@/src/components/app-attribute-list/app-attribute-list'
+import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { useServerContext } from '@/src/hooks/use-server-context'
 import { $api } from '@/src/services/api'
 
+import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
+import { appContributedRoutesTableColumns } from './app-contributed-routes-table-columns'
+import { appContributorUiTableColumns } from './app-contributor-ui-table-columns'
 import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
+
+const appRouteLinkContributionTypes = [
+  'sidebarMenuLinks',
+  'folderSidebarViews',
+  'objectSidebarViews',
+  'folderActionMenuLinks',
+  'objectActionMenuLinks',
+  'objectDetailViews',
+] as const
+const appRouteLinkContributionTypeLabels = {
+  sidebarMenuLinks: 'Sidebar menu links',
+  folderSidebarViews: 'Folder sidebar views',
+  objectSidebarViews: 'Object sidebar views',
+  folderActionMenuLinks: 'Folder action menu links',
+  objectActionMenuLinks: 'Object action menu links',
+  objectDetailViews: 'Object detail views',
+} as const
+
+const appRouteLinkContributionTypeDescriptions = {
+  sidebarMenuLinks: 'App views that can replace the main content object view',
+  folderSidebarViews: 'App views that can are rendered in the folder sidebar',
+  objectSidebarViews: 'App views that can are rendered in the object sidebar',
+  folderActionMenuLinks:
+    'App views that can replace the main content object view',
+  objectActionMenuLinks:
+    'App views that can replace the main content object view',
+  objectDetailViews: 'App views that can replace the main content object view',
+} as const
+
+const appRouteLinkContributionTypeEmptyMessages = {
+  sidebarMenuLinks: 'No sidebar menu links configured',
+  folderSidebarViews: 'No folder sidebar views available',
+  objectSidebarViews: 'No object sidebar views available',
+  objectDetailViews: 'No object detail views configured',
+  folderActionMenuLinks: 'No folder action menu links configured',
+  objectActionMenuLinks: 'No object action menu links configured',
+} as const
 
 export function ServerAppDetailScreen({
   appIdentifier,
@@ -51,7 +88,7 @@ export function ServerAppDetailScreen({
   })
 
   const app = appQuery.data?.app
-  const [showRawConfig, setShowRawConfig] = React.useState(false)
+  // Remove useState and useEffect for app
 
   // React Query mutation for saving env vars
   const setEnvironmentVariablesMutation = $api.useMutation(
@@ -163,116 +200,355 @@ export function ServerAppDetailScreen({
             stats={[
               {
                 title: 'Tasks executed in the last 24 hours',
-                label: `1204 Completed`,
-                subtitle: '181 Failed',
+                label: `${app?.metrics?.tasksExecutedLast24Hours.completed ?? 0} Completed`,
+                subtitle: `${app?.metrics?.tasksExecutedLast24Hours.failed ?? 0} Failed`,
                 icon: KeyIcon,
               },
               {
                 title: 'Errors in the last 24 hours',
-                label: '239',
-                subtitle: '5 in the last 10 minutes',
+                label: `${app?.metrics?.errorsLast24Hours.total ?? 0}`,
+                subtitle: `${app?.metrics?.errorsLast24Hours.last10Minutes ?? 0} in the last 10 minutes`,
                 icon: OctagonX,
               },
               {
-                title: 'Storage Used',
-                label: '0.9TB',
-                subtitle: '+80GB in the last week',
+                title: 'Events emitted in the last 24 hours',
+                label: `${app?.metrics?.eventsEmittedLast24Hours.total ?? 0}`,
+                subtitle: `${app?.metrics?.eventsEmittedLast24Hours.last10Minutes ?? 0} in the last 10 minutes`,
                 icon: HardDrive,
               },
             ]}
           />
         </CardContent>
       </Card>
-      <Card className="flex-1 border-0 bg-transparent shadow-none">
-        <CardHeader className="p-0 pb-4">
-          <CardTitle>Worker scripts</CardTitle>
-          <CardDescription>
-            The worker scripts defined in the app.
-          </CardDescription>
+      <Card>
+        <CardHeader>
+          <CardTitle>Workers</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <DataTable
-            data={
-              app?.workers
-                ? Object.entries(app.workers).map(([workerKey, worker]) => ({
-                    identifier: workerKey,
-                    ...worker,
-                  }))
-                : []
-            }
-            columns={configureServerAppWorkerScriptTableColumns(
-              appIdentifier,
-              setEnvironmentVariablesMutation,
+        <CardContent>
+          <div className="flex flex-col gap-8">
+            <Card className="flex-1 border-0 bg-transparent shadow-none">
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="py-0 text-base">
+                  <div className="flex flex-col">
+                    <span className="pr-2">Worker scripts</span>
+                    <span
+                      id="worker-scripts-description"
+                      className="text-sm font-normal text-muted-foreground/70"
+                    >
+                      Workers included in the app as executable scripts
+                    </span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {Object.keys(app?.workers ?? {}).length === 0 ? (
+                  <EmptyState
+                    variant="row-sm"
+                    icon={Menu}
+                    text={'No worker scripts included'}
+                  />
+                ) : (
+                  <DataTable
+                    fixedLayout
+                    className="bg-background/50"
+                    bodyCellClassName="w-1/3"
+                    headerCellClassName={cn(
+                      'w-1/3',
+                      'bg-foreground/[0.02] text-foreground/50',
+                    )}
+                    data={Object.entries(app?.workers ?? {}).map(
+                      ([workerKey, worker]) => ({
+                        identifier: workerKey,
+                        ...worker,
+                      }),
+                    )}
+                    columns={configureServerAppWorkerScriptTableColumns(
+                      appIdentifier,
+                      setEnvironmentVariablesMutation,
+                    )}
+                  />
+                )}
+              </CardContent>
+            </Card>
+            <Card className="flex-1 border-0 bg-transparent shadow-none">
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="py-0 text-base">
+                  <div className="flex flex-col">
+                    <span className="pr-2">External workers</span>
+                    <span
+                      id="external-workers-description"
+                      className="text-sm font-normal text-muted-foreground/70"
+                    >
+                      The external app workers currently connected to the server
+                    </span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <DataTable
+                  fixedLayout
+                  className="bg-background/50"
+                  bodyCellClassName="w-1/3"
+                  headerCellClassName={cn(
+                    'w-1/3',
+                    'bg-foreground/[0.02] text-foreground/50',
+                  )}
+                  data={app?.externalWorkers ?? []}
+                  columns={serverAppExternalWorkerTableColumns}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tasks</CardTitle>
+          <CardDescription>Tasks defined by the app</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-8">
+            {Object.keys(app?.config.tasks ?? {}).length === 0 ? (
+              <EmptyState
+                variant="row-sm"
+                icon={Menu}
+                text={'No tasks configured'}
+              />
+            ) : (
+              <DataTable
+                fixedLayout
+                className="bg-background/50"
+                bodyCellClassName="w-1/3"
+                headerCellClassName={cn(
+                  'w-1/3',
+                  'bg-foreground/[0.02] text-foreground/50',
+                )}
+                data={
+                  app?.config.tasks.map((task) => ({
+                    identifier: task.identifier,
+                    label: task.label,
+                    description: task.description,
+                    triggers: task.triggers.join(', '),
+                    worker: task.worker || 'None',
+                  })) ?? []
+                }
+                columns={[
+                  {
+                    accessorKey: 'identifier',
+                    header: 'Identifier',
+                  },
+                  {
+                    accessorKey: 'label',
+                    header: 'Label',
+                  },
+                  {
+                    accessorKey: 'description',
+                    header: 'Description',
+                  },
+                  {
+                    accessorKey: 'triggers',
+                    header: 'Triggers',
+                  },
+                  {
+                    accessorKey: 'worker',
+                    header: 'Worker',
+                  },
+                ]}
+              />
             )}
-          />
+          </div>
         </CardContent>
       </Card>
-      <Card className="flex-1 border-0 bg-transparent shadow-none">
-        <CardHeader className="p-0 pb-4">
-          <CardTitle>External workers</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>UI</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-8">
+            <Card className="flex-1 border-0 bg-transparent shadow-none">
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="py-0 text-base">
+                  <div className="flex flex-col">
+                    <span className="pr-2">UI bundles</span>
+                    <span
+                      id="folder-object-view-contribution-description"
+                      className="text-sm font-normal text-muted-foreground/70"
+                    >
+                      Individual UI bundles compiled in the app
+                    </span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {Object.keys(app?.contributions.routes ?? {}).length > 0 ? (
+                  <DataTable
+                    headerCellClassName="bg-foreground/[0.02] text-foreground/50"
+                    data={app?.ui ?? []}
+                    columns={appContributorUiTableColumns}
+                  />
+                ) : (
+                  <EmptyState
+                    variant="row-sm"
+                    icon={Menu}
+                    text={'No UI bundles included'}
+                  />
+                )}
+              </CardContent>
+            </Card>
+            <Card className="flex-1 border-0 bg-transparent shadow-none">
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="py-0 text-base">
+                  <div className="flex flex-col">
+                    <span className="pr-2">Available routes</span>
+                    <span
+                      id="folder-object-view-contribution-description"
+                      className="text-sm font-normal text-muted-foreground/70"
+                    >
+                      Routes declared by your app that are available to be
+                      embedded in Lombok
+                    </span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {Object.keys(app?.contributions.routes ?? {}).length > 0 ? (
+                  <DataTable
+                    fixedLayout
+                    className="bg-background/50"
+                    bodyCellClassName="w-1/3"
+                    headerCellClassName={cn(
+                      'w-1/3',
+                      'bg-foreground/[0.02] text-foreground/50',
+                    )}
+                    data={Object.keys(app?.contributions.routes ?? {}).map(
+                      (identifier) => ({
+                        identifier,
+                        path: app?.contributions.routes[identifier]?.path ?? '',
+                        uiIdentifier:
+                          app?.contributions.routes[identifier]?.uiIdentifier ??
+                          '',
+                      }),
+                    )}
+                    columns={appContributedRoutesTableColumns}
+                  />
+                ) : (
+                  <EmptyState
+                    variant="row-sm"
+                    icon={Menu}
+                    text={'No routes configured'}
+                  />
+                )}
+              </CardContent>
+            </Card>
+            {appRouteLinkContributionTypes.map((linkContributionType) => {
+              const data = app?.contributions[linkContributionType] ?? []
+
+              return (
+                <Card
+                  key={linkContributionType}
+                  className="flex-1 border-0 bg-transparent shadow-none"
+                  aria-describedby="folder-object-view-contribution-description"
+                >
+                  <CardHeader className="p-0 pb-4">
+                    <CardTitle className="py-0 text-base">
+                      <div className="flex flex-col">
+                        <span>
+                          {
+                            appRouteLinkContributionTypeLabels[
+                              linkContributionType
+                            ]
+                          }
+                        </span>
+                        <span
+                          id="folder-object-view-contribution-description"
+                          className="text-sm font-normal text-muted-foreground/70"
+                        >
+                          {
+                            appRouteLinkContributionTypeDescriptions[
+                              linkContributionType
+                            ]
+                          }
+                        </span>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {data.length > 0 ? (
+                      <DataTable
+                        data={data}
+                        columns={appContributedRouteLinksTableColumns}
+                        className=""
+                        bodyCellClassName="w-1/3"
+                        headerCellClassName="w-1/3 bg-foreground/[0.02] text-foreground/50"
+                      />
+                    ) : (
+                      <EmptyState
+                        variant="row-sm"
+                        icon={Menu}
+                        text={
+                          appRouteLinkContributionTypeEmptyMessages[
+                            linkContributionType
+                          ]
+                        }
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Manifest</CardTitle>
           <CardDescription>
-            The external app workers currently connected to the server.
+            All files included in the app bundle
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <DataTable
-            data={app?.externalWorkers ?? []}
-            columns={serverAppExternalWorkerTableColumns}
-          />
-        </CardContent>
-      </Card>
-      <Card className="flex-1 border-0 bg-transparent shadow-none">
-        <CardHeader className="p-0 pb-4">
-          <CardTitle>Manifest</CardTitle>
-          <CardDescription>All files included in the app.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <DataTable
-            data={Object.entries(app?.manifest ?? {}).map(([path, file]) => ({
-              path,
-              ...file,
-            }))}
-            columns={serverAppManifestTableColumns}
-          />
+        <CardContent>
+          <div className="flex flex-col gap-8">
+            {Object.keys(app?.manifest ?? {}).length === 0 ? (
+              <EmptyState
+                variant="row-sm"
+                icon={Menu}
+                text={'No files included'}
+              />
+            ) : (
+              <DataTable
+                fixedLayout
+                className="bg-background/50"
+                bodyCellClassName="w-1/3"
+                headerCellClassName={cn(
+                  'w-1/3',
+                  'bg-foreground/[0.02] text-foreground/50',
+                )}
+                data={Object.entries(app?.manifest ?? {}).map(
+                  ([path, file]) => ({
+                    path,
+                    ...file,
+                  }),
+                )}
+                columns={serverAppManifestTableColumns}
+              />
+            )}
+          </div>
         </CardContent>
       </Card>
       <div className="flex flex-col gap-4">
-        <Card className="border-0 bg-transparent shadow-none">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle>Configuration</CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuration (JSON)</CardTitle>
             <CardDescription>
-              The configuration denotes what the app is allowed to do and access
+              The raw content of the app's configuration file
             </CardDescription>
           </CardHeader>
-
-          <CardContent className="p-0">
-            <Tabs
-              defaultValue={'pretty'}
-              value={showRawConfig ? 'json' : 'pretty'}
-            >
-              <TabsList className="mb-2">
-                <TabsTrigger
-                  onClick={() => setShowRawConfig((_s) => !_s)}
-                  value="pretty"
-                >
-                  <div className="flex items-center gap-2">Pretty</div>
-                </TabsTrigger>
-                <TabsTrigger
-                  onClick={() => setShowRawConfig((_s) => !_s)}
-                  value="json"
-                >
-                  <div className="flex items-center gap-2">JSON</div>
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="pretty">
-                <AppAttributeList app={app} />
-              </TabsContent>
-              <TabsContent value="json" className="overflow-x-auto">
-                <pre className="overflow-y-auto rounded-lg bg-muted-foreground/5 p-4 text-foreground/75">
-                  {JSON.stringify(app?.config, null, 2)}
-                </pre>
-              </TabsContent>
-            </Tabs>
+          <CardContent>
+            <div className="rounded-lg bg-foreground/5 p-4">
+              <pre className="whitespace-pre-wrap break-words text-foreground/75">
+                {JSON.stringify(app?.config, null, 2)}
+              </pre>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -108,11 +108,17 @@ export class AppsController {
     const connectedExternalAppWorkers =
       this.appService.getExternalWorkerConnections()
 
+    // Calculate app metrics
+    const metrics = await this.appService.calculateAppMetrics(appIdentifier)
+
     return {
-      app: transformAppToDTO(
-        app,
-        connectedExternalAppWorkers[app.identifier] ?? [],
-      ),
+      app: {
+        ...transformAppToDTO(
+          app,
+          connectedExternalAppWorkers[app.identifier] ?? [],
+        ),
+        metrics,
+      },
     }
   }
 

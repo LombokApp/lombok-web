@@ -1797,6 +1797,58 @@ export interface components {
                     };
                     identifier: string;
                 }[];
+                contributions: {
+                    routes: {
+                        [key: string]: {
+                            uiIdentifier: string;
+                            path: string;
+                        };
+                    };
+                    sidebarMenuLinks: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderActionMenuLinks: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectActionMenuLinks: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderSidebarViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectSidebarViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectDetailViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                };
+                metrics?: {
+                    tasksExecutedLast24Hours: {
+                        completed: number;
+                        failed: number;
+                    };
+                    errorsLast24Hours: {
+                        total: number;
+                        last10Minutes: number;
+                    };
+                    eventsEmittedLast24Hours: {
+                        total: number;
+                        last10Minutes: number;
+                    };
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1916,6 +1968,58 @@ export interface components {
                     };
                     identifier: string;
                 }[];
+                contributions: {
+                    routes: {
+                        [key: string]: {
+                            uiIdentifier: string;
+                            path: string;
+                        };
+                    };
+                    sidebarMenuLinks: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderActionMenuLinks: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectActionMenuLinks: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderSidebarViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectSidebarViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectDetailViews: {
+                        routeIdentifier: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                };
+                metrics?: {
+                    tasksExecutedLast24Hours: {
+                        completed: number;
+                        failed: number;
+                    };
+                    errorsLast24Hours: {
+                        total: number;
+                        last10Minutes: number;
+                    };
+                    eventsEmittedLast24Hours: {
+                        total: number;
+                        last10Minutes: number;
+                    };
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */

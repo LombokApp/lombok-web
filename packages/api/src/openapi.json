@@ -6834,6 +6834,241 @@
                     ]
                   }
                 },
+                "contributions": {
+                  "type": "object",
+                  "properties": {
+                    "routes": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "uiIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "uiIdentifier",
+                          "path"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "sidebarMenuLinks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routeIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "routeIdentifier",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "folderActionMenuLinks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routeIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "routeIdentifier",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "objectActionMenuLinks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routeIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "routeIdentifier",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "folderSidebarViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routeIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "routeIdentifier",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "objectSidebarViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routeIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "routeIdentifier",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "objectDetailViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routeIdentifier": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "routeIdentifier",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "routes",
+                    "sidebarMenuLinks",
+                    "folderActionMenuLinks",
+                    "objectActionMenuLinks",
+                    "folderSidebarViews",
+                    "objectSidebarViews",
+                    "objectDetailViews"
+                  ],
+                  "additionalProperties": false
+                },
+                "metrics": {
+                  "type": "object",
+                  "properties": {
+                    "tasksExecutedLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "number"
+                        },
+                        "failed": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "errorsLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "last10Minutes": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "last10Minutes"
+                      ]
+                    },
+                    "eventsEmittedLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "last10Minutes": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "last10Minutes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "tasksExecutedLast24Hours",
+                    "errorsLast24Hours",
+                    "eventsEmittedLast24Hours"
+                  ]
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -6853,6 +7088,7 @@
                 "externalWorkers",
                 "workers",
                 "ui",
+                "contributions",
                 "createdAt",
                 "updatedAt"
               ]
@@ -7335,6 +7571,241 @@
                   ]
                 }
               },
+              "contributions": {
+                "type": "object",
+                "properties": {
+                  "routes": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "uiIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "uiIdentifier",
+                        "path"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "sidebarMenuLinks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "routeIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "routeIdentifier",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "folderActionMenuLinks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "routeIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "routeIdentifier",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "objectActionMenuLinks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "routeIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "routeIdentifier",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "folderSidebarViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "routeIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "routeIdentifier",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "objectSidebarViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "routeIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "routeIdentifier",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "objectDetailViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "routeIdentifier": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "routeIdentifier",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "routes",
+                  "sidebarMenuLinks",
+                  "folderActionMenuLinks",
+                  "objectActionMenuLinks",
+                  "folderSidebarViews",
+                  "objectSidebarViews",
+                  "objectDetailViews"
+                ],
+                "additionalProperties": false
+              },
+              "metrics": {
+                "type": "object",
+                "properties": {
+                  "tasksExecutedLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "completed": {
+                        "type": "number"
+                      },
+                      "failed": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "completed",
+                      "failed"
+                    ]
+                  },
+                  "errorsLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
+                  },
+                  "eventsEmittedLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
+                  }
+                },
+                "required": [
+                  "tasksExecutedLast24Hours",
+                  "errorsLast24Hours",
+                  "eventsEmittedLast24Hours"
+                ]
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -7354,6 +7825,7 @@
               "externalWorkers",
               "workers",
               "ui",
+              "contributions",
               "createdAt",
               "updatedAt"
             ]

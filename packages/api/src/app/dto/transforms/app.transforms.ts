@@ -16,6 +16,15 @@ export function transformAppToDTO(
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,
     workers: app.workers,
+    contributions: app.config.contributions ?? {
+      routes: {},
+      sidebarMenuLinks: [],
+      folderActionMenuLinks: [],
+      objectActionMenuLinks: [],
+      folderSidebarViews: [],
+      objectSidebarViews: [],
+      objectDetailViews: [],
+    },
     ui: Object.keys(app.ui).map((uiIdentifier) => ({
       identifier: uiIdentifier,
       ...app.ui[uiIdentifier],

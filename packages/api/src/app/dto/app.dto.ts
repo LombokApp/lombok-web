@@ -1,7 +1,9 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import {
   appConfigSchema,
+  appContributionsSchema,
   appManifestSchema,
+  appMetricsSchema,
   appUiArraySchema,
   appWorkersSchema,
   externalAppWorkerSchema,
@@ -19,6 +21,8 @@ export const appSchema = z.object({
   externalWorkers: z.array(externalAppWorkerSchema),
   workers: appWorkersSchema,
   ui: appUiArraySchema,
+  contributions: appContributionsSchema,
+  metrics: appMetricsSchema.optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
