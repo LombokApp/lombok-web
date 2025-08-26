@@ -44,70 +44,57 @@
     }
   },
   "contributions": {
-    "routes": [
-      {
-        "label": "Demo",
+    "routes": {
+      "base": {
         "uiIdentifier": "main",
-        "iconPath": "/assets/logo.png",
-        "path": "/demo-page"
-      },
-      {
-        "label": "Landing Page",
-        "uiIdentifier": "main",
-        "iconPath": "/assets/logo.png",
         "path": "/"
       },
-      {
-        "label": "Thing Doer",
+      "special": {
         "uiIdentifier": "main",
-        "iconPath": "/assets/logo.png",
-        "path": "/thing-doer"
+        "path": "/demo-page"
       }
-    ],
+
+    },
     "sidebarMenuLinks": [
       {
         "label": "Landing Page",
-        "iconPath": "/assets/logo.png",
-        "uiIdentifier": "main",
-        "path": "/"
-      },
-      {
-        "label": "Demo Page",
-        "iconPath": "/assets/logo.png",
-        "uiIdentifier": "main",
-        "path": "/demo-page"
+        "routeIdentifier": "base",
+        "iconPath": "/assets/logo.png"
       }
     ],
     "folderActionMenuLinks": [
       {
         "label": "Do Folder Thing",
-        "iconPath": "/assets/logo.png",
-        "uiIdentifier": "main",
-        "path": "/demo-page?folderId={folderId}"
+        "routeIdentifier": "base",
+        "iconPath": "/assets/logo.png"
       }
     ],
     "objectActionMenuLinks": [
       {
         "label": "Do Object Thing",
-        "iconPath": "/assets/logo.png",
-        "uiIdentifier": "main",
-        "path": "/demo-page?folderId={folderId}&objectKey={objectKey}"
+        "routeIdentifier": "base",
+        "iconPath": "/assets/logo.png"
       }
     ],
-    "folderSidebarEmbeds": [
+    "folderSidebarViews": [
       {
         "label": "Demo Folder Sidebar Embed",
-        "iconPath": "/assets/logo.png",
-        "uiIdentifier": "main",
-        "path": "/demo-page"
+        "routeIdentifier": "special",
+        "iconPath": "/assets/logo.png"
       }
     ],
-    "objectSidebarEmbeds": [
+    "objectSidebarViews": [
       {
         "label": "Demo Object Sidebar Embed",
-        "iconPath": "/assets/logo.png",
-        "uiIdentifier": "main",
-        "path": "/demo-page"
+        "routeIdentifier": "base",
+        "iconPath": "/assets/logo.png"
+      }
+    ],
+    "objectDetailViews": [
+      {
+        "label": "Demo Object View Embed",
+        "routeIdentifier": "special",
+        "iconPath": "/assets/logo.png"
       }
     ]
   },

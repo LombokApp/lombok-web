@@ -46,7 +46,7 @@ export const App = () => {
             </div>
             <h1 className="mb-6 text-5xl font-bold text-white md:text-7xl">
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Lombok App Platform
+                Lombok Apps Platform
               </span>
             </h1>
             <p className="mx-auto mb-8 max-w-3xl text-xl text-white/70">

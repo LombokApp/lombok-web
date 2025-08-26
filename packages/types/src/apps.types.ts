@@ -46,20 +46,17 @@ export const genericIdentifierSchema = z
   .nonempty()
   .regex(/^[a-z_]+$/)
 
-export const taskIdentifierSchema = genericIdentifierSchema.refine(
-  (v) => v.toLowerCase() === v,
-  {
-    message: 'Task identifier must be lowercase',
-  },
-)
+export const taskIdentifierSchema = genericIdentifierSchema
 
-export const taskConfigSchema = z.object({
-  identifier: taskIdentifierSchema,
-  label: z.string().nonempty().min(1).max(128),
-  triggers: z.array(z.string()),
-  description: z.string(),
-  worker: z.string().optional(),
-})
+export const taskConfigSchema = z
+  .object({
+    identifier: taskIdentifierSchema,
+    label: z.string().nonempty().min(1).max(128),
+    triggers: z.array(z.string()),
+    description: z.string(),
+    worker: z.string().optional(),
+  })
+  .strict()
 
 export const appWorkersArraySchema = z.array(
   z.object({
@@ -74,11 +71,6 @@ export const appUILinkSchema = z.object({
   label: z.string(),
   iconPath: z.string().optional(),
   path: z.string(),
-})
-
-export const appIdentitySchema = z.object({
-  publicKey: z.string(),
-  identifier: z.string(),
 })
 
 export const appManifestEntrySchema = z.object({
@@ -119,25 +111,66 @@ export const appIdentifierSchema = z
     message: "App identifier cannot be 'platform'",
   })
 
-export const appContributionRouteLinkSchema = z
+export const appContributionRouteSchema = z
   .object({
-    label: z.string().nonempty(),
     uiIdentifier: z.string().nonempty(),
+    path: z.string().nonempty().startsWith('/', {
+      message: 'Path must start with a forwardslash',
+    }),
+  })
+  .strict()
+
+export const appContributionEmbedLinkSchema = z
+  .object({
+    routeIdentifier: z.string().nonempty(),
+    label: z.string().nonempty(),
     iconPath: z.string().optional(),
-    path: z.string().nonempty(),
   })
   .strict()
 
 export const appContributionsSchema = z
   .object({
-    routes: z.array(appContributionRouteLinkSchema),
-    sidebarMenuLinks: z.array(appContributionRouteLinkSchema),
-    folderActionMenuLinks: z.array(appContributionRouteLinkSchema),
-    objectActionMenuLinks: z.array(appContributionRouteLinkSchema),
-    folderSidebarEmbeds: z.array(appContributionRouteLinkSchema),
-    objectSidebarEmbeds: z.array(appContributionRouteLinkSchema),
+    routes: z.record(genericIdentifierSchema, appContributionRouteSchema),
+    sidebarMenuLinks: z.array(appContributionEmbedLinkSchema),
+    folderActionMenuLinks: z.array(appContributionEmbedLinkSchema),
+    objectActionMenuLinks: z.array(appContributionEmbedLinkSchema),
+    folderSidebarViews: z.array(appContributionEmbedLinkSchema),
+    objectSidebarViews: z.array(appContributionEmbedLinkSchema),
+    objectDetailViews: z.array(appContributionEmbedLinkSchema),
   })
   .strict()
+  .superRefine((value, ctx) => {
+    const routeKeyArray = Object.keys(value.routes)
+    const routeKeys = new Set(routeKeyArray)
+
+    const validateLinks = (
+      links: z.infer<typeof appContributionEmbedLinkSchema>[],
+      containerKey:
+        | 'sidebarMenuLinks'
+        | 'folderActionMenuLinks'
+        | 'objectActionMenuLinks'
+        | 'folderSidebarViews'
+        | 'objectSidebarViews'
+        | 'objectDetailViews',
+    ) => {
+      links.forEach((link, index) => {
+        if (!routeKeys.has(link.routeIdentifier)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Unknown routeIdentifier "${link.routeIdentifier}". Must be one of: ${routeKeyArray.length > 0 ? routeKeyArray.join(', ') : '(none)'}`,
+            path: [containerKey, index, 'routeIdentifier'],
+          })
+        }
+      })
+    }
+
+    validateLinks(value.sidebarMenuLinks, 'sidebarMenuLinks')
+    validateLinks(value.folderActionMenuLinks, 'folderActionMenuLinks')
+    validateLinks(value.objectActionMenuLinks, 'objectActionMenuLinks')
+    validateLinks(value.folderSidebarViews, 'folderSidebarViews')
+    validateLinks(value.objectSidebarViews, 'objectSidebarViews')
+    validateLinks(value.objectDetailViews, 'objectDetailViews')
+  })
 
 export const appConfigSchema = z
   .object({
@@ -147,7 +180,6 @@ export const appConfigSchema = z
     description: z.string().nonempty().min(1).max(1024),
     emittableEvents: z.array(z.string().nonempty()),
     tasks: z.array(taskConfigSchema),
-    externalWorkers: z.array(z.string().nonempty()).optional(),
     workers: z
       .record(
         z
@@ -162,6 +194,38 @@ export const appConfigSchema = z
     contributions: appContributionsSchema.optional(),
   })
   .strict()
+  .superRefine((value, ctx) => {
+    if (!value.contributions) {
+      return
+    }
+
+    const uiKeyArray = Object.keys(value.ui ?? {})
+    const uiKeys = new Set(uiKeyArray)
+
+    Object.entries(value.contributions.routes).forEach(([routeKey, route]) => {
+      if (!uiKeys.has(route.uiIdentifier)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Unknown uiIdentifier "${route.uiIdentifier}". Must be one of: ${uiKeyArray.length > 0 ? uiKeyArray.join(', ') : '(none)'}`,
+          path: ['contributions', 'routes', routeKey, 'uiIdentifier'],
+        })
+      }
+    })
+  })
+  .superRefine((value, ctx) => {
+    const workerKeyArray = Object.keys(value.workers ?? {})
+    const workerKeys = new Set(workerKeyArray)
+
+    value.tasks.forEach((task, index) => {
+      if (task.worker && !workerKeys.has(task.worker)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Unknown worker "${task.worker}". Must be one of: ${workerKeyArray.length > 0 ? workerKeyArray.join(', ') : '(none)'}`,
+          path: ['tasks', index, 'worker'],
+        })
+      }
+    })
+  })
 
 export const appWorkerSchema = z.object({
   description: z.string(),

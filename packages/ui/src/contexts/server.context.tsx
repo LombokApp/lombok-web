@@ -27,8 +27,14 @@ export interface Notification {
   id?: string
 }
 
-export type AppRouteDescription = {
+export interface AppRoute {
+  uiIdentifier: string
+  path: string
+}
+
+export type AppRouteLinkContribution = {
   href: string
+  routeIdentifier: string
   appIdentifier: string
   appLabel: string
   uiIdentifier: string
@@ -39,13 +45,34 @@ export interface IServerContext {
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
-  sidebarMenuLinkContributions: AppRouteDescription[]
-  folderActionMenuLinkContributions: AppRouteDescription[]
-  objectActionMenuLinkContributions: AppRouteDescription[]
-  folderSidebarEmbedContributions: AppRouteDescription[]
-  objectSidebarEmbedContributions: AppRouteDescription[]
+  appContributions: {
+    routes: Record<string, Record<string, AppRoute>>
+    sidebarMenuContributions: {
+      all: AppRouteLinkContribution[]
+      byApp: Record<string, AppRouteLinkContribution[]>
+    }
+    folderActionMenuContributions: {
+      all: AppRouteLinkContribution[]
+      byApp: Record<string, AppRouteLinkContribution[]>
+    }
+    objectDetailViewContributions: {
+      all: AppRouteLinkContribution[]
+      byApp: Record<string, AppRouteLinkContribution[]>
+    }
+    objectActionMenuContributions: {
+      all: AppRouteLinkContribution[]
+      byApp: Record<string, AppRouteLinkContribution[]>
+    }
+    folderSidebarViewContributions: {
+      all: AppRouteLinkContribution[]
+      byApp: Record<string, AppRouteLinkContribution[]>
+    }
+    objectSidebarViewContributions: {
+      all: AppRouteLinkContribution[]
+      byApp: Record<string, AppRouteLinkContribution[]>
+    }
+  }
   settings?: ServerSettingsListResponse['settings']
-  appContributions?: AppContributionsResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean
@@ -55,6 +82,92 @@ export interface IServerContext {
 export const ServerContext = React.createContext<IServerContext>(
   {} as IServerContext,
 )
+
+function formatContributedRoutes(
+  contributions: AppContributionsResponse,
+): Record<string, Record<string, AppRoute>> {
+  return Object.keys(contributions).reduce<
+    Record<string, Record<string, AppRoute>>
+  >((acc, appIdentifier) => {
+    return {
+      ...acc,
+      ...(contributions[appIdentifier]
+        ? {
+            [appIdentifier]: contributions[appIdentifier].contributions
+              .routes as Record<string, AppRoute>,
+          }
+        : {}),
+    }
+  }, {})
+}
+
+function formatContributionLinks(
+  allContributions: AppContributionsResponse,
+  key: Exclude<
+    keyof AppContributionsResponse[string]['contributions'],
+    'routes'
+  >,
+) {
+  return Object.keys(allContributions).reduce<{
+    all: AppRouteLinkContribution[]
+    byApp: Record<string, AppRouteLinkContribution[]>
+  }>(
+    (acc, nextAppIdentifier) => {
+      const appLabel = allContributions[nextAppIdentifier]?.appLabel ?? ''
+      const appContributions =
+        allContributions[nextAppIdentifier]?.contributions
+      return {
+        all: acc.all.concat(
+          appContributions?.[key].map((nextEmbedLink) => ({
+            ...nextEmbedLink,
+            href: `/apps/${nextAppIdentifier}/${nextEmbedLink.routeIdentifier}`,
+            uiIdentifier:
+              appContributions.routes[nextEmbedLink.routeIdentifier]
+                ?.uiIdentifier ?? '',
+            path:
+              appContributions.routes[nextEmbedLink.routeIdentifier]?.path ??
+              '',
+            appIdentifier: nextAppIdentifier,
+            appLabel,
+          })) ?? [],
+        ),
+        byApp: acc.byApp,
+      }
+      // return acc
+    },
+    { all: [], byApp: {} },
+  )
+}
+
+function formatContributions(allContributions: AppContributionsResponse) {
+  return {
+    routes: formatContributedRoutes(allContributions),
+    sidebarMenuContributions: formatContributionLinks(
+      allContributions,
+      'sidebarMenuLinks',
+    ),
+    folderActionMenuContributions: formatContributionLinks(
+      allContributions,
+      'folderActionMenuLinks',
+    ),
+    objectActionMenuContributions: formatContributionLinks(
+      allContributions,
+      'objectActionMenuLinks',
+    ),
+    folderSidebarViewContributions: formatContributionLinks(
+      allContributions,
+      'folderSidebarViews',
+    ),
+    objectSidebarViewContributions: formatContributionLinks(
+      allContributions,
+      'objectSidebarViews',
+    ),
+    objectDetailViewContributions: formatContributionLinks(
+      allContributions,
+      'objectDetailViews',
+    ),
+  }
+}
 
 export const ServerContextProvider = ({
   children,
@@ -87,113 +200,9 @@ export const ServerContextProvider = ({
   // Derived state from API data
   const serverSettings = settingsQuery.data?.settings
   const appContributionsResult = appsContributionsQuery.data
-  const {
-    sidebarMenuLinkContributions,
-    folderActionMenuLinkContributions,
-    objectActionMenuLinkContributions,
-    folderSidebarEmbedContributions,
-    objectSidebarEmbedContributions,
-  } = React.useMemo(
-    () => ({
-      sidebarMenuLinkContributions: Object.keys(
-        appContributionsResult ?? {},
-      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
-        const appIdentifier =
-          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
-        const appLabel =
-          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
-        const contributions =
-          appContributionsResult?.[nextAppIdentifier]?.contributions
-        return acc.concat(
-          (contributions?.sidebarMenuLinks ?? []).map(
-            (nextSidebarMenuLink) => ({
-              ...nextSidebarMenuLink,
-              href: `/apps/${appIdentifier}/${nextSidebarMenuLink.uiIdentifier}${nextSidebarMenuLink.path}`,
-              appIdentifier,
-              appLabel,
-            }),
-          ),
-        )
-      }, []),
-      folderSidebarEmbedContributions: Object.keys(
-        appContributionsResult ?? {},
-      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
-        const appIdentifier =
-          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
-        const appLabel =
-          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
-        const contributions =
-          appContributionsResult?.[nextAppIdentifier]?.contributions
-        return acc.concat(
-          (contributions?.folderSidebarEmbeds ?? []).map((nextEmbed) => ({
-            ...nextEmbed,
-            href: `/apps/${appIdentifier}/${nextEmbed.uiIdentifier}${nextEmbed.path}`,
-            appIdentifier,
-            appLabel,
-          })),
-        )
-      }, []),
-      objectSidebarEmbedContributions: Object.keys(
-        appContributionsResult ?? {},
-      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
-        const appIdentifier =
-          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
-        const appLabel =
-          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
-        const contributions =
-          appContributionsResult?.[nextAppIdentifier]?.contributions
-        return acc.concat(
-          (contributions?.objectSidebarEmbeds ?? []).map((nextEmbed) => ({
-            ...nextEmbed,
-            href: `/apps/${appIdentifier}/${nextEmbed.uiIdentifier}${nextEmbed.path}`,
-            appIdentifier,
-            appLabel,
-          })),
-        )
-      }, []),
-      folderActionMenuLinkContributions: Object.keys(
-        appContributionsResult ?? {},
-      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
-        const appIdentifier =
-          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
-        const appLabel =
-          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
-        const contributions =
-          appContributionsResult?.[nextAppIdentifier]?.contributions
-        return acc.concat(
-          (contributions?.folderActionMenuLinks ?? []).map(
-            (nextFolderActionMenuLink) => ({
-              ...nextFolderActionMenuLink,
-              href: `/apps/${appIdentifier}/${nextFolderActionMenuLink.uiIdentifier}${nextFolderActionMenuLink.path}`,
-              appIdentifier,
-              appLabel,
-            }),
-          ),
-        )
-      }, []),
-      objectActionMenuLinkContributions: Object.keys(
-        appContributionsResult ?? {},
-      ).reduce<AppRouteDescription[]>((acc, nextAppIdentifier) => {
-        const appIdentifier =
-          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
-        const appLabel =
-          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
-        const contributions =
-          appContributionsResult?.[nextAppIdentifier]?.contributions
-        return acc.concat(
-          (contributions?.objectActionMenuLinks ?? []).map(
-            (nextObjectActionMenuLink) => ({
-              ...nextObjectActionMenuLink,
-              href: `/apps/${appIdentifier}/${nextObjectActionMenuLink.uiIdentifier}${nextObjectActionMenuLink.path}`,
-              appIdentifier,
-              appLabel,
-            }),
-          ),
-        )
-      }, []),
-    }),
-    [appContributionsResult],
-  )
+  const formattedContributions = React.useMemo(() => {
+    return formatContributions(appContributionsResult ?? {})
+  }, [appContributionsResult])
 
   const messageHandler = React.useCallback(
     (name: AppPushMessage) => {
@@ -222,13 +231,8 @@ export const ServerContextProvider = ({
         refreshApps: appsContributionsQuery.refetch,
         refreshSettings: refetchSettings,
         socketConnected: socket?.connected ?? false,
-        sidebarMenuLinkContributions,
-        folderActionMenuLinkContributions,
-        objectActionMenuLinkContributions,
-        folderSidebarEmbedContributions,
-        objectSidebarEmbedContributions,
+        appContributions: formattedContributions,
         settings: serverSettings,
-        appContributions: appsContributionsQuery.data,
         subscribeToMessages,
         unsubscribeFromMessages,
         socket,

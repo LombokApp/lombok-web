@@ -58,7 +58,7 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
           return
         }
 
-        const appFrontendProxyHostConfigEnvKey = `SC_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}_${uiIdentifier.toUpperCase()}`
+        const appFrontendProxyHostConfigEnvKey = `LOMBOK_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}_${uiIdentifier.toUpperCase()}`
         const appProxyHostConfig = env[appFrontendProxyHostConfigEnvKey]
           ? new URL(env[appFrontendProxyHostConfigEnvKey])
           : undefined

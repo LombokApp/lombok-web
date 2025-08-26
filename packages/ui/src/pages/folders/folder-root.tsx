@@ -51,7 +51,6 @@ function FolderRootInner() {
   const isEventDetailPage = pathParts.length === 3 && pathParts[1] === 'events'
 
   const folderContext = useFolderContext()
-
   const extraBreadcrumbs: { label: string; href: string }[] = []
   if (focusedFolderObjectKey) {
     extraBreadcrumbs.push({
