@@ -1,6 +1,6 @@
 import type { FolderObjectDTO } from '@lombokapp/types'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { toMetadataObjectIdentifier } from '@lombokapp/utils'
+import { encodeS3ObjectKey, toMetadataObjectIdentifier } from '@lombokapp/utils'
 
 import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
 
@@ -27,7 +27,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
     id: 'link',
     cell: ({ row }) => (
       <TableLinkColumn
-        to={`/folders/${row.original.folderId}/objects/${encodeURIComponent(row.original.objectKey)}`}
+        to={`/folders/${row.original.folderId}/objects/${encodeS3ObjectKey(row.original.objectKey)}`}
       />
     ),
     enableSorting: false,
