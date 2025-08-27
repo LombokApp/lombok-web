@@ -5,7 +5,7 @@ import type {
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
 import type { ContentMetadataEntry } from '@lombokapp/types'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
-import { mediaTypeFromMimeType } from '@lombokapp/utils'
+import { encodeS3ObjectKey, mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -46,7 +46,7 @@ export const analyzeObjectTaskHandler = async (
     [
       {
         folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
+        objectKey: encodeS3ObjectKey(task.subjectObjectKey),
         method: SignedURLsRequestMethod.GET,
       },
     ],
