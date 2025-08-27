@@ -1,4 +1,5 @@
 import type { SignedURLsRequestMethod } from '@lombokapp/types'
+import { encodeS3ObjectKey } from '@lombokapp/utils'
 import aws4 from 'aws4'
 
 export function createS3PresignedUrls(
@@ -46,7 +47,7 @@ export function createS3PresignedUrls(
         service: 's3',
         region: request.region,
         method: request.method,
-        path: `/${request.bucket}/${request.objectKey}?${new URLSearchParams(
+        path: `/${request.bucket}/${encodeS3ObjectKey(request.objectKey)}?${new URLSearchParams(
           queryString,
         )}`,
         host: hostnames[request.endpoint],

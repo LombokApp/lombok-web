@@ -5,6 +5,7 @@ import {
 } from '@aws-sdk/client-s3'
 import type { S3Object, S3ObjectInternal } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { encodeS3ObjectKey } from '@lombokapp/utils'
 import {
   Injectable,
   InternalServerErrorException,
@@ -142,7 +143,7 @@ export class S3Service {
         accessKeyId,
         secretAccessKey,
         bucket,
-        objectKey,
+        objectKey: encodeS3ObjectKey(objectKey),
         method: SignedURLsRequestMethod.HEAD,
         expirySeconds: 300,
       },

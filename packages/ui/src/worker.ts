@@ -1,6 +1,9 @@
 import type { LombokApiClient, paths } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
-import { objectIdentifierToObjectKey } from '@lombokapp/utils'
+import {
+  encodeS3ObjectKey,
+  objectIdentifierToObjectKey,
+} from '@lombokapp/utils'
 import createFetchClient from 'openapi-fetch'
 
 export enum LogLevel {
@@ -320,8 +323,9 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
             params: {
               path: {
                 folderId,
-                objectKey:
+                objectKey: encodeS3ObjectKey(
                   objectIdentifierToObjectKey(objectIdentifier).objectKey,
+                ),
               },
             },
           },
