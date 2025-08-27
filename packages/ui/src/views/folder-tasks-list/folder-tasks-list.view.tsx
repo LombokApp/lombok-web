@@ -13,7 +13,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { DateDisplay } from '@/src/components/date-display'
-import { useFolderContext } from '@/src/pages/folders/folder.context'
+import { useFolderContext } from '@/src/contexts/folder'
 import { $api } from '@/src/services/api'
 
 const TASK_PREVIEW_LENGTH = 5

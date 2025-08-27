@@ -2,7 +2,7 @@ import type { IAuthContext } from '@lombokapp/auth-utils'
 import { Button, cn } from '@lombokapp/ui-toolkit'
 import { Link } from 'react-router-dom'
 
-import type { AppRouteLinkContribution } from '../../contexts/server.context'
+import type { AppRouteLinkContribution } from '../../contexts/server'
 import { useStore } from '../../hooks/use-store'
 import { Menu } from './components/menu'
 import { SidebarToggle } from './components/sidebar-toggle'

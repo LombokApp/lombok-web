@@ -1,12 +1,10 @@
 import React from 'react'
 
-import {
-  ServerContext,
-  type SocketMessageHandler,
-} from '../contexts/server.context'
+import { FolderContext } from './folder.provider'
+import type { SocketMessageHandler } from './folder.types'
 
-export const useServerContext = (messageHandler?: SocketMessageHandler) => {
-  const context = React.useContext(ServerContext)
+export const useFolderContext = (messageHandler?: SocketMessageHandler) => {
+  const context = React.useContext(FolderContext)
   const { subscribeToMessages, unsubscribeFromMessages } = context
   React.useEffect(() => {
     if (messageHandler) {

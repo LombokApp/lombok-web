@@ -1,62 +1,17 @@
 import React from 'react'
 
-import { sdkInstance } from '../services/api'
-import { indexedDb } from '../services/indexed-db'
-import { getDataFromDisk } from '../services/local-cache/local-cache.service'
-import { downloadData } from '../utils/file'
-import LombokWorker from '../worker.ts?worker'
-import type { LogLine } from './logging.context'
-import { useLoggingContext } from './logging.context'
-
-export type LocalFileCache = Record<string, { size: number; type: string }>
-
-export class FileCacheError extends Error {}
-
-export interface ILocalFileCacheContext {
-  error?: FileCacheError
-  isLocal: (folderId: string, key: string) => Promise<boolean>
-  isDownloading: (
-    folderId: string,
-    objectIdentifier: string,
-  ) => { progressPercent: number }
-  getData: (
-    folderId: string,
-    objectIdentifier: string,
-  ) => Promise<{ dataURL: string; type: string } | undefined>
-  downloadLocally: (
-    folderId: string,
-    key: string,
-  ) => Promise<{ dataURL: string }>
-  downloadToFile: (
-    folderId: string,
-    objectIdentifier: string,
-    downloadFilename: string,
-  ) => void
-  uploadFile: (folderId: string, filename: string, file: File) => void
-  localStorageFolderSizes: Record<string, number>
-  purgeLocalStorageForFolder: (folderId: string) => Promise<boolean>
-  recalculateLocalStorageFolderSizes: () => Promise<boolean>
-  uploadingProgress: Record<string, number>
-  getDataFromMemory: (
-    folderId: string,
-    key: string,
-  ) => { dataURL: string } | undefined
-  deleteFromMemory: (folderId: string, key: string) => void
-  initialized: boolean
-}
-const LocalFileCacheContext = React.createContext<ILocalFileCacheContext>(
-  {} as ILocalFileCacheContext,
-)
-
-type WorkerMessage = [string, unknown]
-
-interface DownloadingContext {
-  progressPercent: number
-  resolve: ({ dataURL }: { dataURL: string; type: string }) => void
-  reject: (e: unknown) => void
-}
-
-type DownloadingContextMap = Record<string, DownloadingContext | undefined>
+import { sdkInstance } from '../../services/api'
+import { indexedDb } from '../../services/indexed-db'
+import { getDataFromDisk } from '../../services/local-cache/local-cache.service'
+import { downloadData } from '../../utils/file'
+import LombokWorker from '../../worker.ts?worker'
+import type { LogLine } from '../logging'
+import { useLoggingContext } from '../logging'
+import { LocalFileCacheContext } from './local-file-cache.context'
+import type {
+  DownloadingContextMap,
+  WorkerMessage,
+} from './local-file-cache.types'
 
 export const LocalFileCacheContextProvider = ({
   children,
@@ -139,12 +94,11 @@ export const LocalFileCacheContextProvider = ({
           if (
             ['DOWNLOAD_COMPLETED', 'DOWNLOAD_FAILED'].includes(event.data[0])
           ) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            const folderId: string = (event.data[1] as any).folderId as string
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const objectIdentifier: string =
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-              (event.data[1] as any).objectIdentifier
+            const folderId: string = (event.data[1] as { folderId: string })
+              .folderId
+            const objectIdentifier: string = (
+              event.data[1] as { objectIdentifier: string }
+            ).objectIdentifier
             const folderIdAndKey = `${folderId}:${objectIdentifier}`
             if (event.data[0] === 'DOWNLOAD_FAILED') {
               downloading.current[folderIdAndKey]?.reject(
@@ -359,6 +313,3 @@ export const LocalFileCacheContextProvider = ({
     </LocalFileCacheContext.Provider>
   )
 }
-
-export const useLocalFileCacheContext = (): ILocalFileCacheContext =>
-  React.useContext(LocalFileCacheContext)

@@ -1,0 +1,6 @@
+---
+globs: packages/**/*.*
+alwaysApply: true
+---
+
+When linting, use the package specific lint check and fix commands like `bun --cwd ./packages/api lint:check` and `bun --cwd ./packages/api lint:fix`. There's also `bun --cwd ./packages/api prettier:check` and `bun --cwd ./packages/api prettier:fix`.

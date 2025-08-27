@@ -41,8 +41,8 @@ import {
 } from 'lucide-react'
 
 import { TasksList } from '@/src/components/tasks-list/tasks-list.component'
-import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
-import { useServerContext } from '@/src/hooks/use-server-context'
+import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
+import { useServerContext } from '@/src/contexts/server'
 import { $api, $apiClient } from '@/src/services/api'
 import { AppUI } from '@/src/views/app-ui/app-ui.view'
 const protocol = window.location.protocol

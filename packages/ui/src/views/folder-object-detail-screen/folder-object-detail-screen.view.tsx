@@ -19,15 +19,15 @@ import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
-import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
-import { useServerContext } from '@/src/hooks/use-server-context'
+import { useFolderContext } from '@/src/contexts/folder'
+import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
+import type { AppRouteLinkContribution } from '@/src/contexts/server'
+import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
 
 import type { DeleteObjectModalData } from '../../components/delete-object-modal/delete-object-modal'
 import { DeleteObjectModal } from '../../components/delete-object-modal/delete-object-modal'
-import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { useFocusedFolderObjectContext } from '../../pages/folders/focused-folder-object.context'
-import { useFolderContext } from '../../pages/folders/folder.context'
 import { AppUI } from '../app-ui/app-ui.view'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
@@ -257,7 +257,7 @@ export const FolderObjectDetailScreen = ({
                       <TooltipContent side="bottom">Download</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  {serverContext.appContributions.objectDetailViewContributions.all.map(
+                  {serverContext.appContributions.objectActionMenuContributions.all.map(
                     (linkContribution) => (
                       <TooltipProvider key={linkContribution.href}>
                         <Tooltip delayDuration={100}>

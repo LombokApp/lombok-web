@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@lombokapp/ui-toolkit'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
+import type { AppRouteLinkContribution } from '@/src/contexts/server'
 
 export function FolderObjectDetailViewEmbedSelector({
   options,

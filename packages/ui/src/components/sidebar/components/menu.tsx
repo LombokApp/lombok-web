@@ -11,7 +11,7 @@ import {
 import { Ellipsis, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
+import type { AppRouteLinkContribution } from '@/src/contexts/server'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'

@@ -1,38 +1,8 @@
 import React from 'react'
 
-export type FolderView = Record<string, { size: number; type: string }>
-
-export class FileCacheError extends Error {}
-
-export enum LogLevel {
-  TRACE = 'TRACE',
-  INFO = 'INFO',
-  DEBUG = 'DEBUG',
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
-}
-
-const MAX_LOG_LINES = 10
-
-export interface LogLine {
-  level: LogLevel
-  folderId?: string
-  objectKey?: string
-  message: string
-  remote: boolean
-}
-
-export interface ILoggingContext {
-  logs: {
-    lines: LogLine[]
-    lastChangeKey: string
-  }
-  appendLogLine: (line: LogLine) => void
-}
-
-const LoggingContext = React.createContext<ILoggingContext>(
-  {} as ILoggingContext,
-)
+import { MAX_LOG_LINES } from './logging.constants'
+import { LoggingContext } from './logging.context'
+import type { LogLine } from './logging.types'
 
 export const LoggingContextProvider = ({
   children,
@@ -64,6 +34,3 @@ export const LoggingContextProvider = ({
     </LoggingContext.Provider>
   )
 }
-
-export const useLoggingContext = (): ILoggingContext =>
-  React.useContext(LoggingContext)
