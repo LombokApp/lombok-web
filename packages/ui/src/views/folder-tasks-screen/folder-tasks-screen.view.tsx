@@ -5,7 +5,7 @@ import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { useFolderContext } from '@/src/pages/folders/folder.context'
+import { useFolderContext } from '@/src/contexts/folder'
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {

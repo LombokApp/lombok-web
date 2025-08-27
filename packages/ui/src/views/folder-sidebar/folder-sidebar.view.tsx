@@ -12,19 +12,14 @@ import {
 import { formatBytes } from '@lombokapp/utils'
 import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
 
-import { useServerContext } from '@/src/hooks/use-server-context'
+import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
 import { AppUI } from '@/src/views/app-ui/app-ui.view'
 
 import { FolderEventsList } from '../folder-events-list/folder-events-list.view'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
 
-const protocol = window.location.protocol
-const hostname = window.location.hostname
-const port = window.location.port
-const API_HOST = `${hostname}${port ? `:${port}` : ''}`
-
-export const FolderSidebar = ({
+export function FolderSidebar({
   folderAndPermission,
   folderMetadata,
   onFolderAccessErrorCheck,
@@ -32,9 +27,15 @@ export const FolderSidebar = ({
   folderAndPermission?: FolderGetResponse
   folderMetadata?: FolderMetadata
   onFolderAccessErrorCheck: () => Promise<void>
-}) => {
+}) {
   const { folder } = folderAndPermission ?? {}
   const serverContext = useServerContext()
+
+  // Move constants inside component to avoid HMR issues
+  const protocol = window.location.protocol
+  const hostname = window.location.hostname
+  const port = window.location.port
+  const API_HOST = `${hostname}${port ? `:${port}` : ''}`
   const rerunAccessCheck = async () => {
     if (!folder) {
       return

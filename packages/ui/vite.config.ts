@@ -4,33 +4,30 @@ import path from 'path'
 import type { PluginOption } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
 
-function createReactPluginWithWorkerExclusion(
+function createReactPluginsWithWorkerExclusion(
   workerFileNames: string[] = [],
-): PluginOption {
-  const [basePlugin] = react()
+): PluginOption[] {
+  const base = react()
+  const plugins = Array.isArray(base) ? base : [base]
 
-  return {
-    ...basePlugin,
+  const [first, ...rest] = plugins
+
+  const wrappedFirst: PluginOption = {
+    ...first,
     name: 'react-swc-with-worker-filter',
-    transform(
-      code: string,
-      id: string,
-      ...rest: ({ ssr?: boolean | undefined } | undefined)[]
-    ) {
+    transform(code: string, id: string, ..._restArgs) {
       if (workerFileNames.some((name) => id.endsWith(name))) {
-        return null // Skip transforming this file entirely
+        return null
       }
-      if (
-        basePlugin &&
-        'transform' in basePlugin &&
-        typeof basePlugin.transform === 'function'
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-        return basePlugin.transform.call(this as any, code, id, ...rest)
+      const underlying = first
+      if (underlying && typeof underlying.transform === 'function') {
+        return underlying.transform.call(this, code, id)
       }
       return null
     },
   }
+
+  return [wrappedFirst, ...rest]
 }
 
 // Custom plugin for subdomain routing
@@ -110,9 +107,10 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [createReactPluginWithWorkerExclusion(['worker.ts'])].concat(
-      mode === 'development' ? [subdomainProxyPlugin(env)] : [],
-    ),
+    plugins: [
+      ...createReactPluginsWithWorkerExclusion(['worker.ts']),
+      ...(mode === 'development' ? [subdomainProxyPlugin(env)] : []),
+    ],
     resolve: {
       alias: {
         '@/src': path.resolve(__dirname, './src'),
@@ -121,6 +119,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      hmr: {
+        overlay: true,
+      },
       proxy: {
         '^/api/': {
           target: 'http://localhost:3000',

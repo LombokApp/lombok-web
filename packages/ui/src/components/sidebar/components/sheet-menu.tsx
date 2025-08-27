@@ -10,7 +10,7 @@ import {
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
+import type { AppRouteLinkContribution } from '@/src/contexts/server'
 
 import { Menu } from './menu'
 

@@ -1,11 +1,7 @@
 import './styles/globals.css'
 import './fonts/inter/inter.css'
 
-import {
-  AuthContextProvider,
-  SIDEBAR_PAGES,
-  useAuthContext,
-} from '@lombokapp/auth-utils'
+import { AuthContextProvider, useAuthContext } from '@lombokapp/auth-utils'
 import { cn, Toaster } from '@lombokapp/ui-toolkit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
@@ -18,11 +14,11 @@ import {
 import { Header } from './components/header'
 import { Sidebar } from './components/sidebar/sidebar'
 import { useSidebar } from './components/sidebar/use-sidebar'
-import { LocalFileCacheContextProvider } from './contexts/local-file-cache.context'
-import { LoggingContextProvider } from './contexts/logging.context'
-import { ServerContextProvider } from './contexts/server.context'
-import { ThemeProvider } from './contexts/theme.context'
-import { useServerContext } from './hooks/use-server-context'
+import { SIDEBAR_PAGES, UNAUTHENTICATED_PAGES } from './constants'
+import { LocalFileCacheContextProvider } from './contexts/local-file-cache'
+import { LoggingContextProvider } from './contexts/logging'
+import { ServerContextProvider, useServerContext } from './contexts/server'
+import { ThemeProvider } from './contexts/theme'
 import { useStore } from './hooks/use-store'
 import { LandingPage } from './pages'
 import { AccessKeysPage } from './pages/access-keys'
@@ -149,7 +145,10 @@ export const App = () => (
   <LoggingContextProvider>
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AuthContextProvider authenticator={sdkInstance.authenticator}>
+        <AuthContextProvider
+          authenticator={sdkInstance.authenticator}
+          unauthenticatedPages={UNAUTHENTICATED_PAGES}
+        >
           <ThemeProvider>
             <AuthStateRouter />
           </ThemeProvider>

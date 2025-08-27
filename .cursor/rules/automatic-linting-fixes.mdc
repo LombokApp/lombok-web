@@ -1,6 +1,0 @@
----
-globs: packages/**/*.*
-alwaysApply: true
----
-
-When encoutering linting issue, always attempt the eslint's automatic fix functionality.

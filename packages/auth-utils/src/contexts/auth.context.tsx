@@ -28,15 +28,15 @@ export interface IAuthContext {
   redirectToLogin: (hard?: boolean) => void
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
-export const UNAUTHENTICATED_PAGES = ['/', '/login', '/signup']
-export const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server', '/apps']
 
 export const AuthContextProvider = ({
   children,
   authenticator,
+  unauthenticatedPages,
 }: {
   children: React.ReactNode
   authenticator: Authenticator
+  unauthenticatedPages: string[]
 }) => {
   const [isLoggingIn, setIsLoggingIn] = React.useState(false)
   const [isLoggingOut, setIsLoggingOut] = React.useState(false)
@@ -158,12 +158,12 @@ export const AuthContextProvider = ({
     if (authState.isLoaded) {
       if (
         !authState.isAuthenticated &&
-        !UNAUTHENTICATED_PAGES.includes(location.pathname)
+        !unauthenticatedPages.includes(location.pathname)
       ) {
         redirectToLogin()
       } else if (
         authState.isAuthenticated &&
-        UNAUTHENTICATED_PAGES.includes(location.pathname)
+        unauthenticatedPages.includes(location.pathname)
       ) {
         void navigate('/folders')
       }

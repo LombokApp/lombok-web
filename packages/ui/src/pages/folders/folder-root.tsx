@@ -1,5 +1,7 @@
 import { useParams } from 'react-router-dom'
 
+import { FolderContextProvider, useFolderContext } from '@/src/contexts/folder'
+
 import { ContentLayout } from '../../components/sidebar/components/content-layout'
 import { FolderDetailScreen } from '../../views/folder-detail-screen/folder-detail-screen.view'
 import { FolderEventDetailScreen } from '../../views/folder-event-detail-screen/folder-event-detail-screen.view'
@@ -8,7 +10,6 @@ import { FolderObjectDetailScreen } from '../../views/folder-object-detail-scree
 import { FolderTaskDetailScreen } from '../../views/folder-task-detail-screen/folder-task-detail-screen.view'
 import { FolderTasksScreen } from '../../views/folder-tasks-screen/folder-tasks-screen.view'
 import { FocusedFolderObjectContextProvider } from './focused-folder-object.context'
-import { FolderContextProvider, useFolderContext } from './folder.context'
 
 function FolderObjectRootInner() {
   const params = useParams()

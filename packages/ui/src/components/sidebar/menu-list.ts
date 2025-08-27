@@ -13,7 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server.context'
+import type { AppRouteLinkContribution } from '@/src/contexts/server'
 
 interface Submenu {
   href: string

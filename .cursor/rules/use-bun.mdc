@@ -1,0 +1,6 @@
+---
+globs: ./**/*.*
+alwaysApply: true
+---
+
+This is a bun monorepo. Use bun and not npm or yarn, and run npm scripts in sub-packages like this: `bun --cwd ./packages/<package_directory> <npm_script>`.

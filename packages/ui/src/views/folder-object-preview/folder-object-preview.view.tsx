@@ -6,7 +6,7 @@ import React from 'react'
 
 import { AudioPlayer } from '@/src/components/audio-player/audio-player'
 import { VideoPlayer } from '@/src/components/video-player/video-player'
-import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
+import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
 import { $api } from '@/src/services/api'
 import { iconForMediaType } from '@/src/utils/icons'
 

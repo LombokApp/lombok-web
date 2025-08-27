@@ -1,47 +1,15 @@
-import type {
-  FolderGetMetadataResponse,
-  FolderGetResponse,
-  FolderMetadata,
-} from '@lombokapp/types'
 import { FolderPushMessage } from '@lombokapp/types'
 import { useToast } from '@lombokapp/ui-toolkit'
-import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
-import type { Socket } from 'socket.io-client'
 
-import { LogLevel } from '@/src/contexts/logging.context'
-import { useWebsocket } from '@/src/hooks/use-websocket'
-import { $api } from '@/src/services/api'
-
-export interface Notification {
-  level: LogLevel
-  title: string
-  message?: string
-  thumbnailSrc?: string
-  id?: string
-}
-
-export type SocketMessageHandler = (
-  name: FolderPushMessage,
-  msg: Record<string, unknown>,
-) => void
-
-export interface IFolderContext {
-  folderId: string
-  folder?: FolderGetResponse['folder']
-  folderPermissions?: FolderGetResponse['permissions']
-  refreshFolder: () => Promise<QueryObserverResult<FolderGetResponse>>
-  refreshFolderMetadata: () => Promise<
-    QueryObserverResult<FolderGetMetadataResponse>
-  >
-  folderMetadata?: FolderMetadata
-  showNotification: (n: Notification) => void
-  subscribeToMessages: (handler: SocketMessageHandler) => void
-  unsubscribeFromMessages: (handler: SocketMessageHandler) => void
-  socketConnected: boolean
-  socket: Socket | undefined
-  deleteFolderObject: (objectKey: string) => Promise<void>
-}
+import { useWebsocket } from '../../hooks/use-websocket'
+import { $api } from '../../services/api'
+import { LogLevel } from '../logging'
+import type {
+  IFolderContext,
+  Notification,
+  SocketMessageHandler,
+} from './folder.types'
 
 const FolderContext = React.createContext<IFolderContext>({} as IFolderContext)
 
@@ -52,8 +20,6 @@ export const FolderContextProvider = ({
   children: React.ReactNode
   folderId: string
 }) => {
-  //   const loggingContext = useLoggingContext(
-
   const folderQuery = $api.useQuery('get', '/api/v1/folders/{folderId}', {
     params: { path: { folderId } },
   })
@@ -177,20 +143,4 @@ export const FolderContextProvider = ({
   )
 }
 
-export const useFolderContext = (messageHandler?: SocketMessageHandler) => {
-  const context = React.useContext(FolderContext)
-  const { subscribeToMessages, unsubscribeFromMessages } = context
-  React.useEffect(() => {
-    if (messageHandler) {
-      subscribeToMessages(messageHandler)
-    }
-
-    return () => {
-      if (messageHandler) {
-        unsubscribeFromMessages(messageHandler)
-      }
-    }
-  }, [messageHandler, subscribeToMessages, unsubscribeFromMessages])
-
-  return context
-}
+export { FolderContext }

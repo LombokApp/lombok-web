@@ -1,10 +1,6 @@
-import type { Dispatch, SetStateAction } from 'react'
 import React from 'react'
 
-const ThemeContext = React.createContext({
-  theme: 'light',
-  setTheme: (() => undefined) as Dispatch<SetStateAction<string>>,
-})
+import { ThemeContext } from './theme.context'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = React.useState(() => {
@@ -21,8 +17,4 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ThemeContext.Provider>
   )
-}
-
-export function useTheme() {
-  return React.useContext(ThemeContext)
 }

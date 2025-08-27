@@ -7,7 +7,7 @@ import {
 } from '@lombokapp/ui-toolkit'
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
 
-import { useTheme } from '../../contexts/theme.context'
+import { useTheme } from '@/src/contexts/theme'
 
 export function ModeToggle() {
   const { setTheme } = useTheme()

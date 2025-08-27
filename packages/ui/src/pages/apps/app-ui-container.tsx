@@ -1,16 +1,17 @@
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import { useServerContext } from '@/src/hooks/use-server-context'
+import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
 import { AppUI } from '@/src/views/app-ui/app-ui.view'
 
-const protocol = window.location.protocol
-const hostname = window.location.hostname
-const port = window.location.port
-const API_HOST = `${hostname}${port ? `:${port}` : ''}`
-
 export const AppUIContainer = () => {
+  // Move constants inside component to avoid HMR issues
+  const protocol = window.location.protocol
+  const hostname = window.location.hostname
+  const port = window.location.port
+  const API_HOST = `${hostname}${port ? `:${port}` : ''}`
+
   const navigate = useNavigate()
   const { '*': subPath } = useParams()
   const [searchParams] = useSearchParams()
@@ -56,7 +57,7 @@ export const AppUIContainer = () => {
       basePath: `${protocol}//${hostname}${port ? `:${port}` : ''}`,
       ...Object.fromEntries(searchParams),
     }),
-    [searchParams],
+    [searchParams, protocol, hostname, port],
   )
 
   return (

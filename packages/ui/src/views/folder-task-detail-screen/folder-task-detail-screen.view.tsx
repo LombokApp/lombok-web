@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 
 import { TaskDetailUI } from '@/src/components/task-detail-ui/task-detail-ui'
-import { useFolderContext } from '@/src/pages/folders/folder.context'
+import { useFolderContext } from '@/src/contexts/folder'
 import { $api } from '@/src/services/api'
 
 export function FolderTaskDetailScreen() {

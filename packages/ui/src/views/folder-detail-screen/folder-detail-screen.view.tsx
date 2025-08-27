@@ -41,10 +41,10 @@ import {
   UploadModal,
   type UploadModalData,
 } from '@/src/components/upload-modal/upload-modal'
-import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
-import { useServerContext } from '@/src/hooks/use-server-context'
+import { useFolderContext } from '@/src/contexts/folder'
+import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
+import { useServerContext } from '@/src/contexts/server'
 import { useFocusedFolderObjectContext } from '@/src/pages/folders/focused-folder-object.context'
-import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api, $apiClient } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
@@ -65,12 +65,12 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   mediaType: { paramPrefix: 'mediaType' },
 }
 
-const protocol = window.location.protocol
-const hostname = window.location.hostname
-const port = window.location.port
-const API_HOST = `${hostname}${port ? `:${port}` : ''}`
-
 export const FolderDetailScreen = () => {
+  const protocol = window.location.protocol
+  const hostname = window.location.hostname
+  const port = window.location.port
+  const API_HOST = `${hostname}${port ? `:${port}` : ''}`
+
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()

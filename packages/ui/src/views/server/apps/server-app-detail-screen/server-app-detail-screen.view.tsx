@@ -25,7 +25,7 @@ import React from 'react'
 
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
-import { useServerContext } from '@/src/hooks/use-server-context'
+import { useServerContext } from '@/src/contexts/server'
 import { $api } from '@/src/services/api'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
@@ -35,48 +35,49 @@ import { serverAppExternalWorkerTableColumns } from './server-app-external-worke
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
 
-const appRouteLinkContributionTypes = [
-  'sidebarMenuLinks',
-  'folderSidebarViews',
-  'objectSidebarViews',
-  'folderActionMenuLinks',
-  'objectActionMenuLinks',
-  'objectDetailViews',
-] as const
-const appRouteLinkContributionTypeLabels = {
-  sidebarMenuLinks: 'Sidebar menu links',
-  folderSidebarViews: 'Folder sidebar views',
-  objectSidebarViews: 'Object sidebar views',
-  folderActionMenuLinks: 'Folder action menu links',
-  objectActionMenuLinks: 'Object action menu links',
-  objectDetailViews: 'Object detail views',
-} as const
-
-const appRouteLinkContributionTypeDescriptions = {
-  sidebarMenuLinks: 'App views that can replace the main content object view',
-  folderSidebarViews: 'App views that can are rendered in the folder sidebar',
-  objectSidebarViews: 'App views that can are rendered in the object sidebar',
-  folderActionMenuLinks:
-    'App views that can replace the main content object view',
-  objectActionMenuLinks:
-    'App views that can replace the main content object view',
-  objectDetailViews: 'App views that can replace the main content object view',
-} as const
-
-const appRouteLinkContributionTypeEmptyMessages = {
-  sidebarMenuLinks: 'No sidebar menu links configured',
-  folderSidebarViews: 'No folder sidebar views available',
-  objectSidebarViews: 'No object sidebar views available',
-  objectDetailViews: 'No object detail views configured',
-  folderActionMenuLinks: 'No folder action menu links configured',
-  objectActionMenuLinks: 'No object action menu links configured',
-} as const
-
 export function ServerAppDetailScreen({
   appIdentifier,
 }: {
   appIdentifier: string
 }) {
+  const appRouteLinkContributionTypes = [
+    'sidebarMenuLinks',
+    'folderSidebarViews',
+    'objectSidebarViews',
+    'folderActionMenuLinks',
+    'objectActionMenuLinks',
+    'objectDetailViews',
+  ] as const
+  const appRouteLinkContributionTypeLabels = {
+    sidebarMenuLinks: 'Sidebar menu links',
+    folderSidebarViews: 'Folder sidebar views',
+    objectSidebarViews: 'Object sidebar views',
+    folderActionMenuLinks: 'Folder action menu links',
+    objectActionMenuLinks: 'Object action menu links',
+    objectDetailViews: 'Object detail views',
+  } as const
+
+  const appRouteLinkContributionTypeDescriptions = {
+    sidebarMenuLinks: 'App views that can replace the main content object view',
+    folderSidebarViews: 'App views that can are rendered in the folder sidebar',
+    objectSidebarViews: 'App views that can are rendered in the object sidebar',
+    folderActionMenuLinks:
+      'App views that can replace the main content object view',
+    objectActionMenuLinks:
+      'App views that can replace the main content object view',
+    objectDetailViews:
+      'App views that can replace the main content object view',
+  } as const
+
+  const appRouteLinkContributionTypeEmptyMessages = {
+    sidebarMenuLinks: 'No sidebar menu links configured',
+    folderSidebarViews: 'No folder sidebar views available',
+    objectSidebarViews: 'No object sidebar views available',
+    objectDetailViews: 'No object detail views configured',
+    folderActionMenuLinks: 'No folder action menu links configured',
+    objectActionMenuLinks: 'No object action menu links configured',
+  } as const
+
   const serverContext = useServerContext()
   // Remove useState and useEffect for app
   const appQuery = $api.useQuery('get', '/api/v1/server/apps/{appIdentifier}', {
