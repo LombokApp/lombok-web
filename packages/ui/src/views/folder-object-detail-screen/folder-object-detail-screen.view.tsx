@@ -120,19 +120,6 @@ export const FolderObjectDetailScreen = ({
     )
   }, [folderObject?.sizeBytes])
 
-  const handleIndexFolderObject = () => {
-    // void apiClient.foldersApi.reindexFolderObject({
-    //   folderId,
-    //   folderOperationRequestPayload: {
-    //     operationName: FolderOperationName.IndexFolderObject,
-    //     operationData: {
-    //       folderId,
-    //       objectKey,
-    //     },
-    //   },
-    // })
-  }
-
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, payload: unknown) => {
       if (
@@ -197,7 +184,6 @@ export const FolderObjectDetailScreen = ({
         }
         return res.data.session
       })
-
   return (
     <>
       <DeleteObjectModal
@@ -330,7 +316,7 @@ export const FolderObjectDetailScreen = ({
                     host={API_HOST}
                     scheme={protocol}
                   />
-                ) : folderObject.hash ? (
+                ) : (
                   <FolderObjectPreview
                     folderId={folderId}
                     objectKey={objectKey}
@@ -346,12 +332,6 @@ export const FolderObjectDetailScreen = ({
                     }
                     displayMode="object-scale-down"
                   />
-                ) : (
-                  <div className="flex flex-1 items-center justify-around">
-                    <Button onClick={handleIndexFolderObject}>
-                      Analyze content
-                    </Button>
-                  </div>
                 )}
               </div>
             )}

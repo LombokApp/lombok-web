@@ -1,10 +1,15 @@
 import type { FolderObjectDTO } from '@lombokapp/types'
 import { MediaType } from '@lombokapp/types'
 import { cn } from '@lombokapp/ui-toolkit'
-import { dataURLToText, isRenderableTextMimeType } from '@lombokapp/utils'
+import {
+  dataURLToText,
+  documentLabelFromMimeType,
+  isRenderableTextMimeType,
+} from '@lombokapp/utils'
 import React from 'react'
 
 import { AudioPlayer } from '@/src/components/audio-player/audio-player'
+import { PDFViewer } from '@/src/components/pdf-viewer/pdf-viewer'
 import { VideoPlayer } from '@/src/components/video-player/video-player'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
 import { $api } from '@/src/services/api'
@@ -57,8 +62,6 @@ export const FolderObjectPreview = ({
       ? folderObject.contentMetadata[contentHash]
       : undefined
 
-  console.log('previewConfig:', previewConfig)
-
   const mimeType =
     contentMetadata &&
     'mimeType' in contentMetadata &&
@@ -91,21 +94,34 @@ export const FolderObjectPreview = ({
   }, [file, folderId, getData, previewConfig, isRenderableText])
 
   const dataURL = file === false ? undefined : file?.dataURL
-  const isCoverView = displayMode === 'object-cover'
+  const isCoverView =
+    displayMode === 'object-cover' ||
+    previewConfig?.mediaType === MediaType.Document
 
   const IconComponent = iconForMediaType(mediaType)
+  const overlayLabel = React.useMemo<string | undefined>(() => {
+    if (mediaType === MediaType.Document) {
+      return documentLabelFromMimeType(mimeType)
+    }
+    return undefined
+  }, [mediaType, mimeType])
 
   const renderEmptyPreview = () => (
     <div className="flex size-full flex-col items-center justify-around">
-      <div className="flex items-center justify-center rounded-full">
-        <IconComponent className="size-20 opacity-30 lg:size-24" />
+      <div className="relative flex items-center justify-center rounded-full">
+        <IconComponent className="size-20 fill-background opacity-30 lg:size-24" />
+        {overlayLabel ? (
+          <span className="absolute translate-y-full rounded px-1.5 py-0.5 text-xs font-bold tracking-wide text-foreground/50">
+            {overlayLabel}
+          </span>
+        ) : null}
       </div>
     </div>
   )
   return (
     <div
       className={cn(
-        'flex justify-center size-full bg-foreground/[.03] rounded-md max-w-full max-h-full',
+        'flex relative justify-center size-full bg-foreground/[.03] rounded-md max-w-full max-h-full',
       )}
     >
       <div
@@ -156,6 +172,11 @@ export const FolderObjectPreview = ({
                 {dataURL}
               </pre>
             </div>
+          ) : previewConfig?.mediaType === MediaType.Document &&
+            previewConfig.mimeType === 'application/pdf' ? (
+            dataURL ? (
+              <PDFViewer className="size-full" dataURL={dataURL} />
+            ) : null
           ) : (
             renderEmptyPreview()
           ))) ??

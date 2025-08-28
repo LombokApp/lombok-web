@@ -1,5 +1,5 @@
 import { MediaType } from '@lombokapp/types'
-import { ImageMediaMimeTypes, mediaTypeFromMimeType } from '@lombokapp/utils'
+import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import { spawn } from 'bun'
 import type { FfmpegCommand } from 'fluent-ffmpeg'
 import ffmpegBase from 'fluent-ffmpeg'
@@ -217,7 +217,7 @@ export const scaleImage = async ({
   outFilePath: string
   maxDimension: number
   rotation?: number
-  mimeType: ImageMediaMimeTypes
+  mimeType: string
 }): Promise<ImageOperationOutput> => {
   const dimensions = await getMediaDimensionsWithSharp(inFilePath)
 
@@ -240,7 +240,7 @@ export const scaleImage = async ({
     os.tmpdir(),
     `lombok_scaled_image_${uuidV5(inFilePath, uuidV5.URL)}`,
   )
-  if (mimeType === ImageMediaMimeTypes.HEIC) {
+  if (mimeType === 'image/heic') {
     finalInFilePath = path.join(
       tempConvertedImageDir,
       `${inFilePath}__converted.jpg`,
@@ -252,7 +252,7 @@ export const scaleImage = async ({
   }
 
   await sharp(finalInFilePath)
-    .rotate(mimeType === ImageMediaMimeTypes.HEIC ? 0 : rotation)
+    .rotate(mimeType === 'image/heic' ? 0 : rotation)
     .resize(finalWidth)
     .toFile(outFilePath)
 
@@ -388,22 +388,41 @@ export const generateMpegDashWithFFmpeg = async (
   })
 }
 
-export async function generateAnimatedThumbnailFromVideo(
+export interface GenerateAnimatedWebPOptions {
+  startAtSeconds?: number
+  durationSeconds?: number
+  fps?: number
+  maxWidth?: number
+  quality?: number
+  compressionLevel?: number
+}
+
+export async function generateAnimatedWebPFromVideo(
   inFilePath: string,
   outFilePath: string,
-): Promise<VideoOperationOutput> {
+  options: GenerateAnimatedWebPOptions = {},
+): Promise<void> {
+  const {
+    startAtSeconds = 0,
+    durationSeconds = 3,
+    fps = 12,
+    maxWidth = 480,
+    quality = 70,
+    compressionLevel = 6,
+  } = options
+
   const command = ffmpeg(inFilePath)
-    .seekInput(3) // start at 3s
-    .duration(4) // take 4s
+    .seekInput(startAtSeconds)
+    .duration(durationSeconds)
     .outputOptions([
       '-vf',
-      'fps=12,scale=480:-1:flags=lanczos',
+      `fps=${fps},scale=${maxWidth}:-1:flags=lanczos`,
       '-c:v',
       'libwebp',
       '-q:v',
-      '70',
+      String(quality),
       '-compression_level',
-      '6',
+      String(compressionLevel),
       '-preset',
       'picture',
       '-loop',
@@ -413,15 +432,222 @@ export async function generateAnimatedThumbnailFromVideo(
       '0',
     ])
     .save(outFilePath)
-    .on('end', () => console.log('Done'))
+    .on('end', () => console.log('Done - animated webp'))
     .on('error', (err) => console.error(err))
   await waitForFFmpegCommand(command)
+}
+
+export interface GenerateStillFrameOptions {
+  atSeconds?: number
+  maxWidth?: number
+  quality?: number
+}
+
+export async function generateStillWebPFromVideo(
+  inFilePath: string,
+  outFilePath: string,
+  options: GenerateStillFrameOptions = {},
+): Promise<void> {
+  const { atSeconds = 3, maxWidth = 500, quality = 85 } = options
+
+  const command = ffmpeg(inFilePath)
+    .seekInput(atSeconds)
+    .frames(1)
+    .outputOptions([
+      '-vf',
+      `scale=${maxWidth}:-1:flags=lanczos`,
+      '-c:v',
+      'libwebp',
+      '-q:v',
+      String(quality),
+    ])
+    .save(outFilePath)
+    .on('end', () => console.log('Done - still webp'))
+    .on('error', (err) => console.error(err))
+  await waitForFFmpegCommand(command)
+}
+
+export interface GenerateMosaicAnimatedOptions {
+  coverSeconds?: number
+  // overall output width of the animation
+  maxWidth?: number
+  quality?: number
+  compressionLevel?: number
+  fps?: number // frame sampling rate before tiling
+  tileColumns?: number
+  tileRows?: number
+  startAfterSeconds?: number // how far into the video to begin sampling tiles
+}
+
+export async function generateMosaicAnimatedWebPFromVideo(
+  inFilePath: string,
+  outFilePath: string,
+  options: GenerateMosaicAnimatedOptions = {},
+): Promise<void> {
+  const {
+    coverSeconds: _coverSeconds = 120, // default to 2 minutes in
+    maxWidth = 1280,
+    quality = 70,
+    compressionLevel = 6,
+    fps = 0.5,
+    tileColumns = 3,
+    tileRows = 3,
+    startAfterSeconds = 180, // start sampling a bit later to avoid opening credits
+  } = options
+
+  // For simplicity, this creates a tiled animation only. Concatenating a full-screen
+  // cover frame as the first animation frame is significantly more complex and can be
+  // added later if desired.
+  const perTileWidth = Math.max(1, Math.floor(maxWidth / tileColumns))
+  const tileFilter = `fps=${fps},scale=${perTileWidth}:-1:flags=lanczos,tile=${tileColumns}x${tileRows}:margin=2:padding=2`
+
+  const command = ffmpeg(inFilePath)
+    .seekInput(startAfterSeconds)
+    .outputOptions([
+      '-vf',
+      tileFilter,
+      '-c:v',
+      'libwebp',
+      '-q:v',
+      String(quality),
+      '-compression_level',
+      String(compressionLevel),
+      '-preset',
+      'picture',
+      '-loop',
+      '0',
+      '-an',
+      '-vsync',
+      '0',
+    ])
+    .save(outFilePath)
+    .on('end', () => console.log('Done - mosaic animated webp'))
+    .on('error', (err) => console.error(err))
+  await waitForFFmpegCommand(command)
+}
+
+export type VideoPreviewVariant = 'single-animated' | 'tv-movie'
+
+export interface GeneratePreviewsResult {
+  variant: VideoPreviewVariant
+  outputs: {
+    unifiedPreviewPath?: string
+    thumbnailStillPath?: string
+    compressedAnimatedPath?: string
+  }
+  meta: VideoOperationOutput
+}
+
+function classifyVideoVariant({
+  lengthMs,
+  width,
+  height,
+  fileSizeBytes,
+}: {
+  lengthMs: number
+  width: number
+  height: number
+  fileSizeBytes: number
+}): VideoPreviewVariant {
+  const lengthMinutes = lengthMs / 1000 / 60
+  const isLongForm = lengthMinutes >= 30
+  const isHighRes = width >= 1920 || height >= 1080
+  const isLargeFile = fileSizeBytes >= 700 * 1024 * 1024 // ~700MB
+  if (isLongForm && (isHighRes || isLargeFile)) {
+    return 'tv-movie'
+  }
+  return 'single-animated'
+}
+
+export async function generatePreviewsForVideo(
+  inFilePath: string,
+  outDirectory: string,
+): Promise<GeneratePreviewsResult> {
+  const dimensions = await getMediaDimensionsWithFFMpeg(inFilePath)
+
+  const fileStat = await fs.promises.stat(inFilePath)
+  const variant = classifyVideoVariant({
+    lengthMs: dimensions.lengthMs,
+    width: dimensions.width,
+    height: dimensions.height,
+    fileSizeBytes: fileStat.size,
+  })
+
+  if (variant === 'single-animated') {
+    // Single animated WebP used for thumbnails and compressed preview
+    const animatedOut = path.join(outDirectory, 'video-preview.webp')
+    const lengthSeconds = Math.max(1, Math.floor(dimensions.lengthMs / 1000))
+
+    // Heuristic: if very short, try to cover the full duration without skipping
+    const isVeryShort = lengthSeconds <= 8
+    const durationSeconds = Math.min(6, lengthSeconds)
+    const fps = isVeryShort
+      ? Math.min(24, Math.max(8, Math.floor(dimensions.width / 160)))
+      : 12
+    const startAtSeconds = lengthSeconds > durationSeconds + 1 ? 1 : 0
+
+    await generateAnimatedWebPFromVideo(inFilePath, animatedOut, {
+      startAtSeconds,
+      durationSeconds,
+      fps,
+      maxWidth: Math.min(1080, dimensions.width),
+      quality: 70,
+      compressionLevel: 6,
+    })
+
+    return {
+      variant,
+      outputs: { unifiedPreviewPath: animatedOut },
+      meta: {
+        width: 0,
+        height: 0,
+        originalHeight: dimensions.height,
+        originalWidth: dimensions.width,
+        lengthMs: dimensions.lengthMs,
+        originalOrientation: 0,
+      },
+    }
+  }
+
+  // tv-movie variant
+  const stillOut = path.join(outDirectory, 'video-thumb.webp')
+  const mosaicOut = path.join(outDirectory, 'video-mosaic.webp')
+
+  // Use a cover frame at around 10% into the video, capped to 3 minutes
+  const coverSeconds = Math.min(
+    Math.max(5, Math.floor((dimensions.lengthMs / 1000) * 0.1)),
+    180,
+  )
+  await generateStillWebPFromVideo(inFilePath, stillOut, {
+    atSeconds: coverSeconds,
+    maxWidth: Math.min(1024, dimensions.width),
+    quality: 80,
+  })
+
+  await generateMosaicAnimatedWebPFromVideo(inFilePath, mosaicOut, {
+    coverSeconds,
+    maxWidth: Math.min(1280, dimensions.width),
+    fps: 0.5,
+    tileColumns: 3,
+    tileRows: 3,
+    startAfterSeconds: Math.max(coverSeconds + 60, 120),
+    quality: 70,
+    compressionLevel: 6,
+  })
+
   return {
-    height: 0,
-    width: 0,
-    originalHeight: 0,
-    originalWidth: 0,
-    lengthMs: 0,
-    originalOrientation: 0,
+    variant,
+    outputs: {
+      thumbnailStillPath: stillOut,
+      compressedAnimatedPath: mosaicOut,
+    },
+    meta: {
+      width: 0,
+      height: 0,
+      originalHeight: dimensions.height,
+      originalWidth: dimensions.width,
+      lengthMs: dimensions.lengthMs,
+      originalOrientation: 0,
+    },
   }
 }

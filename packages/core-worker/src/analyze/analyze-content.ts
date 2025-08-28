@@ -1,11 +1,9 @@
 import { type ContentMetadataEntry, MediaType } from '@lombokapp/types'
-import type { ImageMediaMimeTypes } from '@lombokapp/utils'
 import fs from 'fs'
 import path from 'path'
 import type { ImageOperationOutput } from 'src/utils'
 import {
-  generateAnimatedThumbnailFromVideo,
-  getMediaDimensionsWithFFMpeg,
+  generatePreviewsForVideo,
   getNecessaryContentRotation,
   hashLocalFile,
   scaleImage,
@@ -14,7 +12,7 @@ import {
 async function analyzeImage(
   inFilePath: string,
   outFileDirectory: string,
-  mimeType: ImageMediaMimeTypes,
+  mimeType: string,
 ): Promise<Record<string, ContentMetadataEntry>> {
   const rotation = await getNecessaryContentRotation(inFilePath, mimeType)
 
@@ -88,52 +86,121 @@ async function analyzeVideo(
   inFilePath: string,
   outFileDirectory: string,
 ): Promise<Record<string, ContentMetadataEntry>> {
-  const outFilePath = path.join(outFileDirectory, 'thumb.webp')
-  await generateAnimatedThumbnailFromVideo(inFilePath, outFilePath)
-  const dimensions = await getMediaDimensionsWithFFMpeg(inFilePath)
-  const hash = await hashLocalFile(outFilePath)
-  const size = fs.statSync(outFilePath).size
-  fs.renameSync(outFilePath, path.join(outFileDirectory, hash))
+  const result = await generatePreviewsForVideo(inFilePath, outFileDirectory)
+
+  if (
+    result.variant === 'single-animated' &&
+    result.outputs.unifiedPreviewPath
+  ) {
+    const outFilePath = result.outputs.unifiedPreviewPath
+    const hash = await hashLocalFile(outFilePath)
+    const size = fs.statSync(outFilePath).size
+    fs.renameSync(outFilePath, path.join(outFileDirectory, hash))
+    return {
+      thumbnailLg: {
+        hash,
+        size,
+        type: 'external',
+        mimeType: 'image/webp',
+        storageKey: hash,
+      },
+      thumbnailSm: {
+        hash,
+        size,
+        type: 'external',
+        mimeType: 'image/webp',
+        storageKey: hash,
+      },
+      compressedVersion: {
+        hash,
+        size,
+        type: 'external',
+        mimeType: 'image/webp',
+        storageKey: hash,
+      },
+      ...(result.meta.lengthMs
+        ? {
+            height: {
+              type: 'inline',
+              size: Buffer.from(JSON.stringify(result.meta.originalHeight))
+                .length,
+              content: `${result.meta.originalHeight}`,
+              mimeType: 'application/json',
+            },
+            width: {
+              type: 'inline',
+              size: Buffer.from(JSON.stringify(result.meta.originalWidth))
+                .length,
+              content: `${result.meta.originalWidth}`,
+              mimeType: 'application/json',
+            },
+            lengthMs: {
+              type: 'inline',
+              size: Buffer.from(JSON.stringify(result.meta.lengthMs)).length,
+              content: `${result.meta.lengthMs}`,
+              mimeType: 'application/json',
+            },
+          }
+        : {}),
+    }
+  }
+
+  // tv-movie variant
+  const stillPath = result.outputs.thumbnailStillPath
+  const mosaicPath = result.outputs.compressedAnimatedPath
+  if (!stillPath || !mosaicPath) {
+    return {}
+  }
+
+  const stillHash = await hashLocalFile(stillPath)
+  const stillSize = fs.statSync(stillPath).size
+  fs.renameSync(stillPath, path.join(outFileDirectory, stillHash))
+
+  const mosaicHash = await hashLocalFile(mosaicPath)
+  const mosaicSize = fs.statSync(mosaicPath).size
+  fs.renameSync(mosaicPath, path.join(outFileDirectory, mosaicHash))
+
   return {
     thumbnailLg: {
-      hash,
-      size,
+      hash: stillHash,
+      size: stillSize,
       type: 'external',
       mimeType: 'image/webp',
-      storageKey: hash,
+      storageKey: stillHash,
     },
     thumbnailSm: {
-      hash,
-      size,
+      hash: stillHash,
+      size: stillSize,
       type: 'external',
       mimeType: 'image/webp',
-      storageKey: hash,
+      storageKey: stillHash,
     },
     compressedVersion: {
-      hash,
-      size,
+      hash: mosaicHash,
+      size: mosaicSize,
       type: 'external',
       mimeType: 'image/webp',
-      storageKey: hash,
+      storageKey: mosaicHash,
     },
-    ...(dimensions.lengthMs
+    ...(result.meta.lengthMs
       ? {
           height: {
             type: 'inline',
-            size: Buffer.from(JSON.stringify(dimensions.height)).length,
-            content: `${dimensions.height}`,
+            size: Buffer.from(JSON.stringify(result.meta.originalHeight))
+              .length,
+            content: `${result.meta.originalHeight}`,
             mimeType: 'application/json',
           },
           width: {
             type: 'inline',
-            size: Buffer.from(JSON.stringify(dimensions.width)).length,
-            content: `${dimensions.width}`,
+            size: Buffer.from(JSON.stringify(result.meta.originalWidth)).length,
+            content: `${result.meta.originalWidth}`,
             mimeType: 'application/json',
           },
           lengthMs: {
             type: 'inline',
-            size: Buffer.from(JSON.stringify(dimensions.lengthMs)).length,
-            content: `${dimensions.lengthMs}`,
+            size: Buffer.from(JSON.stringify(result.meta.lengthMs)).length,
+            content: `${result.meta.lengthMs}`,
             mimeType: 'application/json',
           },
         }
@@ -155,11 +222,7 @@ export async function analyzeContent({
   const contentMetadata: Record<string, ContentMetadataEntry> = {}
 
   if (mediaType === MediaType.Image) {
-    return analyzeImage(
-      inFilePath,
-      outFileDirectory,
-      mimeType as ImageMediaMimeTypes,
-    )
+    return analyzeImage(inFilePath, outFileDirectory, mimeType)
   } else if (mediaType === MediaType.Video) {
     return analyzeVideo(inFilePath, outFileDirectory)
   }

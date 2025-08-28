@@ -143,23 +143,25 @@ export const analyzeObjectTaskHandler = async (
     mimeType: 'application/json',
   }
 
-  const metadataUpdateResponse = await server.updateContentMetadata(
-    [
-      {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
-        hash: originalContentHash,
-        metadata: metadataDescription,
-      },
-    ],
-    task.id,
-  )
-
-  if (metadataUpdateResponse.error) {
-    throw new AppAPIError(
-      metadataUpdateResponse.error.code,
-      metadataUpdateResponse.error.message,
+  if (Object.keys(metadataDescription).length > 0) {
+    const metadataUpdateResponse = await server.updateContentMetadata(
+      [
+        {
+          folderId: task.subjectFolderId,
+          objectKey: task.subjectObjectKey,
+          hash: originalContentHash,
+          metadata: metadataDescription,
+        },
+      ],
+      task.id,
     )
+
+    if (metadataUpdateResponse.error) {
+      throw new AppAPIError(
+        metadataUpdateResponse.error.code,
+        metadataUpdateResponse.error.message,
+      )
+    }
   }
 
   // remove the temporary directory
