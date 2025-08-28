@@ -14,13 +14,19 @@ export const FolderObjectPreview = ({
   folderId,
   objectKey,
   objectMetadata,
-  previewObjectKey,
+  previewConfig,
   displayMode = 'object-contain',
 }: {
   folderId: string
   objectKey: string
   objectMetadata?: FolderObjectDTO
-  previewObjectKey: string | undefined
+  previewConfig:
+    | {
+        contentKey: string
+        mediaType: MediaType
+        mimeType: string
+      }
+    | undefined
   displayMode?: string
 }) => {
   const fileName = objectKey.split('/').at(-1)
@@ -51,6 +57,8 @@ export const FolderObjectPreview = ({
       ? folderObject.contentMetadata[contentHash]
       : undefined
 
+  console.log('previewConfig:', previewConfig)
+
   const mimeType =
     contentMetadata &&
     'mimeType' in contentMetadata &&
@@ -69,18 +77,18 @@ export const FolderObjectPreview = ({
   const isRenderableText = !!mimeType && isRenderableTextMimeType(mimeType)
 
   React.useEffect(() => {
-    if (!file && previewObjectKey) {
-      void getData(folderId, previewObjectKey).then((f) => {
+    if (!file && previewConfig?.contentKey) {
+      void getData(folderId, previewConfig.contentKey).then((f) => {
         if (f) {
           setFile({
-            previewObjectKey,
+            previewObjectKey: previewConfig.contentKey,
             dataURL: isRenderableText ? dataURLToText(f.dataURL) : f.dataURL,
             type: f.type,
           })
         }
       })
     }
-  }, [file, folderId, getData, previewObjectKey, isRenderableText])
+  }, [file, folderId, getData, previewConfig, isRenderableText])
 
   const dataURL = file === false ? undefined : file?.dataURL
   const isCoverView = displayMode === 'object-cover'
@@ -108,7 +116,7 @@ export const FolderObjectPreview = ({
       >
         {(file &&
           dataURL &&
-          (mediaType === MediaType.Image ? (
+          (previewConfig?.mediaType === MediaType.Image ? (
             <div
               className={cn(
                 'flex-1 flex flex-col justify-around size-full',
@@ -126,7 +134,7 @@ export const FolderObjectPreview = ({
                 src={dataURL}
               />
             </div>
-          ) : mediaType === MediaType.Video ? (
+          ) : previewConfig?.mediaType === MediaType.Video ? (
             <div className="flex size-full justify-center">
               <VideoPlayer
                 className={cn(
@@ -137,11 +145,12 @@ export const FolderObjectPreview = ({
                 src={dataURL}
               />
             </div>
-          ) : mediaType === MediaType.Audio ? (
+          ) : previewConfig?.mediaType === MediaType.Audio ? (
             <div className="flex size-full items-center justify-center p-4">
               <AudioPlayer width="100%" height="100%" controls src={dataURL} />
             </div>
-          ) : mediaType === MediaType.Document && isRenderableText ? (
+          ) : previewConfig?.mediaType === MediaType.Document &&
+            isRenderableText ? (
             <div className="size-full overflow-hidden">
               <pre className="size-full overflow-auto p-4 text-sm">
                 {dataURL}

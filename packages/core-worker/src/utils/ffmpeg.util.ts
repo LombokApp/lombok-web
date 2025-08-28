@@ -1,3 +1,5 @@
+import { MediaType } from '@lombokapp/types'
+import { ImageMediaMimeTypes, mediaTypeFromMimeType } from '@lombokapp/utils'
 import { spawn } from 'bun'
 import type { FfmpegCommand } from 'fluent-ffmpeg'
 import ffmpegBase from 'fluent-ffmpeg'
@@ -6,6 +8,12 @@ import os from 'os'
 import path from 'path'
 import sharp from 'sharp'
 import { v5 as uuidV5 } from 'uuid'
+
+import { hashLocalFile } from './file.util'
+import {
+  getExifTagsFromImage,
+  previewDimensionsForMaxDimension,
+} from './image.util'
 
 export async function getMediaDimensionsWithSharp(
   filePath: string,
@@ -21,14 +29,6 @@ export async function getMediaDimensionsWithSharp(
     height: metadata.height,
   }
 }
-
-import { MediaType } from '@lombokapp/types'
-import { mediaTypeFromMimeType } from '@lombokapp/utils'
-
-import {
-  getExifTagsFromImage,
-  previewDimensionsForMaxDimension,
-} from './image.util'
 
 export const ffmpeg = ffmpegBase
 
@@ -71,6 +71,7 @@ export interface ImageOperationOutput {
   width: number
   originalHeight: number
   originalWidth: number
+  hash: string
 }
 
 async function waitForFFmpegCommand(command: FfmpegCommand) {
@@ -129,7 +130,7 @@ export async function convertHeicToJpeg(input: string, output: string) {
 
 export const resizeContent = async ({
   inFilepath,
-  outFilepath,
+  outFilepath: outFilePath,
   maxDimension,
   rotation,
   mimeType,
@@ -179,14 +180,14 @@ export const resizeContent = async ({
         .addInput(finalInFilepath)
         .size(`${finalWidth}x${finalHeight}`)
         .autopad()
-        .addOutput(outFilepath)
+        .addOutput(outFilePath)
         .outputOptions(rotation ? [`-metadata:s:v rotate="${rotation}"`] : []),
     )
   } else {
     await sharp(finalInFilepath)
       .rotate(mimeType === 'image/heic' ? 0 : rotation)
       .resize(finalWidth)
-      .toFile(outFilepath)
+      .toFile(outFilePath)
   }
 
   if (fs.existsSync(tempDir)) {
@@ -199,6 +200,73 @@ export const resizeContent = async ({
     width: finalWidth,
     originalHeight: dimensions.height,
     originalWidth: dimensions.width,
+    hash: await hashLocalFile(outFilePath),
+  }
+
+  return returnValue
+}
+
+export const scaleImage = async ({
+  inFilePath,
+  outFilePath,
+  maxDimension,
+  rotation,
+  mimeType,
+}: {
+  inFilePath: string
+  outFilePath: string
+  maxDimension: number
+  rotation?: number
+  mimeType: ImageMediaMimeTypes
+}): Promise<ImageOperationOutput> => {
+  const dimensions = await getMediaDimensionsWithSharp(inFilePath)
+
+  let finalWidth = dimensions.width
+  let finalHeight = dimensions.height
+
+  if (maxDimension < Math.max(dimensions.height, dimensions.width)) {
+    const previewDimensions = previewDimensionsForMaxDimension({
+      height: finalHeight,
+      width: finalWidth,
+      maxDimension,
+    })
+    finalWidth = previewDimensions.width
+    finalHeight = previewDimensions.height
+  }
+
+  let finalInFilePath = inFilePath
+
+  const tempConvertedImageDir = path.join(
+    os.tmpdir(),
+    `lombok_scaled_image_${uuidV5(inFilePath, uuidV5.URL)}`,
+  )
+  if (mimeType === ImageMediaMimeTypes.HEIC) {
+    finalInFilePath = path.join(
+      tempConvertedImageDir,
+      `${inFilePath}__converted.jpg`,
+    )
+    if (!fs.existsSync(tempConvertedImageDir)) {
+      fs.mkdirSync(tempConvertedImageDir)
+      await convertHeicToJpeg(inFilePath, finalInFilePath)
+    }
+  }
+
+  await sharp(finalInFilePath)
+    .rotate(mimeType === ImageMediaMimeTypes.HEIC ? 0 : rotation)
+    .resize(finalWidth)
+    .toFile(outFilePath)
+
+  if (fs.existsSync(tempConvertedImageDir)) {
+    fs.rmSync(finalInFilePath)
+    fs.rmdirSync(tempConvertedImageDir)
+  }
+
+  const returnValue = {
+    height: finalHeight,
+    width: finalWidth,
+    originalHeight: dimensions.height,
+    originalWidth: dimensions.width,
+    hash: await hashLocalFile(outFilePath),
   }
 
   return returnValue
@@ -318,4 +386,42 @@ export const generateMpegDashWithFFmpeg = async (
       reject(e)
     })
   })
+}
+
+export async function generateAnimatedThumbnailFromVideo(
+  inFilePath: string,
+  outFilePath: string,
+): Promise<VideoOperationOutput> {
+  const command = ffmpeg(inFilePath)
+    .seekInput(3) // start at 3s
+    .duration(4) // take 4s
+    .outputOptions([
+      '-vf',
+      'fps=12,scale=480:-1:flags=lanczos',
+      '-c:v',
+      'libwebp',
+      '-q:v',
+      '70',
+      '-compression_level',
+      '6',
+      '-preset',
+      'picture',
+      '-loop',
+      '0',
+      '-an',
+      '-vsync',
+      '0',
+    ])
+    .save(outFilePath)
+    .on('end', () => console.log('Done'))
+    .on('error', (err) => console.error(err))
+  await waitForFFmpegCommand(command)
+  return {
+    height: 0,
+    width: 0,
+    originalHeight: 0,
+    originalWidth: 0,
+    lengthMs: 0,
+    originalOrientation: 0,
+  }
 }

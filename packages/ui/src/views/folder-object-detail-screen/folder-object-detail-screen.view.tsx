@@ -14,6 +14,7 @@ import {
   TypographyH3,
   useToast,
 } from '@lombokapp/ui-toolkit'
+import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import { Download, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -49,7 +50,11 @@ export const FolderObjectDetailScreen = ({
   const { focusedFolderObject: folderObject, refetch: refetchFolderObject } =
     useFocusedFolderObjectContext()
   const [displaySize, setDisplaySize] = React.useState('compressed')
-  const [displayObjectKey, setDisplayObjectKey] = React.useState<string>()
+  const [displayConfig, setDisplayConfig] = React.useState<{
+    contentKey: string
+    mediaType: MediaType
+    mimeType: string
+  }>()
   const { downloadToFile } = useLocalFileCacheContext()
   const [deleteModalData, setDeleteModalData] =
     React.useState<DeleteObjectModalData>({
@@ -75,16 +80,26 @@ export const FolderObjectDetailScreen = ({
   )
 
   React.useEffect(() => {
-    setDisplayObjectKey(
+    setDisplayConfig(
       displaySize === 'original' ||
         folderObject?.mediaType === MediaType.Audio ||
         folderObject?.mediaType === MediaType.Document
-        ? `content:${objectKey}`
+        ? {
+            contentKey: `content:${objectKey}`,
+            mediaType: folderObject?.mediaType as MediaType,
+            mimeType: folderObject?.mimeType ?? '',
+          }
         : displaySize === 'compressed' &&
             folderObject?.hash &&
             currentVersionMetadata['compressedVersion']?.type === 'external' &&
             currentVersionMetadata['compressedVersion'].hash
-          ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
+          ? {
+              contentKey: `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`,
+              mediaType: mediaTypeFromMimeType(
+                currentVersionMetadata['compressedVersion'].mimeType,
+              ),
+              mimeType: currentVersionMetadata['compressedVersion'].mimeType,
+            }
           : undefined,
     )
   }, [
@@ -92,6 +107,7 @@ export const FolderObjectDetailScreen = ({
     currentVersionMetadata,
     folderObject?.hash,
     folderObject?.mediaType,
+    folderObject?.mimeType,
     objectKey,
   ])
 
@@ -195,7 +211,7 @@ export const FolderObjectDetailScreen = ({
       <div className="flex size-full flex-1 justify-between overflow-x-visible">
         <div
           className="flex max-w-full flex-col py-6 lg:w-1/2 xl:flex-1"
-          key={displayObjectKey}
+          key={displayConfig?.contentKey}
         >
           <div className="flex items-start justify-between pb-2 pr-0 lg:pr-4">
             <div className="pl-2">
@@ -319,7 +335,15 @@ export const FolderObjectDetailScreen = ({
                     folderId={folderId}
                     objectKey={objectKey}
                     objectMetadata={folderObject}
-                    previewObjectKey={displayObjectKey}
+                    previewConfig={
+                      displayConfig
+                        ? {
+                            contentKey: displayConfig.contentKey,
+                            mediaType: displayConfig.mediaType,
+                            mimeType: displayConfig.mimeType,
+                          }
+                        : undefined
+                    }
                     displayMode="object-scale-down"
                   />
                 ) : (
