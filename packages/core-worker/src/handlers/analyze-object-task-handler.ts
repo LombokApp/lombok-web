@@ -13,6 +13,7 @@ import { promises as fsPromises } from 'fs'
 import os from 'os'
 import path from 'path'
 import { analyzeContent } from 'src/analyze/analyze-content'
+import { readFileMetadata } from 'src/utils/metadata.util'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -88,12 +89,15 @@ export const analyzeObjectTaskHandler = async (
 
   const originalContentHash = await hashLocalFile(inFilePath)
   const mediaType = mediaTypeFromMimeType(mimeType)
+  const metadataFilePath = path.join(metadataOutFileDirectory, 'metadata.json')
+  const metadata = await readFileMetadata(inFilePath, metadataFilePath)
   const metadataDescription: Record<string, ContentMetadataEntry> =
     await analyzeContent({
       inFilePath,
       outFileDirectory: metadataOutFileDirectory,
       mediaType,
       mimeType,
+      metadata,
     })
 
   const externalMetadataKeys = Object.keys(metadataDescription).filter(
@@ -140,6 +144,15 @@ export const analyzeObjectTaskHandler = async (
     type: 'inline',
     size: Buffer.from(JSON.stringify(mediaType)).length,
     content: JSON.stringify(mediaType),
+    mimeType: 'application/json',
+  }
+
+  const metadataHash = await hashLocalFile(metadataFilePath)
+  metadataDescription.embeddedMetadata = {
+    type: 'external',
+    size: (await fsPromises.stat(metadataFilePath)).size,
+    storageKey: metadataHash,
+    hash: metadataHash,
     mimeType: 'application/json',
   }
 

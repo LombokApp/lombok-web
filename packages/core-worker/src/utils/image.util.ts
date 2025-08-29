@@ -1,13 +1,3 @@
-import exifr from 'exifr'
-
-export async function getExifTagsFromImage(
-  filePath: string,
-): Promise<Record<string, unknown>> {
-  return exifr.parse(filePath).then((output) => {
-    return output as Record<string, unknown>
-  })
-}
-
 export const previewDimensionsForMaxDimension = ({
   width,
   height,

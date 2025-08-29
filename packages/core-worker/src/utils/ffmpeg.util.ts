@@ -1,5 +1,3 @@
-import { MediaType } from '@lombokapp/types'
-import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import { spawn } from 'bun'
 import type { FfmpegCommand } from 'fluent-ffmpeg'
 import ffmpegBase from 'fluent-ffmpeg'
@@ -7,13 +5,11 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import sharp from 'sharp'
-import { v5 as uuidV5 } from 'uuid'
+import { v4 as uuidV4 } from 'uuid'
 
 import { hashLocalFile } from './file.util'
-import {
-  getExifTagsFromImage,
-  previewDimensionsForMaxDimension,
-} from './image.util'
+import { previewDimensionsForMaxDimension } from './image.util'
+import type { ExifToolMetadata } from './metadata.util'
 
 export async function getMediaDimensionsWithSharp(
   filePath: string,
@@ -128,84 +124,6 @@ export async function convertHeicToJpeg(input: string, output: string) {
   }
 }
 
-export const resizeContent = async ({
-  inFilepath,
-  outFilepath: outFilePath,
-  maxDimension,
-  rotation,
-  mimeType,
-}: {
-  inFilepath: string
-  outFilepath: string
-  maxDimension: number
-  rotation?: number
-  mimeType: string
-}): Promise<ImageOperationOutput> => {
-  const mediaType = mediaTypeFromMimeType(mimeType)
-  const dimensions =
-    mediaType === MediaType.Image
-      ? await getMediaDimensionsWithSharp(inFilepath)
-      : await getMediaDimensionsWithFFMpeg(inFilepath)
-
-  let finalWidth = dimensions.width
-  let finalHeight = dimensions.height
-
-  if (maxDimension < Math.max(dimensions.height, dimensions.width)) {
-    const previewDimensions = previewDimensionsForMaxDimension({
-      height: finalHeight,
-      width: finalWidth,
-      maxDimension,
-    })
-    finalWidth = previewDimensions.width
-    finalHeight = previewDimensions.height
-  }
-
-  let finalInFilepath = inFilepath
-
-  const tempDir = path.join(
-    os.tmpdir(),
-    `lombok_resize_image_${uuidV5(inFilepath, uuidV5.URL)}`,
-  )
-  if (mimeType === 'image/heic') {
-    finalInFilepath = path.join(tempDir, 'converted.jpg')
-    if (!fs.existsSync(finalInFilepath)) {
-      fs.mkdirSync(tempDir)
-      await convertHeicToJpeg(inFilepath, finalInFilepath)
-    }
-  }
-
-  if (mediaType === MediaType.Video) {
-    await waitForFFmpegCommand(
-      ffmpeg()
-        .addInput(finalInFilepath)
-        .size(`${finalWidth}x${finalHeight}`)
-        .autopad()
-        .addOutput(outFilePath)
-        .outputOptions(rotation ? [`-metadata:s:v rotate="${rotation}"`] : []),
-    )
-  } else {
-    await sharp(finalInFilepath)
-      .rotate(mimeType === 'image/heic' ? 0 : rotation)
-      .resize(finalWidth)
-      .toFile(outFilePath)
-  }
-
-  if (fs.existsSync(tempDir)) {
-    fs.rmSync(finalInFilepath)
-    fs.rmdirSync(tempDir)
-  }
-
-  const returnValue = {
-    height: finalHeight,
-    width: finalWidth,
-    originalHeight: dimensions.height,
-    originalWidth: dimensions.width,
-    hash: await hashLocalFile(outFilePath),
-  }
-
-  return returnValue
-}
-
 export const scaleImage = async ({
   inFilePath,
   outFilePath,
@@ -238,13 +156,10 @@ export const scaleImage = async ({
 
   const tempConvertedImageDir = path.join(
     os.tmpdir(),
-    `lombok_scaled_image_${uuidV5(inFilePath, uuidV5.URL)}`,
+    `lombok_scaled_image_${uuidV4()}`,
   )
   if (mimeType === 'image/heic') {
-    finalInFilePath = path.join(
-      tempConvertedImageDir,
-      `${inFilePath}__converted.jpg`,
-    )
+    finalInFilePath = path.join(tempConvertedImageDir, `__converted.jpg`)
     if (!fs.existsSync(tempConvertedImageDir)) {
       fs.mkdirSync(tempConvertedImageDir)
       await convertHeicToJpeg(inFilePath, finalInFilePath)
@@ -298,20 +213,16 @@ export function parseOrientationToPosition(orientation: string): number {
   return Math.min(Math.max(position, 0), 359)
 }
 
-export async function getNecessaryContentRotation(
-  filepath: string,
-  mimeType: string,
-): Promise<number> {
-  if (mimeType.startsWith('image/') && mimeType !== 'image/heic') {
-    const metadata = await getExifTagsFromImage(filepath)
-    if (
-      typeof metadata === 'object' &&
-      'Orientation' in metadata &&
-      typeof metadata.Orientation === 'string'
-    ) {
-      // Orientation: "Rotate 270 CW",
-      return parseOrientationToPosition(metadata.Orientation)
-    }
+export function getNecessaryContentRotationFromMetadata(
+  metadata: ExifToolMetadata,
+): number {
+  if (
+    typeof metadata === 'object' &&
+    'Orientation' in metadata &&
+    typeof metadata.Orientation === 'string'
+  ) {
+    // Orientation: "Rotate 270 CW",
+    return parseOrientationToPosition(metadata.Orientation)
   }
   return 0
 }

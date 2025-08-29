@@ -4,18 +4,19 @@ import path from 'path'
 import type { ImageOperationOutput } from 'src/utils'
 import {
   generatePreviewsForVideo,
-  getNecessaryContentRotation,
+  getNecessaryContentRotationFromMetadata,
   hashLocalFile,
   scaleImage,
 } from 'src/utils'
+import type { ExifToolMetadata } from 'src/utils/metadata.util'
 
 async function analyzeImage(
   inFilePath: string,
   outFileDirectory: string,
   mimeType: string,
+  metadata: ExifToolMetadata,
 ): Promise<Record<string, ContentMetadataEntry>> {
-  const rotation = await getNecessaryContentRotation(inFilePath, mimeType)
-
+  const rotation = getNecessaryContentRotationFromMetadata(metadata)
   const scaleConfigs = [
     ['thumbnailSm', 150],
     ['thumbnailLg', 500],
@@ -85,6 +86,7 @@ async function analyzeImage(
 async function analyzeVideo(
   inFilePath: string,
   outFileDirectory: string,
+  _metadata: ExifToolMetadata,
 ): Promise<Record<string, ContentMetadataEntry>> {
   const result = await generatePreviewsForVideo(inFilePath, outFileDirectory)
 
@@ -213,18 +215,20 @@ export async function analyzeContent({
   outFileDirectory,
   mediaType,
   mimeType,
+  metadata,
 }: {
   inFilePath: string
   outFileDirectory: string
   mediaType: MediaType
   mimeType: string
+  metadata: ExifToolMetadata
 }): Promise<Record<string, ContentMetadataEntry>> {
   const contentMetadata: Record<string, ContentMetadataEntry> = {}
 
   if (mediaType === MediaType.Image) {
-    return analyzeImage(inFilePath, outFileDirectory, mimeType)
+    return analyzeImage(inFilePath, outFileDirectory, mimeType, metadata)
   } else if (mediaType === MediaType.Video) {
-    return analyzeVideo(inFilePath, outFileDirectory)
+    return analyzeVideo(inFilePath, outFileDirectory, metadata)
   }
 
   return contentMetadata
