@@ -18,7 +18,6 @@ import { $api } from '@/src/services/api'
 
 const TASK_PREVIEW_LENGTH = 5
 
-// Custom task card component with link
 const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
   return (
     <Link
@@ -86,24 +85,40 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
 
 export const FolderTasksList = ({
   folderAndPermission,
+  folderId: folderIdProp,
+  objectKey,
+  limit = TASK_PREVIEW_LENGTH,
+  showHeader = true,
+  showViewAllLink = true,
+  hideWhenEmpty = false,
 }: {
   folderAndPermission?: FolderGetResponse
+  folderId?: string
+  objectKey?: string
+  limit?: number
+  showHeader?: boolean
+  showViewAllLink?: boolean
+  hideWhenEmpty?: boolean
 }) => {
   const { folder } = folderAndPermission ?? {}
+
+  const { folderId: folderIdFromContext } = useFolderContext()
+  const resolvedFolderId = folderIdProp ?? folder?.id ?? folderIdFromContext
 
   const listFolderTasksQuery = $api.useQuery(
     'get',
     '/api/v1/folders/{folderId}/tasks',
     {
       params: {
-        path: { folderId: folder?.id ?? '' },
+        path: { folderId: resolvedFolderId },
         query: {
           sort: 'createdAt-desc',
-          limit: TASK_PREVIEW_LENGTH,
+          limit,
+          ...(objectKey ? { objectKey } : {}),
         },
       },
     },
-    { enabled: !!folder?.id },
+    { enabled: !!resolvedFolderId && (!objectKey || !!objectKey) },
   )
 
   const messageHandler = React.useCallback(
@@ -119,56 +134,65 @@ export const FolderTasksList = ({
     [listFolderTasksQuery],
   )
 
-  const { folderId } = useFolderContext(messageHandler)
+  useFolderContext(messageHandler)
+
+  const tasks = listFolderTasksQuery.data?.result ?? []
+  const totalCount = listFolderTasksQuery.data?.meta.totalCount ?? 0
+  const isEmpty = !listFolderTasksQuery.isLoading && tasks.length === 0
+
+  if (hideWhenEmpty && isEmpty) {
+    return null
+  }
 
   return (
     <Card className="h-auto">
-      <CardHeader className="p-4 pb-1 pt-3">
-        <div className="flex items-center justify-between">
-          <TypographyH3>
-            <div className="flex items-center gap-2">
-              <ListChecks className="size-6" />
-              Tasks
-            </div>
-          </TypographyH3>
-          <Link
-            className="text-xs font-medium text-primary hover:underline"
-            to={`/folders/${folder?.id}/tasks`}
-          >
-            View all tasks
-          </Link>
-        </div>
-      </CardHeader>
+      {showHeader && (
+        <CardHeader className="p-4 pb-1 pt-3">
+          <div className="flex items-center justify-between">
+            <TypographyH3>
+              <div className="flex items-center gap-2">
+                <ListChecks className="size-6" />
+                Tasks
+              </div>
+            </TypographyH3>
+            {showViewAllLink && (
+              <Link
+                className="text-xs font-medium text-primary hover:underline"
+                to={`/folders/${resolvedFolderId}/tasks`}
+              >
+                View all tasks
+              </Link>
+            )}
+          </div>
+        </CardHeader>
+      )}
       <CardContent className="overflow-hidden p-4 pt-3">
         {listFolderTasksQuery.isLoading ? (
           <div className="flex flex-col gap-3">
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
           </div>
-        ) : listFolderTasksQuery.data?.result &&
-          listFolderTasksQuery.data.result.length > 0 ? (
+        ) : tasks.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {listFolderTasksQuery.data.result.map((task) => (
-              <TaskCard key={task.id} task={task} folderId={folderId} />
+            {tasks.map((task) => (
+              <TaskCard key={task.id} task={task} folderId={resolvedFolderId} />
             ))}
-            {listFolderTasksQuery.data.meta.totalCount >
-              TASK_PREVIEW_LENGTH && (
+            {totalCount > limit && (
               <div className="text-center text-xs">
                 <Link
-                  to={`/folders/${folder?.id}/tasks`}
+                  to={`/folders/${resolvedFolderId}/tasks`}
                   className="text-primary hover:underline"
                 >
-                  +{' '}
-                  {listFolderTasksQuery.data.meta.totalCount -
-                    TASK_PREVIEW_LENGTH}{' '}
-                  more tasks
+                  + {totalCount - limit} more tasks
                 </Link>
               </div>
             )}
           </div>
         ) : (
           <div className="py-2 text-center text-sm text-muted-foreground">
-            No tasks found for this folder
+            {objectKey
+              ? 'No tasks found for this object'
+              : 'No tasks found for this folder'}
           </div>
         )}
       </CardContent>
