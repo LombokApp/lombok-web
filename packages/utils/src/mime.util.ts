@@ -67,3 +67,37 @@ export const extensionFromMimeType = (mimeType: string): string | undefined => {
     mimeType as keyof typeof MIME_TYPE_TO_EXTENSION_MAP
   ]
 }
+
+export const documentLabelFromMimeType = (
+  mimeType: string | undefined,
+): string | undefined => {
+  if (!mimeType) {
+    return undefined
+  }
+
+  switch (mimeType) {
+    case String(DocumentMediaMimeTypes.PDF):
+      return 'PDF'
+    case String(DocumentMediaMimeTypes.DOC):
+      return 'DOC'
+    case String(DocumentMediaMimeTypes.DOCX):
+      return 'DOCX'
+    case String(DocumentMediaMimeTypes.XLS):
+      return 'XLS'
+    case String(DocumentMediaMimeTypes.XLSX):
+      return 'XLSX'
+    case String(DocumentMediaMimeTypes.JSON):
+      return 'JSON'
+    case String(DocumentMediaMimeTypes.HTML):
+      return 'HTML'
+    case String(DocumentMediaMimeTypes.XML):
+      return 'XML'
+    case String(DocumentMediaMimeTypes.TXT):
+      return 'TXT'
+    default:
+      if (mimeType.startsWith('text/')) {
+        return 'TEXT'
+      }
+      return undefined
+  }
+}

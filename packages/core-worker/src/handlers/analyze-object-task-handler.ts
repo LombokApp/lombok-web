@@ -3,27 +3,24 @@ import type {
   PlatformServerMessageInterface,
 } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
-import type { ContentMetadataEntry } from '@lombokapp/types'
-import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
+import type {
+  ContentMetadataEntry,
+  ExternalMetadataEntry,
+} from '@lombokapp/types'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { encodeS3ObjectKey, mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 
-import type {
-  ImageOperationOutput,
-  VideoOperationOutput,
-} from '../utils/ffmpeg.util'
-import {
-  getNecessaryContentRotation,
-  resizeContent,
-} from '../utils/ffmpeg.util'
+import { analyzeContent } from '../analyze/analyze-content'
 import {
   downloadFileToDisk,
   hashLocalFile,
   uploadFile,
 } from '../utils/file.util'
+import { readFileMetadata } from '../utils/metadata.util'
 
 export const analyzeObjectTaskHandler = async (
   task: AppTask,
@@ -57,21 +54,21 @@ export const analyzeObjectTaskHandler = async (
     throw new AppAPIError(response.error.code, response.error.message)
   }
 
-  const tempDir = fs.mkdtempSync(
+  const tempDir = await fs.promises.mkdtemp(
     path.join(os.tmpdir(), `lombok_task_${task.id}_`),
   )
 
-  const fileUUID = uuidV4()
-  const inFilepath = path.join(tempDir, fileUUID)
+  const metadataOutFileDirectory = path.join(tempDir, 'metadata')
+  await fs.promises.mkdir(metadataOutFileDirectory)
 
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir)
-  }
+  const fileUUID = uuidV4()
+  const inFilePath = path.join(tempDir, fileUUID)
+
   let mimeType = ''
   try {
     const downloadResult = await downloadFileToDisk(
       response.result.urls[0].url,
-      inFilepath,
+      inFilePath,
     )
     mimeType = downloadResult.mimeType
     if (!mimeType) {
@@ -86,193 +83,105 @@ export const analyzeObjectTaskHandler = async (
       `Failure accessing underlying storage: ${JSON.stringify({
         folderId: task.subjectFolderId,
         objectKey: task.subjectObjectKey,
-      })}`,
+      })}.\nError: ${e instanceof Error ? e.name : String(e)}`,
     )
-    throw e
   }
 
+  const originalContentHash = await hashLocalFile(inFilePath)
   const mediaType = mediaTypeFromMimeType(mimeType)
-  const [outMimeType, outExtension] =
-    mediaType === MediaType.Image
-      ? ['image/webp', 'webp']
-      : ['video/webm', 'webm']
-
-  let scaleResult: VideoOperationOutput | ImageOperationOutput | undefined
-  const metadataDescription: Record<string, ContentMetadataEntry> = {}
-  const contentHash = await hashLocalFile(inFilepath)
-  const rotation = await getNecessaryContentRotation(inFilepath, mimeType)
-
-  if ([MediaType.Image, MediaType.Video].includes(mediaType)) {
-    const compressedOutFilePath = path.join(tempDir, `comp.${outExtension}`)
-    const smThumbnailOutFilePath = path.join(tempDir, `sm.${outExtension}`)
-    const lgThumbnailOutFilePath = path.join(tempDir, `md.${outExtension}`)
-
-    scaleResult = await resizeContent({
-      inFilepath,
-      outFilepath: compressedOutFilePath,
+  const metadataFilePath = path.join(metadataOutFileDirectory, 'metadata.json')
+  const metadata = await readFileMetadata(inFilePath, metadataFilePath)
+  const metadataDescription: Record<string, ContentMetadataEntry> =
+    await analyzeContent({
+      inFilePath,
+      outFileDirectory: metadataOutFileDirectory,
+      mediaType,
       mimeType,
-      maxDimension: 2000,
-      rotation,
+      metadata,
     })
 
-    await resizeContent({
-      inFilepath,
-      outFilepath: lgThumbnailOutFilePath,
-      mimeType,
-      maxDimension: 500,
-      rotation,
-    })
-    await resizeContent({
-      inFilepath,
-      outFilepath: smThumbnailOutFilePath,
-      mimeType,
-      maxDimension: 150,
-      rotation,
-    })
-
-    // get the upload URLs for the metadata files
-    const metadataHashes = {
-      compressedVersion: await hashLocalFile(compressedOutFilePath),
-      thumbnailSm: await hashLocalFile(smThumbnailOutFilePath),
-      thumbnailLg: await hashLocalFile(lgThumbnailOutFilePath),
-    }
-
-    const metadataKeys = Object.keys(metadataHashes)
-    const metadtaSignedUrlsResponse = await server
-      .getMetadataSignedUrls(
-        metadataKeys.map((k) => ({
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          folderId: task.subjectFolderId!,
-          contentHash,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          objectKey: task.subjectObjectKey!,
-          method: SignedURLsRequestMethod.PUT,
-          metadataHash: metadataHashes[k as keyof typeof metadataHashes],
-        })),
-      )
-      .then(({ result, error }) => {
-        if (error) {
-          throw new AppAPIError(error.code, error.message)
-        }
-        return result.urls.reduce<typeof metadataHashes>(
-          (acc, next, i) => {
-            return {
-              ...acc,
-              [metadataKeys[i]]: next.url,
-            }
-          },
-          {
-            compressedVersion: '',
-            thumbnailSm: '',
-            thumbnailLg: '',
-          },
-        )
-      })
-
-    metadataDescription.compressedVersion = {
-      type: 'external',
-      hash: metadataHashes.compressedVersion,
-      mimeType: outMimeType,
-      size: fs.statSync(compressedOutFilePath).size,
-      storageKey: metadataHashes.compressedVersion,
-    }
-    metadataDescription.thumbnailLg = {
-      type: 'external',
-      hash: metadataHashes.thumbnailLg,
-      mimeType: outMimeType,
-      size: fs.statSync(lgThumbnailOutFilePath).size,
-      storageKey: metadataHashes.thumbnailLg,
-    }
-    metadataDescription.thumbnailSm = {
-      type: 'external',
-      hash: metadataHashes.thumbnailSm,
-      mimeType: outMimeType,
-      size: fs.statSync(smThumbnailOutFilePath).size,
-      storageKey: metadataHashes.thumbnailSm,
-    }
-    metadataDescription.height = {
-      type: 'inline',
-      size: Buffer.from(JSON.stringify(scaleResult.originalHeight)).length,
-      content: `${scaleResult.originalHeight}`,
-      mimeType: 'application/json',
-    }
-    metadataDescription.width = {
-      type: 'inline',
-      size: Buffer.from(JSON.stringify(scaleResult.originalWidth)).length,
-      content: `${scaleResult.originalWidth}`,
-      mimeType: 'application/json',
-    }
-    metadataDescription.orientation = {
-      type: 'inline',
-      size: Buffer.from(JSON.stringify(rotation)).length,
-      content: `${rotation}`,
-      mimeType: 'application/json',
-    }
-    metadataDescription.mimeType = {
-      type: 'inline',
-      size: Buffer.from(JSON.stringify(mimeType)).length,
-      content: JSON.stringify(mimeType),
-      mimeType: 'application/json',
-    }
-    metadataDescription.mediaType = {
-      type: 'inline',
-      size: Buffer.from(JSON.stringify(mediaType)).length,
-      content: JSON.stringify(mediaType),
-      mimeType: 'application/json',
-    }
-
-    if (MediaType.Video === mediaType && 'lengthMs' in scaleResult) {
-      metadataDescription.lengthMs = {
-        type: 'inline',
-        size: Buffer.from(
-          JSON.stringify((scaleResult as VideoOperationOutput).lengthMs),
-        ).length,
-        content: `${(scaleResult as VideoOperationOutput).lengthMs}`,
-        mimeType: 'application/json',
-      }
-    }
-
-    await uploadFile(
-      compressedOutFilePath,
-      metadtaSignedUrlsResponse.compressedVersion,
-      outMimeType,
-    )
-
-    await uploadFile(
-      lgThumbnailOutFilePath,
-      metadtaSignedUrlsResponse.thumbnailLg,
-      outMimeType,
-    )
-
-    await uploadFile(
-      smThumbnailOutFilePath,
-      metadtaSignedUrlsResponse.thumbnailSm,
-      outMimeType,
-    )
+  metadataDescription.mimeType = {
+    type: 'inline',
+    size: Buffer.from(JSON.stringify(mimeType)).length,
+    content: JSON.stringify(mimeType),
+    mimeType: 'application/json',
+  }
+  metadataDescription.mediaType = {
+    type: 'inline',
+    size: Buffer.from(JSON.stringify(mediaType)).length,
+    content: JSON.stringify(mediaType),
+    mimeType: 'application/json',
   }
 
-  const metadataUpdateResponse = await server.updateContentMetadata(
-    [
-      {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
-        hash: contentHash,
-        metadata: metadataDescription,
-      },
-    ],
-    task.id,
+  const metadataHash = await hashLocalFile(metadataFilePath)
+  const metadataSize = (await fs.promises.stat(metadataFilePath)).size
+  fs.renameSync(
+    metadataFilePath,
+    path.join(metadataOutFileDirectory, metadataHash),
+  )
+  metadataDescription.embeddedMetadata = {
+    type: 'external',
+    size: metadataSize,
+    storageKey: metadataHash,
+    hash: metadataHash,
+    mimeType: 'application/json',
+  }
+
+  const externalMetadataKeys = Object.keys(metadataDescription).filter(
+    (k) => metadataDescription[k].type === 'external',
   )
 
-  if (metadataUpdateResponse.error) {
-    throw new AppAPIError(
-      metadataUpdateResponse.error.code,
-      metadataUpdateResponse.error.message,
+  await server
+    .getMetadataSignedUrls(
+      externalMetadataKeys.map((k) => ({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        folderId: task.subjectFolderId!,
+        contentHash: originalContentHash,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        objectKey: task.subjectObjectKey!,
+        method: SignedURLsRequestMethod.PUT,
+        metadataHash: (metadataDescription[k] as ExternalMetadataEntry).hash,
+      })),
     )
+    .then(({ result, error }) => {
+      if (error) {
+        throw new AppAPIError(error.code, error.message)
+      }
+      return Promise.all(
+        result.urls.map(({ url }, i) => {
+          const externalMetadata = metadataDescription[
+            externalMetadataKeys[i]
+          ] as ExternalMetadataEntry
+          return uploadFile(
+            path.join(metadataOutFileDirectory, externalMetadata.storageKey),
+            url,
+            externalMetadata.mimeType,
+          )
+        }),
+      )
+    })
+
+  if (Object.keys(metadataDescription).length > 0) {
+    const metadataUpdateResponse = await server.updateContentMetadata(
+      [
+        {
+          folderId: task.subjectFolderId,
+          objectKey: task.subjectObjectKey,
+          hash: originalContentHash,
+          metadata: metadataDescription,
+        },
+      ],
+      task.id,
+    )
+
+    if (metadataUpdateResponse.error) {
+      throw new AppAPIError(
+        metadataUpdateResponse.error.code,
+        metadataUpdateResponse.error.message,
+      )
+    }
   }
 
   // remove the temporary directory
-  for (const f of fs.readdirSync(tempDir)) {
-    fs.rmSync(path.join(tempDir, f))
-  }
-  fs.rmdirSync(tempDir)
+  await fs.promises.rmdir(tempDir, { recursive: true })
 }

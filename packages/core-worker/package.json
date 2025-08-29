@@ -24,7 +24,6 @@
   "dependencies": {
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/app-worker-sdk": "workspace:*",
-    "exifr": "7.1.3",
     "fast-json-stable-stringify": "2.1.0",
     "fluent-ffmpeg": "2.1.3",
     "sharp": "0.34.3",
