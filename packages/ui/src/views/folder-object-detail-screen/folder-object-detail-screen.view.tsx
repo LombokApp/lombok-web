@@ -338,18 +338,20 @@ export const FolderObjectDetailScreen = ({
           </div>
         </div>
         {sidebarOpen && folderObject && folderContext.folder && (
-          <div className="xs:w-0 max-w-[40rem] overflow-x-visible lg:w-1/2 xl:w-1/3">
-            <FolderObjectSidebar
-              folderAndPermission={
-                folderContext.folderPermissions && {
-                  folder: folderContext.folder,
-                  permissions: folderContext.folderPermissions,
+          <div className="flex max-w-0 overflow-x-visible lg:w-1/2 lg:max-w-[40rem] 2xl:w-2/5">
+            <div className="size-full overflow-x-visible">
+              <FolderObjectSidebar
+                folderAndPermission={
+                  folderContext.folderPermissions && {
+                    folder: folderContext.folder,
+                    permissions: folderContext.folderPermissions,
+                  }
                 }
-              }
-              folder={folderContext.folder}
-              objectKey={objectKey}
-              folderObject={folderObject}
-            />
+                folder={folderContext.folder}
+                objectKey={objectKey}
+                folderObject={folderObject}
+              />
+            </div>
           </div>
         )}
       </div>

@@ -52,8 +52,6 @@ function ScrollArea({
             'size-full rounded-[inherit] outline-none',
             'transition-[color,box-shadow]',
             'focus-visible:outline-1 focus-visible:ring focus-visible:ring-ring/50',
-            // '[&>*:first-child]:max-w-full [&>*:first-child]:min-w-0',
-            '[&>*:first-child]:inherit',
           )}
         >
           {children}
