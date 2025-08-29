@@ -1,5 +1,5 @@
 import { spawn } from 'bun'
-import fsPromises from 'fs/promises'
+import fs from 'fs'
 
 async function readStreamToString(
   stream: ReadableStream<Uint8Array> | null,
@@ -58,7 +58,7 @@ export async function readFileMetadata(
 
   try {
     const parsed = JSON.parse(
-      await fsPromises.readFile(metadataFilePath, 'utf-8'),
+      await fs.promises.readFile(metadataFilePath, 'utf-8'),
     ) as unknown
     if (
       Array.isArray(parsed) &&

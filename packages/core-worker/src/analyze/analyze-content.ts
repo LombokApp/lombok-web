@@ -1,14 +1,16 @@
 import { type ContentMetadataEntry, MediaType } from '@lombokapp/types'
 import fs from 'fs'
 import path from 'path'
-import type { ImageOperationOutput } from 'src/utils'
+
+import type { ImageOperationOutput } from '../utils'
 import {
-  generatePreviewsForVideo,
+  generateVideoPreviews,
+  getMediaDimensionsWithFFMpeg,
   getNecessaryContentRotationFromMetadata,
-  hashLocalFile,
   scaleImage,
-} from 'src/utils'
-import type { ExifToolMetadata } from 'src/utils/metadata.util'
+} from '../utils'
+import { type ExifToolMetadata } from '../utils/metadata.util'
+import { classifyVideoVariant } from '../utils/video.util'
 
 async function analyzeImage(
   inFilePath: string,
@@ -18,9 +20,10 @@ async function analyzeImage(
 ): Promise<Record<string, ContentMetadataEntry>> {
   const rotation = getNecessaryContentRotationFromMetadata(metadata)
   const scaleConfigs = [
-    ['thumbnailSm', 150],
-    ['thumbnailLg', 500],
-    ['compressedVersion', 1024],
+    ['preview:thumbnail_sm', 150],
+    ['preview:thumbnail_lg', 500],
+    ['preview:md', 1024],
+    ['preview:lg', 2048],
   ] as const
   let lastScaleResult: ImageOperationOutput | undefined
 
@@ -86,127 +89,44 @@ async function analyzeImage(
 async function analyzeVideo(
   inFilePath: string,
   outFileDirectory: string,
-  _metadata: ExifToolMetadata,
 ): Promise<Record<string, ContentMetadataEntry>> {
-  const result = await generatePreviewsForVideo(inFilePath, outFileDirectory)
+  const dimensions = await getMediaDimensionsWithFFMpeg(inFilePath)
 
-  if (
-    result.variant === 'single-animated' &&
-    result.outputs.unifiedPreviewPath
-  ) {
-    const outFilePath = result.outputs.unifiedPreviewPath
-    const hash = await hashLocalFile(outFilePath)
-    const size = fs.statSync(outFilePath).size
-    fs.renameSync(outFilePath, path.join(outFileDirectory, hash))
-    return {
-      thumbnailLg: {
-        hash,
-        size,
-        type: 'external',
-        mimeType: 'image/webp',
-        storageKey: hash,
-      },
-      thumbnailSm: {
-        hash,
-        size,
-        type: 'external',
-        mimeType: 'image/webp',
-        storageKey: hash,
-      },
-      compressedVersion: {
-        hash,
-        size,
-        type: 'external',
-        mimeType: 'image/webp',
-        storageKey: hash,
-      },
-      ...(result.meta.lengthMs
-        ? {
-            height: {
-              type: 'inline',
-              size: Buffer.from(JSON.stringify(result.meta.originalHeight))
-                .length,
-              content: `${result.meta.originalHeight}`,
-              mimeType: 'application/json',
-            },
-            width: {
-              type: 'inline',
-              size: Buffer.from(JSON.stringify(result.meta.originalWidth))
-                .length,
-              content: `${result.meta.originalWidth}`,
-              mimeType: 'application/json',
-            },
-            lengthMs: {
-              type: 'inline',
-              size: Buffer.from(JSON.stringify(result.meta.lengthMs)).length,
-              content: `${result.meta.lengthMs}`,
-              mimeType: 'application/json',
-            },
-          }
-        : {}),
-    }
-  }
+  const fileStat = await fs.promises.stat(inFilePath)
+  const variant = classifyVideoVariant({
+    lengthMs: dimensions.lengthMs,
+    width: dimensions.width,
+    height: dimensions.height,
+    fileSizeBytes: fileStat.size,
+  })
 
-  // tv-movie variant
-  const stillPath = result.outputs.thumbnailStillPath
-  const mosaicPath = result.outputs.compressedAnimatedPath
-  if (!stillPath || !mosaicPath) {
-    return {}
-  }
-
-  const stillHash = await hashLocalFile(stillPath)
-  const stillSize = fs.statSync(stillPath).size
-  fs.renameSync(stillPath, path.join(outFileDirectory, stillHash))
-
-  const mosaicHash = await hashLocalFile(mosaicPath)
-  const mosaicSize = fs.statSync(mosaicPath).size
-  fs.renameSync(mosaicPath, path.join(outFileDirectory, mosaicHash))
+  const result = await generateVideoPreviews({
+    inFilePath,
+    outFileDirectory,
+    variant,
+    dimensions,
+  })
 
   return {
-    thumbnailLg: {
-      hash: stillHash,
-      size: stillSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: stillHash,
+    ...result,
+    height: {
+      type: 'inline',
+      size: Buffer.from(JSON.stringify(dimensions.height)).length,
+      content: `${dimensions.height}`,
+      mimeType: 'application/json',
     },
-    thumbnailSm: {
-      hash: stillHash,
-      size: stillSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: stillHash,
+    width: {
+      type: 'inline',
+      size: Buffer.from(JSON.stringify(dimensions.width)).length,
+      content: `${dimensions.width}`,
+      mimeType: 'application/json',
     },
-    compressedVersion: {
-      hash: mosaicHash,
-      size: mosaicSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: mosaicHash,
+    lengthMs: {
+      type: 'inline',
+      size: Buffer.from(JSON.stringify(dimensions.lengthMs)).length,
+      content: `${dimensions.lengthMs}`,
+      mimeType: 'application/json',
     },
-    ...(result.meta.lengthMs
-      ? {
-          height: {
-            type: 'inline',
-            size: Buffer.from(JSON.stringify(result.meta.originalHeight))
-              .length,
-            content: `${result.meta.originalHeight}`,
-            mimeType: 'application/json',
-          },
-          width: {
-            type: 'inline',
-            size: Buffer.from(JSON.stringify(result.meta.originalWidth)).length,
-            content: `${result.meta.originalWidth}`,
-            mimeType: 'application/json',
-          },
-          lengthMs: {
-            type: 'inline',
-            size: Buffer.from(JSON.stringify(result.meta.lengthMs)).length,
-            content: `${result.meta.lengthMs}`,
-            mimeType: 'application/json',
-          },
-        }
-      : {}),
   }
 }
 
@@ -228,7 +148,7 @@ export async function analyzeContent({
   if (mediaType === MediaType.Image) {
     return analyzeImage(inFilePath, outFileDirectory, mimeType, metadata)
   } else if (mediaType === MediaType.Video) {
-    return analyzeVideo(inFilePath, outFileDirectory, metadata)
+    return analyzeVideo(inFilePath, outFileDirectory)
   }
 
   return contentMetadata

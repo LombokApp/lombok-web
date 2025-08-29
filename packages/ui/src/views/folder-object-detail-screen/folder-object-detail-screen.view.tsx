@@ -91,14 +91,14 @@ export const FolderObjectDetailScreen = ({
           }
         : displaySize === 'compressed' &&
             folderObject?.hash &&
-            currentVersionMetadata['compressedVersion']?.type === 'external' &&
-            currentVersionMetadata['compressedVersion'].hash
+            currentVersionMetadata['preview:lg']?.type === 'external' &&
+            currentVersionMetadata['preview:lg'].hash
           ? {
-              contentKey: `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`,
+              contentKey: `metadata:${objectKey}:${currentVersionMetadata['preview:lg'].hash}`,
               mediaType: mediaTypeFromMimeType(
-                currentVersionMetadata['compressedVersion'].mimeType,
+                currentVersionMetadata['preview:lg'].mimeType,
               ),
-              mimeType: currentVersionMetadata['compressedVersion'].mimeType,
+              mimeType: currentVersionMetadata['preview:lg'].mimeType,
             }
           : undefined,
     )

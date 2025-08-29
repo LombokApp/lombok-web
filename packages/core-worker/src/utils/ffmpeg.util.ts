@@ -1,3 +1,4 @@
+import type { ExternalMetadataEntry } from '@lombokapp/types'
 import { spawn } from 'bun'
 import type { FfmpegCommand } from 'fluent-ffmpeg'
 import ffmpegBase from 'fluent-ffmpeg'
@@ -9,7 +10,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { hashLocalFile } from './file.util'
 import { previewDimensionsForMaxDimension } from './image.util'
-import type { ExifToolMetadata } from './metadata.util'
+import { type ExifToolMetadata } from './metadata.util'
 
 export async function getMediaDimensionsWithSharp(
   filePath: string,
@@ -128,7 +129,7 @@ export const scaleImage = async ({
   inFilePath,
   outFilePath,
   maxDimension,
-  rotation,
+  rotation = 0,
   mimeType,
 }: {
   inFilePath: string
@@ -166,7 +167,7 @@ export const scaleImage = async ({
     }
   }
 
-  await sharp(finalInFilePath)
+  await sharp(finalInFilePath, { animated: true })
     .rotate(mimeType === 'image/heic' ? 0 : rotation)
     .resize(finalWidth)
     .toFile(outFilePath)
@@ -437,7 +438,10 @@ export async function generateMosaicAnimatedWebPFromVideo(
   await waitForFFmpegCommand(command)
 }
 
-export type VideoPreviewVariant = 'single-animated' | 'tv-movie'
+export enum VideoPreviewVariant {
+  SHORT_FORM = 'SHORT_FORM',
+  TV_MOVIE = 'TV_MOVIE',
+}
 
 export interface GeneratePreviewsResult {
   variant: VideoPreviewVariant
@@ -449,93 +453,58 @@ export interface GeneratePreviewsResult {
   meta: VideoOperationOutput
 }
 
-function classifyVideoVariant({
-  lengthMs,
-  width,
-  height,
-  fileSizeBytes,
+export async function generateVideoPreviewShortForm({
+  inFilePath,
+  previewOutFilePath,
+  dimensions,
 }: {
-  lengthMs: number
-  width: number
-  height: number
-  fileSizeBytes: number
-}): VideoPreviewVariant {
-  const lengthMinutes = lengthMs / 1000 / 60
-  const isLongForm = lengthMinutes >= 30
-  const isHighRes = width >= 1920 || height >= 1080
-  const isLargeFile = fileSizeBytes >= 700 * 1024 * 1024 // ~700MB
-  if (isLongForm && (isHighRes || isLargeFile)) {
-    return 'tv-movie'
-  }
-  return 'single-animated'
+  inFilePath: string
+  previewOutFilePath: string
+  dimensions: { width: number; height: number; lengthMs: number }
+}): Promise<void> {
+  const lengthSeconds = Math.max(1, Math.floor(dimensions.lengthMs / 1000))
+
+  // Heuristic: if very short, try to cover the full duration without skipping
+  const isVeryShort = lengthSeconds <= 8
+  const durationSeconds = Math.min(6, lengthSeconds)
+  const fps = isVeryShort
+    ? Math.min(24, Math.max(8, Math.floor(dimensions.width / 160)))
+    : 12
+  const startAtSeconds = lengthSeconds > durationSeconds + 1 ? 1 : 0
+
+  await generateAnimatedWebPFromVideo(inFilePath, previewOutFilePath, {
+    startAtSeconds,
+    durationSeconds,
+    fps,
+    maxWidth: Math.min(1080, dimensions.width),
+    quality: 70,
+    compressionLevel: 6,
+  })
 }
 
-export async function generatePreviewsForVideo(
-  inFilePath: string,
-  outDirectory: string,
-): Promise<GeneratePreviewsResult> {
-  const dimensions = await getMediaDimensionsWithFFMpeg(inFilePath)
-
-  const fileStat = await fs.promises.stat(inFilePath)
-  const variant = classifyVideoVariant({
-    lengthMs: dimensions.lengthMs,
-    width: dimensions.width,
-    height: dimensions.height,
-    fileSizeBytes: fileStat.size,
-  })
-
-  if (variant === 'single-animated') {
-    // Single animated WebP used for thumbnails and compressed preview
-    const animatedOut = path.join(outDirectory, 'video-preview.webp')
-    const lengthSeconds = Math.max(1, Math.floor(dimensions.lengthMs / 1000))
-
-    // Heuristic: if very short, try to cover the full duration without skipping
-    const isVeryShort = lengthSeconds <= 8
-    const durationSeconds = Math.min(6, lengthSeconds)
-    const fps = isVeryShort
-      ? Math.min(24, Math.max(8, Math.floor(dimensions.width / 160)))
-      : 12
-    const startAtSeconds = lengthSeconds > durationSeconds + 1 ? 1 : 0
-
-    await generateAnimatedWebPFromVideo(inFilePath, animatedOut, {
-      startAtSeconds,
-      durationSeconds,
-      fps,
-      maxWidth: Math.min(1080, dimensions.width),
-      quality: 70,
-      compressionLevel: 6,
-    })
-
-    return {
-      variant,
-      outputs: { unifiedPreviewPath: animatedOut },
-      meta: {
-        width: 0,
-        height: 0,
-        originalHeight: dimensions.height,
-        originalWidth: dimensions.width,
-        lengthMs: dimensions.lengthMs,
-        originalOrientation: 0,
-      },
-    }
-  }
-
-  // tv-movie variant
-  const stillOut = path.join(outDirectory, 'video-thumb.webp')
-  const mosaicOut = path.join(outDirectory, 'video-mosaic.webp')
-
+export async function generateVideoPreviewLongForm({
+  inFilePath,
+  previewThumbnailOutFilePath,
+  previewOutFilePath,
+  dimensions,
+}: {
+  inFilePath: string
+  previewThumbnailOutFilePath: string
+  previewOutFilePath: string
+  dimensions: { width: number; height: number; lengthMs: number }
+}): Promise<void> {
   // Use a cover frame at around 10% into the video, capped to 3 minutes
   const coverSeconds = Math.min(
     Math.max(5, Math.floor((dimensions.lengthMs / 1000) * 0.1)),
     180,
   )
-  await generateStillWebPFromVideo(inFilePath, stillOut, {
+  await generateStillWebPFromVideo(inFilePath, previewThumbnailOutFilePath, {
     atSeconds: coverSeconds,
     maxWidth: Math.min(1024, dimensions.width),
     quality: 80,
   })
 
-  await generateMosaicAnimatedWebPFromVideo(inFilePath, mosaicOut, {
+  await generateMosaicAnimatedWebPFromVideo(inFilePath, previewOutFilePath, {
     coverSeconds,
     maxWidth: Math.min(1280, dimensions.width),
     fps: 0.5,
@@ -545,20 +514,123 @@ export async function generatePreviewsForVideo(
     quality: 70,
     compressionLevel: 6,
   })
+}
 
-  return {
-    variant,
-    outputs: {
-      thumbnailStillPath: stillOut,
-      compressedAnimatedPath: mosaicOut,
-    },
-    meta: {
-      width: 0,
-      height: 0,
-      originalHeight: dimensions.height,
-      originalWidth: dimensions.width,
-      lengthMs: dimensions.lengthMs,
-      originalOrientation: 0,
-    },
+export async function generateVideoPreviews({
+  inFilePath,
+  outFileDirectory,
+  variant,
+  dimensions,
+}: {
+  inFilePath: string
+  outFileDirectory: string
+  variant: VideoPreviewVariant
+  dimensions: { width: number; height: number; lengthMs: number }
+}): Promise<{
+  'preview:thumbnail_sm': ExternalMetadataEntry
+  'preview:thumbnail_lg': ExternalMetadataEntry
+  'preview:sm': ExternalMetadataEntry
+  'preview:lg': ExternalMetadataEntry
+}> {
+  const previewThumbnailOutFilePath = path.join(
+    outFileDirectory,
+    'preview-thumb.webp',
+  )
+  const previewOutFilePath = path.join(outFileDirectory, 'preview.webp')
+  if (variant === VideoPreviewVariant.SHORT_FORM) {
+    await generateVideoPreviewShortForm({
+      inFilePath,
+      previewOutFilePath,
+      dimensions,
+    })
+    // for short form, the thumbnail is just a smaller version of the preview
+    await scaleImage({
+      inFilePath: previewOutFilePath,
+      outFilePath: previewThumbnailOutFilePath,
+      maxDimension: 500,
+      mimeType: 'image/webp',
+    })
+  } else {
+    await generateVideoPreviewLongForm({
+      inFilePath,
+      previewOutFilePath,
+      previewThumbnailOutFilePath,
+      dimensions,
+    })
   }
+  const previewSmOutFilePath = path.join(outFileDirectory, 'preview-sm.webp')
+  const previewThumbnailSmOutFilePath = path.join(
+    outFileDirectory,
+    'preview-thumbnail-sm.webp',
+  )
+  // scale down the large version of the main preview
+  await scaleImage({
+    inFilePath: previewOutFilePath,
+    outFilePath: previewSmOutFilePath,
+    maxDimension: 1024,
+    mimeType: 'image/webp',
+  })
+
+  // scale down the large version of the thumbnail preview
+  await scaleImage({
+    inFilePath: previewThumbnailOutFilePath,
+    outFilePath: previewThumbnailSmOutFilePath,
+    maxDimension: 150,
+    mimeType: 'image/webp',
+  })
+
+  const previewSmHash = await hashLocalFile(previewSmOutFilePath)
+  const previewLgHash = await hashLocalFile(previewOutFilePath)
+  const thumbnailSmHash = await hashLocalFile(previewThumbnailSmOutFilePath)
+  const thumbnailLgHash = await hashLocalFile(previewThumbnailOutFilePath)
+  const previewSmSize = fs.statSync(previewSmOutFilePath).size
+  const previewLgSize = fs.statSync(previewOutFilePath).size
+  const thumbnailSmSize = fs.statSync(previewThumbnailSmOutFilePath).size
+  const thumbnailLgSize = fs.statSync(previewThumbnailOutFilePath).size
+
+  fs.renameSync(
+    previewSmOutFilePath,
+    path.join(outFileDirectory, previewSmHash),
+  )
+  fs.renameSync(previewOutFilePath, path.join(outFileDirectory, previewLgHash))
+  fs.renameSync(
+    previewThumbnailSmOutFilePath,
+    path.join(outFileDirectory, thumbnailSmHash),
+  )
+  fs.renameSync(
+    previewThumbnailOutFilePath,
+    path.join(outFileDirectory, thumbnailLgHash),
+  )
+
+  const result = {
+    'preview:thumbnail_sm': {
+      hash: thumbnailSmHash,
+      size: thumbnailSmSize,
+      type: 'external',
+      mimeType: 'image/webp',
+      storageKey: thumbnailSmHash,
+    },
+    'preview:thumbnail_lg': {
+      hash: thumbnailLgHash,
+      size: thumbnailLgSize,
+      type: 'external',
+      mimeType: 'image/webp',
+      storageKey: thumbnailLgHash,
+    },
+    'preview:sm': {
+      hash: previewSmHash,
+      size: previewSmSize,
+      type: 'external',
+      mimeType: 'image/webp',
+      storageKey: previewSmHash,
+    },
+    'preview:lg': {
+      hash: previewLgHash,
+      size: previewLgSize,
+      type: 'external',
+      mimeType: 'image/webp',
+      storageKey: previewLgHash,
+    },
+  } as const
+  return result
 }

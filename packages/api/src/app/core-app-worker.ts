@@ -10,7 +10,6 @@ import {
 import type { AppManifest } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
-import fsPromises from 'fs/promises'
 import * as jwt from 'jsonwebtoken'
 import os from 'os'
 import path from 'path'
@@ -399,7 +398,7 @@ process.stdin.once('data', (data) => {
           // Try to load existing manifest (denoting bundle has been downloaded)
           if (fs.existsSync(manifestFilePath)) {
             try {
-              const manifestContent = await fsPromises.readFile(
+              const manifestContent = await fs.promises.readFile(
                 manifestFilePath,
                 'utf-8',
               )
@@ -434,10 +433,10 @@ process.stdin.once('data', (data) => {
               }
 
               // Create the cache directory first
-              await fsPromises.mkdir(bundleCacheDir, { recursive: true })
+              await fs.promises.mkdir(bundleCacheDir, { recursive: true })
 
               // Save manifest to file for future use
-              await fsPromises.writeFile(
+              await fs.promises.writeFile(
                 manifestFilePath,
                 JSON.stringify(manifest, null, 2),
               )
@@ -454,7 +453,7 @@ process.stdin.once('data', (data) => {
 
               const bundleBuffer = await downloadResponse.arrayBuffer()
               const bundlePath = path.join(bundleCacheDir, 'bundle.zip')
-              await fsPromises.writeFile(
+              await fs.promises.writeFile(
                 bundlePath,
                 new Uint8Array(bundleBuffer),
               )

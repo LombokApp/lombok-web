@@ -40,19 +40,21 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
       }>()
 
       React.useEffect(() => {
-        const thumbnailLg =
+        const thumbnail =
           row.original.hash &&
           row.original.hash in row.original.contentMetadata &&
-          'thumbnailLg' in
+          'preview:thumbnail_lg' in
             (row.original.contentMetadata[row.original.hash] ?? {})
-            ? row.original.contentMetadata[row.original.hash]?.['thumbnailLg']
+            ? row.original.contentMetadata[row.original.hash]?.[
+                'preview:thumbnail_lg'
+              ]
             : undefined
         setDisplayConfig(
-          thumbnailLg?.type === 'external'
+          thumbnail?.type === 'external'
             ? {
-                contentKey: `metadata:${row.original.objectKey}:${thumbnailLg.hash}`,
-                mediaType: mediaTypeFromMimeType(thumbnailLg.mimeType),
-                mimeType: thumbnailLg.mimeType,
+                contentKey: `metadata:${row.original.objectKey}:${thumbnail.hash}`,
+                mediaType: mediaTypeFromMimeType(thumbnail.mimeType),
+                mimeType: thumbnail.mimeType,
               }
             : undefined,
         )

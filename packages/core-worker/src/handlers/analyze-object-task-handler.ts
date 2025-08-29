@@ -9,18 +9,18 @@ import type {
 } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { encodeS3ObjectKey, mediaTypeFromMimeType } from '@lombokapp/utils'
-import { promises as fsPromises } from 'fs'
+import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { analyzeContent } from 'src/analyze/analyze-content'
-import { readFileMetadata } from 'src/utils/metadata.util'
 import { v4 as uuidV4 } from 'uuid'
 
+import { analyzeContent } from '../analyze/analyze-content'
 import {
   downloadFileToDisk,
   hashLocalFile,
   uploadFile,
 } from '../utils/file.util'
+import { readFileMetadata } from '../utils/metadata.util'
 
 export const analyzeObjectTaskHandler = async (
   task: AppTask,
@@ -54,12 +54,12 @@ export const analyzeObjectTaskHandler = async (
     throw new AppAPIError(response.error.code, response.error.message)
   }
 
-  const tempDir = await fsPromises.mkdtemp(
+  const tempDir = await fs.promises.mkdtemp(
     path.join(os.tmpdir(), `lombok_task_${task.id}_`),
   )
 
   const metadataOutFileDirectory = path.join(tempDir, 'metadata')
-  await fsPromises.mkdir(metadataOutFileDirectory)
+  await fs.promises.mkdir(metadataOutFileDirectory)
 
   const fileUUID = uuidV4()
   const inFilePath = path.join(tempDir, fileUUID)
@@ -100,6 +100,33 @@ export const analyzeObjectTaskHandler = async (
       metadata,
     })
 
+  metadataDescription.mimeType = {
+    type: 'inline',
+    size: Buffer.from(JSON.stringify(mimeType)).length,
+    content: JSON.stringify(mimeType),
+    mimeType: 'application/json',
+  }
+  metadataDescription.mediaType = {
+    type: 'inline',
+    size: Buffer.from(JSON.stringify(mediaType)).length,
+    content: JSON.stringify(mediaType),
+    mimeType: 'application/json',
+  }
+
+  const metadataHash = await hashLocalFile(metadataFilePath)
+  const metadataSize = (await fs.promises.stat(metadataFilePath)).size
+  fs.renameSync(
+    metadataFilePath,
+    path.join(metadataOutFileDirectory, metadataHash),
+  )
+  metadataDescription.embeddedMetadata = {
+    type: 'external',
+    size: metadataSize,
+    storageKey: metadataHash,
+    hash: metadataHash,
+    mimeType: 'application/json',
+  }
+
   const externalMetadataKeys = Object.keys(metadataDescription).filter(
     (k) => metadataDescription[k].type === 'external',
   )
@@ -134,28 +161,6 @@ export const analyzeObjectTaskHandler = async (
       )
     })
 
-  metadataDescription.mimeType = {
-    type: 'inline',
-    size: Buffer.from(JSON.stringify(mimeType)).length,
-    content: JSON.stringify(mimeType),
-    mimeType: 'application/json',
-  }
-  metadataDescription.mediaType = {
-    type: 'inline',
-    size: Buffer.from(JSON.stringify(mediaType)).length,
-    content: JSON.stringify(mediaType),
-    mimeType: 'application/json',
-  }
-
-  const metadataHash = await hashLocalFile(metadataFilePath)
-  metadataDescription.embeddedMetadata = {
-    type: 'external',
-    size: (await fsPromises.stat(metadataFilePath)).size,
-    storageKey: metadataHash,
-    hash: metadataHash,
-    mimeType: 'application/json',
-  }
-
   if (Object.keys(metadataDescription).length > 0) {
     const metadataUpdateResponse = await server.updateContentMetadata(
       [
@@ -178,5 +183,5 @@ export const analyzeObjectTaskHandler = async (
   }
 
   // remove the temporary directory
-  await fsPromises.rmdir(tempDir, { recursive: true })
+  await fs.promises.rmdir(tempDir, { recursive: true })
 }
