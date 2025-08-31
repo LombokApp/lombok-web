@@ -176,7 +176,7 @@ export function FolderSidebar({
                             <TypographyH3>
                               <div className="flex items-center gap-2">
                                 <img
-                                  src={`${protocol}//${view.uiIdentifier}.${view.appIdentifier}.apps.${API_HOST}${view.iconPath ?? ''}`}
+                                  src={`${protocol}//${view.uiIdentifier}-${view.appIdentifier}.apps.${API_HOST}${view.iconPath ?? ''}`}
                                   alt={`${view.appLabel} icon`}
                                   className="size-6"
                                 />

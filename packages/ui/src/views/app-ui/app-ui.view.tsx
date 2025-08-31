@@ -25,7 +25,7 @@ export function AppUI({
     const query = Object.entries(queryParams)
       .map(([key, value]) => `${key}=${value}`)
       .join('&')
-    return `${scheme}//${uiIdentifier}.${appIdentifier}.apps.${host}${url ? url : ''}?${query}`
+    return `${scheme}//${uiIdentifier}-${appIdentifier}.apps.${host}${url ? url : ''}?${query}`
   }, [appIdentifier, host, queryParams, uiIdentifier, scheme, url])
 
   React.useEffect(() => {

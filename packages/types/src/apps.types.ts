@@ -240,12 +240,12 @@ export const appWorkersMapSchema = z.record(z.string(), appWorkerSchema)
 export const appWorkerScriptIdentifierSchema = z
   .string()
   .nonempty()
-  .regex(/^[a-z0-9_]+$/)
+  .regex(/^[a-z_]+$/)
 
 export const appUiIdentifierSchema = z
   .string()
   .nonempty()
-  .regex(/^[a-z0-9_]+$/)
+  .regex(/^[a-z]+$/)
   .refine((v) => v.toLowerCase() === v)
 
 export const appUiArraySchema = z.array(

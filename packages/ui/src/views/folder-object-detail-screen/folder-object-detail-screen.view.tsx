@@ -310,7 +310,7 @@ export const FolderObjectDetailScreen = ({
                               }
                             >
                               <img
-                                src={`${protocol}//${linkContribution.uiIdentifier}.${linkContribution.appIdentifier}.apps.${API_HOST}${linkContribution.iconPath}`}
+                                src={`${protocol}//${linkContribution.uiIdentifier}-${linkContribution.appIdentifier}.apps.${API_HOST}${linkContribution.iconPath}`}
                                 alt={`${linkContribution.appLabel} icon`}
                                 className="size-6"
                               />
