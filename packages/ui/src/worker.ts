@@ -14,10 +14,141 @@ export enum LogLevel {
   ERROR = 'ERROR',
 }
 
-import { indexedDb } from './services/indexed-db'
-import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'
+interface Entry<V> {
+  value: V
+  /** Unix ms when the entry expires */
+  expiresAt: number
+}
 
-const downloading: Record<string, { progressPercent: number } | undefined> = {}
+export class LruTtlCache<K, V> {
+  private readonly map = new Map<K, Entry<V>>()
+
+  constructor(
+    private readonly maxSize: number,
+    private readonly defaultTtlMs: number,
+  ) {
+    if (maxSize <= 0) {
+      throw new Error('maxSize must be > 0')
+    }
+    if (defaultTtlMs <= 0) {
+      throw new Error('defaultTtlMs must be > 0')
+    }
+  }
+
+  /** Get a value, promoting recency. Expired entries are dropped. */
+  get(key: K): V | undefined {
+    const e = this.map.get(key)
+    if (!e) {
+      return undefined
+    }
+    if (this.isExpired(e)) {
+      this.map.delete(key)
+      return undefined
+    }
+    // Promote to most-recently used
+    this.map.delete(key)
+    this.map.set(key, e)
+    return e.value
+  }
+
+  /** Set a value with optional per-call TTL override. Promotes recency. */
+  set(key: K, value: V, ttlMs = this.defaultTtlMs): void {
+    const entry: Entry<V> = { value, expiresAt: Date.now() + ttlMs }
+    if (this.map.has(key)) {
+      this.map.delete(key)
+    } // keep size accounting simple
+    this.map.set(key, entry)
+    this.enforceLimits()
+  }
+
+  /** Check presence without promoting; drops if expired. */
+  has(key: K): boolean {
+    const e = this.map.get(key)
+    if (!e) {
+      return false
+    }
+    if (this.isExpired(e)) {
+      this.map.delete(key)
+      return false
+    }
+    return true
+  }
+
+  delete(key: K): boolean {
+    return this.map.delete(key)
+  }
+
+  clear(): void {
+    this.map.clear()
+  }
+
+  /** Number of *stored* entries (may include expired ones until touched). */
+  get size(): number {
+    return this.map.size
+  }
+
+  /** Optional: run occasionally to trim expired without access. */
+  pruneExpired(maxToScan = Math.ceil(this.map.size / 4)): number {
+    let removed = 0
+    if (this.map.size === 0) {
+      return removed
+    }
+    // Scan from oldest -> newest
+    const it = this.map[Symbol.iterator]()
+    for (let i = 0; i < maxToScan; i++) {
+      const n = it.next()
+      if (n.done) {
+        break
+      }
+      const [k, e] = n.value
+      if (this.isExpired(e)) {
+        this.map.delete(k)
+        removed++
+      }
+    }
+    return removed
+  }
+
+  /** Iterate non-expired entries, promoting nothing. */
+  *entries(): IterableIterator<[K, V]> {
+    for (const [k, e] of this.map) {
+      if (!this.isExpired(e)) {
+        yield [k, e.value]
+      }
+    }
+  }
+
+  private isExpired(e: Entry<V>): boolean {
+    return e.expiresAt <= Date.now()
+  }
+
+  /** Evict expired first, then strict LRU until size <= maxSize. */
+  private enforceLimits(): void {
+    if (this.map.size <= this.maxSize) {
+      return
+    }
+
+    // First pass: drop expired, scanning from oldest
+    for (const [k, e] of this.map) {
+      if (!this.isExpired(e)) {
+        continue
+      }
+      this.map.delete(k)
+      if (this.map.size <= this.maxSize) {
+        return
+      }
+    }
+
+    // Second pass: strict LRU eviction (oldest first) until within bounds
+    while (this.map.size > this.maxSize) {
+      const oldestKey = this.map.keys().next().value
+      if (oldestKey === undefined) {
+        break
+      }
+      this.map.delete(oldestKey)
+    }
+  }
+}
 
 // updated on incoming auth udpate message
 let $apiClient: LombokApiClient
@@ -35,22 +166,16 @@ const log = (logMessage: {
   postMessage(['LOG_MESSAGE', logMessage])
 }
 
-const isLocal = async (folderId: string, objectIdentifier: string) => {
-  return !!(await indexedDb.getMetadata(`${folderId}:${objectIdentifier}`))
-    .result
-}
-
-const recentlyRequested: Record<
+const recentlyRequestedDownloadUrls = new LruTtlCache<
   string,
-  | {
-      callbacks?: {
-        resolve: (url: string) => void
-        reject: (e: unknown) => void
-      }
-      promise?: Promise<string>
+  {
+    callbacks: {
+      resolve?: (url: string) => void
+      reject?: (e: unknown) => void
     }
-  | undefined
-> = {}
+    promise: Promise<string>
+  }
+>(10000, 3000 * 1000)
 
 const presignedURLBufferContext: Record<
   string,
@@ -72,11 +197,6 @@ const maybeSendBatch = (folderId: string) => {
     (folderBatch.lastTimeExecuted < Date.now() - 250 ||
       folderBatch.batchBuffer.length > 25)
   ) {
-    // console.log(
-    //   'fetching folderBatch[+%s seconds]: %s',
-    //   (Date.now() - startupTime) / 1000,
-    //   JSON.stringify(folderBatch, null, 2),
-    // )
     // more than 1s since the last batch fetch. Executing now...
     const toFetch = folderBatch.batchBuffer.splice(
       0,
@@ -98,24 +218,21 @@ const maybeSendBatch = (folderId: string) => {
       .then(({ response, data }) => {
         if (response.status === 201 && data) {
           data.urls.forEach((result, i) => {
-            const entry = recentlyRequested[`${folderId}:${toFetch[i]}`]
-            if (entry?.callbacks?.resolve) {
+            const entry = recentlyRequestedDownloadUrls.get(
+              `${folderId}:${toFetch[i]}`,
+            )
+            if (entry?.callbacks.resolve) {
               entry.callbacks.resolve(result)
             }
-            setTimeout(() => {
-              recentlyRequested[`${folderId}:${toFetch[i]}`] = undefined
-            }, 10000)
           })
         }
       })
       .catch((e) => {
         toFetch.forEach((k) => {
-          const entry = recentlyRequested[`${folderId}:${k}`]
+          const entry = recentlyRequestedDownloadUrls.get(`${folderId}:${k}`)
           if (entry) {
-            recentlyRequested[`${folderId}:${k}`] = undefined
-            if (entry.callbacks?.reject) {
-              entry.callbacks.reject(e)
-            }
+            recentlyRequestedDownloadUrls.delete(`${folderId}:${k}`)
+            entry.callbacks.reject?.(e)
           }
         })
       })
@@ -137,14 +254,25 @@ const requestDownloadUrlAndMaybeSendBatch = (
     presignedURLBufferContext[folderId].lastTimeExecuted = Date.now()
   }
 
-  recentlyRequested[folderObjectKey] = {}
+  const callbacks: {
+    resolve?: (url: string) => void
+    reject?: (e: unknown) => void
+  } = {}
+  const entry: {
+    promise: Promise<string>
+    callbacks: {
+      resolve?: (url: string) => void
+      reject?: (e: unknown) => void
+    }
+  } = {
+    callbacks,
+    promise: new Promise<string>((resolve, reject) => {
+      callbacks.resolve = resolve
+      callbacks.reject = reject
+    }),
+  }
+  recentlyRequestedDownloadUrls.set(folderObjectKey, entry)
 
-  recentlyRequested[folderObjectKey].promise = new Promise<string>(
-    (resolve, reject) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      recentlyRequested[folderObjectKey]!.callbacks = { resolve, reject }
-    },
-  )
   maybeSendBatch(folderId)
 }
 
@@ -154,88 +282,16 @@ setInterval(() => {
   }
 }, 100)
 
-const getDownloadUrl = async (folderId: string, objectIdentifier: string) => {
+const getPresignedDownloadUrl = async (
+  folderId: string,
+  objectIdentifier: string,
+) => {
   const folderObjectKey = `${folderId}:${objectIdentifier}`
-  if (!(folderObjectKey in recentlyRequested)) {
+  if (!recentlyRequestedDownloadUrls.has(folderObjectKey)) {
     requestDownloadUrlAndMaybeSendBatch(folderId, objectIdentifier)
   }
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-  return recentlyRequested[folderObjectKey]?.promise!
-}
-
-const downloadLocally = async (
-  folderId: string,
-  objectIdentifier: string,
-): Promise<boolean> => {
-  const folderIdAndKey = `${folderId}:${objectIdentifier}`
-  // console.log('starting to download...')
-  const isDataLocal = await isLocal(folderId, objectIdentifier)
-  if (!isDataLocal && !downloading[folderIdAndKey]) {
-    downloading[folderIdAndKey] = { progressPercent: 0 }
-    const downloadURL = await getDownloadUrl(folderId, objectIdentifier)
-    // console.log('about to start download:', downloadURL)
-    log({
-      level: LogLevel.INFO,
-      folderId,
-      objectIdentifier,
-      message: `Downloading '${objectIdentifier}' ...`,
-    })
-    try {
-      const response = await fetch(downloadURL)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response body reader available')
-      }
-
-      const chunks: Uint8Array[] = []
-      let loaded = 0
-      const contentLength = response.headers.get('content-length')
-      const total = contentLength ? parseInt(contentLength, 10) : 0
-
-      for (;;) {
-        const { done, value } = await reader.read()
-        if (done) {
-          break
-        }
-
-        chunks.push(value)
-        loaded += value.length
-        if (total > 0) {
-          const percentCompleted = Math.round((loaded * 100) / total)
-          downloading[folderIdAndKey] = { progressPercent: percentCompleted }
-        }
-      }
-
-      const blob = new Blob(chunks as BlobPart[])
-
-      log({
-        level: LogLevel.INFO,
-        folderId,
-        objectIdentifier,
-        message: `Downloaded '${objectIdentifier}'`,
-      })
-
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete downloading[folderIdAndKey]
-      await addFileToLocalFileStorage(folderId, objectIdentifier, blob)
-      return true
-    } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete downloading[folderIdAndKey]
-      log({
-        level: LogLevel.ERROR,
-        folderId,
-        objectIdentifier,
-        message: `Error downloading '${objectIdentifier}'`,
-      })
-      throw e
-    }
-  }
-  return false
+  return recentlyRequestedDownloadUrls.get(folderObjectKey)?.promise!
 }
 
 const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
@@ -338,45 +394,21 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
           message: `Upload of '${objectIdentifier}' complete`,
         })
       })
-  } else if (message[0] === 'DOWNLOAD') {
+  } else if (message[0] === 'GET_PRESIGNED_DOWNLOAD_URL') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const folderIdAndKey = `${message[1].folderId}:${message[1].objectIdentifier}`
-    void downloadLocally(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      message[1].folderId as string,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      message[1].objectIdentifier as string,
-    )
-      .then(() => {
-        postMessage([
-          'DOWNLOAD_COMPLETED',
-          {
-            // TODO: type check this with zod
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            folderId: message[1].folderId,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            objectIdentifier: message[1].objectIdentifier,
-          },
-        ])
-      })
-      .catch((e) => {
-        // eslint-disable-next-line no-console
-        console.log('DOWNLOAD ERROR:', e)
-        postMessage([
-          'DOWNLOAD_FAILED',
-          {
-            // TODO: type check this with zod
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            folderId: message[1].folderId,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            objectIdentifier: message[1].objectIdentifier,
-          },
-        ])
-      })
-      .finally(() => {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete downloading[folderIdAndKey]
-      })
+    const folderId = message[1].folderId as string
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const objectIdentifier = message[1].objectIdentifier as string
+    void getPresignedDownloadUrl(folderId, objectIdentifier).then((url) => {
+      postMessage([
+        'GOT_PRESIGNED_DOWNLOAD_URL',
+        {
+          folderId,
+          objectIdentifier,
+          url,
+        },
+      ])
+    })
   } else if (message[0] === 'AUTH_UPDATED') {
     $apiClient = createFetchClient<paths>({
       baseUrl: (message[1] as { basePath: string }).basePath,

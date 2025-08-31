@@ -33,22 +33,33 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
   return new Promise<{ width: number; height: number; lengthMs: number }>(
     (resolve, reject) => {
       ffmpeg.ffprobe(filepath, (err, probeResult) => {
-        const lengthMs = probeResult.streams[0].duration
-          ? parseInt(probeResult.streams[0].duration, 10) * 1000
-          : 0
-        if (
-          !err &&
-          probeResult.streams[0].width &&
-          probeResult.streams[0].height
-        ) {
-          resolve({
-            width: probeResult.streams[0].width,
-            height: probeResult.streams[0].height,
-            lengthMs: lengthMs > 0 ? lengthMs : 0,
-          })
-        } else {
+        const videoStream = probeResult.streams.find(
+          (stream) => stream.codec_type === 'video',
+        )
+
+        if (err) {
           reject(err instanceof Error ? err : new Error(String(err)))
+          return
+        } else if (!videoStream) {
+          reject(new Error('No video stream found'))
+          return
+        } else if (!videoStream.width || !videoStream.height) {
+          reject(new Error('No video width or height found'))
+          return
+        } else if (!videoStream.duration) {
+          reject(new Error('No video duration found'))
+          return
         }
+
+        const lengthMs = videoStream.duration
+          ? parseInt(videoStream.duration, 10) * 1000
+          : 0
+
+        resolve({
+          width: videoStream.width,
+          height: videoStream.height,
+          lengthMs: lengthMs > 0 ? lengthMs : 0,
+        })
       })
     },
   )
@@ -234,70 +245,78 @@ export const generateM3u8WithFFmpeg = async (
 ): Promise<void> => {
   const command = ffmpeg().addInput(inFilepath).addOutput(outFilepath)
 
-  // execute the command
   command
-    .addOptions([
-      '-profile:v baseline',
-      '-level 3.0',
-      '-start_number 0',
+    .outputOptions([
+      '-c copy', // no re-encode (must be H.264/AAC)
       '-hls_time 10',
       '-hls_list_size 0',
+      '-hls_playlist_type vod',
+      '-hls_segment_type fmp4', // use fMP4 container
+      '-hls_flags single_file+independent_segments',
+      '-hls_segment_filename media.m4s', // one big file; playlist uses #EXT-X-BYTERANGE
       '-f hls',
     ])
+    .on('progress', (p) => console.log('ffmpeg timemark:', p.timemark))
+    .on('error', (err) => console.error('ffmpeg error:', err))
+    .on('end', () => console.log('ffmpeg done'))
     .run()
-  command.on('progress', (progress) => {
-    console.log('ffmpeg timemark:', progress.timemark)
-  })
-  // wait for end or error
-  await new Promise((resolve, reject) => {
-    command.on('end', () => {
-      resolve(undefined)
-    })
-    command.on('error', (e) => {
-      reject(e)
-    })
-  })
+
+  await waitForFFmpegCommand(command)
 }
 
 export const generateMpegDashWithFFmpeg = async (
-  inFilepath: string,
-  outFilepath: string,
+  inFilePath: string,
+  outFilePath: string,
 ): Promise<void> => {
   // const command = ffmpeg().addInput(inFilepath).addOutput(outFilepath)
   // execute the command
-  const command = ffmpeg(inFilepath)
+  const command = ffmpeg(inFilePath)
     .videoCodec('libx264')
-    // .videoFilter('scale=1280:720')
     .audioCodec('aac')
     .audioBitrate('128k')
     .videoBitrate('2500k')
-    // .addOption('-maxrate 2500k')
-    // .addOption('-bufsize 5000k')
-    .addOption('-x264-params keyint=120:min-keyint=120')
-    .outputOptions(
-      '-profile:v baseline',
-      // '-profile:v:1 baseline',
-      // '-profile:v:0 baseline',
-      // '-b_strategy 0 -ar:a:1 22050 -use_timeline 1 -use_template 1',
-      // '-window_size 5 -adaptation_sets "id=0,streams=v id=1,streams=a"',
-      // '-profile:v:0 main',
-      // '-level 3.1',
-    )
-    .addOutput(outFilepath)
-  command.run()
+    .outputOptions([
+      '-preset',
+      'medium',
+      // ensure broad compatibility
+      '-pix_fmt',
+      'yuv420p',
+      // GOP/keyframe alignment for segment boundaries (~2s @ 30fps)
+      '-g',
+      '60',
+      '-x264-params',
+      'scenecut=0:keyint=60:min-keyint=60',
+      // rate control for stable bitrate
+      '-maxrate',
+      '2500k',
+      '-bufsize',
+      '5000k',
+      // audio consistency
+      '-ac',
+      '2',
+      '-ar',
+      '48000',
+      // profile/level for modern devices
+      '-profile:v',
+      'main',
+      '-level',
+      '4.0',
+      // DASH muxer options
+      '-seg_duration',
+      '2',
+      '-use_template',
+      '1',
+      '-use_timeline',
+      '1',
+      '-init_seg_name',
+      'init-$RepresentationID$.m4s',
+      '-media_seg_name',
+      'chunk-$RepresentationID$-$Number%05d$.m4s',
+    ])
+    .format('dash')
+    .addOutput(outFilePath)
 
-  command.on('progress', (progress) => {
-    console.log('ffmpeg timemark:', progress.timemark)
-  })
-  // wait for end or error
-  await new Promise((resolve, reject) => {
-    command.on('end', () => {
-      resolve(undefined)
-    })
-    command.on('error', (e) => {
-      reject(e)
-    })
-  })
+  await waitForFFmpegCommand(command)
 }
 
 export interface GenerateAnimatedWebPOptions {
@@ -374,7 +393,6 @@ export async function generateStillWebPFromVideo(
       String(quality),
     ])
     .save(outFilePath)
-    .on('end', () => console.log('Done - still webp'))
     .on('error', (err) => console.error(err))
   await waitForFFmpegCommand(command)
 }

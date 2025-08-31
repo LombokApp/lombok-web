@@ -40,6 +40,7 @@ export enum AudioMediaMimeTypes {
 export enum DocumentMediaMimeTypes {
   TXT = 'text/plain',
   PDF = 'application/pdf',
+  EPUB = 'application/epub+zip',
   JSON = 'application/json',
   XLS = 'application/vnd.ms-excel',
   XML = 'application/xml',
@@ -88,6 +89,7 @@ export const DOCUMENT_MEDIA_MIME_TYPES = [
   DocumentMediaMimeTypes.PDF,
   DocumentMediaMimeTypes.XLS,
   DocumentMediaMimeTypes.XML,
+  DocumentMediaMimeTypes.EPUB,
   DocumentMediaMimeTypes.XLSX,
   DocumentMediaMimeTypes.HTML,
   DocumentMediaMimeTypes.DOC,
@@ -133,6 +135,7 @@ export const MIME_TYPE_TO_EXTENSION_MAP = {
   [DocumentMediaMimeTypes.XLS]: 'xls',
   [DocumentMediaMimeTypes.XML]: 'xml',
   [DocumentMediaMimeTypes.XLSX]: 'xlsx',
+  [DocumentMediaMimeTypes.EPUB]: 'epub',
   [DocumentMediaMimeTypes.HTML]: 'html',
   [DocumentMediaMimeTypes.DOC]: 'doc',
   [DocumentMediaMimeTypes.DOCX]: 'docx',
