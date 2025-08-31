@@ -8,7 +8,8 @@ interface VideoPlayerProps {
   autoPlay?: boolean
   className?: string
   controls?: boolean
-  type?: string
+  muted?: boolean
+  loop?: boolean
 }
 
 export const VideoPlayer = ({
@@ -16,8 +17,9 @@ export const VideoPlayer = ({
   autoPlay = false,
   controls = true,
   grayscale = false,
+  muted = false,
+  loop = false,
   className,
-  type = 'video/mp4',
 }: VideoPlayerProps) => {
   return (
     <div
@@ -31,10 +33,10 @@ export const VideoPlayer = ({
         playsInline
         controls={controls}
         autoPlay={autoPlay}
-        muted
-        loop
+        muted={muted}
+        loop={loop}
       >
-        <source src={src} type={type} />
+        {src && <source src={src} />}
       </video>
     </div>
   )

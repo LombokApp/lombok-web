@@ -6,6 +6,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from '@lombokapp/ui-toolkit'
 
 import type { AppRouteLinkContribution } from '@/src/contexts/server'
@@ -34,13 +38,21 @@ export function FolderObjectDetailViewEmbedSelector({
 
   return (
     <Select value={value} onValueChange={onSelect}>
-      <SelectTrigger
-        className={cn(buttonVariants({ size: 'sm', variant: 'outline' }))}
-      >
-        <div className="mr-2">
-          <SelectValue placeholder={placeholder} />
-        </div>
-      </SelectTrigger>
+      <TooltipProvider>
+        <Tooltip delayDuration={100}>
+          <TooltipTrigger asChild>
+            <SelectTrigger
+              className={cn(
+                buttonVariants({ size: 'sm', variant: 'outline' }),
+                'gap-2 justify-between',
+              )}
+            >
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Select View</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <SelectContent>
         <SelectItem key="default" value="default">
           <div className="flex items-center gap-2">

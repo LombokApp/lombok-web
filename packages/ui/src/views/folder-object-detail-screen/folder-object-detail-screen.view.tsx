@@ -6,7 +6,13 @@ import {
 } from '@lombokapp/types'
 import {
   Button,
+  buttonVariants,
   cn,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -14,8 +20,7 @@ import {
   TypographyH3,
   useToast,
 } from '@lombokapp/ui-toolkit'
-import { mediaTypeFromMimeType } from '@lombokapp/utils'
-import { Download, Trash } from 'lucide-react'
+import { Download, File, Image, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -25,6 +30,7 @@ import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
 import type { AppRouteLinkContribution } from '@/src/contexts/server'
 import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
+import { iconForMediaType } from '@/src/utils/icons'
 
 import type { DeleteObjectModalData } from '../../components/delete-object-modal/delete-object-modal'
 import { DeleteObjectModal } from '../../components/delete-object-modal/delete-object-modal'
@@ -49,12 +55,7 @@ export const FolderObjectDetailScreen = ({
   const serverContext = useServerContext()
   const { focusedFolderObject: folderObject, refetch: refetchFolderObject } =
     useFocusedFolderObjectContext()
-  const [displaySize, setDisplaySize] = React.useState('compressed')
-  const [displayConfig, setDisplayConfig] = React.useState<{
-    contentKey: string
-    mediaType: MediaType
-    mimeType: string
-  }>()
+
   const { downloadToFile } = useLocalFileCacheContext()
   const [deleteModalData, setDeleteModalData] =
     React.useState<DeleteObjectModalData>({
@@ -78,47 +79,87 @@ export const FolderObjectDetailScreen = ({
         : {}) as Record<string, ContentMetadataEntry | undefined>,
     [folderObject?.contentMetadata, folderObject?.hash],
   )
+  const IconComponent = iconForMediaType(
+    (folderObject?.mediaType as MediaType | undefined) ?? MediaType.Unknown,
+  )
 
-  React.useEffect(() => {
-    setDisplayConfig(
-      displaySize === 'original' ||
-        folderObject?.mediaType === MediaType.Audio ||
-        folderObject?.mediaType === MediaType.Document
+  const displayModes = React.useMemo(
+    () => ({
+      original: { key: 'original', label: 'Original', icon: IconComponent },
+      ...('preview:lg' in currentVersionMetadata
         ? {
-            contentKey: `content:${objectKey}`,
-            mediaType: folderObject?.mediaType as MediaType,
-            mimeType: folderObject?.mimeType ?? '',
+            'preview:lg': {
+              key: 'preview:lg',
+              label: 'Large Preview',
+              icon: Image,
+            },
           }
-        : displaySize === 'compressed' &&
-            folderObject?.hash &&
-            currentVersionMetadata['preview:lg']?.type === 'external' &&
-            currentVersionMetadata['preview:lg'].hash
-          ? {
-              contentKey: `metadata:${objectKey}:${currentVersionMetadata['preview:lg'].hash}`,
-              mediaType: mediaTypeFromMimeType(
-                currentVersionMetadata['preview:lg'].mimeType,
-              ),
-              mimeType: currentVersionMetadata['preview:lg'].mimeType,
-            }
-          : undefined,
-    )
-  }, [
-    displaySize,
-    currentVersionMetadata,
-    folderObject?.hash,
-    folderObject?.mediaType,
-    folderObject?.mimeType,
-    objectKey,
-  ])
+        : {}),
+      ...('preview:sm' in currentVersionMetadata
+        ? {
+            'preview:sm': {
+              key: 'preview:sm',
+              label: 'Small Preview',
+              icon: Image,
+            },
+          }
+        : {}),
+      ...('preview:thumbnail_lg' in currentVersionMetadata
+        ? {
+            'preview:thumbnail_lg': {
+              key: 'preview:thumbnail_lg',
+              label: 'Large Thumbnail',
+              icon: Image,
+            },
+          }
+        : {}),
+      ...('preview:thumbnail_sm' in currentVersionMetadata
+        ? {
+            'preview:thumbnail_sm': {
+              key: 'preview:thumbnail_sm',
+              label: 'Small Thumbnail',
+              icon: Image,
+            },
+          }
+        : {}),
+    }),
+    [IconComponent, currentVersionMetadata],
+  )
+
+  const [selectedDisplayMode, setSelectedDisplayMode] = React.useState<string>()
+
+  const [selectedContrbutedView, setSelectedContrbutedView] =
+    React.useState<AppRouteLinkContribution>()
+
+  const previewAvailable = 'preview:lg' in currentVersionMetadata
+  const isSmallEnoughForOriginalView =
+    folderObject && folderObject.sizeBytes < 10 * 1024 * 1024
+
+  const previewDisplayConfig = React.useMemo(() => {
+    return selectedDisplayMode === 'original'
+      ? ({ type: 'original' } as const)
+      : previewAvailable
+        ? ({
+            type: 'metadata_preview',
+            metadataKey: selectedDisplayMode ?? '',
+          } as const)
+        : undefined
+  }, [selectedDisplayMode, previewAvailable])
 
   React.useEffect(() => {
-    setDisplaySize(
-      (folderObject?.sizeBytes ?? 0) > 0 &&
-        (folderObject?.sizeBytes ?? 0) < 250 * 1000
-        ? 'original'
-        : 'compressed',
-    )
-  }, [folderObject?.sizeBytes])
+    if (folderObject && !selectedDisplayMode) {
+      if (previewAvailable) {
+        setSelectedDisplayMode('preview:lg')
+      } else if (isSmallEnoughForOriginalView) {
+        setSelectedDisplayMode('original')
+      }
+    }
+  }, [
+    folderObject,
+    previewAvailable,
+    isSmallEnoughForOriginalView,
+    selectedDisplayMode,
+  ])
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, payload: unknown) => {
@@ -162,16 +203,10 @@ export const FolderObjectDetailScreen = ({
         FolderPermissionEnum.OBJECT_EDIT,
       )
     ) {
-      try {
-        await folderContext.deleteFolderObject(folderObject.objectKey)
-        handleFolderLinkClick()
-      } catch (error) {
-        console.error('Error deleting object:', error)
-      }
+      await folderContext.deleteFolderObject(folderObject.objectKey)
+      handleFolderLinkClick()
     }
   }
-  const [selectedFolderObjectDetailView, setSelectedFolderObjectDetailView] =
-    React.useState<AppRouteLinkContribution>()
 
   const getAccessTokens = (appIdentifier: string) =>
     $apiClient
@@ -184,6 +219,7 @@ export const FolderObjectDetailScreen = ({
         }
         return res.data.session
       })
+
   return (
     <>
       <DeleteObjectModal
@@ -195,15 +231,11 @@ export const FolderObjectDetailScreen = ({
         onConfirm={handleDelete}
       />
       <div className="flex size-full flex-1 justify-between overflow-x-visible">
-        <div
-          className="flex max-w-full flex-col py-6 lg:w-1/2 xl:flex-1"
-          key={displayConfig?.contentKey}
-        >
+        <div className="flex max-w-full flex-col py-6 lg:w-1/2 xl:flex-1">
           <div className="flex items-start justify-between pb-2 pr-0 lg:pr-4">
             <div className="pl-2">
               <TypographyH3>{objectKey}</TypographyH3>
             </div>
-
             {folderObject?.objectKey && (
               <div className="pl-2">
                 <div className="flex gap-2">
@@ -215,14 +247,15 @@ export const FolderObjectDetailScreen = ({
                           .objectDetailViewContributions.all
                       }
                       value={
-                        selectedFolderObjectDetailView?.routeIdentifier ??
-                        'default'
+                        selectedContrbutedView
+                          ? selectedContrbutedView.routeIdentifier
+                          : 'default'
                       }
                       onSelect={(routeIdentifier) =>
-                        setSelectedFolderObjectDetailView(
+                        setSelectedContrbutedView(
                           serverContext.appContributions.objectDetailViewContributions.all.find(
                             (o) => o.routeIdentifier === routeIdentifier,
-                          ) ?? undefined,
+                          ),
                         )
                       }
                     />
@@ -301,13 +334,20 @@ export const FolderObjectDetailScreen = ({
             )}
           >
             {folderObject && (
-              <div className={'flex max-w-full flex-1 flex-col justify-around'}>
-                {selectedFolderObjectDetailView ? (
+              <div
+                className={'flex max-w-full flex-1 flex-col justify-around'}
+                key={
+                  selectedContrbutedView
+                    ? `contributed_view-${selectedContrbutedView.routeIdentifier}-${selectedContrbutedView.appIdentifier}-${selectedContrbutedView.uiIdentifier}`
+                    : `display_mode-${selectedDisplayMode}`
+                }
+              >
+                {selectedContrbutedView ? (
                   <AppUI
                     getAccessTokens={getAccessTokens}
-                    appIdentifier={selectedFolderObjectDetailView.appIdentifier}
-                    uiIdentifier={selectedFolderObjectDetailView.uiIdentifier}
-                    url={selectedFolderObjectDetailView.path}
+                    appIdentifier={selectedContrbutedView.appIdentifier}
+                    uiIdentifier={selectedContrbutedView.uiIdentifier}
+                    url={selectedContrbutedView.path}
                     queryParams={{
                       basePath: `${protocol}//${API_HOST}`,
                       folderId,
@@ -317,21 +357,86 @@ export const FolderObjectDetailScreen = ({
                     scheme={protocol}
                   />
                 ) : (
-                  <FolderObjectPreview
-                    folderId={folderId}
-                    objectKey={objectKey}
-                    objectMetadata={folderObject}
-                    previewConfig={
-                      displayConfig
-                        ? {
-                            contentKey: displayConfig.contentKey,
-                            mediaType: displayConfig.mediaType,
-                            mimeType: displayConfig.mimeType,
-                          }
-                        : undefined
-                    }
-                    displayMode="object-scale-down"
-                  />
+                  <div className="relative flex size-full flex-col items-center justify-center">
+                    <div
+                      className={cn(
+                        'overflow-hidden shrink-0 duration-200 ease-in-out absolute top-4 right-4 z-10',
+                      )}
+                    >
+                      <Select
+                        disabled={!!selectedContrbutedView}
+                        value={selectedDisplayMode}
+                        onValueChange={(key) =>
+                          setSelectedDisplayMode(
+                            displayModes[key as keyof typeof displayModes]
+                              ?.key ?? '',
+                          )
+                        }
+                      >
+                        <TooltipProvider>
+                          <Tooltip delayDuration={100}>
+                            <TooltipTrigger asChild>
+                              <SelectTrigger
+                                className={cn(
+                                  buttonVariants({
+                                    size: 'sm',
+                                    variant: 'outline',
+                                  }),
+                                  'gap-2 justify-between',
+                                )}
+                              >
+                                <SelectValue placeholder={'placeholder'} />
+                              </SelectTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" align="end">
+                              Select display mode
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <SelectContent align="end">
+                          {Object.keys(displayModes).map((displayModeKey) => {
+                            const OptionIcon =
+                              displayModes[
+                                displayModeKey as keyof typeof displayModes
+                              ]?.icon ?? File
+                            return (
+                              <SelectItem
+                                key={displayModeKey}
+                                value={
+                                  displayModes[
+                                    displayModeKey as keyof typeof displayModes
+                                  ]?.key ?? ''
+                                }
+                              >
+                                <div className="flex items-center gap-2">
+                                  <OptionIcon className="size-5 shrink-0" />
+                                  <span>
+                                    {
+                                      displayModes[
+                                        displayModeKey as keyof typeof displayModes
+                                      ]?.label
+                                    }
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <FolderObjectPreview
+                      folderId={folderId}
+                      objectKey={objectKey}
+                      objectMetadata={folderObject}
+                      displayConfig={
+                        previewDisplayConfig ?? {
+                          type: 'original',
+                        }
+                      }
+                      displayMode="object-scale-down"
+                    />
+                  </div>
                 )}
               </div>
             )}

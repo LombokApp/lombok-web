@@ -9,7 +9,7 @@ import {
   IMAGE_MEDIA_MIME_TYPES,
   VIDEO_MEDIA_MIME_TYPES,
 } from '@lombokapp/utils'
-import { FileIcon, Film, Image, Music } from 'lucide-react'
+import { FileIcon, FileTextIcon, Film, Image, Music } from 'lucide-react'
 
 export const iconForMimeType = (mimeType: string) => {
   if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
@@ -29,6 +29,8 @@ export const iconForMediaType = (mediaType: MediaType) => {
     return Image
   } else if (mediaType === MediaType.Video) {
     return Film
+  } else if (mediaType === MediaType.Document) {
+    return FileTextIcon
   }
   return FileIcon
 }

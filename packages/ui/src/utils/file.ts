@@ -1,26 +1,31 @@
-export const downloadData = (downloadURL: string, name: string) => {
-  // Convert your blob into a Blob URL (a special url that points to an object in the browser's memory)
-
-  // Create a link element
-  const link = document.createElement('a')
-
-  // Set link's href to point to the Blob URL
-  link.href = downloadURL
-  link.download = name
-
-  // Append link to the body
-  document.body.appendChild(link)
-
-  // Dispatch click event on the link
-  // This is necessary as link.click() does not work on the latest firefox
-  link.dispatchEvent(
-    new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-    }),
-  )
-
-  // Remove link from body
-  document.body.removeChild(link)
+export function downloadData(downloadURL: string, name: string) {
+  // Try to fetch the file as a Blob so we can trigger a download
+  // without navigating and while preserving the provided filename.
+  // If this fails due to CORS, fall back to using a hidden iframe.
+  void fetch(downloadURL, { credentials: 'include' })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch download URL')
+      }
+      return response.blob()
+    })
+    .then((blob) => {
+      const objectUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = name
+      document.body.appendChild(link)
+      link.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        }),
+      )
+      document.body.removeChild(link)
+      // Revoke after a tick to allow the download to start
+      setTimeout(() => {
+        URL.revokeObjectURL(objectUrl)
+      }, 0)
+    })
 }

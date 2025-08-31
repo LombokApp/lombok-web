@@ -1,4 +1,5 @@
-import { type ContentMetadataEntry, MediaType } from '@lombokapp/types'
+import type { ContentMetadataEntry } from '@lombokapp/types'
+import { MediaType } from '@lombokapp/types'
 import fs from 'fs'
 import path from 'path'
 
@@ -22,7 +23,7 @@ async function analyzeImage(
   const scaleConfigs = [
     ['preview:thumbnail_sm', 150],
     ['preview:thumbnail_lg', 500],
-    ['preview:md', 1024],
+    ['preview:sm', 1024],
     ['preview:lg', 2048],
   ] as const
   let lastScaleResult: ImageOperationOutput | undefined

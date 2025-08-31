@@ -1,6 +1,6 @@
-import type { FolderObjectDTO, MediaType } from '@lombokapp/types'
+import type { FolderObjectDTO } from '@lombokapp/types'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { encodeS3ObjectKey, mediaTypeFromMimeType } from '@lombokapp/utils'
+import { encodeS3ObjectKey } from '@lombokapp/utils'
 import React from 'react'
 
 import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
@@ -33,36 +33,14 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
   {
     accessorKey: 'main',
     cell: ({ row }) => {
-      const [displayConfig, setDisplayConfig] = React.useState<{
-        contentKey: string
-        mediaType: MediaType
-        mimeType: string
-      }>()
-
-      React.useEffect(() => {
-        const thumbnail =
-          row.original.hash &&
-          row.original.hash in row.original.contentMetadata &&
-          'preview:thumbnail_lg' in
-            (row.original.contentMetadata[row.original.hash] ?? {})
-            ? row.original.contentMetadata[row.original.hash]?.[
-                'preview:thumbnail_lg'
-              ]
-            : undefined
-        setDisplayConfig(
-          thumbnail?.type === 'external'
-            ? {
-                contentKey: `metadata:${row.original.objectKey}:${thumbnail.hash}`,
-                mediaType: mediaTypeFromMimeType(thumbnail.mimeType),
-                mimeType: thumbnail.mimeType,
-              }
-            : undefined,
-        )
-      }, [
-        row.original.contentMetadata,
-        row.original.hash,
-        row.original.objectKey,
-      ])
+      const displayConfig = React.useMemo(
+        () =>
+          ({
+            type: 'metadata_preview',
+            metadataKey: 'preview:thumbnail_sm',
+          }) as const,
+        [],
+      )
 
       return (
         <div className="flex w-full gap-4 rounded-md">
@@ -71,7 +49,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
               key={row.original.objectKey}
               folderId={row.original.folderId}
               displayMode="object-cover"
-              previewConfig={displayConfig}
+              displayConfig={displayConfig}
               objectMetadata={row.original}
               objectKey={row.original.objectKey}
             />

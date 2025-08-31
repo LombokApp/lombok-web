@@ -62,6 +62,20 @@ export const isRenderableTextMimeType = (mimeType: string) => {
   return false
 }
 
+export const isRenderableDocumentMimeType = (mimeType: string) => {
+  // Check specific document types that are renderable
+  if (
+    mimeType === String(DocumentMediaMimeTypes.TXT) ||
+    mimeType === String(DocumentMediaMimeTypes.HTML) ||
+    mimeType === String(DocumentMediaMimeTypes.JSON) ||
+    mimeType === String(DocumentMediaMimeTypes.PDF)
+  ) {
+    return true
+  }
+
+  return false
+}
+
 export const extensionFromMimeType = (mimeType: string): string | undefined => {
   return MIME_TYPE_TO_EXTENSION_MAP[
     mimeType as keyof typeof MIME_TYPE_TO_EXTENSION_MAP
@@ -94,6 +108,8 @@ export const documentLabelFromMimeType = (
       return 'XML'
     case String(DocumentMediaMimeTypes.TXT):
       return 'TXT'
+    case String(DocumentMediaMimeTypes.EPUB):
+      return 'EPUB'
     default:
       if (mimeType.startsWith('text/')) {
         return 'TEXT'
