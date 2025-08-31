@@ -34,7 +34,7 @@ export function SdkDemo() {
       try {
         const response = await executeWorkerScriptUrl(
           {
-            workerIdentifier: 'special_worker',
+            workerIdentifier: 'demo_api_request_worker',
           },
           {
             method: 'POST',

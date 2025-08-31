@@ -280,16 +280,22 @@ process.stdin.once('data', (data) => {
 
             const workerIdentifier = workerIdentifierMatch[1]
 
-            // Parse the host to get app info (same pattern as static assets)
+            // Parse the host to get app info (new format: <ui>-<app>.apps.<platform_host>)
             const host = req.headers.get('host') || ''
             const hostParts = host.split('.')
 
-            // Validate host format: should have at least 3 parts with "apps" as the third part
-            if (hostParts.length < 3 || hostParts[2] !== 'apps') {
+            // Validate host format: should have at least 2 parts with "apps" as the second part
+            if (hostParts.length < 2 || hostParts[1] !== 'apps') {
               return new Response('Invalid host format', { status: 400 })
             }
 
-            const appIdentifier = hostParts[1] || 'unknown'
+            // Extract app identifier from the combined subdomain: <ui>-<app>
+            const combinedIdentifier = hostParts[0] || ''
+            const hyphenIndex = combinedIdentifier.lastIndexOf('-')
+            if (hyphenIndex === -1) {
+              return new Response('Invalid host format', { status: 400 })
+            }
+            const appIdentifier = combinedIdentifier.slice(hyphenIndex + 1)
 
             // Authenticate the request
             try {
@@ -373,17 +379,24 @@ process.stdin.once('data', (data) => {
           // if (pathname === '/health') {
           //   return new Response('Not Found', { status: 404 })
           // }
-          // Parse the host to get app and UI info
+          // Parse the host to get app and UI info (new format: <ui>-<app>.apps.<platform_host>)
           const host = req.headers.get('host') || ''
           const hostParts = host.split('.')
 
-          // Validate host format: should have at least 3 parts with "apps" as the third part
-          if (hostParts.length < 3 || hostParts[2] !== 'apps') {
+          // Validate host format: should have at least 2 parts with "apps" as the second part
+          if (hostParts.length < 2 || hostParts[1] !== 'apps') {
             return new Response('Invalid host format', { status: 404 })
           }
 
-          const uiIdentifier = hostParts[0] || 'unknown'
-          const appIdentifier = hostParts[1] || 'unknown'
+          const combinedIdentifier = hostParts[0] || ''
+          const hyphenIndex = combinedIdentifier.lastIndexOf('-')
+          if (hyphenIndex === -1) {
+            return new Response('Invalid host format', { status: 404 })
+          }
+          const uiIdentifier =
+            combinedIdentifier.slice(0, hyphenIndex) || 'unknown'
+          const appIdentifier =
+            combinedIdentifier.slice(hyphenIndex + 1) || 'unknown'
 
           // Create cache key and directory
           const bundleCacheKey = `${appIdentifier}-${uiIdentifier}`

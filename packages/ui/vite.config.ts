@@ -45,10 +45,18 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
           return
         }
 
-        // Extract second and third subdomains
+        // Extract combined subdomain and parse identifiers: <ui>-<app>.apps.<platform_host>
         const hostParts = host.split('.')
-        const appIdentifier = hostParts[1]
-        const uiIdentifier = hostParts[0]
+        const combinedIdentifier = hostParts[0]
+        const hyphenIndex = combinedIdentifier?.lastIndexOf('-') ?? -1
+        const uiIdentifier =
+          hyphenIndex > -1
+            ? combinedIdentifier?.slice(0, hyphenIndex)
+            : undefined
+        const appIdentifier =
+          hyphenIndex > -1
+            ? combinedIdentifier?.slice(hyphenIndex + 1)
+            : undefined
 
         if (!appIdentifier || !uiIdentifier) {
           next()
