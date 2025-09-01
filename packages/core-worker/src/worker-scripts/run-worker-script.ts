@@ -260,7 +260,10 @@ export const runWorkerScript = async ({
   })
 
   const workerWrapperScript = './worker-script-wrapper.ts'
-  const workerScriptWrapperPath = path.join(__dirname, workerWrapperScript)
+  const workerScriptWrapperPath = path.join(
+    import.meta.dirname,
+    workerWrapperScript,
+  )
   fs.copyFileSync(
     workerScriptWrapperPath,
     path.join(workerRootPath, workerWrapperScript),

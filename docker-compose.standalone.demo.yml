@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/lombokapp/lombok-standalone:latest
+    image: 93e830a48c21
     container_name: lombok-standalone-demo-app
     platform: linux/amd64
     environment:
