@@ -27,32 +27,19 @@ export function createS3PresignedUrls(
 
   const urls = requests.map((request) => {
     const urlParams = {
-      'X-Amz-Expires': request.expirySeconds,
-      'x-id': `${request.method[0].toUpperCase()}${request.method
-        .slice(1)
-        .toLowerCase()}Object`,
+      'X-Amz-Expires': String(request.expirySeconds),
       'X-Amz-Content-Sha256': 'UNSIGNED-PAYLOAD',
     }
-    const queryString = Object.keys(urlParams)
-      .map(
-        (key) =>
-          `${key}=${encodeURIComponent(
-            urlParams[key as keyof typeof urlParams],
-          )}`,
-      )
-      .join('&')
+    const queryString = new URLSearchParams(urlParams).toString()
 
     const signedRequest = aws4.sign(
       {
         service: 's3',
         region: request.region,
         method: request.method,
-        path: `/${request.bucket}/${encodeS3ObjectKey(request.objectKey)}?${new URLSearchParams(
-          queryString,
-        )}`,
+        path: `/${request.bucket}/${encodeS3ObjectKey(request.objectKey)}?${queryString}`,
         host: hostnames[request.endpoint],
         signQuery: true,
-        body: JSON.stringify(urlParams),
       },
       {
         accessKeyId: request.accessKeyId,

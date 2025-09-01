@@ -5,14 +5,14 @@ import {
 } from '@aws-sdk/client-s3'
 import type { S3Object, S3ObjectInternal } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
-import { encodeS3ObjectKey } from '@lombokapp/utils'
 import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import aws4 from 'aws4'
+
+import { createS3PresignedUrls } from './s3.utils'
 
 export const transformFolderObjectToInternal = (
   obj: S3Object,
@@ -136,6 +136,8 @@ export class S3Service {
     bucket: string
     objectKey: string
   }) {
+    // Some S3 providers/CDNs reject presigned HEAD for certain objects.
+    // Work around by issuing a ranged GET (0-0) to fetch headers only.
     const [url] = this.createS3PresignedUrls([
       {
         endpoint,
@@ -143,31 +145,27 @@ export class S3Service {
         accessKeyId,
         secretAccessKey,
         bucket,
-        objectKey: encodeS3ObjectKey(objectKey),
-        method: SignedURLsRequestMethod.HEAD,
-        expirySeconds: 300,
+        objectKey,
+        method: SignedURLsRequestMethod.GET,
+        expirySeconds: 3600,
       },
     ])
 
-    const headObjectResponse = await fetch(url, { method: 'HEAD' }).catch(
-      (e) => {
-        // eslint-disable-next-line no-console
-        console.log('Error getting object:', e)
-        throw e
-      },
-    )
+    const headObjectResponse = await fetch(url, {
+      method: 'GET',
+      headers: { Range: 'bytes=0-0' },
+    })
 
     if (headObjectResponse.status === 404) {
       throw new NotFoundException(`Object not found by key: ${objectKey}.`)
     }
-
     if (headObjectResponse.status === 403) {
       throw new UnauthorizedException(
         `Access denied to object by key: ${objectKey}.`,
       )
     }
 
-    if (headObjectResponse.status !== 200) {
+    if (![200, 206].includes(headObjectResponse.status)) {
       throw new InternalServerErrorException(
         `Error (${headObjectResponse.status}) getting HEAD for object key "${objectKey}".`,
       )
@@ -175,7 +173,7 @@ export class S3Service {
 
     const lastModified = headObjectResponse.headers.get('last-modified')
     const lastModifiedDate = lastModified
-      ? new Date(lastModified).getMilliseconds()
+      ? new Date(lastModified).getTime()
       : undefined
     const sizeStr =
       headObjectResponse.headers.get('content-length') ?? undefined
@@ -278,54 +276,7 @@ export class S3Service {
       expirySeconds: number
     }[],
   ) {
-    const hostnames = requests.reduce<Record<string, string>>(
-      (acc, next) =>
-        next.endpoint in acc
-          ? acc
-          : {
-              ...acc,
-              [next.endpoint]: new URL(next.endpoint).host,
-            },
-      {},
-    )
-
-    const urls = requests.map((request) => {
-      const urlParams = {
-        'X-Amz-Expires': request.expirySeconds,
-        'x-id': `${request.method[0].toUpperCase()}${request.method
-          .slice(1)
-          .toLowerCase()}Object`,
-        'X-Amz-Content-Sha256': 'UNSIGNED-PAYLOAD',
-      }
-      const queryString = Object.keys(urlParams)
-        .map(
-          (key) =>
-            `${key}=${encodeURIComponent(
-              urlParams[key as keyof typeof urlParams],
-            )}`,
-        )
-        .join('&')
-
-      const signedRequest = aws4.sign(
-        {
-          service: 's3',
-          region: request.region,
-          method: request.method,
-          path: `/${request.bucket}/${request.objectKey}?${new URLSearchParams(
-            queryString,
-          )}`,
-          host: hostnames[request.endpoint],
-          signQuery: true,
-          body: JSON.stringify(urlParams),
-        },
-        {
-          accessKeyId: request.accessKeyId,
-          secretAccessKey: request.secretAccessKey,
-        },
-      )
-      return `${request.endpoint}${signedRequest.path}`
-    })
-    return urls
+    return createS3PresignedUrls(requests)
   }
 
   async deleteAllWithPrefix({
