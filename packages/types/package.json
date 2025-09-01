@@ -2,7 +2,7 @@
   "name": "@lombokapp/types",
   "private": true,
   "scripts": {
-    "build": "bun build . --target bun --outdir dist",
+    "build": "rm -rf ./dist && NODE_ENV=production bun --bun script/build.ts",
     "build:clean": "bun clean && bun run build",
     "clean": "rm -rf ./dist",
     "lint:check": "eslint .",

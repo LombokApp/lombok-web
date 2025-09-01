@@ -24,6 +24,6 @@
     "resolveJsonModule": true,
     "allowJs": true
   },
-  "include": ["src/**/*.ts", "index.ts", "eslint.config.ts"],
+  "include": ["src/**/*.ts", "index.ts", "eslint.config.ts", "script/**/*.ts"],
   "exclude": ["dist"]
 }
