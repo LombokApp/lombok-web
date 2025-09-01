@@ -10,6 +10,7 @@ const optionalRequirePackages = [
 
 const alwaysExternalPackages = [
   '@heyputer/kv.js', // Always external to avoid XMap bundling issues
+  '@lombokapp/core-worker', // Externalize to preserve its import.meta.dirname at runtime
 ]
 
 void (async () => {
@@ -42,22 +43,7 @@ void (async () => {
     process.exit(1)
   }
 
-  // Build core-app-worker
-  const workerResult = await build({
-    entrypoints: ['./src/app/core-app-worker.ts'],
-    outdir: './dist/src',
-    target: 'bun',
-    format: 'esm',
-    minify: {
-      syntax: true,
-      whitespace: true,
-    },
-  })
-
-  if (!workerResult.success) {
-    console.log('Worker build failed:', workerResult.logs[0])
-    process.exit(1)
-  }
+  // No longer build core-app-worker inside API; it's resolved from core-worker package
 
   console.log('Built successfully!')
 })()

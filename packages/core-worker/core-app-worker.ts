@@ -1,39 +1,22 @@
 import { buildAppClient } from '@lombokapp/app-worker-sdk'
-import {
-  analyzeObjectTaskHandler,
-  connectAndPerformWork,
-  reconstructResponse,
-  runWorkerScript,
-  runWorkerScriptTaskHandler,
-  uniqueExecutionKey,
-} from '@lombokapp/core-worker'
 import type { AppManifest } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
 import * as jwt from 'jsonwebtoken'
 import os from 'os'
 import path from 'path'
-import { z } from 'zod'
 
-const coreWorkerProcessDataPayloadSchema = z.object({
-  appWorkerId: z.string(),
-  appToken: z.string(),
-  socketBaseUrl: z.string(),
-  jwtSecret: z.string(),
-  platformHost: z.string(),
-  executionOptions: z
-    .object({
-      printWorkerOutput: z.boolean().optional(),
-      removeWorkerDirectory: z.boolean().optional(),
-    })
-    .optional(),
-})
+import { analyzeObjectTaskHandler } from './src/handlers/analyze-object-task-handler'
+import { bulidRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
+import { connectAndPerformWork } from './src/utils/connect-app-worker.util'
+import { uniqueExecutionKey } from './src/utils/ids'
+import {
+  reconstructResponse,
+  runWorkerScript,
+} from './src/worker-scripts/run-worker-script'
+import type { CoreWorkerProcessDataPayload } from './src/worker-scripts/types'
+import { coreWorkerProcessDataPayloadSchema } from './src/worker-scripts/types'
 
-export type CoreWorkerProcessDataPayload = z.infer<
-  typeof coreWorkerProcessDataPayloadSchema
->
-
-// JWT constants and types (copied from jwt.service.ts)
 const APP_USER_JWT_SUB_PREFIX = 'app_user:'
 const ALGORITHM = 'HS256'
 
@@ -57,7 +40,6 @@ class AuthTokenExpiredError extends Error {
   }
 }
 
-// JWT verification function
 function verifyAppUserJWT({
   appIdentifier,
   userId,
@@ -88,7 +70,6 @@ function verifyAppUserJWT({
   }
 }
 
-// Authentication middleware
 function authenticateAppUserRequest(
   req: Request,
   appIdentifier: string,
@@ -107,7 +88,6 @@ function authenticateAppUserRequest(
   const token = authHeader.slice('Bearer '.length)
 
   try {
-    // First decode to get the subject
     const decoded = jwt.decode(token, { complete: true })
     if (!decoded?.payload || typeof decoded.payload === 'string') {
       throw new AuthTokenInvalidError(token, 'Invalid token payload')
@@ -118,7 +98,6 @@ function authenticateAppUserRequest(
       throw new AuthTokenInvalidError(token, 'Invalid token type')
     }
 
-    // Extract userId and app identifier from subject: app_user:{userId}:{appIdentifier}
     const subjectParts = subject.split(':')
     if (subjectParts.length !== 3) {
       throw new AuthTokenInvalidError(token, 'Invalid token subject format')
@@ -127,12 +106,10 @@ function authenticateAppUserRequest(
     const userId = subjectParts[1]
     const tokenAppIdentifier = subjectParts[2]
 
-    // Verify the app identifier matches
     if (tokenAppIdentifier !== appIdentifier) {
       throw new AuthTokenInvalidError(token, 'Token app identifier mismatch')
     }
 
-    // Verify and validate the token
     verifyAppUserJWT({
       appIdentifier,
       userId,
@@ -156,7 +133,6 @@ function authenticateAppUserRequest(
 let initialized = false
 let server: ReturnType<typeof Bun.serve> | null = null
 
-// Cleanup function to properly close the server
 const cleanup = () => {
   if (server) {
     void server.stop()
@@ -164,20 +140,19 @@ const cleanup = () => {
   }
 }
 
-// Handle process termination signals
 process.on('SIGTERM', cleanup)
 process.on('SIGINT', cleanup)
 process.on('exit', cleanup)
 
-// If parent process dies (stdin closes), shut down promptly
 process.stdin.on('close', () => {
   cleanup()
   process.exit(0)
 })
 
 process.stdin.once('data', (data) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const workerData: CoreWorkerProcessDataPayload = JSON.parse(data.toString())
+  const workerData: CoreWorkerProcessDataPayload = JSON.parse(
+    data.toString(),
+  ) as CoreWorkerProcessDataPayload
 
   if (
     !initialized &&
@@ -190,7 +165,9 @@ process.stdin.once('data', (data) => {
       workerData.appToken,
       {
         ['analyze_object']: analyzeObjectTaskHandler,
-        ['run_worker_script']: runWorkerScriptTaskHandler,
+        ['run_worker_script']: bulidRunWorkerScriptTaskHandler(
+          workerData.executionOptions,
+        ),
       },
       async () => {
         await log({
@@ -256,16 +233,14 @@ process.stdin.once('data', (data) => {
     )
 
     if (fs.existsSync(bundleCacheRoot)) {
-      // Clean previous bundle cache directory before starting
       fs.rmdirSync(bundleCacheRoot, { recursive: true })
     }
     fs.mkdirSync(bundleCacheRoot, { recursive: true })
 
-    // start a http server on port 3001
     try {
       server = Bun.serve({
         port: 3001,
-
+        hostname: '0.0.0.0',
         routes: {
           '/worker-api/*': async (req) => {
             const url = new URL(req.url)
@@ -280,16 +255,13 @@ process.stdin.once('data', (data) => {
 
             const workerIdentifier = workerIdentifierMatch[1]
 
-            // Parse the host to get app info (new format: <ui>-<app>.apps.<platform_host>)
             const host = req.headers.get('host') || ''
             const hostParts = host.split('.')
 
-            // Validate host format: should have at least 2 parts with "apps" as the second part
             if (hostParts.length < 2 || hostParts[1] !== 'apps') {
               return new Response('Invalid host format', { status: 400 })
             }
 
-            // Extract app identifier from the combined subdomain: <ui>-<app>
             const combinedIdentifier = hostParts[0] || ''
             const hyphenIndex = combinedIdentifier.lastIndexOf('-')
             if (hyphenIndex === -1) {
@@ -297,7 +269,6 @@ process.stdin.once('data', (data) => {
             }
             const appIdentifier = combinedIdentifier.slice(hyphenIndex + 1)
 
-            // Authenticate the request
             try {
               const { userId } = authenticateAppUserRequest(
                 req,
@@ -324,7 +295,6 @@ process.stdin.once('data', (data) => {
             }
 
             try {
-              // Call runWorkerScript with the request and parsed parameters
               const serializableResponse = await runWorkerScript({
                 requestOrTask: req,
                 server: serverClient,
@@ -334,7 +304,6 @@ process.stdin.once('data', (data) => {
                 options: workerData.executionOptions,
               })
 
-              // Return the response or 204 No Content if no response
               if (serializableResponse) {
                 return reconstructResponse(serializableResponse)
               } else {
@@ -363,27 +332,18 @@ process.stdin.once('data', (data) => {
                 workerId: workerData.appWorkerId,
                 message: 'Core app worker is running',
               }),
-              {
-                headers: { 'Content-Type': 'application/json' },
-              },
+              { headers: { 'Content-Type': 'application/json' } },
             )
           },
         },
 
-        // Handle all UI bundle requests (root and static assets)
         fetch: async (req) => {
           const url = new URL(req.url)
           const pathname = url.pathname
 
-          // Skip if it's a known route
-          // if (pathname === '/health') {
-          //   return new Response('Not Found', { status: 404 })
-          // }
-          // Parse the host to get app and UI info (new format: <ui>-<app>.apps.<platform_host>)
           const host = req.headers.get('host') || ''
           const hostParts = host.split('.')
 
-          // Validate host format: should have at least 2 parts with "apps" as the second part
           if (hostParts.length < 2 || hostParts[1] !== 'apps') {
             return new Response('Invalid host format', { status: 404 })
           }
@@ -398,7 +358,6 @@ process.stdin.once('data', (data) => {
           const appIdentifier =
             combinedIdentifier.slice(hyphenIndex + 1) || 'unknown'
 
-          // Create cache key and directory
           const bundleCacheKey = `${appIdentifier}-${uiIdentifier}`
           const bundleCacheDir = path.join(
             bundleCacheRoot,
@@ -408,7 +367,6 @@ process.stdin.once('data', (data) => {
 
           let manifest: AppManifest = {}
 
-          // Try to load existing manifest (denoting bundle has been downloaded)
           if (fs.existsSync(manifestFilePath)) {
             try {
               const manifestContent = await fs.promises.readFile(
@@ -424,7 +382,6 @@ process.stdin.once('data', (data) => {
             }
           } else {
             try {
-              // Get the UI bundle URL from the server
               const bundleResponse = await serverClient.getAppUIbundle(
                 appIdentifier,
                 uiIdentifier,
@@ -445,18 +402,13 @@ process.stdin.once('data', (data) => {
                 return new Response('Bundle URL not found', { status: 404 })
               }
 
-              // Create the cache directory first
               await fs.promises.mkdir(bundleCacheDir, { recursive: true })
 
-              // Save manifest to file for future use
               await fs.promises.writeFile(
                 manifestFilePath,
                 JSON.stringify(manifest, null, 2),
               )
 
-              // Download and extract the bundle
-
-              // Download the bundle
               const downloadResponse = await fetch(bundleUrl)
               if (!downloadResponse.ok) {
                 return new Response('Failed to download bundle', {
@@ -471,7 +423,6 @@ process.stdin.once('data', (data) => {
                 new Uint8Array(bundleBuffer),
               )
 
-              // Extract the bundle
               const unzipProc = spawn({
                 cmd: ['unzip', '-o', bundlePath],
                 cwd: bundleCacheDir,
@@ -495,7 +446,6 @@ process.stdin.once('data', (data) => {
           }
 
           const baseManifestPathParts = ['/', 'ui', uiIdentifier]
-          // Determine the file path to serve
           let targetPath = ''
           const wholePathname = path.join(...baseManifestPathParts, pathname)
           if (wholePathname in manifest) {

@@ -11,11 +11,23 @@ services:
     env_file: packages/api/.env
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
-    command: ['/bin/sh', '-c', 'bun install && bun --cwd packages/api dev']
+    command: ['sh', './packages/api/cmd/dev-entrypoint.sh']
     ports:
       - 3000:3000
       - 3001:3001
-    privileged: true
+    cap_drop: [ALL]
+    cap_add:
+      - SETUID
+      - SETGID
+      - SYS_ADMIN
+      - SYS_CHROOT
+      - SETPCAP
+      - CHOWN
+    security_opt:
+      - seccomp=unconfined
+      - no-new-privileges:false
+      - apparmor=unconfined
+    userns_mode: host
   minio:
     image: minio/minio
     command: server /data --address "minio:9000" --console-address ":9001"

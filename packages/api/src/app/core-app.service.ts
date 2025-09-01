@@ -1,3 +1,4 @@
+import { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker'
 import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
@@ -5,14 +6,12 @@ import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import path from 'path'
 import { authConfig } from 'src/auth/config'
 import { APP_JWT_SUB_PREFIX } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { v4 as uuidV4 } from 'uuid'
 
-import { CoreWorkerProcessDataPayload } from './core-app-worker'
 import { appsTable } from './entities/app.entity'
 
 @Injectable()
@@ -57,16 +56,16 @@ export class CoreAppService {
     const isEmbeddedCoreAppEnabled =
       !this._platformConfig.disableEmbeddedCoreAppWorker
     if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
-      // run the core-app-worker.ts script in a child thread
-      const child = spawn(
-        'bun',
-        [path.join(import.meta.dirname, 'core-app-worker')],
-        {
-          uid: 1000,
-          gid: 1000,
-          stdio: ['pipe', 'pipe', 'pipe'],
-        },
-      )
+      // Resolve the core-app-worker entry: use src in dev, dist in production
+      const isProduction = process.env.NODE_ENV === 'production'
+      const workerEntry = isProduction
+        ? require.resolve('@lombokapp/core-worker/dist/core-app-worker.js')
+        : require.resolve('@lombokapp/core-worker/core-app-worker.ts')
+      const child = spawn('bun', [workerEntry], {
+        uid: 1000,
+        gid: 1000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      })
       this.setupParentShutdownHooks(child)
       // Listen for worker startup success/failure status lines
       let hasScheduledRetry = false
@@ -187,23 +186,26 @@ export class CoreAppService {
       const appToken = await this.generateEmbeddedAppKeys()
       setTimeout(() => {
         // send the config as the first message
-
+        const executionOptions = {
+          printWorkerOutput:
+            this._platformConfig.printEmbeddedCoreAppWorkerOutput,
+          removeWorkerDirectory:
+            this._platformConfig.removeEmbeddedCoreAppWorkerDirectories,
+        }
         const workerDataPayload: CoreWorkerProcessDataPayload = {
           socketBaseUrl: `http://127.0.0.1:3000`,
           appToken,
           appWorkerId,
           jwtSecret: this._authConfig.authJwtSecret,
           platformHost: this._platformConfig.platformHost,
-          executionOptions: {
-            printWorkerOutput:
-              this._platformConfig.printEmbeddedCoreAppWorkerOutput,
-            removeWorkerDirectory:
-              this._platformConfig.removeEmbeddedCoreAppWorkerDirectories,
-          },
+          executionOptions,
         }
 
         child.stdin.write(JSON.stringify(workerDataPayload))
-        this.logger.debug('Embedded core app worker thread started')
+        this.logger.debug(
+          'Embedded core app worker thread started with execution options:',
+          workerDataPayload.executionOptions,
+        )
       }, 500)
     }
   }

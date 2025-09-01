@@ -1,5 +1,3 @@
-import { appendFile } from 'node:fs/promises'
-
 import type {
   AppTask,
   RequestHandler,
@@ -16,6 +14,7 @@ import {
   WorkerInvalidError,
   WorkerRuntimeError,
 } from '@lombokapp/core-worker'
+import fs from 'fs'
 import { io } from 'socket.io-client'
 void (async () => {
   // Helper function to reconstruct a Request object from serialized data
@@ -78,7 +77,10 @@ void (async () => {
     await Bun.file(workerModuleStartContext.errorLogFilepath).write(output)
   }
   const writeOutput = async (output: string) => {
-    await appendFile(workerModuleStartContext.outputLogFilepath, output)
+    await fs.promises.appendFile(
+      workerModuleStartContext.outputLogFilepath,
+      output,
+    )
   }
 
   // Helper to log to stderr with timestamp

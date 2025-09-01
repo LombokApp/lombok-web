@@ -1,12 +1,12 @@
 import { build } from 'bun'
-import { readFileSync } from 'fs'
+import fs from 'fs'
 import path from 'path'
 
 // Externalize all dependencies to avoid bundling third-party code.
 // This prevents Bun from rewriting __dirname based on the build root
 // (e.g., /temp/dev inside Docker multi-stage builds).
 const packageJsonPath = path.resolve(import.meta.dir, '../package.json')
-const packageJsonRaw = readFileSync(packageJsonPath, 'utf8')
+const packageJsonRaw = fs.readFileSync(packageJsonPath, 'utf8')
 const packageJson = JSON.parse(packageJsonRaw) as {
   dependencies?: Record<string, string>
 }
@@ -20,7 +20,7 @@ const externalPackages: string[] = Array.from(
 
 void (async () => {
   const result = await build({
-    entrypoints: ['./index.ts'],
+    entrypoints: ['./index.ts', './core-app-worker.ts'],
     outdir: './dist',
     target: 'bun',
     format: 'esm',
@@ -35,6 +35,19 @@ void (async () => {
     console.log('Build failed:', result.logs[0])
     process.exit(1)
   }
+
+  // Copy the worker wrapper (TypeScript) alongside built sources so it can be
+  // copied at runtime (we run it as TS inside the sandbox with Bun).
+  const wrapperSrc = path.resolve(
+    import.meta.dir,
+    '../src/worker-scripts/worker-script-wrapper.ts',
+  )
+  const wrapperDestDir = path.resolve(import.meta.dir, '../dist')
+  fs.mkdirSync(wrapperDestDir, { recursive: true })
+  fs.copyFileSync(
+    wrapperSrc,
+    path.join(wrapperDestDir, 'worker-script-wrapper.ts'),
+  )
 
   console.log('Built core-worker successfully!')
 })()

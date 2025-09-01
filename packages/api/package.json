@@ -81,7 +81,7 @@
     "@nestjs/schematics": "11.0.2",
     "@nestjs/testing": "11.0.11",
     "@types/aws4": "1.11.6",
-    "@types/bun": "^1.2.20",
+    "@types/bun": "^1.2.21",
     "@types/express": "5.0.0",
     "@types/supertest": "6.0.2",
     "drizzle-kit": "0.30.1",

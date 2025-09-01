@@ -21,6 +21,12 @@ if (fs.existsSync(cacheRoot)) {
   fs.rmdirSync(cacheRoot, { recursive: true })
 }
 
+const prepCacheRoot = path.join(os.tmpdir(), 'lombok-worker-prep-cache')
+if (fs.existsSync(prepCacheRoot)) {
+  // Clean previous worker prep cache directory before starting
+  fs.rmdirSync(prepCacheRoot, { recursive: true })
+}
+
 // Helper function to parse request body based on Content-Type and HTTP method
 async function parseRequestBody(request: Request): Promise<unknown> {
   // Methods that typically don't have request bodies
@@ -151,7 +157,8 @@ async function prepareWorkerBundle({
       return { cacheDir, entrypoint }
     }
 
-    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'worker-prep-'))
+    const tmpRoot = path.join(prepCacheRoot, crypto.randomUUID())
+    fs.mkdirSync(tmpRoot, { recursive: true })
     const zipPath = path.join(tmpRoot, 'worker-module.zip')
     await downloadFileToDisk(payloadUrl, zipPath)
 
@@ -184,6 +191,7 @@ async function prepareWorkerBundle({
     )
       ? 'index.js'
       : 'index.ts'
+    fs.rmSync(tmpRoot, { recursive: true })
     return { cacheDir, entrypoint }
   } finally {
     // Release lock
@@ -218,24 +226,36 @@ export const runWorkerScript = async ({
 }): Promise<SerializeableResponse | undefined> => {
   const isRequest = requestOrTask instanceof Request
   const workerRootPath = path.join(os.tmpdir(), workerExecutionId)
-  const logsDir = path.join(workerRootPath, 'logs')
-  const workerTmpDir = path.join(workerRootPath, 'tmp')
   const builtinsDir = path.join(workerRootPath, 'builtins')
+  const logsDir = path.join(workerRootPath, 'logs')
   const outLogPath = path.join(logsDir, 'output.log')
   const errOutputPath = path.join(logsDir, 'error.json')
   const resultOutputPath = path.join(logsDir, 'result.json')
 
+  const ensureDir = (dir: string, mode: number) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+      fs.chmodSync(dir, mode)
+    }
+  }
+
   // Create the directories
-  fs.mkdirSync(workerRootPath)
-  fs.mkdirSync(logsDir)
-  fs.mkdirSync(workerTmpDir)
-  fs.mkdirSync(builtinsDir)
+  ensureDir(workerRootPath, 0o1777)
+  ensureDir(builtinsDir, 0o1777)
+  ensureDir(logsDir, 0o1777)
 
   // Create the log files
   await Promise.all([
     Bun.file(outLogPath).write(''),
     Bun.file(errOutputPath).write(''),
     Bun.file(resultOutputPath).write(''),
+  ])
+
+  // Fix permissions for the jailed process (user 1001)
+  await Promise.all([
+    fs.promises.chmod(outLogPath, 0o1777),
+    fs.promises.chmod(errOutputPath, 0o1777),
+    fs.promises.chmod(resultOutputPath, 0o1777),
   ])
 
   const { result: workerExecutionDetails } =
@@ -261,12 +281,8 @@ export const runWorkerScript = async ({
 
   const workerWrapperScript = './worker-script-wrapper.ts'
   const workerScriptWrapperPath = path.join(
-    import.meta.dirname,
+    import.meta.dir,
     workerWrapperScript,
-  )
-  fs.copyFileSync(
-    workerScriptWrapperPath,
-    path.join(workerRootPath, workerWrapperScript),
   )
 
   const environmentVariables = workerEnvVars.map((v) => v.trim())
@@ -286,10 +302,10 @@ export const runWorkerScript = async ({
     : requestOrTask
 
   const workerModuleStartContext: WorkerModuleStartContext = {
-    resultFilepath: resultOutputPath.replace(workerRootPath, ''),
-    outputLogFilepath: outLogPath.replace(workerRootPath, ''),
-    errorLogFilepath: errOutputPath.replace(workerRootPath, ''),
-    scriptPath: `./app/${workerIdentifier}/${entrypoint}`,
+    resultFilepath: '/logs/result.json',
+    outputLogFilepath: '/logs/output.log',
+    errorLogFilepath: '/logs/error.json',
+    scriptPath: `/app/${workerIdentifier}/${entrypoint}`,
     workerToken: workerExecutionDetails.workerToken,
     executionId: workerExecutionId,
     executionType: isRequest ? 'request' : 'task',
@@ -306,36 +322,115 @@ export const runWorkerScript = async ({
     cmd: [
       'nsjail',
       '--disable_clone_newnet',
+      '--disable_clone_newuser',
+      '--disable_clone_newcgroup',
       '--disable_rlimits',
-      '--keep_caps',
-      '--disable_clone_newpid',
       '--disable_proc',
-      `--chroot=${workerRootPath}`,
+      '--tmpfsmount=/',
       '--user=1001',
       '--group=1001',
+      `--bindmount=${builtinsDir}:/builtins`,
       `--bindmount=${logsDir}:/logs`,
-      `--bindmount=${workerTmpDir}:/tmp`,
       `--bindmount_ro=${cacheDir}:/app`,
       '--bindmount_ro=/usr/src/app/node_modules:/node_modules',
       '--bindmount_ro=/usr/src/app/packages:/node_modules/@lombokapp',
-      '--bindmount_ro=/usr/bin/ldd:/usr/bin/ldd',
-      '--bindmount_ro=/usr/local/bin/bun:/usr/local/bin/bun',
-      '--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf',
-      '--bindmount_ro=/lib/ld-musl-aarch64.so.1:/lib/ld-musl-aarch64.so.1',
-      '--bindmount_ro=/usr/lib/libstdc++.so.6:/usr/lib/libstdc++.so.6',
-      '--bindmount_ro=/usr/lib/libgcc_s.so.1:/usr/lib/libgcc_s.so.1',
-      '--bindmount_ro=/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json:/tsconfig.json',
-      '--bindmount=/dev/null:/dev/null',
-      '--bindmount=/dev/random:/dev/random',
-      '--bindmount=/dev/urandom:/dev/urandom',
+      `--bindmount_ro=${workerScriptWrapperPath}:/wrapper/worker-script-wrapper.ts`,
+      // Platform-aware mounts below: choose first existing path for each category
+      ...(() => {
+        const flags: string[] = []
+
+        // ldd
+        for (const src of ['/usr/bin/ldd', '/bin/ldd']) {
+          if (fs.existsSync(src)) {
+            flags.push(`--bindmount_ro=${src}:${src}`)
+            break
+          }
+        }
+
+        // bun binary (mount source to fixed target inside jail)
+        for (const src of ['/usr/local/bin/bun', '/usr/bin/bun', '/bin/bun']) {
+          if (fs.existsSync(src)) {
+            flags.push(`--bindmount_ro=${src}:/usr/local/bin/bun`)
+            break
+          }
+        }
+
+        // resolver
+        if (fs.existsSync('/etc/resolv.conf')) {
+          flags.push('--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf')
+        }
+
+        // dynamic linker candidates (musl/glibc on x64/arm64)
+        const loaderCandidates = [
+          '/lib/ld-musl-aarch64.so.1',
+          '/lib/ld-musl-x86_64.so.1',
+          '/lib64/ld-linux-x86-64.so.2',
+          '/lib/ld-linux-x86-64.so.2',
+          '/lib/ld-linux-aarch64.so.1',
+          '/lib64/ld-linux-aarch64.so.1',
+        ]
+        for (const src of loaderCandidates) {
+          if (fs.existsSync(src)) {
+            flags.push(`--bindmount_ro=${src}:${src}`)
+            break
+          }
+        }
+
+        // libstdc++
+        for (const src of [
+          '/usr/lib/libstdc++.so.6',
+          '/usr/lib/x86_64-linux-gnu/libstdc++.so.6',
+          '/usr/lib/aarch64-linux-gnu/libstdc++.so.6',
+          '/lib/x86_64-linux-gnu/libstdc++.so.6',
+          '/lib/aarch64-linux-gnu/libstdc++.so.6',
+        ]) {
+          if (fs.existsSync(src)) {
+            flags.push(`--bindmount_ro=${src}:${src}`)
+            break
+          }
+        }
+
+        // libgcc_s
+        for (const src of [
+          '/usr/lib/libgcc_s.so.1',
+          '/usr/lib/x86_64-linux-gnu/libgcc_s.so.1',
+          '/usr/lib/aarch64-linux-gnu/libgcc_s.so.1',
+          '/lib/x86_64-linux-gnu/libgcc_s.so.1',
+          '/lib/aarch64-linux-gnu/libgcc_s.so.1',
+        ]) {
+          if (fs.existsSync(src)) {
+            flags.push(`--bindmount_ro=${src}:${src}`)
+            break
+          }
+        }
+
+        // tsconfig for worker transpile
+        if (
+          fs.existsSync(
+            '/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json',
+          )
+        ) {
+          flags.push(
+            '--bindmount_ro=/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json:/tsconfig.json',
+          )
+        }
+
+        // devices
+        for (const dev of ['/dev/null', '/dev/random', '/dev/urandom']) {
+          if (fs.existsSync(dev)) {
+            flags.push(`--bindmount=${dev}:${dev}`)
+          }
+        }
+
+        return flags
+      })(),
       ...environmentVariables.map((v) => `-E${v}`),
-      `-ETMPDIR=${workerTmpDir.replace(workerRootPath, '')}`,
       '-Mo',
       '-v',
       '--log_fd=1',
       '--',
       '/usr/local/bin/bun',
-      `./${workerWrapperScript}`,
+      `/wrapper/worker-script-wrapper.ts`,
       JSON.stringify(workerModuleStartContext),
     ],
     stdout: 'inherit',
@@ -357,8 +452,9 @@ export const runWorkerScript = async ({
 
     if (exitCode !== 0) {
       let parsedErr: SerializeableError
-      const errStr = await Bun.file(errOutputPath).text()
-
+      const errStr = fs.existsSync(errOutputPath)
+        ? await Bun.file(errOutputPath).text()
+        : ''
       try {
         const parsedErrObj = JSON.parse(errStr) as
           | SerializeableError
@@ -370,7 +466,9 @@ export const runWorkerScript = async ({
           : (parsedErrObj.innerError ?? parsedErrObj)
       } catch (err: unknown) {
         parsedErr = JSON.parse(
-          serializeWorkerError(new WorkerError(String(errStr), err)),
+          serializeWorkerError(
+            new WorkerError(`Parsing error: ${String(errStr)}`, err),
+          ),
         ) as SerializeableError
       }
       const errorClassName = parsedErr.className
@@ -382,6 +480,8 @@ export const runWorkerScript = async ({
           '==================',
           `ERROR: ${parsedErr.name}: ${parsedErr.message}`,
           parsedErr.stack,
+          parsedErr.innerError &&
+            `INNER ERROR: ${parsedErr.innerError.name}: ${parsedErr.innerError.message} - ${parsedErr.innerError.stack}`,
           '==================',
         ].map((line) => `${line}\n`),
       )
@@ -433,8 +533,11 @@ export const runWorkerScript = async ({
     })
   } finally {
     if (removeWorkerDirectory && fs.existsSync(workerRootPath)) {
-      console.log('Removing worker directory:', workerRootPath)
-      fs.rmSync(workerRootPath, { recursive: true })
+      try {
+        fs.rmdirSync(workerRootPath, { recursive: true })
+      } catch (error) {
+        console.error('Error removing worker directory:', error)
+      }
     }
   }
 }
