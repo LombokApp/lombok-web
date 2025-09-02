@@ -29,6 +29,8 @@
     "sharp": "0.34.3",
     "mime": "4.0.6",
     "socket.io-client": "4.8.1",
-    "utility-types": "3.11.0"
+    "utility-types": "3.11.0",
+    "jsonwebtoken": "9.0.2",
+    "zod": "3.25.76"
   }
 }

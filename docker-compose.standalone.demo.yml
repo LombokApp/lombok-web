@@ -1,12 +1,11 @@
 services:
   app:
-    image: 93e830a48c21
+    image: ghcr.io/lombokapp/lombok-standalone:latest
     container_name: lombok-standalone-demo-app
-    platform: linux/amd64
     environment:
       PLATFORM_HOST: lombokdemo.localhost
       INITIAL_USER: demo
-      AUTH_JWT_SECRET: 00000000000000000000000000000000 # replace with a random string
+      AUTH_JWT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # replace with a random string
       DB_PASSWORD: demodemodemodemodemodemo
       DB_NAME: lombok_demo
       DB_USER: lombok_demo
@@ -18,6 +17,23 @@ services:
       APPS_LOCAL_PATH: /usr/src/app/apps
       DISABLE_EMBEDDED_CORE_APP_WORKER: false
       PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT: true
+    volumes:
+      - ./.docker/postgres-standalone/:/var/lib/postgresql/data
     ports:
-      - 8090:80
-      - 5432:5432
+      - 8080:8080
+      - 5436:5432
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+      - SYS_ADMIN
+      - SYS_CHROOT
+      - SETPCAP
+      - CHOWN
+      - DAC_OVERRIDE
+      - DAC_READ_SEARCH
+      - FOWNER
+    security_opt:
+      - seccomp=unconfined
+    userns_mode: host

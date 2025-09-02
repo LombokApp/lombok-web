@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.20-alpine AS base
+FROM oven/bun:1.2.21-alpine AS base
 
 WORKDIR /usr/src/app
 
@@ -60,7 +60,7 @@ FROM base AS release
 COPY --from=install /temp/dev ./
 
 # run the app
-EXPOSE 80/tcp
+EXPOSE 8080/tcp
 ENTRYPOINT ["sh", "./entrypoint.sh"]
 
 FROM release AS standalone-release

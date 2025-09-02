@@ -11,6 +11,10 @@ APP_UI_HOST=${APP_UI_HOST:-"http://127.0.0.1:3001"}
 # Copy the NGINX configuration and replace the domain placeholder
 sed -e "s|{{PLATFORM_HOST}}|$PLATFORM_HOST|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST|g" ./packages/api/nginx/nginx.conf > /etc/nginx/http.d/default.conf
 
+# Make nsjail setuid root
+chown root:root /usr/bin/nsjail
+chmod 4755 /usr/bin/nsjail
+ 
 # Start or reload NGINX
 if [ -f /run/nginx/nginx.pid ] && kill -0 $(cat /run/nginx/nginx.pid) 2>/dev/null; then
     nginx -s reload
@@ -20,7 +24,14 @@ fi
 
 
 if [ "$EMBEDDED_POSTGRES" = "true" ]; then
-    # su-exec postgres postgres 2>&
+    # Initialize PostgreSQL data directory if it's empty
+    if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
+        echo "Initializing PostgreSQL data directory..."
+        su-exec postgres initdb -D /var/lib/postgresql/data --auth-local=trust --auth-host=md5
+        echo "PostgreSQL data directory initialized."
+    fi
+
+    # Start PostgreSQL
     su-exec postgres postgres -D /var/lib/postgresql/data > /dev/stdout 2>&1 &
 
     # Wait for PostgreSQL to become available

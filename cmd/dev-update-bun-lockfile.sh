@@ -2,7 +2,7 @@
 set -e
 
 # Define the Bun image and target platform
-BUN_IMAGE="oven/bun:1.2.20-alpine"
+BUN_IMAGE="oven/bun:1.2.21-alpine"
 TARGET_PLATFORM="linux/amd64"
 
 echo "🚀 Running Bun install in a $TARGET_PLATFORM container..."
