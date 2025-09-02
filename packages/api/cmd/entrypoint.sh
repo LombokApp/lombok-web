@@ -24,15 +24,20 @@ fi
 
 
 if [ "$EMBEDDED_POSTGRES" = "true" ]; then
+    export PGDATA='/var/lib/postgresql/data'
+    mkdir -p "$PGDATA"
+    chown -R postgres:postgres "$PGDATA"
+    chmod -R 0700 "$PGDATA"
+    
     # Initialize PostgreSQL data directory if it's empty
-    if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
+    if [ ! -f "$PGDATA/PG_VERSION" ]; then
         echo "Initializing PostgreSQL data directory..."
-        su-exec postgres initdb -D /var/lib/postgresql/data --auth-local=trust --auth-host=md5
+        su-exec postgres initdb -D "$PGDATA" --auth-local=trust --auth-host=md5
         echo "PostgreSQL data directory initialized."
     fi
 
     # Start PostgreSQL
-    su-exec postgres postgres -D /var/lib/postgresql/data > /dev/stdout 2>&1 &
+    su-exec postgres postgres -D "$PGDATA" > /dev/stdout 2>&1 &
 
     # Wait for PostgreSQL to become available
     until su-exec postgres pg_isready -q; do
