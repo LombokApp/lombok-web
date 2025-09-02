@@ -175,13 +175,28 @@ export class S3Service {
     const lastModifiedDate = lastModified
       ? new Date(lastModified).getTime()
       : undefined
-    const sizeStr =
-      headObjectResponse.headers.get('content-length') ?? undefined
+
+    // For ranged requests, use content-range header to get the total size
+    let size: number | undefined
+    const contentRange = headObjectResponse.headers.get('content-range')
+    if (contentRange) {
+      // content-range format: "bytes 0-0/12345" where 12345 is the total size
+      const match = contentRange.match(/\/\d+$/)
+      if (match) {
+        size = parseInt(match[0].substring(1), 10)
+      }
+    } else {
+      // Fallback to content-length for non-ranged requests
+      const sizeStr =
+        headObjectResponse.headers.get('content-length') ?? undefined
+      size = sizeStr ? parseInt(sizeStr, 10) : undefined
+    }
+
     return {
       mimeType: headObjectResponse.headers.get('content-type') ?? undefined,
       eTag: headObjectResponse.headers.get('etag') ?? undefined,
       lastModified: lastModifiedDate,
-      size: sizeStr ? parseInt(sizeStr, 10) : undefined,
+      size,
     }
   }
 
