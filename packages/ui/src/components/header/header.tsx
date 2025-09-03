@@ -3,7 +3,7 @@ import { Button, cn } from '@lombokapp/ui-toolkit'
 import { ArrowRight, FolderOpen } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import React from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router'
 
 import { useBreakPoints } from '../../utils/hooks'
 import { ModeToggle } from '../mode-toggle/mode-toggle'

@@ -8,9 +8,9 @@ import {
   SheetTrigger,
 } from '@lombokapp/ui-toolkit'
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server'
+import type { AppPathContribution } from '@/src/contexts/server'
 
 import { Menu } from './menu'
 
@@ -21,7 +21,7 @@ export function SheetMenu({
 }: {
   onSignout: () => Promise<void>
   viewer: NonNullable<IAuthContext['viewer']>
-  sidebarMenuContributions: AppRouteLinkContribution[]
+  sidebarMenuContributions: AppPathContribution[]
 }) {
   return (
     <Sheet>

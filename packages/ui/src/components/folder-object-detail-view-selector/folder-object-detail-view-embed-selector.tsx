@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from '@lombokapp/ui-toolkit'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server'
+import type { AppPathContribution } from '@/src/contexts/server'
 
 export function FolderObjectDetailViewEmbedSelector({
   options,
@@ -20,7 +20,7 @@ export function FolderObjectDetailViewEmbedSelector({
   onSelect,
   placeholder = 'Select a view...',
 }: {
-  options: AppRouteLinkContribution[]
+  options: AppPathContribution[]
   value?: string
   onSelect?: (value: string) => void
   placeholder?: string
@@ -62,13 +62,13 @@ export function FolderObjectDetailViewEmbedSelector({
         </SelectItem>
         {options.map((option) => (
           <SelectItem
-            key={option.routeIdentifier}
-            value={option.routeIdentifier}
+            key={`${option.appIdentifier}:${option.path}`}
+            value={option.appIdentifier}
           >
             <div className="flex items-center gap-2">
               {option.iconPath && (
                 <img
-                  src={`${window.location.protocol}//${option.uiIdentifier}-${option.appIdentifier}.apps.${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}${option.iconPath ?? ''}`}
+                  src={`${window.location.protocol}//${option.appIdentifier}.apps.${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}${option.iconPath ?? ''}`}
                   alt=""
                   className="size-4 object-contain"
                 />

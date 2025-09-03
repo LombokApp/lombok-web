@@ -1711,52 +1711,33 @@ export interface components {
                             environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
-                    ui?: {
-                        [key: string]: {
-                            description: string;
-                        };
-                    };
+                    /** @enum {boolean} */
+                    ui?: true;
                     contributions?: {
-                        routes: {
-                            [key: string]: {
-                                uiIdentifier: string;
-                                path: string;
-                            };
-                        };
                         sidebarMenuLinks: {
-                            routeIdentifier: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderActionMenuLinks: {
-                            routeIdentifier: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectActionMenuLinks: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                         folderSidebarViews: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                         objectSidebarViews: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                         objectDetailViews: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                     };
                 };
                 requiresStorage: boolean;
-                enabled?: boolean;
+                enabled: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1787,55 +1768,37 @@ export interface components {
                 };
                 ui: {
                     hash: string;
-                    description: string;
-                    files: {
+                    manifest: {
                         [key: string]: {
                             hash: string;
                             size: number;
                             mimeType: string;
                         };
                     };
-                    identifier: string;
-                }[];
+                } | null;
                 contributions: {
-                    routes: {
-                        [key: string]: {
-                            uiIdentifier: string;
-                            path: string;
-                        };
-                    };
                     sidebarMenuLinks: {
-                        routeIdentifier: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderActionMenuLinks: {
-                        routeIdentifier: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectActionMenuLinks: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     folderSidebarViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     objectSidebarViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                 };
-                metrics?: {
+                metrics: {
                     tasksExecutedLast24Hours: {
                         completed: number;
                         failed: number;
@@ -1848,7 +1811,7 @@ export interface components {
                         total: number;
                         last10Minutes: number;
                     };
-                };
+                } | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1882,52 +1845,33 @@ export interface components {
                             environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
-                    ui?: {
-                        [key: string]: {
-                            description: string;
-                        };
-                    };
+                    /** @enum {boolean} */
+                    ui?: true;
                     contributions?: {
-                        routes: {
-                            [key: string]: {
-                                uiIdentifier: string;
-                                path: string;
-                            };
-                        };
                         sidebarMenuLinks: {
-                            routeIdentifier: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderActionMenuLinks: {
-                            routeIdentifier: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectActionMenuLinks: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                         folderSidebarViews: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                         objectSidebarViews: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                         objectDetailViews: {
-                            routeIdentifier: string;
+                            path: string;
                             label: string;
                             iconPath?: string;
                         }[];
                     };
                 };
                 requiresStorage: boolean;
-                enabled?: boolean;
+                enabled: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1958,55 +1902,37 @@ export interface components {
                 };
                 ui: {
                     hash: string;
-                    description: string;
-                    files: {
+                    manifest: {
                         [key: string]: {
                             hash: string;
                             size: number;
                             mimeType: string;
                         };
                     };
-                    identifier: string;
-                }[];
+                } | null;
                 contributions: {
-                    routes: {
-                        [key: string]: {
-                            uiIdentifier: string;
-                            path: string;
-                        };
-                    };
                     sidebarMenuLinks: {
-                        routeIdentifier: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderActionMenuLinks: {
-                        routeIdentifier: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectActionMenuLinks: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     folderSidebarViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     objectSidebarViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                 };
-                metrics?: {
+                metrics: {
                     tasksExecutedLast24Hours: {
                         completed: number;
                         failed: number;
@@ -2019,7 +1945,7 @@ export interface components {
                         total: number;
                         last10Minutes: number;
                     };
-                };
+                } | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -2037,39 +1963,23 @@ export interface components {
                 appLabel: string;
                 appIdentifier: string;
                 contributions: {
-                    routes: {
-                        [key: string]: {
-                            uiIdentifier: string;
-                            path: string;
-                        };
-                    };
                     sidebarMenuLinks: {
-                        routeIdentifier: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderActionMenuLinks: {
-                        routeIdentifier: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectActionMenuLinks: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     folderSidebarViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     objectSidebarViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
-                        routeIdentifier: string;
+                        path: string;
                         label: string;
                         iconPath?: string;
                     }[];

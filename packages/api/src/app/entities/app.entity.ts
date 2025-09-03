@@ -1,7 +1,7 @@
 import type {
   AppConfig,
   AppManifest,
-  AppUIMap,
+  AppUi,
   AppWorkersMap,
 } from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
@@ -23,7 +23,7 @@ export const appsTable = pgTable('apps', {
   contentHash: text('contentHash').notNull(),
   config: jsonb('config').$type<AppConfig>().notNull(),
   workers: jsonb('workers').$type<AppWorkersMap>().notNull(),
-  ui: jsonb('ui').$type<AppUIMap>().notNull(),
+  ui: jsonb('ui').$type<AppUi>(),
   manifest: jsonb('manifest').$type<AppManifest>().notNull(),
   enabled: boolean('enabled').notNull().default(false),
   createdAt: timestamp('createdAt').notNull(),

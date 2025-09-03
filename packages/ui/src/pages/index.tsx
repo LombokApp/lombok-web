@@ -1,7 +1,7 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
 import { Button, ButtonVariant } from '@lombokapp/ui-toolkit'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 export const LandingPage = () => {
   const navigate = useNavigate()

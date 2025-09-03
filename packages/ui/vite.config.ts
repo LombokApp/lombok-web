@@ -47,23 +47,14 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
 
         // Extract combined subdomain and parse identifiers: <ui>-<app>.apps.<platform_host>
         const hostParts = host.split('.')
-        const combinedIdentifier = hostParts[0]
-        const hyphenIndex = combinedIdentifier?.lastIndexOf('-') ?? -1
-        const uiIdentifier =
-          hyphenIndex > -1
-            ? combinedIdentifier?.slice(0, hyphenIndex)
-            : undefined
-        const appIdentifier =
-          hyphenIndex > -1
-            ? combinedIdentifier?.slice(hyphenIndex + 1)
-            : undefined
+        const appIdentifier = hostParts[0]
 
-        if (!appIdentifier || !uiIdentifier) {
+        if (!appIdentifier) {
           next()
           return
         }
 
-        const appFrontendProxyHostConfigEnvKey = `LOMBOK_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}_${uiIdentifier.toUpperCase()}`
+        const appFrontendProxyHostConfigEnvKey = `LOMBOK_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}`
         const appProxyHostConfig = env[appFrontendProxyHostConfigEnvKey]
           ? new URL(env[appFrontendProxyHostConfigEnvKey])
           : undefined

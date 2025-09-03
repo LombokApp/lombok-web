@@ -1,6 +1,7 @@
 services:
   app:
     image: ghcr.io/lombokapp/lombok-standalone:latest
+    pull_policy: always
     container_name: lombok-standalone-demo-app
     environment:
       PLATFORM_HOST: lombokdemo.localhost

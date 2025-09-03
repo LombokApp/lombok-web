@@ -49,7 +49,6 @@ export interface PlatformServerMessageInterface {
   >
   getAppUIbundle: (
     appIdentifier: string,
-    uiIdentifier: string,
   ) => Promise<AppAPIResponse<{ manifest: AppManifest; bundleUrl: string }>>
   saveLogEntry: (entry: AppLogEntry) => Promise<AppAPIResponse<boolean>>
   attemptStartHandleTaskById: (
@@ -142,10 +141,9 @@ export const buildAppClient = (
         PlatformServerMessageInterface['getWorkerExecutionDetails']
       >
     },
-    getAppUIbundle(appIdentifier, uiIdentifier) {
+    getAppUIbundle(appIdentifier) {
       return emitWithAck('GET_APP_UI_BUNDLE', {
         appIdentifier,
-        uiIdentifier,
       }) as ReturnType<PlatformServerMessageInterface['getAppUIbundle']>
     },
     saveLogEntry(entry) {

@@ -9,9 +9,9 @@ import {
   TooltipTrigger,
 } from '@lombokapp/ui-toolkit'
 import { Ellipsis, LogOut } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server'
+import type { AppPathContribution } from '@/src/contexts/server'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
@@ -19,7 +19,7 @@ import { CollapseMenuButton } from './collapse-menu-button'
 interface MenuProps {
   isOpen: boolean | undefined
   viewer: NonNullable<IAuthContext['viewer']>
-  sidebarMenuLinkContributions: AppRouteLinkContribution[]
+  sidebarMenuLinkContributions: AppPathContribution[]
 }
 
 const protocol = window.location.protocol
@@ -106,7 +106,7 @@ export function Menu({
                                   <span className={cn('', !isOpen ? '' : '')}>
                                     {typeof Icon === 'string' ? (
                                       <img
-                                        src={`${protocol}//${context?.uiIdentifier}-${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
+                                        src={`${protocol}//${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
                                         alt={`${context?.appLabel || label} icon`}
                                         className="size-4"
                                       />

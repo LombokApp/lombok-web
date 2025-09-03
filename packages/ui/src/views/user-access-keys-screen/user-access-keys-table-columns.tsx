@@ -6,7 +6,7 @@ import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
 import { Button, DataTableColumnHeader, useToast } from '@lombokapp/ui-toolkit'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { AccessKeyModal } from '@/src/components/access-key-modal/access-key-modal'
 import { AccessKeyRotateModal } from '@/src/components/access-key-rotate-modal/access-key-rotate-modal'

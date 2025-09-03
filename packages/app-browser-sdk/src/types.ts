@@ -3,9 +3,10 @@ import type { LombokApiClient, LombokSdk } from '@lombokapp/sdk'
 
 import type { IframeCommunicator } from './iframe-communicator'
 
-export interface TokenData {
+export interface InitialData {
   accessToken: string
   refreshToken: string
+  pathAndQuery: string
 }
 
 export interface IframeMessage {
@@ -16,6 +17,7 @@ export interface IframeMessage {
 
 export interface AppBrowserSdkConfig {
   onInitialize?: () => void
+  onNavigateTo?: (to: { pathAndQuery: string }) => void
 }
 
 export interface AppBrowserSdkInstance {

@@ -5,7 +5,6 @@ import React from 'react'
 export function SdkDemo() {
   const { isInitialized, apiClient, authState, executeWorkerScriptUrl } =
     useAppBrowserSdk()
-
   // Create hooks-based client from the SDK's API client
   const [$api] = React.useState(() => createClient(apiClient))
 

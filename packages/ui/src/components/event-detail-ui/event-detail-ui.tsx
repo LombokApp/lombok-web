@@ -8,7 +8,7 @@ import {
   CardTitle,
   cn,
 } from '@lombokapp/ui-toolkit'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { DateDisplay } from '@/src/components/date-display'
 

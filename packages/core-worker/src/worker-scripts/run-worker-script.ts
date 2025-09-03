@@ -107,7 +107,7 @@ async function prepareWorkerBundle({
   // Fast-path if already prepared
   if (fs.existsSync(readyMarker)) {
     const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
-      path.join(cacheDir, workerIdentifier, 'index.js'),
+      path.join(cacheDir, 'index.js'),
     )
       ? 'index.js'
       : 'index.ts'
@@ -305,7 +305,7 @@ export const runWorkerScript = async ({
     resultFilepath: '/logs/result.json',
     outputLogFilepath: '/logs/output.log',
     errorLogFilepath: '/logs/error.json',
-    scriptPath: `/app/${workerIdentifier}/${entrypoint}`,
+    scriptPath: `/app/${entrypoint}`,
     workerToken: workerExecutionDetails.workerToken,
     executionId: workerExecutionId,
     executionType: isRequest ? 'request' : 'task',

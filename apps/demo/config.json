@@ -38,62 +38,33 @@
       }
     }
   },
-  "ui": {
-    "main": {
-      "description": "The main UI for the demo app"
-    }
-  },
+  "ui": true,
   "contributions": {
-    "routes": {
-      "base": {
-        "uiIdentifier": "main",
-        "path": "/"
-      },
-      "special": {
-        "uiIdentifier": "main",
-        "path": "/demo-page"
-      }
-
-    },
     "sidebarMenuLinks": [
       {
+        "path": "/",
         "label": "Landing Page",
-        "routeIdentifier": "base",
-        "iconPath": "/assets/logo.png"
-      }
-    ],
-    "folderActionMenuLinks": [
-      {
-        "label": "Do Folder Thing",
-        "routeIdentifier": "base",
-        "iconPath": "/assets/logo.png"
-      }
-    ],
-    "objectActionMenuLinks": [
-      {
-        "label": "Do Object Thing",
-        "routeIdentifier": "base",
         "iconPath": "/assets/logo.png"
       }
     ],
     "folderSidebarViews": [
       {
-        "label": "Demo Folder Sidebar Embed",
-        "routeIdentifier": "special",
+        "path": "/folders/folder-sidebar",
+        "label": "Demo Folder Sidebar View",
         "iconPath": "/assets/logo.png"
       }
     ],
     "objectSidebarViews": [
       {
-        "label": "Demo Object Sidebar Embed",
-        "routeIdentifier": "base",
+        "path": "/folders/object-sidebar",
+        "label": "Demo Object Sidebar View",
         "iconPath": "/assets/logo.png"
       }
     ],
     "objectDetailViews": [
       {
-        "label": "Demo Object View Embed",
-        "routeIdentifier": "special",
+        "path": "/folders/object-detail",
+        "label": "Demo Object View",
         "iconPath": "/assets/logo.png"
       }
     ]

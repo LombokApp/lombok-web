@@ -2,7 +2,7 @@ import type { ServerEventsListRequest } from '@lombokapp/types'
 import { cn, DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'

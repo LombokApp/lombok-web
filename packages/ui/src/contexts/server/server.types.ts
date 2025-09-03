@@ -20,49 +20,35 @@ export interface Notification {
   id?: string
 }
 
-export interface AppRoute {
-  uiIdentifier: string
-  path: string
-}
-
-export type AppRouteLinkContribution = {
+export type AppPathContribution = {
   href: string
-  routeIdentifier: string
+  path: string
   appIdentifier: string
   appLabel: string
-  uiIdentifier: string
 } & AppUILink
 
 export interface IServerContext {
   refreshApps: () => Promise<QueryObserverResult<AppContributionsResponse>>
+  appsLoaded: boolean
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
   appContributions: {
-    routes: Record<string, Record<string, AppRoute>>
     sidebarMenuContributions: {
-      all: AppRouteLinkContribution[]
-      byApp: Record<string, AppRouteLinkContribution[]>
-    }
-    folderActionMenuContributions: {
-      all: AppRouteLinkContribution[]
-      byApp: Record<string, AppRouteLinkContribution[]>
+      all: AppPathContribution[]
+      byApp: Record<string, AppPathContribution[]>
     }
     objectDetailViewContributions: {
-      all: AppRouteLinkContribution[]
-      byApp: Record<string, AppRouteLinkContribution[]>
-    }
-    objectActionMenuContributions: {
-      all: AppRouteLinkContribution[]
-      byApp: Record<string, AppRouteLinkContribution[]>
+      all: AppPathContribution[]
+      byApp: Record<string, AppPathContribution[]>
     }
     folderSidebarViewContributions: {
-      all: AppRouteLinkContribution[]
-      byApp: Record<string, AppRouteLinkContribution[]>
+      all: AppPathContribution[]
+      byApp: Record<string, AppPathContribution[]>
     }
     objectSidebarViewContributions: {
-      all: AppRouteLinkContribution[]
-      byApp: Record<string, AppRouteLinkContribution[]>
+      all: AppPathContribution[]
+      byApp: Record<string, AppPathContribution[]>
     }
   }
   settings?: ServerSettingsListResponse['settings']

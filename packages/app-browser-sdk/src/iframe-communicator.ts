@@ -50,7 +50,9 @@ export class IframeCommunicator {
   }
 
   public notifyReady(): void {
-    this.sendMessage({ type: 'APP_READY' })
+    this.sendMessage({
+      type: 'APP_READY',
+    })
   }
 
   public notifyError(error: Error): void {

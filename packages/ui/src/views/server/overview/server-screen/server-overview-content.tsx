@@ -17,7 +17,7 @@ import {
   OctagonAlert,
   Users,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api } from '@/src/services/api'

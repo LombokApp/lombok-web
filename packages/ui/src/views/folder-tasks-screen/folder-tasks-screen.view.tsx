@@ -3,7 +3,7 @@ import { DataTable } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 
 import { useFolderContext } from '@/src/contexts/folder'
 import { $api } from '@/src/services/api'

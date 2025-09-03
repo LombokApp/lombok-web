@@ -3,7 +3,7 @@ import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
 import { Button, DataTableColumnHeader } from '@lombokapp/ui-toolkit'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { AccessKeyModal } from '@/src/components/access-key-modal/access-key-modal'
 import { $api } from '@/src/services/api'

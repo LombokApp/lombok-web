@@ -17,18 +17,13 @@ export function transformAppToDTO(
     enabled: app.enabled,
     workers: app.workers,
     contributions: app.config.contributions ?? {
-      routes: {},
       sidebarMenuLinks: [],
-      folderActionMenuLinks: [],
-      objectActionMenuLinks: [],
       folderSidebarViews: [],
       objectSidebarViews: [],
       objectDetailViews: [],
     },
-    ui: Object.keys(app.ui).map((uiIdentifier) => ({
-      identifier: uiIdentifier,
-      ...app.ui[uiIdentifier],
-    })),
+    ui: app.ui,
+    metrics: null,
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
   }

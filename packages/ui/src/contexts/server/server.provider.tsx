@@ -7,29 +7,7 @@ import { $api } from '@/src/services/api'
 
 import { useWebsocket } from '../../hooks/use-websocket'
 import { ServerContext } from './server.context'
-import type {
-  AppRoute,
-  AppRouteLinkContribution,
-  IServerContext,
-} from './server.types'
-
-function formatContributedRoutes(
-  contributions: AppContributionsResponse,
-): Record<string, Record<string, AppRoute>> {
-  return Object.keys(contributions).reduce<
-    Record<string, Record<string, AppRoute>>
-  >((acc, appIdentifier) => {
-    return {
-      ...acc,
-      ...(contributions[appIdentifier]
-        ? {
-            [appIdentifier]: contributions[appIdentifier].contributions
-              .routes as Record<string, AppRoute>,
-          }
-        : {}),
-    }
-  }, {})
-}
+import type { AppPathContribution, IServerContext } from './server.types'
 
 function formatContributionLinks(
   allContributions: AppContributionsResponse,
@@ -39,8 +17,8 @@ function formatContributionLinks(
   >,
 ) {
   return Object.keys(allContributions).reduce<{
-    all: AppRouteLinkContribution[]
-    byApp: Record<string, AppRouteLinkContribution[]>
+    all: AppPathContribution[]
+    byApp: Record<string, AppPathContribution[]>
   }>(
     (acc, nextAppIdentifier) => {
       const appLabel = allContributions[nextAppIdentifier]?.appLabel ?? ''
@@ -50,13 +28,8 @@ function formatContributionLinks(
         all: acc.all.concat(
           appContributions?.[key].map((nextEmbedLink) => ({
             ...nextEmbedLink,
-            href: `/apps/${nextAppIdentifier}/${nextEmbedLink.routeIdentifier}`,
-            uiIdentifier:
-              appContributions.routes[nextEmbedLink.routeIdentifier]
-                ?.uiIdentifier ?? '',
-            path:
-              appContributions.routes[nextEmbedLink.routeIdentifier]?.path ??
-              '',
+            href: `/apps/${nextAppIdentifier}${nextEmbedLink.path === '/' ? '' : nextEmbedLink.path}`,
+            path: nextEmbedLink.path,
             appIdentifier: nextAppIdentifier,
             appLabel,
           })) ?? [],
@@ -70,18 +43,9 @@ function formatContributionLinks(
 
 function formatContributions(allContributions: AppContributionsResponse) {
   return {
-    routes: formatContributedRoutes(allContributions),
     sidebarMenuContributions: formatContributionLinks(
       allContributions,
       'sidebarMenuLinks',
-    ),
-    folderActionMenuContributions: formatContributionLinks(
-      allContributions,
-      'folderActionMenuLinks',
-    ),
-    objectActionMenuContributions: formatContributionLinks(
-      allContributions,
-      'objectActionMenuLinks',
     ),
     folderSidebarViewContributions: formatContributionLinks(
       allContributions,
@@ -104,10 +68,19 @@ export const ServerContextProvider = ({
   children: React.ReactNode
 }) => {
   const authContext = useAuthContext()
+  const [appsLoaded, setAppsLoaded] = React.useState(false)
   const appsContributionsQuery = $api.useQuery(
     'get',
     '/api/v1/server/app-contributions',
   )
+
+  // Set appsLoaded when data is successfully retrieved
+  React.useEffect(() => {
+    if (appsContributionsQuery.data && !appsLoaded) {
+      setAppsLoaded(true)
+    }
+  }, [appsContributionsQuery.data, appsLoaded])
+
   const settingsQuery = $api.useQuery(
     'get',
     '/api/v1/server/settings',
@@ -160,6 +133,7 @@ export const ServerContextProvider = ({
 
   const contextValue: IServerContext = {
     refreshApps: appsContributionsQuery.refetch,
+    appsLoaded,
     refreshSettings: refetchSettings,
     socketConnected: socket?.connected ?? false,
     appContributions: formattedContributions,

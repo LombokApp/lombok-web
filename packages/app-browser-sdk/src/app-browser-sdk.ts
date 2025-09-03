@@ -4,7 +4,7 @@ import { IframeCommunicator } from './iframe-communicator'
 import type {
   AppBrowserSdkConfig,
   AppBrowserSdkInstance,
-  TokenData,
+  InitialData,
 } from './types'
 import { waitForTrue } from './util/wait-for-true'
 
@@ -12,14 +12,18 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   private static _communicator: IframeCommunicator | undefined = undefined
   private static isInitialized = false
   private static initRequested = false
-  private static tokens?: TokenData
+  private static initialData?: InitialData
   private static sdk: LombokSdk | undefined = undefined
+  private readonly config: AppBrowserSdkConfig
 
   public get communicator(): Promise<IframeCommunicator> {
     if (!AppBrowserSdk._communicator && !AppBrowserSdk.initRequested) {
       AppBrowserSdk.initRequested = true
       AppBrowserSdk._communicator = new IframeCommunicator()
-      AppBrowserSdk.setupMessageHandlers(AppBrowserSdk._communicator)
+      AppBrowserSdk.setupMessageHandlers(
+        AppBrowserSdk._communicator,
+        this.config.onNavigateTo,
+      )
       AppBrowserSdk._communicator.notifyReady()
     }
 
@@ -45,34 +49,43 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   }
 
   private readonly basePath: string = (() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const basePathParam = urlParams.get('basePath')
-    return basePathParam || 'http://localhost:3000'
+    const potocol = window.location.protocol
+    const port = window.location.port
+    const hostname = window.location.hostname.split('.').slice(2).join('.')
+    return `${potocol}//${hostname}${port ? `:${port}` : ''}`
   })()
 
   public get sdk(): LombokSdk {
     if (!AppBrowserSdk.sdk) {
       AppBrowserSdk.sdk = new LombokSdk({
         basePath: this.basePath,
-        accessToken: () => AppBrowserSdk.tokens?.accessToken,
-        refreshToken: () => AppBrowserSdk.tokens?.refreshToken,
+        accessToken: () => AppBrowserSdk.initialData?.accessToken,
+        refreshToken: () => AppBrowserSdk.initialData?.refreshToken,
       })
     }
     return AppBrowserSdk.sdk
   }
 
-  private static setTokens(tokens: TokenData): void {
-    AppBrowserSdk.tokens = {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+  private static setInitialData(initialData: InitialData): void {
+    AppBrowserSdk.initialData = {
+      accessToken: initialData.accessToken,
+      refreshToken: initialData.refreshToken,
+      pathAndQuery: initialData.pathAndQuery,
     }
   }
 
-  private static setupMessageHandlers(_communicator: IframeCommunicator) {
+  private static setupMessageHandlers(
+    _communicator: IframeCommunicator,
+    onNavigateTo: AppBrowserSdkConfig['onNavigateTo'],
+  ) {
     _communicator.onMessage('AUTHENTICATION', (message) => {
-      const tokenData = message.payload as TokenData
-      this.setTokens(tokenData)
+      const initialData = message.payload as InitialData
+      this.setInitialData(initialData)
       AppBrowserSdk.isInitialized = true
+    })
+
+    _communicator.onMessage('PARENT_NAVIGATE_TO', (message) => {
+      onNavigateTo?.(message.payload as { pathAndQuery: string })
     })
 
     _communicator.onMessage('LOGOUT', () => {
@@ -80,22 +93,19 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     })
 
     _communicator.onMessage('ERROR', (message) => {
-      const _error = new Error(
+      throw new Error(
         (message.payload as { message: string }).message || 'Unknown error',
       )
-      console.error('Lombok ifrrame communication error:', _error)
     })
   }
-
-  private readonly config: AppBrowserSdkConfig
 
   constructor(config?: AppBrowserSdkConfig) {
     this.config = config ?? {}
     void this.communicator.then(() => {
       this.config.onInitialize?.()
       void this.sdk.authenticator.setTokens({
-        accessToken: AppBrowserSdk.tokens?.accessToken || '',
-        refreshToken: AppBrowserSdk.tokens?.refreshToken || '',
+        accessToken: AppBrowserSdk.initialData?.accessToken || '',
+        refreshToken: AppBrowserSdk.initialData?.refreshToken || '',
       })
     })
   }
@@ -106,6 +116,20 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
 
   get authenticator() {
     return this.sdk.authenticator
+  }
+
+  get initialData() {
+    return AppBrowserSdk.initialData
+  }
+
+  handleNavigateTo = async (to: { pathAndQuery: string }) => {
+    await this.communicator.then((communicator) => {
+      this.config.onNavigateTo?.(to)
+      communicator.sendMessage({
+        type: 'NAVIGATE_TO',
+        payload: to,
+      })
+    })
   }
 
   executeWorkerScriptUrl = async (
@@ -159,7 +183,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   }
 
   public destroy(): void {
-    AppBrowserSdk.tokens = undefined
+    AppBrowserSdk.initialData = undefined
     AppBrowserSdk.isInitialized = false
     AppBrowserSdk.initRequested = false
   }

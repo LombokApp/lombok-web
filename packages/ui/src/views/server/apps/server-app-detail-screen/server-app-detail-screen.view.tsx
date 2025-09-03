@@ -29,8 +29,6 @@ import { useServerContext } from '@/src/contexts/server'
 import { $api } from '@/src/services/api'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
-import { appContributedRoutesTableColumns } from './app-contributed-routes-table-columns'
-import { appContributorUiTableColumns } from './app-contributor-ui-table-columns'
 import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
@@ -40,31 +38,23 @@ export function ServerAppDetailScreen({
 }: {
   appIdentifier: string
 }) {
-  const appRouteLinkContributionTypes = [
+  const appPathContributionTypes = [
     'sidebarMenuLinks',
     'folderSidebarViews',
     'objectSidebarViews',
-    'folderActionMenuLinks',
-    'objectActionMenuLinks',
     'objectDetailViews',
   ] as const
-  const appRouteLinkContributionTypeLabels = {
+  const appPathContributionTypeLabels = {
     sidebarMenuLinks: 'Sidebar menu links',
     folderSidebarViews: 'Folder sidebar views',
     objectSidebarViews: 'Object sidebar views',
-    folderActionMenuLinks: 'Folder action menu links',
-    objectActionMenuLinks: 'Object action menu links',
     objectDetailViews: 'Object detail views',
   } as const
 
-  const appRouteLinkContributionTypeDescriptions = {
+  const appPathContributionTypeDescriptions = {
     sidebarMenuLinks: 'App views that can replace the main content object view',
     folderSidebarViews: 'App views that can are rendered in the folder sidebar',
     objectSidebarViews: 'App views that can are rendered in the object sidebar',
-    folderActionMenuLinks:
-      'App views that can replace the main content object view',
-    objectActionMenuLinks:
-      'App views that can replace the main content object view',
     objectDetailViews:
       'App views that can replace the main content object view',
   } as const
@@ -74,8 +64,6 @@ export function ServerAppDetailScreen({
     folderSidebarViews: 'No folder sidebar views available',
     objectSidebarViews: 'No object sidebar views available',
     objectDetailViews: 'No object detail views configured',
-    folderActionMenuLinks: 'No folder action menu links configured',
-    objectActionMenuLinks: 'No object action menu links configured',
   } as const
 
   const serverContext = useServerContext()
@@ -123,7 +111,7 @@ export function ServerAppDetailScreen({
 
   return (
     <div className={'flex size-full flex-col gap-8'}>
-      {!!app && app.enabled === false && (
+      {!!app && !app.enabled && (
         <Alert variant="destructive" className="mb-6 border-foreground/20">
           <OctagonX className="size-4" />
           <AlertTitle>App is disabled</AlertTitle>
@@ -362,86 +350,54 @@ export function ServerAppDetailScreen({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>UI</CardTitle>
+          <CardTitle>User Interface</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-8">
             <Card className="flex-1 border-0 bg-transparent shadow-none">
               <CardHeader className="p-0 pb-4">
-                <CardTitle className="py-0 text-base">
+                <CardTitle>
                   <div className="flex flex-col">
-                    <span className="pr-2">UI bundles</span>
+                    <span>Manifest</span>
                     <span
                       id="folder-object-view-contribution-description"
                       className="text-sm font-normal text-muted-foreground/70"
                     >
-                      Individual UI bundles compiled in the app
+                      All UI files
                     </span>
                   </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                {Object.keys(app?.contributions.routes ?? {}).length > 0 ? (
-                  <DataTable
-                    headerCellClassName="bg-foreground/[0.02] text-foreground/50"
-                    data={app?.ui ?? []}
-                    columns={appContributorUiTableColumns}
-                  />
-                ) : (
-                  <EmptyState
-                    variant="row-sm"
-                    icon={Menu}
-                    text={'No UI bundles included'}
-                  />
-                )}
+                <div className="flex flex-col gap-8">
+                  {Object.keys(app?.ui?.manifest ?? {}).length === 0 ? (
+                    <EmptyState
+                      variant="row-sm"
+                      icon={Menu}
+                      text={'No files included'}
+                    />
+                  ) : (
+                    <DataTable
+                      fixedLayout
+                      className="bg-background/50"
+                      bodyCellClassName="w-1/3"
+                      headerCellClassName={cn(
+                        'w-1/3',
+                        'bg-foreground/[0.02] text-foreground/50',
+                      )}
+                      data={Object.entries(app?.ui?.manifest ?? {}).map(
+                        ([path, file]) => ({
+                          path,
+                          ...file,
+                        }),
+                      )}
+                      columns={serverAppManifestTableColumns}
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
-            <Card className="flex-1 border-0 bg-transparent shadow-none">
-              <CardHeader className="p-0 pb-4">
-                <CardTitle className="py-0 text-base">
-                  <div className="flex flex-col">
-                    <span className="pr-2">Available routes</span>
-                    <span
-                      id="folder-object-view-contribution-description"
-                      className="text-sm font-normal text-muted-foreground/70"
-                    >
-                      Routes declared by your app that are available to be
-                      embedded in Lombok
-                    </span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {Object.keys(app?.contributions.routes ?? {}).length > 0 ? (
-                  <DataTable
-                    fixedLayout
-                    className="bg-background/50"
-                    bodyCellClassName="w-1/3"
-                    headerCellClassName={cn(
-                      'w-1/3',
-                      'bg-foreground/[0.02] text-foreground/50',
-                    )}
-                    data={Object.keys(app?.contributions.routes ?? {}).map(
-                      (identifier) => ({
-                        identifier,
-                        path: app?.contributions.routes[identifier]?.path ?? '',
-                        uiIdentifier:
-                          app?.contributions.routes[identifier]?.uiIdentifier ??
-                          '',
-                      }),
-                    )}
-                    columns={appContributedRoutesTableColumns}
-                  />
-                ) : (
-                  <EmptyState
-                    variant="row-sm"
-                    icon={Menu}
-                    text={'No routes configured'}
-                  />
-                )}
-              </CardContent>
-            </Card>
-            {appRouteLinkContributionTypes.map((linkContributionType) => {
+            {appPathContributionTypes.map((linkContributionType) => {
               const data = app?.contributions[linkContributionType] ?? []
 
               return (
@@ -454,18 +410,14 @@ export function ServerAppDetailScreen({
                     <CardTitle className="py-0 text-base">
                       <div className="flex flex-col">
                         <span>
-                          {
-                            appRouteLinkContributionTypeLabels[
-                              linkContributionType
-                            ]
-                          }
+                          {appPathContributionTypeLabels[linkContributionType]}
                         </span>
                         <span
                           id="folder-object-view-contribution-description"
                           className="text-sm font-normal text-muted-foreground/70"
                         >
                           {
-                            appRouteLinkContributionTypeDescriptions[
+                            appPathContributionTypeDescriptions[
                               linkContributionType
                             ]
                           }

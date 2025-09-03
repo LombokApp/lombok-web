@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from '@lombokapp/ui-toolkit'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import type { SignupFormValues } from './signup-form.component'
 import { SignupForm } from './signup-form.component'

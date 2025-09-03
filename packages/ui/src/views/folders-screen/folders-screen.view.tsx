@@ -3,7 +3,7 @@ import { Button, DataTable, useToast } from '@lombokapp/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'

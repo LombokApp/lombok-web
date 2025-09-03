@@ -185,9 +185,6 @@ export const FolderObjectSidebar = ({
                 </Card>
                 {serverContext.appContributions.objectSidebarViewContributions.all.map(
                   (embed) => {
-                    const url = embed.path
-                      .replace('{folderId}', folderId)
-                      .replace('{objectKey}', objectKey)
                     const getAccessTokens = () =>
                       $apiClient
                         .POST(
@@ -209,13 +206,13 @@ export const FolderObjectSidebar = ({
                     return (
                       <Card
                         className="shrink-0"
-                        key={`${embed.appIdentifier}:${embed.uiIdentifier}:${embed.path}`}
+                        key={`${embed.appIdentifier}:${embed.path}`}
                       >
                         <CardHeader className="p-4 pt-3">
                           <TypographyH3>
                             <div className="flex items-center gap-2">
                               <img
-                                src={`${protocol}//${embed.uiIdentifier}-${embed.appIdentifier}.apps.${API_HOST}${embed.iconPath ?? ''}`}
+                                src={`${protocol}//${embed.appIdentifier}.apps.${API_HOST}${embed.iconPath ?? ''}`}
                                 alt={`${embed.appLabel} icon`}
                                 className="size-6"
                               />
@@ -228,15 +225,9 @@ export const FolderObjectSidebar = ({
                             <AppUI
                               getAccessTokens={getAccessTokens}
                               appIdentifier={embed.appIdentifier}
-                              uiIdentifier={embed.uiIdentifier}
-                              url={url}
+                              pathAndQuery={`${embed.path}?folderId=${folderId}&objectKey=${objectKey}`}
                               host={API_HOST}
                               scheme={protocol}
-                              queryParams={{
-                                basePath: `${protocol}//${API_HOST}`,
-                                folderId,
-                                objectKey,
-                              }}
                             />
                           </div>
                         </CardContent>

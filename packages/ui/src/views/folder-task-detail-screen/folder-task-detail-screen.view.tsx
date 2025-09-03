@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { TaskDetailUI } from '@/src/components/task-detail-ui/task-detail-ui'
 import { useFolderContext } from '@/src/contexts/folder'
