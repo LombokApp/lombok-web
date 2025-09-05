@@ -155,11 +155,6 @@ describe('apps.types', () => {
             environmentVariables: { VAR1: 'value1' },
           },
         },
-        ui: {
-          main: {
-            description: 'Main UI',
-          },
-        },
       }
       const result = appConfigSchema.safeParse(validApp)
       expectZodSuccess(result)
@@ -288,78 +283,6 @@ describe('apps.types', () => {
       const result = appConfigSchema.safeParse(invalidApp)
       expectZodFailure(result)
     })
-
-    it('should validate when route uiIdentifier exists as a key in ui', () => {
-      const validApp = {
-        identifier: 'testapp',
-        label: 'Test App',
-        description: 'A test application',
-        emittableEvents: ['event1'],
-        tasks: [
-          {
-            identifier: 'task',
-            label: 'Task 1',
-            description: 'First task',
-            triggers: ['test.event'],
-          },
-        ],
-        ui: {
-          main_ui: { description: 'Main UI' },
-        },
-        contributions: {
-          routes: {
-            home: {
-              uiIdentifier: 'main_ui',
-              path: '/home',
-            },
-          },
-          sidebarMenuLinks: [],
-          folderActionMenuLinks: [],
-          objectActionMenuLinks: [],
-          folderSidebarViews: [],
-          objectSidebarViews: [],
-          objectDetailViews: [],
-        },
-      }
-      const result = appConfigSchema.safeParse(validApp)
-      expectZodSuccess(result)
-    })
-
-    it('should reject when route uiIdentifier does not exist in ui', () => {
-      const invalidApp = {
-        identifier: 'testapp',
-        label: 'Test App',
-        description: 'A test application',
-        emittableEvents: ['event1'],
-        tasks: [
-          {
-            identifier: 'task',
-            label: 'Task 1',
-            description: 'First task',
-            triggers: ['test.event'],
-          },
-        ],
-        ui: {
-          main_ui: { description: 'Main UI' },
-        },
-        contributions: {
-          routes: {
-            home: {
-              uiIdentifier: 'does_not_exist',
-              path: '/home',
-            },
-          },
-          sidebarMenuLinks: [],
-          folderActionMenuLinks: [],
-          objectActionMenuLinks: [],
-          folderSidebarViews: [],
-          objectSidebarViews: [],
-          objectDetailViews: [],
-        },
-      }
-      const result = appConfigSchema.safeParse(invalidApp)
-      expectZodFailure(result)
-    })
   })
 
   describe('appManifestSchema', () => {
@@ -416,7 +339,7 @@ describe('apps.types', () => {
   })
 
   describe('appMenuItemSchema', () => {
-    it('should validate menu item config (with uiIdentifier)', () => {
+    it('should validate menu item config', () => {
       const validMenuItem = {
         label: 'Test Menu',
         iconPath: '/icons/test.svg',
@@ -471,67 +394,28 @@ describe('apps.types', () => {
   describe('appContributionsSchema', () => {
     it('should validate complete contributions object', () => {
       const validContributions = {
-        routes: {
-          home: {
-            uiIdentifier: 'main_ui',
-            path: '/home',
-          },
-          dashboard: {
-            uiIdentifier: 'main_ui',
-            path: '/dashboard',
-          },
-          folder_analyze: {
-            uiIdentifier: 'tools_ui',
-            path: '/folders/:id/analyze',
-          },
-          object_process: {
-            uiIdentifier: 'tools_ui',
-            path: '/objects/:id/process',
-          },
-          folder_stats: {
-            uiIdentifier: 'analytics_ui',
-            path: '/folders/:id/stats',
-          },
-          object_preview: {
-            uiIdentifier: 'viewer_ui',
-            path: '/objects/:id/preview',
-          },
-        },
         sidebarMenuLinks: [
           {
             label: 'Dashboard',
-            routeIdentifier: 'dashboard',
-          },
-        ],
-        folderActionMenuLinks: [
-          {
-            label: 'Analyze Folder',
-            iconPath: '/icons/analyze.svg',
-            routeIdentifier: 'folder_analyze',
-          },
-        ],
-        objectActionMenuLinks: [
-          {
-            label: 'Process Object',
-            routeIdentifier: 'object_process',
+            path: '/dashboard',
           },
         ],
         folderSidebarViews: [
           {
             label: 'Folder Stats',
-            routeIdentifier: 'folder_stats',
+            path: '/folder-stats',
           },
         ],
         objectSidebarViews: [
           {
             label: 'Object Preview',
-            routeIdentifier: 'object_preview',
+            path: '/object-sidebar',
           },
         ],
         objectDetailViews: [
           {
-            label: 'Object Preview Inline',
-            routeIdentifier: 'object_preview',
+            label: 'Object Detail',
+            path: '/object-detail',
           },
         ],
       }
@@ -541,10 +425,7 @@ describe('apps.types', () => {
 
     it('should allow empty arrays for all contribution sections', () => {
       const validContributions = {
-        routes: {},
         sidebarMenuLinks: [],
-        folderActionMenuLinks: [],
-        objectActionMenuLinks: [],
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -555,10 +436,7 @@ describe('apps.types', () => {
 
     it('should reject contributions missing a required section', () => {
       const invalidContributions = {
-        // routes missing
-        sidebarMenuLinks: [],
-        folderActionMenuLinks: [],
-        objectActionMenuLinks: [],
+        // sidebarMenuLinks missing
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -566,34 +444,12 @@ describe('apps.types', () => {
       const result = appContributionsSchema.safeParse(
         invalidContributions as unknown,
       )
-      expectZodFailure(result)
-    })
-
-    it('should reject a route entry with empty required fields', () => {
-      const invalidContributions = {
-        routes: {
-          home: {
-            uiIdentifier: '',
-            path: '',
-          },
-        },
-        sidebarMenuLinks: [],
-        folderActionMenuLinks: [],
-        objectActionMenuLinks: [],
-        folderSidebarViews: [],
-        objectSidebarViews: [],
-        objectDetailViews: [],
-      }
-      const result = appContributionsSchema.safeParse(invalidContributions)
       expectZodFailure(result)
     })
 
     it('should reject when a section has the wrong type', () => {
       const invalidContributions = {
-        routes: [],
-        sidebarMenuLinks: [],
-        folderActionMenuLinks: [],
-        objectActionMenuLinks: [],
+        sidebarMenuLinks: {},
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -601,54 +457,6 @@ describe('apps.types', () => {
       const result = appContributionsSchema.safeParse(
         invalidContributions as unknown,
       )
-      expectZodFailure(result)
-    })
-
-    it('should validate when all routeIdentifiers exist in routes', () => {
-      const validContributions = {
-        routes: {
-          home: {
-            uiIdentifier: 'main_ui',
-            path: '/home',
-          },
-        },
-        sidebarMenuLinks: [
-          {
-            label: 'Home',
-            routeIdentifier: 'home',
-          },
-        ],
-        folderActionMenuLinks: [],
-        objectActionMenuLinks: [],
-        folderSidebarViews: [],
-        objectSidebarViews: [],
-        objectDetailViews: [],
-      }
-      const result = appContributionsSchema.safeParse(validContributions)
-      expectZodSuccess(result)
-    })
-
-    it('should reject when a link references a non-existent routeIdentifier', () => {
-      const invalidContributions = {
-        routes: {
-          home: {
-            uiIdentifier: 'main_ui',
-            path: '/home',
-          },
-        },
-        sidebarMenuLinks: [
-          {
-            label: 'Dashboard',
-            routeIdentifier: 'dashboard', // not present in routes
-          },
-        ],
-        folderActionMenuLinks: [],
-        objectActionMenuLinks: [],
-        folderSidebarViews: [],
-        objectSidebarViews: [],
-        objectDetailViews: [],
-      }
-      const result = appContributionsSchema.safeParse(invalidContributions)
       expectZodFailure(result)
     })
   })

@@ -6473,50 +6473,20 @@
                       }
                     },
                     "ui": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "description": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "description"
-                        ],
-                        "additionalProperties": false
-                      }
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
                     "contributions": {
                       "type": "object",
                       "properties": {
-                        "routes": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                              "uiIdentifier": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "path": {
-                                "type": "string",
-                                "minLength": 1
-                              }
-                            },
-                            "required": [
-                              "uiIdentifier",
-                              "path"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
                         "sidebarMenuLinks": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "routeIdentifier": {
+                              "path": {
                                 "type": "string",
                                 "minLength": 1
                               },
@@ -6529,55 +6499,7 @@
                               }
                             },
                             "required": [
-                              "routeIdentifier",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "folderActionMenuLinks": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "routeIdentifier": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "routeIdentifier",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "objectActionMenuLinks": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "routeIdentifier": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "routeIdentifier",
+                              "path",
                               "label"
                             ],
                             "additionalProperties": false
@@ -6588,7 +6510,7 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "routeIdentifier": {
+                              "path": {
                                 "type": "string",
                                 "minLength": 1
                               },
@@ -6601,7 +6523,7 @@
                               }
                             },
                             "required": [
-                              "routeIdentifier",
+                              "path",
                               "label"
                             ],
                             "additionalProperties": false
@@ -6612,7 +6534,7 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "routeIdentifier": {
+                              "path": {
                                 "type": "string",
                                 "minLength": 1
                               },
@@ -6625,7 +6547,7 @@
                               }
                             },
                             "required": [
-                              "routeIdentifier",
+                              "path",
                               "label"
                             ],
                             "additionalProperties": false
@@ -6636,7 +6558,7 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "routeIdentifier": {
+                              "path": {
                                 "type": "string",
                                 "minLength": 1
                               },
@@ -6649,7 +6571,7 @@
                               }
                             },
                             "required": [
-                              "routeIdentifier",
+                              "path",
                               "label"
                             ],
                             "additionalProperties": false
@@ -6657,10 +6579,7 @@
                         }
                       },
                       "required": [
-                        "routes",
                         "sidebarMenuLinks",
-                        "folderActionMenuLinks",
-                        "objectActionMenuLinks",
                         "folderSidebarViews",
                         "objectSidebarViews",
                         "objectDetailViews"
@@ -6788,82 +6707,49 @@
                   }
                 },
                 "ui": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "hash": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "files": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "hash": {
-                              "type": "string"
-                            },
-                            "size": {
-                              "type": "number"
-                            },
-                            "mimeType": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "hash",
-                            "size",
-                            "mimeType"
-                          ]
-                        }
-                      },
-                      "identifier": {
-                        "type": "string",
-                        "minLength": 1,
-                        "pattern": "^[a-z0-9_]+$"
-                      }
-                    },
-                    "required": [
-                      "hash",
-                      "description",
-                      "files",
-                      "identifier"
-                    ]
-                  }
-                },
-                "contributions": {
                   "type": "object",
                   "properties": {
-                    "routes": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "manifest": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "uiIdentifier": {
-                            "type": "string",
-                            "minLength": 1
+                          "hash": {
+                            "type": "string"
                           },
-                          "path": {
-                            "type": "string",
-                            "minLength": 1
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
                           }
                         },
                         "required": [
-                          "uiIdentifier",
-                          "path"
-                        ],
-                        "additionalProperties": false
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
                       }
-                    },
+                    }
+                  },
+                  "required": [
+                    "hash",
+                    "manifest"
+                  ],
+                  "nullable": true
+                },
+                "contributions": {
+                  "type": "object",
+                  "properties": {
                     "sidebarMenuLinks": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "routeIdentifier": {
+                          "path": {
                             "type": "string",
                             "minLength": 1
                           },
@@ -6876,55 +6762,7 @@
                           }
                         },
                         "required": [
-                          "routeIdentifier",
-                          "label"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "folderActionMenuLinks": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "routeIdentifier": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "routeIdentifier",
-                          "label"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "objectActionMenuLinks": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "routeIdentifier": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "routeIdentifier",
+                          "path",
                           "label"
                         ],
                         "additionalProperties": false
@@ -6935,7 +6773,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "routeIdentifier": {
+                          "path": {
                             "type": "string",
                             "minLength": 1
                           },
@@ -6948,7 +6786,7 @@
                           }
                         },
                         "required": [
-                          "routeIdentifier",
+                          "path",
                           "label"
                         ],
                         "additionalProperties": false
@@ -6959,7 +6797,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "routeIdentifier": {
+                          "path": {
                             "type": "string",
                             "minLength": 1
                           },
@@ -6972,7 +6810,7 @@
                           }
                         },
                         "required": [
-                          "routeIdentifier",
+                          "path",
                           "label"
                         ],
                         "additionalProperties": false
@@ -6983,7 +6821,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "routeIdentifier": {
+                          "path": {
                             "type": "string",
                             "minLength": 1
                           },
@@ -6996,7 +6834,7 @@
                           }
                         },
                         "required": [
-                          "routeIdentifier",
+                          "path",
                           "label"
                         ],
                         "additionalProperties": false
@@ -7004,10 +6842,7 @@
                     }
                   },
                   "required": [
-                    "routes",
                     "sidebarMenuLinks",
-                    "folderActionMenuLinks",
-                    "objectActionMenuLinks",
                     "folderSidebarViews",
                     "objectSidebarViews",
                     "objectDetailViews"
@@ -7067,7 +6902,8 @@
                     "tasksExecutedLast24Hours",
                     "errorsLast24Hours",
                     "eventsEmittedLast24Hours"
-                  ]
+                  ],
+                  "nullable": true
                 },
                 "createdAt": {
                   "type": "string",
@@ -7084,11 +6920,13 @@
                 "publicKey",
                 "config",
                 "requiresStorage",
+                "enabled",
                 "manifest",
                 "externalWorkers",
                 "workers",
                 "ui",
                 "contributions",
+                "metrics",
                 "createdAt",
                 "updatedAt"
               ]
@@ -7210,50 +7048,20 @@
                     }
                   },
                   "ui": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "object",
-                      "properties": {
-                        "description": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "description"
-                      ],
-                      "additionalProperties": false
-                    }
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
                   },
                   "contributions": {
                     "type": "object",
                     "properties": {
-                      "routes": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "uiIdentifier": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "path": {
-                              "type": "string",
-                              "minLength": 1
-                            }
-                          },
-                          "required": [
-                            "uiIdentifier",
-                            "path"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
                       "sidebarMenuLinks": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "routeIdentifier": {
+                            "path": {
                               "type": "string",
                               "minLength": 1
                             },
@@ -7266,55 +7074,7 @@
                             }
                           },
                           "required": [
-                            "routeIdentifier",
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "folderActionMenuLinks": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "routeIdentifier": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "label": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "iconPath": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "routeIdentifier",
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "objectActionMenuLinks": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "routeIdentifier": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "label": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "iconPath": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "routeIdentifier",
+                            "path",
                             "label"
                           ],
                           "additionalProperties": false
@@ -7325,7 +7085,7 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "routeIdentifier": {
+                            "path": {
                               "type": "string",
                               "minLength": 1
                             },
@@ -7338,7 +7098,7 @@
                             }
                           },
                           "required": [
-                            "routeIdentifier",
+                            "path",
                             "label"
                           ],
                           "additionalProperties": false
@@ -7349,7 +7109,7 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "routeIdentifier": {
+                            "path": {
                               "type": "string",
                               "minLength": 1
                             },
@@ -7362,7 +7122,7 @@
                             }
                           },
                           "required": [
-                            "routeIdentifier",
+                            "path",
                             "label"
                           ],
                           "additionalProperties": false
@@ -7373,7 +7133,7 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "routeIdentifier": {
+                            "path": {
                               "type": "string",
                               "minLength": 1
                             },
@@ -7386,7 +7146,7 @@
                             }
                           },
                           "required": [
-                            "routeIdentifier",
+                            "path",
                             "label"
                           ],
                           "additionalProperties": false
@@ -7394,10 +7154,7 @@
                       }
                     },
                     "required": [
-                      "routes",
                       "sidebarMenuLinks",
-                      "folderActionMenuLinks",
-                      "objectActionMenuLinks",
                       "folderSidebarViews",
                       "objectSidebarViews",
                       "objectDetailViews"
@@ -7525,82 +7282,49 @@
                 }
               },
               "ui": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "hash": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "files": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "hash": {
-                            "type": "string"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mimeType": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "hash",
-                          "size",
-                          "mimeType"
-                        ]
-                      }
-                    },
-                    "identifier": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "^[a-z0-9_]+$"
-                    }
-                  },
-                  "required": [
-                    "hash",
-                    "description",
-                    "files",
-                    "identifier"
-                  ]
-                }
-              },
-              "contributions": {
                 "type": "object",
                 "properties": {
-                  "routes": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "manifest": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
-                        "uiIdentifier": {
-                          "type": "string",
-                          "minLength": 1
+                        "hash": {
+                          "type": "string"
                         },
-                        "path": {
-                          "type": "string",
-                          "minLength": 1
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
                         }
                       },
                       "required": [
-                        "uiIdentifier",
-                        "path"
-                      ],
-                      "additionalProperties": false
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
                     }
-                  },
+                  }
+                },
+                "required": [
+                  "hash",
+                  "manifest"
+                ],
+                "nullable": true
+              },
+              "contributions": {
+                "type": "object",
+                "properties": {
                   "sidebarMenuLinks": {
                     "type": "array",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "routeIdentifier": {
+                        "path": {
                           "type": "string",
                           "minLength": 1
                         },
@@ -7613,55 +7337,7 @@
                         }
                       },
                       "required": [
-                        "routeIdentifier",
-                        "label"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "folderActionMenuLinks": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "routeIdentifier": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "label": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "iconPath": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "routeIdentifier",
-                        "label"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "objectActionMenuLinks": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "routeIdentifier": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "label": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "iconPath": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "routeIdentifier",
+                        "path",
                         "label"
                       ],
                       "additionalProperties": false
@@ -7672,7 +7348,7 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "routeIdentifier": {
+                        "path": {
                           "type": "string",
                           "minLength": 1
                         },
@@ -7685,7 +7361,7 @@
                         }
                       },
                       "required": [
-                        "routeIdentifier",
+                        "path",
                         "label"
                       ],
                       "additionalProperties": false
@@ -7696,7 +7372,7 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "routeIdentifier": {
+                        "path": {
                           "type": "string",
                           "minLength": 1
                         },
@@ -7709,7 +7385,7 @@
                         }
                       },
                       "required": [
-                        "routeIdentifier",
+                        "path",
                         "label"
                       ],
                       "additionalProperties": false
@@ -7720,7 +7396,7 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "routeIdentifier": {
+                        "path": {
                           "type": "string",
                           "minLength": 1
                         },
@@ -7733,7 +7409,7 @@
                         }
                       },
                       "required": [
-                        "routeIdentifier",
+                        "path",
                         "label"
                       ],
                       "additionalProperties": false
@@ -7741,10 +7417,7 @@
                   }
                 },
                 "required": [
-                  "routes",
                   "sidebarMenuLinks",
-                  "folderActionMenuLinks",
-                  "objectActionMenuLinks",
                   "folderSidebarViews",
                   "objectSidebarViews",
                   "objectDetailViews"
@@ -7804,7 +7477,8 @@
                   "tasksExecutedLast24Hours",
                   "errorsLast24Hours",
                   "eventsEmittedLast24Hours"
-                ]
+                ],
+                "nullable": true
               },
               "createdAt": {
                 "type": "string",
@@ -7821,11 +7495,13 @@
               "publicKey",
               "config",
               "requiresStorage",
+              "enabled",
               "manifest",
               "externalWorkers",
               "workers",
               "ui",
               "contributions",
+              "metrics",
               "createdAt",
               "updatedAt"
             ]
@@ -7866,33 +7542,12 @@
             "contributions": {
               "type": "object",
               "properties": {
-                "routes": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "uiIdentifier": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "path": {
-                        "type": "string",
-                        "minLength": 1
-                      }
-                    },
-                    "required": [
-                      "uiIdentifier",
-                      "path"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
                 "sidebarMenuLinks": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "routeIdentifier": {
+                      "path": {
                         "type": "string",
                         "minLength": 1
                       },
@@ -7905,55 +7560,7 @@
                       }
                     },
                     "required": [
-                      "routeIdentifier",
-                      "label"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
-                "folderActionMenuLinks": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "routeIdentifier": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "label": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "iconPath": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "routeIdentifier",
-                      "label"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
-                "objectActionMenuLinks": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "routeIdentifier": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "label": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "iconPath": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "routeIdentifier",
+                      "path",
                       "label"
                     ],
                     "additionalProperties": false
@@ -7964,7 +7571,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "routeIdentifier": {
+                      "path": {
                         "type": "string",
                         "minLength": 1
                       },
@@ -7977,7 +7584,7 @@
                       }
                     },
                     "required": [
-                      "routeIdentifier",
+                      "path",
                       "label"
                     ],
                     "additionalProperties": false
@@ -7988,7 +7595,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "routeIdentifier": {
+                      "path": {
                         "type": "string",
                         "minLength": 1
                       },
@@ -8001,7 +7608,7 @@
                       }
                     },
                     "required": [
-                      "routeIdentifier",
+                      "path",
                       "label"
                     ],
                     "additionalProperties": false
@@ -8012,7 +7619,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "routeIdentifier": {
+                      "path": {
                         "type": "string",
                         "minLength": 1
                       },
@@ -8025,7 +7632,7 @@
                       }
                     },
                     "required": [
-                      "routeIdentifier",
+                      "path",
                       "label"
                     ],
                     "additionalProperties": false
@@ -8033,10 +7640,7 @@
                 }
               },
               "required": [
-                "routes",
                 "sidebarMenuLinks",
-                "folderActionMenuLinks",
-                "objectActionMenuLinks",
                 "folderSidebarViews",
                 "objectSidebarViews",
                 "objectDetailViews"

@@ -148,7 +148,6 @@ export function FolderSidebar({
                 {folder &&
                   serverContext.appContributions.folderSidebarViewContributions.all.map(
                     (view) => {
-                      const url = view.path.replace('{folderId}', folder.id)
                       const getAccessTokens = () =>
                         $apiClient
                           .POST(
@@ -170,13 +169,13 @@ export function FolderSidebar({
                       return (
                         <Card
                           className="shrink-0"
-                          key={`${view.appIdentifier}:${view.uiIdentifier}:${view.path}`}
+                          key={`${view.appIdentifier}:${view.path}`}
                         >
                           <CardHeader className="p-4 pt-3">
                             <TypographyH3>
                               <div className="flex items-center gap-2">
                                 <img
-                                  src={`${protocol}//${view.uiIdentifier}-${view.appIdentifier}.apps.${API_HOST}${view.iconPath ?? ''}`}
+                                  src={`${protocol}//${view.appIdentifier}.apps.${API_HOST}${view.iconPath ?? ''}`}
                                   alt={`${view.appLabel} icon`}
                                   className="size-6"
                                 />
@@ -189,14 +188,9 @@ export function FolderSidebar({
                               <AppUI
                                 getAccessTokens={getAccessTokens}
                                 appIdentifier={view.appIdentifier}
-                                uiIdentifier={view.uiIdentifier}
-                                url={url}
+                                pathAndQuery={`${view.path}?folderId=${folder.id}`}
                                 host={API_HOST}
                                 scheme={protocol}
-                                queryParams={{
-                                  basePath: `${protocol}//${API_HOST}`,
-                                  folderId: folder.id,
-                                }}
                               />
                             </div>
                           </CardContent>

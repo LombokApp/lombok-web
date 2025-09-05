@@ -16,7 +16,7 @@ import {
   DataTableColumnHeader,
 } from '@lombokapp/ui-toolkit'
 import { Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export const storageProvisionsTableColumns = (
   onUpdate: (storageProvisions: StorageProvisionDTO) => void,

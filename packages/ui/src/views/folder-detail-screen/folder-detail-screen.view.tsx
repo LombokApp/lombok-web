@@ -28,7 +28,7 @@ import {
   Video,
 } from 'lucide-react'
 import React from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 import type { DeleteFolderModalData } from '@/src/components/delete-folder-modal/delete-folder-modal'
 import { DeleteFolderModal } from '@/src/components/delete-folder-modal/delete-folder-modal'
@@ -43,7 +43,6 @@ import {
 } from '@/src/components/upload-modal/upload-modal'
 import { useFolderContext } from '@/src/contexts/folder'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
-import { useServerContext } from '@/src/contexts/server'
 import { useFocusedFolderObjectContext } from '@/src/pages/folders/focused-folder-object.context'
 import { $api, $apiClient } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
@@ -66,11 +65,6 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
 }
 
 export const FolderDetailScreen = () => {
-  const protocol = window.location.protocol
-  const hostname = window.location.hostname
-  const port = window.location.port
-  const API_HOST = `${hostname}${port ? `:${port}` : ''}`
-
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
@@ -90,7 +84,6 @@ export const FolderDetailScreen = () => {
   )
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
-  const serverContext = useServerContext()
   const [uploadModalData, setUploadModalData] = React.useState<UploadModalData>(
     {
       isOpen: false,
@@ -484,29 +477,6 @@ export const FolderDetailScreen = () => {
                           <Trash className="size-5" />
                           Delete
                         </DropdownMenuItem>
-                      )}
-                      {serverContext.appContributions.folderActionMenuContributions.all.map(
-                        (linkContribution) => (
-                          <DropdownMenuItem
-                            key={linkContribution.href}
-                            onClick={() =>
-                              void navigate(
-                                linkContribution.href.replace(
-                                  '{folderId}',
-                                  folderId,
-                                ),
-                              )
-                            }
-                            className="gap-2"
-                          >
-                            <img
-                              src={`${protocol}//${linkContribution.uiIdentifier}-${linkContribution.appIdentifier}.apps.${API_HOST}${linkContribution.iconPath}`}
-                              alt={`${linkContribution.appLabel} icon`}
-                              className="size-4"
-                            />
-                            {linkContribution.label}
-                          </DropdownMenuItem>
-                        ),
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

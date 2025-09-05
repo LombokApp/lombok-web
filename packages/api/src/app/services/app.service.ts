@@ -4,7 +4,6 @@ import type {
   AppContributions,
   AppManifest,
   AppMetrics,
-  AppUIMap,
   AppWorkersMap,
   ExternalAppWorker,
 } from '@lombokapp/types'
@@ -119,7 +118,6 @@ const getWorkerExecutionDetailsSchema = z.object({
 
 const getAppUIbundleSchema = z.object({
   appIdentifier: z.string(),
-  uiIdentifier: z.string(),
 })
 
 const getContentSignedUrlsSchema = z.object({
@@ -179,13 +177,7 @@ const getAppStorageSignedUrlsSchema = z.object({
 
 export interface AppDefinition {
   config: AppConfig
-  ui: Record<
-    string,
-    {
-      name: string
-      files: Record<string, { size: number; hash: string }>
-    }
-  >
+  ui: Record<string, { size: number; hash: string }>
   workersScripts: Record<
     string,
     {
@@ -675,7 +667,7 @@ export class AppService {
             const presignedGetURL = this.s3Service.createS3PresignedUrls([
               {
                 method: SignedURLsRequestMethod.GET,
-                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${requestData.workerIdentifier}-${workerApp.workers[requestData.workerIdentifier].hash}.zip`,
+                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${requestData.workerIdentifier}/${workerApp.workers[requestData.workerIdentifier].hash}.zip`,
                 accessKeyId: serverStorageLocation.accessKeyId,
                 secretAccessKey: serverStorageLocation.secretAccessKey,
                 bucket: serverStorageLocation.bucket,
@@ -814,70 +806,6 @@ export class AppService {
       }
     })
 
-    // get presigned upload URLs for "metadata" files
-    // for (const request of payload.requests) {
-    //   const folder =
-    //     folders[request.folderId] ??
-    //     (await this.ormService.db.query.foldersTable.findFirst({
-    //       where: eq(folderObjectsTable.id, request.folderId),
-    //     }))
-    //   folders[request.folderId] = folder
-
-    //   if (!folder) {
-    //     throw new FolderNotFoundError()
-    //   }
-
-    // const metadataLocation =
-    //   await this.ormService.db.query.locationsTable.findFirst({
-    //     where: eq(locationsTable.id, folder.metadataLocationId),
-    //   })
-
-    // if (!metadataLocation) {
-    //   throw new StorageLocationNotFoundError()
-    // }
-
-    //   const objectKeys = Object.keys(request.).map(
-    //     (metadataHash) => {
-    //       return {
-    //         method: request.metadataHashes[metadataHash].method,
-    //         objectKey: `${
-    //           metadataLocation.prefix ? metadataLocation.prefix : ''
-    //         }${folder.id}/${request.objectKey}/${
-    //           request.metadataHashes[metadataHash].metadataHash
-    //         }`,
-    //       }
-    //     },
-    //   )
-    //   const presignedUrls = this.s3Service.createS3PresignedUrls(
-    //     objectKeys.map(({ method, objectKey }) => ({
-    //       method,
-    //       objectKey,
-    //       accessKeyId: metadataLocation.accessKeyId,
-    //       secretAccessKey: metadataLocation.secretAccessKey,
-    //       bucket: metadataLocation.bucket,
-    //       endpoint: metadataLocation.endpoint,
-    //       expirySeconds: 86400, // TODO: control this somewhere
-    //       region: metadataLocation.region,
-    //     })),
-    //   )
-
-    //   const signedUrls: { [key: string]: string } = Object.keys(
-    //     request.metadataHashes,
-    //   ).reduce(
-    //     (acc, metadataKey, i) => ({
-    //       ...acc,
-    //       [metadataKey]: presignedUrls[i],
-    //     }),
-    //     {},
-    //   )
-
-    //   urls.push({
-    //     folderId: request.folderId,
-    //     objectKey: request.objectKey,
-    //     urls: signedUrls,
-    //   })
-    // }
-
     return {
       urls,
     }
@@ -999,7 +927,7 @@ export class AppService {
 
   async getAppUIbundle(
     requestingAppIdentifier: string,
-    requestData: { appIdentifier: string; uiIdentifier: string },
+    requestData: { appIdentifier: string },
   ) {
     // verify the app is the installed "core" app
     if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
@@ -1027,16 +955,13 @@ export class AppService {
       }
     }
 
-    // Check if the UI exists in the app's menuItems
-    const uiExists = requestData.uiIdentifier in workerApp.ui
-
-    if (!uiExists) {
-      // UI by uiIdentifier not found in app by appIdentifier
+    if (!workerApp.ui) {
+      // No UI bundle exists for this app
       return {
         result: undefined,
         error: {
           code: 404,
-          message: 'UI not found.',
+          message: 'UI bundle not found.',
         },
       }
     }
@@ -1057,7 +982,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/ui/${requestData.uiIdentifier}-${workerApp.ui[requestData.uiIdentifier].hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/ui/${workerApp.ui.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -1068,7 +993,7 @@ export class AppService {
     ])
 
     return {
-      manifest: workerApp.ui[requestData.uiIdentifier]['files'],
+      manifest: workerApp.ui.manifest,
       bundleUrl: presignedGetURL[0],
     }
   }
@@ -1180,62 +1105,27 @@ export class AppService {
     }
 
     if (serverStorageLocation) {
-      // 1. Group assetManifestEntries by /ui/<name>/ or /workers/<name>/
-      const groupedAssets = new Map<
-        string,
-        {
-          groupType: 'ui' | 'workers'
-          groupName: string
-          entries: typeof assetManifestEntryPaths
-        }
-      >()
-
-      for (const entryPath of assetManifestEntryPaths) {
-        const match = entryPath.match(/^\/(ui|workers)\/([^/]+)\//)
-        if (!match) {
-          continue
-        }
-        const [_, type, name] = match
-        const key = `${type}__${name}`
-        if (!groupedAssets.has(key)) {
-          groupedAssets.set(key, {
-            groupType: type as 'ui' | 'workers',
-            groupName: name,
-            entries: [],
-          })
-        }
-        const group = groupedAssets.get(key)
-        if (group) {
-          group.entries.push(entryPath)
-        }
-      }
-
-      // 2. For each group, zip the files and upload
-      for (const [
-        groupKey,
-        { groupType, groupName, entries },
-      ] of groupedAssets) {
-        // Omit any group whose name does not appear as a key in the config[type] map
-        if (
-          (groupType === 'ui' &&
-            (!app.config.ui || !(groupName in app.config.ui))) ||
-          (groupType === 'workers' &&
-            (!app.config.workers || !(groupName in app.config.workers)))
-        ) {
-          continue
-        }
-        // Create a temp dir for this group
-        const tempDir = await fsPromises.mkdtemp(
-          path.join(os.tmpdir(), `appzip-${groupKey}-`),
+      // Helper function to create, zip, hash, and upload a bundle
+      const createAndUploadBundle = async (
+        bundleName: string,
+        storagePath: string,
+        pathPrefix: string,
+      ): Promise<string> => {
+        // Create a temp dir for this bundle
+        const bundleDir = await fsPromises.mkdtemp(
+          path.join(os.tmpdir(), `appzip-${bundleName}-`),
         )
-        const groupDir = path.join(tempDir, groupName)
-        const relRoot =
-          groupType === 'ui' ? `/ui/${groupName}/` : `/workers/${groupName}/`
+        const filePaths = assetManifestEntryPaths.filter((filePath) =>
+          filePath.startsWith(pathPrefix),
+        )
+        if (filePaths.length === 0) {
+          throw new Error(`No files found for bundle ${bundleName}`)
+        }
 
         // Copy files into temp dir, preserving structure
-        for (const entryPath of entries) {
-          const relPath = entryPath.slice(relRoot.length)
-          const destPath = path.join(groupDir, relPath)
+        for (const entryPath of filePaths) {
+          const relPath = entryPath.slice(pathPrefix.length)
+          const destPath = path.join(bundleDir, relPath)
           await fsPromises.mkdir(path.dirname(destPath), { recursive: true })
           const srcPath = path.join(
             this._appConfig.appsLocalPath,
@@ -1246,36 +1136,29 @@ export class AppService {
         }
 
         // Zip the contents
-        const zipName = `${groupName}.zip`
-        const zipPath = path.join(os.tmpdir(), zipName)
-        // Use Bun.spawn to call zip
-        // zip -r <zipPath> <groupName> (from inside tempDir)
+        const zipName = `${bundleName}.zip`
+        const zipPath = path.join(bundleDir, zipName)
         const zipProc = spawn({
-          cmd: ['zip', '-r', zipPath, groupName],
-          cwd: tempDir,
+          cmd: ['zip', '-r', zipPath, './'],
+          cwd: bundleDir,
           stdout: 'inherit',
           stderr: 'inherit',
         })
         const zipCode = await zipProc.exited
         if (zipCode !== 0) {
-          throw new Error(`Failed to zip assets for group ${groupKey}`)
+          throw new Error(`Failed to zip assets for bundle ${bundleName}`)
         }
 
-        // Compute hash of the zipped worker bundle (used for cache keying and integrity)
+        // Compute hash of the zipped bundle
         const zipHash = await hashLocalFile(zipPath)
-        // Ensure workers entry carries the hash
-        app[groupType][groupName] = {
-          ...(app[groupType][groupName] ?? {}),
-          hash: zipHash,
-        }
 
         // Upload zip to app storage
         const objectKey = [
-          serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '', // only trim trailing slashes
+          serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '',
           'app-bundle-storage',
           app.identifier,
-          groupType,
-          `${zipName.slice(0, -4)}-${zipHash}.zip`,
+          storagePath,
+          `${zipHash}.zip`,
         ]
           .filter(Boolean)
           .join('/')
@@ -1293,11 +1176,38 @@ export class AppService {
             objectKey,
           },
         ])
+
         // Upload the zip file
         await uploadFile(zipPath, url, 'application/zip')
-        // Clean up temp files
-        await fsPromises.rm(tempDir, { recursive: true, force: true })
-        await fsPromises.rm(zipPath, { force: true })
+
+        // Clean up temp dir
+        await fsPromises.rm(bundleDir, { recursive: true, force: true })
+
+        return zipHash
+      }
+
+      // Process UI bundle if it exists in the app config
+      if (app.config.ui) {
+        const zipHash = await createAndUploadBundle('ui', 'ui', '/ui/')
+        app.ui = {
+          ...(app.ui ?? { manifest: {} }),
+          hash: zipHash,
+        }
+      }
+
+      // Process worker bundles based on app.config.workers
+      if (app.config.workers) {
+        for (const workerName of Object.keys(app.config.workers)) {
+          const zipHash = await createAndUploadBundle(
+            workerName,
+            `workers/${workerName}`,
+            `/workers/${workerName}/`,
+          )
+          app.workers[workerName] = {
+            ...(app.workers[workerName] ?? {}),
+            hash: zipHash,
+          }
+        }
       }
     }
 
@@ -1497,43 +1407,23 @@ export class AppService {
       }
     }
 
-    const uiDefinitions = Object.entries(config.ui ?? {}).reduce<AppUIMap>(
-      (acc, [uiIdentifier, value]) => ({
-        ...acc,
-        [uiIdentifier]: {
-          ...value,
-          hash: '',
-          files: Object.keys(manifest)
-            .filter((manifestEntryPath) =>
-              manifestEntryPath.startsWith(`/ui/${uiIdentifier}/`),
-            )
-            .reduce(
-              (manifestEntryAcc, manifestEntryPath) => ({
-                ...manifestEntryAcc,
-                [manifestEntryPath]: {
-                  hash: manifest[manifestEntryPath].hash,
-                  size: manifest[manifestEntryPath].size,
-                  mimeType: manifest[manifestEntryPath].mimeType,
-                },
-              }),
-              {},
-            ),
-        },
-      }),
-      {},
-    )
-
-    for (const uiIdentifier of Object.keys(uiDefinitions)) {
-      if (
-        !Object.keys(uiDefinitions[uiIdentifier].files).find((f) =>
-          f.startsWith(`/ui/${uiIdentifier}/`),
-        )
-      ) {
-        throw new AppInvalidException(
-          `App ${appIdentifier} has a ui "${uiIdentifier}" defined without have an index.ts or index.js file.`,
-        )
-      }
+    const uiDefinition = {
+      hash: '',
+      manifest: Object.keys(manifest)
+        .filter((manifestEntryPath) => manifestEntryPath.startsWith(`/ui/`))
+        .reduce(
+          (manifestEntryAcc, manifestEntryPath) => ({
+            ...manifestEntryAcc,
+            [manifestEntryPath]: {
+              hash: manifest[manifestEntryPath].hash,
+              size: manifest[manifestEntryPath].size,
+              mimeType: manifest[manifestEntryPath].mimeType,
+            },
+          }),
+          {},
+        ),
     }
+
     const parseResult = appConfigSchema.safeParse(config)
 
     const app = {
@@ -1554,9 +1444,9 @@ export class AppService {
             ),
             implementedTasks: config.tasks.map((t) => t.identifier),
             requiresStorage:
-              Object.keys(uiDefinitions).length > 0 ||
+              Object.keys(uiDefinition).length > 0 ||
               Object.keys(workerScriptDefinitions).length > 0,
-            ui: uiDefinitions,
+            ui: Object.keys(uiDefinition).length > 0 ? uiDefinition : null,
             config,
             createdAt: now,
             updatedAt: now,
@@ -1674,10 +1564,7 @@ export class AppService {
           appLabel: nextApp.label,
           appIdentifier: nextApp.identifier,
           contributions: {
-            routes: contributions?.routes ?? {},
             sidebarMenuLinks: contributions?.sidebarMenuLinks ?? [],
-            folderActionMenuLinks: contributions?.folderActionMenuLinks ?? [],
-            objectActionMenuLinks: contributions?.objectActionMenuLinks ?? [],
             folderSidebarViews: contributions?.folderSidebarViews ?? [],
             objectSidebarViews: contributions?.objectSidebarViews ?? [],
             objectDetailViews: contributions?.objectDetailViews ?? [],

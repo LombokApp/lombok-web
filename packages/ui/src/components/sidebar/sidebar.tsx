@@ -1,8 +1,8 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
 import { Button, cn } from '@lombokapp/ui-toolkit'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
-import type { AppRouteLinkContribution } from '../../contexts/server'
+import type { AppPathContribution } from '../../contexts/server'
 import { useStore } from '../../hooks/use-store'
 import { Menu } from './components/menu'
 import { SidebarToggle } from './components/sidebar-toggle'
@@ -15,7 +15,7 @@ export function Sidebar({
 }: {
   onSignOut: () => Promise<void>
   authContext: IAuthContext
-  sidebarMenuLinkContributions: AppRouteLinkContribution[]
+  sidebarMenuLinkContributions: AppPathContribution[]
 }) {
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {

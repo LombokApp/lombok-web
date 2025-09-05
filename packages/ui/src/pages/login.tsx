@@ -1,6 +1,6 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { LoginComponent } from '../components/login/login.component'
 

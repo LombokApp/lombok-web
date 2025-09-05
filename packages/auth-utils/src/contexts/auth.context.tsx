@@ -4,7 +4,7 @@ import type {
   ViewerGetResponse,
 } from '@lombokapp/types'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import type { Authenticator } from '..'
 import type { AuthenticatorStateType } from '../authenticator'

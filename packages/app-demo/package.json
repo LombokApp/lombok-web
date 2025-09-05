@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bunx vite",
     "build": "bun x --bun vite build --mode production",
-    "build:package": "bun run build && rm -rf ../../apps/demo/ui/main && cp -r dist ../../apps/demo/ui/main",
+    "build:package": "bun run build && rm -rf ../../apps/demo/ui && cp -r dist ../../apps/demo/ui",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
@@ -22,7 +22,7 @@
     "openapi-react-query": "^0.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.7.1"
+    "react-router": "^7.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

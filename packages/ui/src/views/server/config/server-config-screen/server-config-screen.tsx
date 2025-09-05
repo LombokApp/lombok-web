@@ -1,7 +1,7 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
 import { cn, ScrollArea } from '@lombokapp/ui-toolkit'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { $api } from '@/src/services/api'
 

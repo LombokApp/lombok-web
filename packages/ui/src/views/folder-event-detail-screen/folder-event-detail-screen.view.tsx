@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { EventDetailUI } from '@/src/components/event-detail-ui/event-detail-ui'
 import { useFolderContext } from '@/src/contexts/folder'

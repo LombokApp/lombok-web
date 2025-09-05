@@ -13,7 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 
-import type { AppRouteLinkContribution } from '@/src/contexts/server'
+import type { AppPathContribution } from '@/src/contexts/server'
 
 interface Submenu {
   href: string
@@ -38,7 +38,7 @@ interface Group {
 export function getMenuList(
   pathname: string | undefined,
   viewer: UserDTO,
-  sidebarMenuLinkContributions: AppRouteLinkContribution[],
+  sidebarMenuLinkContributions: AppPathContribution[],
 ): Group[] {
   return [
     {
@@ -117,7 +117,6 @@ export function getMenuList(
               label: item.label,
               icon: item.iconPath ? item.iconPath : Box,
               context: {
-                uiIdentifier: item.uiIdentifier,
                 appIdentifier: item.appIdentifier,
                 appLabel: item.appLabel,
               },

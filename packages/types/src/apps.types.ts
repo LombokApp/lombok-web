@@ -94,12 +94,6 @@ export const appUIConfigSchema = z
   })
   .strict()
 
-export const appUISchema = z.object({
-  hash: z.string(),
-  description: z.string(),
-  files: appManifestSchema,
-})
-
 export const appIdentifierSchema = z
   .string()
   .nonempty()
@@ -111,18 +105,11 @@ export const appIdentifierSchema = z
     message: "App identifier cannot be 'platform'",
   })
 
-export const appContributionRouteSchema = z
+export const appContributionEmbedLinkSchema = z
   .object({
-    uiIdentifier: z.string().nonempty(),
     path: z.string().nonempty().startsWith('/', {
       message: 'Path must start with a forwardslash',
     }),
-  })
-  .strict()
-
-export const appContributionEmbedLinkSchema = z
-  .object({
-    routeIdentifier: z.string().nonempty(),
     label: z.string().nonempty(),
     iconPath: z.string().optional(),
   })
@@ -130,47 +117,12 @@ export const appContributionEmbedLinkSchema = z
 
 export const appContributionsSchema = z
   .object({
-    routes: z.record(genericIdentifierSchema, appContributionRouteSchema),
     sidebarMenuLinks: z.array(appContributionEmbedLinkSchema),
-    folderActionMenuLinks: z.array(appContributionEmbedLinkSchema),
-    objectActionMenuLinks: z.array(appContributionEmbedLinkSchema),
     folderSidebarViews: z.array(appContributionEmbedLinkSchema),
     objectSidebarViews: z.array(appContributionEmbedLinkSchema),
     objectDetailViews: z.array(appContributionEmbedLinkSchema),
   })
   .strict()
-  .superRefine((value, ctx) => {
-    const routeKeyArray = Object.keys(value.routes)
-    const routeKeys = new Set(routeKeyArray)
-
-    const validateLinks = (
-      links: z.infer<typeof appContributionEmbedLinkSchema>[],
-      containerKey:
-        | 'sidebarMenuLinks'
-        | 'folderActionMenuLinks'
-        | 'objectActionMenuLinks'
-        | 'folderSidebarViews'
-        | 'objectSidebarViews'
-        | 'objectDetailViews',
-    ) => {
-      links.forEach((link, index) => {
-        if (!routeKeys.has(link.routeIdentifier)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Unknown routeIdentifier "${link.routeIdentifier}". Must be one of: ${routeKeyArray.length > 0 ? routeKeyArray.join(', ') : '(none)'}`,
-            path: [containerKey, index, 'routeIdentifier'],
-          })
-        }
-      })
-    }
-
-    validateLinks(value.sidebarMenuLinks, 'sidebarMenuLinks')
-    validateLinks(value.folderActionMenuLinks, 'folderActionMenuLinks')
-    validateLinks(value.objectActionMenuLinks, 'objectActionMenuLinks')
-    validateLinks(value.folderSidebarViews, 'folderSidebarViews')
-    validateLinks(value.objectSidebarViews, 'objectSidebarViews')
-    validateLinks(value.objectDetailViews, 'objectDetailViews')
-  })
 
 export const appConfigSchema = z
   .object({
@@ -190,28 +142,10 @@ export const appConfigSchema = z
         appWorkerScriptConfigSchema,
       )
       .optional(),
-    ui: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
+    ui: z.literal(true).optional(),
     contributions: appContributionsSchema.optional(),
   })
   .strict()
-  .superRefine((value, ctx) => {
-    if (!value.contributions) {
-      return
-    }
-
-    const uiKeyArray = Object.keys(value.ui ?? {})
-    const uiKeys = new Set(uiKeyArray)
-
-    Object.entries(value.contributions.routes).forEach(([routeKey, route]) => {
-      if (!uiKeys.has(route.uiIdentifier)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Unknown uiIdentifier "${route.uiIdentifier}". Must be one of: ${uiKeyArray.length > 0 ? uiKeyArray.join(', ') : '(none)'}`,
-          path: ['contributions', 'routes', routeKey, 'uiIdentifier'],
-        })
-      }
-    })
-  })
   .superRefine((value, ctx) => {
     const workerKeyArray = Object.keys(value.workers ?? {})
     const workerKeys = new Set(workerKeyArray)
@@ -234,6 +168,10 @@ export const appWorkerSchema = z.object({
   hash: z.string(),
 })
 export const appWorkersSchema = z.record(z.string(), appWorkerSchema)
+export const appUiSchema = z.object({
+  hash: z.string(),
+  manifest: appManifestSchema,
+})
 
 export const appWorkersMapSchema = z.record(z.string(), appWorkerSchema)
 
@@ -241,22 +179,6 @@ export const appWorkerScriptIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z_]+$/)
-
-export const appUiIdentifierSchema = z
-  .string()
-  .nonempty()
-  .regex(/^[a-z]+$/)
-  .refine((v) => v.toLowerCase() === v)
-
-export const appUiArraySchema = z.array(
-  appUISchema.merge(
-    z.object({
-      identifier: appUiIdentifierSchema,
-    }),
-  ),
-)
-
-export const appUiMapSchema = z.record(z.string(), appUISchema)
 
 export const externalAppWorkerSchema = z.object({
   appIdentifier: appIdentifierSchema,
@@ -293,8 +215,6 @@ export type AppWorker = z.infer<typeof appWorkerSchema>
 
 export type AppWorkersMap = z.infer<typeof appWorkersMapSchema>
 
-export type AppUIMap = z.infer<typeof appUiMapSchema>
-
 export type AppManifest = z.infer<typeof appManifestSchema>
 
 export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>
@@ -304,3 +224,5 @@ export type AppContributions = z.infer<typeof appContributionsSchema>
 export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>
 
 export type AppMetrics = z.infer<typeof appMetricsSchema>
+
+export type AppUi = z.infer<typeof appUiSchema>

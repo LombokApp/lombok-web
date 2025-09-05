@@ -1,5 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { ContentLayout } from '../../components/sidebar/components/content-layout'
 import { ServerScreen } from '../../views/server/overview/server-screen/server-screen.view'

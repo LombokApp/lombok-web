@@ -9,7 +9,7 @@ import {
   cn,
 } from '@lombokapp/ui-toolkit'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { ModeToggle } from '../../mode-toggle/mode-toggle'
 import { SheetMenu } from './sheet-menu'

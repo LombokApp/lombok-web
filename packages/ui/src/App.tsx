@@ -9,7 +9,7 @@ import {
   Route,
   Routes,
   useLocation,
-} from 'react-router-dom'
+} from 'react-router'
 
 import { Header } from './components/header'
 import { Sidebar } from './components/sidebar/sidebar'

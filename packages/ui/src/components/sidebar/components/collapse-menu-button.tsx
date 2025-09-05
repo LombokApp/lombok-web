@@ -19,7 +19,7 @@ import { DropdownMenuArrow } from '@radix-ui/react-dropdown-menu'
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, Dot } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 
 interface Submenu {
   href: string

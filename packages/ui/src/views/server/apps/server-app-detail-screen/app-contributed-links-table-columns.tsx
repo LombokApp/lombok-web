@@ -2,7 +2,7 @@ import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data
 import type { ColumnDef } from '@tanstack/react-table'
 
 export const appContributedRouteLinksTableColumns: ColumnDef<{
-  routeIdentifier: string
+  path: string
   iconPath?: string
   label: string
 }>[] = [
@@ -41,17 +41,17 @@ export const appContributedRouteLinksTableColumns: ColumnDef<{
     enableHiding: false,
   },
   {
-    accessorKey: 'identifier',
+    accessorKey: 'path',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Route Identifier"
+        title="Path"
       />
     ),
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <div className="truncate">{row.original.routeIdentifier}</div>
+        <div className="truncate">{row.original.path}</div>
       </div>
     ),
     enableSorting: false,

@@ -22,12 +22,12 @@ import {
 } from '@lombokapp/ui-toolkit'
 import { Download, File, Image, Trash } from 'lucide-react'
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 
 import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
 import { useFolderContext } from '@/src/contexts/folder'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
-import type { AppRouteLinkContribution } from '@/src/contexts/server'
+import type { AppPathContribution } from '@/src/contexts/server'
 import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
 import { iconForMediaType } from '@/src/utils/icons'
@@ -129,7 +129,7 @@ export const FolderObjectDetailScreen = ({
   const [selectedDisplayMode, setSelectedDisplayMode] = React.useState<string>()
 
   const [selectedContrbutedView, setSelectedContrbutedView] =
-    React.useState<AppRouteLinkContribution>()
+    React.useState<AppPathContribution>()
 
   const previewAvailable = 'preview:lg' in currentVersionMetadata
   const isSmallEnoughForOriginalView =
@@ -248,13 +248,13 @@ export const FolderObjectDetailScreen = ({
                       }
                       value={
                         selectedContrbutedView
-                          ? selectedContrbutedView.routeIdentifier
+                          ? selectedContrbutedView.appIdentifier
                           : 'default'
                       }
-                      onSelect={(routeIdentifier) =>
+                      onSelect={(appIdentifier) =>
                         setSelectedContrbutedView(
                           serverContext.appContributions.objectDetailViewContributions.all.find(
-                            (o) => o.routeIdentifier === routeIdentifier,
+                            (o) => o.appIdentifier === appIdentifier,
                           ),
                         )
                       }
@@ -292,37 +292,6 @@ export const FolderObjectDetailScreen = ({
                       <TooltipContent side="bottom">Download</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  {serverContext.appContributions.objectActionMenuContributions.all.map(
-                    (linkContribution) => (
-                      <TooltipProvider key={linkContribution.href}>
-                        <Tooltip delayDuration={100}>
-                          <TooltipTrigger asChild>
-                            <Button
-                              className="shrink-0 px-1"
-                              size="sm"
-                              variant={'outline'}
-                              onClick={() =>
-                                void navigate(
-                                  linkContribution.href
-                                    .replace('{folderId}', folderId)
-                                    .replace('{objectKey}', objectKey),
-                                )
-                              }
-                            >
-                              <img
-                                src={`${protocol}//${linkContribution.uiIdentifier}-${linkContribution.appIdentifier}.apps.${API_HOST}${linkContribution.iconPath}`}
-                                alt={`${linkContribution.appLabel} icon`}
-                                className="size-6"
-                              />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            {linkContribution.label}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ),
-                  )}
                 </div>
               </div>
             )}
@@ -338,7 +307,7 @@ export const FolderObjectDetailScreen = ({
                 className={'flex max-w-full flex-1 flex-col justify-around'}
                 key={
                   selectedContrbutedView
-                    ? `contributed_view-${selectedContrbutedView.routeIdentifier}-${selectedContrbutedView.appIdentifier}-${selectedContrbutedView.uiIdentifier}`
+                    ? `contributed_view-${selectedContrbutedView.appIdentifier}-${selectedContrbutedView.path}`
                     : `display_mode-${selectedDisplayMode}`
                 }
               >
@@ -346,13 +315,7 @@ export const FolderObjectDetailScreen = ({
                   <AppUI
                     getAccessTokens={getAccessTokens}
                     appIdentifier={selectedContrbutedView.appIdentifier}
-                    uiIdentifier={selectedContrbutedView.uiIdentifier}
-                    url={selectedContrbutedView.path}
-                    queryParams={{
-                      basePath: `${protocol}//${API_HOST}`,
-                      folderId,
-                      objectKey,
-                    }}
+                    pathAndQuery={`${selectedContrbutedView.path}?folderId=${folderId}&objectKey=${objectKey}`}
                     host={API_HOST}
                     scheme={protocol}
                   />

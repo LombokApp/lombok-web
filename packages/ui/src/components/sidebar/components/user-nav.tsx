@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from '@lombokapp/ui-toolkit'
 import { LayoutGrid, LogOut, User } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export function UserNav({
   onSignout,

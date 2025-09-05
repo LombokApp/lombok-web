@@ -1,32 +1,69 @@
 import React from 'react'
+import { useLocation } from 'react-router'
 
 export function AppUI({
   appIdentifier,
   host,
-  uiIdentifier,
-  url,
   scheme,
   getAccessTokens,
-  queryParams,
+  shouldRelayNavigation = false,
+  pathAndQuery,
+  onNavigateTo,
 }: {
   getAccessTokens: (
     appIdentifier: string,
   ) => Promise<{ accessToken: string; refreshToken: string }>
   appIdentifier: string
-  uiIdentifier: string
-  url: string
+  pathAndQuery: string
   host: string
   scheme: string
-  queryParams: Record<string, string>
+  shouldRelayNavigation?: boolean
+  onNavigateTo?: (to: { pathAndQuery: string }) => void
 }) {
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
 
+  const [paths, setPaths] = React.useState({
+    initial: pathAndQuery,
+    parent: pathAndQuery,
+    child: pathAndQuery,
+  })
+
+  const location = useLocation()
+  React.useEffect(() => {
+    const latestParentPathAndQuery = `${window.location.pathname.slice(`/apps/${appIdentifier}`.length)}${window.location.search}`
+    if (latestParentPathAndQuery !== paths.child) {
+      setPaths({
+        child: paths.child,
+        initial: paths.initial,
+        parent: latestParentPathAndQuery,
+      })
+      if (shouldRelayNavigation && iframeRef.current?.contentWindow) {
+        console.log(
+          'Parent URL changed, relaying navigation reset to iframe:',
+          `"${latestParentPathAndQuery}"`,
+        )
+        iframeRef.current.contentWindow.postMessage(
+          {
+            type: 'PARENT_NAVIGATE_TO',
+            payload: { pathAndQuery: latestParentPathAndQuery },
+          },
+          '*',
+        )
+      }
+    }
+  }, [
+    shouldRelayNavigation,
+    location.pathname,
+    location.search,
+    paths.child,
+    appIdentifier,
+    paths.parent,
+    paths.initial,
+  ])
+
   const srcUrl = React.useMemo(() => {
-    const query = Object.entries(queryParams)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&')
-    return `${scheme}//${uiIdentifier}-${appIdentifier}.apps.${host}${url ? url : ''}?${query}`
-  }, [appIdentifier, host, queryParams, uiIdentifier, scheme, url])
+    return `${scheme}//${appIdentifier}.apps.${host}${paths.initial}`
+  }, [appIdentifier, host, scheme, paths.initial])
 
   React.useEffect(() => {
     if (iframeRef.current) {
@@ -55,6 +92,7 @@ export function AppUI({
         try {
           switch (message.type) {
             case 'APP_READY': {
+              // console.log('Iframe is ready')
               // Iframe is ready, we can send initial data if needed
               const { accessToken, refreshToken } =
                 await getAccessTokens(appIdentifier)
@@ -66,6 +104,7 @@ export function AppUI({
                 payload: {
                   accessToken,
                   refreshToken,
+                  initialPathAndQuery: paths.initial,
                 },
               }
               iframeRef.current?.contentWindow?.postMessage(response, '*')
@@ -74,6 +113,20 @@ export function AppUI({
 
             case 'APP_ERROR': {
               console.error('Iframe error:', message.payload)
+              break
+            }
+
+            case 'NAVIGATE_TO': {
+              console.log('(chid) Navigate to:', message.payload)
+              const navigateToPayload = message.payload as {
+                pathAndQuery: string
+              }
+              setPaths({
+                ...paths,
+                parent: navigateToPayload.pathAndQuery,
+                child: navigateToPayload.pathAndQuery,
+              })
+              onNavigateTo?.(navigateToPayload)
               break
             }
 
@@ -105,7 +158,7 @@ export function AppUI({
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [getAccessTokens, appIdentifier])
+  }, [getAccessTokens, appIdentifier, onNavigateTo, paths])
 
   return (
     <div className="flex size-full flex-col justify-stretch">

@@ -10,7 +10,7 @@ import {
 } from '@lombokapp/ui-toolkit'
 import { ListChecks } from 'lucide-react'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { DateDisplay } from '@/src/components/date-display'
 import { useFolderContext } from '@/src/contexts/folder'

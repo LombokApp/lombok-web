@@ -226,16 +226,16 @@ process.stdin.once('data', (data) => {
 
     const serverClient = buildAppClient(socket, workerData.socketBaseUrl)
 
-    const bundleCacheRoot = path.join(
+    const uiBundleCacheRoot = path.join(
       os.tmpdir(),
-      'lombok-bundle-cache',
+      'lombok-ui-bundle-cache',
       workerData.appWorkerId,
     )
 
-    if (fs.existsSync(bundleCacheRoot)) {
-      fs.rmdirSync(bundleCacheRoot, { recursive: true })
+    if (fs.existsSync(uiBundleCacheRoot)) {
+      fs.rmdirSync(uiBundleCacheRoot, { recursive: true })
     }
-    fs.mkdirSync(bundleCacheRoot, { recursive: true })
+    fs.mkdirSync(uiBundleCacheRoot, { recursive: true })
 
     try {
       server = Bun.serve({
@@ -262,12 +262,7 @@ process.stdin.once('data', (data) => {
               return new Response('Invalid host format', { status: 400 })
             }
 
-            const combinedIdentifier = hostParts[0] || ''
-            const hyphenIndex = combinedIdentifier.lastIndexOf('-')
-            if (hyphenIndex === -1) {
-              return new Response('Invalid host format', { status: 400 })
-            }
-            const appIdentifier = combinedIdentifier.slice(hyphenIndex + 1)
+            const appIdentifier = hostParts[0] || ''
 
             try {
               const { userId } = authenticateAppUserRequest(
@@ -348,22 +343,10 @@ process.stdin.once('data', (data) => {
             return new Response('Invalid host format', { status: 404 })
           }
 
-          const combinedIdentifier = hostParts[0] || ''
-          const hyphenIndex = combinedIdentifier.lastIndexOf('-')
-          if (hyphenIndex === -1) {
-            return new Response('Invalid host format', { status: 404 })
-          }
-          const uiIdentifier =
-            combinedIdentifier.slice(0, hyphenIndex) || 'unknown'
-          const appIdentifier =
-            combinedIdentifier.slice(hyphenIndex + 1) || 'unknown'
+          const appIdentifier = hostParts[0] || ''
 
-          const bundleCacheKey = `${appIdentifier}-${uiIdentifier}`
-          const bundleCacheDir = path.join(
-            bundleCacheRoot,
-            `lombok-bundle-${bundleCacheKey}`,
-          )
-          const manifestFilePath = path.join(bundleCacheDir, 'manifest.json')
+          const appBundleCacheDir = path.join(uiBundleCacheRoot, appIdentifier)
+          const manifestFilePath = path.join(appBundleCacheDir, 'manifest.json')
 
           let manifest: AppManifest = {}
 
@@ -382,10 +365,8 @@ process.stdin.once('data', (data) => {
             }
           } else {
             try {
-              const bundleResponse = await serverClient.getAppUIbundle(
-                appIdentifier,
-                uiIdentifier,
-              )
+              const bundleResponse =
+                await serverClient.getAppUIbundle(appIdentifier)
 
               if (bundleResponse.error) {
                 return new Response(`Error: ${bundleResponse.error.message}`, {
@@ -401,8 +382,7 @@ process.stdin.once('data', (data) => {
               if (!bundleUrl) {
                 return new Response('Bundle URL not found', { status: 404 })
               }
-
-              await fs.promises.mkdir(bundleCacheDir, { recursive: true })
+              await fs.promises.mkdir(appBundleCacheDir, { recursive: true })
 
               await fs.promises.writeFile(
                 manifestFilePath,
@@ -417,7 +397,7 @@ process.stdin.once('data', (data) => {
               }
 
               const bundleBuffer = await downloadResponse.arrayBuffer()
-              const bundlePath = path.join(bundleCacheDir, 'bundle.zip')
+              const bundlePath = path.join(appBundleCacheDir, 'bundle.zip')
               await fs.promises.writeFile(
                 bundlePath,
                 new Uint8Array(bundleBuffer),
@@ -425,7 +405,7 @@ process.stdin.once('data', (data) => {
 
               const unzipProc = spawn({
                 cmd: ['unzip', '-o', bundlePath],
-                cwd: bundleCacheDir,
+                cwd: appBundleCacheDir,
                 stdout: 'inherit',
                 stderr: 'inherit',
               })
@@ -445,7 +425,7 @@ process.stdin.once('data', (data) => {
             }
           }
 
-          const baseManifestPathParts = ['/', 'ui', uiIdentifier]
+          const baseManifestPathParts = ['/', 'ui']
           let targetPath = ''
           const wholePathname = path.join(...baseManifestPathParts, pathname)
           if (wholePathname in manifest) {
@@ -459,8 +439,8 @@ process.stdin.once('data', (data) => {
             targetPath = 'index.html'
           }
 
-          const filePath = path.join(bundleCacheDir, uiIdentifier, targetPath)
-          const manifestPath = path.join('/', 'ui', uiIdentifier, targetPath)
+          const filePath = path.join(appBundleCacheDir, targetPath)
+          const manifestPath = path.join('/', 'ui', targetPath)
           const manifestEntry =
             manifestPath in manifest ? manifest[manifestPath] : null
           if (manifestEntry) {
