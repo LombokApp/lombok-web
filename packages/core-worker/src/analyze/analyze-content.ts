@@ -10,14 +10,14 @@ import {
   getNecessaryContentRotationFromMetadata,
   scaleImage,
 } from '../utils'
-import { type ExifToolMetadata } from '../utils/metadata.util'
+import { type Exiv2Metadata } from '../utils/metadata.util'
 import { classifyVideoVariant } from '../utils/video.util'
 
 async function analyzeImage(
   inFilePath: string,
   outFileDirectory: string,
   mimeType: string,
-  metadata: ExifToolMetadata,
+  metadata: Exiv2Metadata,
 ): Promise<Record<string, ContentMetadataEntry>> {
   const rotation = getNecessaryContentRotationFromMetadata(metadata)
   const scaleConfigs = [
@@ -142,7 +142,7 @@ export async function analyzeContent({
   outFileDirectory: string
   mediaType: MediaType
   mimeType: string
-  metadata: ExifToolMetadata
+  metadata: Exiv2Metadata
 }): Promise<Record<string, ContentMetadataEntry>> {
   const contentMetadata: Record<string, ContentMetadataEntry> = {}
 

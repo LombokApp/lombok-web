@@ -10,7 +10,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { hashLocalFile } from './file.util'
 import { previewDimensionsForMaxDimension } from './image.util'
-import { type ExifToolMetadata } from './metadata.util'
+import { type Exiv2Metadata } from './metadata.util'
 
 export async function getMediaDimensionsWithSharp(
   filePath: string,
@@ -204,7 +204,26 @@ export function parseOrientationToPosition(orientation: string): number {
     return 0
   }
 
-  // Extract the rotation value from the orientation string
+  // Handle Exif orientation descriptions like "right, top", "bottom, left", etc.
+  // These values represent the degrees of rotation needed to correct the image orientation
+  const exifOrientationMap: Record<string, number> = {
+    'top, left': 0, // Already correct, no rotation needed
+    'top, right': 0, // Flipped horizontally, but no rotation needed
+    'bottom, right': 180, // Upside down, rotate 180° to correct
+    'bottom, left': 180, // Upside down and flipped, rotate 180° to correct
+    'left, top': 90, // Rotated 90° CCW, rotate 90° CW to correct
+    'right, top': 90, // Rotated 90° CW, rotate 90° CW to correct
+    'right, bottom': 270, // Rotated 270° CW, rotate 270° CW to correct
+    'left, bottom': 270, // Rotated 270° CW, rotate 270° CW to correct
+  }
+
+  // Check if it's an Exif orientation description
+  const normalizedOrientation = orientation.toLowerCase().trim()
+  if (normalizedOrientation in exifOrientationMap) {
+    return exifOrientationMap[normalizedOrientation]
+  }
+
+  // Fallback: Extract the rotation value from the orientation string (legacy format)
   const rotationMatch = orientation.match(/Rotate (\d+) (CW|CCW)/)
   if (!rotationMatch) {
     return 0
@@ -221,20 +240,20 @@ export function parseOrientationToPosition(orientation: string): number {
     position = 360 - degrees
   }
 
-  // Ensure the position is within 0-259
+  // Ensure the position is within 0-359
   return Math.min(Math.max(position, 0), 359)
 }
 
 export function getNecessaryContentRotationFromMetadata(
-  metadata: ExifToolMetadata,
+  metadata: Exiv2Metadata,
 ): number {
   if (
     typeof metadata === 'object' &&
-    'Orientation' in metadata &&
-    typeof metadata.Orientation === 'string'
+    typeof metadata['Exif.Image.Orientation'] === 'object' &&
+    typeof metadata['Exif.Image.Orientation'].value === 'string'
   ) {
-    // Orientation: "Rotate 270 CW",
-    return parseOrientationToPosition(metadata.Orientation)
+    // Orientation: "right, top",
+    return parseOrientationToPosition(metadata['Exif.Image.Orientation'].value)
   }
   return 0
 }
