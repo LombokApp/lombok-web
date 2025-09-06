@@ -82,10 +82,21 @@ export const FolderObjectDetailScreen = ({
   const IconComponent = iconForMediaType(
     (folderObject?.mediaType as MediaType | undefined) ?? MediaType.Unknown,
   )
+  const canShowOriginal =
+    folderObject?.mimeType !== 'image/heic' &&
+    folderObject?.mimeType !== 'image/heif'
 
   const displayModes = React.useMemo(
     () => ({
-      original: { key: 'original', label: 'Original', icon: IconComponent },
+      ...(canShowOriginal
+        ? {
+            original: {
+              key: 'original',
+              label: 'Original',
+              icon: IconComponent,
+            },
+          }
+        : {}),
       ...('preview:lg' in currentVersionMetadata
         ? {
             'preview:lg': {
@@ -123,7 +134,7 @@ export const FolderObjectDetailScreen = ({
           }
         : {}),
     }),
-    [IconComponent, currentVersionMetadata],
+    [IconComponent, currentVersionMetadata, canShowOriginal],
   )
 
   const [selectedDisplayMode, setSelectedDisplayMode] = React.useState<string>()
