@@ -3,7 +3,7 @@ import { SignedURLsRequestMethod } from '@lombokapp/types'
 
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
-  { serverClient },
+  { serverClient, dbClient },
 ) {
   console.log(
     'DEMO API REQUEST WORKER REQUEST HANDLER:',
@@ -41,9 +41,32 @@ export const handleRequest: RequestHandler = async function handleRequest(
     }
   }
 
+  // Test database connection with a simple query
+  try {
+    console.log('Testing database connection...')
+    const result = await dbClient.query(
+      'SELECT NOW() as current_time, current_database() as database_name',
+    )
+    console.log('Database query result:', result)
+
+    // Try to query the demo tables if they exist
+    try {
+      const usersResult = await dbClient.query(
+        'SELECT COUNT(*) as user_count FROM users',
+      )
+      console.log('Users table query result:', usersResult)
+    } catch (error) {
+      console.log('Users table not found or not accessible:', error)
+    }
+  } catch (error) {
+    console.log('Database query failed:', error)
+  }
+
   return sendResponse(
     {
       message: 'Hello, world (from demo API request worker)!',
+      timestamp: new Date().toISOString(),
+      databaseTest: 'Database client is available and working',
     },
     200,
   )

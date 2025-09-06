@@ -42,6 +42,7 @@ RUN cd /temp/dev && \
   bun install --production --filter ./packages/api && \
   # remove as much unnecessary stuff as possible
   rm -rf ./packages/ui && \
+  rm -rf ./packages/app-demo && \
   rm -rf ./packages/api/node_modules && \
   rm -rf ./packages/api/src && \
   rm -rf ./packages/auth-utils && \

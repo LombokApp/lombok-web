@@ -175,6 +175,27 @@ const getAppStorageSignedUrlsSchema = z.object({
   ),
 })
 
+const dbQuerySchema = z.object({
+  sql: z.string(),
+  params: z.array(z.unknown()),
+})
+
+const dbExecSchema = z.object({
+  sql: z.string(),
+  params: z.array(z.unknown()),
+})
+
+const dbBatchSchema = z.object({
+  steps: z.array(
+    z.object({
+      sql: z.string(),
+      params: z.array(z.unknown()),
+      kind: z.enum(['query', 'exec']),
+    }),
+  ),
+  atomic: z.boolean(),
+})
+
 export interface AppDefinition {
   config: AppConfig
   ui: Record<string, { size: number; hash: string }>
@@ -185,6 +206,10 @@ export interface AppDefinition {
       files: Record<string, { size: number; hash: string }>
     }
   >
+}
+
+export interface AppWithMigrations extends App {
+  migrationFiles: { filename: string; content: string }[]
 }
 
 @Injectable()
@@ -272,6 +297,42 @@ export class AppService {
       const requestData = message.data
       const isCoreApp = requestingAppIdentifier === CORE_APP_IDENTIFIER
       switch (message.name) {
+        case 'DB_QUERY':
+          if (safeZodParse(requestData, dbQuerySchema)) {
+            await this.ormService.ensureAppSchema(requestingAppIdentifier)
+            return {
+              result: await this.ormService.executeQueryForApp(
+                requestingAppIdentifier,
+                requestData.sql,
+                requestData.params,
+              ),
+            }
+          }
+          break
+        case 'DB_EXEC':
+          if (safeZodParse(requestData, dbExecSchema)) {
+            await this.ormService.ensureAppSchema(requestingAppIdentifier)
+            return {
+              result: await this.ormService.executeExecForApp(
+                requestingAppIdentifier,
+                requestData.sql,
+                requestData.params,
+              ),
+            }
+          }
+          break
+        case 'DB_BATCH':
+          if (safeZodParse(requestData, dbBatchSchema)) {
+            await this.ormService.ensureAppSchema(requestingAppIdentifier)
+            return {
+              result: await this.ormService.executeBatchForApp(
+                requestingAppIdentifier,
+                requestData.steps,
+                requestData.atomic,
+              ),
+            }
+          }
+          break
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, logEntrySchema)) {
             await this.logEntryService.emitLog({
@@ -1079,7 +1140,7 @@ export class AppService {
       .where(eq(appsTable.identifier, app.identifier))
   }
 
-  public async installApp(app: App, update = false) {
+  public async installApp(app: AppWithMigrations, update = false) {
     const now = new Date()
     const installedApp = await this.getAppAsAdmin(app.identifier)
     if (installedApp && !update) {
@@ -1224,6 +1285,31 @@ export class AppService {
         updatedAt: now,
       })
     }
+
+    // Run migrations if the app has any
+    if (app.migrationFiles.length > 0) {
+      try {
+        // eslint-disable-next-line no-console
+        console.log(
+          `Running ${app.migrationFiles.length} migrations for app ${app.identifier}`,
+        )
+        await this.ormService.runAppMigrations(
+          app.identifier,
+          app.migrationFiles,
+        )
+        // eslint-disable-next-line no-console
+        console.log(
+          `Successfully completed migrations for app ${app.identifier}`,
+        )
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `Failed to run migrations for app ${app.identifier}:`,
+          error,
+        )
+        throw error
+      }
+    }
   }
 
   public async installAllAppsFromDisk() {
@@ -1282,6 +1368,45 @@ export class AppService {
     }
   }
 
+  /**
+   * Discover migration files in an app directory
+   */
+  private discoverMigrationFiles(
+    appRoot: string,
+  ): { filename: string; content: string }[] {
+    const migrationsDir = path.join(appRoot, 'migrations')
+
+    if (!fs.existsSync(migrationsDir)) {
+      return []
+    }
+
+    const migrationFiles: { filename: string; content: string }[] = []
+
+    try {
+      const files = fs
+        .readdirSync(migrationsDir)
+        .filter((file) => file.endsWith('.sql'))
+        .sort() // Sort by filename to ensure proper execution order
+
+      for (const file of files) {
+        const filePath = path.join(migrationsDir, file)
+        const content = fs.readFileSync(filePath, 'utf-8')
+        migrationFiles.push({
+          filename: file,
+          content,
+        })
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Failed to read migration files from ${migrationsDir}:`,
+        error,
+      )
+    }
+
+    return migrationFiles
+  }
+
   public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
     if (!fs.existsSync(appsDirectoryPath)) {
       // eslint-disable-next-line no-console
@@ -1296,7 +1421,7 @@ export class AppService {
   }
 
   public async parseAppFromDisk(appDirectoryName: string): Promise<{
-    definition?: App
+    definition?: AppWithMigrations
     validation: { value: boolean; error?: z.ZodError }
   }> {
     const now = new Date()
@@ -1424,6 +1549,9 @@ export class AppService {
         ),
     }
 
+    // Discover migration files
+    const migrationFiles = this.discoverMigrationFiles(appRoot)
+
     const parseResult = appConfigSchema.safeParse(config)
 
     const app = {
@@ -1446,12 +1574,14 @@ export class AppService {
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||
               Object.keys(workerScriptDefinitions).length > 0,
-            ui: Object.keys(uiDefinition).length > 0 ? uiDefinition : null,
+            ui: Object.keys(uiDefinition).length > 0 ? uiDefinition : undefined,
             config,
+            database: config.database ?? false,
             createdAt: now,
             updatedAt: now,
             contentHash: '', // TODO: calculate the exact content hash
             enabled: true,
+            migrationFiles, // Add migration files to app definition
           }
         : undefined,
     }
