@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 # Install necessary dependencies
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
   echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-  apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiftool su-exec zip unzip nsjail && \
+  apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail && \
   adduser -D -u 1001 lombok
 
 FROM base AS local

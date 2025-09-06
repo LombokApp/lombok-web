@@ -23,53 +23,65 @@ async function readStreamToString(
   return result
 }
 
-export type ExifToolMetadata = Record<string, unknown>
+export type Exiv2Metadata = Record<
+  string,
+  {
+    type: string
+    count: number
+    value: string
+  }
+>
 
 export async function readFileMetadata(
   filePath: string,
   metadataFilePath: string,
-): Promise<ExifToolMetadata> {
-  const child = spawn(
-    [
-      'exiftool',
-      '-b',
-      '-json',
-      '-x',
-      'File:all',
-      '-x',
-      'ExifTool:all',
-      filePath,
-    ],
-    {
-      stdout: Bun.file(metadataFilePath),
-      stderr: 'pipe',
-    },
-  )
+): Promise<Exiv2Metadata> {
+  const child = spawn(['exiv2', '-pa', filePath], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
 
+  const stdoutText = await readStreamToString(child.stdout)
   const stderrText = await readStreamToString(child.stderr)
 
   const exitCode = await child.exited
 
   if (exitCode !== 0) {
     const errorMessage =
-      stderrText.trim() || 'Failed to read metadata with exiftool'
+      stderrText.trim() || 'Failed to read metadata with exif2'
     throw new Error(errorMessage)
   }
 
   try {
-    const parsed = JSON.parse(
-      await fs.promises.readFile(metadataFilePath, 'utf-8'),
-    ) as unknown
-    if (
-      Array.isArray(parsed) &&
-      parsed.length > 0 &&
-      typeof parsed[0] === 'object'
-    ) {
-      return parsed[0] as ExifToolMetadata
+    // Parse exiv2 structured output and convert to JSON
+    const metadata: Exiv2Metadata = {}
+
+    const lines = stdoutText.trim().split('\n')
+    for (const line of lines) {
+      if (line.trim()) {
+        // Parse format: "TagName Type Count Value"
+        const match = line.match(/^([^\s]+)\s+(\w+)\s+(\d+)\s+(.*)$/)
+        if (match) {
+          const [, tagName, type, count, value] = match
+          metadata[tagName] = {
+            type,
+            count: parseInt(count, 10),
+            value: value.trim(),
+          }
+        }
+      }
     }
-    throw new Error('Unexpected exiftool output format')
+
+    // Write the parsed JSON to the metadata file
+    await fs.promises.writeFile(
+      metadataFilePath,
+      JSON.stringify(metadata, null, 2),
+      'utf-8',
+    )
+
+    return metadata
   } catch (err) {
     const details = err instanceof Error ? err.message : String(err)
-    throw new Error(`Failed to parse exiftool output: ${details}`)
+    throw new Error(`Failed to parse exif2 output: ${details}`)
   }
 }
