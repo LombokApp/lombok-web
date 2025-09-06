@@ -8,14 +8,14 @@ import type {
   ExternalAppWorker,
 } from '@lombokapp/types'
 import {
-  appConfigSchema,
+  appConfigWithManifestSchema,
   AppSocketApiRequest,
   CORE_APP_IDENTIFIER,
   metadataEntrySchema,
   SignedURLsRequestMethod,
   workerErrorDetailsSchema,
 } from '@lombokapp/types'
-import { safeZodParse } from '@lombokapp/utils'
+import { mimeFromExtension, safeZodParse } from '@lombokapp/utils'
 import {
   forwardRef,
   Inject,
@@ -39,7 +39,6 @@ import {
 } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
-import mime from 'mime'
 import os from 'os'
 import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
@@ -702,7 +701,9 @@ export class AppService {
               }
             }
 
-            if (!(requestData.workerIdentifier in workerApp.workers)) {
+            if (
+              !(requestData.workerIdentifier in workerApp.workers.definitions)
+            ) {
               // worker by workerIdentifier not found in app by appIdentifier
               return {
                 result: undefined,
@@ -728,7 +729,7 @@ export class AppService {
             const presignedGetURL = this.s3Service.createS3PresignedUrls([
               {
                 method: SignedURLsRequestMethod.GET,
-                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${requestData.workerIdentifier}/${workerApp.workers[requestData.workerIdentifier].hash}.zip`,
+                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
                 accessKeyId: serverStorageLocation.accessKeyId,
                 secretAccessKey: serverStorageLocation.secretAccessKey,
                 bucket: serverStorageLocation.bucket,
@@ -740,13 +741,16 @@ export class AppService {
             return {
               result: {
                 payloadUrl: presignedGetURL[0],
+                entrypoint:
+                  workerApp.workers.definitions[requestData.workerIdentifier]
+                    .entrypoint,
                 environmentVariables:
-                  workerApp.workers[requestData.workerIdentifier]
+                  workerApp.workers.definitions[requestData.workerIdentifier]
                     .environmentVariables,
                 workerToken: await this.jwtService.createAppWorkerToken(
                   requestData.appIdentifier,
                 ),
-                hash: workerApp.workers[requestData.workerIdentifier].hash,
+                hash: workerApp.workers.hash,
               },
             }
           } else {
@@ -1016,7 +1020,7 @@ export class AppService {
       }
     }
 
-    if (!workerApp.ui) {
+    if (Object.keys(workerApp.ui.manifest).length === 0) {
       // No UI bundle exists for this app
       return {
         result: undefined,
@@ -1169,9 +1173,8 @@ export class AppService {
       // Helper function to create, zip, hash, and upload a bundle
       const createAndUploadBundle = async (
         bundleName: string,
-        storagePath: string,
-        pathPrefix: string,
-      ): Promise<string> => {
+      ): Promise<{ hash: string; size: number }> => {
+        const pathPrefix = `/${bundleName}/`
         // Create a temp dir for this bundle
         const bundleDir = await fsPromises.mkdtemp(
           path.join(os.tmpdir(), `appzip-${bundleName}-`),
@@ -1218,7 +1221,7 @@ export class AppService {
           serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '',
           'app-bundle-storage',
           app.identifier,
-          storagePath,
+          bundleName,
           `${zipHash}.zip`,
         ]
           .filter(Boolean)
@@ -1241,33 +1244,26 @@ export class AppService {
         // Upload the zip file
         await uploadFile(zipPath, url, 'application/zip')
 
+        const zipSize = fs.statSync(zipPath).size
         // Clean up temp dir
         await fsPromises.rm(bundleDir, { recursive: true, force: true })
 
-        return zipHash
+        return { hash: zipHash, size: zipSize }
       }
 
       // Process UI bundle if it exists in the app config
       if (app.config.ui) {
-        const zipHash = await createAndUploadBundle('ui', 'ui', '/ui/')
         app.ui = {
-          ...(app.ui ?? { manifest: {} }),
-          hash: zipHash,
+          ...app.ui,
+          ...(await createAndUploadBundle('ui')),
         }
       }
 
       // Process worker bundles based on app.config.workers
       if (app.config.workers) {
-        for (const workerName of Object.keys(app.config.workers)) {
-          const zipHash = await createAndUploadBundle(
-            workerName,
-            `workers/${workerName}`,
-            `/workers/${workerName}/`,
-          )
-          app.workers[workerName] = {
-            ...(app.workers[workerName] ?? {}),
-            hash: zipHash,
-          }
+        app.workers = {
+          ...app.workers,
+          ...(await createAndUploadBundle('workers')),
         }
       }
     }
@@ -1474,7 +1470,8 @@ export class AppService {
             path: relativeAssetPath,
             hash: await hashLocalFile(absoluteAssetPath),
             mimeType:
-              mime.getType(relativeAssetPath) ?? 'application/octet-stream',
+              mimeFromExtension(relativeAssetPath) ??
+              'application/octet-stream',
           }
         }),
       )
@@ -1494,65 +1491,36 @@ export class AppService {
         ...acc,
         [workerIdentifier]: {
           ...value,
-          files: Object.keys(manifest)
-            .filter((manifestEntryPath) =>
-              manifestEntryPath.startsWith(`/workers/${workerIdentifier}/`),
-            )
-            .reduce(
-              (manifestEntryAcc, manifestEntryPath) => ({
-                ...manifestEntryAcc,
-                [manifestEntryPath]: {
-                  hash: manifest[manifestEntryPath].hash,
-                  size: manifest[manifestEntryPath].size,
-                  mimeType: manifest[manifestEntryPath].mimeType,
-                },
-              }),
-              {},
-            ),
           environmentVariables: value.environmentVariables ?? {},
-          hash: '',
         },
       }
     }, {})
 
-    for (const workerScript of Object.keys(workerScriptDefinitions)) {
-      if (
-        !(
-          `/workers/${workerScript}/index.ts` in
-          workerScriptDefinitions[workerScript].files
-        ) &&
-        !(
-          `/workers/${workerScript}/index.js` in
-          workerScriptDefinitions[workerScript].files
-        )
-      ) {
-        throw new AppInvalidException(
-          `App ${appIdentifier} has a worker script "${workerScript}" defined without have an index.ts or index.js file.`,
-        )
-      }
-    }
-
     const uiDefinition = {
       hash: '',
+      size: 0,
       manifest: Object.keys(manifest)
-        .filter((manifestEntryPath) => manifestEntryPath.startsWith(`/ui/`))
-        .reduce(
-          (manifestEntryAcc, manifestEntryPath) => ({
-            ...manifestEntryAcc,
-            [manifestEntryPath]: {
-              hash: manifest[manifestEntryPath].hash,
-              size: manifest[manifestEntryPath].size,
-              mimeType: manifest[manifestEntryPath].mimeType,
-            },
-          }),
-          {},
-        ),
+        .filter((filePath) => filePath.startsWith(`/ui/`))
+        .reduce<AppManifest>((acc, filePath) => {
+          return {
+            ...acc,
+            [filePath.slice(`/ui/`.length)]: manifest[filePath],
+          }
+        }, {}),
     }
 
     // Discover migration files
     const migrationFiles = this.discoverMigrationFiles(appRoot)
 
-    const parseResult = appConfigSchema.safeParse(config)
+    const parseResult = appConfigWithManifestSchema(manifest).safeParse(config)
+    const workerBundleManifest = Object.keys(manifest)
+      .filter((filePath) => filePath.startsWith(`/workers/`))
+      .reduce<AppManifest>((acc, filePath) => {
+        return {
+          ...acc,
+          [filePath.slice(`/workers/`.length)]: manifest[filePath],
+        }
+      }, {})
 
     const app = {
       validation: {
@@ -1565,7 +1533,12 @@ export class AppService {
             label: config.label,
             manifest,
             publicKey,
-            workers: workerScriptDefinitions,
+            workers: {
+              manifest: workerBundleManifest,
+              definitions: workerScriptDefinitions,
+              hash: '',
+              size: 0,
+            },
             subscribedEvents: config.tasks.reduce<string[]>(
               (acc, task) => acc.concat(task.triggers),
               [],
@@ -1574,7 +1547,7 @@ export class AppService {
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||
               Object.keys(workerScriptDefinitions).length > 0,
-            ui: Object.keys(uiDefinition).length > 0 ? uiDefinition : undefined,
+            ui: uiDefinition,
             config,
             database: config.database ?? false,
             createdAt: now,
@@ -1610,14 +1583,14 @@ export class AppService {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!app.workers[workerIdentifier]) {
+    if (!app.workers.definitions[workerIdentifier]) {
       throw new NotFoundException(
         `Worker script not found: ${workerIdentifier}`,
       )
     }
     // Update environmentVariables for the specified worker
-    app.workers[workerIdentifier] = {
-      ...app.workers[workerIdentifier],
+    app.workers.definitions[workerIdentifier] = {
+      ...app.workers.definitions[workerIdentifier],
       environmentVariables: { ...environmentVariables },
     }
     // Persist the change
@@ -1626,7 +1599,7 @@ export class AppService {
       .set({ workers: app.workers })
       .where(eq(appsTable.identifier, appIdentifier))
 
-    return app.workers[workerIdentifier].environmentVariables
+    return app.workers.definitions[workerIdentifier].environmentVariables
   }
 
   getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {

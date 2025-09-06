@@ -6459,6 +6459,10 @@
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
+                          "entrypoint": {
+                            "type": "string",
+                            "minLength": 1
+                          },
                           "description": {
                             "type": "string"
                           },
@@ -6467,12 +6471,19 @@
                           }
                         },
                         "required": [
+                          "entrypoint",
                           "description"
                         ],
                         "additionalProperties": false
                       }
                     },
                     "ui": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "database": {
                       "type": "boolean",
                       "enum": [
                         true
@@ -6663,54 +6674,74 @@
                 },
                 "workers": {
                   "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "files": {
+                  "properties": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "manifest": {
+                      "type": "object",
+                      "additionalProperties": {
                         "type": "object",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "hash": {
-                              "type": "string"
-                            },
-                            "size": {
-                              "type": "number"
-                            },
-                            "mimeType": {
-                              "type": "string"
-                            }
+                        "properties": {
+                          "hash": {
+                            "type": "string"
                           },
-                          "required": [
-                            "hash",
-                            "size",
-                            "mimeType"
-                          ]
-                        }
-                      },
-                      "environmentVariables": {
-                        "$ref": "#/components/schemas/StringMapDTO"
-                      },
-                      "hash": {
-                        "type": "string"
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
                       }
                     },
-                    "required": [
-                      "description",
-                      "files",
-                      "environmentVariables",
-                      "hash"
-                    ]
-                  }
+                    "definitions": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "description": {
+                            "type": "string"
+                          },
+                          "environmentVariables": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "entrypoint": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "description",
+                          "environmentVariables",
+                          "entrypoint"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "hash",
+                    "size",
+                    "manifest",
+                    "definitions"
+                  ]
                 },
                 "ui": {
                   "type": "object",
                   "properties": {
                     "hash": {
                       "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
                     },
                     "manifest": {
                       "type": "object",
@@ -6737,6 +6768,7 @@
                   },
                   "required": [
                     "hash",
+                    "size",
                     "manifest"
                   ],
                   "nullable": true
@@ -7034,6 +7066,10 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
+                        },
                         "description": {
                           "type": "string"
                         },
@@ -7042,12 +7078,19 @@
                         }
                       },
                       "required": [
+                        "entrypoint",
                         "description"
                       ],
                       "additionalProperties": false
                     }
                   },
                   "ui": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  },
+                  "database": {
                     "type": "boolean",
                     "enum": [
                       true
@@ -7238,54 +7281,74 @@
               },
               "workers": {
                 "type": "object",
-                "additionalProperties": {
-                  "type": "object",
-                  "properties": {
-                    "description": {
-                      "type": "string"
-                    },
-                    "files": {
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "manifest": {
+                    "type": "object",
+                    "additionalProperties": {
                       "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "hash": {
-                            "type": "string"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mimeType": {
-                            "type": "string"
-                          }
+                      "properties": {
+                        "hash": {
+                          "type": "string"
                         },
-                        "required": [
-                          "hash",
-                          "size",
-                          "mimeType"
-                        ]
-                      }
-                    },
-                    "environmentVariables": {
-                      "$ref": "#/components/schemas/StringMapDTO"
-                    },
-                    "hash": {
-                      "type": "string"
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
                     }
                   },
-                  "required": [
-                    "description",
-                    "files",
-                    "environmentVariables",
-                    "hash"
-                  ]
-                }
+                  "definitions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "environmentVariables": {
+                          "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "environmentVariables",
+                        "entrypoint"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "hash",
+                  "size",
+                  "manifest",
+                  "definitions"
+                ]
               },
               "ui": {
                 "type": "object",
                 "properties": {
                   "hash": {
                     "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
                   },
                   "manifest": {
                     "type": "object",
@@ -7312,6 +7375,7 @@
                 },
                 "required": [
                   "hash",
+                  "size",
                   "manifest"
                 ],
                 "nullable": true

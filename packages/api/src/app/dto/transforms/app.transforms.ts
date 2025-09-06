@@ -22,7 +22,7 @@ export function transformAppToDTO(
       objectSidebarViews: [],
       objectDetailViews: [],
     },
-    ui: app.ui ?? null,
+    ui: app.ui,
     metrics: null,
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,

@@ -61,15 +61,6 @@ export const taskConfigSchema = z
   })
   .strict()
 
-export const appWorkersArraySchema = z.array(
-  z.object({
-    description: z.string(),
-    identifier: z.string(),
-    hash: z.string(),
-    environmentVariables: z.record(z.string(), z.string()).optional(),
-  }),
-)
-
 export const appUILinkSchema = z.object({
   label: z.string(),
   iconPath: z.string().optional(),
@@ -84,8 +75,32 @@ export const appManifestEntrySchema = z.object({
 
 export const appManifestSchema = z.record(z.string(), appManifestEntrySchema)
 
-export const appWorkerScriptConfigSchema = z
+export const workerEntrypointSchema = z
+  .string()
+  .nonempty()
+  .refine((path) => !path.startsWith('/'), {
+    message: 'Entrypoint must be a relative path (cannot start with "/")',
+  })
+  .refine((path) => !path.startsWith('./'), {
+    message:
+      'Entrypoint should not start with "./" (relative paths are implicit)',
+  })
+  .refine((path) => !path.includes('..'), {
+    message: 'Entrypoint cannot contain ".." (parent directory references)',
+  })
+  .refine((path) => !path.includes('\\'), {
+    message: 'Entrypoint must use forward slashes "/" (not backslashes)',
+  })
+  .refine((path) => path.trim() === path, {
+    message: 'Entrypoint cannot have leading or trailing whitespace',
+  })
+  .refine((path) => !path.includes('//'), {
+    message: 'Entrypoint cannot contain consecutive slashes "//"',
+  })
+
+export const appWorkerConfigSchema = z
   .object({
+    entrypoint: workerEntrypointSchema,
     description: z.string(),
     environmentVariables: z.record(z.string(), z.string()).optional(),
   })
@@ -142,7 +157,7 @@ export const appConfigSchema = z
           .nonempty()
           .regex(/^[a-z0-9_]+$/)
           .refine((v) => v.toLowerCase() === v),
-        appWorkerScriptConfigSchema,
+        appWorkerConfigSchema,
       )
       .optional(),
     ui: z.literal(true).optional(),
@@ -165,15 +180,40 @@ export const appConfigSchema = z
     })
   })
 
+// Schema that includes manifest validation for worker entrypoints
+export const appConfigWithManifestSchema = (
+  manifest: Record<string, unknown>,
+) =>
+  appConfigSchema.superRefine((value, ctx) => {
+    if (value.workers) {
+      Object.entries(value.workers).forEach(([workerId, workerConfig]) => {
+        if (!manifest[`/workers/${workerConfig.entrypoint}`]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Worker "${workerId}" entrypoint "${workerConfig.entrypoint}" does not exist in manifest`,
+            path: ['workers', workerId, 'entrypoint'],
+          })
+        }
+      })
+    }
+  })
+
 export const appWorkerSchema = z.object({
   description: z.string(),
-  files: appManifestSchema,
   environmentVariables: z.record(z.string(), z.string()),
-  hash: z.string(),
+  entrypoint: workerEntrypointSchema,
 })
-export const appWorkersSchema = z.record(z.string(), appWorkerSchema)
-export const appUiSchema = z.object({
+
+export const appWorkersBundleSchema = z.object({
   hash: z.string(),
+  size: z.number(),
+  manifest: appManifestSchema,
+  definitions: z.record(z.string(), appWorkerSchema),
+})
+
+export const appUiBundleSchema = z.object({
+  hash: z.string(),
+  size: z.number(),
   manifest: appManifestSchema,
 })
 
@@ -209,7 +249,7 @@ export const appMetricsSchema = z.object({
 
 export type AppTaskConfig = z.infer<typeof taskConfigSchema>
 
-export type AppWorkersConfig = z.infer<typeof appWorkersSchema>
+export type AppWorkersBundle = z.infer<typeof appWorkersBundleSchema>
 
 export type AppUILink = z.infer<typeof appUILinkSchema>
 
@@ -229,4 +269,4 @@ export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>
 
 export type AppMetrics = z.infer<typeof appMetricsSchema>
 
-export type AppUi = z.infer<typeof appUiSchema>
+export type AppUiBundle = z.infer<typeof appUiBundleSchema>

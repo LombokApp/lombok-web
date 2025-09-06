@@ -44,6 +44,7 @@ export interface PlatformServerMessageInterface {
       payloadUrl: string
       workerToken: string
       environmentVariables: Record<string, string>
+      entrypoint: string
       hash: string
     }>
   >
