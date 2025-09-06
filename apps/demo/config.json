@@ -39,6 +39,7 @@
     }
   },
   "ui": true,
+  "database": true,
   "contributions": {
     "sidebarMenuLinks": [
       {

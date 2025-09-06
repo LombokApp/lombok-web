@@ -5,6 +5,17 @@ const sql = postgres(
 )
 
 async function main(): Promise<void> {
+  // Drop all schemas starting with app_
+  const appSchemas = await sql`
+    SELECT schema_name 
+    FROM information_schema.schemata 
+    WHERE schema_name LIKE 'app_%'
+  `
+
+  for (const schema of appSchemas) {
+    await sql`DROP SCHEMA IF EXISTS ${sql(schema.schema_name)} CASCADE;`
+  }
+
   await sql`DROP SCHEMA IF EXISTS public CASCADE;`
   await sql`CREATE SCHEMA public;`
   await sql`GRANT ALL ON SCHEMA public TO public;`

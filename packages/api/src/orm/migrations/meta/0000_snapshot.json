@@ -1,5 +1,5 @@
 {
-  "id": "17ee6308-7446-45ed-bcbf-de66d0eb131c",
+  "id": "9661c176-48bb-4047-866d-55398e1cfbd6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -68,7 +68,14 @@
           "name": "ui",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "database": {
+          "name": "database",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "manifest": {
           "name": "manifest",

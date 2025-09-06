@@ -6,6 +6,9 @@ export const CORE_APP_IDENTIFIER = 'core'
 export const WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:worker_task_enqueued`
 
 export const AppSocketMessage = z.enum([
+  'DB_QUERY',
+  'DB_EXEC',
+  'DB_BATCH',
   'GET_WORKER_EXECUTION_DETAILS',
   'SAVE_LOG_ENTRY',
   'GET_APP_STORAGE_SIGNED_URLS',
@@ -143,6 +146,7 @@ export const appConfigSchema = z
       )
       .optional(),
     ui: z.literal(true).optional(),
+    database: z.literal(true).optional(),
     contributions: appContributionsSchema.optional(),
   })
   .strict()

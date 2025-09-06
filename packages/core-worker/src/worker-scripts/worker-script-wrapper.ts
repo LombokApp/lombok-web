@@ -5,7 +5,7 @@ import type {
   SerializeableResponse,
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
-import { buildAppClient } from '@lombokapp/app-worker-sdk'
+import { buildAppClient, buildDatabaseClient } from '@lombokapp/app-worker-sdk'
 import type { WorkerModuleStartContext } from '@lombokapp/core-worker'
 import {
   serializeWorkerError,
@@ -143,6 +143,8 @@ void (async () => {
       workerModuleStartContext.serverBaseUrl,
     )
 
+    const dbClient = buildDatabaseClient(serverClient)
+
     // Reconstruct the request or task object from serialized data
     const taskOrRequest =
       workerModuleStartContext.executionType === 'request'
@@ -155,9 +157,15 @@ void (async () => {
     try {
       response = await (workerModuleStartContext.executionType === 'request'
         ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          userModule.handleRequest!(taskOrRequest as Request, { serverClient })
+          userModule.handleRequest!(taskOrRequest as Request, {
+            serverClient,
+            dbClient,
+          })
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          userModule.handleTask!(taskOrRequest as AppTask, { serverClient }))
+          userModule.handleTask!(taskOrRequest as AppTask, {
+            serverClient,
+            dbClient,
+          }))
     } catch (err) {
       throw new WorkerRuntimeError(
         'Worker module error during execution',

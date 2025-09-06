@@ -107,6 +107,19 @@ export interface PlatformServerMessageInterface {
     }[],
     eventId?: string,
   ) => Promise<AppAPIResponse<void>>
+  // Database methods
+  query: (
+    sql: string,
+    params?: unknown[],
+  ) => Promise<AppAPIResponse<{ rows: unknown[]; fields: unknown[] }>>
+  exec: (
+    sql: string,
+    params?: unknown[],
+  ) => Promise<AppAPIResponse<{ rowCount: number }>>
+  batch: (
+    steps: { sql: string; params?: unknown[]; kind: 'query' | 'exec' }[],
+    atomic?: boolean,
+  ) => Promise<AppAPIResponse<{ results: unknown[] }>>
 }
 
 export const buildAppClient = (
@@ -199,6 +212,50 @@ export const buildAppClient = (
         PlatformServerMessageInterface['failHandleTask']
       >
     },
+    // Database methods
+    query(sql, params = []) {
+      return emitWithAck('DB_QUERY', { sql, params }) as ReturnType<
+        PlatformServerMessageInterface['query']
+      >
+    },
+    exec(sql, params = []) {
+      return emitWithAck('DB_EXEC', { sql, params }) as ReturnType<
+        PlatformServerMessageInterface['exec']
+      >
+    },
+    batch(steps, atomic = false) {
+      return emitWithAck('DB_BATCH', { steps, atomic }) as ReturnType<
+        PlatformServerMessageInterface['batch']
+      >
+    },
+  }
+}
+
+export interface DatabaseClient {
+  query: (
+    sql: string,
+    params?: unknown[],
+  ) => Promise<{ rows: unknown[]; fields: unknown[] }>
+  exec: (sql: string, params?: unknown[]) => Promise<{ rowCount: number }>
+  batch: (
+    steps: { sql: string; params?: unknown[]; kind: 'query' | 'exec' }[],
+    atomic?: boolean,
+  ) => Promise<{ results: unknown[] }>
+}
+
+export const buildDatabaseClient = (
+  server: PlatformServerMessageInterface,
+): DatabaseClient => {
+  return {
+    async query(sql, params = []) {
+      return (await server.query(sql, params)).result
+    },
+    async exec(sql, params = []) {
+      return (await server.exec(sql, params)).result
+    },
+    async batch(steps, atomic = false) {
+      return (await server.batch(steps, atomic)).result
+    },
   }
 }
 
@@ -216,12 +273,18 @@ export interface SerializeableRequest {
 
 export type RequestHandler = (
   request: Request,
-  { serverClient }: { serverClient: PlatformServerMessageInterface },
+  {
+    serverClient,
+    dbClient,
+  }: { serverClient: PlatformServerMessageInterface; dbClient: DatabaseClient },
 ) => Promise<SerializeableResponse> | SerializeableResponse
 
 export type TaskHandler = (
   task: AppTask,
-  { serverClient }: { serverClient: PlatformServerMessageInterface },
+  {
+    serverClient,
+    dbClient,
+  }: { serverClient: PlatformServerMessageInterface; dbClient: DatabaseClient },
 ) => Promise<undefined> | undefined
 
 export const sendResponse = (
