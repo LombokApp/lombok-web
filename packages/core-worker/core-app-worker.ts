@@ -334,7 +334,7 @@ process.stdin.once('data', (data) => {
 
         fetch: async (req) => {
           const url = new URL(req.url)
-          const pathname = url.pathname
+          const pathname = url.pathname.slice(1)
 
           const host = req.headers.get('host') || ''
           const hostParts = host.split('.')
@@ -424,25 +424,18 @@ process.stdin.once('data', (data) => {
               return new Response('Internal server error', { status: 500 })
             }
           }
-
-          const baseManifestPathParts = ['/', 'ui']
           let targetPath = ''
-          const wholePathname = path.join(...baseManifestPathParts, pathname)
-          if (wholePathname in manifest) {
+          if (pathname in manifest) {
             targetPath = pathname
-          } else if (
-            path.join(...baseManifestPathParts, pathname, 'index.html') in
-            manifest
-          ) {
+          } else if (path.join(pathname, 'index.html') in manifest) {
             targetPath = path.join(pathname, 'index.html')
           } else {
             targetPath = 'index.html'
           }
 
           const filePath = path.join(appBundleCacheDir, targetPath)
-          const manifestPath = path.join('/', 'ui', targetPath)
           const manifestEntry =
-            manifestPath in manifest ? manifest[manifestPath] : null
+            targetPath in manifest ? manifest[targetPath] : null
           if (manifestEntry) {
             try {
               const fileBuffer = fs.readFileSync(filePath)
