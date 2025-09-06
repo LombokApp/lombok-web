@@ -1,3 +1,18 @@
+import { Mime } from 'mime'
+import otherTypes from 'mime/types/other.js'
+import standardTypes from 'mime/types/standard.js'
+
+const mime = new Mime({
+  ...standardTypes,
+  ...otherTypes,
+  'video/mp2t': [''],
+  'text/typescript': ['ts'],
+})
+
+export const mimeFromExtension = (extension: string) => {
+  return mime.getType(extension)
+}
+
 import { MediaType } from '../../types'
 import type {
   AudioMediaMimeTypes,

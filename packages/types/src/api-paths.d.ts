@@ -1707,12 +1707,15 @@ export interface components {
                     }[];
                     workers?: {
                         [key: string]: {
+                            entrypoint: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
                     /** @enum {boolean} */
                     ui?: true;
+                    /** @enum {boolean} */
+                    database?: true;
                     contributions?: {
                         sidebarMenuLinks: {
                             path: string;
@@ -1753,21 +1756,26 @@ export interface components {
                     ip: string;
                 }[];
                 workers: {
-                    [key: string]: {
-                        description: string;
-                        files: {
-                            [key: string]: {
-                                hash: string;
-                                size: number;
-                                mimeType: string;
-                            };
+                    hash: string;
+                    size: number;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
                         };
-                        environmentVariables: components["schemas"]["StringMapDTO"];
-                        hash: string;
+                    };
+                    definitions: {
+                        [key: string]: {
+                            description: string;
+                            environmentVariables: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
+                        };
                     };
                 };
                 ui: {
                     hash: string;
+                    size: number;
                     manifest: {
                         [key: string]: {
                             hash: string;
@@ -1841,12 +1849,15 @@ export interface components {
                     }[];
                     workers?: {
                         [key: string]: {
+                            entrypoint: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
                     /** @enum {boolean} */
                     ui?: true;
+                    /** @enum {boolean} */
+                    database?: true;
                     contributions?: {
                         sidebarMenuLinks: {
                             path: string;
@@ -1887,21 +1898,26 @@ export interface components {
                     ip: string;
                 }[];
                 workers: {
-                    [key: string]: {
-                        description: string;
-                        files: {
-                            [key: string]: {
-                                hash: string;
-                                size: number;
-                                mimeType: string;
-                            };
+                    hash: string;
+                    size: number;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
                         };
-                        environmentVariables: components["schemas"]["StringMapDTO"];
-                        hash: string;
+                    };
+                    definitions: {
+                        [key: string]: {
+                            description: string;
+                            environmentVariables: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
+                        };
                     };
                 };
                 ui: {
                     hash: string;
+                    size: number;
                     manifest: {
                         [key: string]: {
                             hash: string;

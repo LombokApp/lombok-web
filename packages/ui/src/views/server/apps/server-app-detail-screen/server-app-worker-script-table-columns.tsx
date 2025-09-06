@@ -1,4 +1,4 @@
-import type { AppDTO } from '@lombokapp/types'
+import type { AppWorkersMap } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { UseMutationResult } from '@tanstack/react-query'
@@ -23,7 +23,7 @@ export function configureServerAppWorkerScriptTableColumns(
       }
     }>
   >,
-): ColumnDef<AppDTO['workers'][string] & { identifier: string }>[] {
+): ColumnDef<AppWorkersMap[string] & { identifier: string }>[] {
   return [
     {
       accessorKey: 'identifier',
@@ -62,26 +62,18 @@ export function configureServerAppWorkerScriptTableColumns(
       enableHiding: false,
     },
     {
-      accessorKey: 'IP',
+      accessorKey: 'entrypoint',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}
           column={column}
-          title="Files"
+          title="Entrypoint"
         />
       ),
       cell: ({ row: { original: appWorker } }) => {
         return (
           <div className="flex items-center gap-2 font-normal">
-            ({Object.keys(appWorker.files).length}){' '}
-            {Object.keys(appWorker.files)
-              .map((fileName) => {
-                const prefix = `/workers/${appWorker.identifier}/`
-                return fileName.startsWith(prefix)
-                  ? fileName.slice(prefix.length)
-                  : fileName
-              })
-              .join(', ')}
+            {appWorker.entrypoint}
           </div>
         )
       },

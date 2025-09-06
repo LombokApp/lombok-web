@@ -87,31 +87,24 @@ export function reconstructResponse(
   })
 }
 
-// Prepare and cache worker bundle by app/work/hash. Ensures only one setup runs at a time.
+// Prepare and cache worker bundle by app/hash. Ensures only one setup runs at a time.
 async function prepareWorkerBundle({
   appIdentifier,
-  workerIdentifier,
   payloadUrl,
   bundleHash,
 }: {
   appIdentifier: string
-  workerIdentifier: string
   payloadUrl: string
   bundleHash: string
-}): Promise<{ cacheDir: string; entrypoint: 'index.js' | 'index.ts' }> {
-  const workerCacheRoot = path.join(cacheRoot, appIdentifier, workerIdentifier)
+}): Promise<{ cacheDir: string }> {
+  const workerCacheRoot = path.join(cacheRoot, appIdentifier)
   const cacheDir = path.join(workerCacheRoot, bundleHash)
   const readyMarker = path.join(cacheDir, '.READY')
   const lockFile = path.join(workerCacheRoot, `.lock.${bundleHash}`)
 
   // Fast-path if already prepared
   if (fs.existsSync(readyMarker)) {
-    const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
-      path.join(cacheDir, 'index.js'),
-    )
-      ? 'index.js'
-      : 'index.ts'
-    return { cacheDir, entrypoint }
+    return { cacheDir }
   }
 
   fs.mkdirSync(workerCacheRoot, { recursive: true })
@@ -132,29 +125,19 @@ async function prepareWorkerBundle({
     // Busy-wait with small delay until READY appears or timeout
     while (Date.now() - start < timeoutMs) {
       if (fs.existsSync(readyMarker)) {
-        const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
-          path.join(cacheDir, workerIdentifier, 'index.js'),
-        )
-          ? 'index.js'
-          : 'index.ts'
-        return { cacheDir, entrypoint }
+        return { cacheDir }
       }
       await new Promise((resolve) => setTimeout(resolve, 200))
     }
     throw new Error(
-      `Timed out waiting for worker bundle preparation for ${appIdentifier}/${workerIdentifier}@${bundleHash}`,
+      `Timed out waiting for worker bundle preparation for ${appIdentifier}@${bundleHash}`,
     )
   }
 
   // We have the lock; double-check another process didn't finish in between
   try {
     if (fs.existsSync(readyMarker)) {
-      const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
-        path.join(cacheDir, workerIdentifier, 'index.js'),
-      )
-        ? 'index.js'
-        : 'index.ts'
-      return { cacheDir, entrypoint }
+      return { cacheDir }
     }
 
     const tmpRoot = path.join(prepCacheRoot, crypto.randomUUID())
@@ -186,13 +169,8 @@ async function prepareWorkerBundle({
     // Mark as ready
     fs.writeFileSync(readyMarker, '')
 
-    const entrypoint: 'index.js' | 'index.ts' = fs.existsSync(
-      path.join(cacheDir, workerIdentifier, 'index.js'),
-    )
-      ? 'index.js'
-      : 'index.ts'
     fs.rmSync(tmpRoot, { recursive: true })
-    return { cacheDir, entrypoint }
+    return { cacheDir }
   } finally {
     // Release lock
     try {
@@ -272,9 +250,8 @@ export const runWorkerScript = async ({
   )
 
   // Prepare or reuse cached worker bundle by hash
-  const { cacheDir, entrypoint } = await prepareWorkerBundle({
+  const { cacheDir } = await prepareWorkerBundle({
     appIdentifier,
-    workerIdentifier,
     payloadUrl: workerExecutionDetails.payloadUrl,
     bundleHash: workerExecutionDetails.hash,
   })
@@ -305,7 +282,7 @@ export const runWorkerScript = async ({
     resultFilepath: '/logs/result.json',
     outputLogFilepath: '/logs/output.log',
     errorLogFilepath: '/logs/error.json',
-    scriptPath: `/app/${entrypoint}`,
+    scriptPath: `/app/${workerExecutionDetails.entrypoint}`,
     workerToken: workerExecutionDetails.workerToken,
     executionId: workerExecutionId,
     executionType: isRequest ? 'request' : 'task',

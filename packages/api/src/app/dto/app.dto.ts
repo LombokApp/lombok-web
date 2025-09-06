@@ -4,8 +4,8 @@ import {
   appContributionsSchema,
   appManifestSchema,
   appMetricsSchema,
-  appUiSchema,
-  appWorkersSchema,
+  appUiBundleSchema,
+  appWorkersBundleSchema,
   externalAppWorkerSchema,
 } from '@lombokapp/types'
 import { z } from 'zod'
@@ -19,8 +19,8 @@ export const appSchema = z.object({
   enabled: z.boolean(),
   manifest: appManifestSchema,
   externalWorkers: z.array(externalAppWorkerSchema),
-  workers: appWorkersSchema,
-  ui: appUiSchema.nullable(),
+  workers: appWorkersBundleSchema,
+  ui: appUiBundleSchema.nullable(),
   contributions: appContributionsSchema,
   metrics: appMetricsSchema.nullable(),
   createdAt: z.date(),

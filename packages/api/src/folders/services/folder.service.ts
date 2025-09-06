@@ -14,6 +14,7 @@ import {
 } from '@lombokapp/types'
 import {
   mediaTypeFromMimeType,
+  mimeFromExtension,
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@lombokapp/utils'
@@ -37,7 +38,6 @@ import {
   type SQL,
   sql,
 } from 'drizzle-orm'
-import mime from 'mime'
 import { AppService } from 'src/app/services/app.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
@@ -1082,7 +1082,7 @@ export class FolderService {
       objectKeyParts.length > 1 ? objectKeyParts.at(-1) : undefined
 
     const mimeTypeFromExtension = extension
-      ? (mime.getType(extension) ?? '')
+      ? (mimeFromExtension(extension) ?? '')
       : ''
     const insertMimeType = updateRecord.mimeType ?? mimeTypeFromExtension
     const insertMediaType = updateRecord.mimeType

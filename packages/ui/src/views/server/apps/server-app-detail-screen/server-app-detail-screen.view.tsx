@@ -20,6 +20,7 @@ import {
   cn,
   DataTable,
 } from '@lombokapp/ui-toolkit'
+import { formatBytes } from '@lombokapp/utils'
 import { HardDrive, KeyIcon, Menu, OctagonX } from 'lucide-react'
 import React from 'react'
 
@@ -211,7 +212,7 @@ export function ServerAppDetailScreen({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Workers</CardTitle>
+          <CardTitle>Workers Bundle</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-8">
@@ -245,7 +246,7 @@ export function ServerAppDetailScreen({
                       'w-1/3',
                       'bg-foreground/[0.02] text-foreground/50',
                     )}
-                    data={Object.entries(app?.workers ?? {}).map(
+                    data={Object.entries(app?.workers.definitions ?? {}).map(
                       ([workerKey, worker]) => ({
                         identifier: workerKey,
                         ...worker,
@@ -257,6 +258,51 @@ export function ServerAppDetailScreen({
                     )}
                   />
                 )}
+              </CardContent>
+            </Card>
+            <Card className="flex-1 border-0 bg-transparent shadow-none">
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="py-0 text-base">
+                  <div className="flex flex-col">
+                    <span>
+                      Manifest{' '}
+                      {app?.ui?.size
+                        ? `(${formatBytes(app.workers.size)})`
+                        : ''}
+                    </span>
+                    <span
+                      id="folder-object-view-contribution-description"
+                      className="text-sm font-normal text-muted-foreground/70"
+                    >
+                      All worker files
+                    </span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="flex flex-col gap-8">
+                  {Object.keys(app?.workers.manifest ?? {}).length === 0 ? (
+                    <EmptyState
+                      variant="row-sm"
+                      icon={Menu}
+                      text={'No files included'}
+                    />
+                  ) : (
+                    <DataTable
+                      className="bg-background/50"
+                      headerCellClassName={cn(
+                        'bg-foreground/[0.02] text-foreground/50',
+                      )}
+                      data={Object.entries(app?.workers.manifest ?? {}).map(
+                        ([path, file]) => ({
+                          path,
+                          ...file,
+                        }),
+                      )}
+                      columns={serverAppManifestTableColumns}
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
             <Card className="flex-1 border-0 bg-transparent shadow-none">
@@ -356,9 +402,12 @@ export function ServerAppDetailScreen({
           <div className="flex flex-col gap-8">
             <Card className="flex-1 border-0 bg-transparent shadow-none">
               <CardHeader className="p-0 pb-4">
-                <CardTitle>
+                <CardTitle className="py-0 text-base">
                   <div className="flex flex-col">
-                    <span>Manifest</span>
+                    <span>
+                      Manifest{' '}
+                      {app?.ui?.size ? `(${formatBytes(app.ui.size)})` : ''}
+                    </span>
                     <span
                       id="folder-object-view-contribution-description"
                       className="text-sm font-normal text-muted-foreground/70"
@@ -378,11 +427,8 @@ export function ServerAppDetailScreen({
                     />
                   ) : (
                     <DataTable
-                      fixedLayout
                       className="bg-background/50"
-                      bodyCellClassName="w-1/3"
                       headerCellClassName={cn(
-                        'w-1/3',
                         'bg-foreground/[0.02] text-foreground/50',
                       )}
                       data={Object.entries(app?.ui?.manifest ?? {}).map(

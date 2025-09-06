@@ -3,11 +3,12 @@ import type { SafeParseReturnType } from 'zod'
 
 import {
   appConfigSchema,
+  appConfigWithManifestSchema,
   appContributionsSchema,
   appManifestSchema,
   appUIConfigSchema,
   appUILinkSchema,
-  appWorkerScriptConfigSchema,
+  appWorkerConfigSchema,
   ConfigParamType,
   externalAppWorkerSchema,
   paramConfigSchema,
@@ -151,6 +152,7 @@ describe('apps.types', () => {
         ],
         workers: {
           script1: {
+            entrypoint: 'worker1.js',
             description: 'Test script',
             environmentVariables: { VAR1: 'value1' },
           },
@@ -195,6 +197,7 @@ describe('apps.types', () => {
         ],
         workers: {
           script1: {
+            entrypoint: 'worker1.js',
             description: 'Test script',
             environmentVariables: { VAR1: 'value1' },
           },
@@ -221,6 +224,7 @@ describe('apps.types', () => {
         ],
         workers: {
           script1: {
+            entrypoint: 'worker1.js',
             description: 'Test script',
             environmentVariables: { VAR1: 'value1' },
           },
@@ -238,7 +242,7 @@ describe('apps.types', () => {
         emittableEvents: ['event1'],
         tasks: [
           {
-            identifier: 'task1',
+            identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
           },
@@ -256,7 +260,7 @@ describe('apps.types', () => {
         emittableEvents: ['event1'],
         tasks: [
           {
-            identifier: 'task1',
+            identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
           },
@@ -274,7 +278,7 @@ describe('apps.types', () => {
         emittableEvents: ['event1'],
         tasks: [
           {
-            identifier: 'task1',
+            identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
           },
@@ -282,6 +286,114 @@ describe('apps.types', () => {
       }
       const result = appConfigSchema.safeParse(invalidApp)
       expectZodFailure(result)
+    })
+  })
+
+  describe('appConfigWithManifestSchema', () => {
+    it('should validate when worker entrypoints exist in manifest', () => {
+      const manifest = {
+        '/workers/worker1.js': {
+          hash: 'abc123',
+          size: 1024,
+          mimeType: 'application/javascript',
+        },
+        '/workers/worker2.js': {
+          hash: 'def456',
+          size: 512,
+          mimeType: 'application/javascript',
+        },
+      }
+
+      const validApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        emittableEvents: ['event1'],
+        tasks: [
+          {
+            identifier: 'task_one',
+            label: 'Task 1',
+            description: 'First task',
+            triggers: ['test.event'],
+            worker: 'script1',
+          },
+        ],
+        workers: {
+          script1: {
+            entrypoint: 'worker1.js',
+            description: 'Test script',
+          },
+        },
+      }
+
+      const result = appConfigWithManifestSchema(manifest).safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should reject when worker entrypoint does not exist in manifest', () => {
+      const manifest = {
+        '/workers/worker1.js': {
+          hash: 'abc123',
+          size: 1024,
+          mimeType: 'application/javascript',
+        },
+      }
+
+      const invalidApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        emittableEvents: ['event1'],
+        tasks: [
+          {
+            identifier: 'task_one',
+            label: 'Task 1',
+            description: 'First task',
+            triggers: ['test.event'],
+            worker: 'script1',
+          },
+        ],
+        workers: {
+          script1: {
+            entrypoint: 'nonexistent.js',
+            description: 'Test script',
+          },
+        },
+      }
+
+      const result = appConfigWithManifestSchema(manifest).safeParse(invalidApp)
+      expectZodFailure(result)
+      expect(result.error?.issues[0].message).toContain(
+        'does not exist in manifest',
+      )
+    })
+
+    it('should validate when no workers are defined', () => {
+      const manifest = {
+        'file1.js': {
+          hash: 'abc123',
+          size: 1024,
+          mimeType: 'application/javascript',
+        },
+      }
+
+      const validApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        emittableEvents: ['event1'],
+        tasks: [
+          {
+            identifier: 'task_one',
+            label: 'Task 1',
+            description: 'First task',
+            triggers: ['test.event'],
+          },
+        ],
+      }
+
+      const result = appConfigWithManifestSchema(manifest).safeParse(validApp)
+      expectZodSuccess(result)
     })
   })
 
@@ -372,21 +484,23 @@ describe('apps.types', () => {
   describe('appWorkerScriptConfigSchema', () => {
     it('should validate worker script config', () => {
       const validScriptConfig = {
+        entrypoint: 'worker.js',
         description: 'Test script',
         environmentVariables: {
           SOME_ENV_VAR: 'production',
           API_URL: 'https://api.example.com',
         },
       }
-      const result = appWorkerScriptConfigSchema.safeParse(validScriptConfig)
+      const result = appWorkerConfigSchema.safeParse(validScriptConfig)
       expectZodSuccess(result)
     })
 
     it('should validate worker script config without env vars', () => {
       const validScriptConfig = {
+        entrypoint: 'worker.js',
         description: 'Test script',
       }
-      const result = appWorkerScriptConfigSchema.safeParse(validScriptConfig)
+      const result = appWorkerConfigSchema.safeParse(validScriptConfig)
       expectZodSuccess(result)
     })
   })
