@@ -177,8 +177,11 @@ export class UserService {
       if (
         error &&
         typeof error === 'object' &&
-        'constraint_name' in error &&
-        error.constraint_name === 'users_username_unique'
+        'cause' in error &&
+        typeof error.cause === 'object' &&
+        'constraint' in (error.cause ?? {}) &&
+        (error as { cause: { constraint: string } }).cause.constraint ===
+          'users_username_unique'
       ) {
         throw new UserIdentityConflictException()
       }

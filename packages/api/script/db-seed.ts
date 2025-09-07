@@ -1,6 +1,6 @@
 import type { StorageProvisionDTO } from '@lombokapp/types'
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import {
   SERVER_STORAGE_CONFIG,
@@ -14,9 +14,9 @@ import type { NewUser } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-const sql = postgres(
-  `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
-)
+const sql = new Pool({
+  connectionString: `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+})
 
 if (
   !process.env.DEV_S3_ACCESS_KEY_ID ||

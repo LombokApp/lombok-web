@@ -7,6 +7,7 @@ import type {
   SignedURLsRequestMethod,
   WorkerErrorDetails,
 } from '@lombokapp/types'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 
@@ -68,6 +69,10 @@ export interface PlatformServerMessageInterface {
     },
   ) => Promise<AppAPIResponse<void>>
   completeHandleTask: (taskId: string) => Promise<AppAPIResponse<void>>
+  authenticateUser: (
+    token: string,
+    appIdentifier: string,
+  ) => Promise<AppAPIResponse<{ userId: string; success: boolean }>>
   getMetadataSignedUrls: (
     objects: {
       folderId: string
@@ -112,13 +117,19 @@ export interface PlatformServerMessageInterface {
   query: (
     sql: string,
     params?: unknown[],
+    rowMode?: string,
   ) => Promise<AppAPIResponse<{ rows: unknown[]; fields: unknown[] }>>
   exec: (
     sql: string,
     params?: unknown[],
   ) => Promise<AppAPIResponse<{ rowCount: number }>>
   batch: (
-    steps: { sql: string; params?: unknown[]; kind: 'query' | 'exec' }[],
+    steps: {
+      sql: string
+      params?: unknown[]
+      kind: 'query' | 'exec'
+      rowMode?: string
+    }[],
     atomic?: boolean,
   ) => Promise<AppAPIResponse<{ results: unknown[] }>>
 }
@@ -193,6 +204,12 @@ export const buildAppClient = (
         PlatformServerMessageInterface['completeHandleTask']
       >
     },
+    authenticateUser(token, appIdentifier) {
+      return emitWithAck('AUTHENTICATE_USER', {
+        token,
+        appIdentifier,
+      }) as ReturnType<PlatformServerMessageInterface['authenticateUser']>
+    },
     attemptStartHandleTaskById(taskId: string, taskHandlerId?: string) {
       return emitWithAck('ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID', {
         taskId,
@@ -214,8 +231,8 @@ export const buildAppClient = (
       >
     },
     // Database methods
-    query(sql, params = []) {
-      return emitWithAck('DB_QUERY', { sql, params }) as ReturnType<
+    query(sql, params, rowMode) {
+      return emitWithAck('DB_QUERY', { sql, params, rowMode }) as ReturnType<
         PlatformServerMessageInterface['query']
       >
     },
@@ -236,10 +253,16 @@ export interface DatabaseClient {
   query: (
     sql: string,
     params?: unknown[],
+    rowMode?: string,
   ) => Promise<{ rows: unknown[]; fields: unknown[] }>
   exec: (sql: string, params?: unknown[]) => Promise<{ rowCount: number }>
   batch: (
-    steps: { sql: string; params?: unknown[]; kind: 'query' | 'exec' }[],
+    steps: {
+      sql: string
+      params?: unknown[]
+      kind: 'query' | 'exec'
+      rowMode?: string
+    }[],
     atomic?: boolean,
   ) => Promise<{ results: unknown[] }>
 }
@@ -248,16 +271,145 @@ export const buildDatabaseClient = (
   server: PlatformServerMessageInterface,
 ): DatabaseClient => {
   return {
-    async query(sql, params = []) {
-      return (await server.query(sql, params)).result
+    async query(sql, params, rowMode) {
+      const startTime = Date.now()
+      const paramsStr =
+        params && params.length > 0
+          ? ` | Params: ${JSON.stringify(params)}`
+          : ''
+
+      try {
+        const result = (await server.query(sql, params, rowMode)).result
+        const duration = Date.now() - startTime
+        console.log(`[DB Query] [${duration}ms] ${sql}${paramsStr}`)
+        return result
+      } catch (error) {
+        const duration = Date.now() - startTime
+        console.log(
+          `[DB Query] [${duration}ms] FAILED: ${sql}${paramsStr} | Error: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
+        )
+        throw error
+      }
     },
     async exec(sql, params = []) {
-      return (await server.exec(sql, params)).result
+      const startTime = Date.now()
+      const paramsStr =
+        params.length > 0 ? ` | Params: ${JSON.stringify(params)}` : ''
+
+      try {
+        const result = (await server.exec(sql, params)).result
+        const duration = Date.now() - startTime
+        console.log(`[DB Exec] [${duration}ms] ${sql}${paramsStr}`)
+        return result
+      } catch (error) {
+        const duration = Date.now() - startTime
+        console.log(
+          `[DB Exec] [${duration}ms] FAILED: ${sql}${paramsStr} | Error: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
+        )
+        throw error
+      }
     },
     async batch(steps, atomic = false) {
-      return (await server.batch(steps, atomic)).result
+      const startTime = Date.now()
+      const stepsStr = steps
+        .map((step, index) => {
+          const paramsStr =
+            step.params && step.params.length > 0
+              ? ` | Params: ${JSON.stringify(step.params)}`
+              : ''
+          return `Step ${index + 1}: ${step.sql}${paramsStr}`
+        })
+        .join('; ')
+
+      try {
+        const result = (await server.batch(steps, atomic)).result
+        const duration = Date.now() - startTime
+        console.log(
+          `[DB Batch] [${duration}ms] ${steps.length} steps (atomic: ${atomic}) | ${stepsStr}`,
+        )
+        return result
+      } catch (error) {
+        const duration = Date.now() - startTime
+        console.log(
+          `[DB Batch] [${duration}ms] FAILED: ${steps.length} steps (atomic: ${atomic}) | ${stepsStr} | Error: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
+        )
+        throw error
+      }
     },
   }
+}
+
+export class DrizzlePgLike {
+  constructor(private readonly client: DatabaseClient) {}
+
+  // what drizzle needs for queries
+  async query<T = unknown>(
+    sql: { text: string; rowMode?: string; types?: Record<string, unknown> },
+    params?: unknown[],
+  ): Promise<{ rows: T[] }> {
+    // Handle both string and query object formats
+    const actualParams = params || []
+    const rowMode = sql.rowMode
+
+    // Treat SELECT and statements with RETURNING as row-returning
+    const returnsRows = /(^\s*select\b)|\breturning\b/i.test(sql.text)
+    if (returnsRows) {
+      const res = await this.client.query(sql.text, actualParams, rowMode)
+      return { rows: res.rows as T[] }
+    } else {
+      await this.client.exec(sql.text, actualParams)
+      // drizzle ignores rowCount in many cases; returning empty rows is fine
+      return { rows: [] as T[] }
+    }
+  }
+
+  // optional: a transaction hook so `db.transaction(async (tx)=>{})` works
+  async transaction<T>(fn: (tx: DrizzlePgLike) => Promise<T>): Promise<T> {
+    const steps: {
+      sql: string
+      params?: unknown[]
+      kind: 'query' | 'exec'
+      rowMode?: string
+    }[] = []
+    // Provide a tx-scoped client that records steps instead of sending immediately
+    const txClient = new (class extends DrizzlePgLike {
+      query<TRow = unknown>(
+        sql: {
+          text: string
+          rowMode?: string
+          types?: Record<string, unknown>
+        },
+        params?: unknown[],
+      ): Promise<{ rows: TRow[] }> {
+        // Handle both string and query object formats
+        const actualParams = params || []
+        const rowMode = typeof sql === 'object' ? sql.rowMode : undefined
+
+        const kind = /(^\s*select\b)|\breturning\b/i.test(sql.text)
+          ? 'query'
+          : 'exec'
+        steps.push({ sql: sql.text, params: actualParams, kind, rowMode })
+        return Promise.resolve({ rows: [] as TRow[] })
+      }
+    })(this.client)
+
+    const result = await fn(txClient)
+    await this.client.batch(steps, /*atomic*/ true)
+    return result
+  }
+}
+
+// Accept the user's chosen drizzle factory (from any pg-compatible driver)
+// and wrap our DatabaseClient so it can be used directly.
+export const createDrizzle = <
+  TDb extends Record<string, unknown> = Record<string, unknown>,
+>(
+  drizzleFactory: (client: unknown, options?: unknown) => NodePgDatabase<TDb>,
+  client: DatabaseClient,
+  options?: { schema: TDb },
+): NodePgDatabase<TDb> => {
+  const pgLike = new DrizzlePgLike(client)
+  return drizzleFactory(pgLike as unknown, options)
 }
 
 export interface SerializeableResponse {
@@ -277,7 +429,12 @@ export type RequestHandler = (
   {
     serverClient,
     dbClient,
-  }: { serverClient: PlatformServerMessageInterface; dbClient: DatabaseClient },
+    userId,
+  }: {
+    serverClient: PlatformServerMessageInterface
+    dbClient: DatabaseClient
+    userId?: string
+  },
 ) => Promise<SerializeableResponse> | SerializeableResponse
 
 export type TaskHandler = (

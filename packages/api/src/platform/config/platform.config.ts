@@ -18,6 +18,10 @@ export const platformConfig = registerAs('platform', () => {
       .string()
       .refine(isBoolean)
       .optional(),
+    PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT: z
+      .string()
+      .refine(isBoolean)
+      .optional(),
   })
   return {
     installAppsOnStart: !!(
@@ -36,5 +40,8 @@ export const platformConfig = registerAs('platform', () => {
     removeEmbeddedCoreAppWorkerDirectories:
       env.REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES !== '0' &&
       env.REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES !== 'false',
+    printEmbeddedCoreAppNsjailVerboseOutput:
+      env.PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT === '1' ||
+      env.PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT === 'true',
   }
 })

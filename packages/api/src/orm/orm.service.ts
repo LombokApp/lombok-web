@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import * as path from 'path'
-import postgres from 'postgres'
+import { Client, Pool, type PoolClient, QueryResult, QueryResultRow } from 'pg'
 
 import { appsTable } from '../app/entities/app.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
@@ -50,37 +50,44 @@ export const TEST_DB_PREFIX = 'lombok_test__'
 
 @Injectable()
 export class OrmService {
-  private _db?: PostgresJsDatabase<typeof dbSchema>
-  private _client?: postgres.Sql
+  private _db?: NodePgDatabase<typeof dbSchema>
+  private _client?: Pool
 
   constructor(
     @Inject(ormConfig.KEY)
     private readonly _ormConfig: nestjsConfig.ConfigType<typeof ormConfig>,
   ) {}
 
-  get client() {
+  get client(): Pool {
     if (!this._client) {
-      this._client = postgres(
-        `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/${this._ormConfig.dbName}`,
-        this._ormConfig.disableNoticeLogging
-          ? { onnotice: () => undefined }
-          : undefined,
-      )
+      this._client = new Pool({
+        host: this._ormConfig.dbHost,
+        port: this._ormConfig.dbPort,
+        user: this._ormConfig.dbUser,
+        password: this._ormConfig.dbPassword,
+        database: this._ormConfig.dbName,
+      })
     }
     return this._client
   }
 
-  async runWithTestClient(func: (client: postgres.Sql) => Promise<void>) {
-    const c = postgres(
-      `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
-      this._ormConfig.disableNoticeLogging
-        ? { onnotice: () => undefined }
-        : undefined,
-    )
-    await func(c).finally(() => void c.end())
+  async runWithTestClient(func: (client: Client) => Promise<void>) {
+    const c = new Client({
+      host: this._ormConfig.dbHost,
+      port: this._ormConfig.dbPort,
+      user: this._ormConfig.dbUser,
+      password: this._ormConfig.dbPassword,
+      database: 'postgres',
+    })
+    await c.connect()
+    try {
+      await func(c)
+    } finally {
+      await c.end()
+    }
   }
 
-  get db(): PostgresJsDatabase<typeof dbSchema> {
+  get db(): NodePgDatabase<typeof dbSchema> {
     if (!this._db) {
       this._db = drizzle(this.client, {
         schema: dbSchema,
@@ -98,13 +105,14 @@ export class OrmService {
     }
     if (this._ormConfig.createDatabase) {
       await this.runWithTestClient(async (_c) => {
-        const existsResult = await _c.unsafe(
-          `SELECT 1 FROM pg_database WHERE datname = '${this._ormConfig.dbName}'`,
+        const existsResult = await _c.query(
+          'SELECT 1 FROM pg_database WHERE datname = $1',
+          [this._ormConfig.dbName],
         )
-        const exists = existsResult.count > 0
+        const exists = existsResult.rows.length > 0
 
         if (!exists) {
-          await _c.unsafe(`CREATE DATABASE ${this._ormConfig.dbName};`)
+          await _c.query(`CREATE DATABASE ${this._ormConfig.dbName};`)
         }
       })
     }
@@ -134,7 +142,7 @@ export class OrmService {
     })
   }
 
-  async migrate() {
+  async migrate(): Promise<void> {
     await migrate(this.db, {
       migrationsFolder: path.join(import.meta.dirname, './migrations'),
     })
@@ -152,27 +160,32 @@ export class OrmService {
       throw new Error('Attempt to truncate non-test database.')
     }
     await this.runWithTestClient(async (_c) => {
-      const existsResult = await _c.unsafe(
-        `SELECT 1 FROM pg_database WHERE datname = '${this._ormConfig.dbName}'`,
+      const existsResult = await _c.query(
+        'SELECT 1 FROM pg_database WHERE datname = $1',
+        [this._ormConfig.dbName],
       )
-      const exists = existsResult.count > 0
+      const exists = existsResult.rows.length > 0
 
       if (!exists) {
         return
       }
 
       try {
-        const tables = await this.client.unsafe(
+        const tablesResult = await this.client.query(
           `SELECT tablename,schemaname FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema', 'drizzle');`,
         )
+        const tables = tablesResult.rows as {
+          tablename: string
+          schemaname: string
+        }[]
 
         if (tables.length > 0) {
           const schemaToTableMapping = tables.reduce<Record<string, string[]>>(
             (acc, next) => ({
               ...acc,
-              [next.schemaname]: (
-                acc[next.schemaname as unknown as string] ?? []
-              ).concat(next.tablename as unknown as string),
+              [next.schemaname]: (acc[next.schemaname] ?? []).concat(
+                next.tablename,
+              ),
             }),
             {},
           )
@@ -181,15 +194,22 @@ export class OrmService {
             const tableNames = schemaToTableMapping[schema]
               .map((t) => `"${t}"`)
               .join(', ')
-            await this.client.begin(async (sql) => {
-              await sql`SET CONSTRAINTS ALL DEFERRED`
-              await sql.unsafe(`SET SCHEMA '${schema}';`)
+            const client = await this.client.connect()
+            try {
+              await client.query('BEGIN')
+              await client.query('SET CONSTRAINTS ALL DEFERRED')
+              await client.query(`SET SCHEMA '${schema}';`)
               const truncateTablesQuery = `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`
-              // console.log('TRUNCATING SCHEMA WITH QUERY:', truncateTablesQuery)
-              await sql.unsafe(truncateTablesQuery)
-              await sql.unsafe(`SET SCHEMA 'public';`)
-              await sql`SET CONSTRAINTS ALL IMMEDIATE`
-            })
+              await client.query(truncateTablesQuery)
+              await client.query(`SET SCHEMA 'public';`)
+              await client.query('SET CONSTRAINTS ALL IMMEDIATE')
+              await client.query('COMMIT')
+            } catch (error) {
+              await client.query('ROLLBACK')
+              throw error
+            } finally {
+              client.release()
+            }
           }
         }
       } catch (error) {
@@ -204,11 +224,12 @@ export class OrmService {
    * Execute a query for a specific app using its schema
    * Uses transaction-scoped search path to avoid affecting other queries
    */
-  async executeQueryForApp(
+  async executeQueryForApp<T extends QueryResultRow>(
     appIdentifier: string,
     sql: string,
     params: unknown[] = [],
-  ) {
+    rowMode = 'array',
+  ): Promise<QueryResult<T>> {
     // Validate app identifier to prevent SQL injection
     if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
@@ -217,12 +238,30 @@ export class OrmService {
     const schemaName = `app_${appIdentifier}`
 
     // Use transaction to scope the search path change
-    return this.client.begin(async (tx) => {
-      // Set search path for this transaction only
-      await tx.unsafe(`SET LOCAL search_path TO ${schemaName}`)
-      // Execute the actual query
-      return tx.unsafe(sql, params as never[])
-    })
+    const client: PoolClient = await this.client.connect()
+    try {
+      await client.query('BEGIN')
+      await client.query(`SET LOCAL search_path TO ${schemaName}`)
+
+      // Handle rowMode parameter
+      const queryConfig: { text: string; values: unknown[]; rowMode?: string } =
+        {
+          text: sql,
+          values: params,
+        }
+      if (rowMode) {
+        queryConfig.rowMode = rowMode
+      }
+
+      const result = await client.query(queryConfig)
+      await client.query('COMMIT')
+      return result as QueryResult<T>
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
   }
 
   /**
@@ -233,7 +272,7 @@ export class OrmService {
     appIdentifier: string,
     sql: string,
     params: unknown[] = [],
-  ) {
+  ): Promise<{ rowCount: number }> {
     // Validate app identifier to prevent SQL injection
     if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
@@ -242,12 +281,19 @@ export class OrmService {
     const schemaName = `app_${appIdentifier}`
 
     // Use transaction to scope the search path change
-    return this.client.begin(async (tx) => {
-      // Set search path for this transaction only
-      await tx.unsafe(`SET LOCAL search_path TO ${schemaName}`)
-      // Execute the actual statement
-      return tx.unsafe(sql, params as never[])
-    })
+    const client: PoolClient = await this.client.connect()
+    try {
+      await client.query('BEGIN')
+      await client.query(`SET LOCAL search_path TO ${schemaName}`)
+      const result = await client.query(sql, params)
+      await client.query('COMMIT')
+      return { rowCount: result.rowCount ?? 0 }
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
   }
 
   /**
@@ -256,9 +302,14 @@ export class OrmService {
    */
   async executeBatchForApp(
     appIdentifier: string,
-    steps: { sql: string; params?: unknown[]; kind: 'query' | 'exec' }[],
+    steps: {
+      sql: string
+      params?: unknown[]
+      kind: 'query' | 'exec'
+      rowMode?: string
+    }[],
     atomic = false,
-  ) {
+  ): Promise<{ results: unknown[] }> {
     // Validate app identifier to prevent SQL injection
     if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
@@ -267,27 +318,71 @@ export class OrmService {
     const schemaName = `app_${appIdentifier}`
 
     if (atomic) {
-      return this.client.begin(async (tx) => {
-        // Set search path for this transaction only
-        await tx.unsafe(`SET LOCAL search_path TO ${schemaName}`)
-
-        const results = []
+      const client: PoolClient = await this.client.connect()
+      try {
+        await client.query('BEGIN')
+        await client.query(`SET LOCAL search_path TO ${schemaName}`)
+        const results: unknown[] = []
         for (const step of steps) {
+          // Handle rowMode parameter
+          const queryConfig: {
+            text: string
+            values: unknown[]
+            rowMode?: string
+          } = {
+            text: step.sql,
+            values: step.params || [],
+          }
+          if (step.rowMode) {
+            queryConfig.rowMode = step.rowMode
+          }
+
+          const res = await client.query(queryConfig)
           results.push(
-            await tx.unsafe(step.sql, (step.params || []) as never[]),
+            step.kind === 'query' ? res.rows : { rowCount: res.rowCount },
           )
         }
+        await client.query('COMMIT')
         return { results }
-      })
+      } catch (error) {
+        await client.query('ROLLBACK')
+        throw error
+      } finally {
+        client.release()
+      }
     } else {
       // For non-atomic operations, each step gets its own transaction
       const results: unknown[] = []
       for (const step of steps) {
-        const result = await this.client.begin(async (tx) => {
-          await tx.unsafe(`SET LOCAL search_path TO ${schemaName}`)
-          return tx.unsafe(step.sql, (step.params || []) as never[])
-        })
-        results.push(result)
+        const client: PoolClient = await this.client.connect()
+        try {
+          await client.query('BEGIN')
+          await client.query(`SET LOCAL search_path TO ${schemaName}`)
+
+          // Handle rowMode parameter
+          const queryConfig: {
+            text: string
+            values: unknown[]
+            rowMode?: string
+          } = {
+            text: step.sql,
+            values: step.params || [],
+          }
+          if (step.rowMode) {
+            queryConfig.rowMode = step.rowMode
+          }
+
+          const res = await client.query(queryConfig)
+          await client.query('COMMIT')
+          results.push(
+            step.kind === 'query' ? res.rows : { rowCount: res.rowCount },
+          )
+        } catch (error) {
+          await client.query('ROLLBACK')
+          throw error
+        } finally {
+          client.release()
+        }
       }
       return { results }
     }
@@ -300,14 +395,14 @@ export class OrmService {
     const schemaName = `app_${appIdentifier}`
 
     // Check if schema exists
-    const schemaExists = await this.client`
-      SELECT 1 FROM information_schema.schemata 
-      WHERE schema_name = ${schemaName}
-    `
+    const schemaExists = await this.client.query<{ exists: number }>(
+      'SELECT 1 as exists FROM information_schema.schemata WHERE schema_name = $1',
+      [schemaName],
+    )
 
-    if (schemaExists.length === 0) {
+    if (schemaExists.rows.length === 0) {
       // Create the schema
-      await this.client.unsafe(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`)
+      await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`)
     }
   }
 
@@ -316,7 +411,7 @@ export class OrmService {
    */
   async dropAppSchema(appIdentifier: string): Promise<void> {
     const schemaName = `app_${appIdentifier}`
-    await this.client.unsafe(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
+    await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
   /**
@@ -337,7 +432,7 @@ export class OrmService {
     await this.ensureAppSchema(appIdentifier)
 
     // Create migration tracking table if it doesn't exist
-    await this.client.unsafe(`
+    await this.client.query(`
       CREATE TABLE IF NOT EXISTS ${schemaName}.__migrations__ (
         id SERIAL PRIMARY KEY,
         filename VARCHAR(255) NOT NULL UNIQUE,
@@ -348,10 +443,12 @@ export class OrmService {
     `)
 
     // Get list of executed migrations
-    const executedMigrations = (await this.client.unsafe(`
-      SELECT filename FROM ${schemaName}.__migrations__ 
-      ORDER BY id
-    `)) as { filename: string }[]
+    const executedMigrationsResult = await this.client.query(
+      `SELECT filename FROM ${schemaName}.__migrations__ ORDER BY id`,
+    )
+    const executedMigrations = executedMigrationsResult.rows as {
+      filename: string
+    }[]
 
     const executedFilenames = new Set(executedMigrations.map((m) => m.filename))
 
@@ -377,20 +474,26 @@ export class OrmService {
       // Calculate checksum for migration integrity
       const checksum = this.calculateChecksum(migrationFile.content)
 
-      // Use transaction to scope the search path change
-      await this.client.begin(async (tx) => {
-        // Set search path for this transaction only
-        await tx.unsafe(`SET LOCAL search_path TO ${schemaName}`)
-
-        // Execute the migration SQL
-        await tx.unsafe(migrationFile.content)
-
-        // Record the migration as executed
-        await tx.unsafe(`
-          INSERT INTO ${schemaName}.__migrations__ (filename, version, checksum) 
-          VALUES ('${migrationFile.filename}', '${migrationFile.filename.split('_')[0]}', '${checksum}')
-        `)
-      })
+      const client: PoolClient = await this.client.connect()
+      try {
+        await client.query('BEGIN')
+        await client.query(`SET LOCAL search_path TO ${schemaName}`)
+        await client.query(migrationFile.content)
+        await client.query(
+          `INSERT INTO ${schemaName}.__migrations__ (filename, version, checksum) VALUES ($1, $2, $3)`,
+          [
+            migrationFile.filename,
+            migrationFile.filename.split('_')[0],
+            checksum,
+          ],
+        )
+        await client.query('COMMIT')
+      } catch (error) {
+        await client.query('ROLLBACK')
+        throw error
+      } finally {
+        client.release()
+      }
 
       // eslint-disable-next-line no-console
       console.log(
@@ -436,10 +539,12 @@ export class OrmService {
 
     try {
       // Get executed migrations
-      const executedMigrations = (await this.client.unsafe(`
-        SELECT filename FROM ${schemaName}.__migrations__ 
-        ORDER BY id
-      `)) as { filename: string }[]
+      const executedMigrationsResult = await this.client.query(
+        `SELECT filename FROM ${schemaName}.__migrations__ ORDER BY id`,
+      )
+      const executedMigrations = executedMigrationsResult.rows as {
+        filename: string
+      }[]
 
       return {
         executed: executedMigrations.map((m) => m.filename),
@@ -460,7 +565,7 @@ export class OrmService {
    * subsequent main app queries work correctly
    */
   async ensureMainAppSearchPath(): Promise<void> {
-    await this.client.unsafe(`SET search_path TO public`)
+    await this.client.query('SET search_path TO public')
   }
 
   async close() {

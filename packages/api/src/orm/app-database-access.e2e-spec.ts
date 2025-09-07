@@ -42,26 +42,27 @@ describe('ORM Schema Isolation', () => {
     )
 
     // Query the app's table
-    const appResult = await ormService.executeQueryForApp(
+    const appResult = await ormService.executeQueryForApp<{ name: string }>(
       testAppId,
       `
       SELECT * FROM test_table WHERE name = 'test data'
     `,
+      [],
+      'object',
     )
-
     // Verify the app query worked
-    expect(appResult.length).toBe(1)
-    expect(appResult[0].name).toBe('test data')
+    expect(appResult.rows.length).toBe(1)
+    expect(appResult.rows[0].name).toBe('test data')
 
     // Now try to query the main app's tables (should still work)
     // This would fail if the search path wasn't properly isolated
-    const mainAppResult = await ormService.client`
-      SELECT 1 as test_value
-    `
+    const mainAppResult = await ormService.client.query<{ test_value: number }>(
+      'SELECT 1 as test_value',
+    )
 
     // Verify the main app query still works
-    expect(mainAppResult.length).toBe(1)
-    expect(mainAppResult[0].test_value).toBe(1)
+    expect(mainAppResult.rows.length).toBe(1)
+    expect(mainAppResult.rows[0].test_value).toBe(1)
 
     // Test that we can still access main app tables through the API
     const {
@@ -118,14 +119,16 @@ describe('ORM Schema Isolation', () => {
     )
 
     // Check that select result is correct
-    const selectResult = await ormService.executeQueryForApp(
+    const selectResult = await ormService.executeQueryForApp<{ value: number }>(
       testAppId,
       `SELECT * FROM batch_test ORDER BY id`,
+      [],
+      'object',
     )
-    expect(selectResult.length).toBe(3)
-    expect(selectResult[0].value).toBe(1)
-    expect(selectResult[1].value).toBe(2)
-    expect(selectResult[2].value).toBe(3)
+    expect(selectResult.rows.length).toBe(3)
+    expect(selectResult.rows[0].value).toBe(1)
+    expect(selectResult.rows[1].value).toBe(2)
+    expect(selectResult.rows[2].value).toBe(3)
 
     // Verify batch operations worked
     expect(batchResult.results.length).toBe(4)
@@ -134,11 +137,11 @@ describe('ORM Schema Isolation', () => {
     ).toBe(3)
 
     // Verify main app queries still work
-    const mainAppResult = await ormService.client`
-      SELECT 1 as test_value
-    `
-    expect(mainAppResult.length).toBe(1)
-    expect(mainAppResult[0].test_value).toBe(1)
+    const mainAppResult = await ormService.client.query<{ test_value: number }>(
+      'SELECT 1 as test_value',
+    )
+    expect(mainAppResult.rows.length).toBe(1)
+    expect(mainAppResult.rows[0].test_value).toBe(1)
 
     // Test API access still works
     const {
@@ -198,29 +201,33 @@ describe('ORM Schema Isolation', () => {
     )
 
     // Query both schemas
-    const app1Result = await ormService.executeQueryForApp(
+    const app1Result = await ormService.executeQueryForApp<{ value: string }>(
       app1Id,
       `SELECT * FROM app1_table WHERE value = 'app1 data'`,
+      [],
+      'object',
     )
 
-    const app2Result = await ormService.executeQueryForApp(
+    const app2Result = await ormService.executeQueryForApp<{ value: string }>(
       app2Id,
       `SELECT * FROM app2_table WHERE value = 'app2 data'`,
+      [],
+      'object',
     )
 
     // Verify both queries worked correctly
-    expect(app1Result.length).toBe(1)
-    expect(app1Result[0].value).toBe('app1 data')
+    expect(app1Result.rows.length).toBe(1)
+    expect(app1Result.rows[0].value).toBe('app1 data')
 
-    expect(app2Result.length).toBe(1)
-    expect(app2Result[0].value).toBe('app2 data')
+    expect(app2Result.rows.length).toBe(1)
+    expect(app2Result.rows[0].value).toBe('app2 data')
 
     // Verify main app queries still work
-    const mainAppResult = await ormService.client`
-      SELECT 1 as test_value
-    `
-    expect(mainAppResult.length).toBe(1)
-    expect(mainAppResult[0].test_value).toBe(1)
+    const mainAppResult = await ormService.client.query<{ test_value: number }>(
+      'SELECT 1 as test_value',
+    )
+    expect(mainAppResult.rows.length).toBe(1)
+    expect(mainAppResult.rows[0].test_value).toBe(1)
 
     // Test API functionality
     const {
@@ -286,22 +293,24 @@ describe('ORM Schema Isolation', () => {
     const usersResult = await ormService.executeQueryForApp(
       testAppId,
       `SELECT table_name FROM information_schema.tables WHERE table_schema = 'app_${testAppId}' AND table_name = 'users'`,
+      [],
     )
 
     const postsResult = await ormService.executeQueryForApp(
       testAppId,
       `SELECT table_name FROM information_schema.tables WHERE table_schema = 'app_${testAppId}' AND table_name = 'posts'`,
+      [],
     )
 
-    expect(usersResult.length).toBe(1)
-    expect(postsResult.length).toBe(1)
+    expect(usersResult.rows.length).toBe(1)
+    expect(postsResult.rows.length).toBe(1)
 
     // Verify main app queries still work
-    const mainAppResult = await ormService.client`
-      SELECT 1 as test_value
-    `
-    expect(mainAppResult.length).toBe(1)
-    expect(mainAppResult[0].test_value).toBe(1)
+    const mainAppResult = await ormService.client.query<{ test_value: number }>(
+      'SELECT 1 as test_value',
+    )
+    expect(mainAppResult.rows.length).toBe(1)
+    expect(mainAppResult.rows[0].test_value).toBe(1)
 
     // Test API functionality
     const {
@@ -324,6 +333,112 @@ describe('ORM Schema Isolation', () => {
       },
     )
     expect(eventsResponse.response.status).toEqual(200)
+
+    // Clean up
+    await ormService.dropAppSchema(testAppId)
+  })
+
+  it('should handle rowMode array format correctly', async () => {
+    const ormService = testModule!.getOrmService()
+    const testAppId = 'rowmode_test'
+
+    // Ensure the test app schema exists
+    await ormService.ensureAppSchema(testAppId)
+
+    // Create a test table
+    await ormService.executeExecForApp(
+      testAppId,
+      `
+      CREATE TABLE IF NOT EXISTS rowmode_test (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255),
+        value INTEGER
+      )
+    `,
+    )
+
+    // Insert test data
+    await ormService.executeExecForApp(
+      testAppId,
+      `INSERT INTO rowmode_test (name, value) VALUES ('test1', 100)`,
+    )
+    await ormService.executeExecForApp(
+      testAppId,
+      `INSERT INTO rowmode_test (name, value) VALUES ('test2', 200)`,
+    )
+
+    // Test object mode (default) - should return objects
+    const objectResult = await ormService.executeQueryForApp<{
+      id: number
+      name: string
+      value: number
+    }>(
+      testAppId,
+      `SELECT id, name, value FROM rowmode_test ORDER BY id`,
+      [],
+      'object',
+    )
+
+    // Verify object mode results
+    expect(objectResult.rows.length).toBe(2)
+    expect(objectResult.rows[0]).toEqual({ id: 1, name: 'test1', value: 100 })
+    expect(objectResult.rows[1]).toEqual({ id: 2, name: 'test2', value: 200 })
+
+    // Test array mode - should return arrays
+    const arrayResult = await ormService.executeQueryForApp<
+      [number, string, number]
+    >(
+      testAppId,
+      `SELECT id, name, value FROM rowmode_test ORDER BY id`,
+      [],
+      'array',
+    )
+
+    // Verify array mode results
+    expect(arrayResult.rows.length).toBe(2)
+    expect(arrayResult.rows[0]).toEqual([1, 'test1', 100])
+    expect(arrayResult.rows[1]).toEqual([2, 'test2', 200])
+
+    // Test batch operations with mixed rowMode
+    const batchResult = await ormService.executeBatchForApp(
+      testAppId,
+      [
+        {
+          sql: `INSERT INTO rowmode_test (name, value) VALUES ('test3', 300)`,
+          kind: 'exec',
+        },
+        { sql: `SELECT COUNT(*) as count FROM rowmode_test`, kind: 'query' }, // object mode
+        {
+          sql: `SELECT id, name FROM rowmode_test WHERE name = 'test3'`,
+          kind: 'query',
+          rowMode: 'array',
+        }, // array mode
+      ],
+      true, // atomic = true
+    )
+
+    // Verify batch results
+    expect(batchResult.results.length).toBe(3)
+
+    // First result is exec (rowCount)
+    expect((batchResult.results[0] as { rowCount: number }).rowCount).toBe(1)
+
+    // Second result is query in object mode
+    expect((batchResult.results[1] as { count: string }[])[0].count).toBe('3')
+
+    // Third result is query in array mode
+    expect((batchResult.results[2] as [number, string][]).length).toBe(1)
+    expect((batchResult.results[2] as [number, string][])[0]).toEqual([
+      3,
+      'test3',
+    ])
+
+    // Verify main app queries still work
+    const mainAppResult = await ormService.client.query<{ test_value: number }>(
+      'SELECT 1 as test_value',
+    )
+    expect(mainAppResult.rows.length).toBe(1)
+    expect(mainAppResult.rows[0].test_value).toBe(1)
 
     // Clean up
     await ormService.dropAppSchema(testAppId)

@@ -166,7 +166,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
 
     // Build the full request configuration
     const requestConfig: RequestInit = {
-      method: options?.method || 'POST',
+      method: options?.method || 'GET',
       headers,
       body: options?.body,
       signal: options?.signal,

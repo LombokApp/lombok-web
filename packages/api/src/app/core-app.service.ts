@@ -6,7 +6,6 @@ import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import { authConfig } from 'src/auth/config'
 import { APP_JWT_SUB_PREFIX } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
@@ -24,8 +23,6 @@ export class CoreAppService {
     private readonly _platformConfig: nestjsConfig.ConfigType<
       typeof platformConfig
     >,
-    @Inject(authConfig.KEY)
-    private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
     private readonly ormService: OrmService,
   ) {}
 
@@ -191,12 +188,13 @@ export class CoreAppService {
             this._platformConfig.printEmbeddedCoreAppWorkerOutput,
           removeWorkerDirectory:
             this._platformConfig.removeEmbeddedCoreAppWorkerDirectories,
+          printNsjailVerboseOutput:
+            this._platformConfig.printEmbeddedCoreAppNsjailVerboseOutput,
         }
         const workerDataPayload: CoreWorkerProcessDataPayload = {
           socketBaseUrl: `http://127.0.0.1:3000`,
           appToken,
           appWorkerId,
-          jwtSecret: this._authConfig.authJwtSecret,
           platformHost: this._platformConfig.platformHost,
           executionOptions,
         }

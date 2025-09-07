@@ -16,16 +16,106 @@ import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
 import { downloadFileToDisk } from '../utils/file.util'
 
 const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
-if (fs.existsSync(cacheRoot)) {
+if (await fs.promises.exists(cacheRoot)) {
   // Clean previous worker cache directory before starting
   fs.rmdirSync(cacheRoot, { recursive: true })
 }
 
 const prepCacheRoot = path.join(os.tmpdir(), 'lombok-worker-prep-cache')
-if (fs.existsSync(prepCacheRoot)) {
+if (await fs.promises.exists(prepCacheRoot)) {
   // Clean previous worker prep cache directory before starting
   fs.rmdirSync(prepCacheRoot, { recursive: true })
 }
+
+// Platform-aware mounts below: choose first existing path for each category
+const platformAwareMounts = await (async () => {
+  const flags: string[] = []
+
+  // ldd
+  for (const src of ['/usr/bin/ldd', '/bin/ldd']) {
+    if (await fs.promises.exists(src)) {
+      flags.push(`--bindmount_ro=${src}:${src}`)
+      break
+    }
+  }
+
+  // bun binary (mount source to fixed target inside jail)
+  for (const src of ['/usr/local/bin/bun', '/usr/bin/bun', '/bin/bun']) {
+    if (await fs.promises.exists(src)) {
+      flags.push(`--bindmount_ro=${src}:/usr/local/bin/bun`)
+      break
+    }
+  }
+
+  // resolver
+  if (await fs.promises.exists('/etc/resolv.conf')) {
+    flags.push('--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf')
+  }
+
+  // dynamic linker candidates (musl/glibc on x64/arm64)
+  const loaderCandidates = [
+    '/lib/ld-musl-aarch64.so.1',
+    '/lib/ld-musl-x86_64.so.1',
+    '/lib64/ld-linux-x86-64.so.2',
+    '/lib/ld-linux-x86-64.so.2',
+    '/lib/ld-linux-aarch64.so.1',
+    '/lib64/ld-linux-aarch64.so.1',
+  ]
+  for (const src of loaderCandidates) {
+    if (await fs.promises.exists(src)) {
+      flags.push(`--bindmount_ro=${src}:${src}`)
+      break
+    }
+  }
+
+  // libstdc++
+  for (const src of [
+    '/usr/lib/libstdc++.so.6',
+    '/usr/lib/x86_64-linux-gnu/libstdc++.so.6',
+    '/usr/lib/aarch64-linux-gnu/libstdc++.so.6',
+    '/lib/x86_64-linux-gnu/libstdc++.so.6',
+    '/lib/aarch64-linux-gnu/libstdc++.so.6',
+  ]) {
+    if (await fs.promises.exists(src)) {
+      flags.push(`--bindmount_ro=${src}:${src}`)
+      break
+    }
+  }
+
+  // libgcc_s
+  for (const src of [
+    '/usr/lib/libgcc_s.so.1',
+    '/usr/lib/x86_64-linux-gnu/libgcc_s.so.1',
+    '/usr/lib/aarch64-linux-gnu/libgcc_s.so.1',
+    '/lib/x86_64-linux-gnu/libgcc_s.so.1',
+    '/lib/aarch64-linux-gnu/libgcc_s.so.1',
+  ]) {
+    if (await fs.promises.exists(src)) {
+      flags.push(`--bindmount_ro=${src}:${src}`)
+      break
+    }
+  }
+
+  // tsconfig for worker transpile
+  if (
+    await fs.promises.exists(
+      '/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json',
+    )
+  ) {
+    flags.push(
+      '--bindmount_ro=/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json:/tsconfig.json',
+    )
+  }
+
+  // devices
+  for (const dev of ['/dev/null', '/dev/random', '/dev/urandom']) {
+    if (await fs.promises.exists(dev)) {
+      flags.push(`--bindmount=${dev}:${dev}`)
+    }
+  }
+
+  return flags
+})()
 
 // Helper function to parse request body based on Content-Type and HTTP method
 async function parseRequestBody(request: Request): Promise<unknown> {
@@ -103,7 +193,7 @@ async function prepareWorkerBundle({
   const lockFile = path.join(workerCacheRoot, `.lock.${bundleHash}`)
 
   // Fast-path if already prepared
-  if (fs.existsSync(readyMarker)) {
+  if (await fs.promises.exists(readyMarker)) {
     return { cacheDir }
   }
 
@@ -124,7 +214,7 @@ async function prepareWorkerBundle({
     const timeoutMs = 30_000
     // Busy-wait with small delay until READY appears or timeout
     while (Date.now() - start < timeoutMs) {
-      if (fs.existsSync(readyMarker)) {
+      if (await fs.promises.exists(readyMarker)) {
         return { cacheDir }
       }
       await new Promise((resolve) => setTimeout(resolve, 200))
@@ -136,7 +226,7 @@ async function prepareWorkerBundle({
 
   // We have the lock; double-check another process didn't finish in between
   try {
-    if (fs.existsSync(readyMarker)) {
+    if (await fs.promises.exists(readyMarker)) {
       return { cacheDir }
     }
 
@@ -187,9 +277,14 @@ export const runWorkerScript = async ({
   appIdentifier,
   workerIdentifier,
   workerExecutionId,
-  options: { printWorkerOutput = true, removeWorkerDirectory = true } = {
+  options: {
+    printWorkerOutput = true,
+    removeWorkerDirectory = true,
+    printNsjailVerboseOutput = false,
+  } = {
     printWorkerOutput: true,
     removeWorkerDirectory: true,
+    printNsjailVerboseOutput: false,
   },
 }: {
   server: PlatformServerMessageInterface
@@ -200,8 +295,10 @@ export const runWorkerScript = async ({
   options?: {
     printWorkerOutput?: boolean
     removeWorkerDirectory?: boolean
+    printNsjailVerboseOutput?: boolean
   }
 }): Promise<SerializeableResponse | undefined> => {
+  const overallStartTime = performance.now()
   const isRequest = requestOrTask instanceof Request
   const workerRootPath = path.join(os.tmpdir(), workerExecutionId)
   const builtinsDir = path.join(workerRootPath, 'builtins')
@@ -210,27 +307,25 @@ export const runWorkerScript = async ({
   const errOutputPath = path.join(logsDir, 'error.json')
   const resultOutputPath = path.join(logsDir, 'result.json')
 
-  const ensureDir = (dir: string, mode: number) => {
-    if (!fs.existsSync(dir)) {
+  const ensureDir = async (dir: string, mode: number) => {
+    if (!(await fs.promises.exists(dir))) {
       fs.mkdirSync(dir, { recursive: true })
       fs.chmodSync(dir, mode)
     }
   }
 
   // Create the directories
-  ensureDir(workerRootPath, 0o1777)
-  ensureDir(builtinsDir, 0o1777)
-  ensureDir(logsDir, 0o1777)
-
-  // Create the log files
   await Promise.all([
+    ensureDir(workerRootPath, 0o1777),
+    ensureDir(builtinsDir, 0o1777),
+    ensureDir(logsDir, 0o1777),
+
+    // Create the log files
     Bun.file(outLogPath).write(''),
     Bun.file(errOutputPath).write(''),
     Bun.file(resultOutputPath).write(''),
-  ])
 
-  // Fix permissions for the jailed process (user 1001)
-  await Promise.all([
+    // Fix permissions for the jailed process (user 1001)
     fs.promises.chmod(outLogPath, 0o1777),
     fs.promises.chmod(errOutputPath, 0o1777),
     fs.promises.chmod(resultOutputPath, 0o1777),
@@ -250,11 +345,14 @@ export const runWorkerScript = async ({
   )
 
   // Prepare or reuse cached worker bundle by hash
+  const bundlePrepStartTime = performance.now()
   const { cacheDir } = await prepareWorkerBundle({
     appIdentifier,
     payloadUrl: workerExecutionDetails.payloadUrl,
     bundleHash: workerExecutionDetails.hash,
   })
+  const bundlePrepEndTime = performance.now()
+  const coldStartTime = bundlePrepEndTime - bundlePrepStartTime
 
   const workerWrapperScript = './worker-script-wrapper.ts'
   const workerScriptWrapperPath = path.join(
@@ -288,13 +386,15 @@ export const runWorkerScript = async ({
     executionType: isRequest ? 'request' : 'task',
     workerIdentifier,
     serverBaseUrl: server.getServerBaseUrl(),
+    startTimestamp: Date.now(),
     // Add the serialized request or task
     request: isRequest
       ? (serializedRequestOrTask as WorkerModuleStartContext['request'])
       : undefined,
     task: !isRequest ? (serializedRequestOrTask as AppTask) : undefined,
   }
-
+  const executionStartTime = performance.now()
+  let executionTime = 0
   const proc = Bun.spawn({
     cmd: [
       'nsjail',
@@ -312,98 +412,10 @@ export const runWorkerScript = async ({
       '--bindmount_ro=/usr/src/app/node_modules:/node_modules',
       '--bindmount_ro=/usr/src/app/packages:/node_modules/@lombokapp',
       `--bindmount_ro=${workerScriptWrapperPath}:/wrapper/worker-script-wrapper.ts`,
-      // Platform-aware mounts below: choose first existing path for each category
-      ...(() => {
-        const flags: string[] = []
-
-        // ldd
-        for (const src of ['/usr/bin/ldd', '/bin/ldd']) {
-          if (fs.existsSync(src)) {
-            flags.push(`--bindmount_ro=${src}:${src}`)
-            break
-          }
-        }
-
-        // bun binary (mount source to fixed target inside jail)
-        for (const src of ['/usr/local/bin/bun', '/usr/bin/bun', '/bin/bun']) {
-          if (fs.existsSync(src)) {
-            flags.push(`--bindmount_ro=${src}:/usr/local/bin/bun`)
-            break
-          }
-        }
-
-        // resolver
-        if (fs.existsSync('/etc/resolv.conf')) {
-          flags.push('--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf')
-        }
-
-        // dynamic linker candidates (musl/glibc on x64/arm64)
-        const loaderCandidates = [
-          '/lib/ld-musl-aarch64.so.1',
-          '/lib/ld-musl-x86_64.so.1',
-          '/lib64/ld-linux-x86-64.so.2',
-          '/lib/ld-linux-x86-64.so.2',
-          '/lib/ld-linux-aarch64.so.1',
-          '/lib64/ld-linux-aarch64.so.1',
-        ]
-        for (const src of loaderCandidates) {
-          if (fs.existsSync(src)) {
-            flags.push(`--bindmount_ro=${src}:${src}`)
-            break
-          }
-        }
-
-        // libstdc++
-        for (const src of [
-          '/usr/lib/libstdc++.so.6',
-          '/usr/lib/x86_64-linux-gnu/libstdc++.so.6',
-          '/usr/lib/aarch64-linux-gnu/libstdc++.so.6',
-          '/lib/x86_64-linux-gnu/libstdc++.so.6',
-          '/lib/aarch64-linux-gnu/libstdc++.so.6',
-        ]) {
-          if (fs.existsSync(src)) {
-            flags.push(`--bindmount_ro=${src}:${src}`)
-            break
-          }
-        }
-
-        // libgcc_s
-        for (const src of [
-          '/usr/lib/libgcc_s.so.1',
-          '/usr/lib/x86_64-linux-gnu/libgcc_s.so.1',
-          '/usr/lib/aarch64-linux-gnu/libgcc_s.so.1',
-          '/lib/x86_64-linux-gnu/libgcc_s.so.1',
-          '/lib/aarch64-linux-gnu/libgcc_s.so.1',
-        ]) {
-          if (fs.existsSync(src)) {
-            flags.push(`--bindmount_ro=${src}:${src}`)
-            break
-          }
-        }
-
-        // tsconfig for worker transpile
-        if (
-          fs.existsSync(
-            '/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json',
-          )
-        ) {
-          flags.push(
-            '--bindmount_ro=/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json:/tsconfig.json',
-          )
-        }
-
-        // devices
-        for (const dev of ['/dev/null', '/dev/random', '/dev/urandom']) {
-          if (fs.existsSync(dev)) {
-            flags.push(`--bindmount=${dev}:${dev}`)
-          }
-        }
-
-        return flags
-      })(),
+      ...platformAwareMounts,
       ...environmentVariables.map((v) => `-E${v}`),
       '-Mo',
-      '-v',
+      ...(printNsjailVerboseOutput ? ['-v'] : ['--quiet']),
       '--log_fd=1',
       '--',
       '/usr/local/bin/bun',
@@ -415,6 +427,8 @@ export const runWorkerScript = async ({
   })
   try {
     const exitCode = await proc.exited
+    const executionEndTime = performance.now()
+    executionTime = executionEndTime - executionStartTime
     if (printWorkerOutput) {
       console.log(
         ...[
@@ -429,7 +443,7 @@ export const runWorkerScript = async ({
 
     if (exitCode !== 0) {
       let parsedErr: SerializeableError
-      const errStr = fs.existsSync(errOutputPath)
+      const errStr = (await fs.promises.exists(errOutputPath))
         ? await Bun.file(errOutputPath).text()
         : ''
       try {
@@ -463,6 +477,13 @@ export const runWorkerScript = async ({
         ].map((line) => `${line}\n`),
       )
 
+      // Log timing information for failed execution
+      const overallEndTime = performance.now()
+      const overallTime = overallEndTime - overallStartTime
+      console.log(
+        `[TIMING] Worker execution failed (exit code ${exitCode}) - Overall: ${overallTime.toFixed(2)}ms, Cold Start: ${coldStartTime.toFixed(2)}ms, Execution: ${executionTime.toFixed(2)}ms`,
+      )
+
       throw new WorkerScriptRuntimeError(
         `Failure during worker script execution. Exit code: ${exitCode}`,
         {
@@ -483,6 +504,12 @@ export const runWorkerScript = async ({
     }
 
     if (!isRequest) {
+      // Log timing information for task execution
+      const overallEndTime = performance.now()
+      const overallTime = overallEndTime - overallStartTime
+      console.log(
+        `[TIMING] Task execution completed - Overall: ${overallTime.toFixed(2)}ms, Cold Start: ${coldStartTime.toFixed(2)}ms, Execution: ${executionTime.toFixed(2)}ms`,
+      )
       return
     }
 
@@ -499,8 +526,21 @@ export const runWorkerScript = async ({
         exitCode,
       })
     }
+
+    // Log timing information
+    const overallEndTime = performance.now()
+    const overallTime = overallEndTime - overallStartTime
+    console.log(
+      `[TIMING] Worker execution completed - Overall: ${overallTime.toFixed(2)}ms, Cold Start: ${coldStartTime.toFixed(2)}ms, Execution: ${executionTime.toFixed(2)}ms`,
+    )
+
     return response
   } catch (executeError) {
+    const overallEndTime = performance.now()
+    const overallTime = overallEndTime - overallStartTime
+    console.log(
+      `[TIMING] Worker execution failed - Overall: ${overallTime.toFixed(2)}ms, Cold Start: ${coldStartTime.toFixed(2)}ms, Execution: ${executionTime.toFixed(2)}ms`,
+    )
     throw new ScriptExecutionError('Failed to execute worker', {
       parseError:
         executeError instanceof Error
@@ -509,7 +549,7 @@ export const runWorkerScript = async ({
       exitCode: process.exitCode,
     })
   } finally {
-    if (removeWorkerDirectory && fs.existsSync(workerRootPath)) {
+    if (removeWorkerDirectory && (await fs.promises.exists(workerRootPath))) {
       try {
         fs.rmdirSync(workerRootPath, { recursive: true })
       } catch (error) {
