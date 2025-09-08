@@ -10,10 +10,12 @@ export const AppBrowserSdkContextProvider = ({
   children,
   onNavigateTo,
   onInitialize,
+  onThemeChange,
 }: {
   children: React.ReactNode
   onNavigateTo?: (to: { pathAndQuery: string }) => void
   onInitialize?: () => void
+  onThemeChange?: (theme: string) => void
 }) => {
   const [isInitialized, setIsInitialized] = React.useState(false)
 
@@ -21,6 +23,7 @@ export const AppBrowserSdkContextProvider = ({
   const stateRef = React.useRef({
     setIsInitialized,
     onInitialize,
+    onThemeChange,
     onNavigateTo,
   })
 
@@ -28,6 +31,7 @@ export const AppBrowserSdkContextProvider = ({
   stateRef.current = {
     setIsInitialized,
     onInitialize,
+    onThemeChange,
     onNavigateTo,
   }
 
@@ -36,6 +40,9 @@ export const AppBrowserSdkContextProvider = ({
       onInitialize: () => {
         stateRef.current.setIsInitialized(true)
         stateRef.current.onInitialize?.()
+      },
+      onThemeChange: (theme) => {
+        stateRef.current.onThemeChange?.(theme)
       },
       onNavigateTo: (to) => {
         stateRef.current.onNavigateTo?.({
@@ -68,6 +75,7 @@ export const AppBrowserSdkContextProvider = ({
       value={{
         isInitialized,
         apiClient: sdk.apiClient,
+        theme: sdk.theme,
         authState,
         navigateTo: sdk.handleNavigateTo,
         currentPathAndQuery: sdk.initialData?.pathAndQuery ?? '',

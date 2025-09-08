@@ -1,6 +1,8 @@
 import React from 'react'
 import { useLocation } from 'react-router'
 
+import { useTheme } from '@/src/contexts/theme'
+
 export function AppUI({
   appIdentifier,
   host,
@@ -61,6 +63,7 @@ export function AppUI({
     paths.initial,
   ])
 
+  const theme = useTheme()
   const srcUrl = React.useMemo(() => {
     return `${scheme}//${appIdentifier}.apps.${host}${paths.initial}`
   }, [appIdentifier, host, scheme, paths.initial])
@@ -70,6 +73,15 @@ export function AppUI({
       iframeRef.current.src = srcUrl
     }
   }, [srcUrl])
+
+  React.useEffect(() => {
+    if (iframeRef.current) {
+      iframeRef.current.contentWindow?.postMessage(
+        { type: 'THEME_CHANGE', payload: theme.theme },
+        '*',
+      )
+    }
+  }, [theme.theme])
 
   // Handle messages from the iframe
   React.useEffect(() => {
@@ -105,6 +117,7 @@ export function AppUI({
                   accessToken,
                   refreshToken,
                   initialPathAndQuery: paths.initial,
+                  theme: theme.theme,
                 },
               }
               iframeRef.current?.contentWindow?.postMessage(response, '*')
@@ -158,7 +171,7 @@ export function AppUI({
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [getAccessTokens, appIdentifier, onNavigateTo, paths])
+  }, [getAccessTokens, appIdentifier, onNavigateTo, paths, theme])
 
   return (
     <div className="flex size-full flex-col justify-stretch">
