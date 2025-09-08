@@ -13,13 +13,13 @@ export interface WorkerModuleStartContext {
   executionType: 'request' | 'task'
   request?: SerializeableRequest
   task?: AppTask
+  startTimestamp: number
 }
 
 export const coreWorkerProcessDataPayloadSchema = z.object({
   appWorkerId: z.string(),
   appToken: z.string(),
   socketBaseUrl: z.string(),
-  jwtSecret: z.string(),
   platformHost: z.string(),
   executionOptions: z
     .object({

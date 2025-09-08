@@ -20,6 +20,7 @@ export const AppSocketMessage = z.enum([
   'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
   'COMPLETE_HANDLE_TASK',
   'FAIL_HANDLE_TASK',
+  'AUTHENTICATE_USER',
 ])
 
 export const AppSocketApiRequest = z.object({

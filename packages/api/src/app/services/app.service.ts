@@ -177,6 +177,7 @@ const getAppStorageSignedUrlsSchema = z.object({
 const dbQuerySchema = z.object({
   sql: z.string(),
   params: z.array(z.unknown()),
+  rowMode: z.string().optional(),
 })
 
 const dbExecSchema = z.object({
@@ -190,9 +191,15 @@ const dbBatchSchema = z.object({
       sql: z.string(),
       params: z.array(z.unknown()),
       kind: z.enum(['query', 'exec']),
+      rowMode: z.string().optional(),
     }),
   ),
   atomic: z.boolean(),
+})
+
+const authenticateUserSchema = z.object({
+  token: z.string(),
+  appIdentifier: z.string(),
 })
 
 export interface AppDefinition {
@@ -299,12 +306,20 @@ export class AppService {
         case 'DB_QUERY':
           if (safeZodParse(requestData, dbQuerySchema)) {
             await this.ormService.ensureAppSchema(requestingAppIdentifier)
+            const result = await this.ormService.executeQueryForApp(
+              requestingAppIdentifier,
+              requestData.sql,
+              requestData.params,
+              requestData.rowMode,
+            )
             return {
-              result: await this.ormService.executeQueryForApp(
-                requestingAppIdentifier,
-                requestData.sql,
-                requestData.params,
-              ),
+              result: {
+                command: result.command,
+                rowCount: result.rowCount,
+                oid: result.oid,
+                rows: result.rows,
+                fields: result.fields,
+              },
             }
           }
           break
@@ -783,6 +798,94 @@ export class AppService {
             error: {
               code: 400,
               message: 'Malformed GET_APP_STORAGE_SIGNED_URLS request.',
+            },
+          }
+        }
+        case 'AUTHENTICATE_USER': {
+          if (safeZodParse(requestData, authenticateUserSchema)) {
+            try {
+              // First decode the JWT to extract user information
+              const decodedJWT = this.jwtService.decodeJWT(requestData.token)
+
+              if (
+                !decodedJWT.payload ||
+                typeof decodedJWT.payload === 'string'
+              ) {
+                return {
+                  result: { userId: '', success: false },
+                  error: {
+                    code: 401,
+                    message: 'Invalid token payload',
+                  },
+                }
+              }
+
+              // Extract userId from the subject (format: "app_user:userId:appIdentifier")
+              const subject = decodedJWT.payload.sub
+              if (!subject || typeof subject !== 'string') {
+                return {
+                  result: { userId: '', success: false },
+                  error: {
+                    code: 401,
+                    message: 'Invalid token subject',
+                  },
+                }
+              }
+
+              const subjectParts = subject.split(':')
+
+              if (subjectParts.length !== 3 || subjectParts[0] !== 'app_user') {
+                return {
+                  result: { userId: '', success: false },
+                  error: {
+                    code: 401,
+                    message: 'Invalid token format',
+                  },
+                }
+              }
+
+              const userId = subjectParts[1]
+              const tokenAppIdentifier = subjectParts[2]
+
+              // Verify the app identifier matches
+              if (tokenAppIdentifier !== requestData.appIdentifier) {
+                return {
+                  result: { userId: '', success: false },
+                  error: {
+                    code: 401,
+                    message: 'Token app identifier mismatch',
+                  },
+                }
+              }
+
+              // Now verify the JWT token
+              this.jwtService.verifyAppUserJWT({
+                token: requestData.token,
+                userId,
+                appIdentifier: requestData.appIdentifier,
+              })
+
+              return {
+                result: { userId, success: true },
+              }
+            } catch (error) {
+              return {
+                result: { userId: '', success: false },
+                error: {
+                  code: 401,
+                  message:
+                    error instanceof Error
+                      ? error.message
+                      : 'Authentication failed',
+                },
+              }
+            }
+          }
+          return {
+            result: { userId: '', success: false },
+            error: {
+              code: 400,
+              message: 'Malformed AUTHENTICATE_USER request.',
             },
           }
         }

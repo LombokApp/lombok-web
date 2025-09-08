@@ -2,7 +2,6 @@ import { buildAppClient } from '@lombokapp/app-worker-sdk'
 import type { AppManifest } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
-import * as jwt from 'jsonwebtoken'
 import os from 'os'
 import path from 'path'
 
@@ -16,119 +15,6 @@ import {
 } from './src/worker-scripts/run-worker-script'
 import type { CoreWorkerProcessDataPayload } from './src/worker-scripts/types'
 import { coreWorkerProcessDataPayloadSchema } from './src/worker-scripts/types'
-
-const APP_USER_JWT_SUB_PREFIX = 'app_user:'
-const ALGORITHM = 'HS256'
-
-class AuthTokenInvalidError extends Error {
-  name = 'AuthTokenInvalidError'
-  constructor(
-    readonly token: string,
-    message?: string,
-  ) {
-    super(message || 'Invalid token')
-  }
-}
-
-class AuthTokenExpiredError extends Error {
-  name = 'AuthTokenExpiredError'
-  constructor(
-    readonly token: string,
-    message?: string,
-  ) {
-    super(message || 'Token expired')
-  }
-}
-
-function verifyAppUserJWT({
-  appIdentifier,
-  userId,
-  token,
-  jwtSecret,
-  platformHost,
-}: {
-  appIdentifier: string
-  userId: string
-  token: string
-  jwtSecret: string
-  platformHost: string
-}) {
-  try {
-    return jwt.verify(token, jwtSecret, {
-      algorithms: [ALGORITHM],
-      audience: platformHost,
-      subject: `${APP_USER_JWT_SUB_PREFIX}${userId}:${appIdentifier}`,
-    })
-  } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      throw new AuthTokenExpiredError(token, error.message)
-    }
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw new AuthTokenInvalidError(token, error.message)
-    }
-    throw error
-  }
-}
-
-function authenticateAppUserRequest(
-  req: Request,
-  appIdentifier: string,
-  jwtSecret: string,
-  platformHost: string,
-): { userId: string } {
-  const authHeader = req.headers.get('Authorization')
-
-  if (!authHeader?.startsWith('Bearer ')) {
-    throw new AuthTokenInvalidError(
-      '',
-      'Missing or invalid Authorization header',
-    )
-  }
-
-  const token = authHeader.slice('Bearer '.length)
-
-  try {
-    const decoded = jwt.decode(token, { complete: true })
-    if (!decoded?.payload || typeof decoded.payload === 'string') {
-      throw new AuthTokenInvalidError(token, 'Invalid token payload')
-    }
-
-    const subject = decoded.payload.sub
-    if (!subject?.startsWith(APP_USER_JWT_SUB_PREFIX)) {
-      throw new AuthTokenInvalidError(token, 'Invalid token type')
-    }
-
-    const subjectParts = subject.split(':')
-    if (subjectParts.length !== 3) {
-      throw new AuthTokenInvalidError(token, 'Invalid token subject format')
-    }
-
-    const userId = subjectParts[1]
-    const tokenAppIdentifier = subjectParts[2]
-
-    if (tokenAppIdentifier !== appIdentifier) {
-      throw new AuthTokenInvalidError(token, 'Token app identifier mismatch')
-    }
-
-    verifyAppUserJWT({
-      appIdentifier,
-      userId,
-      token,
-      jwtSecret,
-      platformHost,
-    })
-
-    return { userId }
-  } catch (error) {
-    if (
-      error instanceof AuthTokenInvalidError ||
-      error instanceof AuthTokenExpiredError
-    ) {
-      throw error
-    }
-    throw new AuthTokenInvalidError(token, 'Token verification failed')
-  }
-}
 
 let initialized = false
 let server: ReturnType<typeof Bun.serve> | null = null
@@ -180,7 +66,6 @@ process.stdin.once('data', (data) => {
               executionOptions: workerData.executionOptions,
               appWorkerId: workerData.appWorkerId,
               appToken: '[REDACTED]',
-              jwtSecret: '[REDACTED]',
             },
           },
         })
@@ -263,31 +148,6 @@ process.stdin.once('data', (data) => {
             }
 
             const appIdentifier = hostParts[0] || ''
-
-            try {
-              const { userId } = authenticateAppUserRequest(
-                req,
-                appIdentifier,
-                workerData.jwtSecret,
-                workerData.platformHost,
-              )
-              void log({
-                message: `Authenticated user: ${userId} for app: ${appIdentifier}`,
-                level: 'DEBUG',
-              })
-            } catch (error) {
-              return new Response(
-                JSON.stringify({
-                  error: 'Authentication failed',
-                  message:
-                    error instanceof Error ? error.message : String(error),
-                }),
-                {
-                  status: 401,
-                  headers: { 'Content-Type': 'application/json' },
-                },
-              )
-            }
 
             try {
               const serializableResponse = await runWorkerScript({
