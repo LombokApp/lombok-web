@@ -7,6 +7,7 @@ export interface InitialData {
   accessToken: string
   refreshToken: string
   pathAndQuery: string
+  theme: string
 }
 
 export interface IframeMessage {
@@ -18,6 +19,7 @@ export interface IframeMessage {
 export interface AppBrowserSdkConfig {
   onInitialize?: () => void
   onNavigateTo?: (to: { pathAndQuery: string }) => void
+  onThemeChange?: (theme: string) => void
 }
 
 export interface AppBrowserSdkInstance {

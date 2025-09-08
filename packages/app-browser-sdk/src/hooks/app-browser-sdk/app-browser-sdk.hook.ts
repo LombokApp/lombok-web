@@ -6,6 +6,7 @@ import { SdkContext } from './app-browser-sdk.provider'
 export interface ISdkContext {
   isInitialized: AppBrowserSdk['isInitialized']
   apiClient: AppBrowserSdk['apiClient']
+  theme: AppBrowserSdk['theme']
   authState: AppBrowserSdk['authenticator']['state']
   navigateTo: AppBrowserSdk['handleNavigateTo']
   currentPathAndQuery: string

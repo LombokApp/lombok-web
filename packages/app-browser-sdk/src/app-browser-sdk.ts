@@ -11,6 +11,7 @@ import { waitForTrue } from './util/wait-for-true'
 export class AppBrowserSdk implements AppBrowserSdkInstance {
   private static _communicator: IframeCommunicator | undefined = undefined
   private static isInitialized = false
+  private static theme = 'light'
   private static initRequested = false
   private static initialData?: InitialData
   private static sdk: LombokSdk | undefined = undefined
@@ -23,6 +24,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
       AppBrowserSdk.setupMessageHandlers(
         AppBrowserSdk._communicator,
         this.config.onNavigateTo,
+        this.config.onThemeChange,
       )
       AppBrowserSdk._communicator.notifyReady()
     }
@@ -48,6 +50,10 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return AppBrowserSdk.initRequested
   }
 
+  public get theme(): string {
+    return AppBrowserSdk.theme
+  }
+
   private readonly basePath: string = (() => {
     const potocol = window.location.protocol
     const port = window.location.port
@@ -71,21 +77,29 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
       accessToken: initialData.accessToken,
       refreshToken: initialData.refreshToken,
       pathAndQuery: initialData.pathAndQuery,
+      theme: initialData.theme,
     }
   }
 
   private static setupMessageHandlers(
     _communicator: IframeCommunicator,
     onNavigateTo: AppBrowserSdkConfig['onNavigateTo'],
+    onThemeChange: AppBrowserSdkConfig['onThemeChange'],
   ) {
     _communicator.onMessage('AUTHENTICATION', (message) => {
       const initialData = message.payload as InitialData
       this.setInitialData(initialData)
+      onThemeChange?.(initialData.theme)
       AppBrowserSdk.isInitialized = true
+      AppBrowserSdk.theme = initialData.theme
     })
 
     _communicator.onMessage('PARENT_NAVIGATE_TO', (message) => {
       onNavigateTo?.(message.payload as { pathAndQuery: string })
+    })
+    _communicator.onMessage('THEME_CHANGE', (message) => {
+      AppBrowserSdk.theme = message.payload as string
+      onThemeChange?.(message.payload as string)
     })
 
     _communicator.onMessage('LOGOUT', () => {
