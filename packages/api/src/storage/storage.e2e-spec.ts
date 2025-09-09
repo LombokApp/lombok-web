@@ -1,5 +1,6 @@
 import type { S3Client } from '@aws-sdk/client-s3'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { buildTestModule } from 'src/test/test.util'
 
 import { S3Service } from './s3.service'

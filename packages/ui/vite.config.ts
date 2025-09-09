@@ -4,31 +4,32 @@ import path from 'path'
 import type { PluginOption } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
 
-function createReactPluginsWithWorkerExclusion(
-  workerFileNames: string[] = [],
-): PluginOption[] {
-  const base = react()
-  const plugins = Array.isArray(base) ? base : [base]
+// function createReactPluginsWithWorkerExclusion(
+//   workerFileNames: string[] = [],
+// ): PluginOption[] {
+//   const base = react()
+//   const plugins = Array.isArray(base) ? base : [base]
 
-  const [first, ...rest] = plugins
+//   const [first, ...rest] = plugins
 
-  const wrappedFirst: PluginOption = {
-    ...first,
-    name: 'react-swc-with-worker-filter',
-    transform(code: string, id: string, ..._restArgs) {
-      if (workerFileNames.some((name) => id.endsWith(name))) {
-        return null
-      }
-      const underlying = first
-      if (underlying && typeof underlying.transform === 'function') {
-        return underlying.transform.call(this, code, id)
-      }
-      return null
-    },
-  }
+//   const wrappedFirst: PluginOption = {
+//     name: 'react-swc-with-worker-filter',
+//     transform(code, id, ..._restArgs) {
+//       // Skip React refresh for worker files
+//       if (workerFileNames.some((name) => id.includes(name))) {
+//         return null
+//       }
 
-  return [wrappedFirst, ...rest]
-}
+//       const underlying = first
+//       if (underlying && typeof underlying.transform === 'function') {
+//         return underlying.transform.call(this, code, id, ..._restArgs)
+//       }
+//       return null
+//     },
+//   }
+
+//   return [wrappedFirst, ...rest] as PluginOption[]
+// }
 
 // Custom plugin for subdomain routing
 function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
@@ -107,9 +108,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      ...createReactPluginsWithWorkerExclusion(['worker.ts']),
+      // ...createReactPluginsWithWorkerExclusion(['worker.ts']),
+      react(),
       ...(mode === 'development' ? [subdomainProxyPlugin(env)] : []),
-    ],
+    ] as PluginOption[],
     resolve: {
       alias: {
         '@/src': path.resolve(__dirname, './src'),
