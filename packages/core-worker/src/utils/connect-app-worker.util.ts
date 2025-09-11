@@ -1,11 +1,5 @@
-import type {
-  AppTask,
-  IAppPlatformService,
-} from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
-import {
-  AppAPIError,
-  buildAppClient,
-} from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
+import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
 import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import { io } from 'socket.io-client'

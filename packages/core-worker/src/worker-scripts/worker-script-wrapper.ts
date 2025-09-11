@@ -14,7 +14,7 @@ import {
   WorkerInvalidError,
   WorkerRuntimeError,
 } from '@lombokapp/core-worker'
-import type { paths } from '@lombokapp/sdk'
+import type { paths } from '@lombokapp/types'
 import fs from 'fs'
 import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
