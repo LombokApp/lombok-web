@@ -14,7 +14,9 @@ import {
   WorkerInvalidError,
   WorkerRuntimeError,
 } from '@lombokapp/core-worker'
+import type { paths } from '@lombokapp/sdk'
 import fs from 'fs'
+import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 void (async () => {
   // Helper function to reconstruct a Request object from serialized data
@@ -190,6 +192,7 @@ void (async () => {
 
     // For requests, authenticate the user if Authorization header is present
     let userId: string | undefined
+    let accessToken: string | undefined
     if (workerModuleStartContext.executionType === 'request') {
       logTiming('authentication_start')
       try {
@@ -221,6 +224,7 @@ void (async () => {
             }
 
             userId = authResult.result.userId
+            accessToken = token
             logTiming('authentication_complete', { userId, appIdentifier })
             console.log(
               `Authenticated user: ${userId} for app: ${appIdentifier}`,
@@ -257,7 +261,19 @@ void (async () => {
           userModule.handleRequest!(taskOrRequest as Request, {
             serverClient,
             dbClient,
-            userId, // Pass the authenticated user ID to the handler
+            user: userId // Pass the authenticated user to the handler
+              ? {
+                  userId,
+                  userApiClient: createFetchClient<paths>({
+                    baseUrl: workerModuleStartContext.serverBaseUrl,
+                    fetch: async (request) => {
+                      const headers = new Headers(request.headers)
+                      headers.set('Authorization', `Bearer ${accessToken}`)
+                      return fetch(new Request(request, { headers }))
+                    },
+                  }),
+                }
+              : undefined,
           })
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           userModule.handleTask!(taskOrRequest as AppTask, {

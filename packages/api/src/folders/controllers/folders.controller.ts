@@ -1,10 +1,13 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import { FolderPermissionEnum } from '@lombokapp/types'
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -15,7 +18,15 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiExtraModels,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
@@ -63,6 +74,10 @@ import { FolderService } from '../services/folder.service'
   ExternalMetadataEntryDTO,
   ContentMetadataEntryDTO,
 )
+@ApiInternalServerErrorResponse({ type: InternalServerErrorException })
+@ApiUnauthorizedResponse({ type: UnauthorizedException })
+@ApiNotFoundResponse({ type: NotFoundException })
+@ApiBadRequestResponse({ type: BadRequestException })
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 
@@ -70,6 +85,9 @@ export class FoldersController {
    * Get a folder by id.
    */
   @Get('/:folderId')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getFolder(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -112,6 +130,9 @@ export class FoldersController {
    * Get the metadata for a folder by id.
    */
   @Get('/:folderId/metadata')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getFolderMetadata(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -130,6 +151,9 @@ export class FoldersController {
    * List folders.
    */
   @Get()
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async listFolders(
     @Req() req: express.Request,
     @Query() queryParams: FoldersListQueryParamsDTO,
@@ -213,6 +237,9 @@ export class FoldersController {
    * List folder objects by folderId.
    */
   @Get('/:folderId/objects')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async listFolderObjects(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -240,6 +267,9 @@ export class FoldersController {
    * Get a folder object by folderId and objectKey.
    */
   @Get('/:folderId/objects/:objectKey')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getFolderObject(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -279,6 +309,9 @@ export class FoldersController {
    * Create presigned urls for objects in a folder.
    */
   @Post('/:folderId/presigned-urls')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async createPresignedUrls(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,

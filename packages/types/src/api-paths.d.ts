@@ -629,142 +629,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/tasks/{taskId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a task by id. */
-        get: operations["getTask"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks. */
-        get: operations["listTasks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/tasks/{taskId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder task by id. */
-        get: operations["getFolderTask"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks. */
-        get: operations["listFolderTasks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/events/{eventId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get an event by id. */
-        get: operations["getEvent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List events. */
-        get: operations["listEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/events/{eventId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder event by id. */
-        get: operations["getFolderEvent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks. */
-        get: operations["listFolderEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/server/apps": {
         parameters: {
             query?: never;
@@ -861,6 +725,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an event by id. */
+        get: operations["getEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List events. */
+        get: operations["listEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder event by id. */
+        get: operations["getFolderEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks. */
+        get: operations["listFolderEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/logs/{logId}": {
         parameters: {
             query?: never;
@@ -921,6 +853,74 @@ export interface paths {
         };
         /** List folder log entries. */
         get: operations["listFolderLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a task by id. */
+        get: operations["getTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks. */
+        get: operations["listTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder task by id. */
+        get: operations["getFolderTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks. */
+        get: operations["listFolderTasks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1061,6 +1061,10 @@ export interface components {
                 updatedAt: string;
             }[];
         };
+        BadRequestException: Record<string, never>;
+        UnauthorizedException: Record<string, never>;
+        NotFoundException: Record<string, never>;
+        InternalServerErrorException: Record<string, never>;
         InlineMetadataEntryDTO: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1564,126 +1568,6 @@ export interface components {
             region: string;
             prefix: string | null;
         };
-        TaskGetResponse: {
-            task: {
-                /** Format: uuid */
-                id: string;
-                taskIdentifier: string;
-                ownerIdentifier: string;
-                /** Format: uuid */
-                triggeringEventId: string;
-                /** Format: uuid */
-                subjectFolderId?: string;
-                subjectObjectKey?: string;
-                handlerId?: string;
-                inputData: unknown;
-                /** Format: date-time */
-                errorAt?: string;
-                errorCode?: string;
-                errorDetails?: unknown;
-                errorMessage?: string;
-                taskDescription: string;
-                updates: unknown[];
-                /** Format: date-time */
-                startedAt?: string;
-                /** Format: date-time */
-                completedAt?: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-            };
-        };
-        TaskListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                taskIdentifier: string;
-                ownerIdentifier: string;
-                /** Format: uuid */
-                triggeringEventId: string;
-                /** Format: uuid */
-                subjectFolderId?: string;
-                subjectObjectKey?: string;
-                handlerId?: string;
-                inputData: unknown;
-                /** Format: date-time */
-                errorAt?: string;
-                errorCode?: string;
-                errorDetails?: unknown;
-                errorMessage?: string;
-                taskDescription: string;
-                updates: unknown[];
-                /** Format: date-time */
-                startedAt?: string;
-                /** Format: date-time */
-                completedAt?: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-            }[];
-        };
-        EventGetResponse: {
-            event: {
-                /** Format: uuid */
-                id: string;
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data?: unknown;
-                /** Format: date-time */
-                createdAt: string;
-            };
-        };
-        EventListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data?: unknown;
-                /** Format: date-time */
-                createdAt: string;
-            }[];
-        };
         AppListResponse: {
             meta: {
                 totalCount: number;
@@ -2002,6 +1886,47 @@ export interface components {
                 };
             };
         };
+        EventGetResponse: {
+            event: {
+                /** Format: uuid */
+                id: string;
+                eventIdentifier: string;
+                emitterIdentifier: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            };
+        };
+        EventListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                eventIdentifier: string;
+                emitterIdentifier: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
         LogGetResponse: {
             log: {
                 /** Format: uuid */
@@ -2046,6 +1971,85 @@ export interface components {
             meta: {
                 totalCount: number;
             };
+        };
+        TaskGetResponse: {
+            task: {
+                /** Format: uuid */
+                id: string;
+                taskIdentifier: string;
+                ownerIdentifier: string;
+                /** Format: uuid */
+                triggeringEventId: string;
+                /** Format: uuid */
+                subjectFolderId?: string;
+                subjectObjectKey?: string;
+                handlerId?: string;
+                inputData: unknown;
+                /** Format: date-time */
+                errorAt?: string;
+                errorCode?: string;
+                errorDetails?: unknown;
+                errorMessage?: string;
+                taskDescription: string;
+                updates: unknown[];
+                /** Format: date-time */
+                startedAt?: string;
+                /** Format: date-time */
+                completedAt?: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+            };
+        };
+        TaskListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                taskIdentifier: string;
+                ownerIdentifier: string;
+                /** Format: uuid */
+                triggeringEventId: string;
+                /** Format: uuid */
+                subjectFolderId?: string;
+                subjectObjectKey?: string;
+                handlerId?: string;
+                inputData: unknown;
+                /** Format: date-time */
+                errorAt?: string;
+                errorCode?: string;
+                errorDetails?: unknown;
+                errorMessage?: string;
+                taskDescription: string;
+                updates: unknown[];
+                /** Format: date-time */
+                startedAt?: string;
+                /** Format: date-time */
+                completedAt?: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+            }[];
         };
     };
     responses: never;
@@ -2337,6 +2341,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderGetResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     updateFolder: {
@@ -2362,6 +2398,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderUpdateResponseDTO"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     deleteFolder: {
@@ -2380,6 +2448,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
             };
         };
     };
@@ -2400,6 +2500,38 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     getFolderMetadata: {
@@ -2419,6 +2551,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderGetMetadataResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
                 };
             };
         };
@@ -2445,6 +2609,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderListResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     createFolder: {
@@ -2468,6 +2664,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderCreateResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     reindexFolder: {
@@ -2486,6 +2714,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
             };
         };
     };
@@ -2518,6 +2778,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderObjectListResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     getFolderObject: {
@@ -2540,6 +2832,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderObjectGetResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     deleteFolderObject: {
@@ -2559,6 +2883,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
             };
         };
     };
@@ -2585,6 +2941,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderCreateSignedUrlsResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     refreshFolderObjectS3Metadata: {
@@ -2605,6 +2993,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderObjectGetResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
                 };
             };
         };
@@ -2632,6 +3052,38 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     getFolderShares: {
@@ -2652,6 +3104,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderShareGetResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
                 };
             };
         };
@@ -2680,6 +3164,38 @@ export interface operations {
                     "application/json": components["schemas"]["FolderShareGetResponse"];
                 };
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     removeFolderShare: {
@@ -2700,6 +3216,38 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
         };
     };
     listFolderShares: {
@@ -2719,6 +3267,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderShareListResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
                 };
             };
         };
@@ -2744,6 +3324,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderShareUserListResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
                 };
             };
         };
@@ -3201,206 +3813,6 @@ export interface operations {
             };
         };
     };
-    getTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                taskId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskGetResponse"];
-                };
-            };
-        };
-    };
-    listTasks: {
-        parameters: {
-            query?: {
-                objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
-                search?: string;
-                includeWaiting?: "true";
-                includeRunning?: "true";
-                includeComplete?: "true";
-                includeFailed?: "true";
-                offset?: number;
-                limit?: number;
-                folderId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskListResponse"];
-                };
-            };
-        };
-    };
-    getFolderTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                taskId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskGetResponse"];
-                };
-            };
-        };
-    };
-    listFolderTasks: {
-        parameters: {
-            query?: {
-                objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
-                search?: string;
-                includeWaiting?: "true";
-                includeRunning?: "true";
-                includeComplete?: "true";
-                includeFailed?: "true";
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskListResponse"];
-                };
-            };
-        };
-    };
-    getEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventGetResponse"];
-                };
-            };
-        };
-    };
-    listEvents: {
-        parameters: {
-            query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
-                folderId?: string;
-                objectKey?: string;
-                search?: string;
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventListResponse"];
-                };
-            };
-        };
-    };
-    getFolderEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventGetResponse"];
-                };
-            };
-        };
-    };
-    listFolderEvents: {
-        parameters: {
-            query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
-                objectKey?: string;
-                search?: string;
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventListResponse"];
-                };
-            };
-        };
-    };
     listApps: {
         parameters: {
             query?: {
@@ -3538,6 +3950,102 @@ export interface operations {
             };
         };
     };
+    getEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventGetResponse"];
+                };
+            };
+        };
+    };
+    listEvents: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
+                folderId?: string;
+                objectKey?: string;
+                search?: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventListResponse"];
+                };
+            };
+        };
+    };
+    getFolderEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventGetResponse"];
+                };
+            };
+        };
+    };
+    listFolderEvents: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
+                objectKey?: string;
+                search?: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventListResponse"];
+                };
+            };
+        };
+    };
     getLog: {
         parameters: {
             query?: never;
@@ -3640,6 +4148,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LogListResponse"];
+                };
+            };
+        };
+    };
+    getTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskGetResponse"];
+                };
+            };
+        };
+    };
+    listTasks: {
+        parameters: {
+            query?: {
+                objectKey?: string;
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                search?: string;
+                includeWaiting?: "true";
+                includeRunning?: "true";
+                includeComplete?: "true";
+                includeFailed?: "true";
+                offset?: number;
+                limit?: number;
+                folderId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+        };
+    };
+    getFolderTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskGetResponse"];
+                };
+            };
+        };
+    };
+    listFolderTasks: {
+        parameters: {
+            query?: {
+                objectKey?: string;
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                search?: string;
+                includeWaiting?: "true";
+                includeRunning?: "true";
+                includeComplete?: "true";
+                includeFailed?: "true";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskListResponse"];
                 };
             };
         };
