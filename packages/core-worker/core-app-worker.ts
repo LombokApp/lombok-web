@@ -111,16 +111,21 @@ process.stdin.once('data', (data) => {
 
     const serverClient = buildAppClient(socket, workerData.socketBaseUrl)
 
-    const uiBundleCacheRoot = path.join(
-      os.tmpdir(),
-      'lombok-ui-bundle-cache',
+    const uiBundleCacheRoot = path.join(os.tmpdir(), 'lombok-ui-bundle-cache')
+    const uiBundleCacheWorkerRoot = path.join(
+      uiBundleCacheRoot,
       workerData.appWorkerId,
     )
 
+    console.log(
+      'Checking if ui bundle cache directory exists',
+      uiBundleCacheRoot,
+    )
     if (fs.existsSync(uiBundleCacheRoot)) {
+      console.log('Cleaning previous ui bundle cache directory before starting')
       fs.rmdirSync(uiBundleCacheRoot, { recursive: true })
     }
-    fs.mkdirSync(uiBundleCacheRoot, { recursive: true })
+    fs.mkdirSync(uiBundleCacheWorkerRoot, { recursive: true })
 
     try {
       server = Bun.serve({
@@ -205,7 +210,10 @@ process.stdin.once('data', (data) => {
 
           const appIdentifier = hostParts[0] || ''
 
-          const appBundleCacheDir = path.join(uiBundleCacheRoot, appIdentifier)
+          const appBundleCacheDir = path.join(
+            uiBundleCacheWorkerRoot,
+            appIdentifier,
+          )
           const manifestFilePath = path.join(appBundleCacheDir, 'manifest.json')
 
           let manifest: AppManifest = {}

@@ -14,7 +14,7 @@ sed -e "s|{{PLATFORM_HOST}}|$PLATFORM_HOST|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST
 # Make nsjail setuid root
 chown root:root /usr/bin/nsjail
 chmod 4755 /usr/bin/nsjail
- 
+
 # Start or reload NGINX
 if [ -f /run/nginx/nginx.pid ] && kill -0 $(cat /run/nginx/nginx.pid) 2>/dev/null; then
     nginx -s reload
