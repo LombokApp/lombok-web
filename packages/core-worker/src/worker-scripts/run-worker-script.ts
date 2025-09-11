@@ -1,6 +1,6 @@
 import type {
-  IAppPlatformService,
   AppTask,
+  IAppPlatformService,
   SerializeableResponse,
 } from '@lombokapp/app-worker-sdk'
 import type {

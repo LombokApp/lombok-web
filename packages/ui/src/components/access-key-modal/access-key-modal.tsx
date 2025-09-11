@@ -1,4 +1,4 @@
-import type { AccessKeyPublicDTO } from '@lombokapp/types'
+import type { AccessKeyPublicDTO, ServerError } from '@lombokapp/types'
 import {
   DialogContent,
   DialogHeader,
@@ -31,7 +31,7 @@ export const AccessKeyModal = ({
           createdDate?: string
         }[]
       },
-      never
+      ServerError
     >
   >
 }) => {

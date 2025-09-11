@@ -1,13 +1,10 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import { FolderPermissionEnum } from '@lombokapp/types'
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
-  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -18,21 +15,14 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiExtraModels,
-  ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger'
+import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
   AllowedActor,
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import {
@@ -74,10 +64,7 @@ import { FolderService } from '../services/folder.service'
   ExternalMetadataEntryDTO,
   ContentMetadataEntryDTO,
 )
-@ApiInternalServerErrorResponse({ type: InternalServerErrorException })
-@ApiUnauthorizedResponse({ type: UnauthorizedException })
-@ApiNotFoundResponse({ type: NotFoundException })
-@ApiBadRequestResponse({ type: BadRequestException })
+@ApiStandardErrorResponses()
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 

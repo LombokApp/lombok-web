@@ -119,3 +119,6 @@ export type SignupResponse =
   paths['/api/v1/auth/signup']['post']['responses']['201']['content']['application/json']
 export type LoginResponse =
   paths['/api/v1/auth/login']['post']['responses']['201']['content']['application/json']
+
+export type ServerError =
+  paths['/api/v1/auth/login']['post']['responses']['5XX']['content']['application/json']

@@ -16,6 +16,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 
 import { InstallAppsResponse } from '../dto/responses/install-apps-response.dto'
 import { ServerMetricsResponse } from '../dto/responses/server-metrics-response.dto'
@@ -30,6 +31,7 @@ import { ServerMetricsService } from '../services/server-metrics.service'
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
+@ApiStandardErrorResponses()
 export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,

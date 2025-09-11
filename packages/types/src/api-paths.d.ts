@@ -933,6 +933,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ApiErrorResponseDTO: {
+            code: string;
+            message: string;
+        };
         LoginCredentialsDTO: {
             login: string;
             password: string;
@@ -1061,10 +1065,6 @@ export interface components {
                 updatedAt: string;
             }[];
         };
-        BadRequestException: Record<string, never>;
-        UnauthorizedException: Record<string, never>;
-        NotFoundException: Record<string, never>;
-        InternalServerErrorException: Record<string, never>;
         InlineMetadataEntryDTO: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2081,6 +2081,24 @@ export interface operations {
                     "application/json": components["schemas"]["LoginResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     signup: {
@@ -2104,6 +2122,24 @@ export interface operations {
                     "application/json": components["schemas"]["SignupResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     logout: {
@@ -2121,6 +2157,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": boolean;
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2142,6 +2196,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenRefreshResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2211,6 +2283,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     createUser: {
@@ -2234,6 +2324,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserGetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getUser: {
@@ -2255,6 +2363,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserGetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     deleteUser: {
@@ -2273,6 +2399,24 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
             };
         };
     };
@@ -2299,6 +2443,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserGetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     listActiveUserSessions: {
@@ -2318,6 +2480,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserSessionListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2341,36 +2521,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderGetResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2398,36 +2564,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderUpdateResponseDTO"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2449,36 +2601,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2500,36 +2638,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2553,36 +2677,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderGetMetadataResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2609,36 +2719,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderListResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2664,36 +2760,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderCreateResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2715,36 +2797,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2778,36 +2846,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderObjectListResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2832,36 +2886,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderObjectGetResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2884,36 +2924,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2941,36 +2967,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderCreateSignedUrlsResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -2995,36 +3007,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderObjectGetResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3052,36 +3050,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3106,36 +3090,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderShareGetResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3164,36 +3134,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderShareGetResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3216,36 +3172,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3269,36 +3211,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderShareListResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3326,36 +3254,22 @@ export interface operations {
                     "application/json": components["schemas"]["FolderShareUserListResponse"];
                 };
             };
-            400: {
+            /** @description Server Error */
+            "5XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
-            401: {
+            /** @description Client Error */
+            "4XX": {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3381,6 +3295,24 @@ export interface operations {
                     "application/json": components["schemas"]["AccessKeyListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getAccessKey: {
@@ -3400,6 +3332,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessKeyGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3427,6 +3377,24 @@ export interface operations {
                     "application/json": components["schemas"]["AccessKeyRotateResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     listAccessKeyBuckets: {
@@ -3446,6 +3414,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3471,6 +3457,24 @@ export interface operations {
                     "application/json": components["schemas"]["AccessKeyListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getServerAccessKey: {
@@ -3490,6 +3494,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessKeyGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3517,6 +3539,24 @@ export interface operations {
                     "application/json": components["schemas"]["AccessKeyRotateResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     listServerAccessKeyBuckets: {
@@ -3538,6 +3578,24 @@ export interface operations {
                     "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getServerSettings: {
@@ -3555,6 +3613,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettingsGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3582,6 +3658,24 @@ export interface operations {
                     "application/json": components["schemas"]["SettingSetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     resetServerSetting: {
@@ -3603,6 +3697,24 @@ export interface operations {
                     "application/json": components["schemas"]["SettingSetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     installLocalApps: {
@@ -3620,6 +3732,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InstallAppsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3641,6 +3771,24 @@ export interface operations {
                     "application/json": components["schemas"]["ServerMetricsResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     listStorageProvisions: {
@@ -3660,6 +3808,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StorageProvisionsListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3685,6 +3851,24 @@ export interface operations {
                     "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getStorageProvision: {
@@ -3704,6 +3888,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StorageProvisionGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3731,6 +3933,24 @@ export interface operations {
                     "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     deleteStorageProvision: {
@@ -3752,6 +3972,24 @@ export interface operations {
                     "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getServerStorageLocation: {
@@ -3769,6 +4007,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3794,6 +4050,24 @@ export interface operations {
                     "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     deleteServerStorageLocation: {
@@ -3810,6 +4084,24 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
             };
         };
     };
@@ -3834,6 +4126,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AppListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3861,6 +4171,24 @@ export interface operations {
                     "application/json": components["schemas"]["AppGetResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getApp: {
@@ -3880,6 +4208,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AppGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3908,6 +4254,24 @@ export interface operations {
                     "application/json": components["schemas"]["StringMapDTO"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     generateAppUserAccessToken: {
@@ -3929,6 +4293,24 @@ export interface operations {
                     "application/json": components["schemas"]["LoginResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getAppContributions: {
@@ -3946,6 +4328,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AppContributionsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3967,6 +4367,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -3995,6 +4413,24 @@ export interface operations {
                     "application/json": components["schemas"]["EventListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getFolderEvent: {
@@ -4015,6 +4451,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -4044,6 +4498,24 @@ export interface operations {
                     "application/json": components["schemas"]["EventListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getLog: {
@@ -4063,6 +4535,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LogGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -4096,6 +4586,24 @@ export interface operations {
                     "application/json": components["schemas"]["LogListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getFolderLog: {
@@ -4116,6 +4624,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LogGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -4150,6 +4676,24 @@ export interface operations {
                     "application/json": components["schemas"]["LogListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getTask: {
@@ -4169,6 +4713,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -4201,6 +4763,24 @@ export interface operations {
                     "application/json": components["schemas"]["TaskListResponse"];
                 };
             };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
         };
     };
     getFolderTask: {
@@ -4221,6 +4801,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };
@@ -4252,6 +4850,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
             };
         };

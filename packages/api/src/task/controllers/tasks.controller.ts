@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
@@ -25,6 +26,7 @@ import { transformTaskToDTO } from '../transforms/task.transforms'
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
+@ApiStandardErrorResponses()
 export class TasksController {
   constructor(private readonly taskService: TaskService) {}
 

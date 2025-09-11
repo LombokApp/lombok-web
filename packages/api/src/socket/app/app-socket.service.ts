@@ -152,7 +152,7 @@ export class AppSocketService {
                 },
               }
             })
-          if (response?.error) {
+          if (response.error) {
             this.logger.log('APP Message Error:', {
               message,
               appIdentifier,
