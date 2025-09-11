@@ -101,6 +101,12 @@ export class EventService {
       )
     }
 
+    if (appIdentifier && !eventIdentifier.startsWith(`${appIdentifier}:`)) {
+      throw new InternalServerErrorException(
+        `Invalid eventIdentifier emitted by "${appIdentifier}" app. Event Identifier: '${appIdentifier}'`,
+      )
+    }
+
     const authorized = !!(
       isPlatformEmitter || app?.config.emittableEvents.includes(eventIdentifier)
     )

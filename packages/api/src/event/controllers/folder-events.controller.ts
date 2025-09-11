@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { FolderEventsListQueryParamsDTO } from '../dto/folder-events-list-query-params.dto'
@@ -25,6 +26,7 @@ import { transformEventToDTO } from '../transforms/event.transforms'
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
+@ApiStandardErrorResponses()
 export class FolderEventsController {
   constructor(private readonly eventService: EventService) {}
 

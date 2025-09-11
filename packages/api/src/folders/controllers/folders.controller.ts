@@ -22,6 +22,7 @@ import {
   AllowedActor,
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import {
@@ -63,6 +64,7 @@ import { FolderService } from '../services/folder.service'
   ExternalMetadataEntryDTO,
   ContentMetadataEntryDTO,
 )
+@ApiStandardErrorResponses()
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 
@@ -70,6 +72,9 @@ export class FoldersController {
    * Get a folder by id.
    */
   @Get('/:folderId')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getFolder(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -112,6 +117,9 @@ export class FoldersController {
    * Get the metadata for a folder by id.
    */
   @Get('/:folderId/metadata')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getFolderMetadata(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -130,6 +138,9 @@ export class FoldersController {
    * List folders.
    */
   @Get()
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async listFolders(
     @Req() req: express.Request,
     @Query() queryParams: FoldersListQueryParamsDTO,
@@ -213,6 +224,9 @@ export class FoldersController {
    * List folder objects by folderId.
    */
   @Get('/:folderId/objects')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async listFolderObjects(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -240,6 +254,9 @@ export class FoldersController {
    * Get a folder object by folderId and objectKey.
    */
   @Get('/:folderId/objects/:objectKey')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getFolderObject(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -279,6 +296,9 @@ export class FoldersController {
    * Create presigned urls for objects in a folder.
    */
   @Post('/:folderId/presigned-urls')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async createPresignedUrls(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,

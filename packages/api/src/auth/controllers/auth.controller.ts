@@ -9,6 +9,7 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 
 import { LoginCredentialsDTO } from '../dto/login-credentials.dto'
@@ -21,6 +22,7 @@ import { AuthService } from '../services/auth.service'
 @Controller('/api/v1/auth')
 @ApiTags('Auth')
 @UsePipes(ZodValidationPipe)
+@ApiStandardErrorResponses()
 export class AuthController {
   constructor(
     @Inject(forwardRef(() => AuthService))

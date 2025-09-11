@@ -3,6 +3,7 @@ import type {
   FolderGetResponse,
   FolderMetadata,
   FolderPushMessage,
+  ServerError,
 } from '@lombokapp/types'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import type { Socket } from 'socket.io-client'
@@ -26,9 +27,11 @@ export interface IFolderContext {
   folderId: string
   folder?: FolderGetResponse['folder']
   folderPermissions?: FolderGetResponse['permissions']
-  refreshFolder: () => Promise<QueryObserverResult<FolderGetResponse>>
+  refreshFolder: () => Promise<
+    QueryObserverResult<FolderGetResponse, ServerError>
+  >
   refreshFolderMetadata: () => Promise<
-    QueryObserverResult<FolderGetMetadataResponse>
+    QueryObserverResult<FolderGetMetadataResponse, ServerError>
   >
   folderMetadata?: FolderMetadata
   showNotification: (n: Notification) => void

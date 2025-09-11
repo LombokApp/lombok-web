@@ -17,6 +17,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 
 import { StorageProvisionGetResponse } from '../dto/responses/storage-provision-get-response.dto'
 import { StorageProvisionsListResponse } from '../dto/responses/storage-provision-list-response.dto'
@@ -33,6 +34,7 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
+@ApiStandardErrorResponses()
 export class StorageProvisionsController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,

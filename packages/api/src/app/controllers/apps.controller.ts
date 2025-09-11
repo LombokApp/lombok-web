@@ -18,6 +18,7 @@ import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
@@ -34,6 +35,7 @@ import { transformAppToDTO } from '../dto/transforms/app.transforms'
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
+@ApiStandardErrorResponses()
 export class AppsController {
   constructor(private readonly appService: AppService) {}
 

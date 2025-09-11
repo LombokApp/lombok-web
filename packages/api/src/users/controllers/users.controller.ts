@@ -17,6 +17,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { SessionService } from 'src/auth/services/session.service'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 import { UserGetResponse } from 'src/server/dto/responses/user-get-response.dto'
 import { UserListResponse } from 'src/server/dto/responses/user-list-response.dto'
@@ -33,6 +34,7 @@ import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
+@ApiStandardErrorResponses()
 export class UsersController {
   constructor(
     private readonly userService: UserService,

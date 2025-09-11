@@ -1,6 +1,7 @@
 import type {
   AppContributionsResponse,
   AppUILink,
+  ServerError,
   ServerSettingsListResponse,
 } from '@lombokapp/types'
 import type { QueryObserverResult } from '@tanstack/react-query'
@@ -28,7 +29,9 @@ export type AppPathContribution = {
 } & AppUILink
 
 export interface IServerContext {
-  refreshApps: () => Promise<QueryObserverResult<AppContributionsResponse>>
+  refreshApps: () => Promise<
+    QueryObserverResult<AppContributionsResponse, ServerError>
+  >
   appsLoaded: boolean
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined

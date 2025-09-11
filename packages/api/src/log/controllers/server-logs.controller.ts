@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { LogsListQueryParamsDTO } from '../dto/logs-list-query-params.dto'
@@ -25,6 +26,7 @@ import { transformLogEntryToDTO } from '../transforms/log-entry.transforms'
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
+@ApiStandardErrorResponses()
 export class ServerLogsController {
   constructor(private readonly logEntryService: LogEntryService) {}
 

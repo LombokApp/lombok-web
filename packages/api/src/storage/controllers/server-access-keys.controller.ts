@@ -14,6 +14,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
@@ -30,6 +31,7 @@ import { StorageLocationService } from '../storage-location.service'
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
+@ApiStandardErrorResponses()
 export class ServerAccessKeysController {
   constructor(
     private readonly storageLocationService: StorageLocationService,

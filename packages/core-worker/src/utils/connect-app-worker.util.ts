@@ -1,11 +1,5 @@
-import type {
-  AppTask,
-  PlatformServerMessageInterface,
-} from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
-import {
-  AppAPIError,
-  buildAppClient,
-} from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
+import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
 import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import { io } from 'socket.io-client'
@@ -19,10 +13,7 @@ export const connectAndPerformWork = (
   appToken: string,
   taskHandlers: Record<
     string,
-    (
-      task: AppTask,
-      serverClient: PlatformServerMessageInterface,
-    ) => Promise<void>
+    (task: AppTask, serverClient: IAppPlatformService) => Promise<void>
   >,
   onConnect: () => Promise<void>,
 ) => {

@@ -3,6 +3,7 @@ import type {
   FolderPermissionName,
   FolderShareListResponse,
   FolderShareUserListResponse,
+  ServerError,
 } from '@lombokapp/types'
 import { FolderPermissionEnum } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
@@ -63,18 +64,21 @@ interface FolderShareFormProps {
   onCancel?: () => void
   className?: string
   folderId: string
-  listFolderSharesQuery: UseQueryResult<FolderShareListResponse>
-  listFolderShareUsersQuery: UseQueryResult<FolderShareUserListResponse>
+  listFolderSharesQuery: UseQueryResult<FolderShareListResponse, ServerError>
+  listFolderShareUsersQuery: UseQueryResult<
+    FolderShareUserListResponse,
+    ServerError
+  >
   deleteFolderShareMutation: UseMutationResult<
     undefined,
-    never,
+    ServerError,
     FetchOptions<{
       parameters: { path: { folderId: string; userId: string } }
     }>
   >
   upsertFolderShareMutation: UseMutationResult<
     { share: { userId: string; permissions: FolderPermissionName[] } },
-    never,
+    ServerError,
     FetchOptions<{
       parameters: { path: { folderId: string; userId: string } }
       requestBody: {

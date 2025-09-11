@@ -25,6 +25,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "summary": "Authenticate the user and return access and refresh tokens.",
@@ -57,6 +77,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "summary": "Register a new user.",
@@ -76,6 +116,26 @@
               "application/json": {
                 "schema": {
                   "type": "boolean"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -112,6 +172,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TokenRefreshResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -204,6 +284,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -307,6 +407,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -353,6 +473,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -387,6 +527,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -414,6 +574,26 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -447,6 +627,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserSessionListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -485,6 +685,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -512,6 +732,26 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -556,6 +796,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -585,6 +845,26 @@
         "responses": {
           "201": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -618,6 +898,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderGetMetadataResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -707,6 +1007,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -742,6 +1062,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -771,6 +1111,26 @@
         "responses": {
           "201": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -928,6 +1288,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -972,6 +1352,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1007,6 +1407,26 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1053,6 +1473,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1094,6 +1534,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderObjectGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1152,6 +1612,26 @@
         "responses": {
           "201": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1193,6 +1673,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderShareGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1248,6 +1748,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1283,6 +1803,26 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1316,6 +1856,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderShareListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1376,6 +1936,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderShareUserListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1461,6 +2041,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1494,6 +2094,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AccessKeyGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1543,6 +2163,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1576,6 +2216,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AccessKeyBucketsListResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1661,6 +2321,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1694,6 +2374,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AccessKeyGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1743,6 +2443,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1779,6 +2499,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1803,6 +2543,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SettingsGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1852,6 +2612,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1886,6 +2666,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1913,6 +2713,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1937,6 +2757,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ServerMetricsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -1981,6 +2821,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2013,6 +2873,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StorageProvisionsListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2049,6 +2929,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StorageProvisionGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2096,6 +2996,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2130,6 +3050,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2154,6 +3094,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2192,6 +3152,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2210,6 +3190,26 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2223,54 +3223,10 @@
         ]
       }
     },
-    "/api/v1/server/tasks/{taskId}": {
+    "/api/v1/server/apps": {
       "get": {
-        "operationId": "getTask",
+        "operationId": "listApps",
         "parameters": [
-          {
-            "name": "taskId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TaskGetResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a task by id.",
-        "tags": [
-          "ServerTasks"
-        ]
-      }
-    },
-    "/api/v1/server/tasks": {
-      "get": {
-        "operationId": "listTasks",
-        "parameters": [
-          {
-            "name": "objectKey",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "sort",
             "required": false,
@@ -2282,32 +3238,28 @@
                   "items": {
                     "type": "string",
                     "enum": [
+                      "label-asc",
+                      "label-desc",
+                      "identifier-asc",
+                      "identifier-desc",
                       "createdAt-asc",
                       "createdAt-desc",
                       "updatedAt-asc",
-                      "updatedAt-desc",
-                      "startedAt-asc",
-                      "startedAt-desc",
-                      "completedAt-asc",
-                      "completedAt-desc",
-                      "errorAt-asc",
-                      "errorAt-desc"
+                      "updatedAt-desc"
                     ]
                   }
                 },
                 {
                   "type": "string",
                   "enum": [
+                    "label-asc",
+                    "label-desc",
+                    "identifier-asc",
+                    "identifier-desc",
                     "createdAt-asc",
                     "createdAt-desc",
                     "updatedAt-asc",
-                    "updatedAt-desc",
-                    "startedAt-asc",
-                    "startedAt-desc",
-                    "completedAt-asc",
-                    "completedAt-desc",
-                    "errorAt-asc",
-                    "errorAt-desc"
+                    "updatedAt-desc"
                   ]
                 }
               ]
@@ -2322,47 +3274,11 @@
             }
           },
           {
-            "name": "includeWaiting",
+            "name": "enabled",
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeRunning",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeComplete",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeFailed",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
+              "type": "boolean"
             }
           },
           {
@@ -2380,15 +3296,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "name": "folderId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -2397,7 +3304,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskListResponse"
+                  "$ref": "#/components/schemas/AppListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2408,26 +3335,17 @@
             "bearer": []
           }
         ],
-        "summary": "List tasks.",
         "tags": [
-          "ServerTasks"
+          "Apps"
         ]
       }
     },
-    "/api/v1/folders/{folderId}/tasks/{taskId}": {
-      "get": {
-        "operationId": "getFolderTask",
+    "/api/v1/server/apps/{appIdentifier}/enabled": {
+      "put": {
+        "operationId": "setAppEnabled",
         "parameters": [
           {
-            "name": "folderId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "taskId",
+            "name": "appIdentifier",
             "required": true,
             "in": "path",
             "schema": {
@@ -2435,13 +3353,43 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAppEnabledInputDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskGetResponse"
+                  "$ref": "#/components/schemas/AppGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2452,136 +3400,17 @@
             "bearer": []
           }
         ],
-        "summary": "Get a folder task by id.",
         "tags": [
-          "Tasks"
+          "Apps"
         ]
       }
     },
-    "/api/v1/folders/{folderId}/tasks": {
+    "/api/v1/server/apps/{appIdentifier}": {
       "get": {
-        "operationId": "listFolderTasks",
+        "operationId": "getApp",
         "parameters": [
           {
-            "name": "objectKey",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "createdAt-asc",
-                      "createdAt-desc",
-                      "updatedAt-asc",
-                      "updatedAt-desc",
-                      "startedAt-asc",
-                      "startedAt-desc",
-                      "completedAt-asc",
-                      "completedAt-desc",
-                      "errorAt-asc",
-                      "errorAt-desc"
-                    ]
-                  }
-                },
-                {
-                  "type": "string",
-                  "enum": [
-                    "createdAt-asc",
-                    "createdAt-desc",
-                    "updatedAt-asc",
-                    "updatedAt-desc",
-                    "startedAt-asc",
-                    "startedAt-desc",
-                    "completedAt-asc",
-                    "completedAt-desc",
-                    "errorAt-asc",
-                    "errorAt-desc"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "includeWaiting",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeRunning",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeComplete",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeFailed",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "folderId",
+            "name": "appIdentifier",
             "required": true,
             "in": "path",
             "schema": {
@@ -2595,7 +3424,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskListResponse"
+                  "$ref": "#/components/schemas/AppGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2606,9 +3455,182 @@
             "bearer": []
           }
         ],
-        "summary": "List tasks.",
         "tags": [
-          "Tasks"
+          "Apps"
+        ]
+      }
+    },
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
+      "put": {
+        "operationId": "setWorkerEnvironmentVariables",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workerIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetWorkerEnvironmentVariablesInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringMapDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/api/v1/server/apps/{appIdentifier}/user-access-token": {
+      "post": {
+        "operationId": "generateAppUserAccessToken",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/api/v1/server/app-contributions": {
+      "get": {
+        "operationId": "getAppContributions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppContributionsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
         ]
       }
     },
@@ -2632,6 +3654,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2742,6 +3784,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2783,6 +3845,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -2892,6 +3974,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2902,297 +4004,6 @@
         "summary": "List tasks.",
         "tags": [
           "FolderEvents"
-        ]
-      }
-    },
-    "/api/v1/server/apps": {
-      "get": {
-        "operationId": "listApps",
-        "parameters": [
-          {
-            "name": "sort",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "oneOf": [
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "label-asc",
-                      "label-desc",
-                      "identifier-asc",
-                      "identifier-desc",
-                      "createdAt-asc",
-                      "createdAt-desc",
-                      "updatedAt-asc",
-                      "updatedAt-desc"
-                    ]
-                  }
-                },
-                {
-                  "type": "string",
-                  "enum": [
-                    "label-asc",
-                    "label-desc",
-                    "identifier-asc",
-                    "identifier-desc",
-                    "createdAt-asc",
-                    "createdAt-desc",
-                    "updatedAt-asc",
-                    "updatedAt-desc"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "enabled",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppListResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/api/v1/server/apps/{appIdentifier}/enabled": {
-      "put": {
-        "operationId": "setAppEnabled",
-        "parameters": [
-          {
-            "name": "appIdentifier",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetAppEnabledInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppGetResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/api/v1/server/apps/{appIdentifier}": {
-      "get": {
-        "operationId": "getApp",
-        "parameters": [
-          {
-            "name": "appIdentifier",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppGetResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
-      "put": {
-        "operationId": "setWorkerEnvironmentVariables",
-        "parameters": [
-          {
-            "name": "appIdentifier",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "workerIdentifier",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetWorkerEnvironmentVariablesInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StringMapDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/api/v1/server/apps/{appIdentifier}/user-access-token": {
-      "post": {
-        "operationId": "generateAppUserAccessToken",
-        "parameters": [
-          {
-            "name": "appIdentifier",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/api/v1/server/app-contributions": {
-      "get": {
-        "operationId": "getAppContributions",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppContributionsResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Apps"
         ]
       }
     },
@@ -3216,6 +4027,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LogGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -3381,6 +4212,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3422,6 +4273,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LogGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 }
               }
             }
@@ -3586,6 +4457,26 @@
                 }
               }
             }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3596,6 +4487,475 @@
         "summary": "List folder log entries.",
         "tags": [
           "FolderLogs"
+        ]
+      }
+    },
+    "/api/v1/server/tasks/{taskId}": {
+      "get": {
+        "operationId": "getTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a task by id.",
+        "tags": [
+          "ServerTasks"
+        ]
+      }
+    },
+    "/api/v1/server/tasks": {
+      "get": {
+        "operationId": "listTasks",
+        "parameters": [
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc",
+                      "startedAt-asc",
+                      "startedAt-desc",
+                      "completedAt-asc",
+                      "completedAt-desc",
+                      "errorAt-asc",
+                      "errorAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc",
+                    "startedAt-asc",
+                    "startedAt-desc",
+                    "completedAt-asc",
+                    "completedAt-desc",
+                    "errorAt-asc",
+                    "errorAt-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeWaiting",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeRunning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeComplete",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeFailed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List tasks.",
+        "tags": [
+          "ServerTasks"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/tasks/{taskId}": {
+      "get": {
+        "operationId": "getFolderTask",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a folder task by id.",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/tasks": {
+      "get": {
+        "operationId": "listFolderTasks",
+        "parameters": [
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc",
+                      "startedAt-asc",
+                      "startedAt-desc",
+                      "completedAt-asc",
+                      "completedAt-desc",
+                      "errorAt-asc",
+                      "errorAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc",
+                    "startedAt-asc",
+                    "startedAt-desc",
+                    "completedAt-asc",
+                    "completedAt-desc",
+                    "errorAt-asc",
+                    "errorAt-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeWaiting",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeRunning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeComplete",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeFailed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List tasks.",
+        "tags": [
+          "Tasks"
         ]
       }
     }
@@ -3617,6 +4977,21 @@
       }
     },
     "schemas": {
+      "ApiErrorResponseDTO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
       "LoginCredentialsDTO": {
         "type": "object",
         "properties": {
@@ -6001,366 +7376,6 @@
           "prefix"
         ]
       },
-      "TaskGetResponse": {
-        "type": "object",
-        "properties": {
-          "task": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "taskIdentifier": {
-                "type": "string"
-              },
-              "ownerIdentifier": {
-                "type": "string"
-              },
-              "triggeringEventId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "subjectFolderId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "subjectObjectKey": {
-                "type": "string"
-              },
-              "handlerId": {
-                "type": "string"
-              },
-              "inputData": {},
-              "errorAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "errorCode": {
-                "type": "string"
-              },
-              "errorDetails": {},
-              "errorMessage": {
-                "type": "string"
-              },
-              "taskDescription": {
-                "type": "string"
-              },
-              "updates": {
-                "type": "array",
-                "items": {}
-              },
-              "startedAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "completedAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "createdAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "updatedAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "subjectContext": {
-                "type": "object",
-                "properties": {
-                  "folderId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "objectKey": {
-                    "type": "string"
-                  },
-                  "folderName": {
-                    "type": "string"
-                  },
-                  "folderOwnerId": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                },
-                "required": [
-                  "folderId",
-                  "folderName",
-                  "folderOwnerId"
-                ]
-              }
-            },
-            "required": [
-              "id",
-              "taskIdentifier",
-              "ownerIdentifier",
-              "triggeringEventId",
-              "inputData",
-              "taskDescription",
-              "updates",
-              "createdAt",
-              "updatedAt"
-            ]
-          }
-        },
-        "required": [
-          "task"
-        ]
-      },
-      "TaskListResponse": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "type": "object",
-            "properties": {
-              "totalCount": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "totalCount"
-            ]
-          },
-          "result": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "taskIdentifier": {
-                  "type": "string"
-                },
-                "ownerIdentifier": {
-                  "type": "string"
-                },
-                "triggeringEventId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "subjectFolderId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "subjectObjectKey": {
-                  "type": "string"
-                },
-                "handlerId": {
-                  "type": "string"
-                },
-                "inputData": {},
-                "errorAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "errorCode": {
-                  "type": "string"
-                },
-                "errorDetails": {},
-                "errorMessage": {
-                  "type": "string"
-                },
-                "taskDescription": {
-                  "type": "string"
-                },
-                "updates": {
-                  "type": "array",
-                  "items": {}
-                },
-                "startedAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "completedAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "updatedAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "subjectContext": {
-                  "type": "object",
-                  "properties": {
-                    "folderId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "objectKey": {
-                      "type": "string"
-                    },
-                    "folderName": {
-                      "type": "string"
-                    },
-                    "folderOwnerId": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  },
-                  "required": [
-                    "folderId",
-                    "folderName",
-                    "folderOwnerId"
-                  ]
-                }
-              },
-              "required": [
-                "id",
-                "taskIdentifier",
-                "ownerIdentifier",
-                "triggeringEventId",
-                "inputData",
-                "taskDescription",
-                "updates",
-                "createdAt",
-                "updatedAt"
-              ]
-            }
-          }
-        },
-        "required": [
-          "meta",
-          "result"
-        ]
-      },
-      "EventGetResponse": {
-        "type": "object",
-        "properties": {
-          "event": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "eventIdentifier": {
-                "type": "string"
-              },
-              "emitterIdentifier": {
-                "type": "string"
-              },
-              "subjectContext": {
-                "type": "object",
-                "properties": {
-                  "folderId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "objectKey": {
-                    "type": "string"
-                  },
-                  "folderName": {
-                    "type": "string"
-                  },
-                  "folderOwnerId": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                },
-                "required": [
-                  "folderId",
-                  "folderName",
-                  "folderOwnerId"
-                ]
-              },
-              "data": {},
-              "createdAt": {
-                "type": "string",
-                "format": "date-time"
-              }
-            },
-            "required": [
-              "id",
-              "eventIdentifier",
-              "emitterIdentifier",
-              "createdAt"
-            ]
-          }
-        },
-        "required": [
-          "event"
-        ]
-      },
-      "EventListResponse": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "type": "object",
-            "properties": {
-              "totalCount": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "totalCount"
-            ]
-          },
-          "result": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "eventIdentifier": {
-                  "type": "string"
-                },
-                "emitterIdentifier": {
-                  "type": "string"
-                },
-                "subjectContext": {
-                  "type": "object",
-                  "properties": {
-                    "folderId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "objectKey": {
-                      "type": "string"
-                    },
-                    "folderName": {
-                      "type": "string"
-                    },
-                    "folderOwnerId": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  },
-                  "required": [
-                    "folderId",
-                    "folderName",
-                    "folderOwnerId"
-                  ]
-                },
-                "data": {},
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "id",
-                "eventIdentifier",
-                "emitterIdentifier",
-                "createdAt"
-              ]
-            }
-          }
-        },
-        "required": [
-          "meta",
-          "result"
-        ]
-      },
       "AppListResponse": {
         "type": "object",
         "properties": {
@@ -7719,6 +8734,137 @@
           ]
         }
       },
+      "EventGetResponse": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "eventIdentifier": {
+                "type": "string"
+              },
+              "emitterIdentifier": {
+                "type": "string"
+              },
+              "subjectContext": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
+                ]
+              },
+              "data": {},
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "eventIdentifier",
+              "emitterIdentifier",
+              "createdAt"
+            ]
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "EventListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "eventIdentifier": {
+                  "type": "string"
+                },
+                "emitterIdentifier": {
+                  "type": "string"
+                },
+                "subjectContext": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    },
+                    "folderName": {
+                      "type": "string"
+                    },
+                    "folderOwnerId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "folderId",
+                    "folderName",
+                    "folderOwnerId"
+                  ]
+                },
+                "data": {},
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "eventIdentifier",
+                "emitterIdentifier",
+                "createdAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
       "LogGetResponse": {
         "type": "object",
         "properties": {
@@ -7870,6 +9016,235 @@
         "required": [
           "result",
           "meta"
+        ]
+      },
+      "TaskGetResponse": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "taskIdentifier": {
+                "type": "string"
+              },
+              "ownerIdentifier": {
+                "type": "string"
+              },
+              "triggeringEventId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subjectFolderId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subjectObjectKey": {
+                "type": "string"
+              },
+              "handlerId": {
+                "type": "string"
+              },
+              "inputData": {},
+              "errorAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "errorDetails": {},
+              "errorMessage": {
+                "type": "string"
+              },
+              "taskDescription": {
+                "type": "string"
+              },
+              "updates": {
+                "type": "array",
+                "items": {}
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "subjectContext": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "taskIdentifier",
+              "ownerIdentifier",
+              "triggeringEventId",
+              "inputData",
+              "taskDescription",
+              "updates",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "TaskListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "taskIdentifier": {
+                  "type": "string"
+                },
+                "ownerIdentifier": {
+                  "type": "string"
+                },
+                "triggeringEventId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "subjectFolderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "subjectObjectKey": {
+                  "type": "string"
+                },
+                "handlerId": {
+                  "type": "string"
+                },
+                "inputData": {},
+                "errorAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "errorCode": {
+                  "type": "string"
+                },
+                "errorDetails": {},
+                "errorMessage": {
+                  "type": "string"
+                },
+                "taskDescription": {
+                  "type": "string"
+                },
+                "updates": {
+                  "type": "array",
+                  "items": {}
+                },
+                "startedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "completedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "subjectContext": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    },
+                    "folderName": {
+                      "type": "string"
+                    },
+                    "folderOwnerId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "folderId",
+                    "folderName",
+                    "folderOwnerId"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "taskIdentifier",
+                "ownerIdentifier",
+                "triggeringEventId",
+                "inputData",
+                "taskDescription",
+                "updates",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
         ]
       }
     }
