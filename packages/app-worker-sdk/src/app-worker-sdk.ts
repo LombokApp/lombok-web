@@ -4,6 +4,7 @@ import type {
   AppSocketMessage,
   ContentMetadataType,
   EventDTO,
+  LombokApiClient,
   SignedURLsRequestMethod,
   WorkerErrorDetails,
 } from '@lombokapp/types'
@@ -35,8 +36,12 @@ export interface AppTask {
   subjectObjectKey?: string
 }
 
-export interface PlatformServerMessageInterface {
+export interface IAppPlatformService {
   getServerBaseUrl: () => string
+  emitEvent: (
+    eventIdentifier: string,
+    data: unknown,
+  ) => Promise<AppAPIResponse<void>>
   getWorkerExecutionDetails: (
     appIdentifier: string,
     workerIdentifier: string,
@@ -104,6 +109,9 @@ export interface PlatformServerMessageInterface {
       method: SignedURLsRequestMethod
     }[],
   ) => Promise<AppAPIResponse<{ urls: string[] }>>
+  getAppUserAccessToken: (
+    userId: string,
+  ) => Promise<AppAPIResponse<{ accessToken: string; refreshToken: string }>>
   updateContentMetadata: (
     updates: {
       folderId: string
@@ -137,7 +145,7 @@ export interface PlatformServerMessageInterface {
 export const buildAppClient = (
   socket: Socket,
   serverBaseUrl: string,
-): PlatformServerMessageInterface => {
+): IAppPlatformService => {
   const emitWithAck = async (
     name: z.infer<typeof AppSocketMessage>,
     data: unknown,
@@ -158,92 +166,96 @@ export const buildAppClient = (
     getServerBaseUrl() {
       return serverBaseUrl
     },
+    emitEvent(eventIdentifier, data) {
+      return emitWithAck('EMIT_EVENT', { eventIdentifier, data }) as ReturnType<
+        IAppPlatformService['emitEvent']
+      >
+    },
     getWorkerExecutionDetails(appIdentifier, workerIdentifier) {
       return emitWithAck('GET_WORKER_EXECUTION_DETAILS', {
         appIdentifier,
         workerIdentifier,
-      }) as ReturnType<
-        PlatformServerMessageInterface['getWorkerExecutionDetails']
-      >
+      }) as ReturnType<IAppPlatformService['getWorkerExecutionDetails']>
     },
     getAppUIbundle(appIdentifier) {
       return emitWithAck('GET_APP_UI_BUNDLE', {
         appIdentifier,
-      }) as ReturnType<PlatformServerMessageInterface['getAppUIbundle']>
+      }) as ReturnType<IAppPlatformService['getAppUIbundle']>
     },
     saveLogEntry(entry) {
       return emitWithAck('SAVE_LOG_ENTRY', entry) as ReturnType<
-        PlatformServerMessageInterface['saveLogEntry']
+        IAppPlatformService['saveLogEntry']
       >
     },
     getContentSignedUrls(requests) {
       return emitWithAck('GET_CONTENT_SIGNED_URLS', { requests }) as ReturnType<
-        PlatformServerMessageInterface['getContentSignedUrls']
+        IAppPlatformService['getContentSignedUrls']
       >
     },
     getMetadataSignedUrls(requests) {
       return emitWithAck('GET_METADATA_SIGNED_URLS', {
         requests,
-      }) as ReturnType<PlatformServerMessageInterface['getMetadataSignedUrls']>
+      }) as ReturnType<IAppPlatformService['getMetadataSignedUrls']>
     },
     getAppStorageSignedUrls(requests) {
       return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', {
         requests,
-      }) as ReturnType<
-        PlatformServerMessageInterface['getAppStorageSignedUrls']
-      >
+      }) as ReturnType<IAppPlatformService['getAppStorageSignedUrls']>
+    },
+    getAppUserAccessToken(userId) {
+      return emitWithAck('GET_APP_USER_ACCESS_TOKEN', {
+        userId,
+      }) as ReturnType<IAppPlatformService['getAppUserAccessToken']>
     },
     updateContentMetadata(updates, taskId) {
       return emitWithAck('UPDATE_CONTENT_METADATA', {
         taskId,
         updates,
-      }) as ReturnType<PlatformServerMessageInterface['updateContentMetadata']>
+      }) as ReturnType<IAppPlatformService['updateContentMetadata']>
     },
     completeHandleTask(taskId) {
       return emitWithAck('COMPLETE_HANDLE_TASK', { taskId }) as ReturnType<
-        PlatformServerMessageInterface['completeHandleTask']
+        IAppPlatformService['completeHandleTask']
       >
     },
     authenticateUser(token, appIdentifier) {
       return emitWithAck('AUTHENTICATE_USER', {
         token,
         appIdentifier,
-      }) as ReturnType<PlatformServerMessageInterface['authenticateUser']>
+      }) as ReturnType<IAppPlatformService['authenticateUser']>
     },
     attemptStartHandleTaskById(taskId: string, taskHandlerId?: string) {
       return emitWithAck('ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID', {
         taskId,
         taskHandlerId,
-      }) as ReturnType<
-        PlatformServerMessageInterface['attemptStartHandleTaskById']
-      >
+      }) as ReturnType<IAppPlatformService['attemptStartHandleTaskById']>
     },
     attemptStartHandleAnyAvailableTask(taskIdentifiers: string[]) {
       return emitWithAck('ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK', {
         taskIdentifiers,
       }) as ReturnType<
-        PlatformServerMessageInterface['attemptStartHandleAnyAvailableTask']
+        IAppPlatformService['attemptStartHandleAnyAvailableTask']
       >
     },
     failHandleTask(taskId, error) {
       return emitWithAck('FAIL_HANDLE_TASK', { taskId, error }) as ReturnType<
-        PlatformServerMessageInterface['failHandleTask']
+        IAppPlatformService['failHandleTask']
       >
     },
     // Database methods
     query(sql, params, rowMode) {
       return emitWithAck('DB_QUERY', { sql, params, rowMode }) as ReturnType<
-        PlatformServerMessageInterface['query']
+        IAppPlatformService['query']
       >
     },
     exec(sql, params = []) {
       return emitWithAck('DB_EXEC', { sql, params }) as ReturnType<
-        PlatformServerMessageInterface['exec']
+        IAppPlatformService['exec']
       >
     },
     batch(steps, atomic = false) {
       return emitWithAck('DB_BATCH', { steps, atomic }) as ReturnType<
-        PlatformServerMessageInterface['batch']
+        IAppPlatformService['batch']
       >
     },
   }
@@ -268,7 +280,7 @@ export interface DatabaseClient {
 }
 
 export const buildDatabaseClient = (
-  server: PlatformServerMessageInterface,
+  server: IAppPlatformService,
 ): DatabaseClient => {
   return {
     async query(sql, params, rowMode) {
@@ -355,12 +367,81 @@ export class DrizzlePgLike {
     const returnsRows = /(^\s*select\b)|\breturning\b/i.test(sql.text)
     if (returnsRows) {
       const res = await this.client.query(sql.text, actualParams, rowMode)
-      return { rows: res.rows as T[] }
+      // Parse date fields based on field metadata
+      const parsedRows = this.parseRowsWithDates(res.rows, res.fields)
+      return { rows: parsedRows as T[] }
     } else {
       await this.client.exec(sql.text, actualParams)
       // drizzle ignores rowCount in many cases; returning empty rows is fine
       return { rows: [] as T[] }
     }
+  }
+
+  /**
+   * Parse rows and convert timestamp strings to Date objects based on field metadata
+   */
+  private parseRowsWithDates(rows: unknown[], fields: unknown[]): unknown[] {
+    if (rows.length === 0) {
+      return rows
+    }
+
+    if (fields.length === 0) {
+      return rows
+    }
+
+    // Create a map of field indices to their data types
+    const fieldTypeMap = new Map<number, number>()
+    fields.forEach((field: unknown, index: number) => {
+      if (field && typeof field === 'object' && 'dataTypeID' in field) {
+        const fieldObj = field as { dataTypeID: number }
+        fieldTypeMap.set(index, fieldObj.dataTypeID)
+      }
+    })
+
+    // Parse each row
+    return rows.map((row: unknown) => {
+      if (!row || typeof row !== 'object') {
+        return row
+      }
+
+      // Handle array format (rowMode: 'array')
+      if (Array.isArray(row)) {
+        return row.map((value: unknown, index: number) => {
+          const dataTypeID = fieldTypeMap.get(index)
+          return this.parseValueByType(value, dataTypeID)
+        })
+      }
+
+      // Handle object format (rowMode: 'object')
+      const parsedRow: Record<string, unknown> = {}
+      const rowObj = row as Record<string, unknown>
+      Object.keys(rowObj).forEach((key, index) => {
+        const value = rowObj[key]
+        const dataTypeID = fieldTypeMap.get(index)
+        parsedRow[key] = this.parseValueByType(value, dataTypeID)
+      })
+      return parsedRow
+    })
+  }
+
+  /**
+   * Parse a value based on PostgreSQL data type ID
+   */
+  private parseValueByType(value: unknown, dataTypeID?: number): unknown {
+    if (value === null || value === undefined) {
+      return value
+    }
+
+    // PostgreSQL timestamp types (1114 = timestamp, 1184 = timestamptz)
+    if (dataTypeID === 1114 || dataTypeID === 1184) {
+      if (typeof value === 'string') {
+        const date = new Date(value)
+        // Return null if the date is invalid
+        return isNaN(date.getTime()) ? null : date
+      }
+    }
+
+    return value
   }
 
   // optional: a transaction hook so `db.transaction(async (tx)=>{})` works
@@ -394,7 +475,28 @@ export class DrizzlePgLike {
     })(this.client)
 
     const result = await fn(txClient)
-    await this.client.batch(steps, /*atomic*/ true)
+    const batchResult = await this.client.batch(steps, /*atomic*/ true)
+
+    // Parse any returned rows from batch operations
+    if (Array.isArray(batchResult.results)) {
+      const parsedResults = batchResult.results.map((stepResult: unknown) => {
+        if (
+          stepResult &&
+          typeof stepResult === 'object' &&
+          'rows' in stepResult &&
+          'fields' in stepResult
+        ) {
+          const resultObj = stepResult as { rows: unknown[]; fields: unknown[] }
+          return {
+            ...resultObj,
+            rows: this.parseRowsWithDates(resultObj.rows, resultObj.fields),
+          }
+        }
+        return stepResult
+      })
+      batchResult.results = parsedResults
+    }
+
     return result
   }
 }
@@ -429,11 +531,14 @@ export type RequestHandler = (
   {
     serverClient,
     dbClient,
-    userId,
+    user,
   }: {
-    serverClient: PlatformServerMessageInterface
+    serverClient: IAppPlatformService
     dbClient: DatabaseClient
-    userId?: string
+    user?: {
+      userId: string
+      userApiClient: LombokApiClient
+    }
   },
 ) => Promise<SerializeableResponse> | SerializeableResponse
 
@@ -442,7 +547,7 @@ export type TaskHandler = (
   {
     serverClient,
     dbClient,
-  }: { serverClient: PlatformServerMessageInterface; dbClient: DatabaseClient },
+  }: { serverClient: IAppPlatformService; dbClient: DatabaseClient },
 ) => Promise<undefined> | undefined
 
 export const sendResponse = (

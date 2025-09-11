@@ -1,7 +1,4 @@
-import type {
-  AppTask,
-  PlatformServerMessageInterface,
-} from '@lombokapp/app-worker-sdk'
+import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
 import { safeZodParse } from '@lombokapp/utils'
 import { z } from 'zod'
@@ -19,10 +16,7 @@ const runWorkerScriptTaskInputDataSchema = z.object({
 
 export const bulidRunWorkerScriptTaskHandler =
   (workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions']) =>
-  async (
-    runWorkerScriptTask: AppTask,
-    server: PlatformServerMessageInterface,
-  ) => {
+  async (runWorkerScriptTask: AppTask, server: IAppPlatformService) => {
     if (
       !safeZodParse(
         runWorkerScriptTask.event.data,

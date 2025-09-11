@@ -9,13 +9,10 @@ import type {
 } from '@lombokapp/types'
 import {
   appConfigWithManifestSchema,
-  AppSocketApiRequest,
   CORE_APP_IDENTIFIER,
-  metadataEntrySchema,
   SignedURLsRequestMethod,
-  workerErrorDetailsSchema,
 } from '@lombokapp/types'
-import { mimeFromExtension, safeZodParse } from '@lombokapp/utils'
+import { mimeFromExtension } from '@lombokapp/utils'
 import {
   forwardRef,
   Inject,
@@ -25,18 +22,7 @@ import {
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { spawn } from 'bun'
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-  SQL,
-  sql,
-} from 'drizzle-orm'
+import { and, count, eq, ilike, isNotNull, or, SQL, sql } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
 import os from 'os'
@@ -45,6 +31,7 @@ import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
 import { eventsTable } from 'src/event/entities/event.entity'
+import { EventService } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
@@ -67,8 +54,8 @@ import {
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import { Task, tasksTable } from 'src/task/entities/task.entity'
-import { User } from 'src/users/entities/user.entity'
+import { tasksTable } from 'src/task/entities/task.entity'
+import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
 import { appConfig } from '../config'
@@ -79,6 +66,7 @@ import { AppAlreadyInstalledException } from '../exceptions/app-already-installe
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import { handleAppSocketMessage } from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -88,119 +76,6 @@ export type MetadataUploadUrlsResponse = {
   objectKey: string
   url: string
 }[]
-
-const logEntrySchema = z.object({
-  message: z.string(),
-  level: z.nativeEnum(LogEntryLevel),
-  subjectContext: z
-    .object({
-      folderId: z.string(),
-      objectKey: z.string().optional(),
-    })
-    .optional(),
-  data: z.unknown().optional(),
-})
-
-const attemptStartHandleTaskSchema = z.object({
-  taskIdentifiers: z.array(z.string()),
-})
-
-const attemptStartHandleTaskByIdSchema = z.object({
-  taskId: z.string().uuid(),
-  taskHandlerId: z.string().nonempty().max(512).optional(),
-})
-
-const getWorkerExecutionDetailsSchema = z.object({
-  appIdentifier: z.string(),
-  workerIdentifier: z.string(),
-})
-
-const getAppUIbundleSchema = z.object({
-  appIdentifier: z.string(),
-})
-
-const getContentSignedUrlsSchema = z.object({
-  requests: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-    }),
-  ),
-})
-
-const getMetadataSignedUrlsSchema = z.object({
-  requests: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      contentHash: z.string(),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-      metadataHash: z.string(),
-    }),
-  ),
-})
-
-export const updateMetadataSchema = z.object({
-  updates: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      hash: z.string(),
-      metadata: z.record(z.string(), metadataEntrySchema),
-    }),
-  ),
-})
-
-const failHandleTaskSchema = z.object({
-  taskId: z.string().uuid(),
-  error: z.object({
-    message: z.string(),
-    code: z.string(),
-    details: workerErrorDetailsSchema.optional(),
-  }),
-})
-
-const completeHandleTaskSchema = z.object({
-  taskId: z.string().uuid(),
-})
-
-const getAppStorageSignedUrlsSchema = z.object({
-  requests: z.array(
-    z.object({
-      objectKey: z.string().min(1),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-    }),
-  ),
-})
-
-const dbQuerySchema = z.object({
-  sql: z.string(),
-  params: z.array(z.unknown()),
-  rowMode: z.string().optional(),
-})
-
-const dbExecSchema = z.object({
-  sql: z.string(),
-  params: z.array(z.unknown()),
-})
-
-const dbBatchSchema = z.object({
-  steps: z.array(
-    z.object({
-      sql: z.string(),
-      params: z.array(z.unknown()),
-      kind: z.enum(['query', 'exec']),
-      rowMode: z.string().optional(),
-    }),
-  ),
-  atomic: z.boolean(),
-})
-
-const authenticateUserSchema = z.object({
-  token: z.string(),
-  appIdentifier: z.string(),
-})
 
 export interface AppDefinition {
   config: AppConfig
@@ -229,6 +104,7 @@ export class AppService {
     private readonly ormService: OrmService,
     private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
+    private readonly eventService: EventService,
     private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
@@ -285,6 +161,27 @@ export class AppService {
     })
   }
 
+  async createAppUserAccessTokenAsApp({
+    actor,
+    userId,
+  }: {
+    actor: { appIdentifier: string }
+    userId: string
+  }) {
+    const app = await this.getAppAsAdmin(actor.appIdentifier, { enabled: true })
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+    })
+    if (!user) {
+      throw new NotFoundException(`User not found: ${userId}`)
+    }
+    if (!app?.enabled) {
+      throw new NotFoundException(`App not found: ${actor.appIdentifier}`)
+    }
+
+    return this.sessionService.createAppUserSession(user, actor.appIdentifier)
+  }
+
   async createAppUserSession(user: User, appIdentifier: string) {
     const app = await this.getAppAsAdmin(appIdentifier, { enabled: true })
     if (!app) {
@@ -299,605 +196,16 @@ export class AppService {
     requestingAppIdentifier: string,
     message: unknown,
   ) {
-    if (safeZodParse(message, AppSocketApiRequest)) {
-      const requestData = message.data
-      const isCoreApp = requestingAppIdentifier === CORE_APP_IDENTIFIER
-      switch (message.name) {
-        case 'DB_QUERY':
-          if (safeZodParse(requestData, dbQuerySchema)) {
-            await this.ormService.ensureAppSchema(requestingAppIdentifier)
-            const result = await this.ormService.executeQueryForApp(
-              requestingAppIdentifier,
-              requestData.sql,
-              requestData.params,
-              requestData.rowMode,
-            )
-            return {
-              result: {
-                command: result.command,
-                rowCount: result.rowCount,
-                oid: result.oid,
-                rows: result.rows,
-                fields: result.fields,
-              },
-            }
-          }
-          break
-        case 'DB_EXEC':
-          if (safeZodParse(requestData, dbExecSchema)) {
-            await this.ormService.ensureAppSchema(requestingAppIdentifier)
-            return {
-              result: await this.ormService.executeExecForApp(
-                requestingAppIdentifier,
-                requestData.sql,
-                requestData.params,
-              ),
-            }
-          }
-          break
-        case 'DB_BATCH':
-          if (safeZodParse(requestData, dbBatchSchema)) {
-            await this.ormService.ensureAppSchema(requestingAppIdentifier)
-            return {
-              result: await this.ormService.executeBatchForApp(
-                requestingAppIdentifier,
-                requestData.steps,
-                requestData.atomic,
-              ),
-            }
-          }
-          break
-        case 'SAVE_LOG_ENTRY':
-          if (safeZodParse(requestData, logEntrySchema)) {
-            await this.logEntryService.emitLog({
-              emitterIdentifier: requestingAppIdentifier,
-              logMessage: requestData.message,
-              data: requestData.data,
-              level: requestData.level,
-              subjectContext: requestData.subjectContext,
-            })
-            return {
-              result: undefined,
-            }
-          }
-          return {
-            error: {
-              code: 400,
-              message: 'Invalid request.',
-              details: logEntrySchema.safeParse(requestData).error?.errors,
-            },
-          }
-
-        case 'GET_CONTENT_SIGNED_URLS': {
-          if (safeZodParse(requestData, getContentSignedUrlsSchema)) {
-            return { result: await this.createSignedContentUrls(requestData) }
-          } else {
-            return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-                details:
-                  getContentSignedUrlsSchema.safeParse(requestData).error,
-              },
-            }
-          }
-        }
-        case 'GET_METADATA_SIGNED_URLS': {
-          if (safeZodParse(requestData, getMetadataSignedUrlsSchema)) {
-            return {
-              result: await this.createSignedMetadataUrls(requestData),
-            }
-          } else {
-            return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-                details:
-                  getMetadataSignedUrlsSchema.safeParse(requestData).error,
-              },
-            }
-          }
-        }
-        case 'UPDATE_CONTENT_METADATA': {
-          const parseResult = safeZodParse(requestData, updateMetadataSchema)
-          if (parseResult) {
-            await this.folderService.updateFolderObjectMetadata(
-              requestData.updates,
-            )
-            return {
-              result: undefined,
-            }
-          } else {
-            return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-                details: updateMetadataSchema.safeParse(requestData).error,
-              },
-            }
-          }
-        }
-        case 'COMPLETE_HANDLE_TASK': {
-          if (safeZodParse(requestData, completeHandleTaskSchema)) {
-            const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(
-                eq(tasksTable.id, requestData.taskId),
-                isNull(tasksTable.completedAt),
-                isNull(tasksTable.errorAt),
-                eq(
-                  tasksTable.handlerId,
-                  `${requestingAppIdentifier}:${handlerId}`,
-                ),
-                ...(isCoreApp
-                  ? [
-                      or(
-                        isNotNull(tasksTable.workerIdentifier),
-                        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                      ),
-                    ]
-                  : [
-                      isNull(tasksTable.workerIdentifier),
-                      eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                    ]),
-              ),
-            })
-            if (!task) {
-              return {
-                error: {
-                  code: 400,
-                  message: 'Invalid request.',
-                  details: 'No task found.',
-                },
-              }
-            }
-            const now = new Date()
-            return {
-              result: await this.ormService.db
-                .update(tasksTable)
-                .set({ completedAt: now, updatedAt: now })
-                .where(eq(tasksTable.id, task.id)),
-            }
-          }
-          break
-        }
-        case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
-          if (safeZodParse(requestData, attemptStartHandleTaskSchema)) {
-            let securedTask: Task | undefined = undefined
-            for (let attempt = 0; attempt < 5; attempt++) {
-              const task = await this.ormService.db.query.tasksTable.findFirst({
-                where: and(
-                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                  inArray(
-                    tasksTable.taskIdentifier,
-                    requestData.taskIdentifiers,
-                  ),
-                  isNull(tasksTable.startedAt),
-                ),
-              })
-              if (
-                !task ||
-                task.completedAt ||
-                task.handlerId ||
-                task.startedAt
-              ) {
-                // No available task, break early
-                break
-              }
-              // Try to secure the task
-              const now = new Date()
-              securedTask = (
-                await this.ormService.db
-                  .update(tasksTable)
-                  .set({
-                    startedAt: now,
-                    updatedAt: now,
-                    handlerId: `${requestingAppIdentifier}:${handlerId}`,
-                  })
-                  .where(
-                    and(
-                      eq(tasksTable.id, task.id),
-                      isNull(tasksTable.startedAt),
-                    ),
-                  )
-                  .returning()
-              )[0]
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              if (securedTask) {
-                break
-              }
-              // If not secured, loop again to try next available task
-            }
-            if (!securedTask) {
-              // If we are finding tasks but not able to secure one after n retries, return a 409
-              return {
-                result: undefined,
-                error: {
-                  code: 409,
-                  message:
-                    'Task already started by another handler after 5 attempts.',
-                },
-              }
-            }
-            const event = await this.ormService.db.query.eventsTable.findFirst({
-              where: eq(eventsTable.id, securedTask.triggeringEventId),
-            })
-            return {
-              result: { ...securedTask, event },
-            }
-          }
-          return {
-            error: {
-              code: 400,
-              message: 'Invalid request.',
-              details:
-                attemptStartHandleTaskSchema.safeParse(requestData).error,
-            },
-          }
-        }
-        case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
-          if (safeZodParse(requestData, attemptStartHandleTaskByIdSchema)) {
-            if (!isCoreApp) {
-              return {
-                result: undefined,
-                error: {
-                  code: 403,
-                  message: 'Unauthorized to handle worker tasks.',
-                },
-              }
-            }
-
-            const rows = await this.ormService.db
-              .select({ task: tasksTable, app: appsTable })
-              .from(tasksTable)
-              .innerJoin(
-                appsTable,
-                eq(tasksTable.ownerIdentifier, appsTable.identifier),
-              )
-              .where(eq(tasksTable.id, requestData.taskId))
-              .limit(1)
-            if (rows.length === 0) {
-              return {
-                result: undefined,
-                error: {
-                  code: 400,
-                  message: 'Invalid request (no task found by id).',
-                },
-              }
-            }
-            const { task } = rows[0]
-
-            if (task.startedAt || task.completedAt || task.handlerId) {
-              return {
-                result: undefined,
-                error: {
-                  code: 400,
-                  message: 'Task already started.',
-                },
-              }
-            }
-            const now = new Date()
-            const updatedTask = (
-              await this.ormService.db
-                .update(tasksTable)
-                .set({
-                  startedAt: now,
-                  updatedAt: now,
-                  handlerId: `${requestingAppIdentifier}:${handlerId}`,
-                })
-                .where(eq(tasksTable.id, task.id))
-                .returning()
-            )[0]
-            const event = await this.ormService.db.query.eventsTable.findFirst({
-              where: eq(eventsTable.id, updatedTask.triggeringEventId),
-            })
-
-            return { result: { ...updatedTask, event } }
-          }
-          break
-        }
-        case 'FAIL_HANDLE_TASK': {
-          if (safeZodParse(requestData, failHandleTaskSchema)) {
-            const parsedFailHandleTaskMessage =
-              failHandleTaskSchema.parse(requestData)
-            const taskWithApp = await this.ormService.db
-              .select({ task: tasksTable, app: appsTable })
-              .from(tasksTable)
-              .innerJoin(
-                appsTable,
-                eq(tasksTable.ownerIdentifier, appsTable.identifier),
-              )
-              .where(
-                and(
-                  eq(tasksTable.id, requestData.taskId),
-                  isNotNull(tasksTable.startedAt),
-                  isNull(tasksTable.completedAt),
-                  isNull(tasksTable.errorAt),
-                  eq(
-                    tasksTable.handlerId,
-                    `${requestingAppIdentifier}:${handlerId}`,
-                  ),
-                  ...(!isCoreApp
-                    ? [
-                        isNull(tasksTable.workerIdentifier),
-                        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                      ]
-                    : [
-                        or(
-                          isNotNull(tasksTable.workerIdentifier),
-                          eq(tasksTable.ownerIdentifier, CORE_APP_IDENTIFIER),
-                        ),
-                      ]),
-                ),
-              )
-              .limit(1)
-            const task = taskWithApp[0]?.task as Task | undefined
-            if (!task) {
-              return {
-                result: undefined,
-                error: {
-                  code: 400,
-                  message: 'Invalid request.',
-                },
-              }
-            }
-
-            const now = new Date()
-            return {
-              result: await this.ormService.db
-                .update(tasksTable)
-                .set({
-                  errorCode: parsedFailHandleTaskMessage.error.code,
-                  errorMessage: parsedFailHandleTaskMessage.error.message,
-                  errorDetails: parsedFailHandleTaskMessage.error.details,
-                  errorAt: now,
-                  updatedAt: now,
-                })
-                .where(eq(tasksTable.id, task.id)),
-            }
-          } else {
-            // eslint-disable-next-line no-console
-            console.log(
-              'FAIL_HANDLE_TASK error:',
-              requestData,
-              failHandleTaskSchema.safeParse(requestData).error,
-            )
-            return {
-              result: undefined,
-              error: {
-                code: 400,
-                message: 'Malformed FAIL_HANDLE_TASK request.',
-              },
-            }
-          }
-        }
-        case 'GET_APP_UI_BUNDLE': {
-          if (safeZodParse(requestData, getAppUIbundleSchema)) {
-            return {
-              result: await this.getAppUIbundle(
-                requestingAppIdentifier,
-                requestData,
-              ),
-            }
-          }
-          return {
-            result: undefined,
-            error: {
-              code: 400,
-              message: 'Malformed GET_APP_UI_BUNDLE request.',
-            },
-          }
-        }
-        case 'GET_WORKER_EXECUTION_DETAILS': {
-          if (safeZodParse(requestData, getWorkerExecutionDetailsSchema)) {
-            // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
-            if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
-              // must be "core" app to access app worker payloads
-              return {
-                result: undefined,
-                error: {
-                  code: 403,
-                  message: 'Unauthorized.',
-                },
-              }
-            }
-
-            const workerApp = await this.getAppAsAdmin(
-              requestData.appIdentifier,
-              { enabled: true },
-            )
-            if (!workerApp) {
-              // app by appIdentifier not found
-              return {
-                result: undefined,
-                error: {
-                  code: 404,
-                  message: 'Worker app not found.',
-                },
-              }
-            }
-
-            if (
-              !(requestData.workerIdentifier in workerApp.workers.definitions)
-            ) {
-              // worker by workerIdentifier not found in app by appIdentifier
-              return {
-                result: undefined,
-                error: {
-                  code: 404,
-                  message: 'Worker not found.',
-                },
-              }
-            }
-
-            const serverStorageLocation =
-              await this.serverConfigurationService.getServerStorage()
-
-            if (!serverStorageLocation) {
-              return {
-                result: undefined,
-                error: {
-                  code: 500,
-                  message: 'Server storage location not available.',
-                },
-              }
-            }
-            const presignedGetURL = this.s3Service.createS3PresignedUrls([
-              {
-                method: SignedURLsRequestMethod.GET,
-                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
-                accessKeyId: serverStorageLocation.accessKeyId,
-                secretAccessKey: serverStorageLocation.secretAccessKey,
-                bucket: serverStorageLocation.bucket,
-                endpoint: serverStorageLocation.endpoint,
-                expirySeconds: 3600,
-                region: serverStorageLocation.region,
-              },
-            ])
-            return {
-              result: {
-                payloadUrl: presignedGetURL[0],
-                entrypoint:
-                  workerApp.workers.definitions[requestData.workerIdentifier]
-                    .entrypoint,
-                environmentVariables:
-                  workerApp.workers.definitions[requestData.workerIdentifier]
-                    .environmentVariables,
-                workerToken: await this.jwtService.createAppWorkerToken(
-                  requestData.appIdentifier,
-                ),
-                hash: workerApp.workers.hash,
-              },
-            }
-          } else {
-            // eslint-disable-next-line no-console
-            console.log(
-              'GET_WORKER_EXECUTION_DETAILS error:',
-              requestData,
-              getWorkerExecutionDetailsSchema.safeParse(requestData).error,
-            )
-            return {
-              result: undefined,
-              error: {
-                code: 400,
-                message: 'Malformed GET_WORKER_EXECUTION_DETAILS request.',
-              },
-            }
-          }
-        }
-        case 'GET_APP_STORAGE_SIGNED_URLS': {
-          if (safeZodParse(requestData, getAppStorageSignedUrlsSchema)) {
-            return {
-              result: await this.createSignedAppStorageUrls(
-                requestingAppIdentifier,
-                requestData,
-              ),
-            }
-          }
-          return {
-            result: undefined,
-            error: {
-              code: 400,
-              message: 'Malformed GET_APP_STORAGE_SIGNED_URLS request.',
-            },
-          }
-        }
-        case 'AUTHENTICATE_USER': {
-          if (safeZodParse(requestData, authenticateUserSchema)) {
-            try {
-              // First decode the JWT to extract user information
-              const decodedJWT = this.jwtService.decodeJWT(requestData.token)
-
-              if (
-                !decodedJWT.payload ||
-                typeof decodedJWT.payload === 'string'
-              ) {
-                return {
-                  result: { userId: '', success: false },
-                  error: {
-                    code: 401,
-                    message: 'Invalid token payload',
-                  },
-                }
-              }
-
-              // Extract userId from the subject (format: "app_user:userId:appIdentifier")
-              const subject = decodedJWT.payload.sub
-              if (!subject || typeof subject !== 'string') {
-                return {
-                  result: { userId: '', success: false },
-                  error: {
-                    code: 401,
-                    message: 'Invalid token subject',
-                  },
-                }
-              }
-
-              const subjectParts = subject.split(':')
-
-              if (subjectParts.length !== 3 || subjectParts[0] !== 'app_user') {
-                return {
-                  result: { userId: '', success: false },
-                  error: {
-                    code: 401,
-                    message: 'Invalid token format',
-                  },
-                }
-              }
-
-              const userId = subjectParts[1]
-              const tokenAppIdentifier = subjectParts[2]
-
-              // Verify the app identifier matches
-              if (tokenAppIdentifier !== requestData.appIdentifier) {
-                return {
-                  result: { userId: '', success: false },
-                  error: {
-                    code: 401,
-                    message: 'Token app identifier mismatch',
-                  },
-                }
-              }
-
-              // Now verify the JWT token
-              this.jwtService.verifyAppUserJWT({
-                token: requestData.token,
-                userId,
-                appIdentifier: requestData.appIdentifier,
-              })
-
-              return {
-                result: { userId, success: true },
-              }
-            } catch (error) {
-              return {
-                result: { userId: '', success: false },
-                error: {
-                  code: 401,
-                  message:
-                    error instanceof Error
-                      ? error.message
-                      : 'Authentication failed',
-                },
-              }
-            }
-          }
-          return {
-            result: { userId: '', success: false },
-            error: {
-              code: 400,
-              message: 'Malformed AUTHENTICATE_USER request.',
-            },
-          }
-        }
-      }
-      return {
-        result: undefined,
-        error: {
-          code: 400,
-          message: 'Request unrecognized or malformed.',
-        },
-      }
-    }
+    return handleAppSocketMessage(handlerId, requestingAppIdentifier, message, {
+      eventService: this.eventService,
+      ormService: this.ormService,
+      logEntryService: this.logEntryService,
+      folderService: this.folderService,
+      appService: this,
+      jwtService: this.jwtService,
+      serverConfigurationService: this.serverConfigurationService,
+      s3Service: this.s3Service,
+    })
   }
 
   async createSignedContentUrls(payload: {

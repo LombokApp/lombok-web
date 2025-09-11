@@ -1,7 +1,4 @@
-import type {
-  AppTask,
-  PlatformServerMessageInterface,
-} from '@lombokapp/app-worker-sdk'
+import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
 import type {
   ContentMetadataEntry,
@@ -24,7 +21,7 @@ import { readFileMetadata } from '../utils/metadata.util'
 
 export const analyzeObjectTaskHandler = async (
   task: AppTask,
-  server: PlatformServerMessageInterface,
+  server: IAppPlatformService,
 ) => {
   console.log('Starting work for analyze object task:', task)
   if (!task.id) {

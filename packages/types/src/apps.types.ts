@@ -15,18 +15,22 @@ export const AppSocketMessage = z.enum([
   'GET_CONTENT_SIGNED_URLS',
   'GET_METADATA_SIGNED_URLS',
   'GET_APP_UI_BUNDLE',
+  'GET_APP_USER_ACCESS_TOKEN',
   'UPDATE_CONTENT_METADATA',
   'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
   'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
   'COMPLETE_HANDLE_TASK',
   'FAIL_HANDLE_TASK',
   'AUTHENTICATE_USER',
+  'EMIT_EVENT',
 ])
 
-export const AppSocketApiRequest = z.object({
+export const appSocketMessageSchema = z.object({
   name: AppSocketMessage,
   data: z.unknown().optional(),
 })
+
+export type AppSocketApiRequest = z.infer<typeof appSocketMessageSchema>
 
 export interface AppTaskTrigger {
   taskIdentifier: string

@@ -1,6 +1,6 @@
 import type {
   AppTask,
-  PlatformServerMessageInterface,
+  IAppPlatformService,
 } from '@lombokapp/app-worker-sdk/src/app-worker-sdk'
 import {
   AppAPIError,
@@ -19,10 +19,7 @@ export const connectAndPerformWork = (
   appToken: string,
   taskHandlers: Record<
     string,
-    (
-      task: AppTask,
-      serverClient: PlatformServerMessageInterface,
-    ) => Promise<void>
+    (task: AppTask, serverClient: IAppPlatformService) => Promise<void>
   >,
   onConnect: () => Promise<void>,
 ) => {

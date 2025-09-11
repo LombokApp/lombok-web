@@ -1,6 +1,6 @@
 import type {
+  IAppPlatformService,
   AppTask,
-  PlatformServerMessageInterface,
   SerializeableResponse,
 } from '@lombokapp/app-worker-sdk'
 import type {
@@ -301,7 +301,7 @@ export const runWorkerScript = async ({
     printNsjailVerboseOutput: false,
   },
 }: {
-  server: PlatformServerMessageInterface
+  server: IAppPlatformService
   requestOrTask: Request | AppTask
   appIdentifier: string
   workerIdentifier: string
@@ -463,14 +463,22 @@ export const runWorkerScript = async ({
         ? await Bun.file(errOutputPath).text()
         : ''
       try {
-        const parsedErrObj = JSON.parse(errStr) as
-          | SerializeableError
-          | undefined
-        parsedErr = !parsedErrObj
-          ? (JSON.parse(
-              serializeWorkerError(new WorkerError(String(errStr))),
-            ) as SerializeableError)
-          : (parsedErrObj.innerError ?? parsedErrObj)
+        if (!errStr.length) {
+          parsedErr = JSON.parse(
+            serializeWorkerError(
+              new WorkerError('Error output was unexpectedly empty.'),
+            ),
+          ) as SerializeableError
+        } else {
+          const parsedErrObj = JSON.parse(errStr) as
+            | SerializeableError
+            | undefined
+          parsedErr = !parsedErrObj
+            ? (JSON.parse(
+                serializeWorkerError(new WorkerError(String(errStr))),
+              ) as SerializeableError)
+            : (parsedErrObj.innerError ?? parsedErrObj)
+        }
       } catch (err: unknown) {
         parsedErr = JSON.parse(
           serializeWorkerError(
