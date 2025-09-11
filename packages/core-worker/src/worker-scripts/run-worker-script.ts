@@ -18,12 +18,14 @@ import { downloadFileToDisk } from '../utils/file.util'
 const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
 if (await fs.promises.exists(cacheRoot)) {
   // Clean previous worker cache directory before starting
+  console.log('Cleaning previous worker cache directory before starting')
   fs.rmdirSync(cacheRoot, { recursive: true })
 }
 
 const prepCacheRoot = path.join(os.tmpdir(), 'lombok-worker-prep-cache')
 if (await fs.promises.exists(prepCacheRoot)) {
   // Clean previous worker prep cache directory before starting
+  console.log('Cleaning previous worker prep cache directory before starting')
   fs.rmdirSync(prepCacheRoot, { recursive: true })
 }
 
@@ -138,7 +140,7 @@ async function parseRequestBody(request: Request): Promise<unknown> {
   try {
     // Parse based on Content-Type
     if (contentType.includes('application/json')) {
-      return await request.json()
+      return await request.text()
     } else if (
       contentType.includes('text/plain') ||
       contentType.startsWith('text/')
@@ -246,7 +248,7 @@ async function prepareWorkerBundle({
     }
 
     // Move prepared contents into versioned cacheDir
-    fs.mkdirSync(cacheDir, { recursive: true })
+    await fs.promises.mkdir(cacheDir, { recursive: true })
     // Copy all files from tmpRoot except the zip itself into cacheDir
     for (const entry of fs.readdirSync(tmpRoot)) {
       if (entry === 'worker-module.zip') {
@@ -256,6 +258,18 @@ async function prepareWorkerBundle({
       const dest = path.join(cacheDir, entry)
       fs.cpSync(src, dest, { recursive: true })
     }
+
+    // Copy the wrapper script into the main app dir, to avoid an extra bindmount
+    const workerWrapperScript = './worker-script-wrapper.ts'
+    const workerScriptWrapperPath = path.join(
+      import.meta.dir,
+      workerWrapperScript,
+    )
+    fs.cpSync(
+      workerScriptWrapperPath,
+      path.join(cacheDir, 'worker-script-wrapper.ts'),
+    )
+
     // Mark as ready
     fs.writeFileSync(readyMarker, '')
 
@@ -301,8 +315,9 @@ export const runWorkerScript = async ({
   const overallStartTime = performance.now()
   const isRequest = requestOrTask instanceof Request
   const workerRootPath = path.join(os.tmpdir(), workerExecutionId)
-  const builtinsDir = path.join(workerRootPath, 'builtins')
-  const logsDir = path.join(workerRootPath, 'logs')
+  const workerTmpDir = path.join(workerRootPath, '/worker-tmp')
+  const logsDir = path.join(workerTmpDir, 'logs')
+  const scratchDir = path.join(workerTmpDir, 'scratch')
   const outLogPath = path.join(logsDir, 'output.log')
   const errOutputPath = path.join(logsDir, 'error.json')
   const resultOutputPath = path.join(logsDir, 'result.json')
@@ -317,8 +332,9 @@ export const runWorkerScript = async ({
   // Create the directories
   await Promise.all([
     ensureDir(workerRootPath, 0o1777),
-    ensureDir(builtinsDir, 0o1777),
+    ensureDir(workerTmpDir, 0o1777),
     ensureDir(logsDir, 0o1777),
+    ensureDir(scratchDir, 0o1777),
 
     // Create the log files
     Bun.file(outLogPath).write(''),
@@ -354,12 +370,6 @@ export const runWorkerScript = async ({
   const bundlePrepEndTime = performance.now()
   const coldStartTime = bundlePrepEndTime - bundlePrepStartTime
 
-  const workerWrapperScript = './worker-script-wrapper.ts'
-  const workerScriptWrapperPath = path.join(
-    import.meta.dir,
-    workerWrapperScript,
-  )
-
   const environmentVariables = workerEnvVars.map((v) => v.trim())
 
   // Serialize the request or task for the sandbox
@@ -377,9 +387,9 @@ export const runWorkerScript = async ({
     : requestOrTask
 
   const workerModuleStartContext: WorkerModuleStartContext = {
-    resultFilepath: '/logs/result.json',
-    outputLogFilepath: '/logs/output.log',
-    errorLogFilepath: '/logs/error.json',
+    resultFilepath: '/worker-tmp/logs/result.json',
+    outputLogFilepath: '/worker-tmp/logs/output.log',
+    errorLogFilepath: '/worker-tmp/logs/error.json',
     scriptPath: `/app/${workerExecutionDetails.entrypoint}`,
     workerToken: workerExecutionDetails.workerToken,
     executionId: workerExecutionId,
@@ -395,6 +405,13 @@ export const runWorkerScript = async ({
   }
   const executionStartTime = performance.now()
   let executionTime = 0
+
+  await Bun.spawn({
+    cmd: ['mount', '--bind', workerRootPath, workerRootPath],
+    stdout: 'inherit',
+    stderr: 'inherit',
+  }).exited
+
   const proc = Bun.spawn({
     cmd: [
       'nsjail',
@@ -404,22 +421,21 @@ export const runWorkerScript = async ({
       '--disable_rlimits',
       '--disable_proc',
       '--tmpfsmount=/',
-      '--user=1001',
-      '--group=1001',
-      `--bindmount=${builtinsDir}:/builtins`,
-      `--bindmount=${logsDir}:/logs`,
+      '--user=1000',
+      '--group=1000',
+      `--bindmount=${workerTmpDir}:/worker-tmp`,
       `--bindmount_ro=${cacheDir}:/app`,
       '--bindmount_ro=/usr/src/app/node_modules:/node_modules',
       '--bindmount_ro=/usr/src/app/packages:/node_modules/@lombokapp',
-      `--bindmount_ro=${workerScriptWrapperPath}:/wrapper/worker-script-wrapper.ts`,
       ...platformAwareMounts,
       ...environmentVariables.map((v) => `-E${v}`),
+      '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',
       '-Mo',
       ...(printNsjailVerboseOutput ? ['-v'] : ['--quiet']),
       '--log_fd=1',
       '--',
       '/usr/local/bin/bun',
-      `/wrapper/worker-script-wrapper.ts`,
+      `/app/worker-script-wrapper.ts`,
       JSON.stringify(workerModuleStartContext),
     ],
     stdout: 'inherit',
