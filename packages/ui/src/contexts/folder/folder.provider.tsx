@@ -1,5 +1,5 @@
 import { FolderPushMessage } from '@lombokapp/types'
-import { useToast } from '@lombokapp/ui-toolkit'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import React from 'react'
 
 import { useWebsocket } from '../../hooks/use-websocket'

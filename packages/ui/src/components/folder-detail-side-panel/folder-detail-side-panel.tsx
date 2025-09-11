@@ -1,6 +1,6 @@
 import type { FolderGetResponse, FolderMetadata } from '@lombokapp/types'
 import { FolderPermissionEnum } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import { formatBytes } from '@lombokapp/utils'
 
 export const FolderDetailSidePanel = ({

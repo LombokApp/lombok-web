@@ -1,11 +1,11 @@
 import type { FolderPermissionName } from '@lombokapp/types'
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
+import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 
 import { $api } from '@/src/services/api'
 

@@ -1,13 +1,13 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
 import {
-  Button,
-  cn,
-  ScrollArea,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/tooltip'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { Ellipsis, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
 

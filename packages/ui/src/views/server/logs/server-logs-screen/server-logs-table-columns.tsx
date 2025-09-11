@@ -1,6 +1,7 @@
 import { type LogEntryDTO, PLATFORM_IDENTIFIER } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { cn, DataTableColumnHeader } from '@lombokapp/ui-toolkit'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'

@@ -1,11 +1,11 @@
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
+import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 
 const ServerStorageLocationRemoveModal = ({
   modalData,

@@ -1,12 +1,12 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/sheet/sheet'
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
 import { Link } from 'react-router'
 

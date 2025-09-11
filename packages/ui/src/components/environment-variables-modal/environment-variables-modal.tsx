@@ -1,9 +1,9 @@
 import {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
+import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 
 import { EnvVarForm } from '../env-var-form/env-var-form'
 

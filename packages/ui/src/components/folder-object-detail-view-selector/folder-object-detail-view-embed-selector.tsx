@@ -1,16 +1,18 @@
+import { buttonVariants } from '@lombokapp/ui-toolkit/components/button'
 import {
-  buttonVariants,
-  cn,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+} from '@lombokapp/ui-toolkit/components/select'
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/tooltip'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 import type { AppPathContribution } from '@/src/contexts/server'
 

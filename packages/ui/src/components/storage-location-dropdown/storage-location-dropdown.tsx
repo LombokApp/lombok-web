@@ -1,13 +1,13 @@
 import type { StorageProvisionDTO } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
 
 export function StorageLocationDropdown({
   storageProvisions,

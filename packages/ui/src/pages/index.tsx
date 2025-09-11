@@ -1,5 +1,6 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { Button, ButtonVariant } from '@lombokapp/ui-toolkit'
+import { ButtonVariant } from '@lombokapp/ui-toolkit/components/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import React from 'react'
 import { useNavigate } from 'react-router'
 

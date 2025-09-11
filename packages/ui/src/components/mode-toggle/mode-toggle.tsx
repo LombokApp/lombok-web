@@ -1,10 +1,10 @@
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
 
 import { useTheme } from '@/src/contexts/theme'

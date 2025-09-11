@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import type { LucideProps } from 'lucide-react'
 
 export function EmptyState({

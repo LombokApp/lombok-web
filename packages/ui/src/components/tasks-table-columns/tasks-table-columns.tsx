@@ -1,7 +1,7 @@
 import { PLATFORM_IDENTIFIER, type TaskDTO } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { cn } from '@lombokapp/ui-toolkit'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'

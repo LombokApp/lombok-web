@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { StorageProvisionDTO } from '@lombokapp/types'
 import { s3LocationSchema } from '@lombokapp/types'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Badge,
-  Button,
-  cn,
   Form,
   FormControl,
   FormDescription,
@@ -12,8 +11,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/form/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { safeZodParse } from '@lombokapp/utils'
 import { X } from 'lucide-react'
 import { useCallback, useState } from 'react'

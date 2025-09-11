@@ -1,5 +1,5 @@
 import { PLATFORM_IDENTIFIER, type TaskDTO } from '@lombokapp/types'
-import { cn } from '@lombokapp/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 export function TasksListCard({ task }: { task: TaskDTO }) {
   return (

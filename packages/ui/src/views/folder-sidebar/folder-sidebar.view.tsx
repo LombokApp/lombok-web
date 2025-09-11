@@ -1,14 +1,11 @@
 import type { FolderGetResponse, FolderMetadata } from '@lombokapp/types'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  cn,
-  Label,
-  ScrollArea,
-  TypographyH3,
-} from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Label } from '@lombokapp/ui-toolkit/components/label'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
 import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
 

@@ -1,5 +1,6 @@
 import type { ServerEventsListRequest } from '@lombokapp/types'
-import { cn, DataTable } from '@lombokapp/ui-toolkit'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router'

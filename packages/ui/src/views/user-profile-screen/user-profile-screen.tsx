@@ -1,5 +1,6 @@
 import type { UserDTO } from '@lombokapp/types'
-import { cn, TypographyH2 } from '@lombokapp/ui-toolkit'
+import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2/typography-h2'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { NullablePartial } from '@lombokapp/utils'
 import React from 'react'
 

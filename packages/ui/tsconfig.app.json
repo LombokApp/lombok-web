@@ -25,10 +25,7 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "@/src": ["./src"],
-      "@/src/*": ["./src/*"],
-      "@/utils": ["../ui-toolkit/src/utils"],
-      "@/utils/*": ["../ui-toolkit/src/utils/*"],
-      "@/components/*": ["../ui-toolkit/src/components/*"]
+      "@/src/*": ["./src/*"]
     }
   },
   "include": ["src", "worker.ts"]

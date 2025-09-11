@@ -1,13 +1,13 @@
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  Icons,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
 import React from 'react'
 
 import { $api } from '@/src/services/api'

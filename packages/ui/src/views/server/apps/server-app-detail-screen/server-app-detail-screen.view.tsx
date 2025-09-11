@@ -1,6 +1,9 @@
 import {
   Alert,
   AlertDescription,
+  AlertTitle,
+} from '@lombokapp/ui-toolkit/components/alert'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -10,16 +13,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  AlertTitle,
-  Button,
-  Card,
+} from '@lombokapp/ui-toolkit/components/alert-dialog'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import {
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  cn,
-  DataTable,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
 import { HardDrive, KeyIcon, Menu, OctagonX } from 'lucide-react'
 import React from 'react'

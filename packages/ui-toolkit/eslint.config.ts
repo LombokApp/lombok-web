@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint'
 import baseConfig from '../../eslint-config/base'
 import reactConfig from '../../eslint-config/react'
 import strictConfig from '../../eslint-config/strict'
-import { themePlugin } from './src/styles'
+import { themePlugin } from './styles'
 
 export default tseslint.config(
   eslint.configs.recommended,

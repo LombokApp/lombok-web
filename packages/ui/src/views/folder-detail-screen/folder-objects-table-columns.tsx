@@ -1,5 +1,5 @@
 import type { FolderObjectDTO } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { encodeS3ObjectKey } from '@lombokapp/utils'
 import React from 'react'
 

@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { UserDTO } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-  Switch,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/form/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 

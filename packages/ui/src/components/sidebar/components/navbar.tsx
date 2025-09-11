@@ -6,8 +6,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  cn,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/breadcrumb'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import { Link } from 'react-router'
 

@@ -1,4 +1,4 @@
-import { cn } from '@lombokapp/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 import { Navbar } from './navbar'
 interface ContentLayoutProps {

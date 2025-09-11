@@ -1,13 +1,13 @@
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  cn,
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
+import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import type { FileRejection } from 'react-dropzone'
 

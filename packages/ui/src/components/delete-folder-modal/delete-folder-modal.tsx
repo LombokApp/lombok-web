@@ -1,12 +1,12 @@
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
 
 export interface DeleteFolderModalData {
   isOpen: boolean

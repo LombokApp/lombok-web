@@ -1,5 +1,4 @@
 import type { StorageProvisionDTO } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,11 +9,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  Badge,
-  Button,
-  buttonVariants,
-  DataTableColumnHeader,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/alert-dialog'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
+import { buttonVariants } from '@lombokapp/ui-toolkit/components/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 

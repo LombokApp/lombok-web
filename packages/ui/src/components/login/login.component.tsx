@@ -1,9 +1,7 @@
-import {
-  Card,
-  CardContent,
-  TypographyH2,
-  TypographyH3,
-} from '@lombokapp/ui-toolkit'
+import { CardContent } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2/typography-h2'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
 import React from 'react'
 
 import type { LoginFormValues } from './login-form.component'

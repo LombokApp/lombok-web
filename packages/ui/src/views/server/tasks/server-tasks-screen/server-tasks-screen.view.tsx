@@ -1,5 +1,6 @@
 import type { ServerTasksListRequest } from '@lombokapp/types'
-import { cn, DataTable } from '@lombokapp/ui-toolkit'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
