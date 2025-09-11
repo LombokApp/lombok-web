@@ -5,21 +5,23 @@ import type {
   FolderShareUserListResponse,
 } from '@lombokapp/types'
 import { FolderPermissionEnum } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  cn,
   Form,
   FormControl,
   FormDescription,
   FormItem,
   FormLabel,
-  Icons,
+} from '@lombokapp/ui-toolkit/components/form/form'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/select'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import type { FetchOptions } from 'openapi-fetch'
 import React from 'react'

@@ -1,12 +1,9 @@
 import type { EventDTO, FolderGetResponse } from '@lombokapp/types'
 import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@lombokapp/types'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  TypographyH3,
-} from '@lombokapp/ui-toolkit'
+import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
 import { ActivityIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router'

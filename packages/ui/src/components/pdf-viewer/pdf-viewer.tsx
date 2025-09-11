@@ -1,6 +1,6 @@
 import 'pdfjs-dist/web/pdf_viewer.css'
 
-import { cn } from '@lombokapp/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist'
 import {
   EventBus,

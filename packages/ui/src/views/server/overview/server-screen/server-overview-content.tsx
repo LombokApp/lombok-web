@@ -1,12 +1,9 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  DataTable,
-  TypographyH3,
-  TypographySubtitle,
-} from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { TypographySubtitle } from '@lombokapp/ui-toolkit/components/typography-subtitle/typography-subtitle'
 import {
   AppWindow,
   ChartLine,

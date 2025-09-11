@@ -1,11 +1,11 @@
 import type { ServerStorageInputDTO } from '@lombokapp/types'
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
+import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 
 import { ServerStorageLocationForm } from './server-storage-location-form/server-storage-location-form.component'
 

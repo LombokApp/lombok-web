@@ -1,7 +1,7 @@
 import type { FolderDTO } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { Badge } from '@lombokapp/ui-toolkit'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { FolderIcon } from 'lucide-react'
 
 import { DateDisplay } from '@/src/components/date-display'

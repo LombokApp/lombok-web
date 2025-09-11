@@ -1,15 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { s3LocationSchema } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/form/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
 

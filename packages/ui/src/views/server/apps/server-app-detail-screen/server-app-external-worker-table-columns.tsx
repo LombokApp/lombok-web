@@ -1,5 +1,5 @@
 import type { AppExternalWorkersDTO } from '@lombokapp/types'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 
 export const serverAppExternalWorkerTableColumns: ColumnDef<AppExternalWorkersDTO>[] =

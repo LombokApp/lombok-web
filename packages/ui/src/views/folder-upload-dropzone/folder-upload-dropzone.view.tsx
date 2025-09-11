@@ -1,4 +1,4 @@
-import { cn } from '@lombokapp/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { CloudUpload } from 'lucide-react'
 import type { FileRejection } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'

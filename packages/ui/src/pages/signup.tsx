@@ -1,5 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { useToast } from '@lombokapp/ui-toolkit'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import React from 'react'
 import { useNavigate } from 'react-router'
 

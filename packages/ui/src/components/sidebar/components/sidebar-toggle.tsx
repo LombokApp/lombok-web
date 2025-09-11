@@ -1,4 +1,5 @@
-import { Button, cn } from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { PanelLeftClose } from 'lucide-react'
 
 interface SidebarToggleProps {

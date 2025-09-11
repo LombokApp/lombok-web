@@ -1,5 +1,6 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
-import { Button, cn } from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { Link } from 'react-router'
 
 import type { AppPathContribution } from '../../contexts/server'

@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/form/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 

@@ -4,7 +4,7 @@ import type {
   FolderObjectDTO,
 } from '@lombokapp/types'
 import { MediaType } from '@lombokapp/types'
-import { cn } from '@lombokapp/ui-toolkit'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
   documentLabelFromMimeType,
   isRenderableDocumentMimeType,
@@ -14,11 +14,16 @@ import {
 import React from 'react'
 
 import { AudioPlayer } from '@/src/components/audio-player/audio-player'
-import { PDFViewer } from '@/src/components/pdf-viewer/pdf-viewer'
 import { VideoPlayer } from '@/src/components/video-player/video-player'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
 import { $api } from '@/src/services/api'
 import { iconForMediaType } from '@/src/utils/icons'
+
+const LazyPDFViewer = React.lazy(() =>
+  import('@/src/components/pdf-viewer/pdf-viewer').then((m) => ({
+    default: m.PDFViewer,
+  })),
+)
 
 export type DisplayConfig =
   | { type: 'original' } // show the original content in some form
@@ -192,7 +197,9 @@ export const FolderObjectPreview = ({
         ) : srcUrl &&
           mediaType === MediaType.Document &&
           mimeType === 'application/pdf' ? (
-          <PDFViewer className="size-full" dataURL={srcUrl} />
+          <React.Suspense fallback={null}>
+            <LazyPDFViewer className="size-full" dataURL={srcUrl} />
+          </React.Suspense>
         ) : (
           renderEmptyPreview()
         )}

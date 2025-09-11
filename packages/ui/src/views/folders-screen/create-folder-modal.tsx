@@ -3,11 +3,11 @@ import type {
   StorageProvisionDTO,
 } from '@lombokapp/types'
 import {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dialog'
+import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 

@@ -1,6 +1,6 @@
 import type { UserDTO } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 
 import { DateDisplay } from '@/src/components/date-display'
 import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'

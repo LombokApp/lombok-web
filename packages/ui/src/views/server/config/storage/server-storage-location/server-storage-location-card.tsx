@@ -1,5 +1,5 @@
 import type { ServerStorageDTO } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   Globe,
   KeyRoundIcon,

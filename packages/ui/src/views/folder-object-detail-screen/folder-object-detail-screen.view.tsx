@@ -4,22 +4,24 @@ import {
   FolderPushMessage,
   MediaType,
 } from '@lombokapp/types'
+import { buttonVariants } from '@lombokapp/ui-toolkit/components/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  buttonVariants,
-  cn,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+} from '@lombokapp/ui-toolkit/components/select'
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  TypographyH3,
-  useToast,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/tooltip'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { Download, File, Image, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'

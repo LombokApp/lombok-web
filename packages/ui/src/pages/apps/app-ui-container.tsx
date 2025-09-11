@@ -1,4 +1,4 @@
-import { Skeleton } from '@lombokapp/ui-toolkit'
+import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 

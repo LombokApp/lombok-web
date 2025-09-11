@@ -2,7 +2,8 @@ import './styles/globals.css'
 import './fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@lombokapp/auth-utils'
-import { cn, Toaster } from '@lombokapp/ui-toolkit'
+import { Toaster } from '@lombokapp/ui-toolkit/components/toaster'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   BrowserRouter as Router,

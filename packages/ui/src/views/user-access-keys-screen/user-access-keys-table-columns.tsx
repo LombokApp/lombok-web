@@ -2,8 +2,10 @@ import type {
   AccessKeyPublicDTO,
   RotateAccessKeyInputDTO,
 } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit'
-import { Button, DataTableColumnHeader, useToast } from '@lombokapp/ui-toolkit'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router'

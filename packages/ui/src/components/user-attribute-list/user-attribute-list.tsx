@@ -1,5 +1,8 @@
 import type { UserDTO } from '@lombokapp/types'
-import { Badge, Card, CardContent, cn } from '@lombokapp/ui-toolkit'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
+import { CardContent } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''

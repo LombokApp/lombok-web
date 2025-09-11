@@ -1,5 +1,5 @@
 import type { AppDTOManifestInner } from '@lombokapp/types'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/src/components/data-table/data-table-column-header'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { formatBytes } from '@lombokapp/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 

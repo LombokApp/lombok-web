@@ -1,5 +1,5 @@
 import type { StorageProvisionDTO } from '@lombokapp/types'
-import { DataTable } from '@lombokapp/ui-toolkit'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import React from 'react'
 
 import { storageProvisionsTableColumns } from './storage-provisions-table-columns'

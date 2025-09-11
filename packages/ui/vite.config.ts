@@ -4,33 +4,6 @@ import path from 'path'
 import type { PluginOption } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
 
-// function createReactPluginsWithWorkerExclusion(
-//   workerFileNames: string[] = [],
-// ): PluginOption[] {
-//   const base = react()
-//   const plugins = Array.isArray(base) ? base : [base]
-
-//   const [first, ...rest] = plugins
-
-//   const wrappedFirst: PluginOption = {
-//     name: 'react-swc-with-worker-filter',
-//     transform(code, id, ..._restArgs) {
-//       // Skip React refresh for worker files
-//       if (workerFileNames.some((name) => id.includes(name))) {
-//         return null
-//       }
-
-//       const underlying = first
-//       if (underlying && typeof underlying.transform === 'function') {
-//         return underlying.transform.call(this, code, id, ..._restArgs)
-//       }
-//       return null
-//     },
-//   }
-
-//   return [wrappedFirst, ...rest] as PluginOption[]
-// }
-
 // Custom plugin for subdomain routing
 function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
   return {
@@ -115,8 +88,22 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@/src': path.resolve(__dirname, './src'),
-        '@/utils': path.resolve(__dirname, '../ui-toolkit/src/utils'),
-        '@/components': path.resolve(__dirname, '../ui-toolkit/src/components'),
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'ui-toolkit': ['@lombokapp/ui-toolkit'],
+            query: ['@tanstack/react-query', 'openapi-react-query'],
+            'lombok-sdk': [
+              '@lombokapp/app-browser-sdk',
+              '@lombokapp/sdk',
+              '@lombokapp/types',
+              '@lombokapp/auth-utils',
+            ],
+          },
+        },
       },
     },
     server: {

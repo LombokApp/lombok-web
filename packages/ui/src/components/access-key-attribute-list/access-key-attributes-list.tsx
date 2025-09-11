@@ -1,5 +1,7 @@
 import type { AccessKeyPublicDTO } from '@lombokapp/types'
-import { Card, CardContent, cn } from '@lombokapp/ui-toolkit'
+import { CardContent } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity-50'

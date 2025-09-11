@@ -1,15 +1,15 @@
 import type { ServerSettingsGetResponse } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  Checkbox,
-  Input,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/card/card'
+import { Checkbox } from '@lombokapp/ui-toolkit/components/checkbox'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import React from 'react'
 
 interface ServerGeneralConfigTabProps {

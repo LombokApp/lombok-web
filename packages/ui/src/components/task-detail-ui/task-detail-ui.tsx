@@ -1,14 +1,14 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
 import type { TaskDTO } from '@lombokapp/types'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import {
-  Badge,
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  cn,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { Link } from 'react-router'
 
 import { DateDisplay } from '@/src/components/date-display'

@@ -3,16 +3,16 @@ import type {
   FolderPermissionName,
 } from '@lombokapp/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import {
-  Button,
-  cn,
-  DataTable,
-  DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  useToast,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu'
+import { DropdownMenu } from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/table-core'
 import {
   CloudUpload,

@@ -1,20 +1,24 @@
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  cn,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+} from '@lombokapp/ui-toolkit/components/collapsible'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/tooltip'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { DropdownMenuArrow } from '@radix-ui/react-dropdown-menu'
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, Dot } from 'lucide-react'

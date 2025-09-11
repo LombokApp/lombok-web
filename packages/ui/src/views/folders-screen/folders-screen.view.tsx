@@ -1,5 +1,7 @@
 import type { FolderListRequest } from '@lombokapp/types'
-import { Button, DataTable, useToast } from '@lombokapp/ui-toolkit'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'

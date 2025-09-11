@@ -1,5 +1,6 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { cn, ScrollArea } from '@lombokapp/ui-toolkit'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import { Link } from 'react-router'
 

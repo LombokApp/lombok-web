@@ -3,7 +3,9 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-  Button,
+} from '@lombokapp/ui-toolkit/components/avatar'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -11,10 +13,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+import {
   Tooltip,
   TooltipProvider,
   TooltipTrigger,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/tooltip'
 import { LayoutGrid, LogOut, User } from 'lucide-react'
 import { Link } from 'react-router'
 

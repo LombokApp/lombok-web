@@ -5,9 +5,8 @@ import {
   StorageProvisionTypeEnum,
   StorageProvisionTypeZodEnum,
 } from '@lombokapp/types'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
-  Button,
-  cn,
   Form,
   FormControl,
   FormDescription,
@@ -15,9 +14,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Icons,
-  Input,
-} from '@lombokapp/ui-toolkit'
+} from '@lombokapp/ui-toolkit/components/form/form'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'

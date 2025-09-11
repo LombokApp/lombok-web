@@ -7,7 +7,7 @@ module.exports = {
   mode: 'jit',
   content: [
     './src/**/*.{js,ts,jsx,tsx}',
-    '../ui-toolkit/src/components/**/*.{js,ts,jsx,tsx}',
+    '../ui-toolkit/components/**/*.{js,ts,jsx,tsx}',
   ],
   plugins: [themePlugin, containerQueries],
 }
