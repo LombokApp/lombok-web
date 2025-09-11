@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+    "types": ["bun"],
     "module": "ESNext",
     "moduleResolution": "node",
     "allowImportingTsExtensions": true,

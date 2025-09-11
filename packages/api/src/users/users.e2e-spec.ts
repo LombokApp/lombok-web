@@ -1,3 +1,4 @@
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 
@@ -467,7 +468,7 @@ describe('Users', () => {
     expect(listUsersResponse.response.status).toEqual(200)
     expect(listUsersResponse.data?.result.length).toEqual(1)
     expect(listUsersResponse.data?.result.length).toEqual(
-      listUsersResponse.data?.meta.totalCount,
+      listUsersResponse.data?.meta.totalCount ?? -1,
     )
   })
 

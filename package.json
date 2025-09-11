@@ -32,7 +32,6 @@
   "devDependencies": {
     "@stylistic/eslint-plugin-ts": "2.12.1",
     "@types/eslint-plugin-tailwindcss": "3.17.0",
-    "@types/minimatch": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "8.19.1",
     "@typescript-eslint/parser": "8.19.1",
     "eslint": "9.18.0",
