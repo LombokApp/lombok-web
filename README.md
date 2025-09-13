@@ -1,93 +1,47 @@
 # Lombok
 
-## What is Lombok?
+<div align="center">
 
-Lombok is a free, open-source and self-hostable storage and compute platform that runs on any S3-compatible storage service. Deploy on minimal hardware, sync your files, and run custom apps — all while keeping your data sovereign.
+<img src="packages/ui/public/logo.png" alt="Lombok Logo" width="200" height="auto">
 
-To learn more, visit the [public site](https://lombokapp.com) and read the [documentation](https://lombokapp.com/docs).
+**A storage and compute platform for the people**
 
-## Running for development
+[![License](https://img.shields.io/badge/license-AGPL%20v3.0-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=white)](https://bun.sh/)
 
-1. `bun install` -- install dependencies
-2. `cp ./packages/api/.env.example ./packages/api/.env` -- copy the example env file
-3. `bun minio:dev` -- run the dev minio container
-4. `bun db:dev` -- run the db
-5. `bun api:dev` -- run the backend
-6. `bun ui:dev` -- run the ui
-7. Add `lombok.localhost` and `minio` to your /etc/hosts file (pointing at 127.0.0.1)
-8. Visit http://lombok.localhost:5173
+[Website](https://lombokapp.com) • [Documentation](https://lombokapp.com/docs) • [Github](https://github.com/lombokapp/lombok-web) • [Discord](https://discord.gg/ZSEKFG9gwd)
 
-### Other helpful commands
+</div>
 
-#### Backend
+## 🚀 What is Lombok?
 
-##### Run the API container after a fresh docker build
+Lombok is a **free, open-source, and self-hostable** storage and compute platform designed for individual consumers and small enterprises who want a powerful alternative to commercial options without to spending days learning a complex architecture or investing in powerful hardware. Lombok runs on any S3-compatible storage service and can be deployed quickly and easily on minimal hardware.
 
-```
-bun api:dev:build
-```
+### ✨ Key Features
 
-##### Clean the db and restart the app
+- **🏠 Self-Hosted**: Deploy on your own hardware or cloud infrastructure
+- **☁️ S3-Compatible**: Use any combination of S3-compatible storage backends at the same time (AWS S3, Cloudflare R2, SeaweedFS, MinIO, etc.)
+- **⚡ Custom Apps**: Run custom apps on your data, with worker scripts and embedded UIs
+- **🏗️ Simple Architecture**: Doesn't require deep expertise to run or extend the system
+- **📦 Docker Ready**: Easy deployment with Docker containers (as little as a single Docker run command)
+- **🔧 Developer-Friendly**: Built with modern TypeScript and Bun
 
-```
-bun dev:restart:api:clean
-```
+### 🏗️ App Platform Architecture
 
-##### Regenerate [openapi.json](packages/api/src/openapi.json) & [api-paths.d.ts](packages/types/src/api-paths.d.ts)
+#### Lombok makes it easy to build arbitrarily complex apps that integrate deeply with the main application
 
-```
-bun generate:openapi
-```
+- **⚙️ Worker API**: Build Typescript apps that are executed as background workers or API request handlers
+- **🌐 Web UI**: Create frontends in whatever framework you like (or none), and have them served as part of the main application
+- **🎨 UI Library**: Use our React + Tailwind design library to achieve a consistent look, quickly
+- **⚡ Event Based**: Hook into system events to trigger app functionality
 
-##### Run E2E tests
+### Coming Soon Features
 
-###### Start the db + minio
+- **📱Native iOS mobile apps**: Sync files and photos from your device, directly to your own private storage
+- **🔒 E2E Encryption**: Encrypt everything before it leaves your device for ultimate peace of mind
+- **💾 Automatic Backups**: Enable full 3-2-1 backups for your most important data with a couple of clicks
 
-```
-bun --cwd ./packages/api dev:docker:e2e:services
-```
+---
 
-###### Clean the tests db
-
-```
-bun --cwd ./packages/api dev:docker:e2e:down
-```
-
-###### Run all e2e tests
-
-```
-bun --cwd ./packages/api dev:docker:e2e:run
-```
-
-##### Building docker images
-
-###### Standalone image (includes postgres)
-
-```
-bun build:standalone
-```
-
-###### Separate DB image (does not include postgres)
-
-```
-bun build:separate-db
-```
-
-#### Run linting/prettier/tsc checks
-
-```
-bun dev:tsc-all
-```
-
-```
-bun dev:prettier-all
-```
-
-```
-bun dev:lint-all
-```
-
-#### Run the demo app frontend in dev mode (in [@lombokapp/app-demo](./packages/app-demo))
-
-1. `echo 'SC_APP_FRONTEND_PROXY_HOST_DEV_MAIN=http://localhost:5175' > ./packages/ui/.env.development.local` -- tell the UI to proxy frontend requests for the `main` frontend of the `dev` app to `http://localhost:5175`
-2. `bun appuidemo:dev` -- run the demo app frontend
+**Ready to get started?** Visit our [Getting Started](https://www.lombokapp.com/docs/run-lombok/standalone) docs or jump straight into [development](DEVELOPMENT.md)!
