@@ -1,5 +1,11 @@
 import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import {
+  downloadFileToDisk,
+  hashLocalFile,
+  readFileMetadata,
+  uploadFile,
+} from '@lombokapp/core-worker-utils'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
@@ -8,12 +14,6 @@ import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 
 import { analyzeContent } from '../analyze/analyze-content'
-import {
-  downloadFileToDisk,
-  hashLocalFile,
-  uploadFile,
-} from '../utils/file.util'
-import { readFileMetadata } from '../utils/metadata.util'
 
 export const analyzeObjectTaskHandler = async (
   task: AppTask,

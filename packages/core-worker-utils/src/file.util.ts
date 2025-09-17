@@ -78,9 +78,15 @@ export const downloadFileToDisk = async (url: string, filepath: string) => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
-      const { done, value } = await reader.read()
+      const result = await reader.read()
+      const done = result.done
+      const value = result.value as Uint8Array | undefined
       if (done) {
         break
+      }
+
+      if (!value) {
+        continue
       }
 
       writeStream.write(value)

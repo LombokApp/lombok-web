@@ -58,6 +58,7 @@
     "@nestjs/swagger": "11.2.0",
     "@nestjs/websockets": "11.1.2",
     "@lombokapp/core-worker": "workspace:*",
+    "@lombokapp/core-worker-utils": "workspace:*",
     "@lombokapp/types": "workspace:*",
     "@lombokapp/utils": "workspace:*",
     "aws4": "1.13.2",

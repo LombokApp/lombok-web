@@ -1,14 +1,14 @@
 import { buildAppClient } from '@lombokapp/app-worker-sdk'
+import { uniqueExecutionKey } from '@lombokapp/core-worker-utils'
 import type { AppManifest } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
+import { connectAndPerformWork } from './src/connect-app-worker'
 import { analyzeObjectTaskHandler } from './src/handlers/analyze-object-task-handler'
 import { bulidRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
-import { connectAndPerformWork } from './src/utils/connect-app-worker.util'
-import { uniqueExecutionKey } from './src/utils/ids'
 import {
   reconstructResponse,
   runWorkerScript,

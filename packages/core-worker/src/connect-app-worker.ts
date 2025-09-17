@@ -4,8 +4,8 @@ import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import { io } from 'socket.io-client'
 
-import type { SerializeableError } from '../errors/errors'
-import { serializeWorkerError } from '../errors/errors'
+import type { SerializeableError } from './errors/errors'
+import { serializeWorkerError } from './errors/errors'
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,

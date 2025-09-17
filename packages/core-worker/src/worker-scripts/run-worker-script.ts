@@ -8,12 +8,12 @@ import type {
   WorkerModuleStartContext,
 } from '@lombokapp/core-worker'
 import { serializeWorkerError, WorkerError } from '@lombokapp/core-worker'
+import { downloadFileToDisk } from '@lombokapp/core-worker-utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
 import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
-import { downloadFileToDisk } from '../utils/file.util'
 
 const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
 if (await fs.promises.exists(cacheRoot)) {

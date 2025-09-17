@@ -700,7 +700,7 @@ export async function generateVideoPreviews({
     )
   }
 
-  return allPreviews.reduce((acc, preview) => {
+  return allPreviews.reduce<Record<string, PreviewMetadata>>((acc, preview) => {
     acc[`${preview.profile}_${preview.hash}`] = preview
     return acc
   }, {})

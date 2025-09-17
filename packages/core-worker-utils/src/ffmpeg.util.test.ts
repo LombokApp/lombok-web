@@ -25,7 +25,7 @@ describe('generateVideoPreviews', () => {
     cleanupPaths.push(testOutputDir)
 
     // Set up paths to our test video files
-    const fixturesDir = path.join(process.cwd(), 'test-fixtures')
+    const fixturesDir = path.join(__dirname, '__tests__', 'fixtures')
     testVideoShortPath = path.join(fixturesDir, 'sample-short.mp4')
     testVideoTvPath = path.join(fixturesDir, 'sample-tv.mp4')
     testVideoVeryShortPath = path.join(fixturesDir, 'sample-very-short.mp4')

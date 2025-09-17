@@ -1,16 +1,15 @@
-import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
-import { MediaType } from '@lombokapp/types'
-import fs from 'fs'
-import path from 'path'
-
 import {
+  classifyVideoVariant,
+  type Exiv2Metadata,
   generateVideoPreviews,
   getMediaDimensionsWithFFMpeg,
   getNecessaryContentRotationFromMetadata,
   scaleImage,
-} from '../utils'
-import { type Exiv2Metadata } from '../utils/metadata.util'
-import { classifyVideoVariant } from '../utils/video.util'
+} from '@lombokapp/core-worker-utils'
+import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
+import { MediaType } from '@lombokapp/types'
+import fs from 'fs'
+import path from 'path'
 
 async function analyzeImage(
   inFilePath: string,
