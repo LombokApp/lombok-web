@@ -180,7 +180,10 @@ export async function handleAppSocketMessage(
     case 'GET_METADATA_SIGNED_URLS':
       return { result: await appService.createSignedMetadataUrls(requestData) }
     case 'UPDATE_CONTENT_METADATA':
-      await folderService.updateFolderObjectMetadata(requestData.updates)
+      await folderService.updateFolderObjectMetadata(
+        requestingAppIdentifier,
+        requestData.updates,
+      )
       return { result: undefined }
     case 'COMPLETE_HANDLE_TASK': {
       const task = await ormService.db.query.tasksTable.findFirst({

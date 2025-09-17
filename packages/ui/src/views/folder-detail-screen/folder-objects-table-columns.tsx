@@ -36,8 +36,8 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
       const displayConfig = React.useMemo(
         () =>
           ({
-            type: 'metadata_preview',
-            metadataKey: 'preview:thumbnail_sm',
+            type: 'preview_purpose',
+            purposeType: 'list',
           }) as const,
         [],
       )
@@ -50,7 +50,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
               folderId={row.original.folderId}
               displayMode="object-cover"
               displayConfig={displayConfig}
-              objectMetadata={row.original}
+              folderObject={row.original}
               objectKey={row.original.objectKey}
             />
           </div>

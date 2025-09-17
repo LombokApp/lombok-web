@@ -1,11 +1,7 @@
 import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
-import type {
-  ContentMetadataEntry,
-  ExternalMetadataEntry,
-} from '@lombokapp/types'
-import { SignedURLsRequestMethod } from '@lombokapp/types'
-import { encodeS3ObjectKey, mediaTypeFromMimeType } from '@lombokapp/utils'
+import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
+import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -40,7 +36,7 @@ export const analyzeObjectTaskHandler = async (
     [
       {
         folderId: task.subjectFolderId,
-        objectKey: encodeS3ObjectKey(task.subjectObjectKey),
+        objectKey: task.subjectObjectKey,
         method: SignedURLsRequestMethod.GET,
       },
     ],
@@ -87,25 +83,26 @@ export const analyzeObjectTaskHandler = async (
   const originalContentHash = await hashLocalFile(inFilePath)
   const mediaType = mediaTypeFromMimeType(mimeType)
   const metadataFilePath = path.join(metadataOutFileDirectory, 'metadata.json')
-  const metadata = await readFileMetadata(inFilePath, metadataFilePath)
-  const metadataDescription: Record<string, ContentMetadataEntry> =
-    await analyzeContent({
-      inFilePath,
-      outFileDirectory: metadataOutFileDirectory,
-      mediaType,
-      mimeType,
-      metadata,
-    })
+  const exiv2Metadata = [MediaType.Image, MediaType.Video].includes(mediaType)
+    ? await readFileMetadata(inFilePath, metadataFilePath)
+    : {}
+  const [metadataDescription, previews] = await analyzeContent({
+    inFilePath,
+    outFileDirectory: metadataOutFileDirectory,
+    mediaType,
+    mimeType,
+    metadata: exiv2Metadata,
+  })
 
   metadataDescription.mimeType = {
     type: 'inline',
-    size: Buffer.from(JSON.stringify(mimeType)).length,
+    sizeBytes: Buffer.from(JSON.stringify(mimeType)).length,
     content: JSON.stringify(mimeType),
     mimeType: 'application/json',
   }
   metadataDescription.mediaType = {
     type: 'inline',
-    size: Buffer.from(JSON.stringify(mediaType)).length,
+    sizeBytes: Buffer.from(JSON.stringify(mediaType)).length,
     content: JSON.stringify(mediaType),
     mimeType: 'application/json',
   }
@@ -116,28 +113,25 @@ export const analyzeObjectTaskHandler = async (
     metadataFilePath,
     path.join(metadataOutFileDirectory, metadataHash),
   )
+
   metadataDescription.embeddedMetadata = {
     type: 'external',
-    size: metadataSize,
+    sizeBytes: metadataSize,
     storageKey: metadataHash,
     hash: metadataHash,
     mimeType: 'application/json',
   }
 
-  const externalMetadataKeys = Object.keys(metadataDescription).filter(
-    (k) => metadataDescription[k].type === 'external',
-  )
-
   await server
     .getMetadataSignedUrls(
-      externalMetadataKeys.map((k) => ({
+      Object.values(previews).map((preview) => ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         folderId: task.subjectFolderId!,
         contentHash: originalContentHash,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         objectKey: task.subjectObjectKey!,
         method: SignedURLsRequestMethod.PUT,
-        metadataHash: (metadataDescription[k] as ExternalMetadataEntry).hash,
+        metadataHash: preview.hash,
       })),
     )
     .then(({ result, error }) => {
@@ -146,17 +140,23 @@ export const analyzeObjectTaskHandler = async (
       }
       return Promise.all(
         result.urls.map(({ url }, i) => {
-          const externalMetadata = metadataDescription[
-            externalMetadataKeys[i]
-          ] as ExternalMetadataEntry
+          const preview = previews[Object.keys(previews)[i]]
           return uploadFile(
-            path.join(metadataOutFileDirectory, externalMetadata.storageKey),
+            path.join(metadataOutFileDirectory, preview.hash),
             url,
-            externalMetadata.mimeType,
+            preview.mimeType,
           )
         }),
       )
     })
+
+  const stringifiedPreviews = JSON.stringify(previews)
+  metadataDescription['previews'] = {
+    type: 'inline',
+    mimeType: 'application/json',
+    sizeBytes: Buffer.from(stringifiedPreviews).length,
+    content: stringifiedPreviews,
+  }
 
   if (Object.keys(metadataDescription).length > 0) {
     const metadataUpdateResponse = await server.updateContentMetadata(

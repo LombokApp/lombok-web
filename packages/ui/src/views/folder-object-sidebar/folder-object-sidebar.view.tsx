@@ -65,6 +65,11 @@ export const FolderObjectSidebar = ({
       ({} as ContentMetadataType))
     : ({} as ContentMetadataType)
 
+  const previews =
+    metadata.previews?.type === 'inline'
+      ? JSON.stringify(JSON.parse(metadata.previews.content), null, 2)
+      : undefined
+
   return (
     <div className="h-full">
       <div className="h-full py-6">
@@ -248,117 +253,119 @@ export const FolderObjectSidebar = ({
                           {Object.keys(
                             folderObject.contentMetadata[folderObject.hash] ??
                               {},
-                          ).map((metadataKey, i) => {
-                            const metadataEntry =
-                              folderObject.contentMetadata[
-                                folderObject.hash ?? ''
-                              ]?.[metadataKey]
+                          )
+                            .filter((metadataKey) => metadataKey !== 'previews')
+                            .map((metadataKey, i) => {
+                              const metadataEntry =
+                                folderObject.contentMetadata[
+                                  folderObject.hash ?? ''
+                                ]?.[metadataKey]
 
-                            return (
-                              <li key={i} className="flex flex-col">
-                                <div className="flex justify-between gap-x-6 py-3">
-                                  <div className="flex min-w-0 items-center justify-center gap-x-4">
-                                    <div className="rounded-full p-2 pl-0">
-                                      {metadataEntry?.mimeType ===
-                                      'application/json' ? (
-                                        <FileJson className="size-5" />
-                                      ) : mediaTypeFromMimeType(
-                                          metadataEntry?.mimeType ?? '',
-                                        ) === MediaType.Image ? (
-                                        <Image className="size-5" />
-                                      ) : mediaTypeFromMimeType(
-                                          metadataEntry?.mimeType ?? '',
-                                        ) === MediaType.Audio ? (
-                                        <MusicIcon className="size-5" />
-                                      ) : mediaTypeFromMimeType(
-                                          metadataEntry?.mimeType ?? '',
-                                        ) === MediaType.Video ? (
-                                        <VideoIcon className="size-5" />
-                                      ) : mediaTypeFromMimeType(
-                                          metadataEntry?.mimeType ?? '',
-                                        ) === MediaType.Document ? (
-                                        <FileTextIcon className="size-5" />
-                                      ) : (
-                                        <File className="size-5" />
-                                      )}
-                                    </div>
-                                    <div className="min-w-0 flex-auto">
-                                      <p
-                                        className={cn(
-                                          'text-sm font-medium leading-6',
-                                        )}
-                                      >
-                                        <span className="opacity-50">
-                                          key:{' '}
-                                        </span>
-                                        <span className="font-mono font-light">
-                                          {metadataKey}
-                                        </span>
-                                      </p>
-                                      <p
-                                        className={cn(
-                                          'truncate leading-5',
-                                          'text-sm font-semibold ',
-                                        )}
-                                      >
-                                        {metadataEntry?.type === 'external' ? (
-                                          <span>
-                                            {metadataEntry.mimeType} -{' '}
-                                            {formatBytes(metadataEntry.size)} -{' '}
-                                            <span className="opacity-60">{`#${metadataEntry.hash.slice(0, 8)}`}</span>
-                                          </span>
+                              return (
+                                <li key={i} className="flex flex-col">
+                                  <div className="flex justify-between gap-x-6 py-3">
+                                    <div className="flex min-w-0 items-center justify-center gap-x-4">
+                                      <div className="rounded-full p-2 pl-0">
+                                        {metadataEntry?.mimeType ===
+                                        'application/json' ? (
+                                          <FileJson className="size-5" />
+                                        ) : mediaTypeFromMimeType(
+                                            metadataEntry?.mimeType ?? '',
+                                          ) === MediaType.Image ? (
+                                          <Image className="size-5" />
+                                        ) : mediaTypeFromMimeType(
+                                            metadataEntry?.mimeType ?? '',
+                                          ) === MediaType.Audio ? (
+                                          <MusicIcon className="size-5" />
+                                        ) : mediaTypeFromMimeType(
+                                            metadataEntry?.mimeType ?? '',
+                                          ) === MediaType.Video ? (
+                                          <VideoIcon className="size-5" />
+                                        ) : mediaTypeFromMimeType(
+                                            metadataEntry?.mimeType ?? '',
+                                          ) === MediaType.Document ? (
+                                          <FileTextIcon className="size-5" />
                                         ) : (
-                                          <span>
-                                            <span className="opacity-50">
-                                              value:{' '}
-                                            </span>
-                                            {metadataEntry?.content ?? ''}
-                                          </span>
+                                          <File className="size-5" />
                                         )}
-                                      </p>
+                                      </div>
+                                      <div className="min-w-0 flex-auto">
+                                        <p
+                                          className={cn(
+                                            'text-sm font-medium leading-6',
+                                          )}
+                                        >
+                                          <span className="opacity-50">
+                                            key:{' '}
+                                          </span>
+                                          <span className="font-mono font-light">
+                                            {metadataKey}
+                                          </span>
+                                        </p>
+                                        <p
+                                          className={cn(
+                                            'truncate leading-5',
+                                            'text-sm font-semibold ',
+                                          )}
+                                        >
+                                          {metadataEntry?.type ===
+                                          'external' ? (
+                                            <span>
+                                              {metadataEntry.mimeType} -{' '}
+                                              {formatBytes(
+                                                metadataEntry.sizeBytes,
+                                              )}{' '}
+                                              -{' '}
+                                              <span className="opacity-60">{`#${metadataEntry.hash.slice(0, 8)}`}</span>
+                                            </span>
+                                          ) : (
+                                            <span>
+                                              <span className="opacity-50">
+                                                value:{' '}
+                                              </span>
+                                              {metadataEntry?.content ?? ''}
+                                            </span>
+                                          )}
+                                        </p>
+                                      </div>
                                     </div>
+                                    {metadataEntry?.type === 'external' && (
+                                      <div className="flex shrink-0 gap-2 sm:flex sm:items-end">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            downloadToFile(
+                                              folderObject.folderId,
+                                              toMetadataObjectIdentifier(
+                                                objectKey,
+                                                metadataEntry.hash,
+                                              ),
+                                              `${metadataKey}-${metadataEntry.hash.slice(
+                                                0,
+                                                8,
+                                              )}.${extensionFromMimeType(
+                                                metadataEntry.mimeType,
+                                              )}`,
+                                            )
+                                          }}
+                                        >
+                                          <Download className="size-5" />
+                                        </Button>
+                                      </div>
+                                    )}
                                   </div>
-                                  {metadataEntry?.type === 'external' && (
-                                    <div className="flex shrink-0 gap-2 sm:flex sm:items-end">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => {
-                                          downloadToFile(
-                                            folderObject.folderId,
-                                            toMetadataObjectIdentifier(
-                                              objectKey,
-                                              metadataEntry.hash,
-                                            ),
-                                            `${metadataKey}-${metadataEntry.hash.slice(
-                                              0,
-                                              8,
-                                            )}.${extensionFromMimeType(
-                                              metadataEntry.mimeType,
-                                            )}`,
-                                          )
-                                        }}
-                                      >
-                                        <Download className="size-5" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              </li>
-                            )
-                          })}
+                                </li>
+                              )
+                            })}
                         </ul>
-                        <div className="overflow-x-hidden">
-                          <pre className="overflow-x-auto rounded-md bg-foreground/[.025] p-4 text-sm text-foreground/[.75]">
-                            {JSON.stringify(
-                              {
-                                contentMetadata: folderObject.contentMetadata,
-                              },
-                              null,
-                              2,
-                            )}
-                          </pre>
-                        </div>
+                        {previews && (
+                          <div>
+                            <pre className="overflow-x-auto rounded-md bg-foreground/[.025] p-4 text-sm text-foreground/[.75]">
+                              {previews}
+                            </pre>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

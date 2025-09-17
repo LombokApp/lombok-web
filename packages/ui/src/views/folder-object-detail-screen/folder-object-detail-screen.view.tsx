@@ -1,4 +1,4 @@
-import type { ContentMetadataEntry } from '@lombokapp/types'
+import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
@@ -84,95 +84,80 @@ export const FolderObjectDetailScreen = ({
   const IconComponent = iconForMediaType(
     (folderObject?.mediaType as MediaType | undefined) ?? MediaType.Unknown,
   )
-  const canShowOriginal =
-    folderObject?.mimeType !== 'image/heic' &&
-    folderObject?.mimeType !== 'image/heif'
 
-  const displayModes = React.useMemo(
-    () => ({
-      ...(canShowOriginal
-        ? {
-            original: {
-              key: 'original',
-              label: 'Original',
-              icon: IconComponent,
-            },
-          }
-        : {}),
-      ...('preview:lg' in currentVersionMetadata
-        ? {
-            'preview:lg': {
-              key: 'preview:lg',
-              label: 'Large Preview',
-              icon: Image,
-            },
-          }
-        : {}),
-      ...('preview:sm' in currentVersionMetadata
-        ? {
-            'preview:sm': {
-              key: 'preview:sm',
-              label: 'Small Preview',
-              icon: Image,
-            },
-          }
-        : {}),
-      ...('preview:thumbnail_lg' in currentVersionMetadata
-        ? {
-            'preview:thumbnail_lg': {
-              key: 'preview:thumbnail_lg',
-              label: 'Large Thumbnail',
-              icon: Image,
-            },
-          }
-        : {}),
-      ...('preview:thumbnail_sm' in currentVersionMetadata
-        ? {
-            'preview:thumbnail_sm': {
-              key: 'preview:thumbnail_sm',
-              label: 'Small Thumbnail',
-              icon: Image,
-            },
-          }
-        : {}),
-    }),
-    [IconComponent, currentVersionMetadata, canShowOriginal],
+  const previews = React.useMemo(
+    () =>
+      'previews' in currentVersionMetadata &&
+      currentVersionMetadata['previews']?.type === 'inline'
+        ? (JSON.parse(currentVersionMetadata['previews'].content) as Record<
+            string,
+            PreviewMetadata
+          >)
+        : {},
+    [currentVersionMetadata],
   )
 
-  const [selectedDisplayMode, setSelectedDisplayMode] = React.useState<string>()
+  const displayModeOptions = React.useMemo<
+    Record<
+      string,
+      { key: string; label: string; purpose?: string; icon: () => JSX.Element }
+    >
+  >(
+    () => ({
+      original: {
+        key: 'original',
+        label: 'Original',
+        icon: () => <IconComponent />,
+      },
+      ...Object.keys(previews).reduce((acc, previewKey) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const preview = previews[previewKey]!
+
+        return {
+          ...acc,
+          [`${preview.hash}_${preview.profile}`]: {
+            key: previewKey,
+            label: preview.label,
+            purpose: preview.purpose,
+            icon: () => <Image />,
+          },
+        }
+      }, {}),
+    }),
+    [IconComponent, previews],
+  )
+
+  const [selectedDisplayMode, setSelectedDisplayMode] = React.useState<
+    | {
+        type: 'original'
+      }
+    | {
+        type: 'metadata_preview'
+        metadataKey: string
+      }
+  >()
 
   const [selectedContrbutedView, setSelectedContrbutedView] =
     React.useState<AppPathContribution>()
 
-  const previewAvailable = 'preview:lg' in currentVersionMetadata
-  const isSmallEnoughForOriginalView =
-    folderObject && folderObject.sizeBytes < 10 * 1024 * 1024
-
-  const previewDisplayConfig = React.useMemo(() => {
-    return selectedDisplayMode === 'original'
-      ? ({ type: 'original' } as const)
-      : previewAvailable
-        ? ({
-            type: 'metadata_preview',
-            metadataKey: selectedDisplayMode ?? '',
-          } as const)
-        : undefined
-  }, [selectedDisplayMode, previewAvailable])
-
   React.useEffect(() => {
-    if (folderObject && !selectedDisplayMode) {
-      if (previewAvailable) {
-        setSelectedDisplayMode('preview:lg')
-      } else if (isSmallEnoughForOriginalView) {
-        setSelectedDisplayMode('original')
+    if (!folderObject) {
+      return
+    }
+    if (!selectedDisplayMode) {
+      const previewOption = Object.keys(displayModeOptions).find(
+        (key) => displayModeOptions[key]?.purpose === 'detail',
+      )
+      if (previewOption) {
+        setSelectedDisplayMode({
+          type: 'metadata_preview',
+          metadataKey: displayModeOptions[previewOption]?.key ?? '',
+        })
+      } else {
+        setSelectedDisplayMode({ type: 'original' })
       }
     }
-  }, [
-    folderObject,
-    previewAvailable,
-    isSmallEnoughForOriginalView,
-    selectedDisplayMode,
-  ])
+  }, [selectedDisplayMode, displayModeOptions, folderObject])
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, payload: unknown) => {
@@ -321,7 +306,7 @@ export const FolderObjectDetailScreen = ({
                 key={
                   selectedContrbutedView
                     ? `contributed_view-${selectedContrbutedView.appIdentifier}-${selectedContrbutedView.path}`
-                    : `display_mode-${selectedDisplayMode}`
+                    : `display_mode-${selectedDisplayMode?.type === 'original' ? 'original' : selectedDisplayMode?.metadataKey}`
                 }
               >
                 {selectedContrbutedView ? (
@@ -339,76 +324,91 @@ export const FolderObjectDetailScreen = ({
                         'overflow-hidden shrink-0 duration-200 ease-in-out absolute top-4 right-4 z-10',
                       )}
                     >
-                      <Select
-                        disabled={!!selectedContrbutedView}
-                        value={selectedDisplayMode}
-                        onValueChange={(key) =>
-                          setSelectedDisplayMode(
-                            displayModes[key as keyof typeof displayModes]
-                              ?.key ?? '',
-                          )
-                        }
-                      >
-                        <TooltipProvider>
-                          <Tooltip delayDuration={100}>
-                            <TooltipTrigger asChild>
-                              <SelectTrigger
-                                className={cn(
-                                  buttonVariants({
-                                    size: 'sm',
-                                    variant: 'outline',
-                                  }),
-                                  'gap-2 justify-between',
-                                )}
-                              >
-                                <SelectValue placeholder={'placeholder'} />
-                              </SelectTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" align="end">
-                              Select display mode
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      {' '}
+                      {selectedDisplayMode && (
+                        <Select
+                          disabled={!!selectedContrbutedView}
+                          value={
+                            selectedDisplayMode.type === 'original'
+                              ? 'original'
+                              : selectedDisplayMode.metadataKey
+                          }
+                          onValueChange={(value) => {
+                            setSelectedDisplayMode({
+                              type:
+                                displayModeOptions[value]?.key === 'original'
+                                  ? 'original'
+                                  : 'metadata_preview',
+                              metadataKey: value,
+                            })
+                          }}
+                        >
+                          <TooltipProvider>
+                            <Tooltip delayDuration={100}>
+                              <TooltipTrigger asChild>
+                                <SelectTrigger
+                                  className={cn(
+                                    buttonVariants({
+                                      size: 'sm',
+                                      variant: 'outline',
+                                    }),
+                                    'gap-2 justify-between',
+                                  )}
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" align="end">
+                                Select display mode
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
 
-                        <SelectContent align="end">
-                          {Object.keys(displayModes).map((displayModeKey) => {
-                            const OptionIcon =
-                              displayModes[
-                                displayModeKey as keyof typeof displayModes
-                              ]?.icon ?? File
-                            return (
-                              <SelectItem
-                                key={displayModeKey}
-                                value={
-                                  displayModes[
-                                    displayModeKey as keyof typeof displayModes
-                                  ]?.key ?? ''
-                                }
-                              >
-                                <div className="flex items-center gap-2">
-                                  <OptionIcon className="size-5 shrink-0" />
-                                  <span>
-                                    {
-                                      displayModes[
-                                        displayModeKey as keyof typeof displayModes
-                                      ]?.label
+                          <SelectContent align="end">
+                            {Object.keys(displayModeOptions).map(
+                              (displayModeKey) => {
+                                const OptionIcon =
+                                  displayModeOptions[displayModeKey]?.icon ??
+                                  File
+                                return (
+                                  <SelectItem
+                                    key={displayModeKey}
+                                    value={
+                                      displayModeOptions[displayModeKey]?.key ??
+                                      ''
                                     }
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            )
-                          })}
-                        </SelectContent>
-                      </Select>
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <OptionIcon className="size-5 shrink-0" />
+                                      <span>
+                                        {
+                                          displayModeOptions[displayModeKey]
+                                            ?.label
+                                        }
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                )
+                              },
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <FolderObjectPreview
                       folderId={folderId}
+                      showExplanation={true}
                       objectKey={objectKey}
-                      objectMetadata={folderObject}
+                      folderObject={folderObject}
+                      maxRenderSizeBytes={10 * 1024 * 1024}
                       displayConfig={
-                        previewDisplayConfig ?? {
-                          type: 'original',
-                        }
+                        selectedDisplayMode?.type === 'original'
+                          ? { type: 'original' }
+                          : {
+                              type: 'preview_variant',
+                              variantKey:
+                                selectedDisplayMode?.metadataKey ?? '',
+                            }
                       }
                       displayMode="object-scale-down"
                     />

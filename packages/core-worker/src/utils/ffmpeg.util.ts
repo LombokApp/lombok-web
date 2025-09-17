@@ -1,4 +1,4 @@
-import type { ExternalMetadataEntry } from '@lombokapp/types'
+import { type PreviewMetadata } from '@lombokapp/types'
 import { spawn } from 'bun'
 import type { FfmpegCommand } from 'fluent-ffmpeg'
 import ffmpegBase from 'fluent-ffmpeg'
@@ -8,8 +8,8 @@ import path from 'path'
 import sharp from 'sharp'
 import { v4 as uuidV4 } from 'uuid'
 
+import { calculateOutputDimensions } from './dimension.util'
 import { hashLocalFile } from './file.util'
-import { previewDimensionsForMaxDimension } from './image.util'
 import { type Exiv2Metadata } from './metadata.util'
 
 export async function getMediaDimensionsWithSharp(
@@ -30,7 +30,7 @@ export async function getMediaDimensionsWithSharp(
 export const ffmpeg = ffmpegBase
 
 export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
-  return new Promise<{ width: number; height: number; lengthMs: number }>(
+  return new Promise<{ width: number; height: number; durationMs: number }>(
     (resolve, reject) => {
       ffmpeg.ffprobe(filepath, (err, probeResult) => {
         const videoStream = probeResult.streams.find(
@@ -51,14 +51,14 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
           return
         }
 
-        const lengthMs = videoStream.duration
+        const durationMs = videoStream.duration
           ? parseInt(videoStream.duration, 10) * 1000
           : 0
 
         resolve({
           width: videoStream.width,
           height: videoStream.height,
-          lengthMs: lengthMs > 0 ? lengthMs : 0,
+          durationMs: durationMs > 0 ? durationMs : 0,
         })
       })
     },
@@ -70,7 +70,7 @@ export interface VideoOperationOutput {
   width: number
   originalHeight: number
   originalWidth: number
-  lengthMs: number
+  durationMs: number
   originalOrientation: number
 }
 
@@ -155,9 +155,9 @@ export const scaleImage = async ({
   let finalHeight = dimensions.height
 
   if (maxDimension < Math.max(dimensions.height, dimensions.width)) {
-    const previewDimensions = previewDimensionsForMaxDimension({
-      height: finalHeight,
-      width: finalWidth,
+    const previewDimensions = calculateOutputDimensions({
+      inputHeight: finalHeight,
+      inputWidth: finalWidth,
       maxDimension,
     })
     finalWidth = previewDimensions.width
@@ -340,7 +340,7 @@ export const generateMpegDashWithFFmpeg = async (
 
 export interface GenerateAnimatedWebPOptions {
   startAtSeconds?: number
-  durationSeconds?: number
+  durationMs?: number
   fps?: number
   maxWidth?: number
   quality?: number
@@ -351,22 +351,37 @@ export async function generateAnimatedWebPFromVideo(
   inFilePath: string,
   outFilePath: string,
   options: GenerateAnimatedWebPOptions = {},
-): Promise<void> {
+): Promise<{
+  dimensions: { width: number; height: number; durationMs: number }
+}> {
   const {
     startAtSeconds = 0,
-    durationSeconds = 3,
+    durationMs = 3000,
     fps = 12,
     maxWidth = 480,
     quality = 70,
     compressionLevel = 6,
   } = options
 
+  // Calculate approximate output dimensions based on input dimensions and maxWidth
+  const input = await getMediaDimensionsWithFFMpeg(inFilePath)
+  const targetWidth = Math.min(maxWidth, input.width)
+  const scaledHeightFloat = (input.height * targetWidth) / input.width
+  // Ensure even dimensions for broader codec compatibility
+  const toEven = (n: number) =>
+    Math.floor(n) % 2 === 0 ? Math.floor(n) : Math.floor(n) - 1
+  const newDimensions = {
+    width: toEven(targetWidth),
+    height: toEven(scaledHeightFloat),
+    durationMs,
+  }
+
   const command = ffmpeg(inFilePath)
     .seekInput(startAtSeconds)
-    .duration(durationSeconds)
+    .duration(durationMs / 1000)
     .outputOptions([
       '-vf',
-      `fps=${fps},scale=${maxWidth}:-1:flags=lanczos`,
+      `fps=${fps},scale=${newDimensions.width}:-1:flags=lanczos`,
       '-c:v',
       'libwebp',
       '-q:v',
@@ -385,6 +400,7 @@ export async function generateAnimatedWebPFromVideo(
     .on('end', () => console.log('Done - animated webp'))
     .on('error', (err) => console.error(err))
   await waitForFFmpegCommand(command)
+  return { dimensions: newDimensions }
 }
 
 export interface GenerateStillFrameOptions {
@@ -497,60 +513,31 @@ export async function generateVideoPreviewShortForm({
 }: {
   inFilePath: string
   previewOutFilePath: string
-  dimensions: { width: number; height: number; lengthMs: number }
-}): Promise<void> {
-  const lengthSeconds = Math.max(1, Math.floor(dimensions.lengthMs / 1000))
-
+  dimensions: { width: number; height: number; durationMs: number }
+}): Promise<{
+  dimensions: { width: number; height: number; durationMs: number }
+}> {
   // Heuristic: if very short, try to cover the full duration without skipping
-  const isVeryShort = lengthSeconds <= 8
-  const durationSeconds = Math.min(6, lengthSeconds)
+  const isVeryShort = dimensions.durationMs <= 8000
+  const durationMs = Math.min(6000, dimensions.durationMs)
   const fps = isVeryShort
     ? Math.min(24, Math.max(8, Math.floor(dimensions.width / 160)))
     : 12
-  const startAtSeconds = lengthSeconds > durationSeconds + 1 ? 1 : 0
+  const startAtSeconds = dimensions.durationMs > durationMs + 1000 ? 1000 : 0
 
-  await generateAnimatedWebPFromVideo(inFilePath, previewOutFilePath, {
-    startAtSeconds,
-    durationSeconds,
-    fps,
-    maxWidth: Math.min(1080, dimensions.width),
-    quality: 70,
-    compressionLevel: 6,
-  })
-}
-
-export async function generateVideoPreviewLongForm({
-  inFilePath,
-  previewThumbnailOutFilePath,
-  previewOutFilePath,
-  dimensions,
-}: {
-  inFilePath: string
-  previewThumbnailOutFilePath: string
-  previewOutFilePath: string
-  dimensions: { width: number; height: number; lengthMs: number }
-}): Promise<void> {
-  // Use a cover frame at around 10% into the video, capped to 3 minutes
-  const coverSeconds = Math.min(
-    Math.max(5, Math.floor((dimensions.lengthMs / 1000) * 0.1)),
-    180,
+  const result = await generateAnimatedWebPFromVideo(
+    inFilePath,
+    previewOutFilePath,
+    {
+      startAtSeconds,
+      durationMs,
+      fps,
+      maxWidth: Math.min(1080, dimensions.width),
+      quality: 70,
+      compressionLevel: 6,
+    },
   )
-  await generateStillWebPFromVideo(inFilePath, previewThumbnailOutFilePath, {
-    atSeconds: coverSeconds,
-    maxWidth: Math.min(1024, dimensions.width),
-    quality: 80,
-  })
-
-  await generateMosaicAnimatedWebPFromVideo(inFilePath, previewOutFilePath, {
-    coverSeconds,
-    maxWidth: Math.min(1280, dimensions.width),
-    fps: 0.5,
-    tileColumns: 3,
-    tileRows: 3,
-    startAfterSeconds: Math.max(coverSeconds + 60, 120),
-    quality: 70,
-    compressionLevel: 6,
-  })
+  return result
 }
 
 export async function generateVideoPreviews({
@@ -562,112 +549,125 @@ export async function generateVideoPreviews({
   inFilePath: string
   outFileDirectory: string
   variant: VideoPreviewVariant
-  dimensions: { width: number; height: number; lengthMs: number }
-}): Promise<{
-  'preview:thumbnail_sm': ExternalMetadataEntry
-  'preview:thumbnail_lg': ExternalMetadataEntry
-  'preview:sm': ExternalMetadataEntry
-  'preview:lg': ExternalMetadataEntry
-}> {
+  dimensions: { width: number; height: number; durationMs: number }
+}): Promise<Record<string, PreviewMetadata>> {
+  const allPreviews: PreviewMetadata[] = []
+
+  async function addVariant(
+    label: string,
+    profile: string,
+    purpose: PreviewMetadata['purpose'],
+    outFilePath: string,
+    {
+      width,
+      height,
+      durationMs = 0,
+    }: { width: number; height: number; durationMs?: number },
+  ) {
+    const hash = await hashLocalFile(outFilePath)
+
+    allPreviews.push({
+      profile,
+      purpose,
+      hash,
+      label,
+      sizeBytes: fs.statSync(outFilePath).size,
+      mimeType: 'image/webp',
+      dimensions: { width, height, durationMs },
+    })
+    fs.renameSync(outFilePath, path.join(outFileDirectory, hash))
+  }
+
   const previewThumbnailOutFilePath = path.join(
     outFileDirectory,
     'preview-thumb.webp',
   )
   const previewOutFilePath = path.join(outFileDirectory, 'preview.webp')
   if (variant === VideoPreviewVariant.SHORT_FORM) {
-    await generateVideoPreviewShortForm({
+    const shortFormPreviewDimensions = await generateVideoPreviewShortForm({
       inFilePath,
       previewOutFilePath,
       dimensions,
     })
-    // for short form, the thumbnail is just a smaller version of the preview
-    await scaleImage({
+
+    const shortFormThumbnailDimensions = await scaleImage({
       inFilePath: previewOutFilePath,
       outFilePath: previewThumbnailOutFilePath,
       maxDimension: 500,
       mimeType: 'image/webp',
     })
-  } else {
-    await generateVideoPreviewLongForm({
-      inFilePath,
-      previewOutFilePath,
-      previewThumbnailOutFilePath,
-      dimensions,
+
+    await addVariant('Preview', 'preview', 'detail', previewOutFilePath, {
+      width: shortFormPreviewDimensions.dimensions.width,
+      height: shortFormPreviewDimensions.dimensions.height,
+      durationMs: 0,
     })
+
+    await addVariant(
+      'Thumbnail',
+      'thumbnail',
+      'list',
+      previewThumbnailOutFilePath,
+      shortFormThumbnailDimensions,
+    )
+  } else {
+    // Use a cover frame at around 10% into the video, capped to 3 minutes
+    const coverSeconds = Math.min(
+      Math.max(5, Math.floor((dimensions.durationMs / 1000) * 0.1)),
+      180,
+    )
+
+    const thumbnailMaxWidth = Math.min(1024, dimensions.width)
+
+    await generateStillWebPFromVideo(inFilePath, previewThumbnailOutFilePath, {
+      atSeconds: coverSeconds,
+      maxWidth: thumbnailMaxWidth,
+      quality: 80,
+    })
+
+    const thumbnailOutputDimensions = calculateOutputDimensions({
+      inputWidth: dimensions.width,
+      inputHeight: dimensions.height,
+      maxDimension: thumbnailMaxWidth,
+    })
+
+    const previewMaxWidth = Math.min(1280, dimensions.width)
+    await generateMosaicAnimatedWebPFromVideo(inFilePath, previewOutFilePath, {
+      coverSeconds,
+      maxWidth: previewMaxWidth,
+      fps: 0.5,
+      tileColumns: 3,
+      tileRows: 3,
+      startAfterSeconds: Math.max(coverSeconds + 60, 120),
+      quality: 70,
+      compressionLevel: 6,
+    })
+
+    const previewOutputDimensions = calculateOutputDimensions({
+      inputWidth: dimensions.width,
+      inputHeight: dimensions.height,
+      maxDimension: previewMaxWidth,
+    })
+
+    await addVariant(
+      'Preview',
+      'preview',
+      'detail',
+      previewOutFilePath,
+      previewOutputDimensions,
+    )
+
+    await addVariant(
+      'Thumbnail',
+      'thumbnail',
+      'list',
+      previewThumbnailOutFilePath,
+      thumbnailOutputDimensions,
+    )
   }
-  const previewSmOutFilePath = path.join(outFileDirectory, 'preview-sm.webp')
-  const previewThumbnailSmOutFilePath = path.join(
-    outFileDirectory,
-    'preview-thumbnail-sm.webp',
-  )
-  // scale down the large version of the main preview
-  await scaleImage({
-    inFilePath: previewOutFilePath,
-    outFilePath: previewSmOutFilePath,
-    maxDimension: 1024,
-    mimeType: 'image/webp',
-  })
 
-  // scale down the large version of the thumbnail preview
-  await scaleImage({
-    inFilePath: previewThumbnailOutFilePath,
-    outFilePath: previewThumbnailSmOutFilePath,
-    maxDimension: 150,
-    mimeType: 'image/webp',
-  })
-
-  const previewSmHash = await hashLocalFile(previewSmOutFilePath)
-  const previewLgHash = await hashLocalFile(previewOutFilePath)
-  const thumbnailSmHash = await hashLocalFile(previewThumbnailSmOutFilePath)
-  const thumbnailLgHash = await hashLocalFile(previewThumbnailOutFilePath)
-  const previewSmSize = fs.statSync(previewSmOutFilePath).size
-  const previewLgSize = fs.statSync(previewOutFilePath).size
-  const thumbnailSmSize = fs.statSync(previewThumbnailSmOutFilePath).size
-  const thumbnailLgSize = fs.statSync(previewThumbnailOutFilePath).size
-
-  fs.renameSync(
-    previewSmOutFilePath,
-    path.join(outFileDirectory, previewSmHash),
-  )
-  fs.renameSync(previewOutFilePath, path.join(outFileDirectory, previewLgHash))
-  fs.renameSync(
-    previewThumbnailSmOutFilePath,
-    path.join(outFileDirectory, thumbnailSmHash),
-  )
-  fs.renameSync(
-    previewThumbnailOutFilePath,
-    path.join(outFileDirectory, thumbnailLgHash),
-  )
-
-  const result = {
-    'preview:thumbnail_sm': {
-      hash: thumbnailSmHash,
-      size: thumbnailSmSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: thumbnailSmHash,
-    },
-    'preview:thumbnail_lg': {
-      hash: thumbnailLgHash,
-      size: thumbnailLgSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: thumbnailLgHash,
-    },
-    'preview:sm': {
-      hash: previewSmHash,
-      size: previewSmSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: previewSmHash,
-    },
-    'preview:lg': {
-      hash: previewLgHash,
-      size: previewLgSize,
-      type: 'external',
-      mimeType: 'image/webp',
-      storageKey: previewLgHash,
-    },
-  } as const
-  return result
+  return allPreviews.reduce((acc, preview) => {
+    acc[`${preview.profile}_${preview.hash}`] = preview
+    return acc
+  }, {})
 }

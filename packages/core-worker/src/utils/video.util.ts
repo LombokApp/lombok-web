@@ -1,12 +1,12 @@
 import { VideoPreviewVariant } from './ffmpeg.util'
 
 export function classifyVideoVariant({
-  lengthMs,
+  durationMs: lengthMs,
   width,
   height,
   fileSizeBytes,
 }: {
-  lengthMs: number
+  durationMs: number
   width: number
   height: number
   fileSizeBytes: number

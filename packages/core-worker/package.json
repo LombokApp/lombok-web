@@ -10,7 +10,7 @@
     "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "test:unit": "echo 'No tests'"
+    "test:unit": "bun test"
   },
   "devDependencies": {
     "@lombokapp/types": "workspace:*",
