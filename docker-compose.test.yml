@@ -27,6 +27,26 @@ services:
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
     entrypoint: ['bun', '--cwd', './packages/api', 'test:e2e']
+  coreworkerunittest:
+    container_name: 'lombok-core-worker-unit-test'
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      target: local
+    volumes:
+      - ./:/usr/src/app
+    entrypoint: ['bun', '--cwd', './packages/core-worker', 'test:unit']
+  coreworkere2etest:
+    container_name: 'lombok-core-worker-e2e-test'
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      target: local
+    volumes:
+      - ./:/usr/src/app
+      - ./.test-data/apps-test:/apps-test
+      - ./.test-data/minio:/minio-test-data
+    entrypoint: ['bun', '--cwd', './packages/core-worker', 'test:e2e']
   dbtest:
     image: postgres
     container_name: lombok-db-test

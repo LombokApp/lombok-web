@@ -19,7 +19,6 @@ export const analyzeObjectTaskHandler = async (
   task: AppTask,
   server: IAppPlatformService,
 ) => {
-  console.log('Starting work for analyze object task:', task)
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }

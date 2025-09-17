@@ -33,14 +33,16 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
   return new Promise<{ width: number; height: number; durationMs: number }>(
     (resolve, reject) => {
       ffmpeg.ffprobe(filepath, (err, probeResult) => {
+        if (err) {
+          reject(err instanceof Error ? err : new Error(String(err)))
+          return
+        }
+
         const videoStream = probeResult.streams.find(
           (stream) => stream.codec_type === 'video',
         )
 
-        if (err) {
-          reject(err instanceof Error ? err : new Error(String(err)))
-          return
-        } else if (!videoStream) {
+        if (!videoStream) {
           reject(new Error('No video stream found'))
           return
         } else if (!videoStream.width || !videoStream.height) {
@@ -397,9 +399,14 @@ export async function generateAnimatedWebPFromVideo(
       '0',
     ])
     .save(outFilePath)
-    .on('end', () => console.log('Done - animated webp'))
+    .on('end', () => console.log(`Done - animated webp: ${outFilePath}`))
     .on('error', (err) => console.error(err))
   await waitForFFmpegCommand(command)
+
+  if (!fs.existsSync(outFilePath)) {
+    throw new Error(`Output file does not exist: ${outFilePath}`)
+  }
+
   return { dimensions: newDimensions }
 }
 
@@ -523,7 +530,9 @@ export async function generateVideoPreviewShortForm({
   const fps = isVeryShort
     ? Math.min(24, Math.max(8, Math.floor(dimensions.width / 160)))
     : 12
-  const startAtSeconds = dimensions.durationMs > durationMs + 1000 ? 1000 : 0
+  const startAtSeconds = Math.floor(
+    (dimensions.durationMs > durationMs + 1000 ? 1000 : 0) / 1000,
+  )
 
   const result = await generateAnimatedWebPFromVideo(
     inFilePath,
@@ -551,6 +560,11 @@ export async function generateVideoPreviews({
   variant: VideoPreviewVariant
   dimensions: { width: number; height: number; durationMs: number }
 }): Promise<Record<string, PreviewMetadata>> {
+  // Validate input dimensions
+  if (dimensions.width <= 0 || dimensions.height <= 0) {
+    throw new Error('Video dimensions must be positive numbers')
+  }
+
   const allPreviews: PreviewMetadata[] = []
 
   async function addVariant(
@@ -632,13 +646,33 @@ export async function generateVideoPreviews({
     })
 
     const previewMaxWidth = Math.min(1280, dimensions.width)
+    // For shorter videos, start sampling earlier to ensure we have content
+    const videoDurationSeconds = dimensions.durationMs / 1000
+
+    // Ensure we don't start sampling beyond the video duration
+    let startAfterSeconds: number
+    if (videoDurationSeconds > 300) {
+      startAfterSeconds = Math.max(coverSeconds + 60, 120)
+    } else if (videoDurationSeconds > 60) {
+      startAfterSeconds = Math.max(coverSeconds + 10, 5)
+    } else {
+      // For very short videos, start sampling from the beginning
+      startAfterSeconds = Math.max(coverSeconds, 1)
+    }
+
+    // Ensure we don't exceed video duration
+    startAfterSeconds = Math.min(startAfterSeconds, videoDurationSeconds - 1)
+
+    // Adjust fps for shorter videos to ensure we get enough frames
+    const fps = videoDurationSeconds > 60 ? 0.5 : 1.0
+
     await generateMosaicAnimatedWebPFromVideo(inFilePath, previewOutFilePath, {
       coverSeconds,
       maxWidth: previewMaxWidth,
-      fps: 0.5,
+      fps,
       tileColumns: 3,
       tileRows: 3,
-      startAfterSeconds: Math.max(coverSeconds + 60, 120),
+      startAfterSeconds,
       quality: 70,
       compressionLevel: 6,
     })

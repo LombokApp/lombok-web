@@ -10,7 +10,10 @@
     "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "test:unit": "bun test"
+    "test:e2e": "bun install && bun test $(find src -type f -name '*.e2e-spec.ts' | sed 's|^|./|')",
+    "test:unit": "bun test",
+    "dev:docker:unit:run": "docker compose -f ../../docker-compose.test.yml up coreworkerunittest",
+    "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml up coreworkere2etest"
   },
   "devDependencies": {
     "@lombokapp/types": "workspace:*",

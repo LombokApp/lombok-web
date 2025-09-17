@@ -12,11 +12,8 @@
     "test:unit": "jest"
   },
   "devDependencies": {
-    "@types/jest": "29.5.14",
     "@types/react": "18.3.1",
-    "jest": "29.7.0",
-    "prettier": "3.4.2",
-    "ts-jest": "29.2.4"
+    "prettier": "3.4.2"
   },
   "dependencies": {
     "@lombokapp/utils": "workspace:*",

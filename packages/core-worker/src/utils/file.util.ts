@@ -7,7 +7,6 @@ export const uploadFile = async (
   mimeType?: string,
 ) => {
   const { size } = fs.statSync(filepath)
-  console.log('Uploading file of size %d bytes to "%s":', size, uploadUrl)
 
   const fileBuffer = await Bun.file(filepath).arrayBuffer()
   const blob = new Blob([fileBuffer], { type: mimeType })
@@ -30,6 +29,12 @@ export const hashFileStream = async (
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('sha1').setEncoding('hex')
+
+    // Handle errors from the original stream
+    stream.on('error', (error) => {
+      reject(error)
+    })
+
     stream
       .pipe(hash)
       .on('finish', () => {
@@ -66,32 +71,75 @@ export const downloadFileToDisk = async (url: string, filepath: string) => {
   const writeStream = fs.createWriteStream(filepath)
   const reader = response.body?.getReader()
   if (!reader) {
+    writeStream.destroy()
     throw new Error('No response body available')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) {
-      break
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
+
+      writeStream.write(value)
+      receivedBytes += value.length
+      const progress = Math.floor((receivedBytes / totalBytes) * 100)
+
+      const now = Date.now()
+      if (!lastAnnounce || lastAnnounce < now - 1000 || progress === 100) {
+        lastAnnounce = now
+      }
     }
 
-    writeStream.write(value)
-    receivedBytes += value.length
-    const progress = Math.floor((receivedBytes / totalBytes) * 100)
+    // Close the write stream and wait for it to finish
+    writeStream.end()
 
-    const now = Date.now()
-    if (!lastAnnounce || lastAnnounce < now - 1000 || progress === 100) {
-      console.log('Download progress: %d%', progress)
-      lastAnnounce = now
+    // Use a more robust approach to ensure the file is written
+    await new Promise<void>((resolve, reject) => {
+      let resolved = false
+
+      const cleanup = () => {
+        if (resolved) {
+          return
+        }
+        resolved = true
+        writeStream.removeAllListeners()
+      }
+
+      writeStream.on('finish', () => {
+        cleanup()
+        resolve()
+      })
+
+      writeStream.on('error', (error) => {
+        cleanup()
+        reject(error)
+      })
+
+      // Fallback timeout to prevent hanging
+      setTimeout(() => {
+        if (!resolved) {
+          cleanup()
+          reject(new Error('Write stream timeout'))
+        }
+      }, 5000)
+    })
+
+    // Additional verification that the file exists and has content
+    return { mimeType }
+  } catch (error) {
+    // Clean up resources on error
+    writeStream.destroy()
+    if (typeof reader.releaseLock === 'function') {
+      reader.releaseLock()
+    }
+    throw error
+  } finally {
+    // Ensure reader is always released
+    if (typeof reader.releaseLock === 'function') {
+      reader.releaseLock()
     }
   }
-
-  writeStream.end()
-  await new Promise<void>((resolve) =>
-    writeStream.on('finish', () => resolve()),
-  )
-  console.log('Download complete.')
-
-  return { mimeType }
 }
