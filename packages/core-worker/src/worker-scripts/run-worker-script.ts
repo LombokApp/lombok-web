@@ -8,12 +8,12 @@ import type {
   WorkerModuleStartContext,
 } from '@lombokapp/core-worker'
 import { serializeWorkerError, WorkerError } from '@lombokapp/core-worker'
+import { downloadFileToDisk } from '@lombokapp/core-worker-utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
 import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
-import { downloadFileToDisk } from '../utils/file.util'
 
 const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
 if (await fs.promises.exists(cacheRoot)) {
@@ -33,69 +33,21 @@ if (await fs.promises.exists(prepCacheRoot)) {
 const platformAwareMounts = await (async () => {
   const flags: string[] = []
 
-  // ldd
-  for (const src of ['/usr/bin/ldd', '/bin/ldd']) {
-    if (await fs.promises.exists(src)) {
-      flags.push(`--bindmount_ro=${src}:${src}`)
-      break
-    }
+  // Mount whole /usr (read-only)
+  if (await fs.promises.exists('/usr')) {
+    flags.push('--bindmount_ro=/usr:/usr')
   }
 
-  // bun binary (mount source to fixed target inside jail)
-  for (const src of ['/usr/local/bin/bun', '/usr/bin/bun', '/bin/bun']) {
-    if (await fs.promises.exists(src)) {
-      flags.push(`--bindmount_ro=${src}:/usr/local/bin/bun`)
-      break
-    }
+  // Mount either /lib64 or /lib (read-only) depending on which exists
+  if (await fs.promises.exists('/lib64')) {
+    flags.push('--bindmount_ro=/lib64:/lib64')
+  } else if (await fs.promises.exists('/lib')) {
+    flags.push('--bindmount_ro=/lib:/lib')
   }
 
   // resolver
   if (await fs.promises.exists('/etc/resolv.conf')) {
     flags.push('--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf')
-  }
-
-  // dynamic linker candidates (musl/glibc on x64/arm64)
-  const loaderCandidates = [
-    '/lib/ld-musl-aarch64.so.1',
-    '/lib/ld-musl-x86_64.so.1',
-    '/lib64/ld-linux-x86-64.so.2',
-    '/lib/ld-linux-x86-64.so.2',
-    '/lib/ld-linux-aarch64.so.1',
-    '/lib64/ld-linux-aarch64.so.1',
-  ]
-  for (const src of loaderCandidates) {
-    if (await fs.promises.exists(src)) {
-      flags.push(`--bindmount_ro=${src}:${src}`)
-      break
-    }
-  }
-
-  // libstdc++
-  for (const src of [
-    '/usr/lib/libstdc++.so.6',
-    '/usr/lib/x86_64-linux-gnu/libstdc++.so.6',
-    '/usr/lib/aarch64-linux-gnu/libstdc++.so.6',
-    '/lib/x86_64-linux-gnu/libstdc++.so.6',
-    '/lib/aarch64-linux-gnu/libstdc++.so.6',
-  ]) {
-    if (await fs.promises.exists(src)) {
-      flags.push(`--bindmount_ro=${src}:${src}`)
-      break
-    }
-  }
-
-  // libgcc_s
-  for (const src of [
-    '/usr/lib/libgcc_s.so.1',
-    '/usr/lib/x86_64-linux-gnu/libgcc_s.so.1',
-    '/usr/lib/aarch64-linux-gnu/libgcc_s.so.1',
-    '/lib/x86_64-linux-gnu/libgcc_s.so.1',
-    '/lib/aarch64-linux-gnu/libgcc_s.so.1',
-  ]) {
-    if (await fs.promises.exists(src)) {
-      flags.push(`--bindmount_ro=${src}:${src}`)
-      break
-    }
   }
 
   // tsconfig for worker transpile
@@ -575,7 +527,7 @@ export const runWorkerScript = async ({
   } finally {
     if (removeWorkerDirectory && (await fs.promises.exists(workerRootPath))) {
       try {
-        fs.rmdirSync(workerRootPath, { recursive: true })
+        await fs.promises.rmdir(workerRootPath, { recursive: true })
       } catch (error) {
         console.error('Error removing worker directory:', error)
       }

@@ -5497,7 +5497,7 @@
           "mimeType": {
             "type": "string"
           },
-          "size": {
+          "sizeBytes": {
             "type": "number"
           },
           "content": {
@@ -5507,7 +5507,7 @@
         "required": [
           "type",
           "mimeType",
-          "size",
+          "sizeBytes",
           "content"
         ]
       },
@@ -5526,7 +5526,7 @@
           "mimeType": {
             "type": "string"
           },
-          "size": {
+          "sizeBytes": {
             "type": "number"
           },
           "hash": {
@@ -5537,7 +5537,7 @@
           "type",
           "storageKey",
           "mimeType",
-          "size",
+          "sizeBytes",
           "hash"
         ]
       },

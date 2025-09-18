@@ -97,7 +97,6 @@ export interface IAppPlatformService {
       objectKey: string
       method: SignedURLsRequestMethod
     }[],
-    eventId?: string,
   ) => Promise<
     AppAPIResponse<{
       urls: { url: string; folderId: string; objectKey: string }[]
@@ -119,7 +118,6 @@ export interface IAppPlatformService {
       hash: string
       metadata: ContentMetadataType
     }[],
-    eventId?: string,
   ) => Promise<AppAPIResponse<void>>
   // Database methods
   query: (
@@ -207,9 +205,8 @@ export const buildAppClient = (
         userId,
       }) as ReturnType<IAppPlatformService['getAppUserAccessToken']>
     },
-    updateContentMetadata(updates, taskId) {
+    updateContentMetadata(updates) {
       return emitWithAck('UPDATE_CONTENT_METADATA', {
-        taskId,
         updates,
       }) as ReturnType<IAppPlatformService['updateContentMetadata']>
     },

@@ -1072,7 +1072,7 @@ export interface components {
              */
             type: "inline";
             mimeType: string;
-            size: number;
+            sizeBytes: number;
             content: string;
         };
         ExternalMetadataEntryDTO: {
@@ -1083,7 +1083,7 @@ export interface components {
             type: "external";
             storageKey: string;
             mimeType: string;
-            size: number;
+            sizeBytes: number;
             hash: string;
         };
         ContentMetadataEntryDTO: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];

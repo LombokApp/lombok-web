@@ -1,6 +1,8 @@
 import type {
   ContentMetadataType,
   FolderPermissionName,
+  InlineMetadataEntry,
+  PreviewMetadata,
   S3ObjectInternal,
   StorageProvisionType,
 } from '@lombokapp/types'
@@ -9,6 +11,7 @@ import {
   FolderPushMessage,
   MediaType,
   PLATFORM_IDENTIFIER,
+  previewMetadataSchema,
   SignedURLsRequestMethod,
   StorageProvisionTypeEnum,
 } from '@lombokapp/types'
@@ -1096,6 +1099,7 @@ export class FolderService {
       folderId,
       objectKey,
       lastModified: updateRecord.lastModified ?? 0,
+      hash: undefined,
       eTag: updateRecord.eTag ?? '',
       contentMetadata: {},
       sizeBytes: updateRecord.size ?? 0,
@@ -1105,12 +1109,12 @@ export class FolderService {
       updatedAt: now,
     }
 
-    const updateSet: Record<string, unknown> = {
+    const updateSet = {
       sizeBytes: insertValues.sizeBytes,
       lastModified: insertValues.lastModified,
       eTag: insertValues.eTag,
       updatedAt: now,
-    }
+    } as const
 
     if (updateRecord.mimeType) {
       Object.assign(updateSet, {
@@ -1125,7 +1129,7 @@ export class FolderService {
         .values(insertValues)
         .onConflictDoUpdate({
           target: [folderObjectsTable.folderId, folderObjectsTable.objectKey],
-          set: updateSet as never,
+          set: updateSet,
         })
         .returning()
     )[0]
@@ -1157,6 +1161,7 @@ export class FolderService {
   }
 
   async updateFolderObjectMetadata(
+    appIdentifier: string,
     payload: ContentMetadataPayload[],
   ): Promise<void> {
     for (const { folderId, objectKey, hash, metadata } of payload) {
@@ -1171,12 +1176,56 @@ export class FolderService {
       if (!folderObject) {
         throw new FolderObjectNotFoundException()
       }
+      // Function to merge new previews with existing ones
+      function updatePreviews(): InlineMetadataEntry {
+        const existingPreviews = JSON.parse(
+          folderObject?.contentMetadata[hash]?.previews?.type === 'inline'
+            ? folderObject.contentMetadata[hash].previews.content
+            : '{}',
+        ) as Record<string, PreviewMetadata>
 
+        const incomingPreviews =
+          metadata.previews?.type === 'inline'
+            ? (JSON.parse(metadata.previews.content) as unknown)
+            : {}
+        if (
+          safeZodParse(
+            incomingPreviews,
+            z.record(z.string(), previewMetadataSchema),
+          )
+        ) {
+          const stringifiedPreviews = JSON.stringify({
+            ...existingPreviews,
+            ...Object.keys(incomingPreviews).reduce(
+              (acc, incomingPreviewVariant) => ({
+                ...acc,
+                [`${appIdentifier}:${incomingPreviewVariant}`]:
+                  incomingPreviews[incomingPreviewVariant],
+              }),
+              {},
+            ),
+          })
+          return {
+            type: 'inline',
+            sizeBytes: Buffer.from(stringifiedPreviews).length,
+            mimeType: 'application/json',
+            content: stringifiedPreviews,
+          }
+        }
+        throw new BadRequestException(
+          'Invalid previews. Expected a record of string keys and preview metadata.',
+        )
+      }
+      const hasIncomingPreviews = 'previews' in metadata
       const updates = {
         hash,
         contentMetadata: {
           ...folderObject.contentMetadata,
-          [hash]: { ...folderObject.contentMetadata[hash], ...metadata },
+          [hash]: {
+            ...folderObject.contentMetadata[hash],
+            ...metadata,
+            ...(hasIncomingPreviews ? { previews: updatePreviews() } : {}),
+          },
         },
       }
 

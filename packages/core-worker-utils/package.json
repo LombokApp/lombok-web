@@ -1,5 +1,5 @@
 {
-  "name": "@lombokapp/core-worker",
+  "name": "@lombokapp/core-worker-utils",
   "private": true,
   "scripts": {
     "build": "rm -rf ./dist && NODE_ENV=production bun --bun script/build.ts",
@@ -10,21 +10,18 @@
     "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "test:e2e": "bun install && bun test $(find src -type f -name '*.e2e-spec.ts' | sed 's|^|./|')",
     "test:unit": "bun test",
-    "dev:docker:unit:run": "docker compose -f ../../docker-compose.test.yml up coreworkerunittest",
-    "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml up coreworkere2etest"
+    "dev:docker:unit:run": "docker compose -f ../../docker-compose.test.yml up coreworkerutilsunittest"
   },
   "devDependencies": {
     "@lombokapp/types": "workspace:*",
-    "socket.io": "4.8.1",
+    "@types/fluent-ffmpeg": "2.1.27",
     "prettier": "3.4.2"
   },
   "dependencies": {
     "@lombokapp/utils": "workspace:*",
-    "@lombokapp/app-worker-sdk": "workspace:*",
-    "@lombokapp/core-worker-utils": "workspace:*",
-    "socket.io-client": "4.8.1",
-    "zod": "3.25.76"
+    "fluent-ffmpeg": "2.1.3",
+    "sharp": "0.34.3",
+    "uuid": "^10.0.0"
   }
 }

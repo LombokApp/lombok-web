@@ -1,4 +1,4 @@
-import { hashLocalFile } from '@lombokapp/core-worker'
+import { hashLocalFile } from '@lombokapp/core-worker-utils'
 import type {
   AppConfig,
   AppContributions,

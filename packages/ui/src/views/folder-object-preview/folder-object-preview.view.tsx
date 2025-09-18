@@ -1,9 +1,10 @@
 import type {
   ContentMetadataEntry,
-  ExternalMetadataEntry,
   FolderObjectDTO,
+  PreviewMetadata,
 } from '@lombokapp/types'
 import { MediaType } from '@lombokapp/types'
+import { Button, ButtonVariant } from '@lombokapp/ui-toolkit/components'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
   documentLabelFromMimeType,
@@ -16,8 +17,9 @@ import React from 'react'
 import { AudioPlayer } from '@/src/components/audio-player/audio-player'
 import { VideoPlayer } from '@/src/components/video-player/video-player'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
-import { $api } from '@/src/services/api'
 import { iconForMediaType } from '@/src/utils/icons'
+
+import { canRenderOriginal } from './can-render.util'
 
 const LazyPDFViewer = React.lazy(() =>
   import('@/src/components/pdf-viewer/pdf-viewer').then((m) => ({
@@ -26,8 +28,9 @@ const LazyPDFViewer = React.lazy(() =>
 )
 
 export type DisplayConfig =
-  | { type: 'original' } // show the original content in some form
-  | { type: 'metadata_preview'; metadataKey: string } // show the preview content referenced by the metadata key (alwys a webp image?)
+  | { type: 'original' } // attempt to render the original content
+  | { type: 'preview_variant'; variantKey: string } // attempt to render a specific preview variant
+  | { type: 'preview_purpose'; purposeType: string }
 
 function resolveLatestContentMetadata(
   folderObject: FolderObjectDTO,
@@ -40,98 +43,143 @@ function resolveLatestContentMetadata(
 export const FolderObjectPreview = ({
   folderId,
   objectKey,
-  objectMetadata,
   displayConfig,
   displayMode = 'object-contain',
+  folderObject,
+  showExplanation = false,
+  maxRenderSizeBytes = 100 * 1024,
 }: {
   folderId: string
   objectKey: string
-  objectMetadata?: FolderObjectDTO
   displayConfig: DisplayConfig | undefined
   displayMode?: string
+  maxRenderSizeBytes?: number
+  showExplanation?: boolean
+  folderObject: FolderObjectDTO
 }) => {
   const fileName = objectKey.split('/').at(-1)
   const { getPresignedDownloadUrl } = useLocalFileCacheContext()
-  const [srcUrl, setSrcUrl] = React.useState<string | undefined>()
-  const folderObjectQuery = $api.useQuery(
-    'get',
-    '/api/v1/folders/{folderId}/objects/{objectKey}',
-    {
-      params: { path: { folderId, objectKey } },
-    },
-    { enabled: !!folderId && !!objectKey },
+
+  const currentObjectContentMetadata =
+    resolveLatestContentMetadata(folderObject) ?? undefined
+
+  const previews = React.useMemo(() => {
+    return currentObjectContentMetadata?.previews?.type === 'inline'
+      ? (JSON.parse(currentObjectContentMetadata.previews.content) as Record<
+          string,
+          PreviewMetadata
+        >)
+      : {}
+  }, [currentObjectContentMetadata])
+
+  const canRenderOriginalResult = canRenderOriginal(
+    folderObject,
+    maxRenderSizeBytes,
   )
-  const folderObject = objectMetadata ?? folderObjectQuery.data?.folderObject
+  const resolveRenderedVersion = React.useCallback((): {
+    renderedContentKey: string
+    mimeType: string
+    mediaType: MediaType
+  } => {
+    if (
+      displayConfig?.type === 'preview_variant' &&
+      displayConfig.variantKey in previews
+    ) {
+      return {
+        renderedContentKey: `metadata:${objectKey}:${previews[displayConfig.variantKey]?.hash}`,
+        mimeType: previews[displayConfig.variantKey]?.mimeType ?? '',
+        mediaType: mediaTypeFromMimeType(
+          previews[displayConfig.variantKey]?.mimeType ?? '',
+        ),
+      }
+    }
+    if (displayConfig?.type === 'preview_purpose') {
+      const purposeMatchedVariantKey =
+        Object.keys(previews).find(
+          (previewVariantKey) =>
+            previews[previewVariantKey]?.purpose === displayConfig.purposeType,
+        ) ||
+        Object.keys(previews).find(
+          (previewVariantKey) =>
+            previews[previewVariantKey]?.purpose === 'preview', // Generic preview fallback
+        )
+      if (purposeMatchedVariantKey) {
+        const previewVariant = previews[purposeMatchedVariantKey]
+        return {
+          renderedContentKey: `metadata:${objectKey}:${previewVariant?.hash}`,
+          mimeType: previews[displayConfig.purposeType]?.mimeType ?? '',
+          mediaType: mediaTypeFromMimeType(
+            previews[purposeMatchedVariantKey]?.mimeType ?? '',
+          ),
+        }
+      }
+    }
+    return {
+      renderedContentKey: `content:${objectKey}`,
+      mimeType: folderObject.mimeType,
+      mediaType: mediaTypeFromMimeType(folderObject.mimeType),
+    }
+  }, [displayConfig, folderObject, objectKey, previews])
 
-  const latestObjectContentMetadata =
-    (folderObject && resolveLatestContentMetadata(folderObject)) ?? undefined
-
-  const mimeType =
-    (latestObjectContentMetadata &&
-      (displayConfig?.type === 'original' &&
-      'mimeType' in latestObjectContentMetadata &&
-      latestObjectContentMetadata.mimeType.type === 'inline'
-        ? (JSON.parse(latestObjectContentMetadata.mimeType.content) as string)
-        : displayConfig?.type === 'metadata_preview' &&
-            displayConfig.metadataKey in latestObjectContentMetadata &&
-            latestObjectContentMetadata[displayConfig.metadataKey]?.type ===
-              'external'
-          ? latestObjectContentMetadata[displayConfig.metadataKey]?.mimeType
-          : undefined)) ??
-    folderObject?.mimeType
-
-  const mediaType = mimeType ? mediaTypeFromMimeType(mimeType) : undefined
-  const renderedContentKey =
-    displayConfig?.type === 'original'
-      ? `content:${objectKey}`
-      : latestObjectContentMetadata &&
-          displayConfig?.type === 'metadata_preview' &&
-          displayConfig.metadataKey in latestObjectContentMetadata &&
-          latestObjectContentMetadata[displayConfig.metadataKey]?.type ===
-            'external'
-        ? `metadata:${objectKey}:${(latestObjectContentMetadata[displayConfig.metadataKey] as ExternalMetadataEntry).hash}`
-        : undefined
-
-  const isRenderableDocument =
-    !!mimeType && isRenderableDocumentMimeType(mimeType)
-  const isTextRenderableDocument =
-    !!mimeType && isRenderableTextMimeType(mimeType)
+  const [toRender, setToRender] = React.useState<
+    | {
+        srcUrl: string
+        mimeType: string
+        mediaType: MediaType
+        renderedContentKey: string
+        isRenderableDocument: boolean
+        isTextRenderableDocument: boolean
+      }
+    | undefined
+  >(undefined)
 
   React.useEffect(() => {
-    if (!srcUrl && mediaType && renderedContentKey) {
-      void getPresignedDownloadUrl(folderId, renderedContentKey).then(
-        async ({ url }) => {
-          if (isTextRenderableDocument) {
-            const contents = await fetch(url)
-            setSrcUrl(await contents.text())
-          } else {
-            setSrcUrl(url)
-          }
-        },
-      )
-    }
-  }, [
-    srcUrl,
-    mediaType,
-    getPresignedDownloadUrl,
-    folderId,
-    objectKey,
-    isRenderableDocument,
-    renderedContentKey,
-    isTextRenderableDocument,
-  ])
+    void (async () => {
+      let srcUrl: string | undefined
+      const { mimeType, mediaType, renderedContentKey } =
+        resolveRenderedVersion()
+      const isRenderableDocument = isRenderableDocumentMimeType(mimeType)
+      const isTextRenderableDocument = isRenderableTextMimeType(mimeType)
+      if (renderedContentKey) {
+        await getPresignedDownloadUrl(folderId, renderedContentKey).then(
+          async ({ url }) => {
+            if (isTextRenderableDocument) {
+              const contents = await fetch(url)
+              srcUrl = await contents.text()
+            } else {
+              srcUrl = url
+            }
+          },
+        )
+      }
+      setToRender({
+        srcUrl: srcUrl ?? '',
+        mimeType,
+        mediaType,
+        renderedContentKey,
+        isRenderableDocument,
+        isTextRenderableDocument,
+      })
+    })()
+  }, [getPresignedDownloadUrl, folderId, objectKey, resolveRenderedVersion])
 
   const isCoverView =
-    displayMode === 'object-cover' || mediaType === MediaType.Document
-  const IconComponent = iconForMediaType(mediaType ?? MediaType.Unknown)
+    displayMode === 'object-cover' || toRender?.mediaType === MediaType.Document
+  const IconComponent = iconForMediaType(
+    toRender?.mediaType ?? MediaType.Unknown,
+  )
   const overlayLabel = React.useMemo<string | undefined>(() => {
-    if (mediaType === MediaType.Document) {
-      return documentLabelFromMimeType(mimeType)
+    if (toRender?.mediaType === MediaType.Document) {
+      return documentLabelFromMimeType(toRender.mimeType)
     }
     return undefined
-  }, [mediaType, mimeType])
+  }, [toRender?.mediaType, toRender?.mimeType])
 
-  const renderEmptyPreview = () => (
+  const [renderBlockOverriden, setRenderBlockOverriden] = React.useState(false)
+
+  const renderEmptyPreview = (
+    loadRestriction?: 'TOO_LARGE' | 'FORMAT_NOT_SUPPORTED',
+  ) => (
     <div className="flex size-full flex-col items-center justify-center">
       <div className="flex items-center justify-center rounded-full">
         <IconComponent className="size-20 fill-background opacity-30 lg:size-24" />
@@ -141,6 +189,27 @@ export const FolderObjectPreview = ({
           {overlayLabel}
         </span>
       ) : null}
+      {loadRestriction && showExplanation && (
+        <span className="rounded px-1.5 py-0.5 text-xs font-bold tracking-wide text-foreground/50">
+          <div className="flex flex-col items-center gap-2">
+            <div>
+              {loadRestriction === 'TOO_LARGE'
+                ? 'File too large'
+                : `Mime type "${toRender?.mimeType}" cannot be rendered`}
+            </div>
+            {loadRestriction === 'TOO_LARGE' && (
+              <div>
+                <Button
+                  variant={ButtonVariant.outline}
+                  onClick={() => setRenderBlockOverriden(true)}
+                >
+                  Render anyway
+                </Button>
+              </div>
+            )}
+          </div>
+        </span>
+      )}
     </div>
   )
   return (
@@ -155,7 +224,11 @@ export const FolderObjectPreview = ({
           isCoverView && 'size-full',
         )}
       >
-        {srcUrl && mediaType === MediaType.Image ? (
+        {toRender?.renderedContentKey.startsWith('content:') &&
+        !canRenderOriginalResult.result &&
+        !renderBlockOverriden ? (
+          renderEmptyPreview(canRenderOriginalResult.reason)
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.Image ? (
           <div
             className={cn(
               'flex-1 flex flex-col justify-around size-full',
@@ -170,10 +243,10 @@ export const FolderObjectPreview = ({
                 displayMode,
               )}
               alt={fileName ?? objectKey}
-              src={srcUrl}
+              src={toRender.srcUrl}
             />
           </div>
-        ) : srcUrl && mediaType === MediaType.Video ? (
+        ) : toRender && toRender.mediaType === MediaType.Video ? (
           <div className="flex size-full justify-center">
             <VideoPlayer
               className={cn(
@@ -181,24 +254,31 @@ export const FolderObjectPreview = ({
                 displayMode,
               )}
               controls
-              src={srcUrl}
+              src={toRender.srcUrl}
             />
           </div>
-        ) : srcUrl && mediaType === MediaType.Audio ? (
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.Audio ? (
           <div className="flex size-full items-center justify-center p-4">
-            <AudioPlayer width="100%" height="100%" controls src={srcUrl} />
+            <AudioPlayer
+              width="100%"
+              height="100%"
+              controls
+              src={toRender.srcUrl}
+            />
           </div>
-        ) : srcUrl &&
-          mediaType === MediaType.Document &&
-          isTextRenderableDocument ? (
+        ) : toRender?.srcUrl &&
+          toRender.mediaType === MediaType.Document &&
+          toRender.isTextRenderableDocument ? (
           <div className="size-full overflow-hidden">
-            <pre className="size-full overflow-auto p-4 text-sm">{srcUrl}</pre>
+            <pre className="size-full overflow-auto p-4 text-sm">
+              {toRender.srcUrl}
+            </pre>
           </div>
-        ) : srcUrl &&
-          mediaType === MediaType.Document &&
-          mimeType === 'application/pdf' ? (
+        ) : toRender?.srcUrl &&
+          toRender.mediaType === MediaType.Document &&
+          toRender.mimeType === 'application/pdf' ? (
           <React.Suspense fallback={null}>
-            <LazyPDFViewer className="size-full" dataURL={srcUrl} />
+            <LazyPDFViewer className="size-full" dataURL={toRender.srcUrl} />
           </React.Suspense>
         ) : (
           renderEmptyPreview()
