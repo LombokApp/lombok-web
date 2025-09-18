@@ -154,8 +154,8 @@
       },
       "devDependencies": {
         "@lombokapp/types": "workspace:*",
-        "@types/fluent-ffmpeg": "2.1.27",
         "prettier": "3.4.2",
+        "socket.io": "4.8.1",
       },
     },
     "packages/core-worker-utils": {

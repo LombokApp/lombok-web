@@ -35,7 +35,7 @@ async function analyzeImage(
         outFilePath,
         mimeType,
         rotation,
-        maxDimension: scaleConfig[3],
+        size: { strategy: 'max', maxDimension: scaleConfig[3] },
       }).then((scaleResult) => ({
         result: scaleResult,
         label: scaleConfig[0],

@@ -14,7 +14,7 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "baseUrl": "./",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,

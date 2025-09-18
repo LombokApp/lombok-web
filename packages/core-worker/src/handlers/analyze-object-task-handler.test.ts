@@ -1,4 +1,5 @@
 import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type { ContentMetadataType } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import fs from 'fs'
 import path from 'path'
@@ -83,12 +84,18 @@ describe('Analyze Object Task Handler', () => {
 
     // Track calls to completion methods with exact parameters
     let metadataUpdatedCalled = false
-    let metadataUpdateParams: { requests: unknown; taskId: string } | null =
-      null
+    let metadataUpdateParams: {
+      requests: {
+        folderId: string
+        objectKey: string
+        hash: string
+        metadata: ContentMetadataType
+      }[]
+    } | null = null
     let contentUrlsRequested = false
-    let contentUrlsParams: { requests: unknown; taskId: string } | null = null
+    let contentUrlsParams: { requests: unknown[] } | null = null
     let metadataUrlsRequested = false
-    let metadataUrlsParams: { requests: unknown } | null = null
+    let metadataUrlsParams: { requests: unknown[] } | null = null
 
     // Create mock server client with all required methods
     const mockServerClient: IAppPlatformService = {
@@ -122,7 +129,7 @@ describe('Analyze Object Task Handler', () => {
         Promise.resolve({
           result: { userId: 'test-user', success: true },
         }),
-      getMetadataSignedUrls: (requests: unknown) => {
+      getMetadataSignedUrls: (requests: unknown[]) => {
         metadataUrlsRequested = true
         metadataUrlsParams = { requests }
         return Promise.resolve({
@@ -137,9 +144,9 @@ describe('Analyze Object Task Handler', () => {
           },
         })
       },
-      getContentSignedUrls: (requests: unknown, eventId?: string) => {
+      getContentSignedUrls: (requests: unknown[]) => {
         contentUrlsRequested = true
-        contentUrlsParams = { requests, taskId: eventId || '' }
+        contentUrlsParams = { requests }
         return Promise.resolve({
           result: {
             urls: [
@@ -160,9 +167,17 @@ describe('Analyze Object Task Handler', () => {
         Promise.resolve({
           result: { accessToken: 'test-token', refreshToken: 'test-refresh' },
         }),
-      updateContentMetadata: (requests: unknown, eventId?: string) => {
+      updateContentMetadata: (
+        requests: {
+          folderId: string
+          objectKey: string
+          hash: string
+          metadata: ContentMetadataType
+        }[],
+      ) => {
+        // console.log('updateContentMetadata', JSON.stringify(requests, null, 2))
         metadataUpdatedCalled = true
-        metadataUpdateParams = { requests, taskId: eventId || '' }
+        metadataUpdateParams = { requests }
         return Promise.resolve({ result: undefined })
       },
       query: () =>
@@ -189,167 +204,116 @@ describe('Analyze Object Task Handler', () => {
 
     // Verify getContentSignedUrls was called with correct parameters
     expect(contentUrlsParams).not.toBeNull()
-    expect(
-      (contentUrlsParams as unknown as { requests: unknown; taskId: string })
-        .taskId,
-    ).toBe(analyzeTask.id)
-    expect(
-      Array.isArray(
-        (contentUrlsParams as unknown as { requests: unknown; taskId: string })
-          .requests,
-      ),
-    ).toBe(true)
-    expect(
-      (
-        (contentUrlsParams as unknown as { requests: unknown; taskId: string })
-          .requests as unknown[]
-      ).length,
-    ).toBe(1)
-    expect(
-      (
-        (contentUrlsParams as unknown as { requests: unknown; taskId: string })
-          .requests as unknown[]
-      )[0],
-    ).toEqual({
+    metadataUrlsParams = metadataUrlsParams as unknown as {
+      requests: unknown[]
+    }
+    metadataUpdateParams = metadataUpdateParams as unknown as {
+      requests: {
+        folderId: string
+        objectKey: string
+        hash: string
+        metadata: ContentMetadataType
+      }[]
+    }
+    contentUrlsParams = contentUrlsParams as unknown as {
+      requests: {
+        folderId: string
+        objectKey: string
+        hash: string
+        metadata: ContentMetadataType
+      }[]
+    }
+    expect(Array.isArray(contentUrlsParams.requests)).toBe(true)
+    expect(contentUrlsParams.requests.length).toBe(1)
+    expect(contentUrlsParams.requests[0]).toEqual({
       folderId: testFolderId,
       objectKey: testObjectKey,
       method: 'GET',
     })
 
     // Verify getMetadataSignedUrls was called with correct parameters (if previews were generated)
-    expect(metadataUrlsParams).not.toBeNull()
-    expect(
-      Array.isArray(
-        (metadataUrlsParams as unknown as { requests: unknown }).requests,
-      ),
-    ).toBe(true)
-    expect(
-      (
-        (metadataUrlsParams as unknown as { requests: unknown })
-          .requests as unknown[]
-      ).length,
-    ).toBeGreaterThan(0)
-    expect(
-      (
-        (metadataUrlsParams as unknown as { requests: unknown })
-          .requests as unknown[]
-      )[0],
-    ).toMatchObject({
-      folderId: testFolderId,
-      objectKey: testObjectKey,
-      method: 'PUT',
+    expect(metadataUrlsParams).toEqual({
+      requests: [
+        {
+          contentHash: '379f5137831350c900e757b39e525b9db1426d53',
+          folderId: testFolderId,
+          metadataHash: 'd669d272cffc8e706437a54265d8128ca9a8c4e3',
+          method: 'PUT',
+          objectKey: 'test-image.png',
+        },
+        {
+          contentHash: '379f5137831350c900e757b39e525b9db1426d53',
+          folderId: testFolderId,
+          metadataHash: 'd669d272cffc8e706437a54265d8128ca9a8c4e3',
+          method: 'PUT',
+          objectKey: 'test-image.png',
+        },
+        {
+          contentHash: '379f5137831350c900e757b39e525b9db1426d53',
+          folderId: testFolderId,
+          metadataHash: 'd669d272cffc8e706437a54265d8128ca9a8c4e3',
+          method: 'PUT',
+          objectKey: 'test-image.png',
+        },
+        {
+          contentHash: '379f5137831350c900e757b39e525b9db1426d53',
+          folderId: testFolderId,
+          metadataHash: 'd669d272cffc8e706437a54265d8128ca9a8c4e3',
+          method: 'PUT',
+          objectKey: 'test-image.png',
+        },
+      ],
     })
-    expect(
-      (
-        (metadataUrlsParams as unknown as { requests: unknown })
-          .requests as unknown[]
-      )[0],
-    ).toHaveProperty('contentHash')
-    expect(
-      (
-        (metadataUrlsParams as unknown as { requests: unknown })
-          .requests as unknown[]
-      )[0],
-    ).toHaveProperty('metadataHash')
 
     // Verify updateContentMetadata was called with correct parameters
-    expect(metadataUpdateParams).not.toBeNull()
-    expect(
-      (metadataUpdateParams as unknown as { requests: unknown; taskId: string })
-        .taskId,
-    ).toBe(analyzeTask.id)
-    expect(
-      Array.isArray(
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests,
-      ),
-    ).toBe(true)
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      ).length,
-    ).toBe(1)
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toMatchObject({
+    expect(metadataUpdateParams.requests[0]).toEqual({
+      folderId: testFolderId,
+      objectKey: testObjectKey,
+      hash: '379f5137831350c900e757b39e525b9db1426d53',
+      metadata: {
+        height: {
+          type: 'inline',
+          sizeBytes: 3,
+          content: '100',
+          mimeType: 'application/json',
+        },
+        width: {
+          type: 'inline',
+          sizeBytes: 3,
+          content: '100',
+          mimeType: 'application/json',
+        },
+        mimeType: {
+          type: 'inline',
+          sizeBytes: 11,
+          content: '"image/png"',
+          mimeType: 'application/json',
+        },
+        mediaType: {
+          type: 'inline',
+          sizeBytes: 7,
+          content: '"IMAGE"',
+          mimeType: 'application/json',
+        },
+        embeddedMetadata: {
+          type: 'external',
+          sizeBytes: 2,
+          storageKey: 'bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f',
+          hash: 'bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f',
+          mimeType: 'application/json',
+        },
+        previews: {
+          type: 'inline',
+          mimeType: 'application/json',
+          sizeBytes: 907,
+          content:
+            '{"thumbnailSm":{"mimeType":"image/webp","hash":"d669d272cffc8e706437a54265d8128ca9a8c4e3","profile":"thumbnailSm","purpose":"list","label":"Small Thumbnail","sizeBytes":2900,"dimensions":{"width":100,"height":100,"durationMs":0}},"thumbnailLg":{"mimeType":"image/webp","hash":"d669d272cffc8e706437a54265d8128ca9a8c4e3","profile":"thumbnailLg","purpose":"list","label":"Large Thumbnail","sizeBytes":2900,"dimensions":{"width":100,"height":100,"durationMs":0}},"previewSm":{"mimeType":"image/webp","hash":"d669d272cffc8e706437a54265d8128ca9a8c4e3","profile":"previewSm","purpose":"card","label":"Small Preview","sizeBytes":2900,"dimensions":{"width":100,"height":100,"durationMs":0}},"previewLg":{"mimeType":"image/webp","hash":"d669d272cffc8e706437a54265d8128ca9a8c4e3","profile":"previewLg","purpose":"detail","label":"Large Preview","sizeBytes":2900,"dimensions":{"width":100,"height":100,"durationMs":0}}}',
+        },
+      },
+    })
+    expect(metadataUpdateParams.requests[0]).toMatchObject({
       folderId: testFolderId,
       objectKey: testObjectKey,
     })
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toHaveProperty('hash')
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toHaveProperty('metadata')
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toHaveProperty('metadata.mimeType')
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toHaveProperty('metadata.mediaType')
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toHaveProperty('metadata.embeddedMetadata')
-    expect(
-      (
-        (
-          metadataUpdateParams as unknown as {
-            requests: unknown
-            taskId: string
-          }
-        ).requests as unknown[]
-      )[0],
-    ).toHaveProperty('metadata.previews')
   })
 })

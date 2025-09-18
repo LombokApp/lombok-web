@@ -1,31 +1,12 @@
 import { type PreviewMetadata } from '@lombokapp/types'
-import { spawn } from 'bun'
 import type { FfmpegCommand } from 'fluent-ffmpeg'
 import ffmpegBase from 'fluent-ffmpeg'
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
-import sharp from 'sharp'
-import { v4 as uuidV4 } from 'uuid'
 
 import { calculateOutputDimensions } from './dimension.util'
 import { hashLocalFile } from './file.util'
-import { type Exiv2Metadata } from './metadata.util'
-
-export async function getMediaDimensionsWithSharp(
-  filePath: string,
-): Promise<{ width: number; height: number }> {
-  const metadata = await sharp(filePath).metadata()
-
-  if (!metadata.width || !metadata.height) {
-    throw new Error('Failed to get image dimensions')
-  }
-
-  return {
-    width: metadata.width,
-    height: metadata.height,
-  }
-}
+import { scaleImage } from './image.util'
 
 export const ffmpeg = ffmpegBase
 
@@ -76,14 +57,6 @@ export interface VideoOperationOutput {
   originalOrientation: number
 }
 
-export interface ImageOperationOutput {
-  height: number
-  width: number
-  originalHeight: number
-  originalWidth: number
-  hash: string
-}
-
 async function waitForFFmpegCommand(command: FfmpegCommand) {
   command.run()
   // wait for end or error
@@ -95,169 +68,6 @@ async function waitForFFmpegCommand(command: FfmpegCommand) {
       reject(e)
     })
   })
-}
-
-async function readStreamToString(
-  stream: ReadableStream<Uint8Array> | null,
-): Promise<string> {
-  if (!stream) {
-    return ''
-  }
-
-  const reader = stream.getReader()
-  const decoder = new TextDecoder()
-  let result = ''
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) {
-      break
-    }
-    result += decoder.decode(value, { stream: true })
-  }
-  result += decoder.decode() // flush remaining
-  return result
-}
-
-export async function convertHeicToJpeg(input: string, output: string) {
-  const child = spawn(['heif-dec', input, output], {
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-
-  const _stdoutText = await readStreamToString(child.stdout)
-  const stderrText = await readStreamToString(child.stderr)
-
-  const exitCode = await child.exited
-
-  if (exitCode === 1) {
-    if (stderrText) {
-      console.error('stderr:', stderrText.trim())
-    }
-    throw new Error('Failed to convert heic to jpeg')
-  }
-}
-
-export const scaleImage = async ({
-  inFilePath,
-  outFilePath,
-  maxDimension,
-  rotation = 0,
-  mimeType,
-}: {
-  inFilePath: string
-  outFilePath: string
-  maxDimension: number
-  rotation?: number
-  mimeType: string
-}): Promise<ImageOperationOutput> => {
-  const dimensions = await getMediaDimensionsWithSharp(inFilePath)
-
-  let finalWidth = dimensions.width
-  let finalHeight = dimensions.height
-
-  if (maxDimension < Math.max(dimensions.height, dimensions.width)) {
-    const previewDimensions = calculateOutputDimensions({
-      inputHeight: finalHeight,
-      inputWidth: finalWidth,
-      maxDimension,
-    })
-    finalWidth = previewDimensions.width
-    finalHeight = previewDimensions.height
-  }
-
-  let finalInFilePath = inFilePath
-
-  const tempConvertedImageDir = path.join(
-    os.tmpdir(),
-    `lombok_scaled_image_${uuidV4()}`,
-  )
-  if (mimeType === 'image/heic') {
-    finalInFilePath = path.join(tempConvertedImageDir, `__converted.jpg`)
-    if (!fs.existsSync(tempConvertedImageDir)) {
-      fs.mkdirSync(tempConvertedImageDir)
-      await convertHeicToJpeg(inFilePath, finalInFilePath)
-    }
-  }
-
-  await sharp(finalInFilePath, { animated: true })
-    .rotate(mimeType === 'image/heic' ? 0 : rotation)
-    .resize(finalWidth)
-    .toFile(outFilePath)
-
-  if (fs.existsSync(tempConvertedImageDir)) {
-    fs.rmSync(finalInFilePath)
-    fs.rmdirSync(tempConvertedImageDir)
-  }
-
-  const returnValue = {
-    height: finalHeight,
-    width: finalWidth,
-    originalHeight: dimensions.height,
-    originalWidth: dimensions.width,
-    hash: await hashLocalFile(outFilePath),
-  }
-
-  return returnValue
-}
-
-export function parseOrientationToPosition(orientation: string): number {
-  if (!orientation) {
-    return 0
-  }
-
-  // Handle Exif orientation descriptions like "right, top", "bottom, left", etc.
-  // These values represent the degrees of rotation needed to correct the image orientation
-  const exifOrientationMap: Record<string, number> = {
-    'top, left': 0, // Already correct, no rotation needed
-    'top, right': 0, // Flipped horizontally, but no rotation needed
-    'bottom, right': 180, // Upside down, rotate 180° to correct
-    'bottom, left': 180, // Upside down and flipped, rotate 180° to correct
-    'left, top': 90, // Rotated 90° CCW, rotate 90° CW to correct
-    'right, top': 90, // Rotated 90° CW, rotate 90° CW to correct
-    'right, bottom': 270, // Rotated 270° CW, rotate 270° CW to correct
-    'left, bottom': 270, // Rotated 270° CW, rotate 270° CW to correct
-  }
-
-  // Check if it's an Exif orientation description
-  const normalizedOrientation = orientation.toLowerCase().trim()
-  if (normalizedOrientation in exifOrientationMap) {
-    return exifOrientationMap[normalizedOrientation]
-  }
-
-  // Fallback: Extract the rotation value from the orientation string (legacy format)
-  const rotationMatch = orientation.match(/Rotate (\d+) (CW|CCW)/)
-  if (!rotationMatch) {
-    return 0
-  }
-
-  const degrees = parseInt(rotationMatch[1], 10)
-  const direction = rotationMatch[2]
-
-  // Convert to position number (0-359)
-  let position = 0
-  if (direction === 'CW') {
-    position = degrees
-  } else if (direction === 'CCW') {
-    position = 360 - degrees
-  }
-
-  // Ensure the position is within 0-359
-  return Math.min(Math.max(position, 0), 359)
-}
-
-export function getNecessaryContentRotationFromMetadata(
-  metadata: Exiv2Metadata,
-): number {
-  if (
-    typeof metadata === 'object' &&
-    typeof metadata['Exif.Image.Orientation'] === 'object' &&
-    typeof metadata['Exif.Image.Orientation'].value === 'string'
-  ) {
-    // Orientation: "right, top",
-    return parseOrientationToPosition(metadata['Exif.Image.Orientation'].value)
-  }
-  return 0
 }
 
 export const generateM3u8WithFFmpeg = async (
@@ -607,7 +417,7 @@ export async function generateVideoPreviews({
     const shortFormThumbnailDimensions = await scaleImage({
       inFilePath: previewOutFilePath,
       outFilePath: previewThumbnailOutFilePath,
-      maxDimension: 500,
+      size: { strategy: 'max', maxDimension: 500 },
       mimeType: 'image/webp',
     })
 

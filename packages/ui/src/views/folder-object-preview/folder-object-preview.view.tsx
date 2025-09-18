@@ -59,7 +59,6 @@ export const FolderObjectPreview = ({
 }) => {
   const fileName = objectKey.split('/').at(-1)
   const { getPresignedDownloadUrl } = useLocalFileCacheContext()
-  const [srcUrl, setSrcUrl] = React.useState<string | undefined>()
 
   const currentObjectContentMetadata =
     resolveLatestContentMetadata(folderObject) ?? undefined
@@ -77,12 +76,11 @@ export const FolderObjectPreview = ({
     folderObject,
     maxRenderSizeBytes,
   )
-
-  function resolveRenderedVersion(): {
+  const resolveRenderedVersion = React.useCallback((): {
     renderedContentKey: string
     mimeType: string
     mediaType: MediaType
-  } {
+  } => {
     if (
       displayConfig?.type === 'preview_variant' &&
       displayConfig.variantKey in previews
@@ -121,48 +119,61 @@ export const FolderObjectPreview = ({
       mimeType: folderObject.mimeType,
       mediaType: mediaTypeFromMimeType(folderObject.mimeType),
     }
-  }
+  }, [displayConfig, folderObject, objectKey, previews])
 
-  const { renderedContentKey, mimeType, mediaType } = resolveRenderedVersion()
-
-  const isRenderableDocument =
-    !!mimeType && isRenderableDocumentMimeType(mimeType)
-  const isTextRenderableDocument =
-    !!mimeType && isRenderableTextMimeType(mimeType)
+  const [toRender, setToRender] = React.useState<
+    | {
+        srcUrl: string
+        mimeType: string
+        mediaType: MediaType
+        renderedContentKey: string
+        isRenderableDocument: boolean
+        isTextRenderableDocument: boolean
+      }
+    | undefined
+  >(undefined)
 
   React.useEffect(() => {
-    if (!srcUrl && renderedContentKey) {
-      void getPresignedDownloadUrl(folderId, renderedContentKey).then(
-        async ({ url }) => {
-          if (isTextRenderableDocument) {
-            const contents = await fetch(url)
-            setSrcUrl(await contents.text())
-          } else {
-            setSrcUrl(url)
-          }
-        },
-      )
-    }
-  }, [
-    srcUrl,
-    mediaType,
-    getPresignedDownloadUrl,
-    folderId,
-    objectKey,
-    isRenderableDocument,
-    renderedContentKey,
-    isTextRenderableDocument,
-  ])
+    void (async () => {
+      let srcUrl: string | undefined
+      const { mimeType, mediaType, renderedContentKey } =
+        resolveRenderedVersion()
+      const isRenderableDocument = isRenderableDocumentMimeType(mimeType)
+      const isTextRenderableDocument = isRenderableTextMimeType(mimeType)
+      if (renderedContentKey) {
+        await getPresignedDownloadUrl(folderId, renderedContentKey).then(
+          async ({ url }) => {
+            if (isTextRenderableDocument) {
+              const contents = await fetch(url)
+              srcUrl = await contents.text()
+            } else {
+              srcUrl = url
+            }
+          },
+        )
+      }
+      setToRender({
+        srcUrl: srcUrl ?? '',
+        mimeType,
+        mediaType,
+        renderedContentKey,
+        isRenderableDocument,
+        isTextRenderableDocument,
+      })
+    })()
+  }, [getPresignedDownloadUrl, folderId, objectKey, resolveRenderedVersion])
 
   const isCoverView =
-    displayMode === 'object-cover' || mediaType === MediaType.Document
-  const IconComponent = iconForMediaType(mediaType)
+    displayMode === 'object-cover' || toRender?.mediaType === MediaType.Document
+  const IconComponent = iconForMediaType(
+    toRender?.mediaType ?? MediaType.Unknown,
+  )
   const overlayLabel = React.useMemo<string | undefined>(() => {
-    if (mediaType === MediaType.Document) {
-      return documentLabelFromMimeType(mimeType)
+    if (toRender?.mediaType === MediaType.Document) {
+      return documentLabelFromMimeType(toRender.mimeType)
     }
     return undefined
-  }, [mediaType, mimeType])
+  }, [toRender?.mediaType, toRender?.mimeType])
 
   const [renderBlockOverriden, setRenderBlockOverriden] = React.useState(false)
 
@@ -184,7 +195,7 @@ export const FolderObjectPreview = ({
             <div>
               {loadRestriction === 'TOO_LARGE'
                 ? 'File too large'
-                : `Mime type "${mimeType}" cannot be rendered`}
+                : `Mime type "${toRender?.mimeType}" cannot be rendered`}
             </div>
             {loadRestriction === 'TOO_LARGE' && (
               <div>
@@ -213,12 +224,11 @@ export const FolderObjectPreview = ({
           isCoverView && 'size-full',
         )}
       >
-        {renderedContentKey &&
-        renderedContentKey.startsWith('content:') &&
+        {toRender?.renderedContentKey.startsWith('content:') &&
         !canRenderOriginalResult.result &&
         !renderBlockOverriden ? (
           renderEmptyPreview(canRenderOriginalResult.reason)
-        ) : srcUrl && mediaType === MediaType.Image ? (
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.Image ? (
           <div
             className={cn(
               'flex-1 flex flex-col justify-around size-full',
@@ -233,10 +243,10 @@ export const FolderObjectPreview = ({
                 displayMode,
               )}
               alt={fileName ?? objectKey}
-              src={srcUrl}
+              src={toRender.srcUrl}
             />
           </div>
-        ) : srcUrl && mediaType === MediaType.Video ? (
+        ) : toRender && toRender.mediaType === MediaType.Video ? (
           <div className="flex size-full justify-center">
             <VideoPlayer
               className={cn(
@@ -244,24 +254,31 @@ export const FolderObjectPreview = ({
                 displayMode,
               )}
               controls
-              src={srcUrl}
+              src={toRender.srcUrl}
             />
           </div>
-        ) : srcUrl && mediaType === MediaType.Audio ? (
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.Audio ? (
           <div className="flex size-full items-center justify-center p-4">
-            <AudioPlayer width="100%" height="100%" controls src={srcUrl} />
+            <AudioPlayer
+              width="100%"
+              height="100%"
+              controls
+              src={toRender.srcUrl}
+            />
           </div>
-        ) : srcUrl &&
-          mediaType === MediaType.Document &&
-          isTextRenderableDocument ? (
+        ) : toRender?.srcUrl &&
+          toRender.mediaType === MediaType.Document &&
+          toRender.isTextRenderableDocument ? (
           <div className="size-full overflow-hidden">
-            <pre className="size-full overflow-auto p-4 text-sm">{srcUrl}</pre>
+            <pre className="size-full overflow-auto p-4 text-sm">
+              {toRender.srcUrl}
+            </pre>
           </div>
-        ) : srcUrl &&
-          mediaType === MediaType.Document &&
-          mimeType === 'application/pdf' ? (
+        ) : toRender?.srcUrl &&
+          toRender.mediaType === MediaType.Document &&
+          toRender.mimeType === 'application/pdf' ? (
           <React.Suspense fallback={null}>
-            <LazyPDFViewer className="size-full" dataURL={srcUrl} />
+            <LazyPDFViewer className="size-full" dataURL={toRender.srcUrl} />
           </React.Suspense>
         ) : (
           renderEmptyPreview()

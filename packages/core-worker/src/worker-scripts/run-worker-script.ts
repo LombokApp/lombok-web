@@ -527,7 +527,7 @@ export const runWorkerScript = async ({
   } finally {
     if (removeWorkerDirectory && (await fs.promises.exists(workerRootPath))) {
       try {
-        fs.rmdirSync(workerRootPath, { recursive: true })
+        await fs.promises.rmdir(workerRootPath, { recursive: true })
       } catch (error) {
         console.error('Error removing worker directory:', error)
       }

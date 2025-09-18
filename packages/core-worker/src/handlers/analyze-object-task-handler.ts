@@ -31,16 +31,13 @@ export const analyzeObjectTaskHandler = async (
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
-  const response = await server.getContentSignedUrls(
-    [
-      {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
-        method: SignedURLsRequestMethod.GET,
-      },
-    ],
-    task.id,
-  )
+  const response = await server.getContentSignedUrls([
+    {
+      folderId: task.subjectFolderId,
+      objectKey: task.subjectObjectKey,
+      method: SignedURLsRequestMethod.GET,
+    },
+  ])
 
   if (response.error) {
     throw new AppAPIError(response.error.code, response.error.message)
@@ -158,17 +155,14 @@ export const analyzeObjectTaskHandler = async (
   }
 
   if (Object.keys(metadataDescription).length > 0) {
-    const metadataUpdateResponse = await server.updateContentMetadata(
-      [
-        {
-          folderId: task.subjectFolderId,
-          objectKey: task.subjectObjectKey,
-          hash: originalContentHash,
-          metadata: metadataDescription,
-        },
-      ],
-      task.id,
-    )
+    const metadataUpdateResponse = await server.updateContentMetadata([
+      {
+        folderId: task.subjectFolderId,
+        objectKey: task.subjectObjectKey,
+        hash: originalContentHash,
+        metadata: metadataDescription,
+      },
+    ])
 
     if (metadataUpdateResponse.error) {
       throw new AppAPIError(

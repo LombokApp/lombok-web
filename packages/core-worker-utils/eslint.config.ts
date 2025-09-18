@@ -1,10 +1,10 @@
-import eslint from '@eslint/js';
-import type { ConfigArray } from 'typescript-eslint';
-import tseslint from 'typescript-eslint';
+import eslint from '@eslint/js'
+import type { ConfigArray } from 'typescript-eslint'
+import tseslint from 'typescript-eslint'
 
-import baseConfig from '../../eslint-config/base';
-import nodeConfig from '../../eslint-config/node';
-import strictConfig from '../../eslint-config/strict';
+import baseConfig from '../../eslint-config/base'
+import nodeConfig from '../../eslint-config/node'
+import strictConfig from '../../eslint-config/strict'
 
 const conf: ConfigArray = tseslint.config(
   baseConfig,
@@ -25,7 +25,7 @@ const conf: ConfigArray = tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
-  ...tseslint.configs.recommendedTypeChecked
-);
+  ...tseslint.configs.recommendedTypeChecked,
+)
 
-export default conf;
+export default conf

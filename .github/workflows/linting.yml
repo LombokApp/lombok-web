@@ -56,6 +56,22 @@ jobs:
       - run: bun --cwd packages/core-worker lint:check
       - run: bun --cwd packages/core-worker tsc:check
 
+  check-core-worker-utils:
+    name: Check @lombokapp/core-worker-utils package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun --cwd packages/core-worker-utils prettier:check
+      - run: bun --cwd packages/core-worker-utils lint:check
+      - run: bun --cwd packages/core-worker-utils tsc:check
+
   check-app-browser-sdk:
     name: Check @lombokapp/app-browser-sdk package
     runs-on: ubuntu-latest
