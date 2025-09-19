@@ -63,6 +63,26 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
     [data?.settings, updateSettingMutation],
   )
 
+  const handleUpdateGoogleOAuthConfig = React.useCallback(
+    async (config: {
+      enabled: boolean
+      clientId: string
+      clientSecret: string
+    }) => {
+      await updateSettingMutation.mutateAsync({
+        params: {
+          path: {
+            settingKey: 'GOOGLE_OAUTH_CONFIG',
+          },
+        },
+        body: {
+          value: config,
+        },
+      })
+    },
+    [updateSettingMutation],
+  )
+
   return (
     <div className="flex max-h-max min-h-0 w-full items-start gap-6 pl-4 sm:gap-16">
       <nav
@@ -104,6 +124,7 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
               }
               onSaveServerHostname={handleUpdateServerHostname}
               onSaveEnableNewSignups={handleUpdateSignupEnabled}
+              onSaveGoogleOAuthConfig={handleUpdateGoogleOAuthConfig}
             />
           ) : tab === 'apps' ? (
             <ServerAppsConfigTab />

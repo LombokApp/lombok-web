@@ -4,11 +4,24 @@ import React from 'react'
 import { useNavigate } from 'react-router'
 
 import { SignupComponent } from '../components/signup/signup.component'
+import { usePublicSettingsContext } from '../contexts/public-settings'
 
 export const Signup = () => {
   const authContext = useAuthContext()
   const navigate = useNavigate()
   const { toast } = useToast()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const { settings } = usePublicSettingsContext()
+
+  // Copy error and clear it from authContext
+  const [localError, setLocalError] = React.useState(authContext.authError)
+
+  React.useEffect(() => {
+    if (authContext.authError) {
+      setLocalError(authContext.authError)
+      authContext.clearError()
+    }
+  }, [authContext])
 
   const handleSignupSubmit = React.useCallback(
     async ({
@@ -48,7 +61,9 @@ export const Signup = () => {
   return (
     <div className="flex size-full flex-col justify-around bg-foreground/[.03]">
       <SignupComponent
-        onLogin={() => void navigate('/login')}
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        googleOAuthEnabled={settings?.GOOGLE_OAUTH_ENABLED ?? false}
+        error={localError}
         onSubmit={handleSignupSubmit}
       />
     </div>

@@ -71,7 +71,7 @@ export function LoginForm({
             name="login"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username / Email</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input {...field} autoComplete="username" />
                 </FormControl>

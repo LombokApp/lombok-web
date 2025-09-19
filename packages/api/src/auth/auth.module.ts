@@ -10,13 +10,17 @@ import nestJSConfig, { ConfigModule } from '@nestjs/config'
 import { eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
+import { ServerModule } from 'src/server/server.module'
+import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { usersTable } from 'src/users/entities/user.entity'
 import { UsersModule } from 'src/users/users.module'
 
 import { authConfig } from './config'
 import { AuthController } from './controllers/auth.controller'
+import { SSOController } from './controllers/sso.controller'
 import { AuthService } from './services/auth.service'
 import { JWTService } from './services/jwt.service'
+import { OAuthService } from './services/oauth.service'
 import { SessionService } from './services/session.service'
 
 @Global()
@@ -25,10 +29,17 @@ import { SessionService } from './services/session.service'
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(platformConfig),
     forwardRef(() => UsersModule),
+    forwardRef(() => ServerModule),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JWTService, SessionService],
-  exports: [AuthService, JWTService, SessionService],
+  controllers: [AuthController, SSOController],
+  providers: [
+    AuthService,
+    JWTService,
+    OAuthService,
+    SessionService,
+    ServerConfigurationService,
+  ],
+  exports: [AuthService, JWTService, OAuthService, SessionService],
 })
 export class AuthModule implements OnModuleInit {
   private readonly logger = new Logger(AuthModule.name)

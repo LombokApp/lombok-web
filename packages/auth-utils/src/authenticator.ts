@@ -1,4 +1,8 @@
-import type { paths } from '@lombokapp/types'
+import type {
+  CompleteSSOSignupDTO,
+  paths,
+  SSOCallbackDTO,
+} from '@lombokapp/types'
 import createFetchClient from 'openapi-fetch'
 
 import { verifyToken } from './jwt.util'
@@ -107,7 +111,6 @@ export class Authenticator {
     if (this.state.isAuthenticated) {
       await this.logout()
     }
-    throw new Error('Access token is invalid')
   }
 
   public async setTokens(tokens: TokensType) {
@@ -188,9 +191,88 @@ export class Authenticator {
       })
       if (signupResponse.response.status !== 201 || !signupResponse.data) {
         throw new Error(
-          'Signup failed',
+          'Signup failed. Try again.',
           signupResponse.data ? { cause: signupResponse.data } : undefined,
         )
+      }
+      return signupResponse
+    } catch (error: unknown) {
+      await this.reset()
+      throw error
+    }
+  }
+
+  public async handleSSOCallback(
+    provider: string,
+    signupParams: SSOCallbackDTO,
+  ) {
+    try {
+      const ssoCallbackResponse = await this.$apiClient.POST(
+        '/api/v1/auth/sso/callback/{provider}',
+        {
+          params: {
+            path: {
+              provider,
+            },
+          },
+          body: signupParams,
+        },
+      )
+
+      if (
+        ssoCallbackResponse.response.status !== 201 ||
+        !ssoCallbackResponse.data
+      ) {
+        throw new Error(
+          'SSO Signup failed. Try again.',
+          ssoCallbackResponse.data
+            ? { cause: ssoCallbackResponse.data }
+            : undefined,
+        )
+      }
+
+      if (!('needsUsername' in ssoCallbackResponse.data)) {
+        this.tokens.accessToken = ssoCallbackResponse.data.accessToken
+        this.tokens.refreshToken = ssoCallbackResponse.data.refreshToken
+        this.state = { isAuthenticated: true, isLoaded: true }
+        if (this.onTokensCreated) {
+          await this.onTokensCreated({
+            accessToken: ssoCallbackResponse.data.accessToken,
+            refreshToken: ssoCallbackResponse.data.refreshToken,
+          })
+          return { needsUsername: false, success: true }
+        }
+        return { needsUsername: true, success: false }
+      }
+      return ssoCallbackResponse.data
+    } catch (error: unknown) {
+      await this.reset()
+      throw error
+    }
+  }
+
+  public async completeSSOSignup(signupParams: CompleteSSOSignupDTO) {
+    try {
+      const signupResponse = await this.$apiClient.POST(
+        '/api/v1/auth/sso/complete-signup',
+        {
+          body: signupParams,
+        },
+      )
+      if (signupResponse.response.status !== 201 || !signupResponse.data) {
+        throw new Error(
+          'SSO Signup failed. Try again.',
+          signupResponse.data ? { cause: signupResponse.data } : undefined,
+        )
+      }
+      this.tokens.accessToken = signupResponse.data.accessToken
+      this.tokens.refreshToken = signupResponse.data.refreshToken
+      this.state = { isAuthenticated: true, isLoaded: true }
+      if (this.onTokensCreated) {
+        await this.onTokensCreated({
+          accessToken: signupResponse.data.accessToken,
+          refreshToken: signupResponse.data.refreshToken,
+        })
       }
       return signupResponse
     } catch (error: unknown) {

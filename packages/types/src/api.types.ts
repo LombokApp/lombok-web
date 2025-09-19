@@ -122,3 +122,12 @@ export type LoginResponse =
 
 export type ServerError =
   paths['/api/v1/auth/login']['post']['responses']['5XX']['content']['application/json']
+
+export type CompleteSSOSignupDTO =
+  paths['/api/v1/auth/sso/complete-signup']['post']['requestBody']['content']['application/json']
+
+export type SSOCallbackDTO =
+  paths['/api/v1/auth/sso/callback/{provider}']['post']['requestBody']['content']['application/json']
+
+export type SSOCallbackResponse =
+  paths['/api/v1/auth/sso/callback/{provider}']['post']['responses']['201']['content']['application/json']

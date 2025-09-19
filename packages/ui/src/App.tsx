@@ -18,6 +18,7 @@ import { useSidebar } from './components/sidebar/use-sidebar'
 import { SIDEBAR_PAGES, UNAUTHENTICATED_PAGES } from './constants'
 import { LocalFileCacheContextProvider } from './contexts/local-file-cache'
 import { LoggingContextProvider } from './contexts/logging'
+import { PublicSettingsContextProvider } from './contexts/public-settings'
 import { ServerContextProvider, useServerContext } from './contexts/server'
 import { ThemeProvider } from './contexts/theme'
 import { useStore } from './hooks/use-store'
@@ -29,6 +30,8 @@ import { FoldersPage } from './pages/folders/folders'
 import { Login } from './pages/login'
 import { ServerIndexPage } from './pages/server'
 import { Signup } from './pages/signup'
+import { SSOCallbackPage } from './pages/sso-callback'
+import { SSOUsernameSelectionPage } from './pages/sso-username-selection'
 import { sdkInstance } from './services/api'
 
 const queryClient = new QueryClient()
@@ -59,6 +62,14 @@ const Content = ({ authenticated }: { authenticated: boolean }) => {
       />
       <Route path="/login" element={!authenticated ? <Login /> : <></>} />
       <Route path="/signup" element={!authenticated ? <Signup /> : <></>} />
+      <Route
+        path="/sso/callback/:provider"
+        element={!authenticated ? <SSOCallbackPage /> : <></>}
+      />
+      <Route
+        path="/sso/username-selection"
+        element={!authenticated ? <SSOUsernameSelectionPage /> : <></>}
+      />
     </Routes>
   )
 }
@@ -145,16 +156,18 @@ const AuthStateRouter = () => {
 export const App = () => (
   <LoggingContextProvider>
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthContextProvider
-          authenticator={sdkInstance.authenticator}
-          unauthenticatedPages={UNAUTHENTICATED_PAGES}
-        >
-          <ThemeProvider>
-            <AuthStateRouter />
-          </ThemeProvider>
-        </AuthContextProvider>
-      </Router>
+      <PublicSettingsContextProvider>
+        <Router>
+          <AuthContextProvider
+            authenticator={sdkInstance.authenticator}
+            unauthenticatedPages={UNAUTHENTICATED_PAGES}
+          >
+            <ThemeProvider>
+              <AuthStateRouter />
+            </ThemeProvider>
+          </AuthContextProvider>
+        </Router>
+      </PublicSettingsContextProvider>
     </QueryClientProvider>
   </LoggingContextProvider>
 )
