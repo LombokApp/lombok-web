@@ -20,9 +20,14 @@ import { z } from 'zod'
 import {
   CONFIGURATION_KEYS,
   CONFIGURATION_KEYS_MAP,
+  GOOGLE_OAUTH_CONFIG,
+  googleOAuthConfigSchema,
   SERVER_STORAGE_CONFIG,
+  type ServerConfig,
+  SIGNUP_ENABLED_CONFIG,
   STORAGE_PROVISIONS_CONFIG,
 } from '../constants/server.constants'
+import { PublicSettingsDTO } from '../dto/public-settings.dto'
 import { ServerStorageInputDTO } from '../dto/server-storage-input.dto'
 import { SettingsDTO } from '../dto/settings.dto'
 import {
@@ -37,6 +42,34 @@ import { ServerConfigurationNotFoundException } from '../exceptions/server-confi
 @Injectable()
 export class ServerConfigurationService {
   constructor(private readonly ormService: OrmService) {}
+
+  async getPublicServerSettings(): Promise<PublicSettingsDTO> {
+    const results = await this.ormService.db.query.serverSettingsTable.findMany(
+      {
+        where: inArray(serverSettingsTable.key, [
+          GOOGLE_OAUTH_CONFIG.key,
+          SIGNUP_ENABLED_CONFIG.key,
+        ]),
+      },
+    )
+
+    const googleOAuthConfig = results.find(
+      (result) => result.key === GOOGLE_OAUTH_CONFIG.key,
+    )?.value as z.infer<typeof googleOAuthConfigSchema> | undefined
+
+    const signupEnabledConfig = results.find(
+      (result) => result.key === SIGNUP_ENABLED_CONFIG.key,
+    )?.value as boolean | undefined
+
+    return {
+      SIGNUP_ENABLED:
+        signupEnabledConfig ?? SIGNUP_ENABLED_CONFIG.default ?? false,
+      GOOGLE_OAUTH_ENABLED:
+        googleOAuthConfig?.enabled ??
+        GOOGLE_OAUTH_CONFIG.default?.enabled ??
+        false,
+    }
+  }
 
   async getServerSettingsAsAdmin(actor: User): Promise<SettingsDTO> {
     if (!actor.isAdmin) {
@@ -87,7 +120,12 @@ export class ServerConfigurationService {
       throw new ServerConfigurationNotFoundException()
     }
 
-    // TODO: validate value
+    // Validate the value against the associated schema
+    const config = CONFIGURATION_KEYS_MAP[settingKey]
+    if (!config.schema.safeParse(settingValue).success) {
+      throw new ServerConfigurationInvalidException()
+    }
+
     const existingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, settingKey),
@@ -127,6 +165,29 @@ export class ServerConfigurationService {
     await this.ormService.db
       .delete(serverSettingsTable)
       .where(eq(serverSettingsTable.key, settingsKey))
+  }
+
+  /**
+   * Get the saved server configuration setting or the default value.
+   */
+  async getServerConfig<T extends z.ZodSchema>(
+    config: ServerConfig<T>,
+  ): Promise<z.infer<T> | undefined> {
+    const result = await this.ormService.db.query.serverSettingsTable.findFirst(
+      {
+        where: eq(serverSettingsTable.key, config.key),
+      },
+    )
+
+    if (result) {
+      // Validate the stored value against the schema
+      if (config.schema.safeParse(result.value).success) {
+        return result.value as T
+      }
+    }
+
+    // No stored value or stored value was invalid, return default
+    return config.default as T
   }
 
   async createStorageProvisionAsAdmin(

@@ -27,6 +27,19 @@ CREATE TABLE "session" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "user_identities" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"userId" uuid NOT NULL,
+	"provider" text NOT NULL,
+	"providerUserId" text NOT NULL,
+	"providerEmail" text,
+	"providerName" text,
+	"createdAt" timestamp NOT NULL,
+	"updatedAt" timestamp NOT NULL,
+	CONSTRAINT "unique_provider_user" UNIQUE("provider","providerUserId"),
+	CONSTRAINT "unique_user_provider" UNIQUE("userId","provider")
+);
+--> statement-breakpoint
 CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"eventIdentifier" text NOT NULL,
@@ -137,14 +150,14 @@ CREATE TABLE "users" (
 	"email" text,
 	"emailVerified" boolean DEFAULT false NOT NULL,
 	"permissions" jsonb DEFAULT '[]'::jsonb NOT NULL,
-	"passwordHash" text NOT NULL,
-	"passwordSalt" text NOT NULL,
+	"passwordHash" text,
+	"passwordSalt" text,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL,
-	CONSTRAINT "users_username_unique" UNIQUE("username"),
-	CONSTRAINT "users_email_unique" UNIQUE("email")
+	CONSTRAINT "users_username_unique" UNIQUE("username")
 );
 --> statement-breakpoint
+ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "events" ADD CONSTRAINT "events_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

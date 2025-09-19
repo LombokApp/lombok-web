@@ -7,6 +7,7 @@ import { Client, Pool, type PoolClient, QueryResult, QueryResultRow } from 'pg'
 
 import { appsTable } from '../app/entities/app.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
+import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
 import { eventsRelations, eventsTable } from '../event/entities/event.entity'
 import {
   foldersRelations,
@@ -30,6 +31,7 @@ import { ormConfig } from './config'
 export const dbSchema = {
   usersTable,
   sessionsTable,
+  userIdentitiesTable,
   storageLocationsTable,
   serverSettingsTable,
   foldersTable,

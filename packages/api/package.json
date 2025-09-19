@@ -13,7 +13,7 @@
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "tsc:check": "tsc --noEmit",
-    "db:migrate:new": "bunx drizzle-kit generate --config ./src/orm/drizzle.config.ts",
+    "db:migrate:new": "bun --bun drizzle-kit generate --config ./src/orm/drizzle.config.ts",
     "db:migrate:up": "bun --bun ./script/db-migrate-up.ts",
     "db:migrate:check": "./cmd/db-migrate-check.sh",
     "db:migrate:drop": "./cmd/db-migrate-drop.sh",

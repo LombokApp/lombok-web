@@ -20,29 +20,34 @@ import {
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-const formSchema = z.object({
-  username: z
-    .string()
-    .min(2, {
-      message: 'Username must be at least 2 characters.',
-    })
-    .refine((v) => USERNAME_VALIDATORS_COMBINED.safeParse(v).success),
-  password: z
-    .string()
-    .min(2, {
-      message: 'Password must be at least 2 characters.',
-    })
-    .refine((v) => PASSWORD_VALIDATORS_COMBINED.safeParse(v).success),
-  confirmPassword: z.string(),
-  email: z
-    .string()
-    .min(2, {
-      message: 'Email must be at least 2 characters.',
-    })
-    .refine((v) => EMAIL_VALIDATORS_COMBINED.safeParse(v).success)
-    .or(z.literal(''))
-    .optional(),
-})
+const formSchema = z
+  .object({
+    username: z
+      .string()
+      .min(2, {
+        message: 'Username must be at least 2 characters.',
+      })
+      .refine((v) => USERNAME_VALIDATORS_COMBINED.safeParse(v).success),
+    password: z
+      .string()
+      .min(2, {
+        message: 'Password must be at least 2 characters.',
+      })
+      .refine((v) => PASSWORD_VALIDATORS_COMBINED.safeParse(v).success),
+    confirmPassword: z.string(),
+    email: z
+      .string()
+      .min(2, {
+        message: 'Email must be at least 2 characters.',
+      })
+      .refine((v) => EMAIL_VALIDATORS_COMBINED.safeParse(v).success)
+      .or(z.literal(''))
+      .optional(),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  })
 export type SignupFormValues = z.infer<typeof formSchema>
 
 export function SignupForm({

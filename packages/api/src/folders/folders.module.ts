@@ -24,10 +24,10 @@ import { FolderService } from './services/folder.service'
   controllers: [FoldersController],
   imports: [
     StorageModule,
-    ServerModule,
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(platformConfig),
     ConfigModule.forFeature(authConfig),
+    forwardRef(() => ServerModule),
     forwardRef(() => TaskModule),
     forwardRef(() => EventModule),
     forwardRef(() => SocketModule),

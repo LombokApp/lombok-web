@@ -3,13 +3,12 @@ import { AuthModule } from 'src/auth/auth.module'
 
 import { UsersController } from './controllers/users.controller'
 import { ViewerController } from './controllers/viewer.controller'
-import { UserAuthService } from './services/user-auth.service'
 import { UserService } from './services/users.service'
 
 @Global()
 @Module({
   controllers: [ViewerController, UsersController],
-  providers: [UserAuthService, UserService],
+  providers: [UserService],
   exports: [UserService],
   imports: [forwardRef(() => AuthModule)],
 })

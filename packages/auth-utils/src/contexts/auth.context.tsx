@@ -1,6 +1,8 @@
 import type {
+  CompleteSSOSignupDTO,
   LoginCredentialsDTO,
   SignupCredentialsDTO,
+  SSOCallbackDTO,
   ViewerGetResponse,
 } from '@lombokapp/types'
 import React from 'react'
@@ -10,7 +12,7 @@ import type { Authenticator } from '..'
 import type { AuthenticatorStateType } from '../authenticator'
 export class AuthError extends Error {}
 export interface IAuthContext {
-  error?: AuthError
+  authError?: AuthError
   authState: AuthenticatorStateType
   isLoggingIn: boolean
   isAuthenticated: boolean
@@ -22,10 +24,17 @@ export interface IAuthContext {
   signup: (
     signupParams: SignupCredentialsDTO,
   ) => ReturnType<Authenticator['signup']>
-
+  completeSSOSignup: (
+    signupSSOParams: CompleteSSOSignupDTO,
+  ) => ReturnType<Authenticator['completeSSOSignup']>
+  handleSSOCallback: (
+    provider: string,
+    signupSSOParams: SSOCallbackDTO,
+  ) => ReturnType<Authenticator['handleSSOCallback']>
   logout: () => Promise<void>
   getAccessToken: () => Promise<string | undefined>
   redirectToLogin: (hard?: boolean) => void
+  clearError: () => void
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
 
@@ -50,7 +59,7 @@ export const AuthContextProvider = ({
   const [viewerRefreshKey, _setViewerRefreshKey] = React.useState('___')
   const [viewer, setViewer] =
     React.useState<Record<string, ViewerGetResponse['user'] | undefined>>()
-  const [error, setError] = React.useState<AuthError>()
+  const [authError, setAuthError] = React.useState<AuthError>()
   const { isAuthenticated } = authState
 
   React.useEffect(() => {
@@ -70,7 +79,7 @@ export const AuthContextProvider = ({
           authStateSetter as EventListener,
         )
       })
-      .catch((err) => setError(err as AuthError))
+      .catch((err) => setAuthError(err as AuthError))
     return () => {
       authenticator.removeEventListener(
         'onStateChanged',
@@ -80,22 +89,22 @@ export const AuthContextProvider = ({
   }, [])
 
   const login = async (loginParams: LoginCredentialsDTO) => {
-    setError(undefined)
+    setAuthError(undefined)
     setIsLoggingIn(true)
 
     try {
-      setError(undefined)
+      setAuthError(undefined)
       try {
         const loginResult = await authenticator.login(loginParams)
         if (loginResult.response.status !== 201) {
           const loginError = new AuthError('Login failed', {
             cause: loginResult.data,
           })
-          setError(loginError)
+          setAuthError(loginError)
         }
         return loginResult
       } catch (err: unknown) {
-        setError(err as AuthError)
+        setAuthError(err as AuthError)
         throw err
       }
     } finally {
@@ -104,16 +113,87 @@ export const AuthContextProvider = ({
   }
 
   const signup = async (signupParams: SignupCredentialsDTO) => {
-    setError(undefined)
+    setAuthError(undefined)
+    setIsLoggingIn(true)
     try {
       const signupResult = await authenticator.signup(signupParams)
       if (signupResult.response.status !== 201) {
         const loginError = new AuthError('Signup failed', {
           cause: signupResult.data,
         })
-        setError(loginError)
+        setAuthError(loginError)
       }
       return signupResult
+    } finally {
+      setIsLoggingIn(false)
+    }
+  }
+
+  const handleSSOCallback = async (
+    provider: string,
+    signupParams: SSOCallbackDTO,
+  ) => {
+    setAuthError(undefined)
+    setIsLoggingIn(true)
+    try {
+      const handleSSOResponse = await authenticator.handleSSOCallback(
+        provider,
+        signupParams,
+      )
+
+      if ('needsUsername' in handleSSOResponse) {
+        const needsUsernameResponse = handleSSOResponse as {
+          needsUsername: boolean
+          provider: string
+          providerUserInfo: {
+            id: string
+            email?: string
+            name?: string
+            picture?: string
+          }
+          signature: string
+          expiry: string
+          suggestedUsername: string
+        }
+        void navigate('/sso/username-selection', {
+          state: {
+            provider: needsUsernameResponse.provider,
+            providerUserInfo: needsUsernameResponse.providerUserInfo,
+            suggestedUsername: needsUsernameResponse.suggestedUsername,
+            signature: needsUsernameResponse.signature,
+            expiry: needsUsernameResponse.expiry,
+          },
+        })
+      }
+      return handleSSOResponse
+    } catch (err: unknown) {
+      const loginError = new AuthError('SSO Signup failed. Try again.', {
+        cause: err,
+      })
+      setAuthError(loginError)
+      void navigate('/login')
+      throw err
+    } finally {
+      setIsLoggingIn(false)
+    }
+  }
+  const completeSSOSignup = async (signupParams: CompleteSSOSignupDTO) => {
+    setAuthError(undefined)
+    setIsLoggingIn(true)
+    try {
+      const completeSSOResult =
+        await authenticator.completeSSOSignup(signupParams)
+      if (completeSSOResult.response.status !== 201) {
+        const ssoSignupError = new AuthError('SSO Signup failed. Try again.', {
+          cause: completeSSOResult.data,
+        })
+
+        setAuthError(ssoSignupError)
+      }
+      return completeSSOResult
+    } catch (err: unknown) {
+      setAuthError(err as AuthError)
+      throw err
     } finally {
       setIsLoggingIn(false)
     }
@@ -133,12 +213,12 @@ export const AuthContextProvider = ({
   }
 
   const logout = async () => {
-    setError(undefined)
+    setAuthError(undefined)
     setIsLoggingOut(true)
 
     await authenticator
       .logout()
-      .catch((err) => setError(err as AuthError))
+      .catch((err) => setAuthError(err as AuthError))
       .finally(() => setIsLoggingOut(false))
     redirectToLogin()
   }
@@ -175,20 +255,36 @@ export const AuthContextProvider = ({
     [],
   )
 
+  const clearError = React.useCallback(() => {
+    setAuthError(undefined)
+  }, [])
+
+  React.useEffect(() => {
+    const _authError = authError
+    setTimeout(() => {
+      if (_authError === authError) {
+        clearError()
+      }
+    }, 2000)
+  }, [authError])
+
   return (
     <AuthContext.Provider
       value={{
-        error,
+        authError,
         isLoggingIn,
         isAuthenticated,
         isLoggingOut,
         viewer: viewer?.[viewerRefreshKey],
         login,
         signup,
+        completeSSOSignup,
+        handleSSOCallback,
         logout,
         authState,
         getAccessToken,
         redirectToLogin,
+        clearError,
       }}
     >
       {children}
