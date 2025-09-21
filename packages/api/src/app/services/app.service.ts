@@ -471,6 +471,7 @@ export class AppService {
     return {
       manifest: workerApp.ui.manifest,
       bundleUrl: presignedGetURL[0],
+      csp: workerApp.ui.csp,
     }
   }
 
@@ -910,6 +911,7 @@ export class AppService {
     const uiDefinition = {
       hash: '',
       size: 0,
+      csp: config.ui?.csp,
       manifest: Object.keys(manifest)
         .filter((filePath) => filePath.startsWith(`/ui/`))
         .reduce<AppManifest>((acc, filePath) => {
@@ -950,17 +952,18 @@ export class AppService {
               hash: '',
               size: 0,
             },
-            subscribedEvents: config.tasks.reduce<string[]>(
-              (acc, task) => acc.concat(task.triggers),
-              [],
-            ),
-            implementedTasks: config.tasks.map((t) => t.identifier),
+            subscribedEvents:
+              config.tasks?.reduce<string[]>(
+                (acc, task) => acc.concat(task.triggers),
+                [],
+              ) ?? [],
+            implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||
               Object.keys(workerScriptDefinitions).length > 0,
             ui: uiDefinition,
             config,
-            database: config.database ?? false,
+            database: !!config.database?.enabled,
             createdAt: now,
             updatedAt: now,
             contentHash: '', // TODO: calculate the exact content hash

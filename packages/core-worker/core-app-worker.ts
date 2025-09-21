@@ -224,8 +224,10 @@ process.stdin.once('data', (data) => {
             appIdentifier,
           )
           const manifestFilePath = path.join(appBundleCacheDir, 'manifest.json')
+          const cspFilePath = path.join(appBundleCacheDir, 'csp.txt')
 
           let manifest: AppManifest = {}
+          let csp = ''
 
           if (fs.existsSync(manifestFilePath)) {
             try {
@@ -233,6 +235,7 @@ process.stdin.once('data', (data) => {
                 manifestFilePath,
                 'utf-8',
               )
+              csp = await fs.promises.readFile(cspFilePath, 'utf-8')
               manifest = JSON.parse(manifestContent) as AppManifest
             } catch (error) {
               void log({
@@ -256,15 +259,16 @@ process.stdin.once('data', (data) => {
 
               const bundleUrl = bundleResponse.result.bundleUrl
               manifest = bundleResponse.result.manifest
+              csp = bundleResponse.result.csp ?? ''
               if (!bundleUrl) {
                 return new Response('Bundle URL not found', { status: 404 })
               }
               await fs.promises.mkdir(appBundleCacheDir, { recursive: true })
-
               await fs.promises.writeFile(
                 manifestFilePath,
                 JSON.stringify(manifest, null, 2),
               )
+              await fs.promises.writeFile(cspFilePath, csp)
 
               const downloadResponse = await fetch(bundleUrl)
               if (!downloadResponse.ok) {
@@ -319,7 +323,10 @@ process.stdin.once('data', (data) => {
               const contentType =
                 pathname === '/' ? 'text/html' : manifestEntry.mimeType
               return new Response(fileBuffer, {
-                headers: { 'Content-Type': contentType },
+                headers: {
+                  'Content-Type': contentType,
+                  ...(csp ? { 'Content-Security-Policy': csp } : {}),
+                },
               })
             } catch (error) {
               void log({

@@ -56,7 +56,9 @@ export interface IAppPlatformService {
   >
   getAppUIbundle: (
     appIdentifier: string,
-  ) => Promise<AppAPIResponse<{ manifest: AppManifest; bundleUrl: string }>>
+  ) => Promise<
+    AppAPIResponse<{ manifest: AppManifest; bundleUrl: string; csp?: string }>
+  >
   saveLogEntry: (entry: AppLogEntry) => Promise<AppAPIResponse<boolean>>
   attemptStartHandleTaskById: (
     taskId: string,

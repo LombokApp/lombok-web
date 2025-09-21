@@ -154,7 +154,7 @@ export const appConfigSchema = z
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
     emittableEvents: z.array(z.string().nonempty()),
-    tasks: z.array(taskConfigSchema),
+    tasks: z.array(taskConfigSchema).optional(),
     workers: z
       .record(
         z
@@ -165,8 +165,17 @@ export const appConfigSchema = z
         appWorkerConfigSchema,
       )
       .optional(),
-    ui: z.literal(true).optional(),
-    database: z.literal(true).optional(),
+    ui: z
+      .object({
+        enabled: z.literal(true),
+        csp: z.string().optional(),
+      })
+      .optional(),
+    database: z
+      .object({
+        enabled: z.literal(true),
+      })
+      .optional(),
     contributions: appContributionsSchema.optional(),
   })
   .strict()
@@ -174,7 +183,7 @@ export const appConfigSchema = z
     const workerKeyArray = Object.keys(value.workers ?? {})
     const workerKeys = new Set(workerKeyArray)
 
-    value.tasks.forEach((task, index) => {
+    value.tasks?.forEach((task, index) => {
       if (task.worker && !workerKeys.has(task.worker)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -219,6 +228,7 @@ export const appWorkersBundleSchema = z.object({
 export const appUiBundleSchema = z.object({
   hash: z.string(),
   size: z.number(),
+  csp: z.string().optional(),
   manifest: appManifestSchema,
 })
 

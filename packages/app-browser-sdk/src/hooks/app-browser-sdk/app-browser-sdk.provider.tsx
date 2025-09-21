@@ -58,6 +58,11 @@ export const AppBrowserSdkContextProvider = ({
     sdk.authenticator.state,
   )
 
+  const getAccessToken = React.useCallback(
+    () => sdk.authenticator.getAccessToken(),
+    [sdk.authenticator],
+  )
+
   React.useEffect(() => {
     const handleStateChange = () => {
       setAuthState(sdk.authenticator.state)
@@ -77,6 +82,7 @@ export const AppBrowserSdkContextProvider = ({
         apiClient: sdk.apiClient,
         theme: sdk.theme,
         authState,
+        getAccessToken,
         navigateTo: sdk.handleNavigateTo,
         currentPathAndQuery: sdk.initialData?.pathAndQuery ?? '',
         executeWorkerScriptUrl: sdk.executeWorkerScriptUrl,
