@@ -38,16 +38,12 @@ void (async () => {
 
   // Copy the worker wrapper (TypeScript) alongside built sources so it can be
   // copied at runtime (we run it as TS inside the sandbox with Bun).
-  const wrapperSrc = path.resolve(
+  const workerDaemonDir = path.resolve(
     import.meta.dir,
-    '../src/worker-scripts/worker-script-wrapper.ts',
+    '../src/worker-scripts/worker-daemon',
   )
   const wrapperDestDir = path.resolve(import.meta.dir, '../dist')
-  fs.mkdirSync(wrapperDestDir, { recursive: true })
-  fs.copyFileSync(
-    wrapperSrc,
-    path.join(wrapperDestDir, 'worker-script-wrapper.ts'),
-  )
+  fs.cpSync(workerDaemonDir, wrapperDestDir, { recursive: true })
 
   console.log('Built core-worker successfully!')
 })()

@@ -511,11 +511,6 @@ export const createDrizzle = <
   return drizzleFactory(pgLike as unknown, options)
 }
 
-export interface SerializeableResponse {
-  body: string
-  status: number
-}
-
 export interface SerializeableRequest {
   url: string
   method: string
@@ -537,7 +532,7 @@ export type RequestHandler = (
       userApiClient: LombokApiClient
     }
   },
-) => Promise<SerializeableResponse> | SerializeableResponse
+) => Promise<Response> | Response
 
 export type TaskHandler = (
   task: AppTask,
@@ -546,13 +541,3 @@ export type TaskHandler = (
     dbClient,
   }: { serverClient: IAppPlatformService; dbClient: DatabaseClient },
 ) => Promise<undefined> | undefined
-
-export const sendResponse = (
-  body: unknown,
-  status = 200,
-): SerializeableResponse => {
-  return {
-    body: JSON.stringify(body),
-    status,
-  }
-}

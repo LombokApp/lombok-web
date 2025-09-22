@@ -10,11 +10,11 @@ import { connectAndPerformWork } from './src/connect-app-worker'
 import { analyzeObjectTaskHandler } from './src/handlers/analyze-object-task-handler'
 import { bulidRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
 import {
-  reconstructResponse,
   runWorkerScript,
+  shutdownAllWorkerSandboxes,
 } from './src/worker-scripts/run-worker-script'
-import type { CoreWorkerProcessDataPayload } from './src/worker-scripts/types'
-import { coreWorkerProcessDataPayloadSchema } from './src/worker-scripts/types'
+import type { CoreWorkerProcessDataPayload } from './src/worker-scripts/worker-daemon/types'
+import { coreWorkerProcessDataPayloadSchema } from './src/worker-scripts/worker-daemon/types'
 
 let initialized = false
 let server: ReturnType<typeof Bun.serve> | null = null
@@ -24,6 +24,8 @@ const cleanup = () => {
     void server.stop()
     server = null
   }
+  // Ensure all nsjail sandboxes started by this process are stopped
+  void shutdownAllWorkerSandboxes().catch(() => undefined)
 }
 
 process.on('SIGTERM', cleanup)
@@ -155,7 +157,7 @@ process.stdin.once('data', (data) => {
             const appIdentifier = hostParts[0] || ''
 
             try {
-              const serializableResponse = await runWorkerScript({
+              const response = await runWorkerScript({
                 requestOrTask: req,
                 server: serverClient,
                 appIdentifier,
@@ -164,8 +166,8 @@ process.stdin.once('data', (data) => {
                 options: workerData.executionOptions,
               })
 
-              if (serializableResponse) {
-                return reconstructResponse(serializableResponse)
+              if (response) {
+                return response
               } else {
                 return new Response(null, { status: 204 })
               }
