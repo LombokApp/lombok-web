@@ -209,7 +209,60 @@ void (async () => {
         let response: Response | undefined
         const executionStartTime = Date.now()
 
+        // Prepare restore holders available to finally
+        const restore = {
+          log: console.log,
+          error: console.error,
+          warn: console.warn,
+          info: console.info,
+        }
+
         try {
+          // Configure per-request logging: override console to write to per-request paths
+          const perRequestOutputPath =
+            pipeRequest.outputLogFilepath ||
+            workerModuleStartContext.outputLogFilepath
+
+          const appendLine = async (level: string, args: unknown[]) => {
+            const timestamp = new Date().toISOString()
+            const formatted = args
+              .map((a) => {
+                if (typeof a === 'string') {
+                  return a
+                }
+                if (
+                  typeof a === 'number' ||
+                  typeof a === 'boolean' ||
+                  typeof a === 'bigint' ||
+                  a === null ||
+                  a === undefined
+                ) {
+                  return String(a)
+                }
+                try {
+                  return JSON.stringify(a, null, 2)
+                } catch {
+                  return '[Unserializable]'
+                }
+              })
+              .join(' ')
+            const line = `[${timestamp}] [${level}] ${formatted}\n`
+            try {
+              await fs.promises.appendFile(perRequestOutputPath, line)
+            } catch {
+              void 0
+            }
+            // best effort: also emit to host via pipe for live streaming
+            try {
+              await responseWriter?.writeStdoutChunk(pipeRequest.id, line)
+            } catch {
+              void 0
+            }
+          }
+          console.log = (...args: unknown[]) => void appendLine('LOG', args)
+          console.error = (...args: unknown[]) => void appendLine('ERROR', args)
+          console.warn = (...args: unknown[]) => void appendLine('WARN', args)
+          console.info = (...args: unknown[]) => void appendLine('INFO', args)
           if (pipeRequest.type === 'request') {
             const request = reconstructRequest(
               pipeRequest.data as SerializeableRequest,
@@ -371,10 +424,50 @@ void (async () => {
 
           await responseWriter.writeResponse(pipeResponse)
 
+          // Also write error file to per-request path
+          try {
+            const serialized = serializeWorkerError(
+              err instanceof WorkerError
+                ? (err.innerError ?? err)
+                : new WorkerExecutorError(
+                    'Worker handler error',
+                    err instanceof Error ? err : new Error(String(err)),
+                  ),
+            )
+            const perRequestErrorPath =
+              pipeRequest.errorLogFilepath ||
+              workerModuleStartContext.errorLogFilepath
+            await fs.promises.writeFile(perRequestErrorPath, serialized)
+          } catch {
+            void 0
+          }
+
+          // Emit one more stdout chunk with error summary for visibility
+          try {
+            await responseWriter.writeStdoutChunk(
+              pipeRequest.id,
+              `[ERROR_SUMMARY] ${err instanceof Error ? err.name + ': ' + err.message : String(err)}\n`,
+            )
+          } catch {
+            void 0
+          }
+
           logTiming('error_response_sent', requestStartTime, {
             requestId: pipeRequest.id,
             totalRequestTime: getElapsedTime(requestStartTime),
           })
+        } finally {
+          // Restore console overrides to daemon-level behavior
+          console.log = restore.log
+          console.error = restore.error
+          console.warn = restore.warn
+          console.info = restore.info
+          // Ensure a newline to separate requests
+          try {
+            await responseWriter.writeStdoutChunk(pipeRequest.id, '\n')
+          } catch {
+            void 0
+          }
         }
       } catch (pipeError) {
         // Error reading from pipe or writing response

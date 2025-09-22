@@ -164,6 +164,12 @@ process.stdin.once('data', (data) => {
                 workerIdentifier,
                 workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
                 options: workerData.executionOptions,
+                onStdoutChunk: (text) => {
+                  // eslint-disable-next-line no-console
+                  console.log(
+                    `[${appIdentifier}/${workerIdentifier}] ${text.trimEnd()}`,
+                  )
+                },
               })
 
               if (response) {

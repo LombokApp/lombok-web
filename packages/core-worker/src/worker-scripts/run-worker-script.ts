@@ -43,6 +43,8 @@ class MessageRouter {
       controller: ReadableStreamDefaultController<Uint8Array>
     }
   >()
+  private readonly stdoutHandlers = new Map<string, (text: string) => void>()
+  private readonly orphanedStdout = new Map<string, string[]>()
   // Buffer for chunks that arrive before their handler is registered
   private readonly orphanedChunks = new Map<
     string,
@@ -126,6 +128,19 @@ class MessageRouter {
           totalChunks: number
         }
         this.handleStreamEnd(payload)
+        break
+      }
+      case 'stdout_chunk': {
+        const payload = message.payload as { requestId: string; text: string }
+        const handler = this.stdoutHandlers.get(payload.requestId)
+        if (handler) {
+          handler(payload.text)
+        } else {
+          if (!this.orphanedStdout.has(payload.requestId)) {
+            this.orphanedStdout.set(payload.requestId, [])
+          }
+          this.orphanedStdout.get(payload.requestId)?.push(payload.text)
+        }
         break
       }
       case 'shutdown': {
@@ -289,6 +304,9 @@ class MessageRouter {
       // Clean up any orphaned data for this request
       this.orphanedChunks.delete(requestId)
       this.orphanedStreamEnds.delete(requestId)
+      // Also remove any stdout handler registered for this request
+      this.stdoutHandlers.delete(requestId)
+      this.orphanedStdout.delete(requestId)
     } else {
       this.debug(
         `NOT closing ${requestId} - only ${handler.nextChunkIndex}/${totalChunks} delivered`,
@@ -344,6 +362,25 @@ class MessageRouter {
       this.processStreamEnd(handler, requestId, orphanedStreamEnd.totalChunks)
       // Note: processStreamEnd deletes the handler, so we're done
     }
+  }
+
+  registerStdoutHandler(
+    requestId: string,
+    handler: (text: string) => void,
+  ): void {
+    this.stdoutHandlers.set(requestId, handler)
+    const orphaned = this.orphanedStdout.get(requestId)
+    if (orphaned && orphaned.length > 0) {
+      for (const text of orphaned) {
+        handler(text)
+      }
+      this.orphanedStdout.delete(requestId)
+    }
+  }
+
+  unregisterStdoutHandler(requestId: string): void {
+    this.stdoutHandlers.delete(requestId)
+    this.orphanedStdout.delete(requestId)
   }
 
   stop(): void {
@@ -696,6 +733,8 @@ async function getOrCreateWorkerProcess(
   requestWriter: PipeWriter
   responseReader: PipeReader
   messageRouter: MessageRouter
+  workerRootPath: string
+  logsDir: string
 }> {
   const workerId = `${appIdentifier}--${workerIdentifier}`
 
@@ -707,6 +746,8 @@ async function getOrCreateWorkerProcess(
       requestWriter: existingWorker.requestWriter,
       responseReader: existingWorker.responseReader,
       messageRouter: existingWorker.messageRouter,
+      workerRootPath: path.dirname(existingWorker.requestPipePath),
+      logsDir: path.join(path.dirname(existingWorker.requestPipePath), 'logs'),
     }
   }
 
@@ -857,7 +898,13 @@ async function getOrCreateWorkerProcess(
   // Give the worker a moment to start up
   await new Promise((resolve) => setTimeout(resolve, 100))
 
-  return { requestWriter, responseReader, messageRouter }
+  return {
+    requestWriter,
+    responseReader,
+    messageRouter,
+    workerRootPath,
+    logsDir,
+  }
 }
 
 export const runWorkerScript = async ({
@@ -871,6 +918,7 @@ export const runWorkerScript = async ({
     removeWorkerDirectory: true,
     printNsjailVerboseOutput: false,
   },
+  onStdoutChunk,
 }: {
   server: IAppPlatformService
   requestOrTask: Request | AppTask
@@ -882,19 +930,23 @@ export const runWorkerScript = async ({
     removeWorkerDirectory?: boolean
     printNsjailVerboseOutput?: boolean
   }
+  onStdoutChunk?: (text: string) => void
 }): Promise<Response | undefined> => {
   const overallStartTime = performance.now()
   const isRequest = requestOrTask instanceof Request
 
   try {
     // Get or create long-running worker process
-    const { requestWriter, messageRouter: workerMessageRouter } =
-      await getOrCreateWorkerProcess(
-        appIdentifier,
-        workerIdentifier,
-        server,
-        options,
-      )
+    const {
+      requestWriter,
+      messageRouter: workerMessageRouter,
+      logsDir,
+    } = await getOrCreateWorkerProcess(
+      appIdentifier,
+      workerIdentifier,
+      server,
+      options,
+    )
 
     // Generate unique request ID
     const requestId = `${workerExecutionId}__${Date.now()}_${crypto.randomUUID()}`
@@ -923,12 +975,28 @@ export const runWorkerScript = async ({
       serializedRequestOrTask = requestOrTask
     }
 
+    // Create per-request log files and paths (host paths)
+    const hostOutLogPath = path.join(logsDir, `${requestId}.out.log`)
+    const hostErrLogPath = path.join(logsDir, `${requestId}.error.json`)
+    await Promise.all([
+      Bun.file(hostOutLogPath).write(''),
+      Bun.file(hostErrLogPath).write(''),
+      fs.promises.chmod(hostOutLogPath, 0o666),
+      fs.promises.chmod(hostErrLogPath, 0o666),
+    ])
+
+    // Jail-visible paths
+    const jailOutLogPath = `/worker-tmp/logs/${requestId}.out.log`
+    const jailErrLogPath = `/worker-tmp/logs/${requestId}.error.json`
+
     // Create pipe request
     const pipeRequest: WorkerPipeRequest = {
       id: requestId,
       type: isRequest ? 'request' : 'task',
       timestamp: Date.now(),
       data: serializedRequestOrTask,
+      outputLogFilepath: jailOutLogPath,
+      errorLogFilepath: jailErrLogPath,
       // Extract app identifier and auth token from request
       ...(isRequest &&
         (() => {
@@ -945,6 +1013,17 @@ export const runWorkerScript = async ({
     // Send request to worker
     const requestStartTime = performance.now()
     await requestWriter.writeRequest(pipeRequest)
+
+    // Optionally subscribe to live stdout streaming
+    if (onStdoutChunk) {
+      workerMessageRouter.registerStdoutHandler(requestId, (text) => {
+        try {
+          onStdoutChunk(text)
+        } catch {
+          void 0
+        }
+      })
+    }
 
     // Wait for response using the worker's message router
     const pipeResponse = await workerMessageRouter.waitForResponse(requestId)
@@ -978,6 +1057,9 @@ export const runWorkerScript = async ({
       console.log(
         `[TIMING] Task execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
       )
+      if (onStdoutChunk) {
+        workerMessageRouter.unregisterStdoutHandler(requestId)
+      }
       return undefined
     }
 
@@ -1009,7 +1091,7 @@ export const runWorkerScript = async ({
         // eslint-disable-next-line no-console
         console.log('[run-worker-script]', 'Handling streaming response')
       }
-      return handleStreamingResponse(
+      const response = handleStreamingResponse(
         responseData as {
           status: number
           statusText: string
@@ -1018,10 +1100,15 @@ export const runWorkerScript = async ({
         requestId,
         workerMessageRouter,
       )
+      // The stdout handler remains active until stream_end closes the stream; caller may still receive stdout
+      return response
     }
 
     // Check if this is already a Response object
     if (responseData instanceof Response) {
+      if (onStdoutChunk) {
+        workerMessageRouter.unregisterStdoutHandler(requestId)
+      }
       return responseData
     }
 
@@ -1046,14 +1133,21 @@ export const runWorkerScript = async ({
         headers: Record<string, string>
         body: string
       }
-      return new Response(serializedResponse.body, {
+      const resp = new Response(serializedResponse.body, {
         status: serializedResponse.status,
         statusText: serializedResponse.statusText || '',
         headers: new Headers(serializedResponse.headers),
       })
+      if (onStdoutChunk) {
+        workerMessageRouter.unregisterStdoutHandler(requestId)
+      }
+      return resp
     }
 
     // No response data
+    if (onStdoutChunk) {
+      workerMessageRouter.unregisterStdoutHandler(requestId)
+    }
     return new Response(null, { status: 204 })
   } catch (error) {
     const overallEndTime = performance.now()

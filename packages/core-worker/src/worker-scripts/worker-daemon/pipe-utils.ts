@@ -452,6 +452,16 @@ export class PipeWriter {
   }
 
   /**
+   * Write a stdout text chunk associated with a given request
+   */
+  async writeStdoutChunk(requestId: string, text: string): Promise<void> {
+    await this.writeMessage({
+      type: 'stdout_chunk',
+      payload: { requestId, text },
+    })
+  }
+
+  /**
    * Write a shutdown message to the pipe
    */
   async writeShutdown(): Promise<void> {

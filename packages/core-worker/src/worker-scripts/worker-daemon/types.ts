@@ -41,6 +41,9 @@ export interface WorkerPipeRequest {
   // For authentication context
   authToken?: string
   appIdentifier?: string
+  // Per-request log file overrides inside the jail
+  outputLogFilepath?: string
+  errorLogFilepath?: string
 }
 
 export interface SerializableResponse {
@@ -91,11 +94,21 @@ export interface StreamEnd {
 }
 
 export interface WorkerPipeMessage {
-  type: 'request' | 'response' | 'stream_chunk' | 'stream_end' | 'shutdown'
+  type:
+    | 'request'
+    | 'response'
+    | 'stream_chunk'
+    | 'stream_end'
+    | 'stdout_chunk'
+    | 'shutdown'
   payload:
     | WorkerPipeRequest
     | WorkerPipeResponse
     | StreamChunk
     | StreamEnd
+    | {
+        requestId: string
+        text: string
+      }
     | null
 }
