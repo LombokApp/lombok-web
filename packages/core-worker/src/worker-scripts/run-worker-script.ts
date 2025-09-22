@@ -25,6 +25,7 @@ import type {
 } from './worker-daemon/types'
 
 const LOMBOK_PIPE_DEBUG = false as boolean
+const MAX_WORKER_IDLE_TIME = 5 * 60 * 1000 // 5 minutes
 
 /**
  * Message router that handles all pipe messages and routes them to appropriate handlers
@@ -669,58 +670,55 @@ const workerProcesses = new Map<
   }
 >()
 
+// Map to track creation promises to prevent duplicate daemon creation
+const workerCreationPromises = new Map<
+  string,
+  Promise<{
+    requestWriter: PipeWriter
+    responseReader: PipeReader
+    messageRouter: MessageRouter
+    workerRootPath: string
+    logsDir: string
+  }>
+>()
+
 // Cleanup function for worker processes
 const cleanupWorkerProcess = async (workerId: string) => {
   const worker = workerProcesses.get(workerId)
-  if (worker) {
+  if (!worker) {
+    return
+  }
+
+  // Remove from map immediately to prevent reuse during shutdown
+  workerProcesses.delete(workerId)
+
+  try {
+    // Stop message router
+    worker.messageRouter.stop()
+
+    // Send shutdown signal (may fail if process already exited)
     try {
-      // Stop message router
-      worker.messageRouter.stop()
-
-      // Send shutdown signal
       await worker.requestWriter.writeShutdown()
-
-      // Give process time to shutdown gracefully
-      setTimeout(() => {
-        if (!worker.process.killed) {
-          worker.process.kill()
-        }
-      }, 1000)
-
-      // Cleanup pipes
-      await cleanupWorkerPipes(worker.requestPipePath, worker.responsePipePath)
-
-      workerProcesses.delete(workerId)
-    } catch (error) {
-      console.error(`Error cleaning up worker ${workerId}:`, error)
+    } catch {
+      // ignore
     }
+
+    // Give process time to shutdown gracefully
+    setTimeout(() => {
+      if (!worker.process.killed) {
+        worker.process.kill()
+      }
+    }, 1000)
+
+    // Cleanup pipes
+    await cleanupWorkerPipes(worker.requestPipePath, worker.responsePipePath)
+  } catch (error) {
+    console.error(`Error cleaning up worker ${workerId}:`, error)
   }
 }
 
-// Periodic cleanup of idle workers (run every 5 minutes)
-setInterval(
-  () => {
-    const now = Date.now()
-    const maxIdleTime = 5 * 60 * 1000 // 5 minutes
-
-    for (const [workerId, worker] of workerProcesses) {
-      if (now - worker.lastUsed > maxIdleTime) {
-        if (LOMBOK_PIPE_DEBUG) {
-          // eslint-disable-next-line no-console
-          console.log(
-            '[run-worker-script]',
-            `Cleaning up idle worker: ${workerId}`,
-          )
-        }
-        void cleanupWorkerProcess(workerId)
-      }
-    }
-  },
-  5 * 60 * 1000,
-)
-
-// Get or create a long-running worker process
-async function getOrCreateWorkerProcess(
+// Separate function to actually create the worker process
+async function createWorkerProcess(
   appIdentifier: string,
   workerIdentifier: string,
   server: IAppPlatformService,
@@ -738,21 +736,8 @@ async function getOrCreateWorkerProcess(
 }> {
   const workerId = `${appIdentifier}--${workerIdentifier}`
 
-  // Check if we have an existing worker
-  const existingWorker = workerProcesses.get(workerId)
-  if (existingWorker && !existingWorker.process.killed) {
-    existingWorker.lastUsed = Date.now()
-    return {
-      requestWriter: existingWorker.requestWriter,
-      responseReader: existingWorker.responseReader,
-      messageRouter: existingWorker.messageRouter,
-      workerRootPath: path.dirname(existingWorker.requestPipePath),
-      logsDir: path.join(path.dirname(existingWorker.requestPipePath), 'logs'),
-    }
-  }
-
   // Create new worker process
-  const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}`
+  const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}}`
   const workerRootPath = path.join(os.tmpdir(), executionId)
   const workerTmpDir = path.join(workerRootPath, '/worker-tmp')
   const logsDir = path.join(workerTmpDir, 'logs')
@@ -907,6 +892,84 @@ async function getOrCreateWorkerProcess(
   }
 }
 
+// Periodic cleanup of idle workers (run every 5 minutes)
+setInterval(
+  () => {
+    const now = Date.now()
+
+    for (const [workerId, worker] of workerProcesses) {
+      if (now - worker.lastUsed > MAX_WORKER_IDLE_TIME) {
+        if (LOMBOK_PIPE_DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log(
+            '[run-worker-script]',
+            `Cleaning up idle worker: ${workerId}`,
+          )
+        }
+        void cleanupWorkerProcess(workerId)
+      }
+    }
+  },
+  5 * 60 * 1000,
+)
+
+// Get or create a long-running worker process
+async function getOrCreateWorkerProcess(
+  appIdentifier: string,
+  workerIdentifier: string,
+  server: IAppPlatformService,
+  options: {
+    printWorkerOutput?: boolean
+    removeWorkerDirectory?: boolean
+    printNsjailVerboseOutput?: boolean
+  } = {},
+): Promise<{
+  requestWriter: PipeWriter
+  responseReader: PipeReader
+  messageRouter: MessageRouter
+  workerRootPath: string
+  logsDir: string
+}> {
+  const workerId = `${appIdentifier}--${workerIdentifier}`
+
+  // Check if we have an existing worker
+  const existingWorker = workerProcesses.get(workerId)
+  if (existingWorker && !existingWorker.process.killed) {
+    existingWorker.lastUsed = Date.now()
+    return {
+      requestWriter: existingWorker.requestWriter,
+      responseReader: existingWorker.responseReader,
+      messageRouter: existingWorker.messageRouter,
+      workerRootPath: path.dirname(existingWorker.requestPipePath),
+      logsDir: path.join(path.dirname(existingWorker.requestPipePath), 'logs'),
+    }
+  }
+
+  // Check if another request is already creating this worker
+  const existingCreationPromise = workerCreationPromises.get(workerId)
+  if (existingCreationPromise) {
+    // Wait for the other request to finish creating the worker
+    return existingCreationPromise
+  }
+
+  // Create a new worker process (with locking)
+  const creationPromise = createWorkerProcess(
+    appIdentifier,
+    workerIdentifier,
+    server,
+    options,
+  )
+  workerCreationPromises.set(workerId, creationPromise)
+
+  try {
+    const result = await creationPromise
+    return result
+  } finally {
+    // Clean up the creation promise
+    workerCreationPromises.delete(workerId)
+  }
+}
+
 export const runWorkerScript = async ({
   requestOrTask,
   server,
@@ -1032,24 +1095,60 @@ export const runWorkerScript = async ({
     const requestTime = requestEndTime - requestStartTime
 
     // Handle response
+    let finalResponse = pipeResponse
     if (!pipeResponse.success) {
       const error = pipeResponse.error
       if (!error) {
         throw new Error('Response marked as failed but no error provided')
       }
-      console.log(
-        `[TIMING] Worker execution failed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
-      )
 
-      throw new WorkerScriptRuntimeError(
-        `Worker execution failed: ${error.message}`,
-        {
-          className: 'WorkerScriptRuntimeError',
-          name: error.name,
-          message: error.message,
-          stack: error.stack ?? '',
-        },
-      )
+      // Handle daemon not ready error with a brief retry
+      if (error.name === 'DaemonNotReady') {
+        console.log(
+          `Daemon not ready, retrying request ${requestId} in 200ms...`,
+        )
+        await new Promise((resolve) => setTimeout(resolve, 200))
+
+        // Retry the request once
+        await requestWriter.writeRequest(pipeRequest)
+        const retryResponse =
+          await workerMessageRouter.waitForResponse(requestId)
+
+        if (!retryResponse.success) {
+          const retryError = retryResponse.error
+          if (!retryError) {
+            throw new Error(
+              'Retry response marked as failed but no error provided',
+            )
+          }
+          throw new WorkerScriptRuntimeError(
+            `Worker execution failed after retry: ${retryError.message}`,
+            {
+              className: 'WorkerScriptRuntimeError',
+              name: retryError.name,
+              message: retryError.message,
+              stack: retryError.stack ?? '',
+            },
+          )
+        }
+
+        // Use the retry response
+        finalResponse = retryResponse
+      } else {
+        console.log(
+          `[TIMING] Worker execution failed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
+        )
+
+        throw new WorkerScriptRuntimeError(
+          `Worker execution failed: ${error.message}`,
+          {
+            className: 'WorkerScriptRuntimeError',
+            name: error.name,
+            message: error.message,
+            stack: error.stack ?? '',
+          },
+        )
+      }
     }
 
     if (!isRequest) {
@@ -1063,7 +1162,7 @@ export const runWorkerScript = async ({
       return undefined
     }
 
-    if (!pipeResponse.response) {
+    if (!finalResponse.response) {
       throw new Error('No response data received for request')
     }
 
@@ -1078,7 +1177,7 @@ export const runWorkerScript = async ({
       console.log('[run-worker-script]', 'Received response from worker')
     }
 
-    const responseData = pipeResponse.response
+    const responseData = finalResponse.response
 
     // Check if this is a serialized streaming response
     if (
@@ -1119,7 +1218,6 @@ export const runWorkerScript = async ({
       'body' in responseData &&
       !('isStreaming' in responseData)
     ) {
-      // eslint-disable-next-line no-console
       if (LOMBOK_PIPE_DEBUG) {
         // eslint-disable-next-line no-console
         console.log(
