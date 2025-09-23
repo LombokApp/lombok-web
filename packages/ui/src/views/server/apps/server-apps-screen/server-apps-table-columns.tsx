@@ -82,7 +82,7 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     ),
     cell: ({ row }) => (
       <span>
-        {row.original.config.tasks.map((task) => task.label).join(', ') || ''}
+        {row.original.config.tasks?.map((task) => task.label).join(', ') || ''}
       </span>
     ),
     enableSorting: false,

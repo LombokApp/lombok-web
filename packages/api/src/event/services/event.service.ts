@@ -155,7 +155,7 @@ export class EventService {
       await Promise.all(
         subscribedApps.map(async (subscribedApp) => {
           return Promise.all(
-            subscribedApp.config.tasks.map(async (taskDefinition) => {
+            (subscribedApp.config.tasks ?? []).map(async (taskDefinition) => {
               if (
                 taskDefinition.triggers.find(
                   (trigger) => trigger === eventIdentifier,
