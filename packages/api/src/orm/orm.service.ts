@@ -243,7 +243,7 @@ export class OrmService {
     const client: PoolClient = await this.client.connect()
     try {
       await client.query('BEGIN')
-      await client.query(`SET LOCAL search_path TO ${schemaName}`)
+      await client.query(`SET LOCAL search_path TO ${schemaName}, pg_catalog`)
 
       // Handle rowMode parameter
       const queryConfig: { text: string; values: unknown[]; rowMode?: string } =
@@ -286,7 +286,7 @@ export class OrmService {
     const client: PoolClient = await this.client.connect()
     try {
       await client.query('BEGIN')
-      await client.query(`SET LOCAL search_path TO ${schemaName}`)
+      await client.query(`SET LOCAL search_path TO ${schemaName}, pg_catalog`)
       const result = await client.query(sql, params)
       await client.query('COMMIT')
       return { rowCount: result.rowCount ?? 0 }
@@ -463,6 +463,72 @@ export class OrmService {
   }
 
   /**
+   * Remove schema references from migration content
+   * Strips schema prefixes from table references and removes CREATE SCHEMA statements
+   */
+  private removeSchemaReferencesFromMigration(content: string): string {
+    let processedContent = content
+
+    // Remove CREATE SCHEMA statements entirely
+    processedContent = processedContent.replace(
+      /CREATE\s+SCHEMA\s+[^;]+;/gi,
+      '',
+    )
+
+    // Remove SET search_path statements
+    processedContent = processedContent.replace(
+      /SET\s+search_path\s+TO\s+[^;]+;/gi,
+      '',
+    )
+
+    // Remove WITH SCHEMA clauses from CREATE EXTENSION statements
+    processedContent = processedContent.replace(
+      /CREATE\s+EXTENSION\s+[^;]+WITH\s+SCHEMA\s+[^;]+;/gi,
+      (match) => match.replace(/\s+WITH\s+SCHEMA\s+[^;]+/gi, ''),
+    )
+
+    // Remove IN SCHEMA clauses from ALTER DEFAULT PRIVILEGES
+    processedContent = processedContent.replace(
+      /ALTER\s+DEFAULT\s+PRIVILEGES\s+IN\s+SCHEMA\s+"[^"]+"\s+/gi,
+      'ALTER DEFAULT PRIVILEGES ',
+    )
+    processedContent = processedContent.replace(
+      /ALTER\s+DEFAULT\s+PRIVILEGES\s+IN\s+SCHEMA\s+[a-zA-Z_][a-zA-Z0-9_]*\s+/gi,
+      'ALTER DEFAULT PRIVILEGES ',
+    )
+
+    // Remove schema prefixes from quoted identifiers like "public"."table_name"
+    // But preserve system schemas like pg_catalog, information_schema, etc.
+    processedContent = processedContent.replace(
+      /"(?!pg_catalog|information_schema|pg_toast|pg_temp)([^"]+)"\."([^"]+)"/g,
+      '"$2"',
+    )
+
+    // Remove schema prefixes from mixed identifiers like public."table_name" or "schema".table_name
+    // But preserve system schemas like pg_catalog, information_schema, etc.
+    processedContent = processedContent.replace(
+      /\b(?!pg_catalog|information_schema|pg_toast|pg_temp)([a-zA-Z_][a-zA-Z0-9_]*)\.("([^"]+)")/g,
+      '$2',
+    )
+    processedContent = processedContent.replace(
+      /"(?!pg_catalog|information_schema|pg_toast|pg_temp)([^"]+)"\.([a-zA-Z_][a-zA-Z0-9_]*)/g,
+      '$2',
+    )
+
+    // Remove schema prefixes from unquoted identifiers like public.table_name
+    // But preserve system schemas like pg_catalog, information_schema, etc.
+    processedContent = processedContent.replace(
+      /\b(?!pg_catalog|information_schema|pg_toast|pg_temp)([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\b/g,
+      '$2',
+    )
+
+    // Clean up any extra whitespace that might be left
+    processedContent = processedContent.replace(/\n\s*\n\s*\n/g, '\n\n')
+
+    return processedContent.trim()
+  }
+
+  /**
    * Execute a single migration file for an app
    * Uses transaction-scoped search path to avoid affecting other queries
    */
@@ -473,14 +539,17 @@ export class OrmService {
     const schemaName = `app_${appIdentifier}`
 
     try {
+      const migrationFileContent = this.removeSchemaReferencesFromMigration(
+        migrationFile.content,
+      )
       // Calculate checksum for migration integrity
       const checksum = this.calculateChecksum(migrationFile.content)
 
       const client: PoolClient = await this.client.connect()
       try {
         await client.query('BEGIN')
-        await client.query(`SET LOCAL search_path TO ${schemaName}`)
-        await client.query(migrationFile.content)
+        await client.query(`SET LOCAL search_path TO ${schemaName}, pg_catalog`)
+        await client.query(migrationFileContent)
         await client.query(
           `INSERT INTO ${schemaName}.__migrations__ (filename, version, checksum) VALUES ($1, $2, $3)`,
           [
