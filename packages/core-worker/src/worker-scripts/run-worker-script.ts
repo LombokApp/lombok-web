@@ -424,11 +424,17 @@ function handleStreamingResponse(
     },
   })
 
+  // Ensure we have a proper Content-Type header for streaming responses
+  const headers = new Headers(metadata.headers)
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+
   // Return the Response with the streaming body
   return new Response(stream, {
     status: metadata.status,
     statusText: metadata.statusText,
-    headers: new Headers(metadata.headers),
+    headers,
   })
 }
 
