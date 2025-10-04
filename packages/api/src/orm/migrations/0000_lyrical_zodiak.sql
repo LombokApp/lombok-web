@@ -54,6 +54,7 @@ CREATE TABLE "events" (
 CREATE TABLE "folder_objects" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"objectKey" text NOT NULL,
+	"filename" text NOT NULL,
 	"eTag" text NOT NULL,
 	"sizeBytes" bigint NOT NULL,
 	"lastModified" bigint NOT NULL,

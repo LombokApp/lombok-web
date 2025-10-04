@@ -151,7 +151,24 @@ export class LruTtlCache<K, V> {
 }
 
 // updated on incoming auth udpate message
-let $apiClient: LombokApiClient
+let _api: LombokApiClient | undefined
+
+const clientPost: LombokApiClient['POST'] = async (url, ...init) => {
+  let attempts = 0
+  while (!_api && attempts < 10) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (_api) {
+      break
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+    attempts++
+  }
+  if (!_api) {
+    throw new Error('Failed to get api client')
+  }
+  return _api.POST(url, ...init)
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsyncWorkerMessage = [string, any]
@@ -203,18 +220,17 @@ const maybeSendBatch = (folderId: string) => {
       folderBatch.batchBuffer.length,
     )
     folderBatch.lastTimeExecuted = Date.now()
-    void $apiClient
-      .POST('/api/v1/folders/{folderId}/presigned-urls', {
-        params: {
-          path: {
-            folderId,
-          },
+    void clientPost('/api/v1/folders/{folderId}/presigned-urls', {
+      params: {
+        path: {
+          folderId,
         },
-        body: toFetch.map((k) => ({
-          method: SignedURLsRequestMethod.GET,
-          objectIdentifier: k,
-        })),
-      })
+      },
+      body: toFetch.map((k) => ({
+        method: SignedURLsRequestMethod.GET,
+        objectIdentifier: k,
+      })),
+    })
       .then(({ response, data }) => {
         if (response.status === 201 && data) {
           data.urls.forEach((result, i) => {
@@ -311,20 +327,19 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
     // TODO: type check this with zod
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const uploadFile: File = message[1].uploadFile
-    void $apiClient
-      .POST('/api/v1/folders/{folderId}/presigned-urls', {
-        params: {
-          path: {
-            folderId,
-          },
+    void clientPost('/api/v1/folders/{folderId}/presigned-urls', {
+      params: {
+        path: {
+          folderId,
         },
-        body: [
-          {
-            objectIdentifier,
-            method: SignedURLsRequestMethod.PUT,
-          },
-        ],
-      })
+      },
+      body: [
+        {
+          objectIdentifier,
+          method: SignedURLsRequestMethod.PUT,
+        },
+      ],
+    })
       .then((response) => {
         if (response.response.status === 201 && response.data) {
           return response.data
@@ -373,7 +388,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         })
 
         // have the app ingest the file
-        await $apiClient.POST(
+        await clientPost(
           '/api/v1/folders/{folderId}/objects/{objectKey}/refresh',
           {
             params: {
@@ -410,7 +425,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
       ])
     })
   } else if (message[0] === 'AUTH_UPDATED') {
-    $apiClient = createFetchClient<paths>({
+    _api = createFetchClient<paths>({
       baseUrl: (message[1] as { basePath: string }).basePath,
       fetch: async (request) => {
         const headers = new Headers(request.headers)

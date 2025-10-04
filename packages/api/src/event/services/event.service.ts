@@ -143,7 +143,10 @@ export class EventService {
 
       // regular event, so we should lookup apps that have subscribed to this event
       const subscribedApps = await tx.query.appsTable.findMany({
-        where: arrayContains(appsTable.subscribedEvents, [eventIdentifier]),
+        where: and(
+          arrayContains(appsTable.subscribedEvents, [eventIdentifier]),
+          eq(appsTable.enabled, true),
+        ),
         limit: 100, // TODO: manage this limit somehow
       })
 

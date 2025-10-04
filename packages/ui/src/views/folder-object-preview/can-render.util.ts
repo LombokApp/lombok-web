@@ -22,6 +22,10 @@ export function canRenderOriginal(
     return { result: true }
   }
 
+  if (folderObject.mediaType === MediaType.Video) {
+    return { result: true }
+  }
+
   if (folderObject.mediaType === MediaType.Document) {
     if (folderObject.mimeType === 'application/pdf') {
       return { result: true }

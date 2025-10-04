@@ -1965,6 +1965,8 @@ export interface components {
         FolderObjectListResponse: {
             meta: {
                 totalCount: number;
+                nextCursor?: string;
+                previousCursor?: string;
             };
             result: {
                 /** Format: uuid */
@@ -4265,10 +4267,11 @@ export interface operations {
     listFolderObjects: {
         parameters: {
             query?: {
+                cursor?: string;
                 offset?: number;
                 limit?: number;
                 search?: string;
-                sort?: ("size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                sort?: ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 includeImage?: "true";
                 includeVideo?: "true";
                 includeAudio?: "true";

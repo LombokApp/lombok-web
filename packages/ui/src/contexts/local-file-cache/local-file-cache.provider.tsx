@@ -22,15 +22,17 @@ export const LocalFileCacheContextProvider = ({
     Record<string, number>
   >({})
   const workerRef = React.useRef<Worker>()
+
+  const postMessage = React.useRef((message: WorkerMessage) => {
+    workerRef.current?.postMessage(message)
+  })
   const loggingContext = useLoggingContext()
   const updateWorkerWithAuth = React.useCallback(() => {
     void sdkInstance.authenticator.getAccessToken().then((t) => {
-      workerRef.current?.postMessage([
+      postMessage.current([
         'AUTH_UPDATED',
         {
-          basePath:
-            (import.meta.env.API_BASE_URL as string | undefined) ??
-            window.location.origin,
+          basePath: import.meta.env.API_BASE_URL ?? window.location.origin,
           accessToken: t,
         },
       ])
@@ -119,7 +121,7 @@ export const LocalFileCacheContextProvider = ({
               resolve,
               reject,
             }
-            workerRef.current?.postMessage([
+            postMessage.current([
               'GET_PRESIGNED_DOWNLOAD_URL',
               { folderId, objectIdentifier },
             ])
@@ -132,7 +134,7 @@ export const LocalFileCacheContextProvider = ({
 
   const uploadFile = React.useCallback(
     (folderId: string, objectKey: string, file: File) => {
-      void workerRef.current?.postMessage([
+      postMessage.current([
         'UPLOAD',
         {
           folderId,

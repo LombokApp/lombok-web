@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { FolderObjectSort } from '../services/folder.service'
 
 export const folderObjectsListQueryParamsSchema = z.object({
+  cursor: z.string().optional(),
   offset: z
     .preprocess(
       (a) => parseInt(a as string, 10),

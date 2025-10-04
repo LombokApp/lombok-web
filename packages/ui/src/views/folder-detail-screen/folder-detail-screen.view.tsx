@@ -1,31 +1,30 @@
-import type {
-  FolderObjectsListRequest,
-  FolderPermissionName,
-} from '@lombokapp/types'
+import type { FolderPermissionName } from '@lombokapp/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import {
+  type ColumnFilterOptions,
+  StandaloneToolbar,
+} from '@lombokapp/ui-toolkit/components/data-table'
 import {
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import { DropdownMenu } from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
-import type { PaginationState, SortingState } from '@tanstack/table-core'
+import { useQueryClient } from '@tanstack/react-query'
+import type { SortingState } from '@tanstack/table-core'
 import {
   CloudUpload,
   Ellipsis,
-  FileText,
   Folder,
   FolderSync,
-  HelpCircle,
-  Image,
-  Radio,
+  LayoutDashboard,
+  List,
   Share2,
   Trash,
-  Video,
 } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
@@ -47,27 +46,45 @@ import { useFocusedFolderObjectContext } from '@/src/pages/folders/focused-folde
 import { $api, $apiClient } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
-  convertFiltersToSearchParams,
-  convertPaginationToSearchParams,
-  convertSortingToSearchParams,
   readFiltersFromSearchParams,
-  readPaginationFromSearchParams,
   readSortingFromSearchParams,
 } from '@/src/utils/tables'
 
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
-import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
+import { JustifiedInfiniteGrid } from './justified-infinite-grid/justified-inifinite-grid'
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
   mediaType: { paramPrefix: 'mediaType' },
 }
 
+const FILTER_OPTIONS: Record<string, ColumnFilterOptions> = {
+  mediaType: {
+    label: 'Media Type',
+    options: [
+      { label: 'Images', value: 'IMAGE' },
+      { label: 'Videos', value: 'VIDEO' },
+      { label: 'Audio', value: 'AUDIO' },
+      { label: 'Documents', value: 'DOCUMENT' },
+      { label: 'Unknown', value: 'UNKNOWN' },
+    ],
+  },
+}
+
+const SORT_OPTIONS = [
+  { id: 'objectKey', label: 'Object Key' },
+  { id: 'createdAt', label: 'Created' },
+  { id: 'updatedAt', label: 'Updated' },
+  { id: 'filename', label: 'Filename' },
+  { id: 'sizeBytes', label: 'Size' },
+]
+
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   const folderUpdateMutation = $api.useMutation(
     'put',
@@ -125,76 +142,135 @@ export const FolderDetailScreen = () => {
   const [sorting, setSorting] = React.useState<SortingState>(
     readSortingFromSearchParams(searchParams),
   )
-  const DEFAULT_PAGE_SIZE = 10
-  const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
+
+  type ViewMode = 'grid-old' | 'grid'
+
+  const [viewMode, setViewMode] = React.useState<ViewMode>(() => {
+    const viewParam = searchParams.get('view')
+    return viewParam === 'grid' ? 'grid' : 'grid-old'
+  })
+
+  const handleViewModeChange = React.useCallback(
+    (newViewMode: ViewMode) => {
+      setViewMode(newViewMode)
+      const newParams = new URLSearchParams(searchParams)
+      if (newViewMode === 'grid-old') {
+        newParams.delete('view')
+      } else {
+        newParams.set('view', newViewMode)
+      }
+      setSearchParams(newParams)
+    },
+    [searchParams, setSearchParams],
   )
 
-  // Keep local UI state in sync with URL params
+  // Keep local UI state in sync with URL params (filters and sorting only)
   React.useEffect(() => {
     const syncedFilters = readFiltersFromSearchParams(
       searchParams,
       FILTER_CONFIGS,
     )
     const syncedSorting = readSortingFromSearchParams(searchParams)
-    const syncedPagination = readPaginationFromSearchParams(
-      searchParams,
-      DEFAULT_PAGE_SIZE,
-    )
     setFilters(syncedFilters)
     setSorting(syncedSorting)
-    setPagination(syncedPagination)
   }, [searchParams])
-  const searchFilterValue =
-    'search' in filters ? filters['search'][0] : undefined
-  const mediaTypeFilterValue = filters['mediaType'] ?? []
-  const listFolderObjectsQuery = $api.useQuery(
-    'get',
-    '/api/v1/folders/{folderId}/objects',
-    {
-      params: {
-        path: {
-          folderId,
-        },
-        query: {
-          limit: pagination.pageSize,
-          offset: pagination.pageIndex * pagination.pageSize,
-          search:
-            typeof searchFilterValue === 'string'
-              ? searchFilterValue
-              : undefined,
-          includeImage: mediaTypeFilterValue.includes('IMAGE')
-            ? 'true'
-            : undefined,
-          includeVideo: mediaTypeFilterValue.includes('VIDEO')
-            ? 'true'
-            : undefined,
-          includeAudio: mediaTypeFilterValue.includes('AUDIO')
-            ? 'true'
-            : undefined,
-          includeDocument: mediaTypeFilterValue.includes('DOCUMENT')
-            ? 'true'
-            : undefined,
-          includeUnknown: mediaTypeFilterValue.includes('UNKNOWN')
-            ? 'true'
-            : undefined,
-          sort:
-            sorting.length > 0
-              ? (sorting.map(
-                  (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
-                ) as FolderObjectsListRequest['sort'])
-              : undefined,
-        },
-      },
-    },
-    {
-      enabled: folderId.length > 0,
-    },
-  )
+  // const searchFilterValue =
+  //   'search' in filters ? filters['search'][0] : undefined
+  // const mediaTypeFilterValue = React.useMemo(
+  //   () => filters['mediaType'] ?? [],
+  //   [filters],
+  // )
+  // type FolderObjectsPage =
+  //   paths['/api/v1/folders/{folderId}/objects']['get']['responses']['200']['content']['application/json']
+  // const PAGE_LIMIT = 100
+  // const initialCursor = searchParams.get('cursor') ?? undefined
+
+  // const sortParamString = React.useMemo(
+  //   () => sorting.map((s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`).join(','),
+  //   [sorting],
+  // )
+
+  // const listFolderObjectsInfiniteQuery = useInfiniteQuery<FolderObjectsPage>({
+  //   queryKey: [
+  //     'folders.objects',
+  //     folderId,
+  //     searchFilterValue,
+  //     mediaTypeFilterValue.sort().join(','),
+  //     sortParamString,
+  //   ],
+  //   queryFn: async ({ pageParam }) => {
+  //     const resp = await $apiClient.GET('/api/v1/folders/{folderId}/objects', {
+  //       params: {
+  //         path: { folderId },
+  //         query: {
+  //           cursor: typeof pageParam === 'string' ? pageParam : undefined,
+  //           limit: PAGE_LIMIT,
+  //           search:
+  //             typeof searchFilterValue === 'string'
+  //               ? searchFilterValue
+  //               : undefined,
+  //           includeImage: mediaTypeFilterValue.includes('IMAGE')
+  //             ? 'true'
+  //             : undefined,
+  //           includeVideo: mediaTypeFilterValue.includes('VIDEO')
+  //             ? 'true'
+  //             : undefined,
+  //           includeAudio: mediaTypeFilterValue.includes('AUDIO')
+  //             ? 'true'
+  //             : undefined,
+  //           includeDocument: mediaTypeFilterValue.includes('DOCUMENT')
+  //             ? 'true'
+  //             : undefined,
+  //           includeUnknown: mediaTypeFilterValue.includes('UNKNOWN')
+  //             ? 'true'
+  //             : undefined,
+  //           sort:
+  //             sorting.length > 0
+  //               ? (sorting.map(
+  //                   (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+  //                 ) as FolderObjectsListRequest['sort'])
+  //               : undefined,
+  //         },
+  //       },
+  //     })
+  //     if (!resp.data) {
+  //       throw new Error('No data received from API')
+  //     }
+  //     return resp.data
+  //   },
+  //   getNextPageParam: (lastPage) => {
+  //     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  //     if (!lastPage) {
+  //       return undefined
+  //     }
+  //     return lastPage.meta.nextCursor
+  //   },
+  //   getPreviousPageParam: (firstPage) => {
+  //     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  //     if (!firstPage) {
+  //       return undefined
+  //     }
+  //     return firstPage.meta.previousCursor
+  //   },
+  //   initialPageParam: initialCursor,
+  //   enabled: folderId.length > 0,
+  // })
+  // const flatItems = React.useMemo<FolderObjectDTO[]>(() => {
+  //   const data = listFolderObjectsInfiniteQuery.data
+  //   if (!data) {
+  //     return []
+  //   }
+  //   return data.pages.flatMap((p) => p.result)
+  // }, [listFolderObjectsInfiniteQuery.data])
+
+  // const totalCount = (() => {
+  //   const firstPage = listFolderObjectsInfiniteQuery.data?.pages[0]
+  //   const count = firstPage?.meta.totalCount
+  //   return typeof count === 'number' ? count : 0
+  // })()
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, _payload: unknown) => {
-      // console.log('folder socker messageHandler message:', { name, payload })
       if (
         [
           FolderPushMessage.OBJECTS_ADDED,
@@ -204,12 +280,13 @@ export const FolderDetailScreen = () => {
           FolderPushMessage.OBJECT_UPDATED,
         ].includes(name)
       ) {
-        void listFolderObjectsQuery.refetch()
-      } else if (FolderPushMessage.OBJECT_UPDATED === name) {
-        void listFolderObjectsQuery.refetch()
+        void queryClient.invalidateQueries({
+          queryKey: ['folders.objects', folderId],
+          exact: false,
+        })
       }
     },
-    [listFolderObjectsQuery],
+    [queryClient, folderId],
   )
   const folderContext = useFolderContext(messageHandler)
 
@@ -258,37 +335,63 @@ export const FolderDetailScreen = () => {
     folderContext.folderMetadata?.indexingJobContext?.indexingContinuationKey,
   ])
 
-  const handlePaginationChange = React.useCallback(
-    (newPagination: PaginationState) => {
-      setPagination(newPagination)
-      const newParams = convertPaginationToSearchParams(
-        newPagination,
-        searchParams,
-        DEFAULT_PAGE_SIZE,
-      )
-      setSearchParams(newParams)
-    },
-    [searchParams, setSearchParams],
-  )
-
+  // Handle filter changes by updating URL params
   const handleFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
-      setFilters(newFilters)
-      setSearchParams(
-        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
-      )
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+
+        // Clear existing filter params
+        Object.keys(FILTER_CONFIGS).forEach((key) => {
+          next.delete(key)
+        })
+
+        // Set new filter params
+        Object.entries(newFilters).forEach(([key, values]) => {
+          if (values.length > 0) {
+            if (key === 'search') {
+              const searchValue = values[0]
+              if (searchValue) {
+                next.set('search', searchValue)
+              }
+            } else {
+              values.forEach((value) => {
+                next.append(key, value)
+              })
+            }
+          }
+        })
+
+        return next
+      })
     },
-    [setSearchParams, searchParams],
+    [setSearchParams],
   )
 
+  // Handle sorting changes by updating URL params
   const handleSortingChange = React.useCallback(
     (newSorting: SortingState) => {
-      setSorting(newSorting)
-      const newParams = convertSortingToSearchParams(newSorting, searchParams)
-      setSearchParams(newParams)
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+
+        // Clear existing sort params
+        next.delete('sort')
+
+        // Set new sort params
+        if (newSorting.length > 0) {
+          const sortString = newSorting
+            .map((s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`)
+            .join(',')
+          next.set('sort', sortString)
+        }
+
+        return next
+      })
     },
-    [setSearchParams, searchParams],
+    [setSearchParams],
   )
+
+  // Removed view mode switching; tiled mode is the only mode
 
   const [shareModalData, setShareModalData] = React.useState<{
     isOpen: boolean
@@ -342,23 +445,19 @@ export const FolderDetailScreen = () => {
     async (values: {
       shares: { userId: string; permissions: FolderPermissionName[] }[]
     }) => {
-      try {
-        // Update each share individually
-        for (const share of values.shares) {
-          await upsertFolderShareMutation.mutateAsync({
-            params: {
-              path: {
-                folderId,
-                userId: share.userId,
-              },
+      // Update each share individually
+      for (const share of values.shares) {
+        await upsertFolderShareMutation.mutateAsync({
+          params: {
+            path: {
+              folderId,
+              userId: share.userId,
             },
-            body: {
-              permissions: share.permissions,
-            },
-          })
-        }
-      } catch (error) {
-        console.error('Failed to update folder shares:', error)
+          },
+          body: {
+            permissions: share.permissions,
+          },
+        })
       }
     },
     [folderId, upsertFolderShareMutation],
@@ -401,85 +500,125 @@ export const FolderDetailScreen = () => {
             focusedFolderObject && 'opacity-0',
           )}
         >
-          {/* eslint-disable-next-line tailwindcss/no-unnecessary-arbitrary-value */}
-          <div className="flex size-full w-full flex-1 justify-between overflow-x-visible @4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem]">
+          <div
+            className={cn(
+              'flex size-full w-full flex-1 justify-between overflow-x-visible',
+              sidebarOpen && 'gap-2',
+            )}
+          >
             <div className="flex min-w-0 flex-1 py-6">
               <div className="flex size-full flex-col gap-2">
-                <div className="flex justify-between">
-                  <EditableTitle
-                    value={folderContext.folder?.name ?? ''}
-                    onChange={async (name) => {
-                      await folderUpdateMutation.mutateAsync({
-                        body: { name },
-                        params: { path: { folderId } },
-                      })
-                    }}
-                    placeholder="Enter folder name..."
-                  />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="m-1 rounded-full">
-                      <div className="flex size-8 items-center justify-around rounded-full border">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between gap-6">
+                    <div className="flex items-center justify-start gap-6">
+                      <EditableTitle
+                        value={folderContext.folder?.name ?? ''}
+                        onChange={async (name) => {
+                          await folderUpdateMutation.mutateAsync({
+                            body: { name },
+                            params: { path: { folderId } },
+                          })
+                        }}
+                        placeholder="Enter folder name..."
+                      />
+
+                      <StandaloneToolbar
+                        filters={filters}
+                        filterOptions={FILTER_OPTIONS}
+                        enableSearch={true}
+                        searchPlaceholder="Search files..."
+                        onFiltersChange={handleFiltersChange}
+                        sorting={sorting}
+                        sortOptions={SORT_OPTIONS}
+                        onSortingChange={handleSortingChange}
+                        enableSorting={true}
+                      />
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="flex rounded-md border p-2">
                         <Ellipsis className="size-5 shrink-0" />
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {folderContext.folderPermissions?.includes(
-                        FolderPermissionEnum.OBJECT_EDIT,
-                      ) && (
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
                         <DropdownMenuItem
-                          onClick={() =>
-                            setUploadModalData({
-                              isOpen: true,
-                              uploadingProgress,
-                            })
-                          }
+                          onClick={() => handleViewModeChange('grid-old')}
                           className="gap-2"
                         >
-                          <CloudUpload className="size-5" />
-                          Upload
+                          <List className="size-5" />
+                          Grid View (Old)
+                          {viewMode === 'grid-old' && (
+                            <div className="ml-auto size-2 rounded-full bg-primary" />
+                          )}
                         </DropdownMenuItem>
-                      )}
-                      {folderContext.folderPermissions?.includes(
-                        FolderPermissionEnum.FOLDER_REINDEX,
-                      ) && (
                         <DropdownMenuItem
-                          onClick={() =>
-                            setReindexFolderModalData({
-                              ...reindexFolderModalData,
-                              isOpen: true,
-                            })
-                          }
+                          onClick={() => handleViewModeChange('grid')}
                           className="gap-2"
                         >
-                          <FolderSync className="size-5" />
-                          Reindex
+                          <LayoutDashboard className="size-5 rotate-90" />
+                          Grid View
+                          {viewMode === 'grid' && (
+                            <div className="ml-auto size-2 rounded-full bg-primary" />
+                          )}
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => void handleShareFolder()}
-                        className="gap-2"
-                      >
-                        <Share2 className="size-5" />
-                        Share
-                      </DropdownMenuItem>
-                      {folderContext.folderPermissions?.includes(
-                        FolderPermissionEnum.FOLDER_FORGET,
-                      ) && (
+
+                        <DropdownMenuSeparator />
+                        {folderContext.folderPermissions?.includes(
+                          FolderPermissionEnum.OBJECT_EDIT,
+                        ) && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setUploadModalData({
+                                isOpen: true,
+                                uploadingProgress,
+                              })
+                            }
+                            className="gap-2"
+                          >
+                            <CloudUpload className="size-5" />
+                            Upload
+                          </DropdownMenuItem>
+                        )}
+                        {folderContext.folderPermissions?.includes(
+                          FolderPermissionEnum.FOLDER_REINDEX,
+                        ) && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setReindexFolderModalData({
+                                ...reindexFolderModalData,
+                                isOpen: true,
+                              })
+                            }
+                            className="gap-2"
+                          >
+                            <FolderSync className="size-5" />
+                            Reindex
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
-                          onClick={() =>
-                            setForgetFolderConfirmationModelData({
-                              ...forgetFolderConfirmationModelData,
-                              isOpen: true,
-                            })
-                          }
+                          onClick={() => void handleShareFolder()}
                           className="gap-2"
                         >
-                          <Trash className="size-5" />
-                          Delete
+                          <Share2 className="size-5" />
+                          Share
                         </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        {folderContext.folderPermissions?.includes(
+                          FolderPermissionEnum.FOLDER_FORGET,
+                        ) && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setForgetFolderConfirmationModelData({
+                                ...forgetFolderConfirmationModelData,
+                                isOpen: true,
+                              })
+                            }
+                            className="gap-2"
+                          >
+                            <Trash className="size-5" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 {folderContext.folderMetadata?.totalCount === 0 ? (
@@ -525,51 +664,7 @@ export const FolderDetailScreen = () => {
                   </div>
                 ) : (
                   <div className="flex min-h-0 max-w-full flex-1 flex-col">
-                    <DataTable
-                      fixedLayout={true}
-                      cellPadding={'p-1.5'}
-                      hideHeader={true}
-                      enableSearch={true}
-                      filters={filters}
-                      sorting={sorting}
-                      onColumnFiltersChange={handleFiltersChange}
-                      rowCount={
-                        listFolderObjectsQuery.data?.meta.totalCount ?? 0
-                      }
-                      data={listFolderObjectsQuery.data?.result ?? []}
-                      columns={folderObjectsTableColumns}
-                      onPaginationChange={handlePaginationChange}
-                      pagination={pagination}
-                      onSortingChange={handleSortingChange}
-                      filterOptions={{
-                        mediaType: {
-                          label: 'Media Type',
-                          options: [
-                            {
-                              value: 'IMAGE',
-                              label: 'Images',
-                              icon: Image,
-                            },
-                            {
-                              value: 'VIDEO',
-                              label: 'Videos',
-                              icon: Video,
-                            },
-                            { value: 'AUDIO', label: 'Audio', icon: Radio },
-                            {
-                              value: 'DOCUMENT',
-                              label: 'Documents',
-                              icon: FileText,
-                            },
-                            {
-                              value: 'UNKNOWN',
-                              label: 'Unknown',
-                              icon: HelpCircle,
-                            },
-                          ],
-                        },
-                      }}
-                    />
+                    <JustifiedInfiniteGrid folderId={folderId} />
                   </div>
                 )}
               </div>
@@ -587,7 +682,10 @@ export const FolderDetailScreen = () => {
                             params: { path: { folderId } },
                           },
                         )
-                        void listFolderObjectsQuery.refetch()
+                        void queryClient.invalidateQueries({
+                          queryKey: ['folders.objects', folderId],
+                          exact: false,
+                        })
                         await folderContext.refreshFolder()
                       }}
                       folderMetadata={folderContext.folderMetadata}

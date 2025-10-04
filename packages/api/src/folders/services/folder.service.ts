@@ -34,13 +34,16 @@ import {
   aliasedTable,
   and,
   eq,
+  gt,
   ilike,
   inArray,
   isNotNull,
+  lt,
   or,
   type SQL,
   sql,
 } from 'drizzle-orm'
+import { PgColumn } from 'drizzle-orm/pg-core'
 import { AppService } from 'src/app/services/app.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
@@ -99,8 +102,8 @@ export interface SignedURLsRequest {
 }
 
 export enum FolderObjectSort {
-  SizeAsc = 'size-asc',
-  SizeDesc = 'size-desc',
+  SizeBytesAsc = 'sizeBytes-asc',
+  SizeBytesDesc = 'sizeBytes-desc',
   FilenameAsc = 'filename-asc',
   FilenameDesc = 'filename-desc',
   ObjectKeyAsc = 'objectKey-asc',
@@ -762,6 +765,7 @@ export class FolderService {
     {
       folderId,
       search,
+      cursor,
       offset = 0,
       limit = 25,
       sort = [FolderObjectSort.CreatedAtAsc],
@@ -773,6 +777,7 @@ export class FolderService {
     }: {
       folderId: string
       search?: string
+      cursor?: string
       offset?: number
       limit?: number
       sort?: FolderObjectSort[]
@@ -817,21 +822,264 @@ export class FolderService {
 
     const where = and(...conditions.filter(Boolean))
 
+    // Build keyset pagination when cursor is provided
+    const orderSorts = [...sort]
+    // Always add id as final tiebreaker
+    const hasIdSort = orderSorts.some((s) => s.startsWith('id-'))
+    if (!hasIdSort) {
+      orderSorts.push('id-asc' as unknown as FolderObjectSort)
+    }
+    console.log('orderSorts', orderSorts)
+
+    let keysetWhere: SQL | undefined
+    let isNextDirection = true // Default to next direction for backward compatibility
+    if (cursor) {
+      try {
+        const decoded = JSON.parse(
+          Buffer.from(cursor, 'base64').toString('utf8'),
+        ) as {
+          lastId: string
+          keys?: Record<string, unknown>
+          direction?: 'next' | 'previous'
+        }
+
+        isNextDirection = decoded.direction !== 'previous'
+
+        const colMap: Record<string, PgColumn> = {
+          sizeBytes: folderObjectsTable.sizeBytes,
+          filename: folderObjectsTable.filename,
+          objectKey: folderObjectsTable.objectKey,
+          createdAt: folderObjectsTable.createdAt,
+          updatedAt: folderObjectsTable.updatedAt,
+          id: folderObjectsTable.id,
+        }
+
+        // Build lexicographic keyset using all sort columns then id asc
+        const sortCols = orderSorts.filter((s) => !String(s).startsWith('id-'))
+
+        // Prepare a chain like (c1>v1) OR (c1=v1 AND c2>v2) ... OR (c1=v1 AND ... AND id>lastId)
+        let condition: SQL | undefined
+        for (let i = sortCols.length - 1; i >= 0; i--) {
+          const [colName, dir] = String(sortCols[i]).split('-') as [
+            string,
+            'asc' | 'desc',
+          ]
+          const column = colMap[colName]
+          const rawValue = decoded.keys?.[colName]
+          if (!(colName in colMap) || rawValue === undefined) {
+            continue
+          }
+          // Coerce to correct type for drizzle
+          let typedValue: unknown = rawValue
+          if (colName === 'createdAt' || colName === 'updatedAt') {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            typedValue = new Date(String(rawValue))
+          } else if (colName === 'sizeBytes') {
+            typedValue =
+              typeof rawValue === 'number' ? rawValue : Number(rawValue)
+          } else if (colName === 'objectKey' || colName === 'id') {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            typedValue = String(rawValue)
+          }
+          // Determine comparison direction based on cursor direction
+          isNextDirection = decoded.direction !== 'previous'
+          const cmp =
+            (dir === 'asc' && isNextDirection) ||
+            (dir === 'desc' && !isNextDirection)
+              ? gt(column, typedValue as never)
+              : lt(column, typedValue as never)
+
+          if (!condition) {
+            // base case compares id when all previous equal
+            condition = or(
+              cmp,
+              and(
+                eq(column, typedValue as never),
+                isNextDirection
+                  ? gt(folderObjectsTable.id, decoded.lastId)
+                  : lt(folderObjectsTable.id, decoded.lastId),
+              ),
+            )
+          } else {
+            condition = or(cmp, and(eq(column, typedValue as never), condition))
+          }
+        }
+        keysetWhere =
+          condition ??
+          (isNextDirection
+            ? gt(folderObjectsTable.id, decoded.lastId)
+            : lt(folderObjectsTable.id, decoded.lastId))
+      } catch {
+        // Invalid cursor - ignore and treat as first page
+        // no-op
+      }
+    }
+
+    const orderBy = parseSort(folderObjectsTable, orderSorts)
+    console.log('orderBy', orderBy)
+
     const folderObjects =
       await this.ormService.db.query.folderObjectsTable.findMany({
-        where,
-        offset,
-        limit,
-        orderBy: parseSort(folderObjectsTable, sort),
+        where: keysetWhere ? and(where, keysetWhere) : where,
+        offset: cursor ? undefined : offset,
+        // Always fetch one extra to determine if there is a next page
+        limit: limit + 1,
+        orderBy,
       })
     const [folderObjectsCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(folderObjectsTable)
       .where(where)
 
+    let nextCursor: string | undefined
+    let previousCursor: string | undefined
+
+    // Slice to page size; if we got more than limit, there is a next page
+    const page = folderObjects.slice(0, limit)
+    if (folderObjects.length > limit) {
+      const last = page[page.length - 1]
+      const keys: Record<string, unknown> = {}
+      const lastAny = last as Record<string, unknown>
+      for (const s of orderSorts) {
+        const [colName] = String(s).split('-')
+        if (colName === 'id') {
+          continue
+        }
+        const v = lastAny[colName]
+        if (v instanceof Date) {
+          keys[colName] = v.toISOString()
+        } else if (typeof v === 'string' || typeof v === 'number') {
+          keys[colName] = v
+        }
+      }
+      nextCursor = Buffer.from(
+        JSON.stringify({ lastId: last.id, keys, direction: 'next' }),
+      ).toString('base64')
+    }
+
+    // Check if there's a previous page by looking for items before the first item
+    if (page.length > 0) {
+      const first = page[0]
+      const firstKeys: Record<string, unknown> = {}
+      const firstAny = first as Record<string, unknown>
+      for (const s of orderSorts) {
+        const [colName] = String(s).split('-')
+        if (colName === 'id') {
+          continue
+        }
+        const v = firstAny[colName]
+        if (v instanceof Date) {
+          firstKeys[colName] = v.toISOString()
+        } else if (typeof v === 'string' || typeof v === 'number') {
+          firstKeys[colName] = v
+        }
+      }
+
+      // Count items that would come before this page
+      const previousCount = await this.ormService.db
+        .select({ count: sql<string>`count(*)` })
+        .from(folderObjectsTable)
+        .where(
+          and(
+            where,
+            or(
+              // Items that sort before the first item in current page
+              ...orderSorts
+                .filter((s) => !String(s).startsWith('id-'))
+                .map((s, i) => {
+                  const [colName, dir] = String(s).split('-') as [
+                    string,
+                    'asc' | 'desc',
+                  ]
+                  const column = {
+                    sizeBytes: folderObjectsTable.sizeBytes,
+                    filename: folderObjectsTable.filename,
+                    objectKey: folderObjectsTable.objectKey,
+                    createdAt: folderObjectsTable.createdAt,
+                    updatedAt: folderObjectsTable.updatedAt,
+                  }[colName]
+
+                  if (!column) {
+                    return undefined
+                  }
+
+                  const firstValue = firstAny[colName]
+                  const comparison =
+                    dir === 'asc'
+                      ? lt(column, firstValue as never)
+                      : gt(column, firstValue as never)
+
+                  if (i === 0) {
+                    return comparison
+                  } else {
+                    // For subsequent columns, need to match previous columns first
+                    const prevConditions = orderSorts
+                      .slice(0, i)
+                      .map((prevS) => {
+                        const [prevColName] = String(prevS).split('-')
+                        const prevColumn = {
+                          sizeBytes: folderObjectsTable.sizeBytes,
+                          filename: folderObjectsTable.filename,
+                          objectKey: folderObjectsTable.objectKey,
+                          createdAt: folderObjectsTable.createdAt,
+                          updatedAt: folderObjectsTable.updatedAt,
+                        }[prevColName]
+
+                        if (!prevColumn) {
+                          return undefined
+                        }
+                        return eq(prevColumn, firstAny[prevColName] as never)
+                      })
+                      .filter(Boolean)
+
+                    return and(comparison, ...prevConditions)
+                  }
+                })
+                .filter(Boolean),
+              // Also include items that match all sort columns but have smaller id
+              and(
+                ...orderSorts
+                  .filter((s) => !String(s).startsWith('id-'))
+                  .map((s) => {
+                    const [colName] = String(s).split('-')
+                    const column = {
+                      sizeBytes: folderObjectsTable.sizeBytes,
+                      filename: folderObjectsTable.filename,
+                      objectKey: folderObjectsTable.objectKey,
+                      createdAt: folderObjectsTable.createdAt,
+                      updatedAt: folderObjectsTable.updatedAt,
+                    }[colName]
+
+                    if (!column) {
+                      return undefined
+                    }
+                    return eq(column, firstAny[colName] as never)
+                  })
+                  .filter(Boolean),
+                lt(folderObjectsTable.id, first.id),
+              ),
+            ),
+          ),
+        )
+
+      if (parseInt(previousCount[0]?.count ?? '0', 10) > 0) {
+        previousCursor = Buffer.from(
+          JSON.stringify({
+            lastId: first.id,
+            keys: firstKeys,
+            direction: 'previous',
+          }),
+        ).toString('base64')
+      }
+    }
+
     return {
-      result: folderObjects,
-      meta: { totalCount: parseInt(folderObjectsCount.count ?? '0', 10) },
+      result: page,
+      meta: {
+        totalCount: parseInt(folderObjectsCount.count ?? '0', 10),
+        nextCursor,
+        previousCursor,
+      },
     }
   }
 
@@ -1098,6 +1346,7 @@ export class FolderService {
       id: uuidV4(),
       folderId,
       objectKey,
+      filename: objectKey.split('/').pop() ?? objectKey,
       lastModified: updateRecord.lastModified ?? 0,
       hash: undefined,
       eTag: updateRecord.eTag ?? '',
