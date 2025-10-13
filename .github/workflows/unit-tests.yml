@@ -18,7 +18,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: latest
+          bun-version: 1.2.23
       - run: bun install
       - run: bun --cwd packages/types test:unit
   check-api:
@@ -31,6 +31,6 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: latest
+          bun-version: 1.2.23
       - run: bun install
       - run: bun --cwd packages/api test:unit
