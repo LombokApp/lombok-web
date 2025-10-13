@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=white)](https://bun.sh/)
 
-[Website](https://lombokapp.com) • [Documentation](https://lombokapp.com/docs) • [Github](https://github.com/lombokapp/lombok-web) • [Discord](https://discord.gg/ZSEKFG9gwd)
+[Website](https://lombokapp.com) • [Documentation](https://lombokapp.com/docs) • [Github](https://github.com/lombokapp/lombok-web) • [Discord](https://discord.gg/ZSEKFG9gwd) • [Demo](https://demo.lombokapp.com)
 
 </div>
 
