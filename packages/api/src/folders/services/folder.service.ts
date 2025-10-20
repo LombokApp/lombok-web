@@ -829,7 +829,6 @@ export class FolderService {
     if (!hasIdSort) {
       orderSorts.push('id-asc' as unknown as FolderObjectSort)
     }
-    console.log('orderSorts', orderSorts)
 
     let keysetWhere: SQL | undefined
     let isNextDirection = true // Default to next direction for backward compatibility
@@ -842,6 +841,8 @@ export class FolderService {
           keys?: Record<string, unknown>
           direction?: 'next' | 'previous'
         }
+
+        console.log('Decoded cursor:', decoded)
 
         isNextDirection = decoded.direction !== 'previous'
 
@@ -915,8 +916,16 @@ export class FolderService {
       }
     }
 
-    const orderBy = parseSort(folderObjectsTable, orderSorts)
-    console.log('orderBy', orderBy)
+    // For "previous" direction queries, flip the ORDER BY so we fetch the
+    // prior items efficiently, then reverse back to ascending for the response
+    const orderSortsForQuery = isNextDirection
+      ? orderSorts
+      : orderSorts.map((s) => {
+          const [col, dir] = String(s).split('-') as [string, 'asc' | 'desc']
+          const flipped = dir === 'asc' ? 'desc' : 'asc'
+          return `${col}-${flipped}` as unknown as FolderObjectSort
+        })
+    const orderBy = parseSort(folderObjectsTable, orderSortsForQuery)
 
     const folderObjects =
       await this.ormService.db.query.folderObjectsTable.findMany({
@@ -934,8 +943,12 @@ export class FolderService {
     let nextCursor: string | undefined
     let previousCursor: string | undefined
 
+    // Normalize results to ascending order for response shape
+    const normalized = isNextDirection
+      ? folderObjects
+      : [...folderObjects].reverse()
     // Slice to page size; if we got more than limit, there is a next page
-    const page = folderObjects.slice(0, limit)
+    const page = normalized.slice(0, limit)
     if (folderObjects.length > limit) {
       const last = page[page.length - 1]
       const keys: Record<string, unknown> = {}
