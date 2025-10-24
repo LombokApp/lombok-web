@@ -164,6 +164,23 @@ export const FolderDetailScreen = () => {
     [searchParams, setSearchParams],
   )
 
+  const cursor = searchParams.get('cursor') ?? undefined
+
+  const handleCursorChange = React.useCallback(
+    (newCursor: string) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        if (newCursor === '') {
+          next.delete('cursor')
+        } else {
+          next.set('cursor', newCursor)
+        }
+        return next
+      })
+    },
+    [setSearchParams],
+  )
+
   // Keep local UI state in sync with URL params (filters and sorting only)
   React.useEffect(() => {
     const syncedFilters = readFiltersFromSearchParams(
@@ -664,7 +681,11 @@ export const FolderDetailScreen = () => {
                   </div>
                 ) : (
                   <div className="flex min-h-0 max-w-full flex-1 flex-col">
-                    <JustifiedInfiniteGrid folderId={folderId} />
+                    <JustifiedInfiniteGrid
+                      folderId={folderId}
+                      onCursorChange={handleCursorChange}
+                      initialPageParam={cursor}
+                    />
                   </div>
                 )}
               </div>

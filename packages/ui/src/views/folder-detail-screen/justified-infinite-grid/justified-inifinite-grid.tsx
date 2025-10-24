@@ -14,6 +14,8 @@ import { $apiClient } from '@/src/services/api'
 
 import { FolderObjectPreview } from '../../folder-object-preview/folder-object-preview.view'
 
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
+const QUERY_DEBUG: boolean = false
 const GRID_GAP_PX = 8
 const maxRowHeight = 300
 
@@ -214,12 +216,23 @@ const computeRowsDeterministic = (
   return rows
 }
 
+interface Row {
+  id: string
+  rowCount: number
+  height: number
+  items: {
+    nativeDimensions: { w?: number; h?: number; ar: number }
+    computedDimensions: { width: number; height: number }
+    folderObject: FolderObjectDTO
+    cursor: string
+  }[]
+}
 interface WindowData {
   renderWindow: {
     startRowOffset: number
     endRowOffset: number
-    firstRowId?: string
-    lastRowId?: string
+    firstRowId: string
+    lastRowId: string
   }
   pages: {
     cursor: string
@@ -230,28 +243,20 @@ interface WindowData {
       totalCount: number
     }
   }[]
-  rows: {
-    id: string
-    rowCount: number
-    height: number
-    items: {
-      nativeDimensions: { w?: number; h?: number; ar: number }
-      computedDimensions: { width: number; height: number }
-      folderObject: FolderObjectDTO
-      cursor: string
-    }[]
-  }[]
+  rows: Row[]
+  rowMap: Record<string, { row: Row; index: number }>
 }
 
 class VirtualWindowDataManager {
   private readonly windowData: WindowData = {
     pages: [],
     rows: [],
+    rowMap: {},
     renderWindow: {
       startRowOffset: 0,
       endRowOffset: 0,
-      firstRowId: undefined,
-      lastRowId: undefined,
+      firstRowId: '',
+      lastRowId: '',
     },
   }
 
@@ -266,6 +271,10 @@ class VirtualWindowDataManager {
 
   get rows() {
     return this.windowData.rows
+  }
+
+  get rowsMap() {
+    return this.windowData.rowMap
   }
 
   get renderWindow() {
@@ -285,9 +294,16 @@ class VirtualWindowDataManager {
     )
 
     this.windowData.rows = recomputedRows
+    this.windowData.rowMap = this.windowData.rows.reduce<
+      Record<string, { row: Row; index: number }>
+    >((acc, row, i) => {
+      acc[row.id] = { row, index: i }
+      return acc
+    }, {})
+
     this.windowData.renderWindow = {
-      firstRowId: this.windowData.rows[0]?.id,
-      lastRowId: this.windowData.rows.at(-1)?.id,
+      firstRowId: this.windowData.rows[0]?.id ?? '',
+      lastRowId: this.windowData.rows.at(-1)?.id ?? '',
       startRowOffset: 0,
       endRowOffset: 0,
     }
@@ -363,6 +379,13 @@ class VirtualWindowDataManager {
 
     // Adjust render window so rendered items are unchanged
     this.windowData.rows = newRows
+    this.windowData.rowMap = this.windowData.rows.reduce<
+      Record<string, { row: Row; index: number }>
+    >((acc, row, i) => {
+      acc[row.id] = { row, index: i }
+      return acc
+    }, {})
+
     const newPages = [
       ...(end ? previousPages : []),
       { cursor, ...page },
@@ -376,14 +399,14 @@ class VirtualWindowDataManager {
         ? {
             startRowOffset: 0,
             endRowOffset: 0,
-            firstRowId: rowsToAdd[0]?.id,
-            lastRowId: rowsToAdd.at(-1)?.id,
+            firstRowId: rowsToAdd[0]?.id ?? '',
+            lastRowId: rowsToAdd.at(-1)?.id ?? '',
           }
         : {
             startRowOffset: newStartRowOffset,
             endRowOffset: newEndRowOffset,
-            firstRowId: newRows[newStartRowOffset]?.id,
-            lastRowId: newRows.at(-newEndRowOffset - 1)?.id,
+            firstRowId: newRows[newStartRowOffset]?.id ?? '',
+            lastRowId: newRows.at(-newEndRowOffset - 1)?.id ?? '',
           }
     this.updateCallback()
   }
@@ -411,6 +434,12 @@ class VirtualWindowDataManager {
     this.windowData.rows = this.windowData.rows.slice(
       ...rowsSliceStartIndexAndCount,
     )
+    this.windowData.rowMap = this.windowData.rows.reduce<
+      Record<string, { row: Row; index: number }>
+    >((acc, row, i) => {
+      acc[row.id] = { row, index: i }
+      return acc
+    }, {})
 
     this.windowData.pages = this.windowData.pages.slice(
       startOrEnd === 'start' ? 1 : 0,
@@ -437,12 +466,11 @@ class VirtualWindowDataManager {
   }
 
   handleRenderWindowOffsetDeltas(offsetDeltas: { start: number; end: number }) {
-    const firstRenderedIdx = this.rows.findIndex(
-      (r) => r.id === this.renderWindow.firstRowId,
-    )
-    const lastRenderedIdx = this.rows.findIndex(
-      (r) => r.id === this.renderWindow.lastRowId,
-    )
+    const firstRenderedRow = this.rowsMap[this.renderWindow.firstRowId]
+    const lastRenderedRow = this.rowsMap[this.renderWindow.lastRowId]
+    if (!firstRenderedRow || !lastRenderedRow) {
+      throw new Error('Violation: first or last rendered row not found')
+    }
 
     let newFirstRowId = this.renderWindow.firstRowId
     let newLastRowId = this.renderWindow.lastRowId
@@ -451,20 +479,20 @@ class VirtualWindowDataManager {
     let spacerDeltaBottom = 0
 
     if (offsetDeltas.start === 1) {
-      const nextIdx = firstRenderedIdx + 1
-      newFirstRowId = this.rows[nextIdx]?.id
+      const nextIdx = firstRenderedRow.index + 1
+      newFirstRowId = this.rows[nextIdx]?.id ?? ''
       spacerDeltaTop += Math.round(
-        Math.round((this.rows[firstRenderedIdx]?.height ?? 0) + GRID_GAP_PX),
+        Math.round(firstRenderedRow.row.height + GRID_GAP_PX),
       )
       const firstRenderedPageIndex = this.pages.findIndex(
-        (p) => p.cursor === this.rows[firstRenderedIdx]?.items.at(-1)?.cursor,
+        (p) => p.cursor === firstRenderedRow.row.items.at(-1)?.cursor,
       )
       if (firstRenderedPageIndex >= 2) {
         this.discardPage('start')
       }
     } else if (offsetDeltas.start === -1) {
-      const prevIdx = firstRenderedIdx - 1
-      newFirstRowId = this.rows[prevIdx]?.id
+      const prevIdx = firstRenderedRow.index - 1
+      newFirstRowId = this.rows[prevIdx]?.id ?? ''
       const prevRowHeight =
         prevIdx >= 0
           ? Math.round((this.rows[prevIdx]?.height ?? 0) + GRID_GAP_PX)
@@ -473,25 +501,29 @@ class VirtualWindowDataManager {
     }
 
     if (offsetDeltas.end === 1) {
-      const prevIdx = lastRenderedIdx - 1
-      newLastRowId = this.rows[prevIdx]?.id
+      const prevIdx = lastRenderedRow.index - 1
+      newLastRowId = this.rows[prevIdx]?.id ?? ''
       spacerDeltaBottom += Math.round(
-        Math.round((this.rows[lastRenderedIdx]?.height ?? 0) + GRID_GAP_PX),
+        Math.round(lastRenderedRow.row.height + GRID_GAP_PX),
       )
       const lastRenderedPageIndex = this.pages.findIndex(
-        (p) => p.cursor === this.rows[lastRenderedIdx]?.items.at(0)?.cursor,
+        (p) => p.cursor === lastRenderedRow.row.items.at(0)?.cursor,
       )
       if (lastRenderedPageIndex <= this.windowData.pages.length - 3) {
         this.discardPage('end')
       }
     } else if (offsetDeltas.end === -1) {
-      const nextIdx = lastRenderedIdx + 1
-      newLastRowId = this.rows[nextIdx]?.id
+      const nextIdx = lastRenderedRow.index + 1
+      newLastRowId = this.rows[nextIdx]?.id ?? ''
       const nextRowHeight =
         nextIdx < this.rows.length
           ? Math.round((this.rows[nextIdx]?.height ?? 0) + GRID_GAP_PX)
           : 0
       spacerDeltaBottom -= Math.round(nextRowHeight)
+    }
+
+    if (!newFirstRowId || !newLastRowId) {
+      throw new Error('Violation: new first or last row id not found')
     }
 
     this.windowData.renderWindow = {
@@ -704,8 +736,10 @@ function JustifiedGridItem({
 export function JustifiedInfiniteGrid({
   folderId,
   initialPageParam = '',
+  onCursorChange,
 }: {
   folderId: string
+  onCursorChange: (newCursor: string) => void
   initialPageParam?: string
 }) {
   const [windowDataChangeKey, updateWindowDataChangeKey] = React.useReducer(
@@ -724,7 +758,7 @@ export function JustifiedInfiniteGrid({
   // Virtualization constants
   const PAGE_SIZE = 50
   const VIRTUAL_MARGIN_PX = 300
-  const PIXEL_THRESHOLD = 64
+  const PIXEL_THRESHOLD = 32
 
   // Scroll management
   const [scrollContainerElem, setScrollContainerElem] =
@@ -761,7 +795,7 @@ export function JustifiedInfiniteGrid({
         }
 
         windowDataManager.current.addPage(
-          cursor ?? '',
+          cursor && resp.data.meta.previousCursor ? cursor : '',
           { items: resp.data.result, meta: resp.data.meta },
           startOrEnd,
         )
@@ -778,24 +812,6 @@ export function JustifiedInfiniteGrid({
   const rafIdRef = React.useRef<number | null>(null)
   const lastAppliedRef = React.useRef(0)
   const firstVisibleRowCursorRef = React.useRef<string | null>(null)
-
-  // Handle loading more items (for bottom)
-  const handleLoadMore = React.useCallback(() => {
-    const last = windowDataManager.current.pages.at(-1)
-    const nextCursor = last?.meta.nextCursor
-    if (nextCursor) {
-      void fetchPage.current('end')
-    }
-  }, [])
-
-  // Handle loading previous items (for top)
-  const handleLoadPrevious = React.useCallback(() => {
-    const first = windowDataManager.current.pages[0]
-    const previousCursor = first?.meta.previousCursor
-    if (previousCursor) {
-      void fetchPage.current('start')
-    }
-  }, [])
 
   // Handle scroll events
   React.useEffect(() => {
@@ -913,37 +929,44 @@ export function JustifiedInfiniteGrid({
         if (spacerDeltaBottom !== 0) {
           setBottomSpacerHeight((prev) => Math.max(0, prev + spacerDeltaBottom))
         }
+      }
 
-        // Determine the first row entirely within the container bounds and update the active cursor
-        const rowsContainerEl = rowContainerRef.current
-        const children = Array.from(rowsContainerEl.children) as HTMLElement[]
-        let highestVisibleRowId: string | null = null
-        for (const childEl of children) {
-          const rect = childEl.getBoundingClientRect()
-          if (rect.top >= containerTop) {
-            highestVisibleRowId = parseRowId(childEl)
-            break
-          }
+      // Determine the first row entirely within the container bounds and update the active cursor
+      const rowsContainerEl = rowContainerRef.current
+      const children = Array.from(rowsContainerEl.children) as HTMLElement[]
+      let highestVisibleRowId: string | null = null
+      for (const childEl of children) {
+        const rect = childEl.getBoundingClientRect()
+        if (rect.top >= containerTop) {
+          highestVisibleRowId = parseRowId(childEl)
+          break
         }
-        if (highestVisibleRowId) {
-          const row = windowDataManager.current.rows.find(
-            (r) => r.id === highestVisibleRowId,
-          )
-          const rowCursor = row?.items[0]?.cursor ?? null
-          if (rowCursor !== firstVisibleRowCursorRef.current) {
-            firstVisibleRowCursorRef.current = rowCursor
-          }
+      }
+      if (highestVisibleRowId) {
+        const row = windowDataManager.current.rowsMap[highestVisibleRowId]?.row
+        const rowCursor = row?.items[0]?.cursor ?? null
+        if (rowCursor !== firstVisibleRowCursorRef.current) {
+          firstVisibleRowCursorRef.current = rowCursor
+          onCursorChange(rowCursor ?? '')
         }
       }
     }
 
     const handleScroll = () => {
       const scrollTop = scrollContainerElem.scrollTop
+      const isAtTop = scrollTop === 0
+      const isAtBottom =
+        scrollTop + scrollContainerElem.clientHeight >=
+        scrollContainerElem.scrollHeight
       if (rafIdRef.current != null) {
         cancelAnimationFrame(rafIdRef.current)
       }
       rafIdRef.current = requestAnimationFrame(() => {
-        if (Math.abs(scrollTop - lastAppliedRef.current) < PIXEL_THRESHOLD) {
+        if (
+          Math.abs(scrollTop - lastAppliedRef.current) < PIXEL_THRESHOLD &&
+          !isAtTop &&
+          !isAtBottom
+        ) {
           return
         }
         lastAppliedRef.current = scrollTop
@@ -964,7 +987,7 @@ export function JustifiedInfiniteGrid({
         rafIdRef.current = null
       }
     }
-  }, [scrollContainerElem])
+  }, [scrollContainerElem, onCursorChange])
 
   const [resizeActive, setResizeActive] = React.useState(false)
   const resizeStopTimeoutRef = React.useRef<ReturnType<
@@ -1041,37 +1064,33 @@ export function JustifiedInfiniteGrid({
     }
   }, [windowDataChangeKey, isFetching, resizeActive])
 
-  // Check if we need load more buttons
-  const showLoadMoreTop =
-    !!windowDataManager.current.pages[0]?.meta.previousCursor
-  const showLoadMorebottom =
-    !!windowDataManager.current.pages.at(-1)?.meta.nextCursor
-
   return (
     <>
-      <div className="mb-2.5 border border-gray-300 bg-gray-100 p-2.5 font-mono text-xs">
-        <div>
-          <strong>Query Debug:</strong>
+      {QUERY_DEBUG && (
+        <div className="mb-2.5 border border-gray-300 bg-gray-100 p-2.5 font-mono text-xs">
+          <div>
+            <strong>Query Debug:</strong>
+          </div>
+          <div>
+            Window size rows:{' '}
+            {windowDataManager.current.rows.length -
+              windowDataManager.current.renderWindow.startRowOffset -
+              windowDataManager.current.renderWindow.endRowOffset}
+          </div>
+          <div>Total rows: {windowDataManager.current.rows.length}</div>
+          <div>
+            Total items:{' '}
+            {windowDataManager.current.pages.flatMap((p) => p.items).length}
+          </div>
+          <div>Fetched Pages: {windowDataManager.current.pages.length}</div>
+          <div>Resize active: {String(resizeActive)}</div>
+          <div>Active Cursor: {firstVisibleRowCursorRef.current}</div>
+          <div>
+            Render window:{' '}
+            {JSON.stringify(windowDataManager.current.renderWindow, null, 2)}
+          </div>
         </div>
-        <div>
-          Window size rows:{' '}
-          {windowDataManager.current.rows.length -
-            windowDataManager.current.renderWindow.startRowOffset -
-            windowDataManager.current.renderWindow.endRowOffset}
-        </div>
-        <div>Total rows: {windowDataManager.current.rows.length}</div>
-        <div>
-          Total items:{' '}
-          {windowDataManager.current.pages.flatMap((p) => p.items).length}
-        </div>
-        <div>Fetched Pages: {windowDataManager.current.pages.length}</div>
-        <div>Resize active: {String(resizeActive)}</div>
-        <div>Active Cursor: {firstVisibleRowCursorRef.current}</div>
-        <div>
-          Render window:{' '}
-          {JSON.stringify(windowDataManager.current.renderWindow, null, 2)}
-        </div>
-      </div>
+      )}
 
       {/* Justified Grid Layout - Scrollable Container */}
       <div className="relative flex-1 overflow-hidden">
@@ -1183,59 +1202,6 @@ export function JustifiedInfiniteGrid({
             </div>
             <div className="absolute inset-0 animate-pulse bg-primary/10" />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent opacity-60" />
-          </div>
-        )}
-
-        {/* Overlay Load More Buttons */}
-        {/* Top Load More Button */}
-        {showLoadMoreTop && (
-          <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2">
-            <button
-              onClick={handleLoadPrevious}
-              disabled={isFetching}
-              className={cn(
-                'rounded-md bg-primary/90 backdrop-blur-sm px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg',
-                'hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
-                'transition-all duration-200',
-                'border border-white/20',
-              )}
-            >
-              {isFetching ? (
-                <div className="flex items-center space-x-2">
-                  <div className="size-4 animate-spin rounded-full border border-primary-foreground border-t-transparent" />
-                  <span>Loading previous...</span>
-                </div>
-              ) : (
-                'Load Previous Items'
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Bottom Load More Button (overlay) */}
-        {showLoadMorebottom && (
-          <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2">
-            <button
-              onClick={handleLoadMore}
-              disabled={isFetching}
-              className={cn(
-                'rounded-md bg-primary/90 backdrop-blur-sm px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg',
-                'hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
-                'transition-all duration-200',
-                'border border-white/20',
-              )}
-            >
-              {isFetching ? (
-                <div className="flex items-center space-x-2">
-                  <div className="size-4 animate-spin rounded-full border border-primary-foreground border-t-transparent" />
-                  <span>Loading more...</span>
-                </div>
-              ) : (
-                'Load More Items'
-              )}
-            </button>
           </div>
         )}
       </div>
