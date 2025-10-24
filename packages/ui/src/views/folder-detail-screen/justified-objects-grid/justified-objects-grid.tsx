@@ -1,4 +1,4 @@
-import { type FolderObjectDTO, isOk } from '@lombokapp/types'
+import { type FolderObjectDTO } from '@lombokapp/types'
 import { MediaType } from '@lombokapp/types'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
@@ -9,8 +9,6 @@ import {
 import { Calendar, FileText, HardDrive } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router'
-
-import { $apiClient } from '@/src/services/api'
 
 import { FolderObjectPreview } from '../../folder-object-preview/folder-object-preview.view'
 
@@ -30,8 +28,7 @@ const fnv1a32 = (input: string): string => {
 }
 
 const deterministicRowId = (ids: string[]): string => {
-  // JSON.stringify preserves order for arrays of strings, giving a stable input
-  return fnv1a32(JSON.stringify(ids))
+  return fnv1a32(ids.join(','))
 }
 
 const getPreviewDims = (
@@ -308,6 +305,18 @@ class VirtualWindowDataManager {
       endRowOffset: 0,
     }
     this.updateCallback()
+  }
+
+  resetData() {
+    this.windowData.pages = []
+    this.windowData.rows = []
+    this.windowData.rowMap = {}
+    this.windowData.renderWindow = {
+      startRowOffset: 0,
+      endRowOffset: 0,
+      firstRowId: '',
+      lastRowId: '',
+    }
   }
 
   addPage(
@@ -733,15 +742,27 @@ function JustifiedGridItem({
   )
 }
 
-export function JustifiedInfiniteGrid({
-  folderId,
+export function JustifiedObjectsGrid({
   initialPageParam = '',
   onCursorChange,
+  onFetchPage,
+  fetchParamsKey,
 }: {
-  folderId: string
+  fetchParamsKey: number
   onCursorChange: (newCursor: string) => void
+  onFetchPage: (cursor: string) => Promise<{
+    data: {
+      result: FolderObjectDTO[]
+      meta: {
+        nextCursor?: string
+        previousCursor?: string
+        totalCount: number
+      }
+    }
+  }>
   initialPageParam?: string
 }) {
+  const initialCursorRef = React.useRef(initialPageParam)
   const [windowDataChangeKey, updateWindowDataChangeKey] = React.useReducer(
     (key: number) => key + 1,
     0,
@@ -756,70 +777,53 @@ export function JustifiedInfiniteGrid({
   const isFetchInitialized = React.useRef(false)
 
   // Virtualization constants
-  const PAGE_SIZE = 50
   const VIRTUAL_MARGIN_PX = 300
   const PIXEL_THRESHOLD = 32
 
   // Scroll management
   const [scrollContainerElem, setScrollContainerElem] =
     React.useState<HTMLDivElement | null>(null)
-  // const [rowContainerElem, setScrollContainerElem] =
-  //   React.useState<HTMLDivElement | null>(null)
   const rowContainerRef = React.useRef<HTMLDivElement>(null)
 
   const [topSpacerHeight, setTopSpacerHeight] = React.useState(0)
   const [bottomSpacerHeight, setBottomSpacerHeight] = React.useState(0)
 
-  const fetchPage = React.useRef(async (startOrEnd: 'start' | 'end') => {
-    const cursor = !windowDataManager.current.pages.length
-      ? initialPageParam
-      : startOrEnd === 'start'
-        ? windowDataManager.current.pages.at(0)?.meta.previousCursor
-        : windowDataManager.current.pages.at(-1)?.meta.nextCursor
+  const fetchPage = React.useCallback(
+    async (startOrEnd: 'start' | 'end') => {
+      const cursor = !windowDataManager.current.pages.length
+        ? initialCursorRef.current
+        : startOrEnd === 'start'
+          ? windowDataManager.current.pages.at(0)?.meta.previousCursor
+          : windowDataManager.current.pages.at(-1)?.meta.nextCursor
 
-    setIsFetching(true)
-    await $apiClient
-      .GET('/api/v1/folders/{folderId}/objects', {
-        params: {
-          path: { folderId },
-          query: {
-            ...(cursor && { cursor }),
-            limit: PAGE_SIZE,
-            sort: 'filename-asc',
-          },
-        },
-      })
-      .then((resp) => {
-        if (!isOk(resp)) {
-          throw new Error(`Error received from API: ${resp.error.message}`)
-        }
-
-        windowDataManager.current.addPage(
-          cursor && resp.data.meta.previousCursor ? cursor : '',
-          { items: resp.data.result, meta: resp.data.meta },
-          startOrEnd,
-        )
-      })
-      .catch((error: unknown) => {
-        setFetchError(error instanceof Error ? error : new Error(String(error)))
-      })
-      .finally(() => {
-        setIsFetching(false)
-      })
-  })
+      setIsFetching(true)
+      await onFetchPage(cursor ?? '')
+        .then((resp) => {
+          windowDataManager.current.addPage(
+            cursor && resp.data.meta.previousCursor ? cursor : '',
+            { items: resp.data.result, meta: resp.data.meta },
+            startOrEnd,
+          )
+        })
+        .catch((error: unknown) => {
+          setFetchError(
+            error instanceof Error ? error : new Error(String(error)),
+          )
+        })
+        .finally(() => {
+          setIsFetching(false)
+        })
+    },
+    [onFetchPage],
+  )
 
   // rAF throttle for scroll handler
   const rafIdRef = React.useRef<number | null>(null)
   const lastAppliedRef = React.useRef(0)
   const firstVisibleRowCursorRef = React.useRef<string | null>(null)
 
-  // Handle scroll events
-  React.useEffect(() => {
-    if (!scrollContainerElem) {
-      return
-    }
-
-    const updateVirtualWindow = () => {
+  const updateVirtualWindow = React.useCallback(
+    (_scrollContainerElem: HTMLDivElement) => {
       // Compute window from row metadata and scroll position
       if (windowDataManager.current.rows.length === 0) {
         return
@@ -853,7 +857,7 @@ export function JustifiedInfiniteGrid({
       }
 
       // Compute positions using actual DOM measurements relative to the scroll container
-      const containerRect = scrollContainerElem.getBoundingClientRect()
+      const containerRect = _scrollContainerElem.getBoundingClientRect()
       const firstRect = firstEl.getBoundingClientRect()
       const lastRect = lastEl.getBoundingClientRect()
 
@@ -915,7 +919,7 @@ export function JustifiedInfiniteGrid({
       if (omitStartDelta !== 0 || omitEndDelta !== 0) {
         // Schedule another re-computation of the virtual window which
         // will create a loop that repeats until no more changes are needed.
-        setTimeout(updateVirtualWindow, 1)
+        setTimeout(() => updateVirtualWindow(_scrollContainerElem), 1)
 
         const { spacerDeltaBottom, spacerDeltaTop } =
           windowDataManager.current.handleRenderWindowOffsetDeltas({
@@ -950,6 +954,14 @@ export function JustifiedInfiniteGrid({
           onCursorChange(rowCursor ?? '')
         }
       }
+    },
+    [onCursorChange],
+  )
+
+  // Handle scroll events
+  React.useEffect(() => {
+    if (!scrollContainerElem) {
+      return
     }
 
     const handleScroll = () => {
@@ -970,7 +982,7 @@ export function JustifiedInfiniteGrid({
           return
         }
         lastAppliedRef.current = scrollTop
-        updateVirtualWindow()
+        updateVirtualWindow(scrollContainerElem)
       })
     }
 
@@ -979,7 +991,7 @@ export function JustifiedInfiniteGrid({
     })
     // Initial calculation
     lastAppliedRef.current = scrollContainerElem.scrollTop
-    updateVirtualWindow()
+    updateVirtualWindow(scrollContainerElem)
     return () => {
       scrollContainerElem.removeEventListener('scroll', handleScroll)
       if (rafIdRef.current != null) {
@@ -987,7 +999,7 @@ export function JustifiedInfiniteGrid({
         rafIdRef.current = null
       }
     }
-  }, [scrollContainerElem, onCursorChange])
+  }, [scrollContainerElem, updateVirtualWindow])
 
   const [resizeActive, setResizeActive] = React.useState(false)
   const resizeStopTimeoutRef = React.useRef<ReturnType<
@@ -1051,18 +1063,38 @@ export function JustifiedInfiniteGrid({
         windowDataManager.current.renderWindow.endRowOffset <= 2 &&
         windowDataManager.current.pages.at(-1)?.meta.nextCursor
       ) {
-        void fetchPage.current('end')
+        void fetchPage('end')
       } else if (
         windowDataManager.current.renderWindow.startRowOffset <= 2 &&
         windowDataManager.current.pages.at(0)?.meta.previousCursor
       ) {
-        void fetchPage.current('start')
+        void fetchPage('start')
       } else if (!isFetchInitialized.current) {
         isFetchInitialized.current = true
-        void fetchPage.current('end')
+        void fetchPage('end')
       }
     }
-  }, [windowDataChangeKey, isFetching, resizeActive])
+  }, [windowDataChangeKey, isFetching, resizeActive, fetchPage])
+
+  const resetState = React.useCallback(() => {
+    onCursorChange('')
+    isFetchInitialized.current = false
+    windowDataManager.current.resetData()
+    setTopSpacerHeight(0)
+    setBottomSpacerHeight(0)
+    setFetchError(null)
+    setIsFetching(false)
+    updateWindowDataChangeKey()
+    initialCursorRef.current = ''
+  }, [updateWindowDataChangeKey, onCursorChange])
+
+  const fetchParamsKeyRef = React.useRef(fetchParamsKey)
+  React.useEffect(() => {
+    if (fetchParamsKeyRef.current !== fetchParamsKey) {
+      fetchParamsKeyRef.current = fetchParamsKey
+      resetState()
+    }
+  }, [fetchParamsKey, resetState])
 
   return (
     <>

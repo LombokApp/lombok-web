@@ -1,5 +1,8 @@
-import type { FolderPermissionName } from '@lombokapp/types'
-import { FolderPermissionEnum, FolderPushMessage } from '@lombokapp/types'
+import type {
+  FolderObjectsListRequest,
+  FolderPermissionName,
+} from '@lombokapp/types'
+import { FolderPermissionEnum, FolderPushMessage, isOk } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   type ColumnFilterOptions,
@@ -52,7 +55,9 @@ import {
 
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
-import { JustifiedInfiniteGrid } from './justified-infinite-grid/justified-inifinite-grid'
+import { JustifiedObjectsGrid } from './justified-objects-grid/justified-objects-grid'
+
+const PAGE_SIZE = 50
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
@@ -96,9 +101,13 @@ export const FolderDetailScreen = () => {
   const folderId = folderPathParts[0] ?? ''
   const { focusedFolderObject } = useFocusedFolderObjectContext()
 
-  const [filters, setFilters] = React.useState<Record<string, string[]>>(
-    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
-  )
+  const [filtersAndSorting, setFiltersAndSorting] = React.useState(() => {
+    return {
+      filters: readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
+      sorting: readSortingFromSearchParams(searchParams),
+    }
+  })
+
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
   const [uploadModalData, setUploadModalData] = React.useState<UploadModalData>(
@@ -139,9 +148,6 @@ export const FolderDetailScreen = () => {
   ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
-  const [sorting, setSorting] = React.useState<SortingState>(
-    readSortingFromSearchParams(searchParams),
-  )
 
   type ViewMode = 'grid-old' | 'grid'
 
@@ -164,7 +170,7 @@ export const FolderDetailScreen = () => {
     [searchParams, setSearchParams],
   )
 
-  const cursor = searchParams.get('cursor') ?? undefined
+  const cursorFromSearchParams = searchParams.get('cursor') ?? undefined
 
   const handleCursorChange = React.useCallback(
     (newCursor: string) => {
@@ -188,103 +194,25 @@ export const FolderDetailScreen = () => {
       FILTER_CONFIGS,
     )
     const syncedSorting = readSortingFromSearchParams(searchParams)
-    setFilters(syncedFilters)
-    setSorting(syncedSorting)
-  }, [searchParams])
-  // const searchFilterValue =
-  //   'search' in filters ? filters['search'][0] : undefined
-  // const mediaTypeFilterValue = React.useMemo(
-  //   () => filters['mediaType'] ?? [],
-  //   [filters],
-  // )
-  // type FolderObjectsPage =
-  //   paths['/api/v1/folders/{folderId}/objects']['get']['responses']['200']['content']['application/json']
-  // const PAGE_LIMIT = 100
-  // const initialCursor = searchParams.get('cursor') ?? undefined
+    if (
+      JSON.stringify({ filters: syncedFilters, sorting: syncedSorting }) !==
+      JSON.stringify(filtersAndSorting)
+    ) {
+      setFiltersAndSorting({
+        filters: syncedFilters,
+        sorting: syncedSorting,
+      })
+    }
+  }, [searchParams, filtersAndSorting])
 
-  // const sortParamString = React.useMemo(
-  //   () => sorting.map((s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`).join(','),
-  //   [sorting],
-  // )
+  const [fetchParamsKey, updateFetchParamsKey] = React.useReducer(
+    (key: number) => key + 1,
+    0,
+  )
 
-  // const listFolderObjectsInfiniteQuery = useInfiniteQuery<FolderObjectsPage>({
-  //   queryKey: [
-  //     'folders.objects',
-  //     folderId,
-  //     searchFilterValue,
-  //     mediaTypeFilterValue.sort().join(','),
-  //     sortParamString,
-  //   ],
-  //   queryFn: async ({ pageParam }) => {
-  //     const resp = await $apiClient.GET('/api/v1/folders/{folderId}/objects', {
-  //       params: {
-  //         path: { folderId },
-  //         query: {
-  //           cursor: typeof pageParam === 'string' ? pageParam : undefined,
-  //           limit: PAGE_LIMIT,
-  //           search:
-  //             typeof searchFilterValue === 'string'
-  //               ? searchFilterValue
-  //               : undefined,
-  //           includeImage: mediaTypeFilterValue.includes('IMAGE')
-  //             ? 'true'
-  //             : undefined,
-  //           includeVideo: mediaTypeFilterValue.includes('VIDEO')
-  //             ? 'true'
-  //             : undefined,
-  //           includeAudio: mediaTypeFilterValue.includes('AUDIO')
-  //             ? 'true'
-  //             : undefined,
-  //           includeDocument: mediaTypeFilterValue.includes('DOCUMENT')
-  //             ? 'true'
-  //             : undefined,
-  //           includeUnknown: mediaTypeFilterValue.includes('UNKNOWN')
-  //             ? 'true'
-  //             : undefined,
-  //           sort:
-  //             sorting.length > 0
-  //               ? (sorting.map(
-  //                   (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
-  //                 ) as FolderObjectsListRequest['sort'])
-  //               : undefined,
-  //         },
-  //       },
-  //     })
-  //     if (!resp.data) {
-  //       throw new Error('No data received from API')
-  //     }
-  //     return resp.data
-  //   },
-  //   getNextPageParam: (lastPage) => {
-  //     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  //     if (!lastPage) {
-  //       return undefined
-  //     }
-  //     return lastPage.meta.nextCursor
-  //   },
-  //   getPreviousPageParam: (firstPage) => {
-  //     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  //     if (!firstPage) {
-  //       return undefined
-  //     }
-  //     return firstPage.meta.previousCursor
-  //   },
-  //   initialPageParam: initialCursor,
-  //   enabled: folderId.length > 0,
-  // })
-  // const flatItems = React.useMemo<FolderObjectDTO[]>(() => {
-  //   const data = listFolderObjectsInfiniteQuery.data
-  //   if (!data) {
-  //     return []
-  //   }
-  //   return data.pages.flatMap((p) => p.result)
-  // }, [listFolderObjectsInfiniteQuery.data])
-
-  // const totalCount = (() => {
-  //   const firstPage = listFolderObjectsInfiniteQuery.data?.pages[0]
-  //   const count = firstPage?.meta.totalCount
-  //   return typeof count === 'number' ? count : 0
-  // })()
+  React.useEffect(() => {
+    updateFetchParamsKey()
+  }, [filtersAndSorting])
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, _payload: unknown) => {
@@ -458,6 +386,57 @@ export const FolderDetailScreen = () => {
     '/api/v1/folders/{folderId}/shares/{userId}',
   )
 
+  const handleFetchPage = React.useCallback(
+    async (cursor: string) =>
+      $apiClient
+        .GET('/api/v1/folders/{folderId}/objects', {
+          params: {
+            path: { folderId },
+            query: {
+              ...(cursor.length && { cursor }),
+              limit: PAGE_SIZE,
+              ...(typeof filtersAndSorting.filters['search']?.[0] ===
+                'string' && {
+                search: filtersAndSorting.filters['search'][0],
+              }),
+              ...(filtersAndSorting.filters['mediaType']?.includes('IMAGE') && {
+                includeImage: 'true',
+              }),
+              ...(filtersAndSorting.filters['mediaType']?.includes('VIDEO') && {
+                includeVideo: 'true',
+              }),
+              ...(filtersAndSorting.filters['mediaType']?.includes('AUDIO') && {
+                includeAudio: 'true',
+              }),
+              ...(filtersAndSorting.filters['mediaType']?.includes(
+                'DOCUMENT',
+              ) && {
+                includeDocument: 'true',
+              }),
+              ...(filtersAndSorting.filters['mediaType']?.includes(
+                'UNKNOWN',
+              ) && {
+                includeUnknown: 'true',
+              }),
+              ...{
+                sort: (filtersAndSorting.sorting.length > 0
+                  ? filtersAndSorting.sorting.map(
+                      (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+                    )
+                  : 'filename-asc') as FolderObjectsListRequest['sort'],
+              },
+            },
+          },
+        })
+        .then((resp) => {
+          if (isOk(resp)) {
+            return resp
+          }
+          throw new Error(`Error received from API: ${resp.error.message}`)
+        }),
+    [folderId, filtersAndSorting],
+  )
+
   const handleUpsertManyShares = React.useCallback(
     async (values: {
       shares: { userId: string; permissions: FolderPermissionName[] }[]
@@ -540,12 +519,12 @@ export const FolderDetailScreen = () => {
                       />
 
                       <StandaloneToolbar
-                        filters={filters}
+                        filters={filtersAndSorting.filters}
                         filterOptions={FILTER_OPTIONS}
                         enableSearch={true}
                         searchPlaceholder="Search files..."
                         onFiltersChange={handleFiltersChange}
-                        sorting={sorting}
+                        sorting={filtersAndSorting.sorting}
                         sortOptions={SORT_OPTIONS}
                         onSortingChange={handleSortingChange}
                         enableSorting={true}
@@ -681,10 +660,11 @@ export const FolderDetailScreen = () => {
                   </div>
                 ) : (
                   <div className="flex min-h-0 max-w-full flex-1 flex-col">
-                    <JustifiedInfiniteGrid
-                      folderId={folderId}
+                    <JustifiedObjectsGrid
                       onCursorChange={handleCursorChange}
-                      initialPageParam={cursor}
+                      onFetchPage={handleFetchPage}
+                      fetchParamsKey={Math.max(1, fetchParamsKey)}
+                      initialPageParam={cursorFromSearchParams}
                     />
                   </div>
                 )}
