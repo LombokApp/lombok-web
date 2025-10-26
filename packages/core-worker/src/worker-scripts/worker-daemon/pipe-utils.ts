@@ -294,10 +294,14 @@ export class PipeWriter {
     requestId: string,
   ): Promise<void> {
     // First, send the response metadata
+    const headers = new Headers(response.headers)
+    // Override Content-Type for streaming responses to use application/json
+    headers.set('Content-Type', 'application/json')
+
     const responseMetadata = {
       status: response.status,
       statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
+      headers: Object.fromEntries(headers.entries()),
       url: response.url,
       isStreaming: true,
     }
