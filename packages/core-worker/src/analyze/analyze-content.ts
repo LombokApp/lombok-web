@@ -3,7 +3,7 @@ import {
   type Exiv2Metadata,
   generateVideoPreviews,
   getMediaDimensionsWithFFMpeg,
-  getNecessaryContentRotationFromMetadata,
+  parseNumericOrientationValueFromMetadata,
   scaleImage,
 } from '@lombokapp/core-worker-utils'
 import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
@@ -19,7 +19,7 @@ async function analyzeImage(
 ): Promise<
   [Record<string, ContentMetadataEntry>, Record<string, PreviewMetadata>]
 > {
-  const rotation = getNecessaryContentRotationFromMetadata(metadata)
+  const rotation = parseNumericOrientationValueFromMetadata(metadata)
   const scaleConfigs = [
     ['Small Thumbnail', 'thumbnailSm', 'list', 150],
     ['Large Thumbnail', 'thumbnailLg', 'list', 500],

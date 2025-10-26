@@ -94,6 +94,7 @@ export const scaleImage = async ({
         inputHeight: dimensions.height,
         inputWidth: dimensions.width,
         maxDimension,
+        rotation: mimeType === 'image/heic' ? 0 : rotation,
       })
       finalWidth = previewDimensions.width
       finalHeight = previewDimensions.height
@@ -114,9 +115,7 @@ export const scaleImage = async ({
     }
   }
 
-  const sharpInstance = sharp(finalInFilePath, { animated: true }).rotate(
-    mimeType === 'image/heic' ? 0 : rotation,
-  )
+  const sharpInstance = sharp(finalInFilePath, { animated: true }).rotate()
 
   if (usingExplicitSize) {
     await sharpInstance
