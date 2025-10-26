@@ -363,7 +363,7 @@ export function ServerAppDetailScreen({
                   'bg-foreground/[0.02] text-foreground/50',
                 )}
                 data={
-                  app?.config.tasks.map((task) => ({
+                  app?.config.tasks?.map((task) => ({
                     identifier: task.identifier,
                     label: task.label,
                     description: task.description,

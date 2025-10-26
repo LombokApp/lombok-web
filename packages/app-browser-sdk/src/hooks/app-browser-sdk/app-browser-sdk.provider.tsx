@@ -18,6 +18,21 @@ export const AppBrowserSdkContextProvider = ({
   onThemeChange?: (theme: string) => void
 }) => {
   const [isInitialized, setIsInitialized] = React.useState(false)
+  const init = React.useRef<{
+    resolveInit: () => void
+    promise: Promise<void>
+  }>(
+    (() => {
+      const resolveObj: { resolve: () => void } = { resolve: () => undefined }
+
+      return {
+        resolveInit: () => resolveObj.resolve(),
+        promise: new Promise((resolve) => {
+          resolveObj.resolve = resolve
+        }),
+      }
+    })(),
+  )
 
   // Use refs to store the latest state setters and config callbacks
   const stateRef = React.useRef({
@@ -40,6 +55,7 @@ export const AppBrowserSdkContextProvider = ({
       onInitialize: () => {
         stateRef.current.setIsInitialized(true)
         stateRef.current.onInitialize?.()
+        init.current.resolveInit()
       },
       onThemeChange: (theme) => {
         stateRef.current.onThemeChange?.(theme)
@@ -57,6 +73,11 @@ export const AppBrowserSdkContextProvider = ({
   const [authState, setAuthState] = React.useState<AuthenticatorStateType>(
     sdk.authenticator.state,
   )
+
+  const getAccessToken = React.useCallback(async () => {
+    await init.current.promise
+    return sdk.authenticator.getAccessToken()
+  }, [init, sdk.authenticator])
 
   React.useEffect(() => {
     const handleStateChange = () => {
@@ -77,6 +98,7 @@ export const AppBrowserSdkContextProvider = ({
         apiClient: sdk.apiClient,
         theme: sdk.theme,
         authState,
+        getAccessToken,
         navigateTo: sdk.handleNavigateTo,
         currentPathAndQuery: sdk.initialData?.pathAndQuery ?? '',
         executeWorkerScriptUrl: sdk.executeWorkerScriptUrl,

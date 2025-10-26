@@ -1363,7 +1363,7 @@ export interface components {
                     label: string;
                     description: string;
                     emittableEvents: string[];
-                    tasks: {
+                    tasks?: {
                         identifier: string;
                         label: string;
                         triggers: string[];
@@ -1377,10 +1377,15 @@ export interface components {
                             environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
-                    /** @enum {boolean} */
-                    ui?: true;
-                    /** @enum {boolean} */
-                    database?: true;
+                    ui?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                        csp?: string;
+                    };
+                    database?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                    };
                     contributions?: {
                         sidebarMenuLinks: {
                             path: string;
@@ -1441,6 +1446,7 @@ export interface components {
                 ui: {
                     hash: string;
                     size: number;
+                    csp?: string;
                     manifest: {
                         [key: string]: {
                             hash: string;
@@ -1505,7 +1511,7 @@ export interface components {
                     label: string;
                     description: string;
                     emittableEvents: string[];
-                    tasks: {
+                    tasks?: {
                         identifier: string;
                         label: string;
                         triggers: string[];
@@ -1519,10 +1525,15 @@ export interface components {
                             environmentVariables?: components["schemas"]["StringMapDTO"];
                         };
                     };
-                    /** @enum {boolean} */
-                    ui?: true;
-                    /** @enum {boolean} */
-                    database?: true;
+                    ui?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                        csp?: string;
+                    };
+                    database?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                    };
                     contributions?: {
                         sidebarMenuLinks: {
                             path: string;
@@ -1583,6 +1594,7 @@ export interface components {
                 ui: {
                     hash: string;
                     size: number;
+                    csp?: string;
                     manifest: {
                         [key: string]: {
                             hash: string;

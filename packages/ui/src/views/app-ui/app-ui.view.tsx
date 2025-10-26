@@ -177,6 +177,7 @@ export function AppUI({
     <div className="flex size-full flex-col justify-stretch">
       <div className="size-full">
         <iframe
+          allow="fullscreen"
           ref={iframeRef}
           className="size-full"
           title={`app:${appIdentifier}`}

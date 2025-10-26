@@ -6607,15 +6607,34 @@
                       }
                     },
                     "ui": {
-                      "type": "boolean",
-                      "enum": [
-                        true
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "csp": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "enabled"
                       ]
                     },
                     "database": {
-                      "type": "boolean",
-                      "enum": [
-                        true
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      },
+                      "required": [
+                        "enabled"
                       ]
                     },
                     "contributions": {
@@ -6731,8 +6750,7 @@
                     "identifier",
                     "label",
                     "description",
-                    "emittableEvents",
-                    "tasks"
+                    "emittableEvents"
                   ],
                   "additionalProperties": false
                 },
@@ -6871,6 +6889,9 @@
                     },
                     "size": {
                       "type": "number"
+                    },
+                    "csp": {
+                      "type": "string"
                     },
                     "manifest": {
                       "type": "object",
@@ -7214,15 +7235,34 @@
                     }
                   },
                   "ui": {
-                    "type": "boolean",
-                    "enum": [
-                      true
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      },
+                      "csp": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "enabled"
                     ]
                   },
                   "database": {
-                    "type": "boolean",
-                    "enum": [
-                      true
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      }
+                    },
+                    "required": [
+                      "enabled"
                     ]
                   },
                   "contributions": {
@@ -7338,8 +7378,7 @@
                   "identifier",
                   "label",
                   "description",
-                  "emittableEvents",
-                  "tasks"
+                  "emittableEvents"
                 ],
                 "additionalProperties": false
               },
@@ -7478,6 +7517,9 @@
                   },
                   "size": {
                     "type": "number"
+                  },
+                  "csp": {
+                    "type": "string"
                   },
                   "manifest": {
                     "type": "object",
