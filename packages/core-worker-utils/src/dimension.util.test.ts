@@ -9,6 +9,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 100,
         inputHeight: 200,
         maxDimension: 300,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 100, height: 200 })
     })
@@ -18,6 +19,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 800,
         inputHeight: 600,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 400, height: 300 })
     })
@@ -27,6 +29,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 600,
         inputHeight: 800,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 300, height: 400 })
     })
@@ -36,6 +39,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1000,
         inputHeight: 800,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 400, height: 320 })
     })
@@ -47,6 +51,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 500,
         inputHeight: 500,
         maxDimension: 200,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 200, height: 200 })
     })
@@ -56,6 +61,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 2000,
         inputHeight: 100,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 400, height: 20 })
     })
@@ -65,6 +71,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 100,
         inputHeight: 2000,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 20, height: 400 })
     })
@@ -74,6 +81,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 400,
         inputHeight: 300,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 400, height: 300 })
     })
@@ -83,6 +91,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 50,
         inputHeight: 75,
         maxDimension: 1000,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 50, height: 75 })
     })
@@ -94,6 +103,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1000,
         inputHeight: 333,
         maxDimension: 400,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 400, height: 133 })
     })
@@ -103,6 +113,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1000,
         inputHeight: 750,
         maxDimension: 300,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 300, height: 225 })
     })
@@ -115,6 +126,7 @@ describe('calculateOutputDimensions', () => {
           inputWidth: 0,
           inputHeight: 100,
           maxDimension: 200,
+          rotation: 0,
         }),
       ).toThrow('Input dimensions must be positive numbers')
     })
@@ -125,6 +137,7 @@ describe('calculateOutputDimensions', () => {
           inputWidth: 100,
           inputHeight: 0,
           maxDimension: 200,
+          rotation: 0,
         }),
       ).toThrow('Input dimensions must be positive numbers')
     })
@@ -135,6 +148,7 @@ describe('calculateOutputDimensions', () => {
           inputWidth: -100,
           inputHeight: 200,
           maxDimension: 300,
+          rotation: 0,
         }),
       ).toThrow('Input dimensions must be positive numbers')
     })
@@ -145,6 +159,7 @@ describe('calculateOutputDimensions', () => {
           inputWidth: 100,
           inputHeight: -200,
           maxDimension: 300,
+          rotation: 0,
         }),
       ).toThrow('Input dimensions must be positive numbers')
     })
@@ -155,6 +170,7 @@ describe('calculateOutputDimensions', () => {
           inputWidth: 100,
           inputHeight: 200,
           maxDimension: 0,
+          rotation: 0,
         }),
       ).toThrow('Max dimension must be a positive number')
     })
@@ -165,6 +181,7 @@ describe('calculateOutputDimensions', () => {
           inputWidth: 100,
           inputHeight: 200,
           maxDimension: -100,
+          rotation: 0,
         }),
       ).toThrow('Max dimension must be a positive number')
     })
@@ -177,6 +194,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1920,
         inputHeight: 1080,
         maxDimension: 1280,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 1280, height: 720 })
     })
@@ -187,6 +205,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1080,
         inputHeight: 1920,
         maxDimension: 800,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 450, height: 800 })
     })
@@ -197,6 +216,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 4000,
         inputHeight: 3000,
         maxDimension: 150,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 150, height: 113 })
     })
@@ -207,6 +227,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1200,
         inputHeight: 800,
         maxDimension: 600,
+        rotation: 0,
       })
       expect(result).toEqual({ width: 600, height: 400 })
     })
@@ -218,6 +239,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1920,
         inputHeight: 1080,
         maxDimension: 800,
+        rotation: 0,
       })
       const aspectRatio = result.width / result.height
       expect(aspectRatio).toBeCloseTo(16 / 9, 2)
@@ -228,6 +250,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 800,
         inputHeight: 600,
         maxDimension: 400,
+        rotation: 0,
       })
       const aspectRatio = result.width / result.height
       expect(aspectRatio).toBeCloseTo(4 / 3, 2)
@@ -238,6 +261,7 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 500,
         inputHeight: 500,
         maxDimension: 200,
+        rotation: 0,
       })
       const aspectRatio = result.width / result.height
       expect(aspectRatio).toBeCloseTo(1, 2)
@@ -248,9 +272,67 @@ describe('calculateOutputDimensions', () => {
         inputWidth: 1200,
         inputHeight: 800,
         maxDimension: 600,
+        rotation: 0,
       })
       const aspectRatio = result.width / result.height
       expect(aspectRatio).toBeCloseTo(3 / 2, 2)
+    })
+  })
+
+  describe('rotation handling', () => {
+    it('should NOT flip dimensions for rotations 0-4', () => {
+      const rotations = [0, 1, 2, 3, 4]
+      for (const rotation of rotations) {
+        const result = calculateOutputDimensions({
+          inputWidth: 800,
+          inputHeight: 600,
+          maxDimension: 400,
+          rotation,
+        })
+        expect(result).toEqual({ width: 400, height: 300 })
+      }
+    })
+
+    it('should flip dimensions for rotations 5-8 (no scaling needed)', () => {
+      const rotations = [5, 6, 7, 8]
+      for (const rotation of rotations) {
+        const result = calculateOutputDimensions({
+          inputWidth: 100,
+          inputHeight: 200,
+          maxDimension: 300,
+          rotation,
+        })
+        // flipped to 200x100, both within max -> returned as-is
+        expect(result).toEqual({ width: 200, height: 100 })
+      }
+    })
+
+    it('should flip then scale when needed for rotations 5-8', () => {
+      const rotations = [5, 6, 7, 8]
+      for (const rotation of rotations) {
+        const result = calculateOutputDimensions({
+          inputWidth: 1200,
+          inputHeight: 800,
+          maxDimension: 600,
+          rotation,
+        })
+        // flip to 800x1200 then scale to max 600 -> 400x600
+        expect(result).toEqual({ width: 400, height: 600 })
+      }
+    })
+
+    it('should round correctly after flip + scale for rotations 5-8', () => {
+      const rotations = [5, 6, 7, 8]
+      for (const rotation of rotations) {
+        const result = calculateOutputDimensions({
+          inputWidth: 1000,
+          inputHeight: 333,
+          maxDimension: 400,
+          rotation,
+        })
+        // flip to 333x1000, scale factor 0.4 -> 133.2x400 -> 133x400 after rounding
+        expect(result).toEqual({ width: 133, height: 400 })
+      }
     })
   })
 })

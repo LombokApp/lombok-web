@@ -453,6 +453,7 @@ export async function generateVideoPreviews({
       inputWidth: dimensions.width,
       inputHeight: dimensions.height,
       maxDimension: thumbnailMaxWidth,
+      rotation: 0,
     })
 
     const previewMaxWidth = Math.min(1280, dimensions.width)
@@ -491,6 +492,7 @@ export async function generateVideoPreviews({
       inputWidth: dimensions.width,
       inputHeight: dimensions.height,
       maxDimension: previewMaxWidth,
+      rotation: 0,
     })
 
     await addVariant(
