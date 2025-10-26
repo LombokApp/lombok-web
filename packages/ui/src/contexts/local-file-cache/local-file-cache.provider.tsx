@@ -32,7 +32,7 @@ export const LocalFileCacheContextProvider = ({
       postMessage.current([
         'AUTH_UPDATED',
         {
-          basePath: import.meta.env.API_BASE_URL ?? window.location.origin,
+          basePath: window.location.origin,
           accessToken: t,
         },
       ])
