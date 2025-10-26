@@ -842,8 +842,6 @@ export class FolderService {
           direction?: 'next' | 'previous'
         }
 
-        console.log('Decoded cursor:', decoded)
-
         isNextDirection = decoded.direction !== 'previous'
 
         const colMap: Record<string, PgColumn> = {
