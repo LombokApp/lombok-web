@@ -131,7 +131,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
               <div className="flex flex-wrap gap-2">
                 {typeof app === 'undefined' ? (
                   <span className="italic opacity-50">Unknown</span>
-                ) : !app.config.tasks.length ? (
+                ) : !app.config.tasks?.length ? (
                   <span className="italic opacity-50">None</span>
                 ) : (
                   app.config.tasks.map((task, i) => (
