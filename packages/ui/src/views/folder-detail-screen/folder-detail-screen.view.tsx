@@ -11,7 +11,6 @@ import {
 import {
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import { DropdownMenu } from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
@@ -24,8 +23,6 @@ import {
   Ellipsis,
   Folder,
   FolderSync,
-  LayoutDashboard,
-  List,
   Share2,
   Trash,
 } from 'lucide-react'
@@ -148,27 +145,6 @@ export const FolderDetailScreen = () => {
   ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
-
-  type ViewMode = 'grid-old' | 'grid'
-
-  const [viewMode, setViewMode] = React.useState<ViewMode>(() => {
-    const viewParam = searchParams.get('view')
-    return viewParam === 'grid' ? 'grid' : 'grid-old'
-  })
-
-  const handleViewModeChange = React.useCallback(
-    (newViewMode: ViewMode) => {
-      setViewMode(newViewMode)
-      const newParams = new URLSearchParams(searchParams)
-      if (newViewMode === 'grid-old') {
-        newParams.delete('view')
-      } else {
-        newParams.set('view', newViewMode)
-      }
-      setSearchParams(newParams)
-    },
-    [searchParams, setSearchParams],
-  )
 
   const cursorFromSearchParams = searchParams.get('cursor') ?? undefined
 
@@ -535,28 +511,6 @@ export const FolderDetailScreen = () => {
                         <Ellipsis className="size-5 shrink-0" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => handleViewModeChange('grid-old')}
-                          className="gap-2"
-                        >
-                          <List className="size-5" />
-                          Grid View (Old)
-                          {viewMode === 'grid-old' && (
-                            <div className="ml-auto size-2 rounded-full bg-primary" />
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleViewModeChange('grid')}
-                          className="gap-2"
-                        >
-                          <LayoutDashboard className="size-5 rotate-90" />
-                          Grid View
-                          {viewMode === 'grid' && (
-                            <div className="ml-auto size-2 rounded-full bg-primary" />
-                          )}
-                        </DropdownMenuItem>
-
-                        <DropdownMenuSeparator />
                         {folderContext.folderPermissions?.includes(
                           FolderPermissionEnum.OBJECT_EDIT,
                         ) && (
