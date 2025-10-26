@@ -1,5 +1,4 @@
-import { RequestHandler, sendResponse } from '@lombokapp/app-worker-sdk'
-import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { RequestHandler } from '@lombokapp/app-worker-sdk'
 
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
@@ -62,12 +61,14 @@ export const handleRequest: RequestHandler = async function handleRequest(
     console.log('Database query failed:', error)
   }
 
-  return sendResponse(
-    {
+  return new Response(
+    JSON.stringify({
       message: 'Hello, world (from demo API request worker)!',
       timestamp: new Date().toISOString(),
       databaseTest: 'Database client is available and working',
+    }),
+    {
+      status: 200,
     },
-    200,
   )
 }
