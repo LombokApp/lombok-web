@@ -7,8 +7,7 @@ import type { TokensType } from '@lombokapp/auth-utils'
 import { LombokSdk } from '@lombokapp/sdk'
 import createClient from 'openapi-react-query'
 
-export const basePath =
-  (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? ''
+export const basePath = import.meta.env.VITE_BACKEND_HOST ?? ''
 
 const loadTokens = () => {
   const accessToken = localStorage.getItem(STORAGE_ACCESS_TOKEN) ?? undefined

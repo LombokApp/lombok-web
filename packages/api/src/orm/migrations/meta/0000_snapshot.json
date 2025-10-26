@@ -1,5 +1,5 @@
 {
-  "id": "acf7eed0-12f7-49f5-aebd-0eb6558e4351",
+  "id": "01a7a32a-fba4-4e79-b533-e42074bbc669",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -351,6 +351,12 @@
         },
         "objectKey": {
           "name": "objectKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filename": {
+          "name": "filename",
           "type": "text",
           "primaryKey": false,
           "notNull": true

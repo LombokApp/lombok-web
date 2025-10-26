@@ -3358,6 +3358,14 @@
             }
           },
           {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "offset",
             "required": false,
             "in": "query",
@@ -3392,8 +3400,8 @@
                   "items": {
                     "type": "string",
                     "enum": [
-                      "size-asc",
-                      "size-desc",
+                      "sizeBytes-asc",
+                      "sizeBytes-desc",
                       "filename-asc",
                       "filename-desc",
                       "objectKey-asc",
@@ -3408,8 +3416,8 @@
                 {
                   "type": "string",
                   "enum": [
-                    "size-asc",
-                    "size-desc",
+                    "sizeBytes-asc",
+                    "sizeBytes-desc",
                     "filename-asc",
                     "filename-desc",
                     "objectKey-asc",
@@ -8893,6 +8901,12 @@
             "properties": {
               "totalCount": {
                 "type": "number"
+              },
+              "nextCursor": {
+                "type": "string"
+              },
+              "previousCursor": {
+                "type": "string"
               }
             },
             "required": [

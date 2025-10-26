@@ -15,6 +15,7 @@ export const folderObjectsTable = pgTable(
   {
     id: uuid('id').primaryKey(),
     objectKey: text('objectKey').notNull(),
+    filename: text('filename').notNull(),
     eTag: text('eTag').notNull(),
     sizeBytes: bigint('sizeBytes', { mode: 'number' }).notNull(),
     lastModified: bigint('lastModified', { mode: 'number' }).notNull(),
