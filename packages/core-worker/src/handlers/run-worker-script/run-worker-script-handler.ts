@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 import { WorkerScriptRuntimeError } from '../../errors'
 import { runWorkerScript } from '../../worker-scripts/run-worker-script'
-import type { CoreWorkerProcessDataPayload } from '../../worker-scripts/types'
+import type { CoreWorkerProcessDataPayload } from '../../worker-scripts/worker-daemon/types'
 
 const runWorkerScriptTaskInputDataSchema = z.object({
   taskId: z.string(),
