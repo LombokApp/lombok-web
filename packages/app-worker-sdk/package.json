@@ -18,7 +18,12 @@
   },
   "devDependencies": {
     "@lombokapp/types": "workspace:*",
-    "prettier": "3.4.2",
-    "tslib": "2.8.1"
+    "@types/bun": "catalog:",
+    "prettier": "catalog:"
+  },
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "socket.io-client": "catalog:",
+    "zod": "catalog:"
   }
 }

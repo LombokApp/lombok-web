@@ -1,3 +1,4 @@
+/// <reference path="../../types/eslint-plugins.d.ts" />
 import eslint from '@eslint/js'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'

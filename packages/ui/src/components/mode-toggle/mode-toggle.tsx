@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
-import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
+import { MoonIcon, SunIcon } from 'lucide-react'
 
 import { useTheme } from '@/src/contexts/theme'
 

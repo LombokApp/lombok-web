@@ -3,10 +3,7 @@ import type {
   IAppPlatformService,
   SerializeableRequest,
 } from '@lombokapp/app-worker-sdk'
-import type {
-  WorkerModuleStartContext,
-  WorkerPipeMessage,
-} from '@lombokapp/core-worker'
+import type { WorkerModuleStartContext, WorkerPipeMessage } from '../'
 import { downloadFileToDisk } from '@lombokapp/core-worker-utils'
 import fs from 'fs'
 import os from 'os'

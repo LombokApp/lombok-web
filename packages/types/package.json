@@ -13,9 +13,11 @@
     "test:unit": "bun test"
   },
   "devDependencies": {
-    "prettier": "3.4.2"
+    "@types/bun": "catalog:",
+    "prettier": "catalog:"
   },
   "dependencies": {
-    "openapi-fetch": "^0.14.0"
+    "openapi-fetch": "catalog:",
+    "zod": "catalog:"
   }
 }

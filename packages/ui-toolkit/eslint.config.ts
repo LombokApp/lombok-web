@@ -1,3 +1,4 @@
+/// <reference path="../../types/eslint-plugins.d.ts" />
 import eslint from '@eslint/js'
 import containerQueries from '@tailwindcss/container-queries'
 import eslintStorybook from 'eslint-plugin-storybook'
@@ -26,8 +27,6 @@ export default tseslint.config(
       'build/',
       'coverage/',
       '.storybook/',
-      'plop-templates/',
-      'plopfile.mjs',
       '.github/',
       'storybook-static/',
     ],

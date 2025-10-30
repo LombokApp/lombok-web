@@ -1,4 +1,4 @@
-import { LombokSdk } from '@lombokapp/sdk'
+import { LombokApiClient, LombokSdk } from '@lombokapp/sdk'
 
 import { IframeCommunicator } from './iframe-communicator'
 import type {
@@ -124,7 +124,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     })
   }
 
-  get apiClient() {
+  get apiClient(): LombokApiClient {
     return this.sdk.apiClient
   }
 

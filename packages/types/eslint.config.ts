@@ -1,3 +1,4 @@
+/// <reference path="../../types/eslint-plugins.d.ts" />
 import eslint from '@eslint/js'
 import type { ConfigArray } from 'typescript-eslint'
 import tseslint from 'typescript-eslint'

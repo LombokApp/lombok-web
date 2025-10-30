@@ -22,10 +22,10 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/auth-utils": "workspace:*",
     "@lombokapp/utils": "workspace:*",
-    "prettier": "3.4.2",
-    "tslib": "2.8.1"
+    "prettier": "catalog:",
+    "@types/bun": "catalog:"
   },
   "dependencies": {
-    "openapi-fetch": "^0.14.0"
+    "openapi-fetch": "catalog:"
   }
 }

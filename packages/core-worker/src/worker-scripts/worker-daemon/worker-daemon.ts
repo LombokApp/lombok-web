@@ -5,14 +5,14 @@ import type {
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
 import { buildAppClient, buildDatabaseClient } from '@lombokapp/app-worker-sdk'
-import type { WorkerModuleStartContext } from '@lombokapp/core-worker'
+import type { WorkerModuleStartContext } from '../../worker-scripts/worker-daemon/types'
 import {
   serializeWorkerError,
   WorkerError,
   WorkerExecutorError,
   WorkerInvalidError,
   WorkerRuntimeError,
-} from '@lombokapp/core-worker'
+} from '../../errors'
 import type { paths } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'

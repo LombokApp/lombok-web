@@ -20,13 +20,13 @@
   "dependencies": {
     "@lombokapp/sdk": "workspace:*",
     "@lombokapp/types": "workspace:*",
-    "@lombokapp/auth-utils": "workspace:*"
+    "@lombokapp/auth-utils": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0"
-  },
-  "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
   }
 }

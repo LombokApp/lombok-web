@@ -17,14 +17,17 @@
   },
   "devDependencies": {
     "@lombokapp/types": "workspace:*",
-    "socket.io": "4.8.1",
-    "prettier": "3.4.2"
+    "@types/bun": "catalog:",
+    "socket.io": "catalog:",
+    "openapi-fetch": "catalog:",
+    "prettier": "catalog:",
+    "uuid": "catalog:"
   },
   "dependencies": {
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/app-worker-sdk": "workspace:*",
     "@lombokapp/core-worker-utils": "workspace:*",
-    "socket.io-client": "4.8.1",
-    "zod": "3.25.76"
+    "socket.io-client": "catalog:",
+    "zod": "catalog:"
   }
 }
