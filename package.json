@@ -2,7 +2,8 @@
   "name": "lombokapp",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/app-demo/*"
   ],
   "scripts": {
     "install:clean": "rm -rf ./node_modules || true && rm -rf ./packages/api/node_modules || true && rm -rf ./packages/ui/node_modules || true && rm -rf ./packages/ui-toolkit/node_modules || true && rm bun.lock || true && bun install",

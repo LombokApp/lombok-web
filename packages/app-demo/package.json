@@ -3,37 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "app-demo-ui",
+    "app-demo-workers"
+  ],
   "scripts": {
-    "dev": "bun vite",
-    "build": "bunx --bun vite build --mode production",
-    "build:package": "bun run build && rm -rf ../../apps/demo/ui && cp -r dist ../../apps/demo/ui",
-    "lint:check": "eslint",
-    "lint:fix": "eslint --fix",
-    "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
-    "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
-    "tsc:check": "tsc --noEmit",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@lombokapp/app-browser-sdk": "workspace:*",
-    "@lombokapp/ui-toolkit": "workspace:*",
-    "@lombokapp/utils": "workspace:*",
-    "@tanstack/react-query": "catalog:",
-    "openapi-react-query": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "react-router": "catalog:"
-  },
-  "devDependencies": {
-    "@eslint/js": "catalog:",
-    "@types/bun": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react-swc": "catalog:",
-    "autoprefixer": "catalog:",
-    "eslint": "catalog:",
-    "globals": "catalog:",
-    "tailwindcss": "catalog:",
-    "vite": "catalog:"
+    "package": "bun --cwd app-demo-ui package && bun --cwd app-demo-workers package && cp config.json ../../apps/demo/config.json && cp .publicKey ../../apps/demo/.publicKey"
   }
 }

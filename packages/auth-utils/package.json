@@ -21,6 +21,7 @@
     "openapi-fetch": "catalog:",
     "jwt-decode": "4.0.0",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-router": "catalog:"
   }
 }

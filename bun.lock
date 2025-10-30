@@ -76,6 +76,10 @@
     "packages/app-demo": {
       "name": "@lombokapp/app-demo",
       "version": "0.0.0",
+    },
+    "packages/app-demo/app-demo-ui": {
+      "name": "@lombokapp/app-demo-ui",
+      "version": "0.0.0",
       "dependencies": {
         "@lombokapp/app-browser-sdk": "workspace:*",
         "@lombokapp/ui-toolkit": "workspace:*",
@@ -97,6 +101,22 @@
         "globals": "catalog:",
         "tailwindcss": "catalog:",
         "vite": "catalog:",
+      },
+    },
+    "packages/app-demo/app-demo-workers": {
+      "name": "@lombokapp/app-demo-workers",
+      "version": "0.0.0",
+      "dependencies": {
+        "@lombokapp/app-worker-sdk": "workspace:*",
+        "@lombokapp/types": "workspace:*",
+        "@lombokapp/utils": "workspace:*",
+        "drizzle-orm": "catalog:",
+      },
+      "devDependencies": {
+        "@eslint/js": "catalog:",
+        "@types/bun": "catalog:",
+        "eslint": "catalog:",
+        "typescript-eslint": "catalog:",
       },
     },
     "packages/app-worker-sdk": {
@@ -122,6 +142,7 @@
         "openapi-fetch": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
+        "react-router": "catalog:",
       },
       "devDependencies": {
         "@types/react": "catalog:",
@@ -733,6 +754,10 @@
     "@lombokapp/app-browser-sdk": ["@lombokapp/app-browser-sdk@workspace:packages/app-browser-sdk"],
 
     "@lombokapp/app-demo": ["@lombokapp/app-demo@workspace:packages/app-demo"],
+
+    "@lombokapp/app-demo-ui": ["@lombokapp/app-demo-ui@workspace:packages/app-demo/app-demo-ui"],
+
+    "@lombokapp/app-demo-workers": ["@lombokapp/app-demo-workers@workspace:packages/app-demo/app-demo-workers"],
 
     "@lombokapp/app-worker-sdk": ["@lombokapp/app-worker-sdk@workspace:packages/app-worker-sdk"],
 
@@ -2054,7 +2079,7 @@
 
     "jest-worker": ["jest-worker@27.5.1", "", { "dependencies": { "@types/node": "*", "merge-stream": "^2.0.0", "supports-color": "^8.0.0" } }, "sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg=="],
 
-    "jiti": ["jiti@2.4.2", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A=="],
+    "jiti": ["jiti@1.21.7", "", { "bin": { "jiti": "bin/jiti.js" } }, "sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A=="],
 
     "js-levenshtein": ["js-levenshtein@1.1.6", "", {}, "sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g=="],
 
@@ -3071,8 +3096,6 @@
     "superagent/qs": ["qs@6.14.0", "", { "dependencies": { "side-channel": "^1.1.0" } }, "sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w=="],
 
     "tailwindcss/chokidar": ["chokidar@3.6.0", "", { "dependencies": { "anymatch": "~3.1.2", "braces": "~3.0.2", "glob-parent": "~5.1.2", "is-binary-path": "~2.1.0", "is-glob": "~4.0.1", "normalize-path": "~3.0.0", "readdirp": "~3.6.0" }, "optionalDependencies": { "fsevents": "~2.3.2" } }, "sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw=="],
-
-    "tailwindcss/jiti": ["jiti@1.21.7", "", { "bin": { "jiti": "bin/jiti.js" } }, "sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A=="],
 
     "tailwindcss/postcss-import": ["postcss-import@15.1.0", "", { "dependencies": { "postcss-value-parser": "^4.0.0", "read-cache": "^1.0.0", "resolve": "^1.1.7" }, "peerDependencies": { "postcss": "^8.0.0" } }, "sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew=="],
 
