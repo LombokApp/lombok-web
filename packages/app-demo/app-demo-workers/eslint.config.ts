@@ -1,6 +1,6 @@
-/// <reference path="../../../types/eslint-plugins.d.ts" />
+import '../../../eslint-config/eslint-plugins.d.ts'
+
 import eslint from '@eslint/js'
-import eslintTailwind from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
 
 import baseConfig from '../../../eslint-config/base'
@@ -12,7 +12,6 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
-  ...eslintTailwind.configs['flat/recommended'],
   baseConfig,
   reactConfig,
   strictConfig,
@@ -20,14 +19,6 @@ export default tseslint.config(
     ignores: ['node_modules/', 'dist/', 'build/', 'public/', 'fonts/'],
   },
   {
-    plugins: {
-      tailwind: eslintTailwind,
-    },
-    settings: {
-      tailwindcss: {
-        config: 'tailwind.config.ts',
-      },
-    },
     languageOptions: {
       ecmaVersion: 2022,
       parserOptions: {

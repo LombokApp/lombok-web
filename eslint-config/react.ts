@@ -1,3 +1,5 @@
+import './eslint-plugins.d.ts'
+
 import tseslint, { ConfigArray } from 'typescript-eslint'
 import eslintJsxAlly from 'eslint-plugin-jsx-a11y'
 import eslintReact from 'eslint-plugin-react'

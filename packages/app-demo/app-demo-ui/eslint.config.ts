@@ -1,11 +1,12 @@
-/// <reference path="../../types/eslint-plugins.d.ts" />
+import '../../../eslint-config/eslint-plugins.d.ts'
+
 import eslint from '@eslint/js'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
 
-import baseConfig from '../../eslint-config/base'
-import reactConfig from '../../eslint-config/react'
-import strictConfig from '../../eslint-config/strict'
+import baseConfig from '../../../eslint-config/base'
+import reactConfig from '../../../eslint-config/react'
+import strictConfig from '../../../eslint-config/strict'
 
 export default tseslint.config(
   eslint.configs.recommended,

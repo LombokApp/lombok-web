@@ -5,17 +5,16 @@ import type {
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
 import { buildAppClient, buildDatabaseClient } from '@lombokapp/app-worker-sdk'
-import {
+import type {
   serializeWorkerError,
   WorkerError,
   WorkerExecutorError,
   WorkerInvalidError,
+  type WorkerModuleStartContext,
   WorkerPipeRequest,
   WorkerPipeResponse,
   WorkerRuntimeError,
-  type WorkerModuleStartContext,
 } from '@lombokapp/core-worker-utils'
-
 import type { paths } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
@@ -137,7 +136,6 @@ void (async () => {
         const timestamp = new Date().toISOString()
         const line = `[${timestamp}] [${level}] ${args
           .map((arg) =>
-            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             typeof arg === 'object'
               ? JSON.stringify(arg, null, 2)
               : // eslint-disable-next-line @typescript-eslint/no-base-to-string

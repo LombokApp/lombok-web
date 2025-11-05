@@ -1,4 +1,4 @@
-import { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker'
+import { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker-utils'
 import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'

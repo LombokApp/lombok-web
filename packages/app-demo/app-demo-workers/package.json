@@ -21,6 +21,15 @@
     "@eslint/js": "catalog:",
     "@types/bun": "catalog:",
     "eslint": "catalog:",
-    "typescript-eslint": "catalog:"
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin-ts": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "jiti": "catalog:"
   }
 }

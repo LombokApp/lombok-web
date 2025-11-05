@@ -1,4 +1,5 @@
-/// <reference path="../../types/eslint-plugins.d.ts" />
+import '../../eslint-config/eslint-plugins.d.ts'
+
 import eslint from '@eslint/js'
 import containerQueries from '@tailwindcss/container-queries'
 import eslintStorybook from 'eslint-plugin-storybook'

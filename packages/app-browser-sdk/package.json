@@ -27,6 +27,18 @@
   "devDependencies": {
     "@types/bun": "catalog:",
     "@types/react": "catalog:",
-    "@types/react-dom": "catalog:"
+    "@types/react-dom": "catalog:",
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "jiti": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin-ts": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:"
   }
 }

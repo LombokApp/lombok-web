@@ -1,7 +1,7 @@
 import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import type { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker-utils'
 import {
-  CoreWorkerProcessDataPayload,
   uniqueExecutionKey,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'

@@ -126,7 +126,9 @@ export function ServerUsersScreen() {
             sorting.length > 0
               ? (sorting.map(
                   (s) =>
-                    `${s.id}-${s.desc ? 'desc' : 'asc'}` as ServerUsersListRequest['sort'],
+                    `${s.id}-${
+                      s.desc ? 'desc' : 'asc'
+                    }` as ServerUsersListRequest['sort'],
                 ) as ServerUsersListRequest['sort'])
               : undefined,
           search:

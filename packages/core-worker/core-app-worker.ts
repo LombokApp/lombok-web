@@ -1,6 +1,6 @@
 import { buildAppClient } from '@lombokapp/app-worker-sdk'
+import type { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker-utils'
 import {
-  CoreWorkerProcessDataPayload,
   coreWorkerProcessDataPayloadSchema,
   uniqueExecutionKey,
 } from '@lombokapp/core-worker-utils'

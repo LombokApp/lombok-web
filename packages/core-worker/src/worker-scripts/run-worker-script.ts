@@ -519,7 +519,8 @@ async function findRepoRoot(
 
   // Walk up until we find a directory that has both `packages` and `package.json`
   // which should represent the monorepo root (e.g., /usr/src/app)
-  // eslint-disable-next-line no-constant-condition
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
     const hasPackages = await fs.promises.exists(path.join(dir, 'packages'))
     const hasPackageJson = await fs.promises.exists(
@@ -557,10 +558,11 @@ async function ensureLombokSymlinkMirror(): Promise<string> {
   ])
   const pkgsRoot = path.join(repoRoot, 'packages')
   const toVisit: string[] = [pkgsRoot]
-  const found: Array<{ name: string; dir: string }> = []
+  const found: { name: string; dir: string }[] = []
 
   while (toVisit.length > 0) {
-    const current = toVisit.pop() as string
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const current = toVisit.pop()!
     let stat: fs.Stats
     try {
       stat = await fs.promises.lstat(current)
@@ -675,7 +677,7 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   await fs.promises.mkdir(mirrorRoot, { recursive: true })
 
   // 1) Ensure @lombokapp scope subtree exists and is synced
-  const lombokScopeDir = await ensureLombokSymlinkMirror()
+  await ensureLombokSymlinkMirror()
 
   // 2) Link selected static packages into mirror root
   // Helper to resolve a package by name from workspace (packages/*) or fallback to repo/node_modules
@@ -687,7 +689,7 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
     const nmBase = path.join(repoRoot, 'node_modules')
     const isScoped = pkgName.startsWith('@')
     const nmPath = isScoped
-      ? path.join(nmBase, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+      ? path.join(nmBase, pkgName.split('/')[0], pkgName.split('/')[1])
       : path.join(nmBase, pkgName)
     if (await fs.promises.exists(nmPath)) {
       return nmPath
@@ -704,12 +706,12 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
         } catch {
           st = undefined
         }
-        if (!st || !st.isDirectory()) {
+        if (!st?.isDirectory()) {
           continue
         }
         const pkgNmBase = path.join(pkgDir, 'node_modules')
         const candidate = isScoped
-          ? path.join(pkgNmBase, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+          ? path.join(pkgNmBase, pkgName.split('/')[0], pkgName.split('/')[1])
           : path.join(pkgNmBase, pkgName)
         if (await fs.promises.exists(candidate)) {
           return candidate
@@ -730,7 +732,8 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
     ])
     const toVisit: string[] = [pkgsRoot]
     while (toVisit.length > 0) {
-      const current = toVisit.pop() as string
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const current = toVisit.pop()!
       let stat: fs.Stats
       try {
         stat = await fs.promises.lstat(current)
@@ -777,7 +780,7 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   ): Promise<string> => {
     const isScoped = pkgName.startsWith('@')
     const linkPath = isScoped
-      ? path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+      ? path.join(mirrorRoot, pkgName.split('/')[0], pkgName.split('/')[1])
       : path.join(mirrorRoot, pkgName)
 
     // Ensure scope dir exists if scoped
@@ -820,7 +823,7 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   for (const pkgName of STATIC_NODE_MODULES_TO_LINK) {
     const isScoped = pkgName.startsWith('@')
     const candidate = isScoped
-      ? path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+      ? path.join(mirrorRoot, pkgName.split('/')[0], pkgName.split('/')[1])
       : path.join(mirrorRoot, pkgName)
     if (!desiredStatic.has(candidate)) {
       // Remove file only if present and we own the slot
@@ -1522,7 +1525,6 @@ export const runWorkerScript = async ({
       'isStreaming' in responseData &&
       responseData.isStreaming
     ) {
-      // eslint-disable-next-line no-console
       if (LOMBOK_PIPE_DEBUG) {
         // eslint-disable-next-line no-console
         console.log('[run-worker-script]', 'Handling streaming response')

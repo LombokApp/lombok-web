@@ -1,15 +1,13 @@
 import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
-import {
-  SerializeableError,
-  serializeWorkerError,
-} from '@lombokapp/core-worker-utils'
+import type { SerializeableError } from '@lombokapp/core-worker-utils'
+import { serializeWorkerError } from '@lombokapp/core-worker-utils'
 import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
-import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
+import { io } from 'socket.io-client'
 
-type ConnectAndPerformWorkResult = {
+interface ConnectAndPerformWorkResult {
   shutdown: () => void
   wait: Promise<void>
   socket: Socket

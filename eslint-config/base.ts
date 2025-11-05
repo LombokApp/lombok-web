@@ -1,11 +1,11 @@
-import './types.d.ts'
+import '../../eslint-config/eslint-plugins.d.ts'
+
 import tseslint from 'typescript-eslint'
 import type { ConfigArray } from 'typescript-eslint'
 import eslintImport from 'eslint-plugin-import'
 import eslintComments from 'eslint-plugin-eslint-comments'
 import eslintPromise from 'eslint-plugin-promise'
 import eslintSimpleImportSort from 'eslint-plugin-simple-import-sort'
-import eslintTs from '@typescript-eslint/eslint-plugin'
 import stylisticTs from '@stylistic/eslint-plugin-ts'
 import eslintPrettier from 'eslint-plugin-prettier'
 
@@ -138,7 +138,6 @@ export default tseslint.config({
     'eslint-comments': eslintComments,
     promise: eslintPromise,
     'simple-import-sort': eslintSimpleImportSort,
-    '@typescript-eslint': eslintTs,
     '@stylistic/ts': stylisticTs,
     import: eslintImport,
     prettier: eslintPrettier,
