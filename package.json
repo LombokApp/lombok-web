@@ -31,7 +31,7 @@
     "api:dev": "bun --cwd packages/api dev:docker:api"
   },
 	"catalog": {
-    "@stylistic/eslint-plugin-ts": "2.12.1",
+    "@stylistic/eslint-plugin-ts": "4.4.1",
     "@types/eslint-plugin-tailwindcss": "3.17.0",
     "@typescript-eslint/eslint-plugin": "8.19.1",
     "@typescript-eslint/parser": "8.19.1",
