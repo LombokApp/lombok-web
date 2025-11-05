@@ -45,6 +45,7 @@
     "eslint-plugin-jsx-a11y": "catalog:",
     "globals": "catalog:",
     "tailwindcss": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "prettier": "catalog:"
   }
 }

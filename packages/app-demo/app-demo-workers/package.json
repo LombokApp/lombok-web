@@ -30,6 +30,7 @@
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "globals": "catalog:",
-    "jiti": "catalog:"
+    "jiti": "catalog:",
+    "prettier": "catalog:"
   }
 }

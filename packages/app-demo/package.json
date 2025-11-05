@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "package": "bun --cwd app-demo-ui package && bun --cwd app-demo-workers package && cp config.json ../../apps/demo/config.json && cp .publicKey ../../apps/demo/.publicKey",
-    "lint:check": "bun --cwd app-demo-ui lint:check && bun --cwd app-demo-workers lint:check"
+    "lint:check": "bun --cwd app-demo-ui lint:check && bun --cwd app-demo-workers lint:check",
+    "prettier:check": "bun --cwd app-demo-ui prettier:check && bun --cwd app-demo-workers prettier:check"
   },
   "devDependencies": {
     "eslint": "catalog:",
@@ -23,6 +24,7 @@
     "eslint-plugin-promise": "catalog:",
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
-    "globals": "catalog:"
+    "globals": "catalog:",
+    "prettier": "catalog:"
   }
 }

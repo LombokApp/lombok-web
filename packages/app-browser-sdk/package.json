@@ -39,6 +39,7 @@
     "eslint-plugin-promise": "catalog:",
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
+    "prettier": "catalog:",
     "globals": "catalog:"
   }
 }

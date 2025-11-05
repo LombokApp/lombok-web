@@ -59,6 +59,7 @@
     "eslint-plugin-prettier": "catalog:",
     "eslint-plugin-storybook": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
+    "prettier": "catalog:",
     "globals": "catalog:",
     "tailwindcss": "catalog:",
     "vite": "catalog:",
