@@ -5,14 +5,17 @@ import type {
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
 import { buildAppClient, buildDatabaseClient } from '@lombokapp/app-worker-sdk'
-import type { WorkerModuleStartContext } from '../../worker-scripts/worker-daemon/types'
 import {
   serializeWorkerError,
   WorkerError,
   WorkerExecutorError,
   WorkerInvalidError,
+  WorkerPipeRequest,
+  WorkerPipeResponse,
   WorkerRuntimeError,
-} from '../../errors'
+  type WorkerModuleStartContext,
+} from '@lombokapp/core-worker-utils'
+
 import type { paths } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
@@ -20,7 +23,6 @@ import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 
 import { PipeReader, PipeWriter } from './pipe-utils'
-import type { WorkerPipeRequest, WorkerPipeResponse } from './types'
 
 void (async () => {
   // AsyncLocalStorage for request-scoped context

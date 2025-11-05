@@ -3,23 +3,27 @@ import type {
   IAppPlatformService,
   SerializeableRequest,
 } from '@lombokapp/app-worker-sdk'
-import type { WorkerModuleStartContext, WorkerPipeMessage } from '../'
-import { downloadFileToDisk } from '@lombokapp/core-worker-utils'
+import type {
+  WorkerModuleStartContext,
+  WorkerPipeMessage,
+  WorkerPipeRequest,
+  WorkerPipeResponse,
+} from '@lombokapp/core-worker-utils'
+import {
+  downloadFileToDisk,
+  ScriptExecutionError,
+  WorkerScriptRuntimeError,
+} from '@lombokapp/core-worker-utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
-import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
 import {
   cleanupWorkerPipes,
   createWorkerPipes,
   PipeReader,
   PipeWriter,
 } from './worker-daemon/pipe-utils'
-import type {
-  WorkerPipeRequest,
-  WorkerPipeResponse,
-} from './worker-daemon/types'
 
 const LOMBOK_PIPE_DEBUG = false as boolean
 const MAX_WORKER_IDLE_TIME = 5 * 60 * 1000 // 5 minutes
@@ -503,6 +507,334 @@ const platformAwareMounts = await (async () => {
   return flags
 })()
 
+// Ensure a symlinked mirror of all @lombokapp/* workspace packages exists at
+// <repoRoot>/.linked-node-modules/@lombokapp, where each child symlink points
+// to the respective package root directory. This lets the jailed worker see
+// monorepo packages at /node_modules/@lombokapp regardless of Bun hoisting.
+async function findRepoRoot(
+  startDir: string = import.meta.dir,
+): Promise<string> {
+  let dir = path.resolve(startDir)
+  const fsRoot = path.parse(dir).root
+
+  // Walk up until we find a directory that has both `packages` and `package.json`
+  // which should represent the monorepo root (e.g., /usr/src/app)
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const hasPackages = await fs.promises.exists(path.join(dir, 'packages'))
+    const hasPackageJson = await fs.promises.exists(
+      path.join(dir, 'package.json'),
+    )
+    if (hasPackages && hasPackageJson) {
+      return dir
+    }
+    const parent = path.dirname(dir)
+    if (parent === dir || dir === fsRoot) {
+      throw new Error(`Monorepo root not found when starting from ${startDir}`)
+    }
+    dir = parent
+  }
+}
+
+async function ensureLombokSymlinkMirror(): Promise<string> {
+  const repoRoot = await findRepoRoot()
+  const mirrorScopeDir = path.join(
+    repoRoot,
+    '.linked-node-modules',
+    '@lombokapp',
+  )
+
+  await fs.promises.mkdir(mirrorScopeDir, { recursive: true })
+
+  // Discover all @lombokapp/* packages under repoRoot/packages recursively
+  const exclude = new Set([
+    'node_modules',
+    'dist',
+    'build',
+    '.git',
+    '.next',
+    'storybook-static',
+  ])
+  const pkgsRoot = path.join(repoRoot, 'packages')
+  const toVisit: string[] = [pkgsRoot]
+  const found: Array<{ name: string; dir: string }> = []
+
+  while (toVisit.length > 0) {
+    const current = toVisit.pop() as string
+    let stat: fs.Stats
+    try {
+      stat = await fs.promises.lstat(current)
+    } catch {
+      continue
+    }
+    if (!stat.isDirectory()) {
+      continue
+    }
+    const base = path.basename(current)
+    if (exclude.has(base)) {
+      continue
+    }
+
+    const pkgJsonPath = path.join(current, 'package.json')
+    if (await fs.promises.exists(pkgJsonPath)) {
+      try {
+        const pkgRaw = await fs.promises.readFile(pkgJsonPath, 'utf8')
+        const pkg = JSON.parse(pkgRaw) as { name?: string }
+        if (
+          typeof pkg.name === 'string' &&
+          pkg.name.startsWith('@lombokapp/')
+        ) {
+          found.push({ name: pkg.name, dir: current })
+        }
+      } catch {
+        // ignore malformed package.json
+      }
+    }
+
+    try {
+      const entries = await fs.promises.readdir(current)
+      for (const entry of entries) {
+        if (exclude.has(entry)) {
+          continue
+        }
+        toVisit.push(path.join(current, entry))
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Sync mirror: each package becomes a symlink under the scope directory
+  const desired = new Set<string>()
+  for (const { name, dir } of found) {
+    const scopeName = name.split('/')[1] || ''
+    if (!scopeName) {
+      continue
+    }
+    const linkPath = path.join(mirrorScopeDir, scopeName)
+    desired.add(linkPath)
+
+    try {
+      const lst = await fs.promises.lstat(linkPath).catch(() => undefined)
+      if (lst?.isSymbolicLink()) {
+        const currentTarget = await fs.promises
+          .readlink(linkPath)
+          .catch(() => '')
+        const resolvedCurrent = path.resolve(
+          path.dirname(linkPath),
+          currentTarget,
+        )
+        const resolvedDesired = path.resolve(dir)
+        if (resolvedCurrent !== resolvedDesired) {
+          await fs.promises.rm(linkPath, { force: true })
+          await fs.promises.symlink(resolvedDesired, linkPath, 'dir')
+        }
+      } else {
+        if (lst) {
+          await fs.promises.rm(linkPath, {
+            force: true,
+            recursive: lst.isDirectory(),
+          })
+        }
+        await fs.promises.symlink(path.resolve(dir), linkPath, 'dir')
+      }
+    } catch {
+      // As a last resort, attempt to create the symlink afresh
+      try {
+        await fs.promises.symlink(path.resolve(dir), linkPath, 'dir')
+      } catch {
+        // ignore if we can't create; mount step will fail later if necessary
+      }
+    }
+  }
+
+  // Remove stale entries
+  try {
+    const existing = await fs.promises.readdir(mirrorScopeDir)
+    for (const entry of existing) {
+      const full = path.join(mirrorScopeDir, entry)
+      if (!desired.has(full)) {
+        await fs.promises.rm(full, { force: true, recursive: true })
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return mirrorScopeDir
+}
+
+const STATIC_NODE_MODULES_TO_LINK = [
+  'openapi-fetch',
+  'socket.io-client',
+] as const
+
+async function ensureLinkedNodeModulesMirror(): Promise<string> {
+  const repoRoot = await findRepoRoot()
+  const mirrorRoot = path.join(repoRoot, '.linked-node-modules')
+  await fs.promises.mkdir(mirrorRoot, { recursive: true })
+
+  // 1) Ensure @lombokapp scope subtree exists and is synced
+  const lombokScopeDir = await ensureLombokSymlinkMirror()
+
+  // 2) Link selected static packages into mirror root
+  // Helper to resolve a package by name from workspace (packages/*) or fallback to repo/node_modules
+  const resolvePkgDir = async (
+    pkgName: string,
+  ): Promise<string | undefined> => {
+    const pkgsRoot = path.join(repoRoot, 'packages')
+    // Fast fallback to repo node_modules
+    const nmBase = path.join(repoRoot, 'node_modules')
+    const isScoped = pkgName.startsWith('@')
+    const nmPath = isScoped
+      ? path.join(nmBase, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+      : path.join(nmBase, pkgName)
+    if (await fs.promises.exists(nmPath)) {
+      return nmPath
+    }
+
+    // Check each workspace package's node_modules (Bun 1.3 installs per-package)
+    try {
+      const workspaces = await fs.promises.readdir(pkgsRoot)
+      for (const entry of workspaces) {
+        const pkgDir = path.join(pkgsRoot, entry)
+        let st: fs.Stats | undefined
+        try {
+          st = await fs.promises.lstat(pkgDir)
+        } catch {
+          st = undefined
+        }
+        if (!st || !st.isDirectory()) {
+          continue
+        }
+        const pkgNmBase = path.join(pkgDir, 'node_modules')
+        const candidate = isScoped
+          ? path.join(pkgNmBase, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+          : path.join(pkgNmBase, pkgName)
+        if (await fs.promises.exists(candidate)) {
+          return candidate
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // Workspace search (depth-first) for matching package.json name
+    const exclude = new Set([
+      'node_modules',
+      'dist',
+      'build',
+      '.git',
+      '.next',
+      'storybook-static',
+    ])
+    const toVisit: string[] = [pkgsRoot]
+    while (toVisit.length > 0) {
+      const current = toVisit.pop() as string
+      let stat: fs.Stats
+      try {
+        stat = await fs.promises.lstat(current)
+      } catch {
+        continue
+      }
+      if (!stat.isDirectory()) {
+        continue
+      }
+      const base = path.basename(current)
+      if (exclude.has(base)) {
+        continue
+      }
+      const pkgJsonPath = path.join(current, 'package.json')
+      if (await fs.promises.exists(pkgJsonPath)) {
+        try {
+          const pkgRaw = await fs.promises.readFile(pkgJsonPath, 'utf8')
+          const pkg = JSON.parse(pkgRaw) as { name?: string }
+          if (pkg.name === pkgName) {
+            return current
+          }
+        } catch {
+          // ignore
+        }
+      }
+      try {
+        const entries = await fs.promises.readdir(current)
+        for (const entry of entries) {
+          if (exclude.has(entry)) {
+            continue
+          }
+          toVisit.push(path.join(current, entry))
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return undefined
+  }
+
+  const ensureLinkAt = async (
+    pkgName: string,
+    targetDir: string,
+  ): Promise<string> => {
+    const isScoped = pkgName.startsWith('@')
+    const linkPath = isScoped
+      ? path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+      : path.join(mirrorRoot, pkgName)
+
+    // Ensure scope dir exists if scoped
+    if (isScoped) {
+      await fs.promises.mkdir(path.dirname(linkPath), { recursive: true })
+    }
+
+    const desired = path.resolve(targetDir)
+    const lst = await fs.promises.lstat(linkPath).catch(() => undefined)
+    if (lst?.isSymbolicLink()) {
+      const curTarget = await fs.promises.readlink(linkPath).catch(() => '')
+      const resolvedCurrent = path.resolve(path.dirname(linkPath), curTarget)
+      if (resolvedCurrent !== desired) {
+        await fs.promises.rm(linkPath, { force: true })
+        await fs.promises.symlink(desired, linkPath, 'dir')
+      }
+    } else {
+      if (lst) {
+        await fs.promises.rm(linkPath, {
+          force: true,
+          recursive: lst.isDirectory(),
+        })
+      }
+      await fs.promises.symlink(desired, linkPath, 'dir')
+    }
+    return linkPath
+  }
+
+  const desiredStatic = new Set<string>()
+  for (const pkgName of STATIC_NODE_MODULES_TO_LINK) {
+    const dir = await resolvePkgDir(pkgName)
+    if (!dir) {
+      continue
+    }
+    const linkPath = await ensureLinkAt(pkgName, dir)
+    desiredStatic.add(linkPath)
+  }
+
+  // Prune stale entries we manage at the top level (only among STATIC_NODE_MODULES_TO_LINK)
+  for (const pkgName of STATIC_NODE_MODULES_TO_LINK) {
+    const isScoped = pkgName.startsWith('@')
+    const candidate = isScoped
+      ? path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
+      : path.join(mirrorRoot, pkgName)
+    if (!desiredStatic.has(candidate)) {
+      // Remove file only if present and we own the slot
+      const exists = await fs.promises.lstat(candidate).catch(() => undefined)
+      if (exists) {
+        await fs.promises.rm(candidate, { force: true, recursive: true })
+      }
+    }
+  }
+
+  // Return mirror root which represents a node_modules directory
+  return mirrorRoot
+}
+
 // Helper function to parse request body based on Content-Type and HTTP method
 async function parseRequestBody(request: Request): Promise<unknown> {
   // Methods that typically don't have request bodies
@@ -825,6 +1157,9 @@ async function createWorkerProcess(
     stderr: 'inherit',
   }).exited
 
+  // Ensure a node_modules mirror exists and capture its path
+  const linkedNodeModulesPath = await ensureLinkedNodeModulesMirror()
+
   const proc = Bun.spawn({
     cmd: [
       'nsjail',
@@ -838,8 +1173,7 @@ async function createWorkerProcess(
       '--group=1000',
       `--bindmount=${workerTmpDir}:/worker-tmp`,
       `--bindmount_ro=${cacheDir}:/app`,
-      // '--bindmount_ro=/usr/src/app/node_modules:/node_modules',
-      // '--bindmount_ro=/usr/src/app/packages:/node_modules/@lombokapp',
+      `--bindmount_ro=${linkedNodeModulesPath}:/node_modules`,
       ...platformAwareMounts,
       ...environmentVariables.map((v) => `-E${v}`),
       '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',

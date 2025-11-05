@@ -1,5 +1,9 @@
 import { buildAppClient } from '@lombokapp/app-worker-sdk'
-import { uniqueExecutionKey } from '@lombokapp/core-worker-utils'
+import {
+  CoreWorkerProcessDataPayload,
+  coreWorkerProcessDataPayloadSchema,
+  uniqueExecutionKey,
+} from '@lombokapp/core-worker-utils'
 import type { AppManifest } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
@@ -13,8 +17,6 @@ import {
   runWorkerScript,
   shutdownAllWorkerSandboxes,
 } from './src/worker-scripts/run-worker-script'
-import type { CoreWorkerProcessDataPayload } from './src/worker-scripts/worker-daemon/types'
-import { coreWorkerProcessDataPayloadSchema } from './src/worker-scripts/worker-daemon/types'
 
 let initialized = false
 let server: ReturnType<typeof Bun.serve> | null = null
