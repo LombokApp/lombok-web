@@ -19,6 +19,7 @@
         "eslint-plugin-storybook": "catalog:",
         "eslint-plugin-tailwindcss": "catalog:",
         "globals": "catalog:",
+        "typescript-eslint": "catalog:",
       },
     },
     "packages/api": {
