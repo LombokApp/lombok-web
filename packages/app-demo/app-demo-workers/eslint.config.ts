@@ -7,14 +7,14 @@ import baseConfig from '../../../eslint-config/base'
 import reactConfig from '../../../eslint-config/react'
 import strictConfig from '../../../eslint-config/strict'
 
-export default tseslint.config(
+export default [
   eslint.configs.recommended,
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
-  baseConfig,
-  reactConfig,
-  strictConfig,
+  ...baseConfig,
+  ...reactConfig,
+  ...strictConfig,
   {
     ignores: ['node_modules/', 'dist/', 'build/', 'public/', 'fonts/'],
   },
@@ -23,18 +23,9 @@ export default tseslint.config(
       ecmaVersion: 2022,
       parserOptions: {
         tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
         projectService: true,
       },
     },
   },
-  {
-    languageOptions: {
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.js', '*.mjs'],
-        },
-        tsconfigRootDir: __dirname,
-      },
-    },
-  },
-)
+]

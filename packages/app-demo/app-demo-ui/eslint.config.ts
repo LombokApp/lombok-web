@@ -1,6 +1,5 @@
 import '../../../eslint-config/eslint-plugins.d.ts'
 
-import eslint from '@eslint/js'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
 
@@ -8,15 +7,14 @@ import baseConfig from '../../../eslint-config/base'
 import reactConfig from '../../../eslint-config/react'
 import strictConfig from '../../../eslint-config/strict'
 
-export default tseslint.config(
-  eslint.configs.recommended,
+export default [
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
   ...eslintTailwind.configs['flat/recommended'],
-  baseConfig,
-  reactConfig,
-  strictConfig,
+  ...baseConfig,
+  ...reactConfig,
+  ...strictConfig,
   {
     ignores: ['node_modules/', 'dist/', 'build/', 'public/', 'fonts/'],
   },
@@ -33,18 +31,8 @@ export default tseslint.config(
       ecmaVersion: 2022,
       parserOptions: {
         tsconfigRootDir: __dirname,
-        projectService: true,
+        project: ['./tsconfig.json'],
       },
     },
   },
-  {
-    languageOptions: {
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.js', '*.mjs'],
-        },
-        tsconfigRootDir: __dirname,
-      },
-    },
-  },
-)
+]

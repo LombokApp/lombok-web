@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["bun"],
+    "types": ["bun", "react"],
     "module": "esnext",
     "target": "esnext",
     "baseUrl": ".",
@@ -23,6 +23,6 @@
     "noUncheckedSideEffectImports": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "eslint.config.ts", "tailwind.config.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "tailwind.config.ts", "eslint.config.ts"],
   "exclude": ["node_modules", "dist", "storybook-static", ".storybook"]
 }

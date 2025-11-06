@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "types": ["bun"],
+    "types": ["bun", "react"],
     "module": "ESNext",
     "moduleResolution": "node",
     "allowImportingTsExtensions": true,
