@@ -96,15 +96,17 @@ export interface AppWithMigrations extends App {
 @Injectable()
 export class AppService {
   folderService: FolderService
+  eventService: EventService
+  coreAppService: CoreAppService
   private readonly appSocketService: AppSocketService
   constructor(
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
-    private readonly coreAppService: CoreAppService,
     private readonly ormService: OrmService,
     private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
-    private readonly eventService: EventService,
+    @Inject(forwardRef(() => CoreAppService)) _coreAppService,
+    @Inject(forwardRef(() => EventService)) _eventService,
     private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
@@ -112,7 +114,9 @@ export class AppService {
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
     private readonly s3Service: S3Service,
   ) {
+    this.coreAppService = _coreAppService as CoreAppService
     this.folderService = _folderService as FolderService
+    this.eventService = _eventService as EventService
     this.appSocketService = _appSocketService as AppSocketService
   }
 

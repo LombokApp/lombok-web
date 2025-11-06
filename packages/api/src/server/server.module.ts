@@ -18,6 +18,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     ServerStorageController,
   ],
   providers: [ServerConfigurationService, ServerMetricsService],
+  exports: [ServerConfigurationService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class ServerModule {}

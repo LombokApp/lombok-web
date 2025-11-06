@@ -10,7 +10,8 @@
   "scripts": {
     "package": "bun --cwd app-demo-ui package && bun --cwd app-demo-workers package && cp config.json ../../apps/demo/config.json && cp .publicKey ../../apps/demo/.publicKey",
     "lint:check": "bun --cwd app-demo-ui lint:check && bun --cwd app-demo-workers lint:check",
-    "prettier:check": "bun --cwd app-demo-ui prettier:check && bun --cwd app-demo-workers prettier:check"
+    "prettier:check": "bun --cwd app-demo-ui prettier:check && bun --cwd app-demo-workers prettier:check",
+    "tsc:check": "bun --cwd app-demo-ui tsc:check && bun --cwd app-demo-workers tsc:check"
   },
   "devDependencies": {
     "eslint": "catalog:",
@@ -18,7 +19,7 @@
     "jiti": "catalog:",
     "typescript-eslint": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
-    "@stylistic/eslint-plugin-ts": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
     "eslint-plugin-import": "catalog:",
     "eslint-plugin-eslint-comments": "catalog:",
     "eslint-plugin-promise": "catalog:",

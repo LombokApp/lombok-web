@@ -83,7 +83,7 @@
     "@nestjs/cli": "11.0.5",
     "@nestjs/schematics": "11.0.2",
     "@nestjs/testing": "11.0.11",
-    "@stylistic/eslint-plugin-ts": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
     "@types/aws4": "1.11.6",
     "@types/bun": "catalog:",
     "@types/express": "5.0.0",

@@ -10,9 +10,7 @@ import { EventService } from 'src/event/services/event.service'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketModule } from 'src/socket/socket.module'
-import { UserSocketService } from 'src/socket/user/user-socket.service'
 import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
 
@@ -36,10 +34,8 @@ import { FolderService } from './services/folder.service'
   providers: [
     EventService,
     FolderService,
-    UserSocketService,
     AppService,
     LogEntryService,
-    ServerConfigurationService,
     ReindexFolderProcessor,
     CoreAppService,
   ],

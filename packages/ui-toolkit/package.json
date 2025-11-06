@@ -43,7 +43,7 @@
     "eslint": "catalog:",
     "jiti": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
-    "@stylistic/eslint-plugin-ts": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
     "eslint-plugin-import": "catalog:",
     "eslint-plugin-eslint-comments": "catalog:",
     "eslint-plugin-promise": "catalog:",

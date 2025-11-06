@@ -163,14 +163,13 @@ export const FolderObjectSidebar = ({
                           <div className="flex w-full flex-none items-center gap-x-4">
                             <dt className="flex-none">
                               <span className="sr-only">Status</span>
-                              {folderObject.mediaType === MediaType.Audio ? (
+                              {folderObject.mediaType === 'AUDIO' ? (
                                 <MusicIcon className="size-5" />
-                              ) : folderObject.mediaType === MediaType.Image ? (
+                              ) : folderObject.mediaType === 'IMAGE' ? (
                                 <ImageIcon className="size-5" />
-                              ) : folderObject.mediaType === MediaType.Video ? (
+                              ) : folderObject.mediaType === 'VIDEO' ? (
                                 <VideoIcon className="size-5" />
-                              ) : folderObject.mediaType ===
-                                MediaType.Document ? (
+                              ) : folderObject.mediaType === 'DOCUMENT' ? (
                                 <FileTextIcon className="size-5" />
                               ) : (
                                 <FileQuestion className="size-5" />

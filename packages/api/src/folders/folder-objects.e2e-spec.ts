@@ -257,7 +257,7 @@ describe('Folder Objects', () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
-      username: 'testuser-reindex',
+      username: 'testuser',
       password: '123',
     })
 

@@ -32,13 +32,7 @@ import { SessionService } from './services/session.service'
     forwardRef(() => ServerModule),
   ],
   controllers: [AuthController, SSOController],
-  providers: [
-    AuthService,
-    JWTService,
-    OAuthService,
-    SessionService,
-    ServerConfigurationService,
-  ],
+  providers: [AuthService, JWTService, OAuthService, SessionService],
   exports: [AuthService, JWTService, OAuthService, SessionService],
 })
 export class AuthModule implements OnModuleInit {
