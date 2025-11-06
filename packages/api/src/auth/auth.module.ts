@@ -11,7 +11,6 @@ import { eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { usersTable } from 'src/users/entities/user.entity'
 import { UsersModule } from 'src/users/users.module'
 
@@ -32,13 +31,7 @@ import { SessionService } from './services/session.service'
     forwardRef(() => ServerModule),
   ],
   controllers: [AuthController, SSOController],
-  providers: [
-    AuthService,
-    JWTService,
-    OAuthService,
-    SessionService,
-    ServerConfigurationService,
-  ],
+  providers: [AuthService, JWTService, OAuthService, SessionService],
   exports: [AuthService, JWTService, OAuthService, SessionService],
 })
 export class AuthModule implements OnModuleInit {

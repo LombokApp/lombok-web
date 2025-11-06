@@ -3,36 +3,29 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "app-demo-ui",
+    "app-demo-workers"
+  ],
   "scripts": {
-    "dev": "bunx vite",
-    "build": "bun x --bun vite build --mode production",
-    "build:package": "bun run build && rm -rf ../../apps/demo/ui && cp -r dist ../../apps/demo/ui",
-    "lint:check": "eslint",
-    "lint:fix": "eslint --fix",
-    "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
-    "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
-    "tsc:check": "tsc --noEmit",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@lombokapp/app-browser-sdk": "workspace:*",
-    "@lombokapp/ui-toolkit": "workspace:*",
-    "@lombokapp/utils": "workspace:*",
-    "@tanstack/react-query": "^5.83.0",
-    "openapi-react-query": "^0.5.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router": "^7.8.2"
+    "package": "bun --cwd app-demo-ui package && bun --cwd app-demo-workers package && cp config.json ../../apps/demo/config.json && cp .publicKey ../../apps/demo/.publicKey",
+    "lint:check": "bun --cwd app-demo-ui lint:check && bun --cwd app-demo-workers lint:check",
+    "prettier:check": "bun --cwd app-demo-ui prettier:check && bun --cwd app-demo-workers prettier:check",
+    "tsc:check": "bun --cwd app-demo-ui tsc:check && bun --cwd app-demo-workers tsc:check"
   },
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
-    "@types/react": "18.3.1",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react-swc": "^4.1.0",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.0.0",
-    "globals": "^15.14.0",
-    "tailwindcss": "^3.4.17",
-    "vite": "^7.1.9"
+    "eslint": "catalog:",
+    "@eslint/js": "catalog:",
+    "jiti": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:"
   }
 }

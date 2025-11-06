@@ -9,16 +9,12 @@ import * as nestjsConfig from '@nestjs/config'
 import { CronJob } from 'cron'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
-import { CoreAppService } from 'src/app/core-app.service'
-import { AppService } from 'src/app/services/app.service'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
 import { FoldersModule } from 'src/folders/folders.module'
-import { FolderService } from 'src/folders/services/folder.service'
 import { LogModule } from 'src/log/log.module'
 import { platformConfig } from 'src/platform/config/platform.config'
 import { ServerModule } from 'src/server/server.module'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 
@@ -40,13 +36,7 @@ import { EventService } from './services/event.service'
     forwardRef(() => ServerModule),
   ],
   controllers: [ServerEventsController, FolderEventsController],
-  providers: [
-    EventService,
-    FolderService,
-    ServerConfigurationService,
-    AppService,
-    CoreAppService,
-  ],
+  providers: [EventService],
   exports: [EventService],
 })
 export class EventModule implements OnModuleInit, OnModuleDestroy {

@@ -5,14 +5,18 @@ import type {
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
 import { buildAppClient, buildDatabaseClient } from '@lombokapp/app-worker-sdk'
-import type { WorkerModuleStartContext } from '@lombokapp/core-worker'
+import type {
+  WorkerModuleStartContext,
+  WorkerPipeRequest,
+  WorkerPipeResponse,
+} from '@lombokapp/core-worker-utils'
 import {
   serializeWorkerError,
   WorkerError,
   WorkerExecutorError,
   WorkerInvalidError,
   WorkerRuntimeError,
-} from '@lombokapp/core-worker'
+} from '@lombokapp/core-worker-utils'
 import type { paths } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
@@ -20,7 +24,6 @@ import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 
 import { PipeReader, PipeWriter } from './pipe-utils'
-import type { WorkerPipeRequest, WorkerPipeResponse } from './types'
 
 void (async () => {
   // AsyncLocalStorage for request-scoped context
@@ -135,7 +138,6 @@ void (async () => {
         const timestamp = new Date().toISOString()
         const line = `[${timestamp}] [${level}] ${args
           .map((arg) =>
-            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             typeof arg === 'object'
               ? JSON.stringify(arg, null, 2)
               : // eslint-disable-next-line @typescript-eslint/no-base-to-string

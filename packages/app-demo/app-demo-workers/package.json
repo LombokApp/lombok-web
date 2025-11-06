@@ -1,0 +1,36 @@
+{
+  "name": "@lombokapp/app-demo-workers",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "package": "rm -rf ../../../apps/demo/workers && rm -rf ../../../apps/demo/migrations && cp -r src/workers ../../../apps/demo/workers && cp -r src/migrations ../../../apps/demo/migrations",
+    "lint:check": "eslint",
+    "lint:fix": "eslint --fix",
+    "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
+    "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
+    "tsc:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lombokapp/app-worker-sdk": "workspace:*",
+    "@lombokapp/utils": "workspace:*",
+    "@lombokapp/types": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/bun": "catalog:",
+    "eslint": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "jiti": "catalog:",
+    "prettier": "catalog:"
+  }
+}

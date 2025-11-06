@@ -42,3 +42,5 @@ env.dev
 /apps/*
 !/apps/core
 !/apps/demo
+packages/app-demo/app-demo-ui/dist
+.linked-node-modules

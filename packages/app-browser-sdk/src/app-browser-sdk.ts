@@ -1,3 +1,4 @@
+import type { LombokApiClient } from '@lombokapp/sdk'
 import { LombokSdk } from '@lombokapp/sdk'
 
 import { IframeCommunicator } from './iframe-communicator'
@@ -124,7 +125,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     })
   }
 
-  get apiClient() {
+  get apiClient(): LombokApiClient {
     return this.sdk.apiClient
   }
 
@@ -166,7 +167,9 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     const accessToken = await this.authenticator.getAccessToken()
 
     // Build the worker API URL
-    const workerApiUrl = `/worker-api/${workerIdentifier}/${url.startsWith('/') ? url.slice(1) : url}`
+    const workerApiUrl = `/worker-api/${workerIdentifier}/${
+      url.startsWith('/') ? url.slice(1) : url
+    }`
 
     // Create headers object, starting with user-provided headers
     const headers = new Headers(options?.headers)

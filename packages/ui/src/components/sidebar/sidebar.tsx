@@ -47,7 +47,7 @@ export function Sidebar({
           >
             <Link to="/folders" className="flex gap-4 p-0">
               <img
-                className="rounded-full"
+                className="rounded-md border"
                 src="/logo.png"
                 width={24}
                 height={24}

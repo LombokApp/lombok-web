@@ -1,12 +1,12 @@
-import './types.d.ts'
+import './eslint-plugins.d.ts'
+
 import tseslint from 'typescript-eslint'
 import type { ConfigArray } from 'typescript-eslint'
 import eslintImport from 'eslint-plugin-import'
 import eslintComments from 'eslint-plugin-eslint-comments'
 import eslintPromise from 'eslint-plugin-promise'
 import eslintSimpleImportSort from 'eslint-plugin-simple-import-sort'
-import eslintTs from '@typescript-eslint/eslint-plugin'
-import stylisticTs from '@stylistic/eslint-plugin-ts'
+import stylistic from '@stylistic/eslint-plugin'
 import eslintPrettier from 'eslint-plugin-prettier'
 
 export default tseslint.config({
@@ -66,7 +66,7 @@ export default tseslint.config({
     '@typescript-eslint/consistent-type-imports': 'error',
     '@typescript-eslint/default-param-last': 'error',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@stylistic/ts/member-delimiter-style': [
+    '@stylistic/member-delimiter-style': [
       'error',
       { multiline: { delimiter: 'none' } },
     ],
@@ -130,7 +130,7 @@ export default tseslint.config({
     'require-await': 'off',
     '@typescript-eslint/require-await': 'error',
     '@typescript-eslint/switch-exhaustiveness-check': 'error',
-    '@stylistic/ts/type-annotation-spacing': 'error',
+    '@stylistic/type-annotation-spacing': 'error',
     '@typescript-eslint/typedef': 'error',
     '@typescript-eslint/unified-signatures': 'error',
   },
@@ -138,8 +138,7 @@ export default tseslint.config({
     'eslint-comments': eslintComments,
     promise: eslintPromise,
     'simple-import-sort': eslintSimpleImportSort,
-    '@typescript-eslint': eslintTs,
-    '@stylistic/ts': stylisticTs,
+    '@stylistic': stylistic,
     import: eslintImport,
     prettier: eslintPrettier,
   },

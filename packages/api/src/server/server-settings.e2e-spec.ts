@@ -32,6 +32,11 @@ describe('Server - Settings', () => {
     expect(getSettingsResponse.response.status).toEqual(200)
     expect(getSettingsResponse.data).toEqual({
       settings: {
+        GOOGLE_OAUTH_CONFIG: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+        },
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
@@ -63,6 +68,11 @@ describe('Server - Settings', () => {
     )
     expect(newSettingsResponse.data).toEqual({
       settings: {
+        GOOGLE_OAUTH_CONFIG: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+        },
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
@@ -94,6 +104,11 @@ describe('Server - Settings', () => {
     )
     expect(newSettingsResponse.data).toEqual({
       settings: {
+        GOOGLE_OAUTH_CONFIG: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+        },
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
@@ -125,6 +140,11 @@ describe('Server - Settings', () => {
     )
     expect(newSettingsResponse.data).toEqual({
       settings: {
+        GOOGLE_OAUTH_CONFIG: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+        },
         SIGNUP_ENABLED: true,
         SERVER_HOSTNAME: null,
         SIGNUP_PERMISSIONS: [],
@@ -141,6 +161,11 @@ describe('Server - Settings', () => {
     )
     expect(settingsAfterKeyReset.data).toEqual({
       settings: {
+        GOOGLE_OAUTH_CONFIG: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+        },
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
@@ -173,6 +198,11 @@ describe('Server - Settings', () => {
     )
     expect(newSettingsResponse.data).toEqual({
       settings: {
+        GOOGLE_OAUTH_CONFIG: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+        },
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],

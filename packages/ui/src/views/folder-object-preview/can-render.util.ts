@@ -1,5 +1,4 @@
 import type { FolderObjectDTO } from '@lombokapp/types/src/api.types'
-import { MediaType } from '@lombokapp/types/src/content.types'
 
 export function canRenderOriginal(
   folderObject: FolderObjectDTO,
@@ -15,18 +14,18 @@ export function canRenderOriginal(
     return { result: false, reason: 'TOO_LARGE' }
   }
 
-  if (folderObject.mediaType === MediaType.Image) {
+  if (folderObject.mediaType === 'IMAGE') {
     if (['image/heic', 'image/heif'].includes(folderObject.mimeType)) {
       return { result: false, reason: 'FORMAT_NOT_SUPPORTED' }
     }
     return { result: true }
   }
 
-  if (folderObject.mediaType === MediaType.Video) {
+  if (folderObject.mediaType === 'VIDEO') {
     return { result: true }
   }
 
-  if (folderObject.mediaType === MediaType.Document) {
+  if (folderObject.mediaType === 'DOCUMENT') {
     if (folderObject.mimeType === 'application/pdf') {
       return { result: true }
     }

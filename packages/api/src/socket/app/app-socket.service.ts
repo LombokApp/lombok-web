@@ -187,7 +187,7 @@ export class AppSocketService {
       })
       // add the clients to the rooms corresponding to their subscriptions
       await Promise.all(
-        (auth.handledTaskIdentifiers ?? []).map((taskIdentifier) => {
+        (auth.handledTaskIdentifiers ?? []).map(async (taskIdentifier) => {
           const roomKey = this.getRoomKeyForAppAndTask(
             appIdentifier,
             taskIdentifier,

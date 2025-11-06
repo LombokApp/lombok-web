@@ -22,10 +22,22 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/auth-utils": "workspace:*",
     "@lombokapp/utils": "workspace:*",
-    "prettier": "3.4.2",
-    "tslib": "2.8.1"
+    "prettier": "catalog:",
+    "@types/bun": "catalog:",
+    "eslint": "catalog:",
+    "@eslint/js": "catalog:",
+    "jiti": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:"
   },
   "dependencies": {
-    "openapi-fetch": "^0.14.0"
+    "openapi-fetch": "catalog:"
   }
 }

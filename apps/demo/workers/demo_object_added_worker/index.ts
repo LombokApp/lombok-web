@@ -7,8 +7,8 @@ export const handleTask: TaskHandler = async function handleTask(
 ) {
   const response = await serverClient.getContentSignedUrls([
     {
-      folderId: task.subjectFolderId,
-      objectKey: task.subjectObjectKey,
+      folderId: task.subjectFolderId!,
+      objectKey: task.subjectObjectKey!,
       method: SignedURLsRequestMethod.GET,
     },
   ])

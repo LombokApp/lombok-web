@@ -1,0 +1,81 @@
+{
+  "description": "The demo app.",
+  "identifier": "demo",
+  "label": "Demo App",
+  "tasks": [
+    {
+      "identifier": "demo_object_added_worker_task",
+      "label": "Demo Object Added Worker",
+      "description": "A task that runs for every newly added object.",
+      "triggers": ["platform:object_added"],
+      "worker": "demo_object_added_worker"
+    },
+    {
+      "identifier": "demo_scheduled_worker_task",
+      "label": "Demo Scheduled Worker",
+      "description": "A task that runs in response to a schedule event.",
+      "triggers": ["platform:schedule:hourly"],
+      "worker": "demo_scheduled_worker"
+    }
+  ],
+  "workers": {
+    "demo_object_added_worker": {
+      "entrypoint": "demo_object_added_worker/index.ts",
+      "description": "Runs for every newly added object.",
+      "environmentVariables": {
+        "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
+      }
+    },
+    "demo_scheduled_worker": {
+      "entrypoint": "demo_scheduled_worker/index.ts",
+      "description": "Runs in response to a schedule event.",
+      "environmentVariables": {
+        "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
+      }
+    },
+    "demo_api_request_worker": {
+      "entrypoint": "demo_api_request_worker/index.ts",
+      "description": "Is run to service and incoming API request.",
+      "environmentVariables": {
+        "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
+      }
+    }
+  },
+  "ui": {
+    "enabled": true
+  },
+  "database": {
+    "enabled": true
+  },
+  "contributions": {
+    "sidebarMenuLinks": [
+      {
+        "path": "/",
+        "label": "Landing Page",
+        "iconPath": "/assets/logo.png"
+      }
+    ],
+    "folderSidebarViews": [
+      {
+        "path": "/folders/folder-sidebar",
+        "label": "Demo Folder Sidebar View",
+        "iconPath": "/assets/logo.png"
+      }
+    ],
+    "objectSidebarViews": [
+      {
+        "path": "/folders/object-sidebar",
+        "label": "Demo Object Sidebar View",
+        "iconPath": "/assets/logo.png"
+      }
+    ],
+    "objectDetailViews": [
+      {
+        "path": "/folders/object-detail",
+        "label": "Demo Object View",
+        "iconPath": "/assets/logo.png"
+      }
+    ]
+  },
+  "emittableEvents": []
+}

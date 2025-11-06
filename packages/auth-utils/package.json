@@ -12,15 +12,28 @@
     "test:unit": "jest"
   },
   "devDependencies": {
-    "@types/react": "18.3.1",
-    "prettier": "3.4.2"
+    "@types/react": "catalog:",
+    "eslint": "catalog:",
+    "@eslint/js": "catalog:",
+    "jiti": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:"
   },
   "dependencies": {
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/types": "workspace:*",
-    "openapi-fetch": "^0.14.0",
+    "openapi-fetch": "catalog:",
     "jwt-decode": "4.0.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-router": "catalog:"
   }
 }

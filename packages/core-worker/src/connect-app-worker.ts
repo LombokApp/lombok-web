@@ -1,11 +1,18 @@
 import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
+import type { SerializeableError } from '@lombokapp/core-worker-utils'
+import { serializeWorkerError } from '@lombokapp/core-worker-utils'
 import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
+import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
-import type { SerializeableError } from './errors/errors'
-import { serializeWorkerError } from './errors/errors'
+interface ConnectAndPerformWorkResult {
+  shutdown: () => void
+  wait: Promise<void>
+  socket: Socket
+  log: (logEntryProperties: Partial<AppLogEntry>) => Promise<void>
+}
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,
@@ -16,7 +23,7 @@ export const connectAndPerformWork = (
     (task: AppTask, serverClient: IAppPlatformService) => Promise<void>
   >,
   onConnect: () => Promise<void>,
-) => {
+): ConnectAndPerformWorkResult => {
   // TODO: send internal state back to the core via a message
   const taskIdentifiers = Object.keys(taskHandlers)
   // log({ message: 'Connecting...', data: { connectURL, taskIdentifiers } })

@@ -1,3 +1,5 @@
+import '../../eslint-config/eslint-plugins.d.ts'
+
 import eslint from '@eslint/js'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
 import tseslint, { type Config } from 'typescript-eslint'

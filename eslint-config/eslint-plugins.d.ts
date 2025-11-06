@@ -1,4 +1,5 @@
 declare module 'eslint-plugin-import'
+declare module 'eslint-plugin-react'
 declare module 'eslint-plugin-eslint-comments'
 declare module 'eslint-plugin-promise'
 declare module 'eslint-plugin-simple-import-sort'

@@ -1,0 +1,51 @@
+{
+  "name": "@lombokapp/app-demo-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun vite",
+    "build": "bunx --bun vite build --mode production",
+    "package": "bun run build && rm -rf ../../../apps/demo/ui && cp -r dist ../../../apps/demo/ui",
+    "lint:check": "eslint",
+    "lint:fix": "eslint --fix",
+    "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
+    "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
+    "tsc:check": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@lombokapp/app-browser-sdk": "workspace:*",
+    "@lombokapp/ui-toolkit": "workspace:*",
+    "@lombokapp/utils": "workspace:*",
+    "@tanstack/react-query": "catalog:",
+    "openapi-react-query": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-router": "catalog:"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react-swc": "catalog:",
+    "autoprefixer": "catalog:",
+    "eslint": "catalog:",
+    "jiti": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "eslint-plugin-tailwindcss": "catalog:",
+    "eslint-plugin-jsx-a11y": "catalog:",
+    "globals": "catalog:",
+    "tailwindcss": "catalog:",
+    "vite": "catalog:",
+    "prettier": "catalog:"
+  }
+}

@@ -1,10 +1,9 @@
-import fs from 'fs'
-
 import type {
   WorkerPipeMessage,
   WorkerPipeRequest,
   WorkerPipeResponse,
-} from './types'
+} from '@lombokapp/core-worker-utils'
+import fs from 'fs'
 
 const LOMBOK_PIPE_DEBUG = false as boolean
 /**
