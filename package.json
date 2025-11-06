@@ -101,6 +101,7 @@
     "eslint-plugin-jsx-a11y": "catalog:",
     "eslint-plugin-tailwindcss": "catalog:",
     "eslint-plugin-storybook": "catalog:",
+    "@stylistic/eslint-plugin-ts": "catalog:",
     "typescript-eslint": "catalog:",
     "globals": "catalog:"
   }
