@@ -1,6 +1,5 @@
 import '../../eslint-config/eslint-plugins.d.ts'
 
-import eslint from '@eslint/js'
 import containerQueries from '@tailwindcss/container-queries'
 import eslintStorybook from 'eslint-plugin-storybook'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
@@ -12,15 +11,14 @@ import reactConfig from '../../eslint-config/react'
 import strictConfig from '../../eslint-config/strict'
 import { themePlugin } from './styles'
 
-export default tseslint.config(
-  eslint.configs.recommended,
+export default [
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
   ...eslintTailwind.configs['flat/recommended'],
-  baseConfig,
-  reactConfig,
-  strictConfig,
+  ...baseConfig,
+  ...reactConfig,
+  ...strictConfig,
   {
     ignores: [
       'node_modules/',
@@ -46,10 +44,13 @@ export default tseslint.config(
       },
     },
     languageOptions: {
-      ecmaVersion: 2022,
+      globals: {
+        React: 'readonly',
+        JSX: 'readonly',
+      },
       parserOptions: {
-        tsconfigRootDir: import.meta.dirname,
-        projectService: true,
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
       },
     },
   },
@@ -73,4 +74,4 @@ export default tseslint.config(
       'dot-notation': 'error',
     },
   },
-)
+]

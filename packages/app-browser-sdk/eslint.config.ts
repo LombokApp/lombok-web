@@ -1,22 +1,21 @@
 import '../../eslint-config/eslint-plugins.d.ts'
 
-import eslint from '@eslint/js'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
-import tseslint, { type Config } from 'typescript-eslint'
+import type { ConfigArray } from 'typescript-eslint'
+import tseslint from 'typescript-eslint'
 
 import baseConfig from '../../eslint-config/base'
 import reactConfig from '../../eslint-config/react'
 import strictConfig from '../../eslint-config/strict'
 
-export default tseslint.config(
-  eslint.configs.recommended,
+export default [
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
   ...eslintTailwind.configs['flat/recommended'],
-  baseConfig,
-  reactConfig,
-  strictConfig,
+  ...baseConfig,
+  ...reactConfig,
+  ...strictConfig,
   {
     ignores: ['node_modules/', 'dist/', 'build/', 'public/', 'fonts/'],
   },
@@ -34,17 +33,20 @@ export default tseslint.config(
       parserOptions: {
         tsconfigRootDir: __dirname,
         projectService: true,
+        project: ['./tsconfig.eslint.json'],
       },
     },
   },
   {
     languageOptions: {
+      globals: {
+        React: 'readonly',
+        JSX: 'readonly',
+      },
       parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.js', '*.mjs'],
-        },
         tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
       },
     },
   },
-) as Config
+] as ConfigArray

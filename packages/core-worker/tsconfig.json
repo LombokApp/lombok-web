@@ -28,9 +28,9 @@
   "include": [
     "src/**/*.ts",
     "index.ts",
-    "eslint.config.ts",
     "script/**/*.ts",
-    "core-app-worker.ts"
+    "core-app-worker.ts",
+    "eslint.config.ts"
   ],
   "exclude": ["dist"]
 }

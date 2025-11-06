@@ -30,5 +30,11 @@
       "@/components/*": ["../ui-toolkit/src/components/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "eslint.config.ts"]
+  "include": [
+    "src",
+    "vite.config.ts",
+    "eslint.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.ts"
+  ]
 }

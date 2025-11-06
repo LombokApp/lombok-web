@@ -28,5 +28,6 @@
     "script/*.ts",
     "test/**/*.ts",
     "eslint.config.ts"
-  ]
+  ],
+  "exclude": ["dist"]
 }
