@@ -11,7 +11,6 @@ import { eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { usersTable } from 'src/users/entities/user.entity'
 import { UsersModule } from 'src/users/users.module'
 
