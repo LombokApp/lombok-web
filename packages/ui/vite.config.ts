@@ -97,7 +97,6 @@ export default defineConfig(({ mode }) => {
             'ui-toolkit': ['@lombokapp/ui-toolkit'],
             query: ['@tanstack/react-query', 'openapi-react-query'],
             'lombok-sdk': [
-              '@lombokapp/app-browser-sdk',
               '@lombokapp/sdk',
               '@lombokapp/types',
               '@lombokapp/auth-utils',
