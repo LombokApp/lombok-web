@@ -9,8 +9,8 @@ const optionalRequirePackages = [
 ]
 
 const alwaysExternalPackages = [
-  '@heyputer/kv.js', // Always external to avoid XMap bundling issues
-  '@lombokapp/core-worker', // Externalize to preserve its import.meta.dirname at runtime
+  '@lombokapp/core-worker',
+  '@lombokapp/core-worker-utils',
 ]
 
 void (async () => {

@@ -16,7 +16,17 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/utils": ["../utils/src"],
+      "@lombokapp/utils/*": ["../utils/src/*"],
+      "@lombokapp/auth-utils": ["../auth-utils/src"],
+      "@lombokapp/auth-utils/*": ["../auth-utils/src/*"],
+      "@lombokapp/sdk": ["../sdk/src"],
+      "@lombokapp/sdk/*": ["../sdk/src/*"]
+    }
   },
   "include": ["index.ts", "src/**/*", "eslint.config.ts"],
   "exclude": ["node_modules", "dist"]

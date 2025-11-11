@@ -1,8 +1,15 @@
 {
   "name": "@lombokapp/types",
   "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
-    "build": "rm -rf ./dist && NODE_ENV=production bun --bun script/build.ts",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun",
     "build:clean": "bun clean && bun run build",
     "clean": "rm -rf ./dist",
     "lint:check": "eslint .",
@@ -17,6 +24,7 @@
     "eslint": "catalog:",
     "@eslint/js": "catalog:",
     "jiti": "catalog:",
+    "openapi-fetch": "catalog:",
     "typescript-eslint": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@stylistic/eslint-plugin": "catalog:",
@@ -26,10 +34,10 @@
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "globals": "catalog:",
-    "prettier": "catalog:"
+    "prettier": "catalog:",
+    "tsup": "8.5.0"
   },
   "dependencies": {
-    "openapi-fetch": "catalog:",
     "zod": "catalog:"
   }
 }

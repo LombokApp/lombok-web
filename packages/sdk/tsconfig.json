@@ -12,7 +12,14 @@
     "moduleResolution": "node",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/auth-utils": ["../auth-utils/src"],
+      "@lombokapp/auth-utils/*": ["../auth-utils/src/*"]
+    }
   },
   "include": [".", "src", "index.ts", "index.d.ts", "eslint.config.ts"],
   "exclude": ["dist"]

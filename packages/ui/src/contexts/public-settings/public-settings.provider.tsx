@@ -17,7 +17,6 @@ export const PublicSettingsContextProvider = ({
   } = $api.useQuery('get', '/api/v1/public/settings')
 
   const contextValue: IPublicSettingsContext = {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     settings: settings?.settings ?? null,
     isLoading,
     refetch: () => {

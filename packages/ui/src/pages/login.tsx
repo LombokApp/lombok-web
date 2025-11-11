@@ -8,7 +8,6 @@ import { usePublicSettingsContext } from '../contexts/public-settings'
 export const Login = () => {
   const authContext = useAuthContext()
   const navigate = useNavigate()
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { settings } = usePublicSettingsContext()
 
   // Copy error and clear it from authContext
@@ -32,7 +31,6 @@ export const Login = () => {
   return (
     <div className="flex size-full flex-col justify-around bg-foreground/[.03]">
       <LoginComponent
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         googleOAuthEnabled={settings?.GOOGLE_OAUTH_ENABLED ?? false}
         error={localError}
         onSignup={() => void navigate('/signup')}

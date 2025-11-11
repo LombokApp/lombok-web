@@ -1,6 +1,7 @@
 import '../../eslint-config/eslint-plugins.d.ts'
 
 import eslint from '@eslint/js'
+import type { ConfigArray } from 'typescript-eslint'
 import tseslint from 'typescript-eslint'
 
 import baseConfig from '../../eslint-config/base'
@@ -27,4 +28,4 @@ export default [
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
-]
+] as ConfigArray
