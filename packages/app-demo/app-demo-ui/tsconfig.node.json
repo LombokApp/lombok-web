@@ -4,7 +4,14 @@
     "strictNullChecks": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lombokapp/types": ["../../types/src"],
+      "@lombokapp/types/*": ["../../types/src/*"],
+      "@lombokapp/utils": ["../../utils/src"],
+      "@lombokapp/utils/*": ["../../utils/src/*"]
+    }
   },
-  "include": ["vite.config.ts", "vite.config.d.ts", "eslint.config.ts"]
+  "include": ["vite.config.ts", "eslint.config.ts"]
 }

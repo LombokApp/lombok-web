@@ -11,7 +11,6 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "target": "ES2022",
-    "sourceMap": true,
     "outDir": "dist",
     "baseUrl": "./",
     "incremental": true,
@@ -23,7 +22,15 @@
     "noFallthroughCasesInSwitch": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "allowJs": true
+    "allowJs": true,
+    "paths": {
+      "@lombokapp/core-worker-utils": ["../core-worker-utils/src"],
+      "@lombokapp/core-worker-utils/*": ["../core-worker-utils/src/*"],
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/utils": ["../utils/src"],
+      "@lombokapp/utils/*": ["../utils/src/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

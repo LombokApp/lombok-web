@@ -37,10 +37,8 @@ export default [
       },
       parserOptions: {
         tsconfigRootDir: __dirname,
-        project: ['./tsconfig.json'],
-        projectService: {
-          allowDefaultProject: ['*.js', '*.mjs'],
-        },
+        project: ['./tsconfig.app.json'],
+        projectService: true,
       },
     },
   },

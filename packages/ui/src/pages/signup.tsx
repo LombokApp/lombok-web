@@ -10,7 +10,6 @@ export const Signup = () => {
   const authContext = useAuthContext()
   const navigate = useNavigate()
   const { toast } = useToast()
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { settings } = usePublicSettingsContext()
 
   // Copy error and clear it from authContext
@@ -61,7 +60,6 @@ export const Signup = () => {
   return (
     <div className="flex size-full flex-col justify-around bg-foreground/[.03]">
       <SignupComponent
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         googleOAuthEnabled={settings?.GOOGLE_OAUTH_ENABLED ?? false}
         error={localError}
         onSubmit={handleSignupSubmit}

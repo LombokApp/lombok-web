@@ -1,4 +1,4 @@
-import type { FolderObjectDTO } from '@lombokapp/types/src/api.types'
+import type { FolderObjectDTO } from '@lombokapp/types'
 
 export function canRenderOriginal(
   folderObject: FolderObjectDTO,

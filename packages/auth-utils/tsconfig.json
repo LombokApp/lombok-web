@@ -16,7 +16,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/utils": ["../utils/src"],
+      "@lombokapp/utils/*": ["../utils/src/*"]
+    }
   },
   "include": [".", "index.ts", "eslint.config.ts"],
   "exclude": ["dist"]

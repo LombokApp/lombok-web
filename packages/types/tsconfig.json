@@ -1,23 +1,27 @@
 {
   "compilerOptions": {
-    "target": "es6",
     "types": ["bun"],
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "strictNullChecks": true,
-    "allowSyntheticDefaultImports": true,
     "strict": true,
-    "noEmit": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
     "module": "ES2022",
     "moduleResolution": "node",
+    "declaration": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "dist"
+    "allowJs": true
   },
-  "include": ["src/**/*.ts", "index.ts", "eslint.config.ts", "script/**/*.ts"],
-  "exclude": ["dist", "src/api-paths.d.ts"]
+  "include": ["src/**/*.ts", "index.ts", "eslint.config.ts"],
+  "exclude": ["node_modules", "dist", "src/api-paths.d.ts"]
 }

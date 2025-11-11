@@ -2,7 +2,9 @@ import type createFetchClient from 'openapi-fetch'
 
 import type { paths } from './api-paths'
 
-export type LombokApiClient = ReturnType<typeof createFetchClient<paths>>
+export type LombokApiClient = ReturnType<
+  typeof createFetchClient<paths, `${string}/${string}`>
+>
 
 export type UserDTO =
   paths['/api/v1/server/users/{userId}']['get']['responses']['200']['content']['application/json']['user']

@@ -3,10 +3,12 @@ import createClient from 'openapi-react-query'
 import React from 'react'
 
 export function SdkDemo() {
-  const { isInitialized, apiClient, authState, executeWorkerScriptUrl } =
-    useAppBrowserSdk()
+  const sdk = useAppBrowserSdk()
+  const isInitialized = sdk.isInitialized
+  const authState = sdk.authState
+  const executeWorkerScriptUrl = sdk.executeWorkerScriptUrl
   // Create hooks-based client from the SDK's API client
-  const [$api] = React.useState(() => createClient(apiClient))
+  const [$api] = React.useState(() => createClient(sdk.apiClient))
 
   // Worker script state
   const [workerLoading, setWorkerLoading] = React.useState(false)
@@ -82,8 +84,9 @@ export function SdkDemo() {
       <div className="space-y-4">
         <div className="rounded-lg border border-white/10 bg-black/20 p-4">
           <pre className="overflow-auto text-sm text-green-400">
-            {(viewerQuery.data && JSON.stringify(viewerQuery.data, null, 2)) ??
-              '...'}
+            {viewerQuery.data
+              ? JSON.stringify(viewerQuery.data, null, 2)
+              : '...'}
           </pre>
         </div>
 

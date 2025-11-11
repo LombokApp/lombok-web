@@ -20,7 +20,15 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@lombokapp/core-worker-utils": ["../core-worker-utils/src"],
+      "@lombokapp/core-worker-utils/*": ["../core-worker-utils/src/*"],
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/utils": ["../utils/src"],
+      "@lombokapp/utils/*": ["../utils/src/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

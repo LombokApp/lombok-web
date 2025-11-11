@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
+    "tailwindcss": "catalog:",
     "@chromatic-com/storybook": "^3.2.3",
     "@storybook/addon-actions": "^8.4.7",
     "@storybook/addon-backgrounds": "^8.4.7",
@@ -64,7 +65,8 @@
     "ts-loader": "^9.5.2",
     "tsconfig-paths": "catalog:",
     "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "tscpaths": "^0.0.9"
+    "tscpaths": "^0.0.9",
+    "tailwindcss-animate": "^1.0.7"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -114,8 +116,6 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.0",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "catalog:",
-    "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "zod": "catalog:"
   }

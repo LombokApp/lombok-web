@@ -1,8 +1,9 @@
 services:
   app:
-    image: ghcr.io/lombokapp/lombok-standalone:latest
-    pull_policy: always
+    image: 606c17e05b70
+    pull_policy: never
     container_name: lombok-standalone-demo-app
+    platform: linux/arm64
     environment:
       PLATFORM_HOST: lombokdemo.localhost
       INITIAL_USER: demo

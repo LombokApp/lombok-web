@@ -24,7 +24,13 @@
     "paths": {
       "@/src/*": ["./src/*"],
       "@/utils/*": ["../ui-toolkit/src/utils/*"],
-      "@/components/*": ["../ui-toolkit/src/components/*"]
+      "@/components/*": ["../ui-toolkit/src/components/*"],
+      "@lombokapp/app-worker-sdk": ["../../app-worker-sdk/src"],
+      "@lombokapp/app-worker-sdk/*": ["../../app-worker-sdk/src/*"],
+      "@lombokapp/types": ["../../types/src"],
+      "@lombokapp/types/*": ["../../types/src/*"],
+      "@lombokapp/utils": ["../../utils/src"],
+      "@lombokapp/utils/*": ["../../utils/src/*"]
     }
   },
   "include": ["src", "vite.config.ts", "eslint.config.ts"]

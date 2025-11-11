@@ -16,7 +16,6 @@
     "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml up coreworkere2etest"
   },
   "devDependencies": {
-    "@lombokapp/types": "workspace:*",
     "@types/bun": "catalog:",
     "eslint": "catalog:",
     "@eslint/js": "catalog:",
@@ -36,6 +35,7 @@
     "uuid": "catalog:"
   },
   "dependencies": {
+    "@lombokapp/types": "workspace:*",
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/app-worker-sdk": "workspace:*",
     "@lombokapp/core-worker-utils": "workspace:*",

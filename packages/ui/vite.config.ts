@@ -88,6 +88,8 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@/src': path.resolve(__dirname, './src'),
+        '@lombokapp/utils': path.resolve(__dirname, '../utils/src'),
+        '@lombokapp/types': path.resolve(__dirname, '../types/src'),
       },
     },
     build: {
