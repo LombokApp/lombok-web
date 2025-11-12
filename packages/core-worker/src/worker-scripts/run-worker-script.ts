@@ -547,62 +547,24 @@ async function ensureLombokSymlinkMirror(): Promise<string> {
 
   await fs.promises.mkdir(mirrorScopeDir, { recursive: true })
 
-  // Discover all @lombokapp/* packages under repoRoot/packages recursively
-  const exclude = new Set([
-    'node_modules',
-    'dist',
-    'build',
-    '.git',
-    '.next',
-    'storybook-static',
-  ])
+  // Only include nominated first-level packages under ./packages
   const pkgsRoot = path.join(repoRoot, 'packages')
-  const toVisit: string[] = [pkgsRoot]
+  const allowedPackages: { name: string; dirName: string }[] = [
+    { name: '@lombokapp/app-worker-sdk', dirName: 'app-worker-sdk' },
+    { name: '@lombokapp/utils', dirName: 'utils' },
+    { name: '@lombokapp/types', dirName: 'types' },
+    { name: '@lombokapp/core-worker-utils', dirName: 'core-worker-utils' },
+  ]
   const found: { name: string; dir: string }[] = []
-
-  while (toVisit.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const current = toVisit.pop()!
-    let stat: fs.Stats
+  for (const allowed of allowedPackages) {
+    const pkgDir = path.join(pkgsRoot, allowed.dirName)
     try {
-      stat = await fs.promises.lstat(current)
-    } catch {
-      continue
-    }
-    if (!stat.isDirectory()) {
-      continue
-    }
-    const base = path.basename(current)
-    if (exclude.has(base)) {
-      continue
-    }
-
-    const pkgJsonPath = path.join(current, 'package.json')
-    if (await fs.promises.exists(pkgJsonPath)) {
-      try {
-        const pkgRaw = await fs.promises.readFile(pkgJsonPath, 'utf8')
-        const pkg = JSON.parse(pkgRaw) as { name?: string }
-        if (
-          typeof pkg.name === 'string' &&
-          pkg.name.startsWith('@lombokapp/')
-        ) {
-          found.push({ name: pkg.name, dir: current })
-        }
-      } catch {
-        // ignore malformed package.json
-      }
-    }
-
-    try {
-      const entries = await fs.promises.readdir(current)
-      for (const entry of entries) {
-        if (exclude.has(entry)) {
-          continue
-        }
-        toVisit.push(path.join(current, entry))
+      const stat = await fs.promises.lstat(pkgDir)
+      if (stat.isDirectory()) {
+        found.push({ name: allowed.name, dir: pkgDir })
       }
     } catch {
-      // ignore
+      // package directory does not exist; skip
     }
   }
 
@@ -669,6 +631,9 @@ async function ensureLombokSymlinkMirror(): Promise<string> {
 const STATIC_NODE_MODULES_TO_LINK = [
   'openapi-fetch',
   'socket.io-client',
+  'pg',
+  'drizzle-orm',
+  'drizzle-kit',
 ] as const
 
 async function ensureLinkedNodeModulesMirror(): Promise<string> {
@@ -680,97 +645,67 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   await ensureLombokSymlinkMirror()
 
   // 2) Link selected static packages into mirror root
-  // Helper to resolve a package by name from workspace (packages/*) or fallback to repo/node_modules
+  // Helper to resolve a package by name from Bun's isolated linker location
+  // Uses bun.lock to find the exact version, then resolves to .bun/package-name@version/node_modules/package-name
   const resolvePkgDir = async (
     pkgName: string,
   ): Promise<string | undefined> => {
-    const pkgsRoot = path.join(repoRoot, 'packages')
-    // Fast fallback to repo node_modules
-    const nmBase = path.join(repoRoot, 'node_modules')
-    const isScoped = pkgName.startsWith('@')
-    const nmPath = isScoped
-      ? path.join(nmBase, pkgName.split('/')[0], pkgName.split('/')[1])
-      : path.join(nmBase, pkgName)
-    if (await fs.promises.exists(nmPath)) {
-      return nmPath
+    const nmBase = path.join(repoRoot, 'node_modules', '.bun')
+    const lockfilePath = path.join(repoRoot, 'bun.lock')
+
+    // Read and parse bun.lock to get the exact version
+    // bun.lock may have trailing commas, so we need to clean it up first
+    const lockfileContent = await fs.promises.readFile(lockfilePath, 'utf8')
+    // Remove trailing commas before } or ] to make it valid JSON
+    const cleaned = lockfileContent.replace(/,(\s*[}\]])/g, '$1')
+    const lockfile = JSON.parse(cleaned) as {
+      packages?: Record<string, unknown[]>
+    }
+    // Look up the package in the lockfile
+    const pkgEntry = lockfile.packages?.[pkgName]
+    if (!pkgEntry || !Array.isArray(pkgEntry) || pkgEntry.length === 0) {
+      return undefined
     }
 
-    // Check each workspace package's node_modules (Bun 1.3 installs per-package)
-    try {
-      const workspaces = await fs.promises.readdir(pkgsRoot)
-      for (const entry of workspaces) {
-        const pkgDir = path.join(pkgsRoot, entry)
-        let st: fs.Stats | undefined
-        try {
-          st = await fs.promises.lstat(pkgDir)
-        } catch {
-          st = undefined
-        }
-        if (!st?.isDirectory()) {
-          continue
-        }
-        const pkgNmBase = path.join(pkgDir, 'node_modules')
-        const candidate = isScoped
-          ? path.join(pkgNmBase, pkgName.split('/')[0], pkgName.split('/')[1])
-          : path.join(pkgNmBase, pkgName)
-        if (await fs.promises.exists(candidate)) {
-          return candidate
-        }
-      }
-    } catch {
-      // ignore
+    // First element is the versioned package identifier (e.g., "drizzle-orm@0.44.7")
+    const versionedId = pkgEntry[0]
+    if (typeof versionedId !== 'string' || !versionedId.includes('@')) {
+      return undefined
     }
 
-    // Workspace search (depth-first) for matching package.json name
-    const exclude = new Set([
-      'node_modules',
-      'dist',
-      'build',
-      '.git',
-      '.next',
-      'storybook-static',
-    ])
-    const toVisit: string[] = [pkgsRoot]
-    while (toVisit.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const current = toVisit.pop()!
-      let stat: fs.Stats
-      try {
-        stat = await fs.promises.lstat(current)
-      } catch {
-        continue
-      }
-      if (!stat.isDirectory()) {
-        continue
-      }
-      const base = path.basename(current)
-      if (exclude.has(base)) {
-        continue
-      }
-      const pkgJsonPath = path.join(current, 'package.json')
-      if (await fs.promises.exists(pkgJsonPath)) {
-        try {
-          const pkgRaw = await fs.promises.readFile(pkgJsonPath, 'utf8')
-          const pkg = JSON.parse(pkgRaw) as { name?: string }
-          if (pkg.name === pkgName) {
-            return current
+    // Extract the version part and construct the directory name
+    // The lockfile has "@types/pg@8.15.6" but .bun stores it as "@types+pg@8.15.6"
+    // Also, Bun may add a hash suffix like "drizzle-orm@0.44.7+a43305ce07db02c9"
+    // So we need to replace / with + and then search for directories starting with that
+    const baseDirName = versionedId.replace(/\//g, '+')
+
+    // Try exact match first, then search for directories starting with the base name
+    let versionDir: string | undefined
+    const exactPath = path.join(nmBase, baseDirName)
+    if (await fs.promises.exists(exactPath)) {
+      versionDir = exactPath
+    } else {
+      // Search for directories that start with the base name (may have hash suffix)
+      const entries = await fs.promises.readdir(nmBase)
+      for (const entry of entries) {
+        if (entry.startsWith(baseDirName)) {
+          const candidate = path.join(nmBase, entry)
+          const stat = await fs.promises.lstat(candidate)
+          if (stat.isDirectory()) {
+            versionDir = candidate
+            break
           }
-        } catch {
-          // ignore
         }
-      }
-      try {
-        const entries = await fs.promises.readdir(current)
-        for (const entry of entries) {
-          if (exclude.has(entry)) {
-            continue
-          }
-          toVisit.push(path.join(current, entry))
-        }
-      } catch {
-        // ignore
       }
     }
+
+    if (versionDir) {
+      const packagePath = path.join(versionDir, 'node_modules', pkgName)
+      if (await fs.promises.exists(packagePath)) {
+        return packagePath
+      }
+    }
+
     return undefined
   }
 
