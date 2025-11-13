@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "types": ["bun"],
-    "target": "esnext",
-    "jsx": "preserve",
+    "module": "ES2022",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["bun"],
+    "jsx": "preserve",
     "allowJs": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

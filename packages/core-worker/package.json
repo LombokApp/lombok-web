@@ -1,10 +1,20 @@
 {
   "name": "@lombokapp/core-worker",
   "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./core-app-worker": {
+      "types": "./dist/core-app-worker.d.ts",
+      "import": "./dist/core-app-worker.mjs",
+      "default": "./dist/core-app-worker.mjs"
+    }
+  },
   "scripts": {
-    "build": "rm -rf ./dist && NODE_ENV=production bun --bun script/build.ts",
-    "build:clean": "bun clean && bun run build",
-    "clean": "rm -rf ./dist",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup index.ts core-app-worker.ts --format esm --dts --external bun && cp -r ./src/worker-scripts/worker-daemon ./dist/",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "tsc:check": "tsc --noEmit",
@@ -32,7 +42,8 @@
     "socket.io": "catalog:",
     "openapi-fetch": "catalog:",
     "prettier": "catalog:",
-    "uuid": "catalog:"
+    "uuid": "catalog:",
+    "tsup": "catalog:"
   },
   "dependencies": {
     "@lombokapp/types": "workspace:*",

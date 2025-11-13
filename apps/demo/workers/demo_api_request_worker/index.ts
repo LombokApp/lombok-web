@@ -1,7 +1,8 @@
-import { RequestHandler } from '@lombokapp/app-worker-sdk'
+import type { RequestHandler } from '@lombokapp/app-worker-sdk'
 
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   { serverClient, dbClient },
 ) {
   console.log(
@@ -27,7 +28,7 @@ export const handleRequest: RequestHandler = async function handleRequest(
     try {
       const contentType = request.headers.get('Content-Type') || ''
       if (contentType.includes('application/json')) {
-        const bodyData = await request.json()
+        const bodyData = (await request.json()) as unknown
         console.log('Request JSON body:', bodyData)
       } else if (contentType.includes('text/')) {
         const bodyText = await request.text()

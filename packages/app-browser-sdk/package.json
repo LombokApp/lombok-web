@@ -1,15 +1,16 @@
 {
   "name": "@lombokapp/app-browser-sdk",
   "version": "0.0.1",
-  "type": "module",
   "main": "dist/index.js",
   "exports": {
-    "default": "./index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @lombokapp/sdk --external @lombokapp/types --external @lombokapp/auth-utils",
-    "build:types": "tsc --emitDeclarationOnly --outDir dist",
-    "build:clean": "rm -rf dist && bun run build && bun run build:types",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun,@lombokapp/auth-utils,@lombokapp/types,@lombokapp/sdk",
     "dev": "bun --watch src/index.ts",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -40,6 +41,7 @@
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "prettier": "catalog:",
-    "globals": "catalog:"
+    "globals": "catalog:",
+    "tsup": "catalog:"
   }
 }

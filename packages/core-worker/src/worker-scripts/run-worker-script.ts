@@ -537,14 +537,27 @@ async function findRepoRoot(
   }
 }
 
-async function ensureLombokSymlinkMirror(): Promise<string> {
-  const repoRoot = await findRepoRoot()
-  const mirrorScopeDir = path.join(
-    repoRoot,
+/**
+ * Gets a deterministic path in /tmp for the linked node modules directory.
+ * Uses a hash of the repo root to create a unique but stable directory name.
+ */
+async function getLinkedNodeModulesPath(repoRoot: string): Promise<string> {
+  const crypto = await import('crypto')
+  const repoHash = crypto
+    .createHash('sha256')
+    .update(repoRoot)
+    .digest('hex')
+    .substring(0, 16)
+  return path.join(
+    os.tmpdir(),
+    `lombok-linked-node-modules-${repoHash}`,
     '.linked-node-modules',
-    '@lombokapp',
   )
+}
 
+async function ensureLombokSymlinkMirror(mirrorRoot: string): Promise<string> {
+  const repoRoot = await findRepoRoot()
+  const mirrorScopeDir = path.join(mirrorRoot, '@lombokapp')
   await fs.promises.mkdir(mirrorScopeDir, { recursive: true })
 
   // Only include nominated first-level packages under ./packages
@@ -638,11 +651,11 @@ const STATIC_NODE_MODULES_TO_LINK = [
 
 async function ensureLinkedNodeModulesMirror(): Promise<string> {
   const repoRoot = await findRepoRoot()
-  const mirrorRoot = path.join(repoRoot, '.linked-node-modules')
+  const mirrorRoot = await getLinkedNodeModulesPath(repoRoot)
   await fs.promises.mkdir(mirrorRoot, { recursive: true })
 
   // 1) Ensure @lombokapp scope subtree exists and is synced
-  await ensureLombokSymlinkMirror()
+  await ensureLombokSymlinkMirror(mirrorRoot)
 
   // 2) Link selected static packages into mirror root
   // Helper to resolve a package by name from Bun's isolated linker location

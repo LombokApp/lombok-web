@@ -31,8 +31,12 @@
       "@lombokapp/core-worker-utils/*": ["../core-worker-utils/src/*"],
       "@lombokapp/types": ["../types/src"],
       "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/sdk": ["../sdk/src"],
+      "@lombokapp/sdk/*": ["../sdk/src/*"],
       "@lombokapp/utils": ["../utils/src"],
-      "@lombokapp/utils/*": ["../utils/src/*"]
+      "@lombokapp/utils/*": ["../utils/src/*"],
+      "@lombokapp/auth-utils": ["../auth-utils/src"],
+      "@lombokapp/auth-utils/*": ["../auth-utils/src/*"]
     }
   },
   "include": ["src", "worker.ts"]

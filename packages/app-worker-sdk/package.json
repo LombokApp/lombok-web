@@ -3,17 +3,24 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./drizzle": {
+      "types": "./dist/drizzle.d.ts",
+      "import": "./dist/drizzle.js",
+      "default": "./dist/drizzle.js"
+    },
+    "./drizzle-pg-core": {
+      "types": "./dist/drizzle-pg-core.d.ts",
+      "import": "./dist/drizzle-pg-core.js",
+      "default": "./dist/drizzle-pg-core.js"
     }
   },
   "version": "0.0.1-6",
   "type": "module",
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @lombokapp/types",
-    "build:clean": "bun run clean && bun run workspaces @lombokapp/types build:clean && bun --cwd ./packages/utils build:clean && bun run build",
-    "publish:dev": "bun run build:clean && YARN_NPM_REGISTRY_SERVER=\"https://npm.wasteofpaper.com\" yarn npm publish --access restricted --tag @lombokapp/app-worker-sdk",
-    "clean": "rm -rf ./dist",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts src/drizzle.ts src/drizzle-pg-core.ts --format esm,cjs --dts --external bun",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "tsc:check": "tsc --noEmit",
@@ -36,7 +43,8 @@
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "globals": "catalog:",
-    "prettier": "catalog:"
+    "prettier": "catalog:",
+    "tsup": "8.5.0"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",

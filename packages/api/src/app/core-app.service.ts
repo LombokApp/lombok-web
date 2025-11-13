@@ -56,7 +56,7 @@ export class CoreAppService {
       // Resolve the core-app-worker entry: use src in dev, dist in production
       const isProduction = process.env.NODE_ENV === 'production'
       const workerEntry = isProduction
-        ? require.resolve('@lombokapp/core-worker/dist/core-app-worker.js')
+        ? require.resolve('@lombokapp/core-worker/core-app-worker')
         : require.resolve('@lombokapp/core-worker/core-app-worker.ts')
       const child = spawn('bun', [workerEntry], {
         uid: 1000,
