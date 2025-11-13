@@ -1,10 +1,15 @@
 import type {
   AppTask,
+  CreateDbFn,
   RequestHandler,
   SerializeableRequest,
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
-import { buildAppClient, buildDatabaseClient } from '@lombokapp/app-worker-sdk'
+import {
+  buildAppClient,
+  buildDatabaseClient,
+  createDrizzle,
+} from '@lombokapp/app-worker-sdk'
 import type {
   WorkerModuleStartContext,
   WorkerPipeRequest,
@@ -282,6 +287,8 @@ void (async () => {
       responseWriter,
     }
 
+    const createDb: CreateDbFn = (schema) => createDrizzle(serverClient, schema)
+
     // Process the request within ALS context
     await requestContext.run(ctx, async () => {
       let response: Response | undefined
@@ -371,6 +378,7 @@ void (async () => {
           response = await userModule.handleRequest(request, {
             serverClient,
             dbClient,
+            createDb,
             user: userId // Pass the authenticated user to the handler
               ? {
                   userId,
@@ -406,6 +414,7 @@ void (async () => {
           await userModule.handleTask(pipeRequest.data as AppTask, {
             serverClient,
             dbClient,
+            createDb,
           })
           // Tasks don't return responses
           response = undefined
