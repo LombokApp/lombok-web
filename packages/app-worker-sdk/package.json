@@ -1,7 +1,12 @@
 {
   "name": "@lombokapp/app-worker-sdk",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
   "version": "0.0.1-6",
   "type": "module",
   "scripts": {
@@ -37,5 +42,8 @@
     "drizzle-orm": "catalog:",
     "socket.io-client": "catalog:",
     "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "catalog:"
   }
 }

@@ -8,7 +8,11 @@ import type {
   SignedURLsRequestMethod,
   WorkerErrorDetails,
 } from '@lombokapp/types'
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import {
+  drizzle,
+  type NodePgClient,
+  type NodePgDatabase,
+} from 'drizzle-orm/node-postgres'
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 
@@ -350,27 +354,47 @@ export const buildDatabaseClient = (
   }
 }
 
-export class DrizzlePgLike {
+/**
+ * Minimal interface that documents what Drizzle ORM actually needs from a client.
+ * This is the contract that Drizzle uses, even though it types it as NodePgClient
+ * (which is a union of concrete pg classes).
+ */
+interface DrizzleCompatibleClient {
+  query: (
+    query:
+      | string
+      | { text: string; rowMode?: string; types?: Record<string, unknown> },
+    params?: unknown[],
+  ) => Promise<{ rows: unknown[] }>
+  transaction?: <T>(
+    fn: (tx: DrizzleCompatibleClient) => Promise<T>,
+  ) => Promise<T>
+}
+
+export class DrizzlePgLike implements DrizzleCompatibleClient {
   constructor(private readonly client: DatabaseClient) {}
 
   // what drizzle needs for queries
   async query<T = unknown>(
-    sql: { text: string; rowMode?: string; types?: Record<string, unknown> },
+    sql:
+      | string
+      | { text: string; rowMode?: string; types?: Record<string, unknown> },
     params?: unknown[],
   ): Promise<{ rows: T[] }> {
     // Handle both string and query object formats
     const actualParams = params || []
-    const rowMode = sql.rowMode
+    const queryText = typeof sql === 'string' ? sql : sql.text
+    const rowMode = typeof sql === 'object' ? sql.rowMode : undefined
 
     // Treat SELECT and statements with RETURNING as row-returning
-    const returnsRows = /(^\s*select\b)|\breturning\b/i.test(sql.text)
+    const returnsRows = /(^\s*select\b)|\breturning\b/i.test(queryText)
     if (returnsRows) {
-      const res = await this.client.query(sql.text, actualParams, rowMode)
+      const res = await this.client.query(queryText, actualParams, rowMode)
       // Parse date fields based on field metadata
       const parsedRows = this.parseRowsWithDates(res.rows, res.fields)
       return { rows: parsedRows as T[] }
     } else {
-      await this.client.exec(sql.text, actualParams)
+      await this.client.exec(queryText, actualParams)
       // drizzle ignores rowCount in many cases; returning empty rows is fine
       return { rows: [] as T[] }
     }
@@ -505,12 +529,15 @@ export class DrizzlePgLike {
 export const createDrizzle = <
   TDb extends Record<string, unknown> = Record<string, unknown>,
 >(
-  drizzleFactory: (client: unknown, options?: unknown) => NodePgDatabase<TDb>,
-  client: DatabaseClient,
-  options?: { schema: TDb },
+  server: IAppPlatformService,
+  schema: TDb,
 ): NodePgDatabase<TDb> => {
-  const pgLike = new DrizzlePgLike(client)
-  return drizzleFactory(pgLike as unknown, options)
+  const client = buildDatabaseClient(server)
+  // DrizzlePgLike implements DrizzleCompatibleClient, which has all the methods
+  // that Drizzle actually uses. We still need the type assertion because
+  // NodePgClient is a union of concrete pg classes, not an interface.
+  const pgLike: DrizzleCompatibleClient = new DrizzlePgLike(client)
+  return drizzle(pgLike as unknown as NodePgClient, { schema })
 }
 
 export interface SerializeableRequest {
@@ -525,10 +552,12 @@ export type RequestHandler = (
   {
     serverClient,
     dbClient,
+    createDb,
     user,
   }: {
     serverClient: IAppPlatformService
     dbClient: DatabaseClient
+    createDb: CreateDbFn
     user?: {
       userId: string
       userApiClient: LombokApiClient
@@ -541,5 +570,14 @@ export type TaskHandler = (
   {
     serverClient,
     dbClient,
-  }: { serverClient: IAppPlatformService; dbClient: DatabaseClient },
+    createDb,
+  }: {
+    serverClient: IAppPlatformService
+    dbClient: DatabaseClient
+    createDb: CreateDbFn
+  },
 ) => Promise<undefined> | undefined
+
+export type CreateDbFn = <T extends Record<string, unknown>>(
+  schema: T,
+) => NodePgDatabase<T>

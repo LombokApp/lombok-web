@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "lombokapp",
@@ -223,6 +224,9 @@
         "jiti": "catalog:",
         "prettier": "catalog:",
         "typescript-eslint": "catalog:",
+      },
+      "peerDependencies": {
+        "drizzle-orm": "catalog:",
       },
     },
     "packages/auth-utils": {
