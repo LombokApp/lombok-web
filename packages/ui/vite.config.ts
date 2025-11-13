@@ -90,6 +90,8 @@ export default defineConfig(({ mode }) => {
         '@/src': path.resolve(__dirname, './src'),
         '@lombokapp/utils': path.resolve(__dirname, '../utils/src'),
         '@lombokapp/types': path.resolve(__dirname, '../types/src'),
+        '@lombokapp/sdk': path.resolve(__dirname, '../sdk/src'),
+        '@lombokapp/auth-utils': path.resolve(__dirname, '../auth-utils/src'),
       },
     },
     build: {

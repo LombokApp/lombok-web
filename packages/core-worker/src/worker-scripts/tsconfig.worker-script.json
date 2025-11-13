@@ -10,6 +10,12 @@
       ],
       "@lombokapp/types": ["./node_modules/@lombokapp/types/src"],
       "@lombokapp/types/*": ["./node_modules/@lombokapp/types/src/*"],
+      "@lombokapp/app-worker-sdk": [
+        "./node_modules/@lombokapp/app-worker-sdk/src"
+      ],
+      "@lombokapp/app-worker-sdk/*": [
+        "./node_modules/@lombokapp/app-worker-sdk/src/*"
+      ],
       "@lombokapp/utils": ["./node_modules/@lombokapp/utils/src"],
       "@lombokapp/utils/*": ["./node_modules/@lombokapp/utils/src/*"]
     }
