@@ -191,7 +191,7 @@ Tokens are automatically managed by the SDK:
 bun install
 
 # Build the package
-bun run build:clean
+bun run build
 
 # Type checking
 bun run tsc:check

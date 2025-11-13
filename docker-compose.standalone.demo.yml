@@ -1,9 +1,8 @@
 services:
   app:
-    image: 606c17e05b70
+    image: lombok-standalone:latest
     pull_policy: never
     container_name: lombok-standalone-demo-app
-    platform: linux/arm64
     environment:
       PLATFORM_HOST: lombokdemo.localhost
       INITIAL_USER: demo
@@ -19,6 +18,7 @@ services:
       APPS_LOCAL_PATH: /usr/src/app/apps
       DISABLE_EMBEDDED_CORE_APP_WORKER: false
       PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT: true
+      PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT: true
     volumes:
       - ./.docker/postgres-standalone/:/var/lib/postgresql/data
     ports:

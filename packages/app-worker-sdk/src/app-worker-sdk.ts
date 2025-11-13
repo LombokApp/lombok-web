@@ -526,9 +526,7 @@ export class DrizzlePgLike implements DrizzleCompatibleClient {
 
 // Accept the user's chosen drizzle factory (from any pg-compatible driver)
 // and wrap our DatabaseClient so it can be used directly.
-export const createDrizzle = <
-  TDb extends Record<string, unknown> = Record<string, unknown>,
->(
+export const createDrizzle = <TDb extends Record<string, unknown>>(
   server: IAppPlatformService,
   schema: TDb,
 ): NodePgDatabase<TDb> => {

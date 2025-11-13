@@ -58,9 +58,9 @@
 		"typescript": "5.9.3",
     "typescript-eslint": "8.46.3",
     "prettier": "3.4.2",
-		"vite": "7.1.12",
+		"vite": "7.2.2",
     "tailwindcss": "3.4.17",
-    "@vitejs/plugin-react-swc": "4.2.0",
+    "@vitejs/plugin-react-swc": "4.2.2",
     "drizzle-orm": "0.44.7",
     "drizzle-kit": "0.31.6",
     "jiti": "2.6.1",
@@ -85,7 +85,8 @@
     "uuid": "13.0.0",
     "mime": "4.0.7",
     "utility-types": "3.11.0",
-    "tsconfig-paths": "4.2.0"
+    "tsconfig-paths": "4.2.0",
+    "tsup": "8.5.0"
 	},
   "devDependencies": {
     "@types/bun": "catalog:",

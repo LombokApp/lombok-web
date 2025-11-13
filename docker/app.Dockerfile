@@ -28,11 +28,14 @@ RUN cd /temp/dev && \
   # install all dependencies
   bun install --frozen-lockfile && \
   # build the packages
-  bun --cwd ./packages/core-worker build && \
-  bun --cwd ./packages/core-worker-utils build && \
   bun --cwd ./packages/types build && \
   bun --cwd ./packages/utils build && \
-  # bun --cwd ./packages/ui-toolkit build && \
+  bun --cwd ./packages/auth-utils build && \
+  bun --cwd ./packages/sdk build && \
+  bun --cwd ./packages/core-worker-utils build && \
+  bun --cwd ./packages/core-worker build && \
+  bun --cwd ./packages/app-worker-sdk build && \
+  bun --cwd ./packages/app-browser-sdk build && \
   bun --cwd ./packages/api build && \
   bun --cwd ./packages/ui build && mv ./packages/ui/dist ./frontend && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
@@ -47,17 +50,11 @@ RUN cd /temp/dev && \
   rm -rf ./packages/app-demo && \
   rm -rf ./packages/auth-utils && \
   rm -rf ./packages/app-browser-sdk && \
-  rm -rf ./packages/app-worker-sdk/node_modules && \
-  # rm -rf ./packages/api/node_modules && \
   rm -rf ./packages/api/src && \
   rm -rf ./packages/sdk && \
-  # rm -rf ./packages/types/node_modules && \
   rm -rf ./packages/types/src && \
-  # rm -rf ./packages/utils/node_modules/ && \
   rm -rf ./packages/utils/src/ && \
-  # rm -rf ./packages/core-worker/node_modules/ && \
   rm -rf ./packages/core-worker/src/ && \
-  # rm -rf ./packages/core-worker-utils/node_modules/ && \
   rm -rf ./packages/core-worker-utils/src/ && \
   rm -rf ./eslint-config && \
   rm -rf ./node_modules/.bun/swagger-ui-dist* && \

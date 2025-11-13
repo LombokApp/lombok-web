@@ -5,8 +5,6 @@
   "author": "Lombok",
   "repository": "git@github.com:lombokapp/ui-toolkit.git",
   "scripts": {
-    "test": "tsc --project tsconfig.json",
-    "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:check": "eslint",

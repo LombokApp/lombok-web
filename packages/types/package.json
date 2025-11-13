@@ -10,8 +10,6 @@
   },
   "scripts": {
     "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun",
-    "build:clean": "bun clean && bun run build",
-    "clean": "rm -rf ./dist",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "tsc:check": "tsc --noEmit",
@@ -35,7 +33,7 @@
     "eslint-plugin-prettier": "catalog:",
     "globals": "catalog:",
     "prettier": "catalog:",
-    "tsup": "8.5.0"
+    "tsup": "catalog:"
   },
   "dependencies": {
     "zod": "catalog:"

@@ -2,20 +2,21 @@
   "name": "@lombokapp/sdk",
   "main": "dist/index.js",
   "version": "0.0.1-6",
-  "type": "module",
   "exports": {
-    "default": "./index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @lombokapp/types --external @lombokapp/auth-utils --external @lombokapp/utils",
-    "build:clean": "yarn clean && yarn build",
-    "clean": "rm -rf ./dist",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun,@lombokapp/types,@lombokapp/auth-utils,@lombokapp/utils",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "test:unit": "jest"
+    "test:unit": "bun test"
   },
   "devDependencies": {
     "@lombokapp/types": "workspace:*",
@@ -33,7 +34,8 @@
     "eslint-plugin-promise": "catalog:",
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
-    "globals": "catalog:"
+    "globals": "catalog:",
+    "tsup": "catalog:"
   },
   "dependencies": {
     "openapi-fetch": "catalog:"
