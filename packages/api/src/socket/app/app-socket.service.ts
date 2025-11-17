@@ -132,7 +132,7 @@ export class AppSocketService {
       // register listener for requests from the app
       socket.on(
         'APP_API',
-        async (message: string, ack: (response: unknown) => void) => {
+        async (message: string, ack?: (response: unknown) => void) => {
           this.logger.log('APP Message Request:', {
             message,
             appWorkerId: auth.appWorkerId,
@@ -165,7 +165,7 @@ export class AppSocketService {
               response,
             })
           }
-          ack(response)
+          ack?.(response)
         },
       )
 
