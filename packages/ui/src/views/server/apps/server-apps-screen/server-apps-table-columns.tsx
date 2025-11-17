@@ -1,6 +1,7 @@
 import { type AppDTO } from '@lombokapp/types'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
+import { cn } from '@lombokapp/ui-toolkit/utils'
 
 import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'
@@ -81,8 +82,14 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <span>
-        {row.original.config.tasks?.map((task) => task.label).join(', ') || ''}
+      <span
+        className={cn(
+          !row.original.config.tasks?.length && 'italic opacity-50',
+        )}
+      >
+        {row.original.config.tasks?.length
+          ? row.original.config.tasks.map((task) => task.label).join(', ')
+          : 'None'}
       </span>
     ),
     enableSorting: false,
@@ -94,20 +101,18 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Workers"
+        title="Serverless Workers"
       />
     ),
     cell: ({ row }) => {
-      const workers = Object.keys(row.original.workers).map(
-        (identifier) => identifier,
-      )
-      const configWorkers = row.original.config.workers
-        ? Object.keys(row.original.config.workers)
-        : []
-      const allWorkers = [...workers, ...configWorkers].filter(
+      const allWorkers = Object.keys(row.original.config.workers ?? {}).filter(
         (v, i, a) => a.indexOf(v) === i,
       )
-      return <span>{allWorkers.join(', ')}</span>
+      return (
+        <span className={cn(!allWorkers.length && 'italic opacity-50')}>
+          {allWorkers.length ? allWorkers.join(', ') : 'None'}
+        </span>
+      )
     },
     enableSorting: false,
     enableHiding: true,
