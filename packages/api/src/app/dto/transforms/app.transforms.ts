@@ -1,11 +1,11 @@
 import type { App } from 'src/app/entities/app.entity'
 
-import type { AppDTO } from '../app.dto'
+import type { AdminAppDTO } from '../admin-app.dto'
 
 export function transformAppToDTO(
   app: App,
-  externalWorkers: AppDTO['externalWorkers'],
-): AppDTO {
+  externalWorkers: AdminAppDTO['externalWorkers'],
+): AdminAppDTO {
   return {
     identifier: app.identifier,
     label: app.label,
@@ -15,6 +15,8 @@ export function transformAppToDTO(
     externalWorkers,
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,
+    userScopeEnabledDefault: app.userScopeEnabledDefault,
+    folderScopeEnabledDefault: app.folderScopeEnabledDefault,
     workers: app.workers,
     contributions: app.config.contributions ?? {
       sidebarMenuLinks: [],

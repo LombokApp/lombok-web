@@ -1,9 +1,247 @@
 {
-  "id": "01a7a32a-fba4-4e79-b533-e42074bbc669",
+  "id": "1db4d1f3-27f7-4c25-a757-32d723c4ac0d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.app_folder_settings": {
+      "name": "app_folder_settings",
+      "schema": "",
+      "columns": {
+        "folderId": {
+          "name": "folderId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "appIdentifier": {
+          "name": "appIdentifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "app_folder_settings_folder_id_idx": {
+          "name": "app_folder_settings_folder_id_idx",
+          "columns": [
+            {
+              "expression": "folderId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "app_folder_settings_folder_app_unique": {
+          "name": "app_folder_settings_folder_app_unique",
+          "columns": [
+            {
+              "expression": "folderId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "appIdentifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "app_folder_settings_folderId_folders_id_fk": {
+          "name": "app_folder_settings_folderId_folders_id_fk",
+          "tableFrom": "app_folder_settings",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "folderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "app_folder_settings_appIdentifier_apps_identifier_fk": {
+          "name": "app_folder_settings_appIdentifier_apps_identifier_fk",
+          "tableFrom": "app_folder_settings",
+          "tableTo": "apps",
+          "columnsFrom": [
+            "appIdentifier"
+          ],
+          "columnsTo": [
+            "identifier"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.app_user_settings": {
+      "name": "app_user_settings",
+      "schema": "",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "appIdentifier": {
+          "name": "appIdentifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folderScopeEnabledDefault": {
+          "name": "folderScopeEnabledDefault",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folderScopePermissionsDefault": {
+          "name": "folderScopePermissionsDefault",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "app_user_settings_user_id_idx": {
+          "name": "app_user_settings_user_id_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "app_user_settings_user_app_unique": {
+          "name": "app_user_settings_user_app_unique",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "appIdentifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "app_user_settings_userId_users_id_fk": {
+          "name": "app_user_settings_userId_users_id_fk",
+          "tableFrom": "app_user_settings",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "app_user_settings_appIdentifier_apps_identifier_fk": {
+          "name": "app_user_settings_appIdentifier_apps_identifier_fk",
+          "tableFrom": "app_user_settings",
+          "tableTo": "apps",
+          "columnsFrom": [
+            "appIdentifier"
+          ],
+          "columnsTo": [
+            "identifier"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.apps": {
       "name": "apps",
       "schema": "",
@@ -57,6 +295,25 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
+        },
+        "userScopeEnabledDefault": {
+          "name": "userScopeEnabledDefault",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "folderScopeEnabledDefault": {
+          "name": "folderScopeEnabledDefault",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"platform\":[],\"user\":[],\"folder\":[]}'::jsonb"
         },
         "workers": {
           "name": "workers",

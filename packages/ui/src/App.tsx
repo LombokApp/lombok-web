@@ -29,6 +29,7 @@ import { FolderRoot } from './pages/folders/folder-root'
 import { FoldersPage } from './pages/folders/folders'
 import { Login } from './pages/login'
 import { ServerIndexPage } from './pages/server'
+import { SettingsIndexPage } from './pages/settings'
 import { Signup } from './pages/signup'
 import { SSOCallbackPage } from './pages/sso-callback'
 import { SSOUsernameSelectionPage } from './pages/sso-username-selection'
@@ -45,8 +46,8 @@ const Content = ({ authenticated }: { authenticated: boolean }) => {
         element={authenticated ? <FoldersPage /> : <></>}
       />
       <Route
-        path="/access-keys"
-        element={authenticated ? <AccessKeysPage /> : <></>}
+        path="/settings/*"
+        element={authenticated ? <SettingsIndexPage /> : <></>}
       />
       <Route
         path="/server/*"

@@ -9,3 +9,6 @@ export const bytea = customType<{
     return 'bytea'
   },
 })
+
+export const SHARED_ACL_SCHEMA = 'shared_acl'
+export const SHARED_ACL_FOLDER_VIEW = 'folder_acl_context'

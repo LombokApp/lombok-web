@@ -208,7 +208,7 @@ export const FolderObjectDetailScreen = ({
 
   const getAccessTokens = (appIdentifier: string) =>
     $apiClient
-      .POST('/api/v1/server/apps/{appIdentifier}/user-access-token', {
+      .POST('/api/v1/user/apps/{appIdentifier}/access-token', {
         params: { path: { appIdentifier } },
       })
       .then((res) => {

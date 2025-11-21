@@ -3,17 +3,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@lombokapp/ui-toolkit/components/alert'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@lombokapp/ui-toolkit/components/alert-dialog'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   CardContent,
@@ -25,12 +14,18 @@ import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
-import { HardDrive, KeyIcon, Menu, OctagonX } from 'lucide-react'
-import React from 'react'
+import {
+  ArrowRight,
+  HardDrive,
+  KeyIcon,
+  Menu,
+  OctagonX,
+  Settings,
+} from 'lucide-react'
+import { Link } from 'react-router'
 
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
-import { useServerContext } from '@/src/contexts/server'
 import { $api } from '@/src/services/api'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
@@ -71,8 +66,6 @@ export function ServerAppDetailScreen({
     objectDetailViews: 'No object detail views configured',
   } as const
 
-  const serverContext = useServerContext()
-  // Remove useState and useEffect for app
   const appQuery = $api.useQuery('get', '/api/v1/server/apps/{appIdentifier}', {
     params: {
       path: {
@@ -93,37 +86,33 @@ export function ServerAppDetailScreen({
     },
   )
 
-  const setEnabledMutation = $api.useMutation(
-    'put',
-    '/api/v1/server/apps/{appIdentifier}/enabled',
-    {
-      onSuccess: () => {
-        void appQuery.refetch()
-        void serverContext.refreshApps()
-      },
-    },
-  )
-
-  const handleSetEnabled = React.useCallback(
-    async (enabled: boolean) => {
-      await setEnabledMutation.mutateAsync({
-        params: { path: { appIdentifier } },
-        body: { enabled },
-      })
-    },
-    [appIdentifier, setEnabledMutation],
-  )
-
   return (
     <div className={'flex size-full flex-col gap-8'}>
       {!!app && !app.enabled && (
         <Alert variant="destructive" className="mb-6 border-foreground/20">
-          <OctagonX className="size-4" />
-          <AlertTitle>App is disabled</AlertTitle>
-          <AlertDescription>
-            This app is currently disabled. Functionality provided by this app
-            may be unavailable until it is enabled.
-          </AlertDescription>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2">
+              <OctagonX className="size-4" />
+              <div>
+                <AlertTitle>App is disabled</AlertTitle>
+                <AlertDescription>
+                  This app is currently disabled. Functionality provided by this
+                  app may be unavailable until it is enabled.
+                </AlertDescription>
+              </div>
+            </div>
+            <div>
+              <Link to={`/server/settings/apps/${appIdentifier}`}>
+                <Button variant="outline" asChild>
+                  <div>
+                    <Settings className="mr-2 size-4" />
+                    Enable in app settings
+                    <ArrowRight className="ml-2 size-4" />
+                  </div>
+                </Button>
+              </Link>
+            </div>
+          </div>
         </Alert>
       )}
       <Card className="flex-1 border-0 bg-transparent shadow-none">
@@ -135,56 +124,11 @@ export function ServerAppDetailScreen({
             </div>
             {!!app && (
               <div className="flex items-center gap-2">
-                {app.enabled ? (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Disable app</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Disable this app?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Users will no longer be able to use features provided
-                          by this app until it is enabled again.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            void handleSetEnabled(false)
-                          }}
-                        >
-                          Disable
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                ) : (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="default">Enable app</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Enable this app?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          The app will be enabled and available for use.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            void handleSetEnabled(true)
-                          }}
-                        >
-                          Enable
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
+                <Button variant="outline" asChild>
+                  <Link to={`/server/settings/apps/${appIdentifier}`}>
+                    <Settings className="size-4" />
+                  </Link>
+                </Button>
               </div>
             )}
           </div>

@@ -71,7 +71,7 @@ export const ServerContextProvider = ({
   const [appsLoaded, setAppsLoaded] = React.useState(false)
   const appsContributionsQuery = $api.useQuery(
     'get',
-    '/api/v1/server/app-contributions',
+    '/api/v1/user/app-contributions',
   )
 
   // Set appsLoaded when data is successfully retrieved

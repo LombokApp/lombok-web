@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -17,6 +18,9 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
+import { AppFolderSettingsUpdateInputDTO } from 'src/app/dto/app-folder-settings-update-input.dto'
+import { AppFolderSettingsGetResponseDTO } from 'src/app/dto/responses/app-folder-settings-get-response.dto'
+import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
   AllowedActor,
@@ -51,7 +55,7 @@ import type { FolderUpdateResponseDTO } from '../dto/responses/folder-update-res
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
 import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
-import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
+import { FolderOperationForbiddenException } from '../exceptions/folder-operation-forbidden.exception'
 import { FolderService } from '../services/folder.service'
 
 @Controller('/api/v1/folders')
@@ -66,7 +70,10 @@ import { FolderService } from '../services/folder.service'
 )
 @ApiStandardErrorResponses()
 export class FoldersController {
-  constructor(private readonly folderService: FolderService) {}
+  constructor(
+    private readonly folderService: FolderService,
+    private readonly appService: AppService,
+  ) {}
 
   /**
    * Get a folder by id.
@@ -216,7 +223,7 @@ export class FoldersController {
     if (result.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
       await this.folderService.queueReindexFolder(result.folder.id, req.user.id)
     } else {
-      throw new FolderPermissionUnauthorizedException()
+      throw new FolderOperationForbiddenException()
     }
   }
 
@@ -476,5 +483,43 @@ export class FoldersController {
     return {
       folder: transformFolderToDTO(folder),
     }
+  }
+
+  /**
+   * Get all app settings for a folder
+   */
+  @Get('/:folderId/app-settings')
+  async getFolderAppSettings(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+  ): Promise<AppFolderSettingsGetResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const settings = await this.appService.getFolderAppSettingsAsUser(
+      req.user,
+      folderId,
+    )
+    return { settings }
+  }
+
+  /**
+   * Bulk update app settings for a folder
+   */
+  @Patch('/:folderId/app-settings')
+  async updateFolderAppSettings(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Body() body: AppFolderSettingsUpdateInputDTO,
+  ): Promise<AppFolderSettingsGetResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const settings = await this.appService.updateFolderAppSettingsAsUser(
+      req.user,
+      folderId,
+      body,
+    )
+    return { settings }
   }
 }

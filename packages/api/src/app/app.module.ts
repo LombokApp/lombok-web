@@ -13,6 +13,7 @@ import { StorageModule } from 'src/storage/storage.module'
 
 import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
+import { UserAppsController } from './controllers/user-apps.controller'
 import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
 
@@ -26,7 +27,7 @@ import { AppService } from './services/app.service'
     forwardRef(() => SocketModule),
     forwardRef(() => FoldersModule),
   ],
-  controllers: [AppsController],
+  controllers: [AppsController, UserAppsController],
   providers: [
     AppService,
     CoreAppService,

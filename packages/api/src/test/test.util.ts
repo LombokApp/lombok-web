@@ -59,6 +59,9 @@ export async function buildTestModule({
   // Truncate the DB after app init (migrations/initialization complete)
   await ormService.truncateAllTestTables()
 
+  // Install apps from disk for tests (since installAppsOnStart may not be set in test env)
+  await appService.installAllAppsFromDisk()
+
   return {
     app,
     apiClient: buildSupertestApiClient(app),

@@ -1,5 +1,5 @@
 import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
@@ -16,8 +16,6 @@ import { ServerTabControls } from './server-tab-controls'
 
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const navigate = useNavigate()
-  const params = useParams()
-  const paramParts = params['*']?.split('/') ?? []
   return (
     <div className="container flex size-full flex-col gap-6 pt-6">
       <div className="flex w-full flex-col items-start">
@@ -40,7 +38,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
         {serverPage[0] === 'tasks' && !serverPage[1] && <ServerTasksScreen />}
         {serverPage[0] === 'logs' && !serverPage[1] && <ServerLogsScreen />}
         {serverPage[0] === 'settings' && (
-          <ServerSettingsScreen tab={paramParts[1] ?? 'general'} />
+          <ServerSettingsScreen serverSettingsPath={serverPage.slice(1)} />
         )}
         {serverPage[0] === 'events' && serverPage[1] && (
           <ScrollArea>

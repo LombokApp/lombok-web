@@ -1,6 +1,4 @@
 import type { UserDTO } from '@lombokapp/types'
-import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2/typography-h2'
-import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { NullablePartial } from '@lombokapp/utils'
 import React from 'react'
 
@@ -40,17 +38,9 @@ export function UserProfileScreen() {
   )
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
+    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
       <div className="container flex flex-1 flex-col">
-        <div className="p-4">
-          <TypographyH2>
-            {user
-              ? [
-                  `Server User: ${user.username ? user.username : user.email ? user.email : user.id}`,
-                ]
-              : ['Server User:']}
-          </TypographyH2>
-        </div>
+        <h1 className="text-3xl font-bold tracking-tight">{user?.username}</h1>
         <div className="inline-block min-w-full py-2 align-middle">
           <ProfileUserForm onSubmit={handleSubmitClick} value={userFormState} />
         </div>

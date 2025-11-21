@@ -1,6 +1,13 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { randomUUID } from 'crypto'
+import { eq } from 'drizzle-orm'
+import { foldersTable } from 'src/folders/entities/folder.entity'
+import { folderSharesTable } from 'src/folders/entities/folder-share.entity'
+import { SHARED_ACL_FOLDER_VIEW, SHARED_ACL_SCHEMA } from 'src/orm/constants'
+import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { usersTable } from 'src/users/entities/user.entity'
 
 const TEST_MODULE_KEY = 'orm_schema_isolation'
 
@@ -13,7 +20,7 @@ describe('ORM Schema Isolation', () => {
     apiClient = testModule.apiClient
   })
 
-  beforeEach(() => testModule?.resetAppState())
+  afterEach(() => testModule?.resetAppState())
 
   it('should not interfere with main app queries after app queries', async () => {
     const ormService = testModule!.getOrmService()
@@ -253,6 +260,154 @@ describe('ORM Schema Isolation', () => {
     // Clean up
     await ormService.dropAppSchema(app1Id)
     await ormService.dropAppSchema(app2Id)
+  })
+
+  it('should prevent app queries from accessing other schemas', async () => {
+    const ormService = testModule!.getOrmService()
+    const appId = 'role_isolation_test'
+
+    await ormService.ensureAppSchema(appId)
+
+    await ormService.client.query(`
+      CREATE TABLE IF NOT EXISTS public.cross_schema_guard (
+        id SERIAL PRIMARY KEY,
+        secret VARCHAR(255)
+      )
+    `)
+    await ormService.client.query(
+      `INSERT INTO public.cross_schema_guard (secret) VALUES ('top-secret')`,
+    )
+
+    await ormService.executeExecForApp(
+      appId,
+      `
+      CREATE TABLE IF NOT EXISTS own_table (
+        id SERIAL PRIMARY KEY,
+        value TEXT
+      )
+    `,
+    )
+
+    await ormService.executeExecForApp(
+      appId,
+      `INSERT INTO own_table (value) VALUES ('allowed')`,
+    )
+
+    const ownResult = await ormService.executeQueryForApp<{ value: string }>(
+      appId,
+      `SELECT value FROM own_table`,
+      [],
+      'object',
+    )
+    expect(ownResult.rows[0].value).toBe('allowed')
+
+    // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
+    await expect(
+      ormService.executeQueryForApp(
+        appId,
+        `SELECT * FROM public.cross_schema_guard`,
+      ),
+    ).rejects.toThrow(/permission denied/i)
+
+    await ormService.dropAppSchema(appId)
+    await ormService.client.query(
+      `DROP TABLE IF EXISTS public.cross_schema_guard CASCADE`,
+    )
+  })
+
+  it('should expose shared ACL view with owner and share entries', async () => {
+    const ormService = testModule!.getOrmService()
+    await ormService.ensureSharedAclSchema()
+
+    const ownerUsername = 'acl_owner'
+    const memberUsername = 'acl_member'
+
+    await createTestUser(testModule!, {
+      username: ownerUsername,
+      password: '123',
+    })
+    await createTestUser(testModule!, {
+      username: memberUsername,
+      password: '123',
+    })
+
+    const owner = await ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.username, ownerUsername),
+    })
+    const member = await ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.username, memberUsername),
+    })
+
+    if (!owner || !member) {
+      throw new Error('Failed to create test users for shared ACL view')
+    }
+
+    const now = new Date()
+    const makeLocation = (label: string) => ({
+      id: randomUUID(),
+      accessKeyHashId: randomUUID(),
+      providerType: 'SERVER' as const,
+      label,
+      endpoint: 'https://example.com',
+      endpointDomain: 'example.com',
+      region: 'us-east-1',
+      accessKeyId: randomUUID(),
+      secretAccessKey: randomUUID(),
+      bucket: `${label}-bucket`,
+      prefix: 'root',
+      userId: owner.id,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    const contentLocation = makeLocation('content')
+    const metadataLocation = makeLocation('metadata')
+
+    await ormService.db
+      .insert(storageLocationsTable)
+      .values([contentLocation, metadataLocation])
+
+    const folderId = randomUUID()
+    await ormService.db.insert(foldersTable).values({
+      id: folderId,
+      name: 'ACL Test Folder',
+      contentLocationId: contentLocation.id,
+      metadataLocationId: metadataLocation.id,
+      ownerId: owner.id,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    await ormService.db.insert(folderSharesTable).values({
+      folderId,
+      userId: member.id,
+      permissions: ['FOLDER_REINDEX'],
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    })
+
+    const aclResult = await ormService.client.query<{
+      folderId: string
+      userId: string
+      permissions: string[]
+      isOwner: boolean
+    }>(
+      `
+      SELECT "folderId", "userId", "permissions", "isOwner"
+      FROM ${SHARED_ACL_SCHEMA}.${SHARED_ACL_FOLDER_VIEW}
+      WHERE "folderId" = $1
+      ORDER BY "isOwner" DESC
+    `,
+      [folderId],
+    )
+
+    expect(aclResult.rows).toHaveLength(2)
+    const ownerEntry = aclResult.rows.find((row) => row.isOwner)
+    const memberEntry = aclResult.rows.find((row) => !row.isOwner)
+    expect(ownerEntry?.userId).toBe(owner.id)
+    expect(ownerEntry?.permissions).toEqual(['owner'])
+    expect(memberEntry?.userId).toBe(member.id)
+    expect(memberEntry?.permissions).toEqual(['FOLDER_REINDEX'])
   })
 
   it('should handle app migrations with proper isolation', async () => {

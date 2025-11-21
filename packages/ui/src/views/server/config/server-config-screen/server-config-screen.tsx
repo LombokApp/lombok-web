@@ -7,11 +7,26 @@ import { Link } from 'react-router'
 import { $api } from '@/src/services/api'
 
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
+import { ServerAppSettingsTab } from './server-app-settings-tab'
 import { ServerAppsConfigTab } from './server-apps-config-tab'
 import { ServerGeneralConfigTab } from './server-general-config-tab'
 
-export function ServerSettingsScreen({ tab }: { tab: string }) {
+export function ServerSettingsScreen({
+  serverSettingsPath,
+}: {
+  serverSettingsPath: string[]
+}) {
+  const tab = serverSettingsPath[0] ?? 'general'
+  const appIdentifier = serverSettingsPath[1]
   const authContext = useAuthContext()
+  const appsQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/apps',
+    {},
+    {
+      enabled: !!authContext.viewer?.isAdmin,
+    },
+  )
   const { data, refetch: reloadSettings } = $api.useQuery(
     'get',
     '/api/v1/server/settings',
@@ -101,12 +116,34 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
         >
           Storage
         </Link>
-        <Link
-          to="/server/settings/apps"
-          className={cn(tab === 'apps' && 'text-primary font-semibold')}
-        >
-          Apps
-        </Link>
+        <div className="flex flex-col gap-1">
+          <Link
+            to="/server/settings/apps"
+            className={cn(
+              tab === 'apps' && !appIdentifier && 'text-primary font-semibold',
+            )}
+          >
+            Apps
+          </Link>
+          {appsQuery.data?.result && appsQuery.data.result.length > 0 && (
+            <div className="ml-4 mt-2 flex flex-col gap-1.5 border-l-2 border-muted pl-4">
+              {appsQuery.data.result.map((app) => (
+                <Link
+                  key={app.identifier}
+                  to={`/server/settings/apps/${app.identifier}`}
+                  className={cn(
+                    'text-xs transition-all duration-200 hover:text-foreground hover:translate-x-0.5',
+                    appIdentifier === app.identifier
+                      ? 'text-primary font-medium'
+                      : 'text-muted-foreground',
+                  )}
+                >
+                  {app.label || app.identifier}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </nav>
       <div className="flex size-full max-h-max min-h-0 flex-1 flex-col gap-8">
         <ScrollArea>
@@ -126,6 +163,8 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
               onSaveEnableNewSignups={handleUpdateSignupEnabled}
               onSaveGoogleOAuthConfig={handleUpdateGoogleOAuthConfig}
             />
+          ) : tab === 'apps' && appIdentifier ? (
+            <ServerAppSettingsTab appIdentifier={appIdentifier} />
           ) : tab === 'apps' ? (
             <ServerAppsConfigTab />
           ) : (

@@ -5,4 +5,4 @@ export const UNAUTHENTICATED_PAGES = [
   '/sso/callback/google',
   '/sso/username-selection',
 ]
-export const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server', '/apps']
+export const SIDEBAR_PAGES = ['/settings', '/folders', '/server', '/apps']
