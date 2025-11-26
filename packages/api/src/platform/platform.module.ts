@@ -15,6 +15,7 @@ import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
+import { DockerOrchestrationService } from './services/docker-orchestration.service'
 
 @Module({
   imports: [
@@ -32,7 +33,10 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     TaskModule,
     LogModule,
   ],
-  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
+    DockerOrchestrationService,
+  ],
   controllers: [],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

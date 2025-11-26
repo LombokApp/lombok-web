@@ -11,6 +11,12 @@
       "triggers": ["platform:object_added"]
     },
     {
+      "identifier": "run_docker_image",
+      "label": "Run Docker Image",
+      "description": "Run an arbitrary docker image",
+      "triggers": ["platform:run_docker_image"]
+    },
+    {
       "identifier": "run_worker_script",
       "label": "Run Worker",
       "description": "Run a worker script.",
