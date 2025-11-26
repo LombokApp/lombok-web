@@ -120,7 +120,7 @@ export class PlatformTaskService {
         const processor = this.processors[processorName]
         this.runningTasksCount++
         await processor
-          ._run(event)
+          ._run(task, event)
           .then(() => {
             // handle successful completion
             const completedTimestamp = new Date()

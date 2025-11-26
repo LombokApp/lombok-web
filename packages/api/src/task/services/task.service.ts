@@ -19,6 +19,8 @@ import {
   sql,
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
+import { AppService } from 'src/app/services/app.service'
+import { EventService } from 'src/event/services/event.service'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
@@ -51,6 +53,8 @@ export class TaskService {
 
   constructor(
     private readonly ormService: OrmService,
+    private readonly appService: AppService,
+    private readonly eventService: EventService,
     @Inject(forwardRef(() => AppSocketService))
     private readonly _appSocketService,
     private readonly folderService: FolderService,
@@ -220,7 +224,7 @@ export class TaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
-          isNull(tasksTable.workerIdentifier),
+          eq(tasksTable.handlerIdentifier, 'external'),
           ne(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
           eq(appsTable.enabled, true),
         ),
@@ -250,5 +254,43 @@ export class TaskService {
         )
       }
     }
+  }
+
+  /**
+   * Trigger a task for a given app, using the platform event system.
+   * This should be only be called by the respective app.
+   *
+   * @param appIdentifier - The identifier of the app to trigger the task for
+   * @param taskIdentifier - The identifier of the task to trigger
+   * @param inputParams - The input parameters for the task
+   * @param subjectContext - The subject context for the task
+   */
+  async triggerAppTask(
+    appIdentifier: string,
+    taskIdentifier: string,
+    data: unknown,
+    actor: 'user' | 'app',
+    subjectContext?: { folderId: string; objectKey?: string },
+  ) {
+    // TODO: validate the task exists for the app
+    const app = await this.appService.getAppAsAdmin(appIdentifier, {
+      enabled: true,
+    })
+    if (
+      !app?.config.tasks?.find(
+        (task) =>
+          task.identifier === taskIdentifier && task.triggers.includes(actor),
+      )
+    ) {
+      throw new NotFoundException(
+        `Task "${taskIdentifier}" not found for app "${appIdentifier}".`,
+      )
+    }
+    await this.eventService.emitEvent({
+      emitterIdentifier: PLATFORM_IDENTIFIER,
+      eventIdentifier: `${PLATFORM_IDENTIFIER}:${actor}_trigger_task_action:${appIdentifier}:${taskIdentifier}`,
+      data,
+      subjectContext,
+    })
   }
 }

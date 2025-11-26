@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import { Event } from 'src/event/entities/event.entity'
 import { Task } from 'src/task/entities/task.entity'
 
 import { platformConfig } from '../config'
@@ -30,22 +31,24 @@ export class DockerOrchestrationService {
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async executeDockerJob(executionOptions: DockerExecutionOptions) {
     const validateResult =
       dockerExecutionOptionsSchema.safeParse(executionOptions)
     if (validateResult.success) {
-      const inputData = validateResult.data
-      await this.dockerManager.runImage(inputData.runConfig)
+      // const inputData = validateResult.data
+      // await this.dockerManager.runImage(inputData.runConfig)
     }
   }
 
-  async executeDockerJobASync(task: Task) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async executeDockerJobAsync(task: Task, _event: Event) {
     const validateResult = runDockerImageTaskInputDataSchema.safeParse(
       task.inputData,
     )
     if (validateResult.success) {
-      const inputData = validateResult.data
-      await this.dockerManager.runImage(inputData.runConfig)
+      // const inputData = validateResult.data
+      //   await this.dockerManager.runImage(inputData.runConfig)
     }
   }
 }

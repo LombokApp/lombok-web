@@ -8,20 +8,43 @@
       "identifier": "analyze_object",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
-      "triggers": ["platform:object_added"]
-    },
-    {
-      "identifier": "run_docker_image",
-      "label": "Run Docker Image",
-      "description": "Run an arbitrary docker image",
-      "triggers": ["platform:run_docker_image"]
+      "triggers": ["platform:object_added"],
+      "handler": {
+        "type": "external"
+      }
     },
     {
       "identifier": "run_worker_script",
       "label": "Run Worker",
       "description": "Run a worker script.",
-      "triggers": ["platform:worker_task_enqueued"]
+      "triggers": ["platform:worker_task_enqueued"],
+      "handler": {
+        "type": "external"
+      }
+    },
+    {
+      "identifier": "do_heavy_ml_computation",
+      "label": "Do Heavy ML Computation",
+      "description": "Do a heavy ML computation.",
+      "triggers": ["platform:user_task_trigger_event", "platform:app_task_trigger_event"],
+      "handler": {
+        "type": "docker",
+        "profile": "content_analysis",
+        "jobClass": "extract_content_metadata"
+      }
     }
   ],
-  "emittableEvents": []
+  "containerProfiles": {
+    "content_analysis": {
+      "image": "content_analysis_image",
+      "jobClasses": {
+        "extract_content_metadata": {
+          "maxPerContainer": 1,
+          "countTowardsGlobalCap": true,
+          "priority": 1
+        }
+      }
+    }
+  },
+  "emittableEvents": ["platform:trigger_content_analysis"]
 }

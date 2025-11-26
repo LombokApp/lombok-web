@@ -1,5 +1,5 @@
 {
-  "id": "1db4d1f3-27f7-4c25-a757-32d723c4ac0d",
+  "id": "02ca508f-4fd5-4547-b642-cec7497b8b0e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1290,8 +1290,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "workerIdentifier": {
-          "name": "workerIdentifier",
+        "handlerType": {
+          "name": "handlerType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "handlerIdentifier": {
+          "name": "handlerIdentifier",
           "type": "text",
           "primaryKey": false,
           "notNull": false

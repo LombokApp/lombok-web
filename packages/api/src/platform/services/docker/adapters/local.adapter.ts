@@ -1,9 +1,4 @@
-import { AppAPIError } from '@lombokapp/app-worker-sdk'
-
-import type {
-  DockerAdapter,
-  DockerRunConfig,
-} from '../run-docker-image/docker-manager.types'
+import type { DockerAdapter, DockerRunConfig } from '../docker-manager.types'
 import {
   type DockerEndpointAuth,
   DockerEndpointAuthType,
@@ -73,11 +68,11 @@ export class LocalDockerAdapter implements DockerAdapter {
     })
 
     if (!createResponse.ok) {
-      const errorText = await createResponse.text()
-      throw new AppAPIError(
-        'DOCKER_CREATE_CONTAINER_ERROR',
-        `Failed to create container: ${createResponse.status} ${createResponse.statusText}. ${errorText}`,
-      )
+      // const errorText = await createResponse.text()
+      // throw new AppAPIError(
+      //   'DOCKER_CREATE_CONTAINER_ERROR',
+      //   `Failed to create container: ${createResponse.status} ${createResponse.statusText}. ${errorText}`,
+      // )
     }
 
     const createResult = (await createResponse.json()) as { Id: string }
@@ -94,11 +89,11 @@ export class LocalDockerAdapter implements DockerAdapter {
     })
 
     if (!startResponse.ok) {
-      const errorText = await startResponse.text()
-      throw new AppAPIError(
-        'DOCKER_START_CONTAINER_ERROR',
-        `Failed to start container: ${startResponse.status} ${startResponse.statusText}. ${errorText}`,
-      )
+      // const errorText = await startResponse.text()
+      // throw new AppAPIError(
+      //   'DOCKER_START_CONTAINER_ERROR',
+      //   `Failed to start container: ${startResponse.status} ${startResponse.statusText}. ${errorText}`,
+      // )
     }
   }
 }

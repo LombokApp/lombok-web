@@ -14,12 +14,14 @@ import { FoldersModule } from '../folders/folders.module'
 import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
+import { platformConfig } from './config'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
 import { DockerOrchestrationService } from './services/docker-orchestration.service'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
+    ConfigModule.forFeature(platformConfig),
     AuthModule,
     OrmModule,
     FoldersModule,

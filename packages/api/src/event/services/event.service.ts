@@ -1,4 +1,5 @@
 import {
+  DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
   FolderPushMessage,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
@@ -41,8 +42,6 @@ export enum EventSort {
   ObjectKeyAsc = 'objectKey-asc',
   ObjectKeyDesc = 'objectKey-desc',
 }
-
-export const RUN_WORKER_SCRIPT_TASK_KEY = 'run_worker_script'
 
 @Injectable()
 export class EventService {
@@ -161,10 +160,23 @@ export class EventService {
                   (trigger) => trigger === eventIdentifier,
                 )
               ) {
-                const isWorkerExecutedTask = !!taskDefinition.worker?.length
+                const { handlerType, handlerIdentifier } =
+                  taskDefinition.handler.type === 'worker'
+                    ? {
+                        handlerType: 'worker',
+                        handlerIdentifier: taskDefinition.handler.identifier,
+                      }
+                    : taskDefinition.handler.type === 'docker'
+                      ? {
+                          handlerType: 'docker',
+                          handlerIdentifier: taskDefinition.handler.profile,
+                        }
+                      : {
+                          handlerType: 'external',
+                          handlerIdentifier: undefined,
+                        }
                 const newTaskId = uuidV4()
                 // Build the base task object
-                // If the task has a worker property, add workerIdentifier
                 tasks.push({
                   id: newTaskId,
                   triggeringEventId: event.id,
@@ -176,18 +188,32 @@ export class EventService {
                   ownerIdentifier: subscribedApp.identifier,
                   createdAt: now,
                   updatedAt: now,
-                  workerIdentifier: taskDefinition.worker,
+                  handlerType,
+                  handlerIdentifier,
                 })
-                // Emit the run_worker_script event (only if above task is worker based)
-                if (isWorkerExecutedTask) {
+                if (handlerType === 'worker') {
+                  // Emit the run_worker_script event if the task is worker based
                   await this.emitEvent({
                     emitterIdentifier: PLATFORM_IDENTIFIER,
                     eventIdentifier: WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
                     data: {
                       taskId: newTaskId,
                       appIdentifier: subscribedApp.identifier,
-                      workerIdentifier: taskDefinition.worker,
+                      workerIdentifier: handlerIdentifier,
                     },
+                    _db: tx,
+                  })
+                } else if (handlerType === 'docker') {
+                  // Emit the docker_task_enqueued event if the task is docker based
+                  await this.emitEvent({
+                    emitterIdentifier: PLATFORM_IDENTIFIER,
+                    eventIdentifier: DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
+                    data: {
+                      taskId: newTaskId,
+                      appIdentifier: subscribedApp.identifier,
+                      profile: handlerIdentifier,
+                    },
+                    _db: tx,
                   })
                 }
                 return Promise.resolve()
@@ -234,6 +260,11 @@ export class EventService {
             taskDescription: 'Reindex folder on user request',
             shouldKeepEventSubjectContext: true,
           },
+          {
+            taskIdentifier: PlatformTaskName.RunDockerJob,
+            taskDescription: 'Execute an async docker job',
+            shouldKeepEventSubjectContext: true,
+          },
         ],
     }
 
@@ -257,8 +288,10 @@ export class EventService {
             ownerIdentifier: PLATFORM_IDENTIFIER,
             createdAt: timestamp,
             updatedAt: timestamp,
+            handlerType: 'platform',
           }))
         : []
+
     return platformTasks
   }
 
@@ -310,6 +343,9 @@ export class EventService {
     actor: User,
     eventId: string,
   ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     const event = await this.ormService.db.query.eventsTable.findFirst({
       where: eq(eventsTable.id, eventId),
       with: {

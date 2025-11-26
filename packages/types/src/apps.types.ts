@@ -4,6 +4,7 @@ import { PLATFORM_IDENTIFIER } from './platform.types'
 
 export const CORE_APP_IDENTIFIER = 'core'
 export const WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:worker_task_enqueued`
+export const DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:docker_task_enqueued`
 
 export const AppSocketMessage = z.enum([
   'DB_QUERY',
@@ -62,7 +63,20 @@ export const taskConfigSchema = z
     label: z.string().nonempty().min(1).max(128),
     triggers: z.array(z.string()),
     description: z.string(),
-    worker: z.string().optional(),
+    handler: z.discriminatedUnion('type', [
+      z.object({
+        type: z.literal('worker'),
+        identifier: z.string(),
+      }),
+      z.object({
+        type: z.literal('docker'),
+        profile: z.string(),
+        jobClass: z.string(),
+      }),
+      z.object({
+        type: z.literal('external'),
+      }),
+    ]),
   })
   .strict()
 
@@ -179,6 +193,21 @@ export type UserScopeAppPermissions = z.infer<
 export type FolderScopeAppPermissions = z.infer<
   typeof folderScopeAppPermissionsSchema
 >
+
+export const containerProfileConfigSchema = z.object({
+  image: z.string(),
+  command: z.array(z.string()).optional(),
+  environmentVariables: z.record(z.string(), z.string()).optional(),
+  jobClasses: z.record(
+    z.string(),
+    z.object({
+      maxPerContainer: z.number(),
+      countTowardsGlobalCap: z.boolean(),
+      priority: z.number().optional(),
+    }),
+  ),
+})
+
 export const appConfigSchema = z
   .object({
     requiresStorage: z.boolean().optional(),
@@ -194,6 +223,16 @@ export const appConfigSchema = z
     description: z.string().nonempty().min(1).max(1024),
     emittableEvents: z.array(z.string().nonempty()),
     tasks: z.array(taskConfigSchema).optional(),
+    containerProfiles: z
+      .record(
+        z
+          .string()
+          .nonempty()
+          .regex(/^[a-z0-9_]+$/)
+          .refine((v) => v.toLowerCase() === v),
+        containerProfileConfigSchema,
+      )
+      .optional(),
     workers: z
       .record(
         z
@@ -223,12 +262,41 @@ export const appConfigSchema = z
     const workerKeys = new Set(workerKeyArray)
 
     value.tasks?.forEach((task, index) => {
-      if (task.worker && !workerKeys.has(task.worker)) {
+      if (
+        task.handler.type === 'worker' &&
+        !workerKeys.has(task.handler.identifier)
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Unknown worker "${task.worker}". Must be one of: ${workerKeyArray.length > 0 ? workerKeyArray.join(', ') : '(none)'}`,
+          message: `Unknown worker "${task.handler.identifier}". Must be one of: ${workerKeyArray.length > 0 ? workerKeyArray.join(', ') : '(none)'}`,
           path: ['tasks', index, 'worker'],
         })
+      } else if (task.handler.type === 'docker') {
+        const containerProfilesKeys = Object.keys(value.containerProfiles ?? {})
+        if (
+          // Profile is not defined
+          !containerProfilesKeys.includes(task.handler.profile)
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Unknown container profile "${task.handler.profile}". Must be one of: ${containerProfilesKeys.length > 0 ? containerProfilesKeys.join(', ') : '(none)'}`,
+            path: ['tasks', index, 'worker'],
+          })
+          return
+        }
+        const jobClassesKeys = Object.keys(
+          value.containerProfiles?.[task.handler.profile]?.jobClasses ?? {},
+        )
+        if (
+          // Job is not defined
+          !jobClassesKeys.includes(task.handler.jobClass)
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Unknown container job class "${task.handler.jobClass}". Must be one of: ${jobClassesKeys.length > 0 ? jobClassesKeys.join(', ') : '(none)'}`,
+            path: ['tasks', index, 'worker'],
+          })
+        }
       }
     })
   })

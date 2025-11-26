@@ -1,6 +1,7 @@
 import type { Event } from 'src/event/entities/event.entity'
 import { getApp } from 'src/shared/app-helper'
 
+import type { Task } from './entities/task.entity'
 import { PlatformTaskService } from './services/platform-task.service'
 import type { PlatformTaskName } from './task.constants'
 
@@ -19,11 +20,11 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
     setTimeout(() => void this.registerProcessor(), 100)
   }
 
-  _run(event: Event) {
-    return this.run(event)
+  _run(task: Task, event: Event) {
+    return this.run(task, event)
   }
 
-  abstract run(event: Event): Promise<void>
+  abstract run(task: Task, event: Event): Promise<void>
 
   async registerProcessor() {
     const app = await getApp()

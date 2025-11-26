@@ -192,12 +192,12 @@ export async function handleAppSocketMessage(
           ...(isCoreApp
             ? [
                 or(
-                  isNotNull(tasksTable.workerIdentifier),
+                  eq(tasksTable.handlerIdentifier, 'worker'),
                   eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
                 ),
               ]
             : [
-                isNull(tasksTable.workerIdentifier),
+                eq(tasksTable.handlerIdentifier, 'external'),
                 eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
               ]),
         ),
@@ -330,16 +330,16 @@ export async function handleAppSocketMessage(
             isNull(tasksTable.completedAt),
             isNull(tasksTable.errorAt),
             eq(tasksTable.handlerId, `${requestingAppIdentifier}:${handlerId}`),
-            ...(!isCoreApp
+            ...(isCoreApp
               ? [
-                  isNull(tasksTable.workerIdentifier),
-                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+                  or(
+                    eq(tasksTable.handlerIdentifier, 'worker'),
+                    eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+                  ),
                 ]
               : [
-                  or(
-                    isNotNull(tasksTable.workerIdentifier),
-                    eq(tasksTable.ownerIdentifier, CORE_APP_IDENTIFIER),
-                  ),
+                  eq(tasksTable.handlerIdentifier, 'external'),
+                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
                 ]),
           ),
         )

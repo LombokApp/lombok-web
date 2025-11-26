@@ -8,14 +8,20 @@
       "label": "Demo Object Added Worker",
       "description": "A task that runs for every newly added object.",
       "triggers": ["platform:object_added"],
-      "worker": "demo_object_added_worker"
+      "handler": {
+        "type": "worker",
+        "identifier": "demo_object_added_worker"
+      }
     },
     {
       "identifier": "demo_scheduled_worker_task",
       "label": "Demo Scheduled Worker",
       "description": "A task that runs in response to a schedule event.",
-      "triggers": ["platform:schedule:hourly"],
-      "worker": "demo_scheduled_worker"
+      "triggers": ["platform:schedule:every_minute"],
+      "handler": {
+        "type": "worker",
+        "identifier": "demo_scheduled_worker"
+      }
     }
   ],
   "workers": {

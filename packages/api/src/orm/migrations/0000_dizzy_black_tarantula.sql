@@ -163,7 +163,8 @@ CREATE TABLE "tasks" (
 	"errorDetails" jsonb,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL,
-	"workerIdentifier" text
+	"handlerType" text NOT NULL,
+	"handlerIdentifier" text
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

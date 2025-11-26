@@ -32,7 +32,8 @@ export const tasksTable = pgTable('tasks', {
   errorDetails: jsonb('errorDetails').$type<WorkerErrorDetails>(),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
-  workerIdentifier: text('workerIdentifier'),
+  handlerType: text('handlerType').notNull(),
+  handlerIdentifier: text('handlerIdentifier'),
 })
 
 export const tasksRelations = relations(tasksTable, ({ one }) => ({
