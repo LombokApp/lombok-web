@@ -34,6 +34,7 @@ CREATE TABLE "apps" (
 	"ui" jsonb NOT NULL,
 	"database" boolean DEFAULT false NOT NULL,
 	"manifest" jsonb NOT NULL,
+	"containerProfiles" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"enabled" boolean DEFAULT false NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL

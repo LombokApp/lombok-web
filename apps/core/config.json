@@ -23,10 +23,10 @@
       }
     },
     {
-      "identifier": "do_heavy_ml_computation",
-      "label": "Do Heavy ML Computation",
-      "description": "Do a heavy ML computation.",
-      "triggers": ["platform:user_task_trigger_event", "platform:app_task_trigger_event"],
+      "identifier": "extract_semantic_metadata",
+      "label": "Extract Semantic Metadata",
+      "description": "Extract semantic metadata from an object.",
+      "triggers": ["platform:object_added"],
       "handler": {
         "type": "docker",
         "profile": "content_analysis",
@@ -36,7 +36,7 @@
   ],
   "containerProfiles": {
     "content_analysis": {
-      "image": "content_analysis_image",
+      "image": "nginx",
       "jobClasses": {
         "extract_content_metadata": {
           "maxPerContainer": 1,
@@ -46,5 +46,5 @@
       }
     }
   },
-  "emittableEvents": ["platform:trigger_content_analysis"]
+  "emittableEvents": ["trigger_content_analysis"]
 }

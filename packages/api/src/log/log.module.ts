@@ -1,5 +1,4 @@
 import { forwardRef, Module } from '@nestjs/common'
-import { AuthModule } from 'src/auth/auth.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { ServerModule } from 'src/server/server.module'
 import { SocketModule } from 'src/socket/socket.module'
@@ -15,7 +14,6 @@ import { LogEntryService } from './services/log-entry.service'
     forwardRef(() => StorageModule),
     forwardRef(() => SocketModule),
     forwardRef(() => ServerModule),
-    AuthModule,
   ],
   controllers: [ServerLogsController, FolderLogsController],
   providers: [LogEntryService],

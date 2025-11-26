@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import { CronJob } from 'cron'
 import { AppModule } from 'src/app/app.module'
+import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { SocketModule } from 'src/socket/socket.module'
 
@@ -21,6 +22,7 @@ import { TaskService } from './services/task.service'
     forwardRef(() => SocketModule),
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
+    forwardRef(() => EventModule),
   ],
   providers: [PlatformTaskService, TaskService],
   controllers: [ServerTasksController, TasksController],

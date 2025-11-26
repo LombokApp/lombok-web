@@ -224,7 +224,7 @@ export class TaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
-          eq(tasksTable.handlerIdentifier, 'external'),
+          eq(tasksTable.handlerType, 'external'),
           ne(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
           eq(appsTable.enabled, true),
         ),
@@ -241,6 +241,7 @@ export class TaskService {
         },
       }
     }, {})
+
     for (const appIdentifier of Object.keys(pendingTasksByApp)) {
       for (const taskIdentifier of Object.keys(
         pendingTasksByApp[appIdentifier],

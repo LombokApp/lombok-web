@@ -58,6 +58,7 @@ const createMockApp = ({
       hash: '',
       manifest: {},
     },
+    containerProfiles: {},
     createdAt: new Date(),
     updatedAt: new Date(),
     userScopeEnabledDefault,

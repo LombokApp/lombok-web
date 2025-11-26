@@ -17,7 +17,7 @@
       "identifier": "demo_scheduled_worker_task",
       "label": "Demo Scheduled Worker",
       "description": "A task that runs in response to a schedule event.",
-      "triggers": ["platform:schedule:every_minute"],
+      "triggers": ["platform:schedule:every_hour"],
       "handler": {
         "type": "worker",
         "identifier": "demo_scheduled_worker"

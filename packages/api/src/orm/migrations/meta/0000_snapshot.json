@@ -1,5 +1,5 @@
 {
-  "id": "02ca508f-4fd5-4547-b642-cec7497b8b0e",
+  "id": "77c445c1-104c-43f4-b754-8dc81f4177ba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -339,6 +339,13 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
+        },
+        "containerProfiles": {
+          "name": "containerProfiles",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
         },
         "enabled": {
           "name": "enabled",

@@ -194,19 +194,35 @@ export type FolderScopeAppPermissions = z.infer<
   typeof folderScopeAppPermissionsSchema
 >
 
-export const containerProfileConfigSchema = z.object({
-  image: z.string(),
-  command: z.array(z.string()).optional(),
-  environmentVariables: z.record(z.string(), z.string()).optional(),
-  jobClasses: z.record(
-    z.string(),
-    z.object({
-      maxPerContainer: z.number(),
-      countTowardsGlobalCap: z.boolean(),
-      priority: z.number().optional(),
-    }),
-  ),
-})
+export const containerProfileResourceHintsSchema = z
+  .object({
+    gpu: z.boolean().optional(),
+    memoryMB: z.number().positive().optional(),
+    cpuCores: z.number().positive().optional(),
+  })
+  .strict()
+
+export const containerProfileJobClassSchema = z
+  .object({
+    maxPerContainer: z.number().positive(),
+    countTowardsGlobalCap: z.boolean(),
+    priority: z.number().optional(),
+  })
+  .strict()
+
+export const containerProfileConfigSchema = z
+  .object({
+    image: z.string(),
+    command: z.array(z.string()).optional(),
+    environmentVariables: z.record(z.string(), z.string()).optional(),
+    // Resource hints (optional suggestions, not hard limits)
+    resources: containerProfileResourceHintsSchema.optional(),
+    // Desired concurrency hints
+    desiredContainers: z.number().positive().optional(),
+    desiredMaxJobsPerContainer: z.number().positive().optional(),
+    jobClasses: z.record(z.string(), containerProfileJobClassSchema),
+  })
+  .strict()
 
 export const appConfigSchema = z
   .object({
@@ -370,6 +386,18 @@ export const appMetricsSchema = z.object({
 })
 
 export type AppTaskConfig = z.infer<typeof taskConfigSchema>
+
+export type ContainerProfileConfig = z.infer<
+  typeof containerProfileConfigSchema
+>
+
+export type ContainerProfileJobClass = z.infer<
+  typeof containerProfileJobClassSchema
+>
+
+export type ContainerProfileResourceHints = z.infer<
+  typeof containerProfileResourceHintsSchema
+>
 
 export type AppWorkersBundle = z.infer<typeof appWorkersBundleSchema>
 

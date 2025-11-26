@@ -43,6 +43,10 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import {
+  DockerOrchestrationService,
+  type SyncDockerJobResult,
+} from 'src/docker/services/docker-orchestration.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
@@ -129,6 +133,7 @@ export class AppService {
   eventService: EventService
   coreAppService: CoreAppService
   private readonly appSocketService: AppSocketService
+  private readonly dockerOrchestrationService: DockerOrchestrationService
   constructor(
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
@@ -143,11 +148,15 @@ export class AppService {
     @Inject(forwardRef(() => FolderService)) _folderService,
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
     private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => DockerOrchestrationService))
+    _dockerOrchestrationService,
   ) {
     this.coreAppService = _coreAppService as CoreAppService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
     this.appSocketService = _appSocketService as AppSocketService
+    this.dockerOrchestrationService =
+      _dockerOrchestrationService as DockerOrchestrationService
   }
 
   public async setAppEnabledAsAdmin(
@@ -1054,6 +1063,7 @@ export class AppService {
               Object.keys(workerScriptDefinitions).length > 0,
             ui: uiDefinition,
             config,
+            containerProfiles: config.containerProfiles ?? {},
             database: !!config.database?.enabled,
             createdAt: now,
             updatedAt: now,
@@ -1531,5 +1541,59 @@ export class AppService {
 
     // Return updated settings
     return this.getFolderAppSettingsAsUser(actor, folderId)
+  }
+
+  /**
+   * Trigger a synchronous docker job for the specified app.
+   *
+   * This method validates that the app has the specified profile and job class,
+   * then delegates to the DockerOrchestrationService to execute the job.
+   *
+   * @param params.appIdentifier - The app's identifier
+   * @param params.profileName - The container profile to use
+   * @param params.jobClass - The job class within the profile
+   * @param params.eventContext - Event-based context for the job
+   * @returns The result of the docker job execution
+   */
+  async triggerSyncDockerJob(params: {
+    appIdentifier: string
+    profileName: string
+    jobClass: string
+    eventContext: { eventId: string; data: unknown }
+  }): Promise<SyncDockerJobResult> {
+    const { appIdentifier, profileName, jobClass, eventContext } = params
+
+    // Validate the app exists and is enabled
+    const app = await this.getAppAsAdmin(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new NotFoundException(
+        `App not found or not enabled: ${appIdentifier}`,
+      )
+    }
+
+    // Validate the profile exists
+    if (!(profileName in app.containerProfiles)) {
+      const availableProfiles = Object.keys(app.containerProfiles)
+      throw new NotFoundException(
+        `Container profile "${profileName}" not found for app "${appIdentifier}". Available: ${availableProfiles.join(', ') || '(none)'}`,
+      )
+    }
+    const profile = app.containerProfiles[profileName]
+
+    // Validate the job class exists
+    if (!(jobClass in profile.jobClasses)) {
+      const availableJobClasses = Object.keys(profile.jobClasses)
+      throw new NotFoundException(
+        `Job class "${jobClass}" not found in profile "${profileName}". Available: ${availableJobClasses.join(', ') || '(none)'}`,
+      )
+    }
+
+    // Execute the docker job
+    return this.dockerOrchestrationService.executeSyncDockerJob({
+      appIdentifier,
+      profileName,
+      jobClass,
+      eventContext,
+    })
   }
 }

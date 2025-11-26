@@ -1129,6 +1129,7 @@ async function createWorkerProcess(
       ...environmentVariables.map((v) => `-E${v}`),
       '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',
       '-Mo',
+      '--iface_no_lo',
       ...(options.printNsjailVerboseOutput ? ['-v'] : ['--quiet']),
       '--log_fd=1',
       '--',

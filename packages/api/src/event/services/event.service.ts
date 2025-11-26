@@ -169,7 +169,7 @@ export class EventService {
                     : taskDefinition.handler.type === 'docker'
                       ? {
                           handlerType: 'docker',
-                          handlerIdentifier: taskDefinition.handler.profile,
+                          handlerIdentifier: `${taskDefinition.handler.profile}:${taskDefinition.handler.jobClass}`,
                         }
                       : {
                           handlerType: 'external',
@@ -211,7 +211,8 @@ export class EventService {
                     data: {
                       taskId: newTaskId,
                       appIdentifier: subscribedApp.identifier,
-                      profile: handlerIdentifier,
+                      jobClass: handlerIdentifier?.split(':')[1],
+                      profile: handlerIdentifier?.split(':')[0],
                     },
                     _db: tx,
                   })
@@ -260,12 +261,14 @@ export class EventService {
             taskDescription: 'Reindex folder on user request',
             shouldKeepEventSubjectContext: true,
           },
-          {
-            taskIdentifier: PlatformTaskName.RunDockerJob,
-            taskDescription: 'Execute an async docker job',
-            shouldKeepEventSubjectContext: true,
-          },
         ],
+      [`${PLATFORM_IDENTIFIER}:docker_task_enqueued`]: [
+        {
+          taskIdentifier: PlatformTaskName.RunDockerJob,
+          taskDescription: 'Run a docker job',
+          shouldKeepEventSubjectContext: true,
+        },
+      ],
     }
 
     const platformTasks =
