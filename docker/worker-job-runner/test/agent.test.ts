@@ -70,17 +70,17 @@ interface JobResult {
 
 interface UploadURLRequest {
   files: Array<{
-    folder_id: string
-    object_key: string
-    content_type: string
+    folderId: string
+    objectKey: string
+    contentType: string
   }>
 }
 
 interface UploadURLResponse {
   uploads: Array<{
-    folder_id: string
-    object_key: string
-    presigned_url: string
+    folderId: string
+    objectKey: string
+    presignedUrl: string
   }>
 }
 
@@ -88,7 +88,7 @@ interface CompletionRequest {
   success: boolean
   result?: unknown
   error?: { code: string; message: string }
-  uploaded_files?: Array<{ folder_id: string; object_key: string }>
+  uploadedFiles?: Array<{ folderId: string; objectKey: string }>
 }
 
 interface MockPlatformServerState {
@@ -516,11 +516,11 @@ function startMockPlatformServer(): void {
         // Generate presigned URLs pointing to mock S3 server
         const response: UploadURLResponse = {
           uploads: body.files.map((file) => ({
-            folder_id: file.folder_id,
-            object_key: file.object_key,
-            presigned_url: `http://host.docker.internal:${MOCK_S3_PORT}/upload/${
-              file.folder_id
-            }/${encodeURIComponent(file.object_key)}`,
+            folderId: file.folderId,
+            objectKey: file.objectKey,
+            presignedUrl: `http://host.docker.internal:${MOCK_S3_PORT}/upload/${
+              file.folderId
+            }/${encodeURIComponent(file.objectKey)}`,
           })),
         }
 
@@ -1626,9 +1626,9 @@ describe('Platform Agent', () => {
       const uploadReq = mockPlatformState.uploadUrlRequests[0]
       expect(uploadReq.jobId).toBe(jobId)
       expect(uploadReq.body.files.length).toBe(2)
-      expect(uploadReq.body.files[0].folder_id).toBe('test-folder-uuid')
-      expect(uploadReq.body.files[0].object_key).toBe('output.txt')
-      expect(uploadReq.body.files[1].object_key).toBe('data.json')
+      expect(uploadReq.body.files[0].folderId).toBe('test-folder-uuid')
+      expect(uploadReq.body.files[0].objectKey).toBe('output.txt')
+      expect(uploadReq.body.files[1].objectKey).toBe('data.json')
 
       // Verify files were uploaded to S3
       expect(mockPlatformState.uploadedFiles.length).toBe(2)
@@ -1652,8 +1652,8 @@ describe('Platform Agent', () => {
       const completionReq = mockPlatformState.completionRequests[0]
       expect(completionReq.jobId).toBe(jobId)
       expect(completionReq.body.success).toBe(true)
-      expect(completionReq.body.uploaded_files?.length).toBe(2)
-      expect(completionReq.body.uploaded_files?.[0].folder_id).toBe(
+      expect(completionReq.body.uploadedFiles?.length).toBe(2)
+      expect(completionReq.body.uploadedFiles?.[0].folderId).toBe(
         'test-folder-uuid',
       )
 

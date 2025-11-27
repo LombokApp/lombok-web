@@ -1,5 +1,11 @@
 import type { ContainerProfileConfig } from '@lombokapp/types'
-import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common'
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+  Scope,
+} from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
@@ -10,6 +16,7 @@ import { Task } from 'src/task/entities/task.entity'
 
 import { LocalDockerAdapter } from './adapters/local.adapter'
 import { DockerManager } from './docker-manager.service'
+import { WorkerJobService } from './worker-job.service'
 
 export const USER_JWT_SUB_PREFIX = 'user:'
 export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
@@ -53,6 +60,8 @@ export class DockerOrchestrationService {
       typeof platformConfig
     >,
     private readonly ormService: OrmService,
+    @Inject(forwardRef(() => WorkerJobService))
+    private readonly workerJobService: WorkerJobService,
   ) {
     this.dockerManager = new DockerManager({
       ...(this._platformConfig.dockerHost && {
@@ -218,7 +227,12 @@ export class DockerOrchestrationService {
   async executeDockerJobAsync(
     task: Task,
     event: Event & {
-      data: { appIdentifier: string; profile: string; jobClass: string }
+      data: {
+        appIdentifier: string
+        profile: string
+        jobClass: string
+        allowedUploads?: Record<string, string[]>
+      }
     },
   ) {
     // handlerIdentifier contains "profile:jobClass" for docker tasks
@@ -273,6 +287,23 @@ export class DockerOrchestrationService {
       throw new Error('Failed to find or create a container for this job')
     }
 
+    // Generate a unique job ID
+    const jobId = crypto.randomUUID()
+
+    // Generate worker job token with validated upload permissions
+    // This validates that the app has WRITE_OBJECTS permission for each folder
+    const jobToken = await this.workerJobService.createValidatedWorkerJobToken({
+      jobId,
+      taskId: task.id,
+      appIdentifier,
+      allowedUploads: event.data.allowedUploads ?? {},
+    })
+
+    // Build the platform URL for callbacks
+    const platformUrl = this._platformConfig.platformHost.startsWith('http')
+      ? this._platformConfig.platformHost
+      : `https://${this._platformConfig.platformHost}`
+
     // Execute the job in the container via docker exec
     const execResult = await this.dockerManager.execInContainer(
       hostId,
@@ -286,6 +317,8 @@ export class DockerOrchestrationService {
           eventData: event.data,
           inputData: task.inputData,
         },
+        platformUrl,
+        jobToken,
       },
     )
 

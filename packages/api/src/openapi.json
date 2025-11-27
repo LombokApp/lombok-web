@@ -5666,6 +5666,140 @@
           "Tasks"
         ]
       }
+    },
+    "/api/v1/docker/worker-jobs/{jobId}/request-upload-urls": {
+      "post": {
+        "description": "Returns presigned S3 URLs for uploading job output files. The job token must have permissions for the requested folder/prefix combinations.",
+        "operationId": "requestUploadUrls",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerJobUploadUrlsRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerJobUploadUrlsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Request presigned URLs for file uploads",
+        "tags": [
+          "WorkerJobs"
+        ]
+      }
+    },
+    "/api/v1/docker/worker-jobs/{jobId}/complete": {
+      "post": {
+        "description": "Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.",
+        "operationId": "completeJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerJobCompleteRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerJobCompleteResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Signal job completion",
+        "tags": [
+          "WorkerJobs"
+        ]
+      }
     }
   },
   "info": {
@@ -7067,15 +7201,152 @@
                           "description": {
                             "type": "string"
                           },
-                          "worker": {
-                            "type": "string"
+                          "handler": {
+                            "discriminator": {
+                              "propertyName": "type"
+                            },
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "worker"
+                                    ]
+                                  },
+                                  "identifier": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "identifier"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "docker"
+                                    ]
+                                  },
+                                  "profile": {
+                                    "type": "string"
+                                  },
+                                  "jobClass": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "profile",
+                                  "jobClass"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "external"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "identifier",
                           "label",
                           "triggers",
-                          "description"
+                          "description",
+                          "handler"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "containerProfiles": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "image": {
+                            "type": "string"
+                          },
+                          "command": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "environmentVariables": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "resources": {
+                            "type": "object",
+                            "properties": {
+                              "gpu": {
+                                "type": "boolean"
+                              },
+                              "memoryMB": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              },
+                              "cpuCores": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "desiredContainers": {
+                            "type": "number",
+                            "minimum": 0,
+                            "exclusiveMinimum": true
+                          },
+                          "desiredMaxJobsPerContainer": {
+                            "type": "number",
+                            "minimum": 0,
+                            "exclusiveMinimum": true
+                          },
+                          "jobClasses": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "maxPerContainer": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "countTowardsGlobalCap": {
+                                  "type": "boolean"
+                                },
+                                "priority": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "maxPerContainer",
+                                "countTowardsGlobalCap"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "image",
+                          "jobClasses"
                         ],
                         "additionalProperties": false
                       }
@@ -7743,15 +8014,152 @@
                         "description": {
                           "type": "string"
                         },
-                        "worker": {
-                          "type": "string"
+                        "handler": {
+                          "discriminator": {
+                            "propertyName": "type"
+                          },
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "worker"
+                                  ]
+                                },
+                                "identifier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "identifier"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "docker"
+                                  ]
+                                },
+                                "profile": {
+                                  "type": "string"
+                                },
+                                "jobClass": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "profile",
+                                "jobClass"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "external"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "identifier",
                         "label",
                         "triggers",
-                        "description"
+                        "description",
+                        "handler"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "containerProfiles": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "image": {
+                          "type": "string"
+                        },
+                        "command": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "environmentVariables": {
+                          "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "resources": {
+                          "type": "object",
+                          "properties": {
+                            "gpu": {
+                              "type": "boolean"
+                            },
+                            "memoryMB": {
+                              "type": "number",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            },
+                            "cpuCores": {
+                              "type": "number",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "desiredContainers": {
+                          "type": "number",
+                          "minimum": 0,
+                          "exclusiveMinimum": true
+                        },
+                        "desiredMaxJobsPerContainer": {
+                          "type": "number",
+                          "minimum": 0,
+                          "exclusiveMinimum": true
+                        },
+                        "jobClasses": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "maxPerContainer": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              },
+                              "countTowardsGlobalCap": {
+                                "type": "boolean"
+                              },
+                              "priority": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "maxPerContainer",
+                              "countTowardsGlobalCap"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "image",
+                        "jobClasses"
                       ],
                       "additionalProperties": false
                     }
@@ -8448,15 +8856,152 @@
                           "description": {
                             "type": "string"
                           },
-                          "worker": {
-                            "type": "string"
+                          "handler": {
+                            "discriminator": {
+                              "propertyName": "type"
+                            },
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "worker"
+                                    ]
+                                  },
+                                  "identifier": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "identifier"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "docker"
+                                    ]
+                                  },
+                                  "profile": {
+                                    "type": "string"
+                                  },
+                                  "jobClass": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "profile",
+                                  "jobClass"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "external"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "identifier",
                           "label",
                           "triggers",
-                          "description"
+                          "description",
+                          "handler"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "containerProfiles": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "image": {
+                            "type": "string"
+                          },
+                          "command": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "environmentVariables": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "resources": {
+                            "type": "object",
+                            "properties": {
+                              "gpu": {
+                                "type": "boolean"
+                              },
+                              "memoryMB": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              },
+                              "cpuCores": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "desiredContainers": {
+                            "type": "number",
+                            "minimum": 0,
+                            "exclusiveMinimum": true
+                          },
+                          "desiredMaxJobsPerContainer": {
+                            "type": "number",
+                            "minimum": 0,
+                            "exclusiveMinimum": true
+                          },
+                          "jobClasses": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "maxPerContainer": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "countTowardsGlobalCap": {
+                                  "type": "boolean"
+                                },
+                                "priority": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "maxPerContainer",
+                                "countTowardsGlobalCap"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "image",
+                          "jobClasses"
                         ],
                         "additionalProperties": false
                       }
@@ -9010,15 +9555,152 @@
                         "description": {
                           "type": "string"
                         },
-                        "worker": {
-                          "type": "string"
+                        "handler": {
+                          "discriminator": {
+                            "propertyName": "type"
+                          },
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "worker"
+                                  ]
+                                },
+                                "identifier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "identifier"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "docker"
+                                  ]
+                                },
+                                "profile": {
+                                  "type": "string"
+                                },
+                                "jobClass": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "profile",
+                                "jobClass"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "external"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "identifier",
                         "label",
                         "triggers",
-                        "description"
+                        "description",
+                        "handler"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "containerProfiles": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "image": {
+                          "type": "string"
+                        },
+                        "command": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "environmentVariables": {
+                          "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "resources": {
+                          "type": "object",
+                          "properties": {
+                            "gpu": {
+                              "type": "boolean"
+                            },
+                            "memoryMB": {
+                              "type": "number",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            },
+                            "cpuCores": {
+                              "type": "number",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "desiredContainers": {
+                          "type": "number",
+                          "minimum": 0,
+                          "exclusiveMinimum": true
+                        },
+                        "desiredMaxJobsPerContainer": {
+                          "type": "number",
+                          "minimum": 0,
+                          "exclusiveMinimum": true
+                        },
+                        "jobClasses": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "maxPerContainer": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              },
+                              "countTowardsGlobalCap": {
+                                "type": "boolean"
+                              },
+                              "priority": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "maxPerContainer",
+                              "countTowardsGlobalCap"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "image",
+                        "jobClasses"
                       ],
                       "additionalProperties": false
                     }
@@ -11881,6 +12563,117 @@
         "required": [
           "meta",
           "result"
+        ]
+      },
+      "WorkerJobUploadUrlsRequestDTO": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "folderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "objectKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "contentType": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "folderId",
+                "objectKey",
+                "contentType"
+              ]
+            }
+          }
+        },
+        "required": [
+          "files"
+        ]
+      },
+      "WorkerJobUploadUrlsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "uploads": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "folderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "objectKey": {
+                  "type": "string"
+                },
+                "presignedUrl": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "required": [
+                "folderId",
+                "objectKey",
+                "presignedUrl"
+              ]
+            }
+          }
+        },
+        "required": [
+          "uploads"
+        ]
+      },
+      "WorkerJobCompleteRequestDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "result": {},
+          "error": {
+            "$ref": "#/components/schemas/ApiErrorResponseDTO"
+          },
+          "uploadedFiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "folderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "objectKey": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "folderId",
+                "objectKey"
+              ]
+            }
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "WorkerJobCompleteResponseDTO": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
         ]
       }
     }

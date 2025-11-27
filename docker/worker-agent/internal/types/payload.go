@@ -127,9 +127,9 @@ type UploadURLRequest struct {
 
 // UploadFileRequest describes a file for which we need a presigned URL
 type UploadFileRequest struct {
-	FolderID    string `json:"folder_id"`
-	ObjectKey   string `json:"object_key"`
-	ContentType string `json:"content_type"`
+	FolderID    string `json:"folderId"`
+	ObjectKey   string `json:"objectKey"`
+	ContentType string `json:"contentType"`
 }
 
 // UploadURLResponse is the response from the platform with presigned URLs
@@ -139,9 +139,9 @@ type UploadURLResponse struct {
 
 // UploadURL contains the presigned URL for a single file upload
 type UploadURL struct {
-	FolderID     string `json:"folder_id"`
-	ObjectKey    string `json:"object_key"`
-	PresignedURL string `json:"presigned_url"`
+	FolderID     string `json:"folderId"`
+	ObjectKey    string `json:"objectKey"`
+	PresignedURL string `json:"presignedUrl"`
 }
 
 // CompletionRequest is sent to the platform to signal job completion
@@ -149,11 +149,11 @@ type CompletionRequest struct {
 	Success       bool            `json:"success"`
 	Result        json.RawMessage `json:"result,omitempty"`
 	Error         *JobError       `json:"error,omitempty"`
-	UploadedFiles []UploadedFile  `json:"uploaded_files,omitempty"`
+	UploadedFiles []UploadedFile  `json:"uploadedFiles,omitempty"`
 }
 
 // UploadedFile describes a file that was successfully uploaded
 type UploadedFile struct {
-	FolderID  string `json:"folder_id"`
-	ObjectKey string `json:"object_key"`
+	FolderID  string `json:"folderId"`
+	ObjectKey string `json:"objectKey"`
 }

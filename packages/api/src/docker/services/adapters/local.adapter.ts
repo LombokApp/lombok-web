@@ -281,7 +281,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       const container = this.docker.getContainer(containerId)
 
       // Build the payload for the lombok-worker-agent
-      const payload = {
+      const payload: Record<string, unknown> = {
         job_id: crypto.randomUUID(),
         job_class: options.jobClass,
         worker_command: ['/app/worker'], // Default worker path, can be customized per job class
@@ -289,6 +289,14 @@ export class LocalDockerAdapter implements DockerAdapter {
           kind: options.mode === 'sync' ? 'exec_per_job' : 'persistent_http',
         },
         job_input: options.payload,
+      }
+
+      // Include platform integration fields if provided
+      if (options.platformUrl) {
+        payload.platform_url = options.platformUrl
+      }
+      if (options.jobToken) {
+        payload.job_token = options.jobToken
       }
 
       // Base64 encode the payload

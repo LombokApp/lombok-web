@@ -1103,6 +1103,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/worker-jobs/{jobId}/request-upload-urls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request presigned URLs for file uploads
+         * @description Returns presigned S3 URLs for uploading job output files. The job token must have permissions for the requested folder/prefix combinations.
+         */
+        post: operations["requestUploadUrls"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/worker-jobs/{jobId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signal job completion
+         * @description Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.
+         */
+        post: operations["completeJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1462,8 +1502,41 @@ export interface components {
                         label: string;
                         triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            profile: string;
+                            jobClass: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            command?: string[];
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            desiredContainers?: number;
+                            desiredMaxJobsPerContainer?: number;
+                            jobClasses: {
+                                [key: string]: {
+                                    maxPerContainer: number;
+                                    countTowardsGlobalCap: boolean;
+                                    priority?: number;
+                                };
+                            };
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -1617,8 +1690,41 @@ export interface components {
                         label: string;
                         triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            profile: string;
+                            jobClass: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            command?: string[];
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            desiredContainers?: number;
+                            desiredMaxJobsPerContainer?: number;
+                            jobClasses: {
+                                [key: string]: {
+                                    maxPerContainer: number;
+                                    countTowardsGlobalCap: boolean;
+                                    priority?: number;
+                                };
+                            };
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -1781,8 +1887,41 @@ export interface components {
                         label: string;
                         triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            profile: string;
+                            jobClass: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            command?: string[];
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            desiredContainers?: number;
+                            desiredMaxJobsPerContainer?: number;
+                            jobClasses: {
+                                [key: string]: {
+                                    maxPerContainer: number;
+                                    countTowardsGlobalCap: boolean;
+                                    priority?: number;
+                                };
+                            };
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -1910,8 +2049,41 @@ export interface components {
                         label: string;
                         triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            profile: string;
+                            jobClass: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            command?: string[];
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            desiredContainers?: number;
+                            desiredMaxJobsPerContainer?: number;
+                            jobClasses: {
+                                [key: string]: {
+                                    maxPerContainer: number;
+                                    countTowardsGlobalCap: boolean;
+                                    priority?: number;
+                                };
+                            };
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -2648,6 +2820,36 @@ export interface components {
                     folderOwnerId: string;
                 };
             }[];
+        };
+        WorkerJobUploadUrlsRequestDTO: {
+            files: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+                contentType: string;
+            }[];
+        };
+        WorkerJobUploadUrlsResponseDTO: {
+            uploads: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+                /** Format: uri */
+                presignedUrl: string;
+            }[];
+        };
+        WorkerJobCompleteRequestDTO: {
+            success: boolean;
+            result?: unknown;
+            error?: components["schemas"]["ApiErrorResponseDTO"];
+            uploadedFiles?: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+            }[];
+        };
+        WorkerJobCompleteResponseDTO: {
+            ok: boolean;
         };
     };
     responses: never;
@@ -5953,6 +6155,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    requestUploadUrls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkerJobUploadUrlsRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerJobUploadUrlsResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    completeJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkerJobCompleteRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerJobCompleteResponseDTO"];
                 };
             };
             /** @description Server Error */

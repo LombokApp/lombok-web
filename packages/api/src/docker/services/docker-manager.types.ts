@@ -26,6 +26,8 @@ export interface ExecOptions {
   mode: 'sync' | 'async'
   jobClass: string
   payload: unknown
+  platformUrl?: string
+  jobToken?: string
 }
 
 export interface ExecResult {
