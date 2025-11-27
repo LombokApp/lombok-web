@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "types": ["bun"],
+    "strict": true,
+    "module": "es2022",
+    "moduleResolution": "node",
+    "declaration": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2022"
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}
