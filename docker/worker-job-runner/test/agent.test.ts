@@ -892,7 +892,7 @@ describe('Platform Agent', () => {
       )
 
       // Verify job log contains expected log messages from the handler
-      expect(jobLog).toContain('Job started')
+      expect(jobLog).toContain('Job accepted')
       expect(jobLog).toContain('Adding 3 numbers')
       expect(jobLog).toContain('Result: 60')
       expect(jobLog).toContain('Job completed successfully')
@@ -930,6 +930,42 @@ describe('Platform Agent', () => {
       )
       expect(jobErrLog).toContain('Warning at step')
       expect(jobErrLog).toContain('Simulated error condition detected')
+    })
+
+    test('async protocol handles delayed jobs via polling', async () => {
+      const jobClass = 'verbose_log'
+      const port = 8205
+
+      const jobId = generateJobId('async-delay-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        // Job with 5 steps, each delayed by 500ms = 2.5 seconds total
+        job_input: { steps: 5, delayMs: 500 },
+      }
+
+      const startTime = Date.now()
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const elapsed = Date.now() - startTime
+
+      expect(result.success).toBe(true)
+
+      // Verify the job took at least 2 seconds (5 steps * 500ms delay)
+      expect(elapsed).toBeGreaterThan(2000)
+
+      // Verify the result contains expected data
+      const resultObj = result.result as Record<string, unknown>
+      expect(resultObj.stepsCompleted).toBe(5)
+
+      // Verify job logs show all steps
+      const jobOutLog = await readFileInContainer(
+        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
+      )
+      expect(jobOutLog).toContain('Step 1/5')
+      expect(jobOutLog).toContain('Step 5/5')
+      expect(jobOutLog).toContain('Completed 5 steps successfully')
     })
   })
 

@@ -67,7 +67,23 @@ type HTTPJobRequest struct {
 	JobLogErr string          `json:"job_log_err,omitempty"`
 }
 
-// HTTPJobResponse is the expected response from persistent HTTP workers
+// HTTPJobSubmitResponse is the immediate response when submitting a job
+type HTTPJobSubmitResponse struct {
+	Accepted bool      `json:"accepted"`
+	JobID    string    `json:"job_id"`
+	Error    *JobError `json:"error,omitempty"`
+}
+
+// HTTPJobStatusResponse is the response when polling for job status
+type HTTPJobStatusResponse struct {
+	JobID    string          `json:"job_id"`
+	JobClass string          `json:"job_class,omitempty"`
+	Status   string          `json:"status"` // "pending", "running", "completed", "failed"
+	Result   json.RawMessage `json:"result,omitempty"`
+	Error    *JobError       `json:"error,omitempty"`
+}
+
+// HTTPJobResponse is the expected response from persistent HTTP workers (legacy sync mode)
 type HTTPJobResponse struct {
 	Success bool            `json:"success"`
 	Result  json.RawMessage `json:"result,omitempty"`

@@ -22,12 +22,17 @@ const (
 	readinessTimeout  = 30 * time.Second
 	readinessPollWait = 500 * time.Millisecond
 
-	// HTTP request timeout
-	httpRequestTimeout = 60 * time.Second
+	// Job submission timeout (short - just for the POST)
+	jobSubmitTimeout = 10 * time.Second
+
+	// Job status polling settings
+	jobPollInterval  = 1 * time.Second
+	jobPollTimeout   = 30 * time.Minute // Max time to wait for a job to complete
+	jobStatusTimeout = 5 * time.Second  // Timeout for each status poll request
 )
 
 // RunPersistentHTTP runs a job using the persistent_http interface
-// It ensures a persistent worker is running, then POSTs the job to it.
+// It ensures a persistent worker is running, submits the job, then polls for completion.
 func RunPersistentHTTP(payload *types.JobPayload) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
@@ -39,7 +44,7 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	jobState := &types.JobState{
 		JobID:      payload.JobID,
 		JobClass:   payload.JobClass,
-		Status:     "running",
+		Status:     "pending",
 		StartedAt:  now,
 		WorkerKind: "persistent_http",
 	}
@@ -71,8 +76,15 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	jobState.WorkerStatePID = workerState.PID
 	state.WriteJobState(jobState)
 
-	// Build the HTTP client
-	client := buildHTTPClient(payload.Interface.Listener)
+	// Build the HTTP client for job submission (short timeout)
+	client := &http.Client{Timeout: jobSubmitTimeout}
+	if payload.Interface.Listener != nil && payload.Interface.Listener.Type == "unix" {
+		client.Transport = &http.Transport{
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				return (&net.Dialer{}).DialContext(ctx, "unix", payload.Interface.Listener.Path)
+			},
+		}
+	}
 
 	// Build the job request payload
 	jobOutPath := config.JobOutLogPath(payload.JobID)
@@ -96,13 +108,14 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	}
 
 	// Build the endpoint URL
-	endpoint := buildEndpointURL(payload.Interface.Listener)
+	baseURL := buildBaseURL(payload.Interface.Listener)
 
-	// Make the HTTP request
-	ctx, cancel := context.WithTimeout(context.Background(), httpRequestTimeout)
+	// Step 1: Submit the job
+	submitURL := baseURL + "/job"
+	ctx, cancel := context.WithTimeout(context.Background(), jobSubmitTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", submitURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
 	}
@@ -111,7 +124,7 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	resp, err := client.Do(req)
 	if err != nil {
 		jobState.Status = "failed"
-		jobState.Error = fmt.Sprintf("HTTP request failed: %s", err.Error())
+		jobState.Error = fmt.Sprintf("job submission failed: %s", err.Error())
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
@@ -119,7 +132,7 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 			"success": false,
 			"job_id":  payload.JobID,
 			"error": map[string]interface{}{
-				"code":    "HTTP_REQUEST_FAILED",
+				"code":    "JOB_SUBMIT_FAILED",
 				"message": err.Error(),
 			},
 		}
@@ -129,58 +142,158 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	}
 	defer resp.Body.Close()
 
-	// Read response body
+	// Read and parse submission response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+		return fmt.Errorf("failed to read submission response: %w", err)
 	}
 
-	// Update job state with HTTP status
-	jobState.Meta = &types.JobMeta{HTTPStatus: resp.StatusCode}
+	var submitResp types.HTTPJobSubmitResponse
+	if err := json.Unmarshal(respBody, &submitResp); err != nil {
+		return fmt.Errorf("failed to parse submission response: %w (body: %s)", err, string(respBody))
+	}
+
+	if !submitResp.Accepted {
+		errMsg := "job not accepted"
+		if submitResp.Error != nil {
+			errMsg = submitResp.Error.Message
+		}
+		jobState.Status = "failed"
+		jobState.Error = errMsg
+		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+		state.WriteJobState(jobState)
+
+		result := map[string]interface{}{
+			"success": false,
+			"job_id":  payload.JobID,
+			"error": map[string]interface{}{
+				"code":    "JOB_NOT_ACCEPTED",
+				"message": errMsg,
+			},
+		}
+		resultJSON, _ := json.Marshal(result)
+		fmt.Println(string(resultJSON))
+		return fmt.Errorf("job not accepted: %s", errMsg)
+	}
+
+	// Job submitted successfully, update state to running
+	jobState.Status = "running"
+	state.WriteJobState(jobState)
+
+	// Step 2: Poll for job completion
+	statusURL := fmt.Sprintf("%s/job/%s", baseURL, payload.JobID)
+	pollClient := buildHTTPClient(payload.Interface.Listener)
+
+	deadline := time.Now().Add(jobPollTimeout)
+	var finalStatus *types.HTTPJobStatusResponse
+
+	for time.Now().Before(deadline) {
+		status, err := pollJobStatus(pollClient, statusURL)
+		if err != nil {
+			// Log the error but keep polling
+			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] poll error: %v\n", err)
+			time.Sleep(jobPollInterval)
+			continue
+		}
+
+		// Check if job is complete
+		if status.Status == "completed" || status.Status == "failed" {
+			finalStatus = status
+			break
+		}
+
+		time.Sleep(jobPollInterval)
+	}
+
+	// Handle timeout
+	if finalStatus == nil {
+		jobState.Status = "failed"
+		jobState.Error = fmt.Sprintf("job polling timed out after %s", jobPollTimeout)
+		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+		state.WriteJobState(jobState)
+
+		result := map[string]interface{}{
+			"success": false,
+			"job_id":  payload.JobID,
+			"error": map[string]interface{}{
+				"code":    "JOB_POLL_TIMEOUT",
+				"message": jobState.Error,
+			},
+		}
+		resultJSON, _ := json.Marshal(result)
+		fmt.Println(string(resultJSON))
+		os.Exit(1)
+		return fmt.Errorf("job polling timed out")
+	}
+
+	// Update job state with final status
 	jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 
-	// Try to parse response as HTTPJobResponse
-	var jobResp types.HTTPJobResponse
-	if err := json.Unmarshal(respBody, &jobResp); err == nil {
-		if jobResp.Success {
-			jobState.Status = "success"
-		} else {
-			jobState.Status = "failed"
-			if jobResp.Error != nil {
-				jobState.Error = jobResp.Error.Message
-			}
-		}
+	if finalStatus.Status == "completed" {
+		jobState.Status = "success"
 	} else {
-		// If response is not valid JSON, check HTTP status
-		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-			jobState.Status = "success"
-		} else {
-			jobState.Status = "failed"
-			jobState.Error = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(respBody))
+		jobState.Status = "failed"
+		if finalStatus.Error != nil {
+			jobState.Error = finalStatus.Error.Message
 		}
 	}
 
 	state.WriteJobState(jobState)
 
-	// Output the response to stdout for the platform
-	if json.Valid(respBody) {
-		fmt.Println(string(respBody))
-	} else {
-		result := map[string]interface{}{
-			"success":     jobState.Status == "success",
-			"job_id":      payload.JobID,
-			"http_status": resp.StatusCode,
-			"result":      string(respBody),
-		}
-		resultJSON, _ := json.Marshal(result)
-		fmt.Println(string(resultJSON))
+	// Output the final result to stdout for the platform
+	result := map[string]interface{}{
+		"success":   finalStatus.Status == "completed",
+		"job_id":    payload.JobID,
+		"job_class": payload.JobClass,
 	}
+	if finalStatus.Result != nil {
+		result["result"] = json.RawMessage(finalStatus.Result)
+	}
+	if finalStatus.Error != nil {
+		result["error"] = finalStatus.Error
+	}
+
+	resultJSON, _ := json.Marshal(result)
+	fmt.Println(string(resultJSON))
 
 	if jobState.Status == "failed" {
 		os.Exit(1)
 	}
 
 	return nil
+}
+
+// pollJobStatus makes a single request to get job status
+func pollJobStatus(client *http.Client, statusURL string) (*types.HTTPJobStatusResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), jobStatusTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", statusURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create status request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("status request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("job not found")
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read status response: %w", err)
+	}
+
+	var status types.HTTPJobStatusResponse
+	if err := json.Unmarshal(body, &status); err != nil {
+		return nil, fmt.Errorf("failed to parse status response: %w", err)
+	}
+
+	return &status, nil
 }
 
 // ensureWorkerReady makes sure a worker is running and ready to accept jobs
@@ -308,7 +421,7 @@ func waitForWorkerReady(listener *types.ListenerConfig, timeout time.Duration) e
 // checkWorkerReady checks if the worker is responding to HTTP requests
 func checkWorkerReady(listener *types.ListenerConfig) bool {
 	client := buildHTTPClient(listener)
-	endpoint := buildEndpointURL(listener)
+	endpoint := buildBaseURL(listener) + "/job"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -331,12 +444,12 @@ func checkWorkerReady(listener *types.ListenerConfig) bool {
 // buildHTTPClient creates an HTTP client configured for the listener type
 func buildHTTPClient(listener *types.ListenerConfig) *http.Client {
 	if listener == nil {
-		return &http.Client{Timeout: httpRequestTimeout}
+		return &http.Client{Timeout: jobStatusTimeout}
 	}
 
 	if listener.Type == "unix" {
 		return &http.Client{
-			Timeout: httpRequestTimeout,
+			Timeout: jobStatusTimeout,
 			Transport: &http.Transport{
 				DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 					return (&net.Dialer{}).DialContext(ctx, "unix", listener.Path)
@@ -345,19 +458,24 @@ func buildHTTPClient(listener *types.ListenerConfig) *http.Client {
 		}
 	}
 
-	return &http.Client{Timeout: httpRequestTimeout}
+	return &http.Client{Timeout: jobStatusTimeout}
 }
 
-// buildEndpointURL builds the endpoint URL based on the listener configuration
-func buildEndpointURL(listener *types.ListenerConfig) string {
+// buildBaseURL builds the base URL based on the listener configuration
+func buildBaseURL(listener *types.ListenerConfig) string {
 	if listener == nil {
-		return "http://127.0.0.1:9000/job"
+		return "http://127.0.0.1:9000"
 	}
 
 	if listener.Type == "unix" {
 		// For unix sockets, the host doesn't matter but we need a valid URL
-		return "http://localhost/job"
+		return "http://localhost"
 	}
 
-	return fmt.Sprintf("http://127.0.0.1:%d/job", listener.Port)
+	return fmt.Sprintf("http://127.0.0.1:%d", listener.Port)
+}
+
+// Deprecated: buildEndpointURL is kept for backwards compatibility
+func buildEndpointURL(listener *types.ListenerConfig) string {
+	return buildBaseURL(listener) + "/job"
 }

@@ -4,13 +4,22 @@ import fs from 'node:fs'
 const DEFAULT_PORT_INPUT = Number.parseInt(process.env.APP_PORT ?? '8080', 10)
 const SERVER_PORT = Number.isNaN(DEFAULT_PORT_INPUT) ? 8080 : DEFAULT_PORT_INPUT
 
-interface JobRecord {
-  id: string
+// =============================================================================
+// Job State Management (Async Protocol)
+// =============================================================================
+
+interface JobState {
+  jobId: string
   jobClass: string
-  status: 'running' | 'completed'
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  result?: unknown
+  error?: { code: string; message: string }
   startedAt: string
   completedAt?: string
 }
+
+// Store for tracking job states
+const jobStates = new Map<string, JobState>()
 
 // Platform agent job request structure (for persistent_http mode)
 interface AgentJobRequest {
@@ -53,7 +62,10 @@ const createJobLogger = (jobLogOut?: string, jobLogErr?: string): JobLogger => {
 // Job Class Handlers
 // =============================================================================
 
-type JobHandler = (input: unknown, logger: JobLogger) => unknown
+type JobHandler = (
+  input: unknown,
+  logger: JobLogger,
+) => unknown | Promise<unknown>
 
 // Math operations
 interface MathAddInput {
@@ -372,21 +384,26 @@ interface VerboseLogInput {
   steps: number
   simulateWarning?: boolean
   simulateError?: boolean
+  delayMs?: number // Optional delay between steps to simulate long-running job
 }
 
-const handleVerboseLog: JobHandler = (input, logger) => {
+const handleVerboseLog: JobHandler = async (input, logger) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as VerboseLogInput).steps !== 'number'
   ) {
     throw new Error('Invalid input: expected { steps: number }')
   }
-  const { steps, simulateWarning, simulateError } =
-    input as unknown as VerboseLogInput
+  const {
+    steps,
+    simulateWarning,
+    simulateError,
+    delayMs = 0,
+  } = input as unknown as VerboseLogInput
 
   logger.log('=== Starting verbose logging job ===')
   logger.log(
-    `Configuration: steps=${steps}, simulateWarning=${simulateWarning}, simulateError=${simulateError}`,
+    `Configuration: steps=${steps}, simulateWarning=${simulateWarning}, simulateError=${simulateError}, delayMs=${delayMs}`,
   )
 
   const results: string[] = []
@@ -397,6 +414,11 @@ const handleVerboseLog: JobHandler = (input, logger) => {
 
     if (simulateWarning && i === Math.floor(steps / 2)) {
       logger.error(`Warning at step ${i}: This is a simulated warning message`)
+    }
+
+    // Simulate work with optional delay
+    if (delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
     }
   }
 
@@ -440,10 +462,64 @@ const jobHandlers: Record<string, JobHandler> = {
 }
 
 // =============================================================================
-// Server
+// Async Job Execution
 // =============================================================================
 
-const jobs = new Map<string, JobRecord>()
+const executeJobAsync = async (
+  jobId: string,
+  jobClass: string,
+  input: unknown,
+  logger: JobLogger,
+): Promise<void> => {
+  const jobState = jobStates.get(jobId)
+  if (!jobState) {
+    return
+  }
+
+  // Update status to running
+  jobState.status = 'running'
+
+  const handler = jobHandlers[jobClass]
+  if (!handler) {
+    jobState.status = 'failed'
+    jobState.error = {
+      code: 'UNKNOWN_JOB_CLASS',
+      message: `Unknown job class: ${jobClass}. Supported: ${Object.keys(
+        jobHandlers,
+      ).join(', ')}`,
+    }
+    jobState.completedAt = new Date().toISOString()
+    logger.error(`Unknown job class: ${jobClass}`)
+    return
+  }
+
+  try {
+    const result = await handler(input, logger)
+    jobState.status = 'completed'
+    jobState.result = result
+    jobState.completedAt = new Date().toISOString()
+    logger.log(`Job completed successfully`)
+    // eslint-disable-next-line no-console
+    console.log(`[job] Completed job_id=${jobId} job_class=${jobClass}`)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    jobState.status = 'failed'
+    jobState.error = {
+      code: 'JOB_EXECUTION_ERROR',
+      message,
+    }
+    jobState.completedAt = new Date().toISOString()
+    logger.error(`Job failed: ${message}`)
+    // eslint-disable-next-line no-console
+    console.error(
+      `[job] Failed job_id=${jobId} job_class=${jobClass}: ${message}`,
+    )
+  }
+}
+
+// =============================================================================
+// Server
+// =============================================================================
 
 const jsonResponse = (body: unknown, init?: ResponseInit): Response => {
   return new Response(JSON.stringify(body, null, 2), {
@@ -454,48 +530,23 @@ const jsonResponse = (body: unknown, init?: ResponseInit): Response => {
   })
 }
 
-const recordJob = (jobId: string, jobClass: string): JobRecord => {
-  const job: JobRecord = {
-    id: jobId,
-    jobClass,
-    status: 'running',
-    startedAt: new Date().toISOString(),
-  }
-  jobs.set(jobId, job)
-  return job
-}
-
-const completeJob = (jobId: string): void => {
-  const job = jobs.get(jobId)
-  if (job) {
-    job.status = 'completed'
-    job.completedAt = new Date().toISOString()
-  }
-}
-
-const getJobsList = (): JobRecord[] => {
-  return Array.from(jobs.values()).sort((a, b) =>
-    a.startedAt.localeCompare(b.startedAt),
-  )
-}
-
 const server = Bun.serve({
   port: SERVER_PORT,
   fetch: async (request) => {
     const url = new URL(request.url)
     const pathname = url.pathname
 
-    // Platform agent /job endpoint (for persistent_http mode)
     // GET /job - readiness check
     if (request.method === 'GET' && pathname === '/job') {
       return jsonResponse({
         status: 'ready',
         worker: 'mock-worker',
+        protocol: 'async',
         supportedJobClasses: Object.keys(jobHandlers),
       })
     }
 
-    // POST /job - handle job from lombok-worker-agent
+    // POST /job - submit job (async protocol: returns immediately)
     if (request.method === 'POST' && pathname === '/job') {
       let body: AgentJobRequest | undefined
       try {
@@ -503,7 +554,7 @@ const server = Bun.serve({
       } catch {
         return jsonResponse(
           {
-            success: false,
+            accepted: false,
             error: { code: 'INVALID_JSON', message: 'Invalid JSON body' },
           },
           { status: 400 },
@@ -513,98 +564,105 @@ const server = Bun.serve({
       if (!body?.job_id) {
         return jsonResponse(
           {
-            success: false,
+            accepted: false,
             error: { code: 'MISSING_JOB_ID', message: 'job_id is required' },
           },
           { status: 400 },
         )
       }
 
+      const jobId = body.job_id
       const jobClass = body.job_class
-      const handler = jobHandlers[jobClass]
+
+      // Check if job already exists
+      if (jobStates.has(jobId)) {
+        return jsonResponse(
+          {
+            accepted: false,
+            job_id: jobId,
+            error: {
+              code: 'DUPLICATE_JOB_ID',
+              message: 'Job ID already exists',
+            },
+          },
+          { status: 409 },
+        )
+      }
 
       // Create job logger for this job
       const logger = createJobLogger(body.job_log_out, body.job_log_err)
 
-      // Record job start
-      recordJob(body.job_id, jobClass)
+      // Create initial job state
+      const jobState: JobState = {
+        jobId,
+        jobClass,
+        status: 'pending',
+        startedAt: new Date().toISOString(),
+      }
+      jobStates.set(jobId, jobState)
 
       // eslint-disable-next-line no-console
-      console.log(`[job] Received job_id=${body.job_id} job_class=${jobClass}`)
-      logger.log(`Job started: job_id=${body.job_id} job_class=${jobClass}`)
+      console.log(`[job] Accepted job_id=${jobId} job_class=${jobClass}`)
+      logger.log(`Job accepted: job_id=${jobId} job_class=${jobClass}`)
 
-      // If no handler for this job class, return error
-      if (!handler) {
-        logger.error(`Unknown job class: ${jobClass}`)
-        completeJob(body.job_id)
+      // Execute job asynchronously (don't await - return immediately)
+      executeJobAsync(jobId, jobClass, body.input, logger)
+
+      // Return immediate acknowledgment
+      return jsonResponse({
+        accepted: true,
+        job_id: jobId,
+      })
+    }
+
+    // GET /job/:id - get job status (for polling)
+    if (request.method === 'GET' && pathname.startsWith('/job/')) {
+      const jobId = pathname.slice(5) // Remove '/job/' prefix
+      if (!jobId) {
         return jsonResponse(
-          {
-            success: false,
-            job_id: body.job_id,
-            job_class: jobClass,
-            error: {
-              code: 'UNKNOWN_JOB_CLASS',
-              message: `Unknown job class: ${jobClass}. Supported: ${Object.keys(
-                jobHandlers,
-              ).join(', ')}`,
-            },
-          },
+          { error: { code: 'MISSING_JOB_ID', message: 'Job ID required' } },
           { status: 400 },
         )
       }
 
-      // Execute the handler
-      try {
-        const result = handler(body.input, logger)
-        completeJob(body.job_id)
-        logger.log(`Job completed successfully`)
-
-        // eslint-disable-next-line no-console
-        console.log(
-          `[job] Completed job_id=${body.job_id} job_class=${jobClass}`,
-        )
-
-        return jsonResponse({
-          success: true,
-          job_id: body.job_id,
-          job_class: jobClass,
-          result,
-        })
-      } catch (err) {
-        completeJob(body.job_id)
-
-        const message = err instanceof Error ? err.message : String(err)
-        logger.error(`Job failed: ${message}`)
-
-        // eslint-disable-next-line no-console
-        console.error(
-          `[job] Failed job_id=${body.job_id} job_class=${jobClass}: ${message}`,
-        )
-
+      const jobState = jobStates.get(jobId)
+      if (!jobState) {
         return jsonResponse(
-          {
-            success: false,
-            job_id: body.job_id,
-            job_class: jobClass,
-            error: {
-              code: 'JOB_EXECUTION_ERROR',
-              message,
-            },
-          },
-          { status: 400 },
+          { error: { code: 'JOB_NOT_FOUND', message: 'Job not found' } },
+          { status: 404 },
         )
       }
+
+      // Build response based on job status
+      const response: Record<string, unknown> = {
+        job_id: jobState.jobId,
+        job_class: jobState.jobClass,
+        status: jobState.status,
+      }
+
+      if (jobState.status === 'completed' && jobState.result !== undefined) {
+        response.result = jobState.result
+      }
+
+      if (jobState.status === 'failed' && jobState.error) {
+        response.error = jobState.error
+      }
+
+      return jsonResponse(response)
     }
 
     if (request.method === 'GET' && pathname === '/health') {
+      const states = Array.from(jobStates.values())
       return jsonResponse({
         status: 'ok',
+        protocol: 'async',
         supportedJobClasses: Object.keys(jobHandlers),
         jobs: {
-          total: jobs.size,
-          completed: Array.from(jobs.values()).filter(
-            (job) => job.status === 'completed',
-          ).length,
+          total: states.length,
+          pending: states.filter((j) => j.status === 'pending').length,
+          running: states.filter((j) => j.status === 'running').length,
+          completed: states.filter((j) => j.status === 'completed').length,
+          failed: states.filter((j) => j.status === 'failed').length,
         },
         uptimeSeconds: Math.round(process.uptime()),
       })
@@ -631,23 +689,15 @@ const server = Bun.serve({
     }
 
     if (request.method === 'GET' && pathname === '/jobs') {
-      return jsonResponse({ jobs: getJobsList() })
-    }
-
-    if (request.method === 'GET' && pathname.startsWith('/jobs/')) {
-      const id = pathname.split('/')[2]
-      if (!id) {
-        return jsonResponse({ error: 'Job id required' }, { status: 400 })
-      }
-      const job = jobs.get(id)
-      if (!job) {
-        return jsonResponse({ error: 'Job not found' }, { status: 404 })
-      }
-      return jsonResponse({ job })
+      return jsonResponse({
+        jobs: Array.from(jobStates.values()).sort((a, b) =>
+          a.startedAt.localeCompare(b.startedAt),
+        ),
+      })
     }
 
     if (request.method === 'DELETE' && pathname === '/jobs') {
-      jobs.clear()
+      jobStates.clear()
       return jsonResponse({ message: 'All jobs cleared' })
     }
 
@@ -659,5 +709,5 @@ const server = Bun.serve({
 console.log(
   `Mock runner listening on port ${server.port} with ${
     Object.keys(jobHandlers).length
-  } job classes`,
+  } job classes (async protocol)`,
 )
