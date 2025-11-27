@@ -1,6 +1,13 @@
 import Dockerode from 'dockerode'
 import path from 'node:path'
-import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
+import {
+  describe,
+  test,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from 'bun:test'
 
 // =============================================================================
 // Configuration
@@ -40,17 +47,54 @@ interface JobPayload {
   worker_command: string[]
   interface: InterfaceConfig
   job_input: unknown
+  job_token?: string
+  platform_url?: string
 }
 
 interface JobResult {
   success: boolean
   job_id?: string
+  job_class?: string
   exit_code?: number
   result?: unknown
+  uploaded_files?: Array<{ folder_id: string; object_key: string }>
   error?: {
     code: string
     message: string
   }
+}
+
+// =============================================================================
+// Mock Platform Server Types
+// =============================================================================
+
+interface UploadURLRequest {
+  files: Array<{
+    folder_id: string
+    object_key: string
+    content_type: string
+  }>
+}
+
+interface UploadURLResponse {
+  uploads: Array<{
+    folder_id: string
+    object_key: string
+    presigned_url: string
+  }>
+}
+
+interface CompletionRequest {
+  success: boolean
+  result?: unknown
+  error?: { code: string; message: string }
+  uploaded_files?: Array<{ folder_id: string; object_key: string }>
+}
+
+interface MockPlatformServerState {
+  uploadUrlRequests: Array<{ jobId: string; body: UploadURLRequest }>
+  completionRequests: Array<{ jobId: string; body: CompletionRequest }>
+  uploadedFiles: Array<{ url: string; contentType: string; body: string }>
 }
 
 interface ExecResult {
@@ -418,6 +462,141 @@ const httpTestCases: HttpTestCase[] = [
 ]
 
 // =============================================================================
+// Mock Platform Server
+// =============================================================================
+
+let mockPlatformServer: ReturnType<typeof Bun.serve> | null = null
+let mockS3Server: ReturnType<typeof Bun.serve> | null = null
+const MOCK_PLATFORM_PORT = 19876
+const MOCK_S3_PORT = 19877
+const MOCK_JOB_TOKEN = 'test-jwt-token-for-testing'
+
+// Track all requests made to the mock servers
+let mockPlatformState: MockPlatformServerState = {
+  uploadUrlRequests: [],
+  completionRequests: [],
+  uploadedFiles: [],
+}
+
+function resetMockPlatformState(): void {
+  mockPlatformState = {
+    uploadUrlRequests: [],
+    completionRequests: [],
+    uploadedFiles: [],
+  }
+}
+
+function startMockPlatformServer(): void {
+  mockPlatformServer = Bun.serve({
+    port: MOCK_PLATFORM_PORT,
+    hostname: '0.0.0.0', // Listen on all interfaces so container can reach it
+    fetch: async (req) => {
+      const url = new URL(req.url)
+      const path = url.pathname
+
+      // Check authorization header
+      const authHeader = req.headers.get('Authorization')
+      if (authHeader !== `Bearer ${MOCK_JOB_TOKEN}`) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // POST /api/v1/docker/worker-jobs/{job_id}/request-upload-urls
+      const uploadUrlMatch = path.match(
+        /^\/api\/v1\/docker\/worker-jobs\/([^/]+)\/request-upload-urls$/,
+      )
+      if (uploadUrlMatch && req.method === 'POST') {
+        const jobId = uploadUrlMatch[1]
+        const body = (await req.json()) as UploadURLRequest
+
+        mockPlatformState.uploadUrlRequests.push({ jobId, body })
+
+        // Generate presigned URLs pointing to mock S3 server
+        const response: UploadURLResponse = {
+          uploads: body.files.map((file) => ({
+            folder_id: file.folder_id,
+            object_key: file.object_key,
+            presigned_url: `http://host.docker.internal:${MOCK_S3_PORT}/upload/${
+              file.folder_id
+            }/${encodeURIComponent(file.object_key)}`,
+          })),
+        }
+
+        return new Response(JSON.stringify(response), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // POST /api/v1/docker/worker-jobs/{job_id}/complete
+      const completeMatch = path.match(
+        /^\/api\/v1\/docker\/worker-jobs\/([^/]+)\/complete$/,
+      )
+      if (completeMatch && req.method === 'POST') {
+        const jobId = completeMatch[1]
+        const body = (await req.json()) as CompletionRequest
+
+        mockPlatformState.completionRequests.push({ jobId, body })
+
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      return new Response('Not Found', { status: 404 })
+    },
+  })
+}
+
+function startMockS3Server(): void {
+  mockS3Server = Bun.serve({
+    port: MOCK_S3_PORT,
+    hostname: '0.0.0.0',
+    fetch: async (req) => {
+      const url = new URL(req.url)
+
+      // PUT /upload/{folder_id}/{object_key} - S3 presigned upload
+      if (req.method === 'PUT' && url.pathname.startsWith('/upload/')) {
+        const contentType =
+          req.headers.get('Content-Type') || 'application/octet-stream'
+        const body = await req.text()
+
+        mockPlatformState.uploadedFiles.push({
+          url: url.pathname,
+          contentType,
+          body,
+        })
+
+        return new Response('', { status: 200 })
+      }
+
+      return new Response('Not Found', { status: 404 })
+    },
+  })
+}
+
+function stopMockServers(): void {
+  if (mockPlatformServer) {
+    mockPlatformServer.stop()
+    mockPlatformServer = null
+  }
+  if (mockS3Server) {
+    mockS3Server.stop()
+    mockS3Server = null
+  }
+}
+
+// Get the host IP that the container can use to reach the host
+// On macOS with Docker Desktop, use host.docker.internal
+// On Linux, we'd need to use the docker bridge IP
+function getMockPlatformUrl(): string {
+  return `http://host.docker.internal:${MOCK_PLATFORM_PORT}`
+}
+
+// =============================================================================
 // Docker Utilities
 // =============================================================================
 
@@ -604,6 +783,11 @@ async function fileExistsInContainer(filePath: string): Promise<boolean> {
   return result.exitCode === 0
 }
 
+async function dirExistsInContainer(dirPath: string): Promise<boolean> {
+  const result = await execInContainer(['test', '-d', dirPath])
+  return result.exitCode === 0
+}
+
 // =============================================================================
 // Agent Utilities
 // =============================================================================
@@ -673,6 +857,10 @@ async function runJob(
 
 describe('Platform Agent', () => {
   beforeAll(async () => {
+    // Start mock servers for platform API and S3
+    startMockPlatformServer()
+    startMockS3Server()
+
     await initDocker()
     await buildImage()
     await startContainer()
@@ -680,6 +868,12 @@ describe('Platform Agent', () => {
 
   afterAll(async () => {
     await stopContainer()
+    stopMockServers()
+  })
+
+  beforeEach(() => {
+    // Reset mock server state before each test
+    resetMockPlatformState()
   })
 
   describe('exec_per_job interface', () => {
@@ -823,6 +1017,53 @@ describe('Platform Agent', () => {
       expect(result.error).toHaveProperty('code')
       expect(result.error).toHaveProperty('message')
       expect(result.error?.code).toBe('WORKER_EXIT_ERROR')
+    })
+
+    test('job output directory is created for exec_per_job', async () => {
+      const jobId = generateJobId('exec-output-dir-test')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'output_dir_test',
+        worker_command: ['sh', '-c', 'echo "test"'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Verify output directory was created by the agent
+      const outputDirExists = await dirExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output`,
+      )
+      expect(outputDirExists).toBe(true)
+    })
+
+    test('JOB_OUTPUT_DIR environment variable is set for workers', async () => {
+      const jobId = generateJobId('env-output-dir-test')
+
+      // This command echoes the JOB_OUTPUT_DIR value as JSON on the last line
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'env_test',
+        worker_command: [
+          'sh',
+          '-c',
+          `echo '{"output_dir":"'$JOB_OUTPUT_DIR'"}'`,
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      const { result } = await runJob(payload)
+
+      expect(result.success).toBe(true)
+      expect(result.result).toBeDefined()
+
+      const workerResult = result.result as Record<string, unknown>
+      expect(workerResult.output_dir).toBe(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output`,
+      )
     })
   })
 
@@ -1175,6 +1416,267 @@ describe('Platform Agent', () => {
       expect(jobOutLog).toContain('Step 1/5')
       expect(jobOutLog).toContain('Step 5/5')
       expect(jobOutLog).toContain('Completed 5 steps successfully')
+    })
+
+    test('file_output job writes files and manifest to output directory', async () => {
+      const jobClass = 'file_output'
+      const port = 8213
+
+      const jobId = generateJobId('file-output-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: {
+          folder_id: 'test-folder-uuid',
+          files: [
+            {
+              name: 'result.txt',
+              content: 'Hello World',
+              content_type: 'text/plain',
+            },
+            {
+              name: 'data.json',
+              content: '{"key":"value"}',
+              content_type: 'application/json',
+            },
+          ],
+        },
+      }
+
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(result.success).toBe(true)
+
+      // Verify result contains file info
+      const resultObj = result.result as Record<string, unknown>
+      expect(resultObj.filesWritten).toBe(2)
+      expect(resultObj.files).toEqual(['result.txt', 'data.json'])
+
+      // Verify output directory exists
+      const outputDirExists = await dirExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output`,
+      )
+      expect(outputDirExists).toBe(true)
+
+      // Verify files were written
+      const resultTxt = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output/result.txt`,
+      )
+      expect(resultTxt).toBe('Hello World')
+
+      const dataJson = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output/data.json`,
+      )
+      expect(dataJson).toBe('{"key":"value"}')
+
+      // Verify manifest was written
+      const manifestExists = await fileExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output/__manifest__.json`,
+      )
+      expect(manifestExists).toBe(true)
+
+      const manifestContent = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output/__manifest__.json`,
+      )
+      const manifest = JSON.parse(manifestContent)
+      expect(manifest.files).toHaveLength(2)
+      expect(manifest.files[0].folder_id).toBe('test-folder-uuid')
+      expect(manifest.files[0].local_path).toBe('result.txt')
+      expect(manifest.files[1].local_path).toBe('data.json')
+    })
+
+    test('job output directory is created and available to workers', async () => {
+      const jobClass = 'math_add'
+      const port = 8214
+
+      const jobId = generateJobId('output-dir-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [1, 2, 3] },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      // Verify output directory was created by the agent
+      const outputDirExists = await dirExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}/output`,
+      )
+      expect(outputDirExists).toBe(true)
+    })
+  })
+
+  describe('platform integration', () => {
+    test('exec_per_job signals completion to platform on success', async () => {
+      const jobId = generateJobId('platform-exec-success')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_completion_test',
+        worker_command: ['sh', '-c', 'echo \'{"message":"done"}\''],
+        interface: { kind: 'exec_per_job' },
+        job_input: { test: true },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { result } = await runJob(payload)
+
+      expect(result.success).toBe(true)
+
+      // Verify completion was signaled to platform
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(true)
+      expect(completionReq.body.result).toEqual({ message: 'done' })
+    })
+
+    test('exec_per_job signals completion to platform on failure', async () => {
+      const jobId = generateJobId('platform-exec-failure')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_failure_test',
+        worker_command: ['sh', '-c', 'exit 1'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { result, exitCode } = await runJob(payload)
+
+      expect(result.success).toBe(false)
+      expect(exitCode).toBe(1)
+
+      // Verify failure was signaled to platform
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(false)
+      expect(completionReq.body.error).toBeDefined()
+      expect(completionReq.body.error?.code).toBe('WORKER_EXIT_ERROR')
+    })
+
+    test('persistent_http signals completion to platform', async () => {
+      const jobClass = 'math_add'
+      const port = 8220
+
+      const jobId = generateJobId('platform-http-success')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [10, 20, 30] },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(result.success).toBe(true)
+
+      // Verify completion was signaled to platform
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(true)
+      expect(completionReq.body.result).toBeDefined()
+    })
+
+    test('file_output job uploads files via presigned URLs and signals completion', async () => {
+      const jobClass = 'file_output'
+      const port = 8221
+
+      const jobId = generateJobId('platform-upload-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: {
+          folder_id: 'test-folder-uuid',
+          files: [
+            {
+              name: 'output.txt',
+              content: 'Test content for upload',
+              content_type: 'text/plain',
+            },
+            {
+              name: 'data.json',
+              content: '{"uploaded":true}',
+              content_type: 'application/json',
+            },
+          ],
+        },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(result.success).toBe(true)
+
+      // Verify presigned URLs were requested
+      expect(mockPlatformState.uploadUrlRequests.length).toBe(1)
+      const uploadReq = mockPlatformState.uploadUrlRequests[0]
+      expect(uploadReq.jobId).toBe(jobId)
+      expect(uploadReq.body.files.length).toBe(2)
+      expect(uploadReq.body.files[0].folder_id).toBe('test-folder-uuid')
+      expect(uploadReq.body.files[0].object_key).toBe('output.txt')
+      expect(uploadReq.body.files[1].object_key).toBe('data.json')
+
+      // Verify files were uploaded to S3
+      expect(mockPlatformState.uploadedFiles.length).toBe(2)
+
+      const uploadedFile1 = mockPlatformState.uploadedFiles.find((f) =>
+        f.url.includes('output.txt'),
+      )
+      expect(uploadedFile1).toBeDefined()
+      expect(uploadedFile1?.body).toBe('Test content for upload')
+      expect(uploadedFile1?.contentType).toBe('text/plain')
+
+      const uploadedFile2 = mockPlatformState.uploadedFiles.find((f) =>
+        f.url.includes('data.json'),
+      )
+      expect(uploadedFile2).toBeDefined()
+      expect(uploadedFile2?.body).toBe('{"uploaded":true}')
+      expect(uploadedFile2?.contentType).toBe('application/json')
+
+      // Verify completion was signaled with uploaded files
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(true)
+      expect(completionReq.body.uploaded_files?.length).toBe(2)
+      expect(completionReq.body.uploaded_files?.[0].folder_id).toBe(
+        'test-folder-uuid',
+      )
+
+      // Verify agent output includes uploaded files
+      expect(result.uploaded_files?.length).toBe(2)
+    })
+
+    test('no platform calls when platform_url is not provided', async () => {
+      const jobId = generateJobId('no-platform-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'no_platform_test',
+        worker_command: ['echo', 'test'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        // No platform_url or job_token
+      }
+
+      await runJob(payload)
+
+      // Verify no platform calls were made
+      expect(mockPlatformState.completionRequests.length).toBe(0)
+      expect(mockPlatformState.uploadUrlRequests.length).toBe(0)
     })
   })
 

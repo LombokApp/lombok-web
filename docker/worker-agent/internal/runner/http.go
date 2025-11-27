@@ -13,8 +13,10 @@ import (
 	"time"
 
 	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/platform"
 	"lombok-worker-agent/internal/state"
 	"lombok-worker-agent/internal/types"
+	"lombok-worker-agent/internal/upload"
 )
 
 const (
@@ -37,6 +39,11 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
 		return fmt.Errorf("failed to ensure directories: %w", err)
+	}
+
+	// Create job output directory (worker can write files here)
+	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
+		return fmt.Errorf("failed to create job output directory: %w", err)
 	}
 
 	// Create initial job state
@@ -89,17 +96,19 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	// Build the job request payload
 	jobOutPath := config.JobOutLogPath(payload.JobID)
 	jobErrPath := config.JobErrLogPath(payload.JobID)
+	jobOutputDir := config.JobOutputDir(payload.JobID)
 
 	// Create job log files (empty initially, worker may write to them)
 	os.Create(jobOutPath)
 	os.Create(jobErrPath)
 
 	httpReq := types.HTTPJobRequest{
-		JobID:     payload.JobID,
-		JobClass:  payload.JobClass,
-		Input:     payload.JobInput,
-		JobLogOut: jobOutPath,
-		JobLogErr: jobErrPath,
+		JobID:        payload.JobID,
+		JobClass:     payload.JobClass,
+		Input:        payload.JobInput,
+		JobLogOut:    jobOutPath,
+		JobLogErr:    jobErrPath,
+		JobOutputDir: jobOutputDir,
 	}
 
 	reqBody, err := json.Marshal(httpReq)
@@ -240,6 +249,43 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 
 	state.WriteJobState(jobState)
 
+	// Handle file uploads and platform completion if configured
+	var uploadedFiles []types.UploadedFile
+	if payload.PlatformURL != "" && payload.JobToken != "" {
+		platformClient := platform.NewClient(payload.PlatformURL, payload.JobToken)
+
+		// Check for output manifest and upload files
+		manifest, err := upload.ReadManifest(payload.JobID)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to read manifest: %v\n", err)
+		} else if manifest != nil && len(manifest.Files) > 0 {
+			uploader := upload.NewUploader(platformClient)
+			ctx := context.Background()
+
+			uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to upload files: %v\n", err)
+			} else {
+				uploadedFiles = uploaded
+			}
+		}
+
+		// Signal completion to platform
+		ctx := context.Background()
+		completionReq := &types.CompletionRequest{
+			Success:       finalStatus.Status == "completed",
+			Result:        finalStatus.Result,
+			UploadedFiles: uploadedFiles,
+		}
+		if finalStatus.Error != nil {
+			completionReq.Error = finalStatus.Error
+		}
+
+		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
+			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to signal completion: %v\n", err)
+		}
+	}
+
 	// Output the final result to stdout for the platform
 	result := map[string]interface{}{
 		"success":   finalStatus.Status == "completed",
@@ -248,6 +294,9 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	}
 	if finalStatus.Result != nil {
 		result["result"] = json.RawMessage(finalStatus.Result)
+	}
+	if len(uploadedFiles) > 0 {
+		result["uploaded_files"] = uploadedFiles
 	}
 	if finalStatus.Error != nil {
 		result["error"] = finalStatus.Error

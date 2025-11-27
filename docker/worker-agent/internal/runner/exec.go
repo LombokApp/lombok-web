@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -12,8 +13,10 @@ import (
 	"time"
 
 	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/platform"
 	"lombok-worker-agent/internal/state"
 	"lombok-worker-agent/internal/types"
+	"lombok-worker-agent/internal/upload"
 )
 
 // RunExecPerJob runs a job using the exec_per_job interface
@@ -26,6 +29,11 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
 		return fmt.Errorf("failed to ensure directories: %w", err)
+	}
+
+	// Create job output directory (worker can write files here)
+	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
+		return fmt.Errorf("failed to create job output directory: %w", err)
 	}
 
 	// Create initial job state
@@ -57,6 +65,12 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	} else {
 		return fmt.Errorf("worker_command is empty")
 	}
+
+	// Set environment variables for the worker
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("JOB_OUTPUT_DIR=%s", config.JobOutputDir(payload.JobID)),
+		fmt.Sprintf("JOB_ID=%s", payload.JobID),
+	)
 
 	// Open log files for stdout and stderr
 	stdoutPath := config.JobOutLogPath(payload.JobID)
@@ -125,6 +139,52 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	// Convention: worker outputs JSON result on the last non-empty line
 	workerResult := extractLastLineJSON(stdoutBuf.String())
 
+	// Convert worker result to json.RawMessage for platform completion
+	var workerResultRaw json.RawMessage
+	if workerResult != nil {
+		workerResultRaw, _ = json.Marshal(workerResult)
+	}
+
+	// Handle file uploads and platform completion if configured
+	var uploadedFiles []types.UploadedFile
+	if payload.PlatformURL != "" && payload.JobToken != "" {
+		platformClient := platform.NewClient(payload.PlatformURL, payload.JobToken)
+
+		// Check for output manifest and upload files
+		manifest, err := upload.ReadManifest(payload.JobID)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to read manifest: %v\n", err)
+		} else if manifest != nil && len(manifest.Files) > 0 {
+			uploader := upload.NewUploader(platformClient)
+			ctx := context.Background()
+
+			uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to upload files: %v\n", err)
+			} else {
+				uploadedFiles = uploaded
+			}
+		}
+
+		// Signal completion to platform
+		ctx := context.Background()
+		completionReq := &types.CompletionRequest{
+			Success:       exitCode == 0,
+			Result:        workerResultRaw,
+			UploadedFiles: uploadedFiles,
+		}
+		if exitCode != 0 {
+			completionReq.Error = &types.JobError{
+				Code:    "WORKER_EXIT_ERROR",
+				Message: fmt.Sprintf("worker exited with code %d", exitCode),
+			}
+		}
+
+		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
+			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to signal completion: %v\n", err)
+		}
+	}
+
 	// Output result to stdout for the platform to capture
 	result := map[string]interface{}{
 		"success":   exitCode == 0,
@@ -136,6 +196,11 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	// Include the worker's result if we found valid JSON
 	if workerResult != nil {
 		result["result"] = workerResult
+	}
+
+	// Include uploaded files info
+	if len(uploadedFiles) > 0 {
+		result["uploaded_files"] = uploadedFiles
 	}
 
 	if exitCode != 0 {

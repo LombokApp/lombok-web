@@ -28,6 +28,19 @@ interface AgentJobRequest {
   input: unknown
   job_log_out?: string
   job_log_err?: string
+  job_output_dir?: string
+}
+
+// Output manifest structure
+interface OutputManifest {
+  files: OutputFile[]
+}
+
+interface OutputFile {
+  local_path: string
+  folder_id: string
+  object_key: string
+  content_type: string
 }
 
 // =============================================================================
@@ -62,9 +75,14 @@ const createJobLogger = (jobLogOut?: string, jobLogErr?: string): JobLogger => {
 // Job Class Handlers
 // =============================================================================
 
+interface JobContext {
+  logger: JobLogger
+  outputDir?: string
+}
+
 type JobHandler = (
   input: unknown,
-  logger: JobLogger,
+  ctx: JobContext,
 ) => unknown | Promise<unknown>
 
 // Math operations
@@ -129,29 +147,31 @@ const isStringArray = (val: unknown): val is string[] =>
   Array.isArray(val) && val.every((v) => typeof v === 'string')
 
 // Math handlers
-const handleMathAdd: JobHandler = (input, logger) => {
+const handleMathAdd: JobHandler = (input, ctx) => {
   if (!isObject(input) || !isNumberArray(input.numbers)) {
     throw new Error('Invalid input: expected { numbers: number[] }')
   }
   const { numbers } = input as unknown as MathAddInput
-  logger.log(`Adding ${numbers.length} numbers: [${numbers.join(', ')}]`)
+  ctx.logger.log(`Adding ${numbers.length} numbers: [${numbers.join(', ')}]`)
   const sum = numbers.reduce((acc, n) => acc + n, 0)
-  logger.log(`Result: ${sum}`)
+  ctx.logger.log(`Result: ${sum}`)
   return { sum, operands: numbers }
 }
 
-const handleMathMultiply: JobHandler = (input, logger) => {
+const handleMathMultiply: JobHandler = (input, ctx) => {
   if (!isObject(input) || !isNumberArray(input.numbers)) {
     throw new Error('Invalid input: expected { numbers: number[] }')
   }
   const { numbers } = input as unknown as MathMultiplyInput
-  logger.log(`Multiplying ${numbers.length} numbers: [${numbers.join(', ')}]`)
+  ctx.logger.log(
+    `Multiplying ${numbers.length} numbers: [${numbers.join(', ')}]`,
+  )
   const product = numbers.reduce((acc, n) => acc * n, 1)
-  logger.log(`Result: ${product}`)
+  ctx.logger.log(`Result: ${product}`)
   return { product, operands: numbers }
 }
 
-const handleMathFactorial: JobHandler = (input, logger) => {
+const handleMathFactorial: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as MathFactorialInput).n !== 'number'
@@ -165,16 +185,16 @@ const handleMathFactorial: JobHandler = (input, logger) => {
   if (n > 170) {
     throw new Error('n must be <= 170 to avoid overflow')
   }
-  logger.log(`Calculating factorial of ${n}`)
+  ctx.logger.log(`Calculating factorial of ${n}`)
   let result = 1
   for (let i = 2; i <= n; i++) {
     result *= i
   }
-  logger.log(`${n}! = ${result}`)
+  ctx.logger.log(`${n}! = ${result}`)
   return { factorial: result, n }
 }
 
-const handleMathFibonacci: JobHandler = (input, logger) => {
+const handleMathFibonacci: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as MathFibonacciInput).n !== 'number'
@@ -188,13 +208,13 @@ const handleMathFibonacci: JobHandler = (input, logger) => {
   if (n > 78) {
     throw new Error('n must be <= 78 to avoid overflow')
   }
-  logger.log(`Calculating Fibonacci(${n})`)
+  ctx.logger.log(`Calculating Fibonacci(${n})`)
   if (n === 0) {
-    logger.log(`Fibonacci(0) = 0`)
+    ctx.logger.log(`Fibonacci(0) = 0`)
     return { fibonacci: 0, n }
   }
   if (n === 1) {
-    logger.log(`Fibonacci(1) = 1`)
+    ctx.logger.log(`Fibonacci(1) = 1`)
     return { fibonacci: 1, n }
   }
   let prev = 0
@@ -204,11 +224,11 @@ const handleMathFibonacci: JobHandler = (input, logger) => {
     prev = curr
     curr = next
   }
-  logger.log(`Fibonacci(${n}) = ${curr}`)
+  ctx.logger.log(`Fibonacci(${n}) = ${curr}`)
   return { fibonacci: curr, n }
 }
 
-const handleMathPrimeCheck: JobHandler = (input, logger) => {
+const handleMathPrimeCheck: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as MathPrimeCheckInput).n !== 'number'
@@ -216,32 +236,32 @@ const handleMathPrimeCheck: JobHandler = (input, logger) => {
     throw new Error('Invalid input: expected { n: number }')
   }
   const { n } = input as unknown as MathPrimeCheckInput
-  logger.log(`Checking if ${n} is prime`)
+  ctx.logger.log(`Checking if ${n} is prime`)
   if (n < 2 || !Number.isInteger(n)) {
-    logger.log(`${n} is not prime (must be integer >= 2)`)
+    ctx.logger.log(`${n} is not prime (must be integer >= 2)`)
     return { isPrime: false, n, reason: 'n must be an integer >= 2' }
   }
   if (n === 2) {
-    logger.log(`${n} is prime`)
+    ctx.logger.log(`${n} is prime`)
     return { isPrime: true, n }
   }
   if (n % 2 === 0) {
-    logger.log(`${n} is not prime (divisible by 2)`)
+    ctx.logger.log(`${n} is not prime (divisible by 2)`)
     return { isPrime: false, n, factor: 2 }
   }
   const sqrt = Math.sqrt(n)
   for (let i = 3; i <= sqrt; i += 2) {
     if (n % i === 0) {
-      logger.log(`${n} is not prime (divisible by ${i})`)
+      ctx.logger.log(`${n} is not prime (divisible by ${i})`)
       return { isPrime: false, n, factor: i }
     }
   }
-  logger.log(`${n} is prime`)
+  ctx.logger.log(`${n} is prime`)
   return { isPrime: true, n }
 }
 
 // String handlers
-const handleStringHash: JobHandler = (input, logger) => {
+const handleStringHash: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as StringHashInput).text !== 'string'
@@ -255,13 +275,13 @@ const handleStringHash: JobHandler = (input, logger) => {
       `Invalid algorithm: must be one of ${validAlgorithms.join(', ')}`,
     )
   }
-  logger.log(`Hashing ${text.length} characters with ${algorithm}`)
+  ctx.logger.log(`Hashing ${text.length} characters with ${algorithm}`)
   const hash = crypto.createHash(algorithm).update(text).digest('hex')
-  logger.log(`Hash: ${hash}`)
+  ctx.logger.log(`Hash: ${hash}`)
   return { hash, algorithm, inputLength: text.length }
 }
 
-const handleStringReverse: JobHandler = (input, logger) => {
+const handleStringReverse: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as StringReverseInput).text !== 'string'
@@ -269,13 +289,13 @@ const handleStringReverse: JobHandler = (input, logger) => {
     throw new Error('Invalid input: expected { text: string }')
   }
   const { text } = input as unknown as StringReverseInput
-  logger.log(`Reversing string of length ${text.length}`)
+  ctx.logger.log(`Reversing string of length ${text.length}`)
   const reversed = text.split('').reverse().join('')
-  logger.log(`Result: "${reversed}"`)
+  ctx.logger.log(`Result: "${reversed}"`)
   return { reversed, original: text, length: text.length }
 }
 
-const handleStringBase64: JobHandler = (input, logger) => {
+const handleStringBase64: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as StringBase64Input).text !== 'string'
@@ -288,19 +308,19 @@ const handleStringBase64: JobHandler = (input, logger) => {
   if (operation !== 'encode' && operation !== 'decode') {
     throw new Error('operation must be "encode" or "decode"')
   }
-  logger.log(`Base64 ${operation} on ${text.length} characters`)
+  ctx.logger.log(`Base64 ${operation} on ${text.length} characters`)
   if (operation === 'encode') {
     const encoded = Buffer.from(text).toString('base64')
-    logger.log(`Encoded result: ${encoded}`)
+    ctx.logger.log(`Encoded result: ${encoded}`)
     return { result: encoded, operation, inputLength: text.length }
   } else {
     const decoded = Buffer.from(text, 'base64').toString('utf-8')
-    logger.log(`Decoded result: ${decoded}`)
+    ctx.logger.log(`Decoded result: ${decoded}`)
     return { result: decoded, operation, inputLength: text.length }
   }
 }
 
-const handleStringCount: JobHandler = (input, logger) => {
+const handleStringCount: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as StringCountInput).text !== 'string' ||
@@ -314,7 +334,7 @@ const handleStringCount: JobHandler = (input, logger) => {
   if (substring.length === 0) {
     throw new Error('substring cannot be empty')
   }
-  logger.log(
+  ctx.logger.log(
     `Counting occurrences of "${substring}" in text of length ${text.length}`,
   )
   let count = 0
@@ -323,12 +343,12 @@ const handleStringCount: JobHandler = (input, logger) => {
     count++
     pos += substring.length
   }
-  logger.log(`Found ${count} occurrences`)
+  ctx.logger.log(`Found ${count} occurrences`)
   return { count, substring, textLength: text.length }
 }
 
 // Array handlers
-const handleArraySort: JobHandler = (input, logger) => {
+const handleArraySort: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     !Array.isArray((input as unknown as ArraySortInput).items)
@@ -339,7 +359,7 @@ const handleArraySort: JobHandler = (input, logger) => {
   if (order !== 'asc' && order !== 'desc') {
     throw new Error('order must be "asc" or "desc"')
   }
-  logger.log(`Sorting ${items.length} items in ${order}ending order`)
+  ctx.logger.log(`Sorting ${items.length} items in ${order}ending order`)
   const sorted = [...items].sort((a, b) => {
     if (typeof a === 'number' && typeof b === 'number') {
       return order === 'asc' ? a - b : b - a
@@ -348,11 +368,11 @@ const handleArraySort: JobHandler = (input, logger) => {
     const strB = String(b)
     return order === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA)
   })
-  logger.log(`Sorted: [${sorted.join(', ')}]`)
+  ctx.logger.log(`Sorted: [${sorted.join(', ')}]`)
   return { sorted, order, itemCount: items.length }
 }
 
-const handleArrayStats: JobHandler = (input, logger) => {
+const handleArrayStats: JobHandler = (input, ctx) => {
   if (
     !isObject(input) ||
     !isNumberArray((input as unknown as ArrayStatsInput).numbers)
@@ -363,7 +383,7 @@ const handleArrayStats: JobHandler = (input, logger) => {
   if (numbers.length === 0) {
     throw new Error('numbers array cannot be empty')
   }
-  logger.log(`Calculating statistics for ${numbers.length} numbers`)
+  ctx.logger.log(`Calculating statistics for ${numbers.length} numbers`)
   const sum = numbers.reduce((acc, n) => acc + n, 0)
   const min = Math.min(...numbers)
   const max = Math.max(...numbers)
@@ -373,7 +393,7 @@ const handleArrayStats: JobHandler = (input, logger) => {
     sorted.length % 2 === 0
       ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
       : sorted[Math.floor(sorted.length / 2)]
-  logger.log(
+  ctx.logger.log(
     `sum=${sum}, min=${min}, max=${max}, mean=${mean}, median=${median}`,
   )
   return { sum, min, max, mean, median, count: numbers.length }
@@ -387,7 +407,7 @@ interface VerboseLogInput {
   delayMs?: number // Optional delay between steps to simulate long-running job
 }
 
-const handleVerboseLog: JobHandler = async (input, logger) => {
+const handleVerboseLog: JobHandler = async (input, ctx) => {
   if (
     !isObject(input) ||
     typeof (input as unknown as VerboseLogInput).steps !== 'number'
@@ -401,19 +421,21 @@ const handleVerboseLog: JobHandler = async (input, logger) => {
     delayMs = 0,
   } = input as unknown as VerboseLogInput
 
-  logger.log('=== Starting verbose logging job ===')
-  logger.log(
+  ctx.logger.log('=== Starting verbose logging job ===')
+  ctx.logger.log(
     `Configuration: steps=${steps}, simulateWarning=${simulateWarning}, simulateError=${simulateError}, delayMs=${delayMs}`,
   )
 
   const results: string[] = []
 
   for (let i = 1; i <= steps; i++) {
-    logger.log(`Step ${i}/${steps}: Processing...`)
+    ctx.logger.log(`Step ${i}/${steps}: Processing...`)
     results.push(`step_${i}_complete`)
 
     if (simulateWarning && i === Math.floor(steps / 2)) {
-      logger.error(`Warning at step ${i}: This is a simulated warning message`)
+      ctx.logger.error(
+        `Warning at step ${i}: This is a simulated warning message`,
+      )
     }
 
     // Simulate work with optional delay
@@ -423,18 +445,73 @@ const handleVerboseLog: JobHandler = async (input, logger) => {
   }
 
   if (simulateError) {
-    logger.error('Simulated error condition detected')
-    logger.error('This demonstrates error logging to the job error log')
+    ctx.logger.error('Simulated error condition detected')
+    ctx.logger.error('This demonstrates error logging to the job error log')
   }
 
-  logger.log(`=== Completed ${steps} steps successfully ===`)
-  logger.log(`Results: [${results.join(', ')}]`)
+  ctx.logger.log(`=== Completed ${steps} steps successfully ===`)
+  ctx.logger.log(`Results: [${results.join(', ')}]`)
 
   return {
     stepsCompleted: steps,
     results,
     hadWarning: simulateWarning ?? false,
     hadError: simulateError ?? false,
+  }
+}
+
+// File output job - demonstrates writing files and manifest
+interface FileOutputInput {
+  folder_id: string
+  files: Array<{
+    name: string
+    content: string
+    content_type?: string
+  }>
+}
+
+const handleFileOutput: JobHandler = async (input, ctx) => {
+  if (!isObject(input) || !ctx.outputDir) {
+    throw new Error(
+      'Invalid input or no output directory: expected { folder_id: string, files: [...] }',
+    )
+  }
+
+  const { folder_id, files } = input as unknown as FileOutputInput
+
+  if (!folder_id || !Array.isArray(files)) {
+    throw new Error('folder_id and files array are required')
+  }
+
+  ctx.logger.log(`Writing ${files.length} files to output directory`)
+  ctx.logger.log(`Output directory: ${ctx.outputDir}`)
+
+  const manifestFiles: OutputFile[] = []
+
+  for (const file of files) {
+    const filePath = `${ctx.outputDir}/${file.name}`
+    ctx.logger.log(`Writing file: ${file.name}`)
+
+    fs.writeFileSync(filePath, file.content)
+
+    manifestFiles.push({
+      local_path: file.name,
+      folder_id: folder_id,
+      object_key: file.name,
+      content_type: file.content_type ?? 'application/octet-stream',
+    })
+  }
+
+  // Write the manifest file
+  const manifest: OutputManifest = { files: manifestFiles }
+  const manifestPath = `${ctx.outputDir}/__manifest__.json`
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
+  ctx.logger.log(`Wrote manifest: ${manifestPath}`)
+
+  return {
+    filesWritten: files.length,
+    manifestPath,
+    files: manifestFiles.map((f) => f.local_path),
   }
 }
 
@@ -459,6 +536,9 @@ const jobHandlers: Record<string, JobHandler> = {
 
   // Logging demonstration
   verbose_log: handleVerboseLog,
+
+  // File output demonstration
+  file_output: handleFileOutput,
 }
 
 // =============================================================================
@@ -469,7 +549,7 @@ const executeJobAsync = async (
   jobId: string,
   jobClass: string,
   input: unknown,
-  logger: JobLogger,
+  ctx: JobContext,
 ): Promise<void> => {
   const jobState = jobStates.get(jobId)
   if (!jobState) {
@@ -489,16 +569,16 @@ const executeJobAsync = async (
       ).join(', ')}`,
     }
     jobState.completedAt = new Date().toISOString()
-    logger.error(`Unknown job class: ${jobClass}`)
+    ctx.logger.error(`Unknown job class: ${jobClass}`)
     return
   }
 
   try {
-    const result = await handler(input, logger)
+    const result = await handler(input, ctx)
     jobState.status = 'completed'
     jobState.result = result
     jobState.completedAt = new Date().toISOString()
-    logger.log(`Job completed successfully`)
+    ctx.logger.log(`Job completed successfully`)
     // eslint-disable-next-line no-console
     console.log(`[job] Completed job_id=${jobId} job_class=${jobClass}`)
   } catch (err) {
@@ -509,7 +589,7 @@ const executeJobAsync = async (
       message,
     }
     jobState.completedAt = new Date().toISOString()
-    logger.error(`Job failed: ${message}`)
+    ctx.logger.error(`Job failed: ${message}`)
     // eslint-disable-next-line no-console
     console.error(
       `[job] Failed job_id=${jobId} job_class=${jobClass}: ${message}`,
@@ -588,8 +668,11 @@ const server = Bun.serve({
         )
       }
 
-      // Create job logger for this job
-      const logger = createJobLogger(body.job_log_out, body.job_log_err)
+      // Create job context with logger and output directory
+      const ctx: JobContext = {
+        logger: createJobLogger(body.job_log_out, body.job_log_err),
+        outputDir: body.job_output_dir,
+      }
 
       // Create initial job state
       const jobState: JobState = {
@@ -602,10 +685,10 @@ const server = Bun.serve({
 
       // eslint-disable-next-line no-console
       console.log(`[job] Accepted job_id=${jobId} job_class=${jobClass}`)
-      logger.log(`Job accepted: job_id=${jobId} job_class=${jobClass}`)
+      ctx.logger.log(`Job accepted: job_id=${jobId} job_class=${jobClass}`)
 
       // Execute job asynchronously (don't await - return immediately)
-      executeJobAsync(jobId, jobClass, body.input, logger)
+      executeJobAsync(jobId, jobClass, body.input, ctx)
 
       // Return immediate acknowledgment
       return jsonResponse({
@@ -691,6 +774,7 @@ const server = Bun.serve({
           array_sort: 'Sort an array of numbers or strings',
           array_stats: 'Calculate statistics on an array of numbers',
           verbose_log: 'Demonstrate verbose job logging (stdout and stderr)',
+          file_output: 'Write files to output directory with manifest',
         },
       })
     }

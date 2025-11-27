@@ -33,7 +33,9 @@ Decoded JSON payload structure:
   "interface": {
     "kind": "exec_per_job"
   },
-  "job_input": { "any": "json" }
+  "job_input": { "any": "json" },
+  "job_token": "jwt-token-for-platform-auth",
+  "platform_url": "https://api.lombok.app"
 }
 ```
 
@@ -51,7 +53,28 @@ For `persistent_http` interface:
       "port": 9000
     }
   },
-  "job_input": { "any": "json" }
+  "job_input": { "any": "json" },
+  "job_token": "jwt-token-for-platform-auth",
+  "platform_url": "https://api.lombok.app"
+}
+```
+
+### Optional Platform Integration Fields
+
+| Field | Description |
+|-------|-------------|
+| `job_token` | JWT token for authenticating platform API calls |
+| `platform_url` | Base URL of the platform API |
+
+The `job_token` contains claims restricting which folders can be uploaded to:
+```json
+{
+  "job_id": "uuid",
+  "exp": 1234567890,
+  "allowed_uploads": {
+    "folder-uuid-1": ["outputs/", "results/"],
+    "folder-uuid-2": ["images/"]
+  }
 }
 ```
 
@@ -78,7 +101,10 @@ Both interfaces output a consistent JSON result to stdout:
   "job_id": "uuid-string",
   "job_class": "string",
   "exit_code": 0,
-  "result": { "computed": "data", "from": "worker" }
+  "result": { "computed": "data", "from": "worker" },
+  "uploaded_files": [
+    { "folder_id": "folder-uuid", "object_key": "outputs/result.png" }
+  ]
 }
 ```
 
@@ -98,7 +124,7 @@ Both interfaces output a consistent JSON result to stdout:
 }
 ```
 
-**Note**: The `result` field contains the worker's output. Even failed jobs may include partial results if the worker produced output before failing.
+**Note**: The `result` field contains the worker's output. Even failed jobs may include partial results if the worker produced output before failing. The `uploaded_files` field is present when files were successfully uploaded to S3 (see File Output section).
 
 ---
 
@@ -286,19 +312,22 @@ Optional endpoints:
 ```
 /var/lib/lombok-worker-agent/
   workers/
-    <job_class>.json       # Per-worker state
+    <job_class>.json           # Per-worker state
   jobs/
-    <job_id>.json          # Per-job state
+    <job_id>.json              # Per-job state
+    <job_id>/output/           # Job output files
+      __manifest__.json        # Output manifest (optional)
+      <output_files>           # Files written by worker
 
 /var/log/lombok-worker-agent/
-  agent.log                # Agent logs
-  agent.err.log            # Agent error logs
+  agent.log                    # Agent logs
+  agent.err.log                # Agent error logs
   workers/
-    <job_class>.out.log    # Worker stdout (persistent_http)
-    <job_class>.err.log    # Worker stderr (persistent_http)
+    <job_class>.out.log        # Worker stdout (persistent_http)
+    <job_class>.err.log        # Worker stderr (persistent_http)
   jobs/
-    <job_id>.out.log       # Job stdout
-    <job_id>.err.log       # Job stderr
+    <job_id>.out.log           # Job stdout
+    <job_id>.err.log           # Job stderr
 ```
 
 ### Worker State File
@@ -383,6 +412,8 @@ type JobPayload struct {
     WorkerCommand []string        `json:"worker_command"`
     Interface     InterfaceConfig `json:"interface"`
     JobInput      json.RawMessage `json:"job_input"`
+    JobToken      string          `json:"job_token,omitempty"`    // JWT for platform auth
+    PlatformURL   string          `json:"platform_url,omitempty"` // Platform API base URL
 }
 
 type InterfaceConfig struct {
@@ -402,11 +433,12 @@ type ListenerConfig struct {
 ```go
 // Request to worker
 type HTTPJobRequest struct {
-    JobID     string          `json:"job_id"`
-    JobClass  string          `json:"job_class"`
-    Input     json.RawMessage `json:"input"`
-    JobLogOut string          `json:"job_log_out,omitempty"`
-    JobLogErr string          `json:"job_log_err,omitempty"`
+    JobID        string          `json:"job_id"`
+    JobClass     string          `json:"job_class"`
+    Input        json.RawMessage `json:"input"`
+    JobLogOut    string          `json:"job_log_out,omitempty"`
+    JobLogErr    string          `json:"job_log_err,omitempty"`
+    JobOutputDir string          `json:"job_output_dir,omitempty"`
 }
 
 // Immediate response from worker (job submission)
@@ -460,7 +492,178 @@ type JobError struct {
 
 ---
 
-## 10. Sequence Diagrams
+## 10. File Output and Upload
+
+Workers can write output files that the agent uploads to S3 via presigned URLs.
+
+### Output Directory
+
+Each job has a dedicated output directory:
+
+```
+/var/lib/lombok-worker-agent/jobs/{job_id}/output/
+```
+
+For `exec_per_job`, this path is available via the `JOB_OUTPUT_DIR` environment variable.
+For `persistent_http`, it's provided in the job request's `job_output_dir` field.
+
+### Output Manifest
+
+Workers write a manifest file to describe files for upload:
+
+```
+/var/lib/lombok-worker-agent/jobs/{job_id}/output/__manifest__.json
+```
+
+Manifest format:
+
+```json
+{
+  "files": [
+    {
+      "local_path": "result.png",
+      "folder_id": "folder-uuid-1",
+      "object_key": "outputs/result.png",
+      "content_type": "image/png"
+    },
+    {
+      "local_path": "data.json",
+      "folder_id": "folder-uuid-1",
+      "object_key": "outputs/data.json",
+      "content_type": "application/json"
+    }
+  ]
+}
+```
+
+### Upload Flow
+
+After job completion (success or failure), if `platform_url` and `job_token` are configured:
+
+1. Agent checks for manifest at `{output_dir}/__manifest__.json`
+2. If manifest exists, requests presigned URLs from platform
+3. Uploads each file to S3 using presigned URLs
+4. Signals completion to platform with result and uploaded files
+
+---
+
+## 11. Platform API Integration
+
+When `platform_url` and `job_token` are provided, the agent communicates with the platform.
+
+### Request Presigned Upload URLs
+
+```http
+POST {platform_url}/api/v1/docker/worker-jobs/{job_id}/request-upload-urls
+Authorization: Bearer {job_token}
+Content-Type: application/json
+
+{
+  "files": [
+    {
+      "folder_id": "folder-uuid-1",
+      "object_key": "outputs/result.png",
+      "content_type": "image/png"
+    }
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "uploads": [
+    {
+      "folder_id": "folder-uuid-1",
+      "object_key": "outputs/result.png",
+      "presigned_url": "https://s3..."
+    }
+  ]
+}
+```
+
+### Signal Completion
+
+```http
+POST {platform_url}/api/v1/docker/worker-jobs/{job_id}/complete
+Authorization: Bearer {job_token}
+Content-Type: application/json
+
+{
+  "success": true,
+  "result": { "computed": "data" },
+  "uploaded_files": [
+    { "folder_id": "folder-uuid-1", "object_key": "outputs/result.png" }
+  ]
+}
+```
+
+For failed jobs:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "WORKER_EXIT_ERROR",
+    "message": "worker exited with code 1"
+  },
+  "uploaded_files": []
+}
+```
+
+### Platform API Types (Go)
+
+```go
+// Output manifest written by worker
+type OutputManifest struct {
+    Files []OutputFile `json:"files"`
+}
+
+type OutputFile struct {
+    LocalPath   string `json:"local_path"`
+    FolderID    string `json:"folder_id"`
+    ObjectKey   string `json:"object_key"`
+    ContentType string `json:"content_type"`
+}
+
+// Platform API request/response types
+type UploadURLRequest struct {
+    Files []UploadFileRequest `json:"files"`
+}
+
+type UploadFileRequest struct {
+    FolderID    string `json:"folder_id"`
+    ObjectKey   string `json:"object_key"`
+    ContentType string `json:"content_type"`
+}
+
+type UploadURLResponse struct {
+    Uploads []UploadURL `json:"uploads"`
+}
+
+type UploadURL struct {
+    FolderID     string `json:"folder_id"`
+    ObjectKey    string `json:"object_key"`
+    PresignedURL string `json:"presigned_url"`
+}
+
+type CompletionRequest struct {
+    Success       bool            `json:"success"`
+    Result        json.RawMessage `json:"result,omitempty"`
+    Error         *JobError       `json:"error,omitempty"`
+    UploadedFiles []UploadedFile  `json:"uploaded_files,omitempty"`
+}
+
+type UploadedFile struct {
+    FolderID  string `json:"folder_id"`
+    ObjectKey string `json:"object_key"`
+}
+```
+
+---
+
+## 12. Sequence Diagrams
 
 ### exec_per_job Flow
 
@@ -474,6 +677,8 @@ Platform                    Agent                      Worker
    |                          |<-- exit code ------------|
    |                          |                          |
    |                          | (extract result from stdout)
+   |                          | (check for manifest, upload files)
+   |                          | (signal completion to platform)
    |<-- JSON result ----------|                          |
    |                          |                          |
 ```
@@ -493,13 +698,33 @@ Platform                    Agent                      Worker
    |                          |-- GET /job/{id} -------->|
    |                          |<-- {status: completed} --|
    |                          |                          |
+   |                          | (check for manifest, upload files)
+   |                          | (signal completion to platform)
    |<-- JSON result ----------|                          |
+   |                          |                          |
+```
+
+### File Upload Flow
+
+```
+Agent                      Platform                     S3
+   |                          |                          |
+   | (job complete, manifest exists)                     |
+   |                          |                          |
+   |-- POST /request-upload-urls -->|                    |
+   |<-- {uploads: [...]} -----|                          |
+   |                          |                          |
+   |-- PUT presigned URL ----------------------------->|
+   |<-- 200 OK ----------------------------------------|
+   |                          |                          |
+   |-- POST /complete ------->|                          |
+   |<-- 200 OK ---------------|                          |
    |                          |                          |
 ```
 
 ---
 
-## 11. Testing
+## 13. Testing
 
 The agent includes a comprehensive test suite in `docker/worker-job-runner/test/`:
 
@@ -523,3 +748,5 @@ The test suite includes:
 - Worker reuse across jobs
 - Job logging verification
 - Error handling scenarios
+- Output directory creation and JOB_OUTPUT_DIR env var
+- file_output job class with manifest generation

@@ -59,6 +59,25 @@ func JobStatePath(jobID string) string {
 	return filepath.Join(StateBaseDir, "jobs", fmt.Sprintf("%s.json", jobID))
 }
 
+// JobOutputDir returns the output directory for a specific job
+func JobOutputDir(jobID string) string {
+	return filepath.Join(StateBaseDir, "jobs", jobID, "output")
+}
+
+// JobManifestPath returns the path to the output manifest for a specific job
+func JobManifestPath(jobID string) string {
+	return filepath.Join(JobOutputDir(jobID), "__manifest__.json")
+}
+
+// EnsureJobOutputDir creates the output directory for a specific job
+func EnsureJobOutputDir(jobID string) error {
+	dir := JobOutputDir(jobID)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create job output directory %s: %w", dir, err)
+	}
+	return nil
+}
+
 // Directory helpers
 
 // EnsureLogDirs creates all necessary log directories

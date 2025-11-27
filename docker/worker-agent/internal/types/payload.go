@@ -11,6 +11,8 @@ type JobPayload struct {
 	WorkerCommand []string        `json:"worker_command"`
 	Interface     InterfaceConfig `json:"interface"`
 	JobInput      json.RawMessage `json:"job_input"`
+	JobToken      string          `json:"job_token,omitempty"`    // JWT for platform auth
+	PlatformURL   string          `json:"platform_url,omitempty"` // e.g. "https://api.lombok.app"
 }
 
 // InterfaceConfig describes how the agent communicates with the worker
@@ -60,11 +62,12 @@ type JobMeta struct {
 
 // HTTPJobRequest is the payload sent to persistent HTTP workers
 type HTTPJobRequest struct {
-	JobID     string          `json:"job_id"`
-	JobClass  string          `json:"job_class"`
-	Input     json.RawMessage `json:"input"`
-	JobLogOut string          `json:"job_log_out,omitempty"`
-	JobLogErr string          `json:"job_log_err,omitempty"`
+	JobID        string          `json:"job_id"`
+	JobClass     string          `json:"job_class"`
+	Input        json.RawMessage `json:"input"`
+	JobLogOut    string          `json:"job_log_out,omitempty"`
+	JobLogErr    string          `json:"job_log_err,omitempty"`
+	JobOutputDir string          `json:"job_output_dir,omitempty"` // Directory for output files
 }
 
 // HTTPJobSubmitResponse is the immediate response when submitting a job
@@ -94,4 +97,63 @@ type HTTPJobResponse struct {
 type JobError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+}
+
+// =============================================================================
+// Output Manifest Types (written by worker)
+// =============================================================================
+
+// OutputManifest describes files to be uploaded after job completion
+type OutputManifest struct {
+	Files []OutputFile `json:"files"`
+}
+
+// OutputFile describes a single file to be uploaded
+type OutputFile struct {
+	LocalPath   string `json:"local_path"`   // Relative path within output directory
+	FolderID    string `json:"folder_id"`    // Target folder UUID in platform
+	ObjectKey   string `json:"object_key"`   // Object key/path within the folder
+	ContentType string `json:"content_type"` // MIME type of the file
+}
+
+// =============================================================================
+// Platform API Types
+// =============================================================================
+
+// UploadURLRequest is sent to the platform to request presigned upload URLs
+type UploadURLRequest struct {
+	Files []UploadFileRequest `json:"files"`
+}
+
+// UploadFileRequest describes a file for which we need a presigned URL
+type UploadFileRequest struct {
+	FolderID    string `json:"folder_id"`
+	ObjectKey   string `json:"object_key"`
+	ContentType string `json:"content_type"`
+}
+
+// UploadURLResponse is the response from the platform with presigned URLs
+type UploadURLResponse struct {
+	Uploads []UploadURL `json:"uploads"`
+}
+
+// UploadURL contains the presigned URL for a single file upload
+type UploadURL struct {
+	FolderID     string `json:"folder_id"`
+	ObjectKey    string `json:"object_key"`
+	PresignedURL string `json:"presigned_url"`
+}
+
+// CompletionRequest is sent to the platform to signal job completion
+type CompletionRequest struct {
+	Success       bool            `json:"success"`
+	Result        json.RawMessage `json:"result,omitempty"`
+	Error         *JobError       `json:"error,omitempty"`
+	UploadedFiles []UploadedFile  `json:"uploaded_files,omitempty"`
+}
+
+// UploadedFile describes a file that was successfully uploaded
+type UploadedFile struct {
+	FolderID  string `json:"folder_id"`
+	ObjectKey string `json:"object_key"`
 }
