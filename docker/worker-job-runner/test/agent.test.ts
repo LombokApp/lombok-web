@@ -73,6 +73,7 @@ interface ExecTestCase {
     exitCode?: number
     outputContains?: string[]
     stderrContains?: string[]
+    result?: Record<string, unknown> // Expected result from worker's JSON output
   }
 }
 
@@ -154,6 +155,42 @@ const execTestCases: ExecTestCase[] = [
     expected: {
       success: true,
       outputContains: ['line1', 'line2', 'line3'],
+    },
+  },
+  {
+    name: 'worker JSON result captured from last line',
+    jobClass: 'json_result_job',
+    workerCommand: [
+      'sh',
+      '-c',
+      'echo "Processing..."; echo "Done"; echo \'{"sum":42,"status":"completed"}\'',
+    ],
+    jobInput: { numbers: [1, 2, 3] },
+    expected: {
+      success: true,
+      exitCode: 0,
+      result: { sum: 42, status: 'completed' },
+    },
+  },
+  {
+    name: 'worker can parse input and return computed result',
+    jobClass: 'compute_job',
+    // Worker decodes base64 input, extracts numbers, computes sum, outputs JSON
+    workerCommand: [
+      'sh',
+      '-c',
+      // Decode input, extract numbers array, compute sum with awk
+      'INPUT=$(echo $1 | base64 -d); ' +
+        "NUMS=$(echo \"$INPUT\" | grep -o '\"numbers\":\\[[0-9,]*\\]' | grep -o '[0-9]*' | tr '\\n' '+' | sed 's/+$//'); " +
+        'SUM=$(echo "$NUMS" | bc); ' +
+        'echo "{\\"sum\\":$SUM,\\"computed\\":true}"',
+      'sh',
+    ],
+    jobInput: { numbers: [10, 20, 30] },
+    expected: {
+      success: true,
+      exitCode: 0,
+      result: { sum: 60, computed: true },
     },
   },
 ]
@@ -690,6 +727,17 @@ describe('Platform Agent', () => {
           }
         }
 
+        // Verify the worker's result is captured from stdout
+        if (testCase.expected.result) {
+          expect(result.result).toBeDefined()
+          const resultObj = result.result as Record<string, unknown>
+          for (const [key, expectedValue] of Object.entries(
+            testCase.expected.result,
+          )) {
+            expect(resultObj[key]).toEqual(expectedValue)
+          }
+        }
+
         // Verify job state file was created
         const stateExists = await fileExistsInContainer(
           `/var/lib/lombok-worker-agent/jobs/${jobId}.json`,
@@ -707,6 +755,75 @@ describe('Platform Agent', () => {
         )
       })
     }
+
+    test('returns parseable JSON result with expected structure', async () => {
+      const jobId = generateJobId('json-structure-test')
+      const jobClass = 'json_structure_test'
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: [
+          'sh',
+          '-c',
+          'echo \'{"message":"hello","value":123}\'',
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: { test: true },
+      }
+
+      const { result } = await runJob(payload)
+
+      // Verify the output is valid JSON by checking we got a parsed result
+      expect(result).toBeDefined()
+      expect(typeof result).toBe('object')
+
+      // Verify the expected fields exist in the JSON result
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('job_id')
+      expect(result).toHaveProperty('job_class')
+      expect(typeof result.success).toBe('boolean')
+      expect(result.job_id).toBe(jobId)
+      expect((result as unknown as Record<string, unknown>).job_class).toBe(
+        jobClass,
+      )
+
+      // For successful jobs, exit_code should be 0
+      expect(result.exit_code).toBe(0)
+      expect(result.success).toBe(true)
+
+      // Verify worker's JSON result is captured
+      expect(result.result).toBeDefined()
+      const workerResult = result.result as Record<string, unknown>
+      expect(workerResult.message).toBe('hello')
+      expect(workerResult.value).toBe(123)
+    })
+
+    test('failed job returns parseable JSON with error structure', async () => {
+      const jobId = generateJobId('json-error-structure-test')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'json_error_test',
+        worker_command: ['sh', '-c', 'exit 1'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      const { result } = await runJob(payload)
+
+      // Verify the result has expected structure
+      expect(result).toBeDefined()
+      expect(result.success).toBe(false)
+      expect(result.job_id).toBe(jobId)
+      expect(result.exit_code).toBe(1)
+
+      // Verify error object structure
+      expect(result.error).toBeDefined()
+      expect(result.error).toHaveProperty('code')
+      expect(result.error).toHaveProperty('message')
+      expect(result.error?.code).toBe('WORKER_EXIT_ERROR')
+    })
   })
 
   describe('persistent_http interface', () => {
@@ -783,6 +900,68 @@ describe('Platform Agent', () => {
         expect(workerState.kind).toBe('persistent_http')
       })
     }
+
+    test('returns parseable JSON result with expected structure', async () => {
+      const jobClass = 'math_add'
+      const port = 8210
+
+      const jobId = generateJobId('http-json-structure-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [10, 20, 30] },
+      }
+
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      // Verify the output is valid JSON by checking we got a parsed result
+      expect(result).toBeDefined()
+      expect(typeof result).toBe('object')
+
+      // Verify expected fields exist
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('job_id')
+      expect(result).toHaveProperty('job_class')
+      expect(typeof result.success).toBe('boolean')
+      expect(result.job_id).toBe(jobId)
+      expect((result as unknown as Record<string, unknown>).job_class).toBe(
+        jobClass,
+      )
+
+      // For successful jobs, result should contain the job output
+      expect(result.success).toBe(true)
+      expect(result.result).toBeDefined()
+      expect((result.result as Record<string, unknown>).sum).toBe(60)
+    })
+
+    test('failed job returns parseable JSON with error structure', async () => {
+      const jobClass = 'math_add'
+      const port = 8211
+
+      const jobId = generateJobId('http-json-error-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        // Invalid input - math_add expects { numbers: number[] }
+        job_input: { invalid: 'input' },
+      }
+
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      // Verify result has expected structure
+      expect(result).toBeDefined()
+      expect(result.success).toBe(false)
+      expect(result.job_id).toBe(jobId)
+
+      // Verify error object structure
+      expect(result.error).toBeDefined()
+      expect(result.error).toHaveProperty('code')
+      expect(result.error).toHaveProperty('message')
+    })
 
     test('multiple jobs reuse same worker', async () => {
       const jobClass = 'reuse_test'

@@ -1,11 +1,14 @@
 package runner
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"lombok-worker-agent/internal/config"
@@ -16,6 +19,9 @@ import (
 // RunExecPerJob runs a job using the exec_per_job interface
 // It spawns a new worker process for each job, passing the job_input as a base64-encoded
 // final argument to the worker command.
+//
+// The worker should output its result as JSON on the last line of stdout.
+// This will be captured and included in the agent's output.
 func RunExecPerJob(payload *types.JobPayload) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
@@ -68,7 +74,9 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	}
 	defer stderrFile.Close()
 
-	cmd.Stdout = stdoutFile
+	// Capture stdout to both file and buffer (for extracting result)
+	var stdoutBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
 	cmd.Stderr = stderrFile
 
 	// Start the worker process
@@ -113,12 +121,23 @@ func RunExecPerJob(payload *types.JobPayload) error {
 		fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to write final job state: %v\n", err)
 	}
 
+	// Extract the worker's result from the last line of stdout
+	// Convention: worker outputs JSON result on the last non-empty line
+	workerResult := extractLastLineJSON(stdoutBuf.String())
+
 	// Output result to stdout for the platform to capture
 	result := map[string]interface{}{
 		"success":   exitCode == 0,
 		"exit_code": exitCode,
 		"job_id":    payload.JobID,
+		"job_class": payload.JobClass,
 	}
+
+	// Include the worker's result if we found valid JSON
+	if workerResult != nil {
+		result["result"] = workerResult
+	}
+
 	if exitCode != 0 {
 		result["error"] = map[string]interface{}{
 			"code":    "WORKER_EXIT_ERROR",
@@ -135,4 +154,32 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	}
 
 	return nil
+}
+
+// extractLastLineJSON finds the last non-empty line in the output
+// and attempts to parse it as JSON. Returns nil if not valid JSON.
+func extractLastLineJSON(output string) interface{} {
+	lines := strings.Split(output, "\n")
+
+	// Find the last non-empty line
+	var lastLine string
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line != "" {
+			lastLine = line
+			break
+		}
+	}
+
+	if lastLine == "" {
+		return nil
+	}
+
+	// Try to parse as JSON
+	var parsed interface{}
+	if err := json.Unmarshal([]byte(lastLine), &parsed); err != nil {
+		return nil
+	}
+
+	return parsed
 }
