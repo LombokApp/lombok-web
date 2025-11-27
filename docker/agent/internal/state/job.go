@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
-	"platform-agent/internal/config"
-	"platform-agent/internal/types"
+	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/types"
 )
 
 // ReadJobState reads the state file for a job

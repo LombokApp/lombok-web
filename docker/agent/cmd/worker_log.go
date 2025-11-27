@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"platform-agent/internal/config"
-	"platform-agent/internal/logs"
+	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/logs"
 
 	"github.com/spf13/cobra"
 )

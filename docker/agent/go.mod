@@ -1,4 +1,4 @@
-module platform-agent
+module lombok-worker-agent
 
 go 1.22
 

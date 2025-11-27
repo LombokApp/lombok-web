@@ -280,7 +280,7 @@ export class LocalDockerAdapter implements DockerAdapter {
     try {
       const container = this.docker.getContainer(containerId)
 
-      // Build the payload for the platform-agent
+      // Build the payload for the lombok-worker-agent
       const payload = {
         job_id: crypto.randomUUID(),
         job_class: options.jobClass,
@@ -298,7 +298,7 @@ export class LocalDockerAdapter implements DockerAdapter {
 
       // Build the command to run in the container
       const agentCommand = [
-        'platform-agent',
+        'lombok-worker-agent',
         'run-job',
         `--payload-base64=${payloadBase64}`,
       ]

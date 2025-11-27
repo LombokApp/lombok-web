@@ -12,9 +12,9 @@ import (
 	"os/exec"
 	"time"
 
-	"platform-agent/internal/config"
-	"platform-agent/internal/state"
-	"platform-agent/internal/types"
+	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/state"
+	"lombok-worker-agent/internal/types"
 )
 
 const (

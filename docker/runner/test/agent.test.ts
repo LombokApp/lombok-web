@@ -7,8 +7,8 @@ import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
 // =============================================================================
 
 const DOCKER_SOCKET = process.env.DOCKER_HOST ?? '/var/run/docker.sock'
-const IMAGE_NAME = 'platform-agent-test'
-const CONTAINER_NAME = 'platform-agent-test-runner'
+const IMAGE_NAME = 'lombok-worker-agent-test'
+const CONTAINER_NAME = 'lombok-worker-agent-test-runner'
 const FORCE_REBUILD =
   process.env.REBUILD === '1' ||
   process.env.REBUILD === 'true' ||
@@ -586,7 +586,7 @@ async function runJob(
   const payloadB64 = makePayloadBase64(payload)
 
   const execResult = await execInContainer(
-    ['platform-agent', 'run-job', '--payload-base64', payloadB64],
+    ['lombok-worker-agent', 'run-job', '--payload-base64', payloadB64],
     env,
   )
 
@@ -673,7 +673,7 @@ describe('Platform Agent', () => {
         // Check output contains expected strings
         if (testCase.expected.outputContains) {
           const jobOut = await readFileInContainer(
-            `/var/log/platform-agent/jobs/${jobId}.out.log`,
+            `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
           )
           for (const expected of testCase.expected.outputContains) {
             expect(jobOut).toContain(expected)
@@ -683,7 +683,7 @@ describe('Platform Agent', () => {
         // Check stderr contains expected strings
         if (testCase.expected.stderrContains) {
           const jobErr = await readFileInContainer(
-            `/var/log/platform-agent/jobs/${jobId}.err.log`,
+            `/var/log/lombok-worker-agent/jobs/${jobId}.err.log`,
           )
           for (const expected of testCase.expected.stderrContains) {
             expect(jobErr).toContain(expected)
@@ -692,14 +692,14 @@ describe('Platform Agent', () => {
 
         // Verify job state file was created
         const stateExists = await fileExistsInContainer(
-          `/var/lib/platform-agent/jobs/${jobId}.json`,
+          `/var/lib/lombok-worker-agent/jobs/${jobId}.json`,
         )
         expect(stateExists).toBe(true)
 
         // Verify job state status
         const jobState = JSON.parse(
           await readFileInContainer(
-            `/var/lib/platform-agent/jobs/${jobId}.json`,
+            `/var/lib/lombok-worker-agent/jobs/${jobId}.json`,
           ),
         )
         expect(jobState.status).toBe(
@@ -731,22 +731,22 @@ describe('Platform Agent', () => {
         // console.log('output:', {
         //   result,
         //   jobLog: await readFileInContainer(
-        //     `/var/log/platform-agent/jobs/${jobId}.out.log`,
+        //     `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
         //   ),
         //   workerLog: await readFileInContainer(
-        //     `/var/log/platform-agent/workers/${testCase.jobClass}.out.log`,
+        //     `/var/log/lombok-worker-agent/workers/${testCase.jobClass}.out.log`,
         //   ),
         //   workerErrLog: await readFileInContainer(
-        //     `/var/log/platform-agent/workers/${testCase.jobClass}.err.log`,
+        //     `/var/log/lombok-worker-agent/workers/${testCase.jobClass}.err.log`,
         //   ),
         //   workerState: JSON.parse(
         //     await readFileInContainer(
-        //       `/var/lib/platform-agent/workers/${testCase.jobClass}.json`,
+        //       `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
         //     ),
         //   ),
         //   jobState: JSON.parse(
         //     await readFileInContainer(
-        //       `/var/lib/platform-agent/jobs/${jobId}.json`,
+        //       `/var/lib/lombok-worker-agent/jobs/${jobId}.json`,
         //     ),
         //   ),
         // })
@@ -770,13 +770,13 @@ describe('Platform Agent', () => {
 
         // Verify worker state file
         const workerStateExists = await fileExistsInContainer(
-          `/var/lib/platform-agent/workers/${testCase.jobClass}.json`,
+          `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
         )
         expect(workerStateExists).toBe(true)
 
         const workerState = JSON.parse(
           await readFileInContainer(
-            `/var/lib/platform-agent/workers/${testCase.jobClass}.json`,
+            `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
           ),
         )
         expect(workerState.state).toBe('ready')
@@ -803,7 +803,7 @@ describe('Platform Agent', () => {
 
       const workerState1 = JSON.parse(
         await readFileInContainer(
-          `/var/lib/platform-agent/workers/math_add.json`,
+          `/var/lib/lombok-worker-agent/workers/math_add.json`,
         ),
       )
       const pid1 = workerState1.pid
@@ -824,7 +824,7 @@ describe('Platform Agent', () => {
 
       const workerState2 = JSON.parse(
         await readFileInContainer(
-          `/var/lib/platform-agent/workers/math_add.json`,
+          `/var/lib/lombok-worker-agent/workers/math_add.json`,
         ),
       )
       const pid2 = workerState2.pid
@@ -850,10 +850,10 @@ describe('Platform Agent', () => {
 
       // Check worker log files exist
       const outLogExists = await fileExistsInContainer(
-        `/var/log/platform-agent/workers/${jobClass}.out.log`,
+        `/var/log/lombok-worker-agent/workers/${jobClass}.out.log`,
       )
       const errLogExists = await fileExistsInContainer(
-        `/var/log/platform-agent/workers/${jobClass}.err.log`,
+        `/var/log/lombok-worker-agent/workers/${jobClass}.err.log`,
       )
 
       expect(outLogExists).toBe(true)
@@ -861,7 +861,7 @@ describe('Platform Agent', () => {
 
       // Check worker logged startup message
       const workerOut = await readFileInContainer(
-        `/var/log/platform-agent/workers/${jobClass}.out.log`,
+        `/var/log/lombok-worker-agent/workers/${jobClass}.out.log`,
       )
       expect(workerOut).toContain('Mock runner listening')
     })
@@ -883,12 +883,12 @@ describe('Platform Agent', () => {
 
       // Check job log file exists and contains expected content
       const jobLogExists = await fileExistsInContainer(
-        `/var/log/platform-agent/jobs/${jobId}.out.log`,
+        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
       )
       expect(jobLogExists).toBe(true)
 
       const jobLog = await readFileInContainer(
-        `/var/log/platform-agent/jobs/${jobId}.out.log`,
+        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
       )
 
       // Verify job log contains expected log messages from the handler
@@ -916,7 +916,7 @@ describe('Platform Agent', () => {
 
       // Check stdout log
       const jobOutLog = await readFileInContainer(
-        `/var/log/platform-agent/jobs/${jobId}.out.log`,
+        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
       )
       expect(jobOutLog).toContain('Starting verbose logging job')
       expect(jobOutLog).toContain('Step 1/3')
@@ -926,7 +926,7 @@ describe('Platform Agent', () => {
 
       // Check stderr log (for errors/warnings)
       const jobErrLog = await readFileInContainer(
-        `/var/log/platform-agent/jobs/${jobId}.err.log`,
+        `/var/log/lombok-worker-agent/jobs/${jobId}.err.log`,
       )
       expect(jobErrLog).toContain('Warning at step')
       expect(jobErrLog).toContain('Simulated error condition detected')
@@ -952,7 +952,7 @@ describe('Platform Agent', () => {
 
     test('invalid base64 payload returns error', async () => {
       const execResult = await execInContainer([
-        'platform-agent',
+        'lombok-worker-agent',
         'run-job',
         '--payload-base64',
         'not-valid-base64!!!',
@@ -967,7 +967,7 @@ describe('Platform Agent', () => {
       const invalidB64 = Buffer.from(invalidJson).toString('base64')
 
       const execResult = await execInContainer([
-        'platform-agent',
+        'lombok-worker-agent',
         'run-job',
         '--payload-base64',
         invalidB64,
@@ -996,15 +996,15 @@ describe('Platform Agent', () => {
 
   describe('CLI commands', () => {
     test('--help shows usage', async () => {
-      const result = await execInContainer(['platform-agent', '--help'])
+      const result = await execInContainer(['lombok-worker-agent', '--help'])
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('platform-agent')
+      expect(result.stdout).toContain('lombok-worker-agent')
       expect(result.stdout).toContain('run-job')
     })
 
     test('run-job requires --payload-base64 flag', async () => {
-      const result = await execInContainer(['platform-agent', 'run-job'])
+      const result = await execInContainer(['lombok-worker-agent', 'run-job'])
 
       expect(result.exitCode).not.toBe(0)
       expect(result.stderr).toContain('required')
@@ -1025,7 +1025,7 @@ describe('Platform Agent', () => {
 
       // Read the log using job-log command
       const result = await execInContainer([
-        'platform-agent',
+        'lombok-worker-agent',
         'job-log',
         '--job-id',
         jobId,
@@ -1048,7 +1048,7 @@ describe('Platform Agent', () => {
       await runJob(payload)
 
       const result = await execInContainer([
-        'platform-agent',
+        'lombok-worker-agent',
         'job-log',
         '--job-id',
         jobId,
@@ -1076,7 +1076,7 @@ describe('Platform Agent', () => {
       await runJob(payload)
 
       const result = await execInContainer([
-        'platform-agent',
+        'lombok-worker-agent',
         'job-log',
         '--job-id',
         jobId,
@@ -1105,7 +1105,7 @@ describe('Platform Agent', () => {
       await runJob(payload, [`APP_PORT=${port}`])
 
       const result = await execInContainer([
-        'platform-agent',
+        'lombok-worker-agent',
         'worker-log',
         '--job-class',
         jobClass,

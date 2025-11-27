@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build script for platform-agent
+# Build script for lombok-worker-agent
 # Compiles a static Linux binary for use in Docker containers
 
 set -e
@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Default values
-OUTPUT_NAME="platform-agent"
+OUTPUT_NAME="lombok-worker-agent"
 GOOS="${GOOS:-linux}"
 GOARCH="${GOARCH:-amd64}"
 
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --os OS        Target OS (default: linux)"
             echo "  --arch ARCH    Target architecture (default: amd64)"
-            echo "  -o, --output   Output binary name (default: platform-agent)"
+            echo "  -o, --output   Output binary name (default: lombok-worker-agent)"
             echo "  -h, --help     Show this help"
             echo ""
             echo "Examples:"
@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "Building platform-agent for ${GOOS}/${GOARCH}..."
+echo "Building lombok-worker-agent for ${GOOS}/${GOARCH}..."
 
 # Build with static linking (CGO_ENABLED=0)
 CGO_ENABLED=0 GOOS="$GOOS" GOARCH="$GOARCH" go build \
@@ -63,4 +63,4 @@ echo "To test locally:"
 echo "  ./$OUTPUT_NAME --help"
 echo ""
 echo "To use in a Docker image, copy the binary:"
-echo "  COPY $OUTPUT_NAME /usr/local/bin/platform-agent"
+echo "  COPY $OUTPUT_NAME /usr/local/bin/lombok-worker-agent"

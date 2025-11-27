@@ -8,8 +8,8 @@ import (
 
 const (
 	// Base directories
-	LogBaseDir   = "/var/log/platform-agent"
-	StateBaseDir = "/var/lib/platform-agent"
+	LogBaseDir   = "/var/log/lombok-worker-agent"
+	StateBaseDir = "/var/lib/lombok-worker-agent"
 
 	// Agent version for state files
 	AgentVersion = "1.0.0"

@@ -1,6 +1,6 @@
 # Platform Agent Test Suite
 
-This directory contains the test suite for the Go platform-agent binary.
+This directory contains the test suite for the Go lombok-worker-agent binary.
 
 ## Prerequisites
 
@@ -46,7 +46,7 @@ REBUILD=1 bun test -t "math_factorial"
 The tests use [Dockerode](https://github.com/apocas/dockerode) to:
 1. Build the test Docker image (from `runner.Dockerfile`)
 2. Start a container
-3. Execute the platform-agent commands inside the container
+3. Execute the lombok-worker-agent commands inside the container
 4. Verify expected outcomes
 
 ### Test Categories

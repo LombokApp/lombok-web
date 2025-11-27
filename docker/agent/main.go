@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"platform-agent/cmd"
+	"lombok-worker-agent/cmd"
 )
 
 func main() {

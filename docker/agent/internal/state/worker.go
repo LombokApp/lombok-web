@@ -5,8 +5,8 @@ import (
 	"os"
 	"syscall"
 
-	"platform-agent/internal/config"
-	"platform-agent/internal/types"
+	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/types"
 )
 
 // ReadWorkerState reads the state file for a worker by job class

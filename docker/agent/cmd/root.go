@@ -5,7 +5,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "platform-agent",
+	Use:   "lombok-worker-agent",
 	Short: "Platform agent for managing worker processes in Docker containers",
 	Long: `Platform agent is a lightweight process manager that runs inside Docker containers.
 It handles job dispatch to worker processes, manages worker lifecycle, and provides

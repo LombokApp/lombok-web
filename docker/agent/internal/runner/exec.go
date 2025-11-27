@@ -8,9 +8,9 @@ import (
 	"os/exec"
 	"time"
 
-	"platform-agent/internal/config"
-	"platform-agent/internal/state"
-	"platform-agent/internal/types"
+	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/state"
+	"lombok-worker-agent/internal/types"
 )
 
 // RunExecPerJob runs a job using the exec_per_job interface
@@ -110,7 +110,7 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	}
 
 	if err := state.WriteJobState(jobState); err != nil {
-		fmt.Fprintf(os.Stderr, "[platform-agent] warning: failed to write final job state: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to write final job state: %v\n", err)
 	}
 
 	// Output result to stdout for the platform to capture

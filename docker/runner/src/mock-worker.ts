@@ -495,7 +495,7 @@ const server = Bun.serve({
       })
     }
 
-    // POST /job - handle job from platform-agent
+    // POST /job - handle job from lombok-worker-agent
     if (request.method === 'POST' && pathname === '/job') {
       let body: AgentJobRequest | undefined
       try {

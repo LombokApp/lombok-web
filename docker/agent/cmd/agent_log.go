@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"platform-agent/internal/config"
-	"platform-agent/internal/logs"
+	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/logs"
 
 	"github.com/spf13/cobra"
 )
@@ -15,7 +15,7 @@ var (
 var agentLogCmd = &cobra.Command{
 	Use:   "agent-log",
 	Short: "Read agent logs",
-	Long:  `Read the platform-agent's own log files with optional filtering.`,
+	Long:  `Read the lombok-worker-agent's own log files with optional filtering.`,
 	RunE:  readAgentLog,
 }
 

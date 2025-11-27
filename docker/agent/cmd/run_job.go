@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"platform-agent/internal/runner"
-	"platform-agent/internal/types"
+	"lombok-worker-agent/internal/runner"
+	"lombok-worker-agent/internal/types"
 
 	"github.com/spf13/cobra"
 )
@@ -44,7 +44,7 @@ func runJob(cmd *cobra.Command, args []string) error {
 	}
 
 	// Log basic info
-	fmt.Fprintf(os.Stderr, "[platform-agent] job_id=%s job_class=%s interface=%s\n",
+	fmt.Fprintf(os.Stderr, "[lombok-worker-agent] job_id=%s job_class=%s interface=%s\n",
 		payload.JobID, payload.JobClass, payload.Interface.Kind)
 
 	// Dispatch based on interface kind
