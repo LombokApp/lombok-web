@@ -36,7 +36,7 @@
   ],
   "containerProfiles": {
     "content_analysis": {
-      "image": "nginx",
+      "image": "lombok-mock-runner",
       "jobClasses": {
         "extract_content_metadata": {
           "maxPerContainer": 1,

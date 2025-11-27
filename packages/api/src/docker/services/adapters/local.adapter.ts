@@ -238,11 +238,21 @@ export class LocalDockerAdapter implements DockerAdapter {
     }))
   }
 
+  imageExists(image: string) {
+    try {
+      const _existingImage = this.docker.getImage(image).inspect()
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async createContainer(
     options: CreateContainerOptions,
   ): Promise<ContainerInfo> {
-    // Pull the image first (Docker API doesn't auto-pull like CLI)
-    await this.pullImage(options.image)
+    if (!this.imageExists(options.image)) {
+      await this.pullImage(options.image)
+    }
 
     const container = await this.docker.createContainer({
       Image: options.image,
@@ -270,12 +280,27 @@ export class LocalDockerAdapter implements DockerAdapter {
     try {
       const container = this.docker.getContainer(containerId)
 
+      // Build the payload for the platform-agent
+      const payload = {
+        job_id: crypto.randomUUID(),
+        job_class: options.jobClass,
+        worker_command: ['/app/worker'], // Default worker path, can be customized per job class
+        interface: {
+          kind: options.mode === 'sync' ? 'exec_per_job' : 'persistent_http',
+        },
+        job_input: options.payload,
+      }
+
+      // Base64 encode the payload
+      const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString(
+        'base64',
+      )
+
       // Build the command to run in the container
       const agentCommand = [
-        '/app/agent',
-        `--mode=${options.mode}`,
-        `--job-class=${options.jobClass}`,
-        `--payload=${JSON.stringify(options.payload)}`,
+        'platform-agent',
+        'run-job',
+        `--payload-base64=${payloadBase64}`,
       ]
 
       const exec = await container.exec({
