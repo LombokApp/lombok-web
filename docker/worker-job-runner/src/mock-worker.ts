@@ -536,11 +536,10 @@ const server = Bun.serve({
     const url = new URL(request.url)
     const pathname = url.pathname
 
-    // GET /job - readiness check
+    // GET /job - info about job endpoint (not used for readiness)
     if (request.method === 'GET' && pathname === '/job') {
       return jsonResponse({
-        status: 'ready',
-        worker: 'mock-worker',
+        message: 'POST to this endpoint to submit a job',
         protocol: 'async',
         supportedJobClasses: Object.keys(jobHandlers),
       })
@@ -651,6 +650,14 @@ const server = Bun.serve({
       return jsonResponse(response)
     }
 
+    // GET /health/ready - readiness check (used by agent for polling)
+    if (request.method === 'GET' && pathname === '/health/ready') {
+      return jsonResponse({
+        ready: true,
+      })
+    }
+
+    // GET /health - detailed health info (for debugging)
     if (request.method === 'GET' && pathname === '/health') {
       const states = Array.from(jobStates.values())
       return jsonResponse({

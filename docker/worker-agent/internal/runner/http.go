@@ -421,7 +421,7 @@ func waitForWorkerReady(listener *types.ListenerConfig, timeout time.Duration) e
 // checkWorkerReady checks if the worker is responding to HTTP requests
 func checkWorkerReady(listener *types.ListenerConfig) bool {
 	client := buildHTTPClient(listener)
-	endpoint := buildBaseURL(listener) + "/job"
+	endpoint := buildBaseURL(listener) + "/health/ready"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -437,8 +437,8 @@ func checkWorkerReady(listener *types.ListenerConfig) bool {
 	}
 	defer resp.Body.Close()
 
-	// Any response (even 4xx/5xx) means the worker is listening
-	return true
+	// 200 OK means the worker is ready to accept jobs
+	return resp.StatusCode == 200
 }
 
 // buildHTTPClient creates an HTTP client configured for the listener type

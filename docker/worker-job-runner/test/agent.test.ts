@@ -963,6 +963,36 @@ describe('Platform Agent', () => {
       expect(result.error).toHaveProperty('message')
     })
 
+    test('worker responds to /health/ready endpoint for readiness check', async () => {
+      const port = 8212
+
+      // Start a worker by running a job first
+      const jobId = generateJobId('readiness-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'math_add',
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [1, 2] },
+      }
+
+      // Run a job to ensure worker is started
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      // Verify the /health/ready endpoint using wget (available in Alpine)
+      const healthResult = await execInContainer([
+        'wget',
+        '-q',
+        '-O',
+        '-',
+        `http://127.0.0.1:${port}/health/ready`,
+      ])
+
+      expect(healthResult.exitCode).toBe(0)
+      const healthBody = JSON.parse(healthResult.stdout)
+      expect(healthBody.ready).toBe(true)
+    })
+
     test('multiple jobs reuse same worker', async () => {
       const jobClass = 'reuse_test'
       const port = 8200
