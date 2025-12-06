@@ -1,8 +1,9 @@
-import { JsonSerializableValue } from '@lombokapp/types'
+import { JsonSerializableObject, StorageAccessPolicy } from '@lombokapp/types'
 import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import { AppService } from 'src/app/services/app.service'
@@ -17,6 +18,7 @@ import { PlatformTaskName } from 'src/task/task.constants'
 export class QueueAppTaskProcessor extends BaseProcessor<PlatformTaskName.QueueAppTask> {
   private readonly appService: AppService
   private readonly ormService: OrmService
+  private readonly logger = new Logger(QueueAppTaskProcessor.name)
   private readonly eventService: EventService
   constructor(
     @Inject(forwardRef(() => AppService))
@@ -36,11 +38,14 @@ export class QueueAppTaskProcessor extends BaseProcessor<PlatformTaskName.QueueA
     const eventData = event.data as {
       appIdentifier: string
       taskIdentifier: string
-      inputData: JsonSerializableValue
+      inputData: JsonSerializableObject
+      storageAccessPolicy?: StorageAccessPolicy
     }
-    const app = await this.appService.getAppAsAdmin(eventData.appIdentifier, {
+
+    const app = await this.appService.getApp(eventData.appIdentifier, {
       enabled: true,
     })
+
     if (!app) {
       throw new NotFoundException(`App not found: ${eventData.appIdentifier}`)
     }
@@ -48,9 +53,33 @@ export class QueueAppTaskProcessor extends BaseProcessor<PlatformTaskName.QueueA
       (_task) => _task.identifier === eventData.taskIdentifier,
     )
     if (!taskDefinition) {
+      this.logger.error('Task definition not found:', {
+        eventData,
+      })
       throw new NotFoundException(
         `Task definition not found: ${eventData.taskIdentifier}`,
       )
+    }
+
+    if (event.userId) {
+      await this.appService.validateAppUserAccess({
+        appIdentifier: eventData.appIdentifier,
+        userId: event.userId,
+      })
+    }
+
+    if (event.subjectFolderId) {
+      await this.appService.validateAppFolderAccess({
+        appIdentifier: eventData.appIdentifier,
+        folderId: event.subjectFolderId,
+      })
+    }
+
+    if (eventData.storageAccessPolicy?.length) {
+      await this.appService.validateAppStorageAccessPolicy({
+        appIdentifier: eventData.appIdentifier,
+        storageAccessPolicy: eventData.storageAccessPolicy,
+      })
     }
 
     await this.ormService.db.transaction(async (tx) => {
@@ -67,18 +96,21 @@ export class QueueAppTaskProcessor extends BaseProcessor<PlatformTaskName.QueueA
           taskDefinition.handler.type === 'docker'
             ? taskDefinition.handler.identifier
             : '',
-        triggeringEventId: event.id,
+        eventId: event.id,
         subjectFolderId: event.subjectFolderId,
         subjectObjectKey: event.subjectObjectKey,
         taskIdentifier: eventData.taskIdentifier,
         inputData: eventData.inputData,
+        storageAccessPolicy: eventData.storageAccessPolicy,
       }
       await tx.insert(tasksTable).values(newTask)
       if (
         taskDefinition.handler.type === 'worker' ||
         taskDefinition.handler.type === 'docker'
       ) {
-        await this.eventService.emitRunnableTaskEnqueuedEvent(newTask, tx)
+        await this.eventService.emitRunnableTaskEnqueuedEvent(newTask, {
+          tx,
+        })
       }
     })
   }

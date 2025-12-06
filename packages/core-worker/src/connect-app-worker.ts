@@ -5,8 +5,8 @@ import { serializeWorkerError } from '@lombokapp/core-worker-utils'
 import type {
   AppLogEntry,
   EventDTO,
+  JsonSerializableObject,
   TaskDTO,
-  WorkerErrorDetails,
 } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import type { Socket } from 'socket.io-client'
@@ -26,7 +26,7 @@ export const connectAndPerformWork = (
   taskHandlers: Record<
     string,
     (
-      task: TaskDTO & { event: EventDTO },
+      task: { task: TaskDTO; event: EventDTO },
       serverClient: IAppPlatformService,
     ) => Promise<void>
   >,
@@ -98,7 +98,7 @@ export const connectAndPerformWork = (
             })
           } else {
             await taskHandlers[task.taskIdentifier](
-              { ...task, event },
+              { task, event },
               serverClient,
             )
               .then(() => serverClient.completeHandleTask({ taskId: task.id }))
@@ -114,7 +114,7 @@ export const connectAndPerformWork = (
                     message: serializeError(e),
                     details: JSON.parse(
                       serializeWorkerError(e),
-                    ) as WorkerErrorDetails,
+                    ) as JsonSerializableObject,
                   },
                 })
               })

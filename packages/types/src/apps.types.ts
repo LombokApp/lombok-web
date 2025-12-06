@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
 import { PLATFORM_IDENTIFIER } from './platform.types'
+import type { StorageAccessPolicy } from './task.types'
 
 export const CORE_APP_IDENTIFIER = 'core'
 export const WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:worker_task_enqueued`
@@ -25,26 +26,19 @@ export const AppSocketMessage = z.enum([
   'FAIL_HANDLE_TASK',
   'AUTHENTICATE_USER',
   'EMIT_EVENT',
-  'EXECUTE_DOCKER_JOB',
+  'EXECUTE_APP_DOCKER_JOB',
   'QUEUE_APP_TASK',
 ])
 
 export const EXECUTE_SYSTEM_REQUEST_MESSAGE = 'EXECUTE_SYSTEM_REQUEST'
 
-type JsonSerializablePrimitive =
-  | string
-  | number
-  | boolean
-  | null
-  | Date
-  | undefined
+export type JsonSerializablePrimitive = string | number | boolean | null
 
 export type JsonSerializableValue =
   | JsonSerializablePrimitive
   | JsonSerializableValue[]
   | { [key: string]: JsonSerializableValue }
 
-export type JsonSerializableObject = Record<string, JsonSerializableValue>
 export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
   z.lazy(() =>
     z.union([
@@ -52,12 +46,20 @@ export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
       z.number(),
       z.boolean(),
       z.null(),
-      z.date(),
-      z.undefined(),
+      // z.date(),
       z.array(jsonSerializableValueSchema),
       z.record(jsonSerializableValueSchema),
     ]),
   )
+
+export const jsonSerializableObjectSchema = z.record(
+  z.string(),
+  jsonSerializableValueSchema,
+)
+
+export type JsonSerializableObject = z.infer<
+  typeof jsonSerializableObjectSchema
+>
 
 export type WorkerApiActor =
   | {
@@ -246,32 +248,39 @@ export const containerProfileResourceHintsSchema = z
 
 export const dockerWorkerCommandSchema = z.array(z.string().nonempty())
 
-export const dockerWorkerJobNameSchema = z
+export const dockerWorkerJobIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z_]+$/)
 
 export const containerProfileJobDefinitionSchema = z
   .object({
-    jobName: dockerWorkerJobNameSchema,
     maxPerContainer: z.number().min(1).optional(),
     countTowardsGlobalCap: z.literal(false).optional(),
     priority: z.number().optional(),
   })
   .strict()
 
+export const httpJobDefinitionSchema =
+  containerProfileJobDefinitionSchema.merge(
+    z.object({ identifier: dockerWorkerJobIdentifierSchema }),
+  )
+
+export const execJobDefinitionSchema = z
+  .object({
+    kind: z.literal('exec'),
+    command: dockerWorkerCommandSchema,
+    jobIdentifier: dockerWorkerJobIdentifierSchema,
+  })
+  .merge(containerProfileJobDefinitionSchema)
+
 export const dockerWorkerConfigSchema = z.discriminatedUnion('kind', [
-  z
-    .object({
-      kind: z.literal('exec'),
-      command: dockerWorkerCommandSchema,
-    })
-    .merge(containerProfileJobDefinitionSchema),
+  execJobDefinitionSchema,
   z.object({
     kind: z.literal('http'),
     command: dockerWorkerCommandSchema,
     port: z.number().positive().max(65535),
-    jobs: z.array(containerProfileJobDefinitionSchema),
+    jobs: z.array(httpJobDefinitionSchema),
   }),
 ])
 
@@ -344,9 +353,9 @@ export const appConfigSchema = z
 
     const containerWorkerJobDefinitions = Object.keys(
       value.containerProfiles ?? {},
-    ).reduce<Record<string, { workerIndex: number; jobName: string }[]>>(
-      (acc, profileName) => {
-        const profile = value.containerProfiles?.[profileName]
+    ).reduce<Record<string, { workerIndex: number; jobIdentifier: string }[]>>(
+      (acc, profileIdentifier) => {
+        const profile = value.containerProfiles?.[profileIdentifier]
         if (!profile) {
           return acc
         }
@@ -354,31 +363,39 @@ export const appConfigSchema = z
         const profileJobDefinitions = profile.workers.flatMap(
           (worker, workerIndex) =>
             worker.kind === 'http'
-              ? worker.jobs.map(({ jobName }) => ({ workerIndex, jobName }))
-              : { workerIndex, jobName: worker.jobName },
+              ? worker.jobs.map(({ identifier: jobIdentifier }) => ({
+                  workerIndex,
+                  jobIdentifier,
+                }))
+              : { workerIndex, jobIdentifier: worker.jobIdentifier },
         )
 
         return {
           ...acc,
-          [profileName]: profileJobDefinitions,
+          [profileIdentifier]: profileJobDefinitions,
         }
       },
       {},
     )
 
     Object.entries(containerWorkerJobDefinitions).forEach(
-      ([profileName, jobDefinitions]) => {
-        const jobNames = new Set<string>()
+      ([profileIdentifier, jobDefinitions]) => {
+        const jobIdentifiers = new Set<string>()
 
-        jobDefinitions.forEach(({ workerIndex, jobName }) => {
-          if (jobNames.has(jobName)) {
+        jobDefinitions.forEach(({ workerIndex, jobIdentifier }) => {
+          if (jobIdentifiers.has(jobIdentifier)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: `Duplicate container job name "${jobName}" in profile "${profileName}". Each job name within a container profile must be unique.`,
-              path: ['containerProfiles', profileName, 'workers', workerIndex],
+              message: `Duplicate container job name "${jobIdentifier}" in profile "${profileIdentifier}". Each job name within a container profile must be unique.`,
+              path: [
+                'containerProfiles',
+                profileIdentifier,
+                'workers',
+                workerIndex,
+              ],
             })
           } else {
-            jobNames.add(jobName)
+            jobIdentifiers.add(jobIdentifier)
           }
         })
       },
@@ -397,7 +414,7 @@ export const appConfigSchema = z
       } else if (task.handler.type === 'docker') {
         const containerProfilesKeys = Object.keys(value.containerProfiles ?? {})
         const profile = task.handler.identifier.split(':')[0]
-        const jobName = task.handler.identifier.split(':')[1]
+        const jobIdentifier = task.handler.identifier.split(':')[1]
         if (
           // Profile is not defined
           !containerProfilesKeys.includes(profile)
@@ -415,12 +432,12 @@ export const appConfigSchema = z
           !containerWorkerJobDefinitions[profile].some(
             (jobDefinition) =>
               task.handler.type === 'docker' &&
-              jobDefinition.jobName === jobName,
+              jobDefinition.jobIdentifier === jobIdentifier,
           )
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Unknown container job class "${jobName}". Must be one of: ${containerWorkerJobDefinitions[profile].map((jobDefinition) => jobDefinition.jobName).join(', ')}`,
+            message: `Unknown container job class "${jobIdentifier}". Must be one of: ${containerWorkerJobDefinitions[profile].map((jobDefinition) => jobDefinition.jobIdentifier).join(', ')}`,
             path: ['tasks', index, 'worker'],
           })
         }
@@ -496,27 +513,14 @@ export const appMetricsSchema = z.object({
   }),
 })
 
-export const executeAppDockerJobOptionsSchema = z
-  .object({
-    waitForCompletion: z.boolean(),
-    appIdentifier: z.string(),
-    profileName: z.string(),
-    jobName: z.string(),
-    jobInputData: jsonSerializableValueSchema,
-    taskContext: z
-      .object({
-        taskId: z.string(),
-        storageAccess: z.record(z.string(), z.array(z.string())).optional(), // { [<folder_id>/<prefix>]: [<allowed_ops>] }
-      })
-      .optional(),
-    volumes: z.record(z.string(), z.string()).optional(),
-    gpus: z.string().optional(),
-  })
-  .strict()
-
-export type ExecuteAppDockerJobOptions = z.infer<
-  typeof executeAppDockerJobOptionsSchema
->
+export interface ExecuteAppDockerJobOptions {
+  appIdentifier: string
+  profileIdentifier: string
+  jobIdentifier: string
+  jobInputData: JsonSerializableObject
+  storageAccessPolicy?: StorageAccessPolicy
+  asyncTaskId?: string
+}
 
 export type AppTaskConfig = z.infer<typeof taskConfigSchema>
 

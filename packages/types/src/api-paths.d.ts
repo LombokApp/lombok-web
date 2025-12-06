@@ -1086,7 +1086,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/docker/worker-jobs/{jobId}/request-upload-urls": {
+    "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
         parameters: {
             query?: never;
             header?: never;
@@ -1096,17 +1096,37 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Request presigned URLs for file uploads
-         * @description Returns presigned S3 URLs for uploading job output files. The job token must have permissions for the requested folder/prefix combinations.
+         * Request presigned URLs for file operations
+         * @description Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.
          */
-        post: operations["requestUploadUrls"];
+        post: operations["requestPresignedStorageUrls"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/docker/worker-jobs/{jobId}/complete": {
+    "/api/v1/docker/jobs/{jobId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signal job start
+         * @description Marks the associated task as started. The job token must be valid.
+         */
+        post: operations["startJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/jobs/{jobId}/complete": {
         parameters: {
             query?: never;
             header?: never;
@@ -1510,7 +1530,7 @@ export interface components {
                                 /** @enum {string} */
                                 kind: "exec";
                                 command: string[];
-                                jobName: string;
+                                jobIdentifier: string;
                                 maxPerContainer?: number;
                                 /** @enum {boolean} */
                                 countTowardsGlobalCap?: false;
@@ -1521,11 +1541,11 @@ export interface components {
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    jobName: string;
                                     maxPerContainer?: number;
                                     /** @enum {boolean} */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
+                                    identifier: string;
                                 }[];
                             })[];
                         };
@@ -1708,7 +1728,7 @@ export interface components {
                                 /** @enum {string} */
                                 kind: "exec";
                                 command: string[];
-                                jobName: string;
+                                jobIdentifier: string;
                                 maxPerContainer?: number;
                                 /** @enum {boolean} */
                                 countTowardsGlobalCap?: false;
@@ -1719,11 +1739,11 @@ export interface components {
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    jobName: string;
                                     maxPerContainer?: number;
                                     /** @enum {boolean} */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
+                                    identifier: string;
                                 }[];
                             })[];
                         };
@@ -1915,7 +1935,7 @@ export interface components {
                                 /** @enum {string} */
                                 kind: "exec";
                                 command: string[];
-                                jobName: string;
+                                jobIdentifier: string;
                                 maxPerContainer?: number;
                                 /** @enum {boolean} */
                                 countTowardsGlobalCap?: false;
@@ -1926,11 +1946,11 @@ export interface components {
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    jobName: string;
                                     maxPerContainer?: number;
                                     /** @enum {boolean} */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
+                                    identifier: string;
                                 }[];
                             })[];
                         };
@@ -2087,7 +2107,7 @@ export interface components {
                                 /** @enum {string} */
                                 kind: "exec";
                                 command: string[];
-                                jobName: string;
+                                jobIdentifier: string;
                                 maxPerContainer?: number;
                                 /** @enum {boolean} */
                                 countTowardsGlobalCap?: false;
@@ -2098,11 +2118,11 @@ export interface components {
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    jobName: string;
                                     maxPerContainer?: number;
                                     /** @enum {boolean} */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
+                                    identifier: string;
                                 }[];
                             })[];
                         };
@@ -2274,7 +2294,9 @@ export interface components {
                     /** Format: uuid */
                     folderOwnerId: string;
                 };
-                data?: unknown;
+                data: {
+                    [key: string]: unknown;
+                };
                 /** Format: date-time */
                 createdAt: string;
             };
@@ -2296,7 +2318,9 @@ export interface components {
                     /** Format: uuid */
                     folderOwnerId: string;
                 };
-                data?: unknown;
+                data: {
+                    [key: string]: unknown;
+                };
                 /** Format: date-time */
                 createdAt: string;
             }[];
@@ -2768,19 +2792,42 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
-                triggeringEventId: string;
+                eventId: string;
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
+                success?: boolean;
                 handlerIdentifier?: string;
-                inputData: unknown;
-                /** Format: date-time */
-                errorAt?: string;
-                errorCode?: string;
-                errorDetails?: unknown;
-                errorMessage?: string;
+                inputData: {
+                    [key: string]: unknown;
+                };
+                error?: {
+                    code: string;
+                    message: string;
+                    details?: {
+                        [key: string]: unknown;
+                    };
+                };
                 taskDescription: string;
-                updates: unknown[];
+                systemLog: {
+                    /** Format: date-time */
+                    at: string;
+                    payload: {
+                        /** @enum {string} */
+                        logType: "started" | "failure" | "requeue" | "success";
+                        data?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                }[];
+                taskLog: {
+                    /** Format: date-time */
+                    at: string;
+                    message?: string;
+                    payload?: {
+                        [key: string]: unknown;
+                    };
+                }[];
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
@@ -2789,14 +2836,6 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
             };
         };
         TaskListResponse: {
@@ -2809,19 +2848,42 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
-                triggeringEventId: string;
+                eventId: string;
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
+                success?: boolean;
                 handlerIdentifier?: string;
-                inputData: unknown;
-                /** Format: date-time */
-                errorAt?: string;
-                errorCode?: string;
-                errorDetails?: unknown;
-                errorMessage?: string;
+                inputData: {
+                    [key: string]: unknown;
+                };
+                error?: {
+                    code: string;
+                    message: string;
+                    details?: {
+                        [key: string]: unknown;
+                    };
+                };
                 taskDescription: string;
-                updates: unknown[];
+                systemLog: {
+                    /** Format: date-time */
+                    at: string;
+                    payload: {
+                        /** @enum {string} */
+                        logType: "started" | "failure" | "requeue" | "success";
+                        data?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                }[];
+                taskLog: {
+                    /** Format: date-time */
+                    at: string;
+                    message?: string;
+                    payload?: {
+                        [key: string]: unknown;
+                    };
+                }[];
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
@@ -2830,37 +2892,44 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
             }[];
         };
         WorkerJobUploadUrlsRequestDTO: {
-            files: {
+            /** Format: uuid */
+            folderId: string;
+            objectKey: string;
+            /** @enum {string} */
+            method: "PUT" | "DELETE" | "GET" | "HEAD";
+        }[];
+        WorkerJobPresignedUrlsResponseDTO: {
+            urls: {
                 /** Format: uuid */
                 folderId: string;
                 objectKey: string;
-                contentType: string;
+                /** @enum {string} */
+                method: "PUT" | "DELETE" | "GET" | "HEAD";
+                /** Format: uri */
+                url: string;
             }[];
         };
-        WorkerJobUploadUrlsResponseDTO: {
-            uploads: {
-                /** Format: uuid */
-                folderId: string;
-                objectKey: string;
-                /** Format: uri */
-                presignedUrl: string;
-            }[];
+        WorkerJobStartedResponseDTO: {
+            ok: boolean;
         };
         WorkerJobCompleteRequestDTO: {
-            success: boolean;
-            result?: unknown;
-            error?: components["schemas"]["ApiErrorResponseDTO"];
+            /** @enum {boolean} */
+            success: true;
+            result: {
+                [key: string]: unknown;
+            };
+            uploadedFiles?: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+            }[];
+        } | {
+            /** @enum {boolean} */
+            success: false;
+            error: components["schemas"]["ApiErrorResponseDTO"];
             uploadedFiles?: {
                 /** Format: uuid */
                 folderId: string;
@@ -6020,7 +6089,7 @@ export interface operations {
         parameters: {
             query?: {
                 objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
                 includeWaiting?: "true";
                 includeRunning?: "true";
@@ -6108,7 +6177,7 @@ export interface operations {
         parameters: {
             query?: {
                 objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
                 includeWaiting?: "true";
                 includeRunning?: "true";
@@ -6153,7 +6222,7 @@ export interface operations {
             };
         };
     };
-    requestUploadUrls: {
+    requestPresignedStorageUrls: {
         parameters: {
             query?: never;
             header?: never;
@@ -6173,7 +6242,46 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkerJobUploadUrlsResponseDTO"];
+                    "application/json": components["schemas"]["WorkerJobPresignedUrlsResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    startJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerJobStartedResponseDTO"];
                 };
             };
             /** @description Server Error */

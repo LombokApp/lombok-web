@@ -41,8 +41,6 @@ export enum TaskSort {
   StartedAtDesc = 'startedAt-desc',
   CompletedAtAsc = 'completedAt-asc',
   CompletedAtDesc = 'completedAt-desc',
-  ErrorAtAsc = 'errorAt-asc',
-  ErrorAtDesc = 'errorAt-desc',
 }
 
 @Injectable()
@@ -149,21 +147,32 @@ export class TaskService {
       conditions.push(
         or(
           ilike(tasksTable.taskIdentifier, `%${search}%`),
-          ilike(tasksTable.errorMessage, `%${search}%`),
-          ilike(tasksTable.errorCode, `%${search}%`),
+          ilike(tasksTable.error, `%${search}%`),
         ),
       )
     }
 
     const statusFilters = ([] as (SQL | undefined)[])
-      .concat(includeComplete ? [isNotNull(tasksTable.completedAt)] : [])
-      .concat(includeFailed ? [isNotNull(tasksTable.errorAt)] : [])
+      .concat(
+        includeComplete
+          ? [
+              and(
+                isNotNull(tasksTable.completedAt),
+                eq(tasksTable.success, true),
+              ),
+            ]
+          : [],
+      )
+      .concat(
+        includeFailed
+          ? [and(isNotNull(tasksTable.error), eq(tasksTable.success, false))]
+          : [],
+      )
       .concat(includeWaiting ? [isNull(tasksTable.startedAt)] : [])
       .concat(
         includeRunning
           ? [
               and(
-                isNull(tasksTable.errorAt),
                 isNull(tasksTable.completedAt),
                 isNotNull(tasksTable.startedAt),
               ),

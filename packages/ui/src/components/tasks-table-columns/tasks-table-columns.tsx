@@ -111,9 +111,9 @@ export function configureTasksTableColumns(
               <div
                 className={cn(
                   'size-2 rounded-full',
-                  task.completedAt
+                  task.success === true
                     ? 'bg-green-600'
-                    : task.errorAt
+                    : task.success === false
                       ? 'bg-red-600'
                       : !task.startedAt
                         ? 'bg-gray-600'
@@ -123,9 +123,9 @@ export function configureTasksTableColumns(
             </div>
 
             <div className="flex items-center gap-2 truncate text-xs font-normal text-muted-foreground">
-              {task.completedAt
+              {task.success === true
                 ? 'Complete'
-                : task.errorAt
+                : task.success === false
                   ? 'Failed'
                   : !task.startedAt
                     ? 'Pending'
@@ -173,11 +173,6 @@ export function configureTasksTableColumns(
     },
     {
       accessorKey: 'completedAt',
-      enableSorting: true,
-      forceHiding: true,
-    },
-    {
-      accessorKey: 'errorAt',
       enableSorting: true,
       forceHiding: true,
     },

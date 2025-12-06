@@ -1,36 +1,51 @@
-import type { TaskDTO } from '../dto/task.dto'
+import type { TaskDTO, TaskWithFolderSubjectContextDTO } from '../dto/task.dto'
 import type { Task } from '../entities/task.entity'
 
+// Overload for when folder is present
+export function transformTaskToDTO(
+  task: Task & { folder: { name: string; ownerId: string } },
+): TaskWithFolderSubjectContextDTO
+
+// Overload for when folder is not present
+export function transformTaskToDTO(task: Task): TaskDTO
+
+// Implementation
 export function transformTaskToDTO(
   task: Task & { folder?: { name: string; ownerId: string } },
-): TaskDTO {
-  return {
+): TaskDTO | TaskWithFolderSubjectContextDTO {
+  const baseDTO: TaskDTO = {
     id: task.id,
     ownerIdentifier: task.ownerIdentifier,
-    triggeringEventId: task.triggeringEventId,
-    updates: task.updates,
+    eventId: task.eventId,
+    systemLog: task.systemLog,
+    taskLog: task.taskLog,
     handlerIdentifier: task.handlerIdentifier ?? undefined,
     inputData: task.inputData,
     subjectFolderId: task.subjectFolderId ?? undefined,
     subjectObjectKey: task.subjectObjectKey ?? undefined,
-    errorAt: task.errorAt ?? undefined,
-    errorCode: task.errorCode ?? undefined,
-    errorMessage: task.errorMessage ?? undefined,
-    errorDetails: task.errorDetails ?? undefined,
+    success: task.success ?? undefined,
+    error: task.error ?? undefined,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     taskIdentifier: task.taskIdentifier,
     taskDescription: task.taskDescription,
     startedAt: task.startedAt ?? undefined,
     completedAt: task.completedAt ?? undefined,
-    subjectContext:
-      task.subjectFolderId && task.folder
-        ? {
-            folderId: task.subjectFolderId,
-            objectKey: task.subjectObjectKey ?? undefined,
-            folderName: task.folder.name,
-            folderOwnerId: task.folder.ownerId,
-          }
-        : undefined,
   }
+
+  // If folder is present, add subjectContext and return TaskWithFolderSubjectContextDTO
+  if (task.subjectFolderId && task.folder) {
+    return {
+      ...baseDTO,
+      subjectContext: {
+        folderId: task.subjectFolderId,
+        objectKey: task.subjectObjectKey ?? undefined,
+        folderName: task.folder.name,
+        folderOwnerId: task.folder.ownerId,
+      },
+    }
+  }
+
+  // Otherwise return base TaskDTO
+  return baseDTO
 }

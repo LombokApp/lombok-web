@@ -116,8 +116,17 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	jobOutputDir := config.JobOutputDir(payload.JobID)
 
 	// Create job log files (empty initially, worker may write to them)
-	os.Create(jobOutPath)
-	os.Create(jobErrPath)
+	jobOutFile, err := os.Create(jobOutPath)
+	if err != nil {
+		return fmt.Errorf("failed to create stdout log: %w", err)
+	}
+	jobOutFile.Close()
+
+	jobErrFile, err := os.Create(jobErrPath)
+	if err != nil {
+		return fmt.Errorf("failed to create stderr log: %w", err)
+	}
+	jobErrFile.Close()
 
 	httpReq := types.HTTPJobRequest{
 		JobID:        payload.JobID,

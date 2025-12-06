@@ -1,5 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import type { TaskDTO } from '@lombokapp/types'
+import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import {
   CardContent,
@@ -33,9 +33,9 @@ export function TaskDetailUI({
       return 'bg-gray-600'
     }
 
-    if (task.completedAt) {
+    if (task.completedAt && task.success) {
       return 'bg-green-600'
-    } else if (task.errorAt) {
+    } else if (task.completedAt && !task.success) {
       return 'bg-red-600'
     } else if (!task.startedAt) {
       return 'bg-gray-600'
@@ -50,9 +50,9 @@ export function TaskDetailUI({
       return { text: 'Unknown', variant: 'secondary' as const }
     }
 
-    if (task.completedAt) {
+    if (task.completedAt && task.success) {
       return { text: 'Complete', variant: 'default' as const }
-    } else if (task.errorAt) {
+    } else if (task.completedAt && !task.success) {
       return { text: 'Failed', variant: 'destructive' as const }
     } else if (!task.startedAt) {
       return { text: 'Pending', variant: 'secondary' as const }
@@ -139,27 +139,32 @@ export function TaskDetailUI({
     currentUserId === taskData.subjectContext.folderOwnerId
 
   const statusInfo = getStatusInfo(taskData)
-  const errorDetails = taskData.errorDetails
-    ? (taskData.errorDetails as Record<string, string | number>)
+  const errorDetails = taskData.error
+    ? (taskData.error.details as JsonSerializableObject)
     : {}
-  const errorToDisplay = taskData.errorAt
-    ? {
-        stacktrace:
-          (taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-            errorDetails.stack) ??
-          '',
-        message:
-          taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-          errorDetails.message
-            ? errorDetails.errorMessage
-            : taskData.errorMessage,
-        code:
-          taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-          errorDetails.name
-            ? errorDetails.name
-            : taskData.errorCode,
-      }
-    : {}
+  const errorToDisplay =
+    taskData.success === false
+      ? {
+          stacktrace:
+            (taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+              errorDetails.stack &&
+              typeof errorDetails.stack === 'string' &&
+              errorDetails.stack) ??
+            '',
+          message:
+            taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+            errorDetails.message &&
+            typeof errorDetails.message === 'string'
+              ? errorDetails.message
+              : taskData.error?.message,
+          code:
+            taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+            errorDetails.name &&
+            typeof errorDetails.name === 'string'
+              ? errorDetails.name
+              : taskData.error?.code,
+        }
+      : {}
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -230,7 +235,7 @@ export function TaskDetailUI({
                         Handler
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {taskData.handlerId}
+                        {taskData.handlerIdentifier}
                       </p>
                     </div>
                     <div>
@@ -329,7 +334,7 @@ export function TaskDetailUI({
                         From Event
                       </label>
                       <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.triggeringEventId}
+                        {taskData.eventId}
                       </p>
                     </div>
                     {taskData.subjectFolderId && !taskData.subjectContext && (
@@ -469,7 +474,7 @@ export function TaskDetailUI({
                     </>
                   )}
 
-                  {taskData.errorAt && (
+                  {taskData.completedAt && !taskData.success && (
                     <>
                       <div className="flex items-center gap-4">
                         <div className="flex size-8 items-center justify-center rounded-full bg-red-100 text-red-600">
@@ -491,7 +496,7 @@ export function TaskDetailUI({
                           <p className="text-sm font-medium">Task Failed</p>
                           <div className="text-sm text-muted-foreground">
                             <DateDisplay
-                              date={taskData.errorAt}
+                              date={taskData.completedAt}
                               showTimeSince={false}
                             />
                           </div>
@@ -505,7 +510,7 @@ export function TaskDetailUI({
           </div>
 
           {/* Error Information Card */}
-          {taskData.errorAt && (
+          {taskData.success === false && (
             <Card className="border-destructive/20 bg-destructive/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-destructive">
@@ -535,7 +540,11 @@ export function TaskDetailUI({
                       Error Code
                     </label>
                     <p className="mt-1 font-mono text-sm text-destructive">
-                      {errorToDisplay.code ?? errorDetails.code ?? 'Unknown'}
+                      {errorToDisplay.code ??
+                        (errorDetails.code &&
+                          typeof errorDetails.code === 'string' &&
+                          errorDetails.code) ??
+                        'Unknown'}
                     </p>
                   </div>
                   <div>
@@ -543,9 +552,9 @@ export function TaskDetailUI({
                       Error Time
                     </label>
                     <div className="mt-1 font-mono text-sm">
-                      {taskData.errorAt && (
+                      {taskData.completedAt && (
                         <DateDisplay
-                          date={taskData.errorAt}
+                          date={taskData.completedAt}
                           showTimeSince={false}
                         />
                       )}

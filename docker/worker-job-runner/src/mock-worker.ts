@@ -516,6 +516,7 @@ const handleFileOutput: JobHandler = async (input, ctx) => {
 }
 
 const handleDummyEcho: JobHandler = (input, ctx) => {
+  ctx.logger.log(`Echoing input: ${JSON.stringify(input)}`)
   return input
 }
 

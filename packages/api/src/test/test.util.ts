@@ -1,19 +1,25 @@
 import type { FolderDTO } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
+import type { Type } from '@nestjs/common'
+import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import { AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'
+import { WorkerJobService } from 'src/docker/services/worker-job.service'
+import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import { usersTable } from 'src/users/entities/user.entity'
 
 import { ormConfig } from '../orm/config'
 import { setApp, setAppInitializing } from '../shared/app-helper'
+import { NoPrefixConsoleLogger } from '../shared/no-prefix-console-logger'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
@@ -25,27 +31,55 @@ const MINIO_REGION = 'auto'
 
 export async function buildTestModule({
   testModuleKey,
+  overrides = [],
+  debug,
 }: {
   testModuleKey: string
+  debug?: true
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  overrides?: { token: any; value: unknown }[]
 }) {
   const dbName = `test_db_${testModuleKey}`
   const bucketPathsToRemove: string[] = []
 
   const { PlatformTestModule } = await import('src/test/platform-test.module')
 
-  const appPromise = Test.createTestingModule({
-    imports: [PlatformTestModule],
-    providers: [],
+  const initTestModuleWithOverrides = (
+    _overrides: { token: symbol | string; value: unknown }[],
+  ): TestingModuleBuilder => {
+    const moduleBuilder = Test.createTestingModule({
+      imports: [PlatformTestModule],
+      providers: [],
+    })
+    return _overrides.reduce((acc, { token, value }) => {
+      acc.overrideProvider(token).useValue(value)
+      return acc
+    }, moduleBuilder)
+  }
+
+  const logger = new NoPrefixConsoleLogger({
+    colors: true,
+    timestamp: true,
+    logLevels:
+      debug || process.env.LOG_LEVEL === 'DEBUG'
+        ? ['log', 'error', 'warn', 'debug', 'verbose']
+        : [],
   })
-    .overrideProvider(ormConfig.KEY)
-    .useValue({ ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` })
+
+  const appPromise = initTestModuleWithOverrides([
+    {
+      token: ormConfig.KEY,
+      value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
+    },
+    ...overrides,
+  ])
     .compile()
-    .then((moduleRef) => moduleRef.createNestApplication())
+    .then((moduleRef) => moduleRef.createNestApplication({ logger }))
 
   setAppInitializing(appPromise)
 
   const app = await appPromise
-  app.useGlobalFilters(new HttpExceptionFilter('NONE'))
+  app.useGlobalFilters(new HttpExceptionFilter())
 
   setApp(app)
 
@@ -55,6 +89,9 @@ export async function buildTestModule({
   const ormService = await app.resolve(OrmService)
   const kvService = await app.resolve(KVService)
   const appService = await app.resolve(AppService)
+  const eventService = await app.resolve(EventService)
+  const platformTaskService = await app.resolve(PlatformTaskService)
+  const workerJobService = await app.resolve(WorkerJobService)
 
   // Truncate the DB after app init (migrations/initialization complete)
   await ormService.truncateAllTestTables()
@@ -82,8 +119,21 @@ export async function buildTestModule({
       }
       bucketPathsToRemove.length = 0
     },
+    resolveDep<T extends Type>(token: T) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      return app.resolve(token) as Promise<InstanceType<T>>
+    },
     getAppService: () => {
       return appService
+    },
+    getWorkerJobService: () => {
+      return workerJobService
+    },
+    getPlatformTaskService: () => {
+      return platformTaskService
+    },
+    getEventService: () => {
+      return eventService
     },
     getOrmService: () => {
       return ormService

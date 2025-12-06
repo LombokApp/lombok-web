@@ -115,7 +115,7 @@ export const FolderObjectDetailScreen = ({
 
         return {
           ...acc,
-          [`${preview.hash}_${preview.profile}`]: {
+          [`${preview.hash}_${preview.profileIdentifier}`]: {
             key: previewKey,
             label: preview.label,
             purpose: preview.purpose,

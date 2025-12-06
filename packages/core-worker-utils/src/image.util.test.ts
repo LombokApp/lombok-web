@@ -160,12 +160,11 @@ describe('image.util scaleImage', () => {
     expect(outDims.height).toBe(600)
   }, 20000)
 
-  it('throws on invalid size inputs', async () => {
+  it('throws on invalid size inputs', () => {
     const outPath = path.join(tempDir, `out-invalid-${uuidV4()}.png`)
     cleanupPaths.push(outPath)
 
-    // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-    await expect(
+    expect(
       scaleImage({
         inFilePath: inputWidePng,
         outFilePath: outPath,
@@ -175,8 +174,7 @@ describe('image.util scaleImage', () => {
       }),
     ).rejects.toThrow()
 
-    // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-    await expect(
+    expect(
       scaleImage({
         inFilePath: inputWidePng,
         outFilePath: outPath,

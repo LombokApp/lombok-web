@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common'
 import Docker from 'dockerode'
 import * as fs from 'fs'
 
-import type { DockerExecuteJobOptions } from '../docker.schema'
+import type { ContainerWorkerExecuteOptions } from '../docker.schema'
 import type {
   ConnectionTestResult,
   ContainerInfo,
@@ -274,7 +274,7 @@ export class LocalDockerAdapter implements DockerAdapter {
 
   async exec<T extends boolean>(
     containerId: string,
-    options: DockerExecuteJobOptions & { waitForCompletion: T },
+    options: ContainerWorkerExecuteOptions<T>,
   ): Promise<DockerExecResult<T>> {
     try {
       const container = this.docker.getContainer(containerId)
@@ -282,14 +282,11 @@ export class LocalDockerAdapter implements DockerAdapter {
       // Build the payload for the lombok-worker-agent
       const payload: Record<string, unknown> = {
         job_id: options.jobId,
-        job_class: options.jobName,
+        job_class: options.jobIdentifier,
         job_input: options.jobInputData,
         job_token: options.jobToken,
         worker_command: options.jobCommand, // Default worker path, can be customized per job class
-        interface: {
-          kind: options.jobInterface.kind,
-          listener: options.jobInterface.listener,
-        },
+        interface: options.jobInterface,
       }
 
       // Base64 encode the payload
@@ -318,6 +315,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       if (!options.waitForCompletion) {
         const asyncResponse: DockerExecResult<false> = {
           jobId: options.jobId,
+          accepted: true,
         }
         return asyncResponse as DockerExecResult<
           typeof options.waitForCompletion

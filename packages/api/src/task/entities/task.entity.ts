@@ -1,6 +1,19 @@
-import type { TaskInputData, WorkerErrorDetails } from '@lombokapp/types'
+import type {
+  JsonSerializableObject,
+  StorageAccessPolicy,
+  SystemLogEntry,
+  TaskInputData,
+  TaskLogEntry,
+} from '@lombokapp/types'
 import { relations } from 'drizzle-orm'
-import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 
 import { eventsTable } from '../../event/entities/event.entity'
@@ -12,23 +25,26 @@ export const tasksTable = pgTable('tasks', {
   taskIdentifier: text('taskIdentifier').notNull(),
   taskDescription: text('taskDescription').notNull(),
   inputData: jsonb('inputData').notNull().$type<TaskInputData>(),
-  updates: jsonb('updates')
-    .notNull()
-    .$type<
-      { updateData: Record<string, unknown>; updateTemplateString: string }[]
-    >()
-    .default([]),
-  triggeringEventId: uuid('triggeringEventId')
+  eventId: uuid('eventId')
     .references(() => eventsTable.id)
     .notNull(),
   subjectFolderId: uuid('subjectFolderId').references(() => foldersTable.id),
   subjectObjectKey: text('subjectObjectKey'),
+  taskLog: jsonb('taskLog').$type<TaskLogEntry[]>().notNull().default([]),
   startedAt: timestamp('startedAt'),
+  dontStartBefore: timestamp('dontStartBefore'),
   completedAt: timestamp('completedAt'),
-  errorAt: timestamp('errorAt'),
-  errorCode: text('errorCode'),
-  errorMessage: text('errorMessage'),
-  errorDetails: jsonb('errorDetails').$type<WorkerErrorDetails>(),
+  systemLog: jsonb('systemLog').$type<SystemLogEntry[]>().notNull().default([]),
+  storageAccessPolicy: jsonb('storageAccessPolicy')
+    .$type<StorageAccessPolicy>()
+    .notNull()
+    .default([]),
+  success: boolean('success'),
+  error: jsonb('error').$type<{
+    code: string
+    message: string
+    details?: JsonSerializableObject
+  }>(),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
   handlerType: text('handlerType').notNull(),

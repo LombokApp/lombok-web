@@ -2,7 +2,10 @@ import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { Request } from 'express'
 
-import { WorkerJobService } from '../services/worker-job.service'
+import {
+  WorkerJobService,
+  WorkerJobTokenClaims,
+} from '../services/worker-job.service'
 
 const BEARER_PREFIX = 'Bearer '
 
@@ -45,12 +48,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      workerJobClaims?: {
-        jobId: string
-        taskId: string
-        appIdentifier: string
-        allowedUploads: Record<string, string[]>
-      }
+      workerJobClaims?: WorkerJobTokenClaims
     }
   }
 }

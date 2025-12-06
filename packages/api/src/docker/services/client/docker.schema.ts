@@ -1,6 +1,9 @@
+import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   containerProfileConfigSchema,
+  jsonSerializableObjectSchema,
   jsonSerializableValueSchema,
+  storageAccessPolicySchema,
 } from '@lombokapp/types'
 import z from 'zod'
 
@@ -12,13 +15,11 @@ export const dockerExecutionOptionsSchema = z
   })
   .strict()
 
-export const dockerExecuteJobOptionsSchema = z.object({
+export const containerWorkerExecuteOptionsSchema = z.object({
   waitForCompletion: z.boolean(),
-  profileSpec: containerProfileConfigSchema,
-  hostConfigId: z.string(),
   jobId: z.string(),
   jobToken: z.string().optional(),
-  jobName: z.string(),
+  jobIdentifier: z.string(),
   jobCommand: z.array(z.string()),
   jobInterface: z.object({
     kind: z.enum(['exec_per_job', 'persistent_http']),
@@ -34,6 +35,37 @@ export const dockerExecuteJobOptionsSchema = z.object({
   gpus: z
     .object({ driver: z.string(), deviceIds: z.array(z.string()) })
     .optional(),
+})
+
+export interface ContainerWorkerExecuteOptions<T extends boolean> {
+  waitForCompletion: T
+  jobId: string
+  jobToken?: string
+  jobIdentifier: string
+  jobCommand: string[]
+  jobInterface:
+    | {
+        kind: 'persistent_http'
+        listener: {
+          type: 'tcp'
+          port: number
+        }
+      }
+    | {
+        kind: 'exec_per_job'
+      }
+  jobInputData?: JsonSerializableObject
+  volumes?: Record<string, string>
+  gpus?: { driver: string; deviceIds: string[] } | undefined
+}
+
+export const dockerExecuteJobOptionsSchema = z.object({
+  asyncTaskId: z.string().optional(),
+  storageAccessPolicy: storageAccessPolicySchema.optional(),
+  profileSpec: containerProfileConfigSchema,
+  profileHostConfigKey: z.string(),
+  jobIdentifier: z.string(),
+  jobInputData: jsonSerializableObjectSchema,
 })
 
 export type DockerExecuteJobOptions = z.infer<

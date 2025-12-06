@@ -1,7 +1,7 @@
 import {
   DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
   FolderPushMessage,
-  JsonSerializableValue,
+  JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
   WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
@@ -58,9 +58,14 @@ export class EventService {
     return this._appService as AppService
   }
 
+  get platformTaskService(): PlatformTaskService {
+    return this._platformTaskService as PlatformTaskService
+  }
+
   constructor(
     private readonly ormService: OrmService,
-    private readonly platformTaskService: PlatformTaskService,
+    @Inject(forwardRef(() => PlatformTaskService))
+    private readonly _platformTaskService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
@@ -77,7 +82,7 @@ export class EventService {
     }: {
       emitterIdentifier: string
       eventIdentifier: PlatformEvent | string
-      data: JsonSerializableValue
+      data: JsonSerializableObject
       subjectContext?: { folderId: string; objectKey?: string }
       userId?: string
     },
@@ -91,7 +96,7 @@ export class EventService {
     const appIdentifier = isAppEmitter ? emitterIdentifier : undefined
 
     const app = appIdentifier
-      ? await this.appService.getAppAsAdmin(appIdentifier.toLowerCase(), {
+      ? await this.appService.getApp(appIdentifier.toLowerCase(), {
           enabled: true,
         })
       : undefined
@@ -126,7 +131,7 @@ export class EventService {
     }
 
     await db.transaction(async (tx) => {
-      const [event] = await db
+      const [event] = await tx
         .insert(eventsTable)
         .values([
           {
@@ -179,9 +184,9 @@ export class EventService {
                         }
                 const newTaskId = uuidV4()
                 // Build the base task object
-                const baseTask = {
+                const baseTask: NewTask = {
                   id: newTaskId,
-                  triggeringEventId: event.id,
+                  eventId: event.id,
                   subjectFolderId: subjectContext?.folderId,
                   subjectObjectKey: subjectContext?.objectKey,
                   taskDescription: taskDefinition.description,
@@ -196,7 +201,9 @@ export class EventService {
                 tasks.push(baseTask)
                 if (handlerType === 'worker' || handlerType === 'docker') {
                   // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                  await this.emitRunnableTaskEnqueuedEvent(baseTask, tx)
+                  await this.emitRunnableTaskEnqueuedEvent(baseTask, {
+                    tx,
+                  })
                 }
                 return Promise.resolve()
               }
@@ -268,7 +275,7 @@ export class EventService {
             event.eventIdentifier as keyof typeof platformEventSubscriptions
           ].map((taskDefinition) => ({
             id: uuidV4(),
-            triggeringEventId: event.id,
+            eventId: event.id,
             ...(taskDefinition.shouldKeepEventSubjectContext
               ? {
                   userId: event.userId,
@@ -279,7 +286,7 @@ export class EventService {
             taskDescription: taskDefinition.taskDescription,
             taskIdentifier: taskDefinition.taskIdentifier,
             inputData: taskDefinition.shouldKeepEventDataContext
-              ? event.data
+              ? (event.data ?? {})
               : {},
             ownerIdentifier: PLATFORM_IDENTIFIER,
             createdAt: timestamp,
@@ -298,7 +305,14 @@ export class EventService {
    * @param task - The runnable task (via worker or docker).
    * @param tx - The transaction to use.
    */
-  async emitRunnableTaskEnqueuedEvent(task: NewTask, tx: OrmService['db']) {
+  async emitRunnableTaskEnqueuedEvent(
+    task: NewTask,
+    {
+      tx,
+    }: {
+      tx: OrmService['db']
+    },
+  ) {
     if (task.handlerType === 'worker' || task.handlerType === 'docker') {
       const event = {
         emitterIdentifier: PLATFORM_IDENTIFIER,
@@ -313,7 +327,7 @@ export class EventService {
             }
           : undefined,
         data: {
-          taskId: task.id,
+          innerTaskId: task.id,
           appIdentifier: task.ownerIdentifier,
           ...(task.handlerType === 'worker'
             ? {

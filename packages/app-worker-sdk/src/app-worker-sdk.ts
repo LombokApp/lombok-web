@@ -70,9 +70,7 @@ export interface IAppPlatformService {
   getMetadataSignedUrls: (
     params: AppSocketMessageDataMap['GET_METADATA_SIGNED_URLS'],
   ) => Promise<
-    AppAPIResponse<{
-      urls: { url: string; folderId: string; objectKey: string }[]
-    }>
+    AppAPIResponse<{ url: string; folderId: string; objectKey: string }[]>
   >
   getContentSignedUrls: (
     params: AppSocketMessageDataMap['GET_CONTENT_SIGNED_URLS'],
@@ -81,7 +79,7 @@ export interface IAppPlatformService {
   >
   getAppStorageSignedUrls: (
     params: AppSocketMessageDataMap['GET_APP_STORAGE_SIGNED_URLS'],
-  ) => Promise<AppAPIResponse<{ urls: string[] }>>
+  ) => Promise<AppAPIResponse<string[]>>
   getAppUserAccessToken: (
     params: AppSocketMessageDataMap['GET_APP_USER_ACCESS_TOKEN'],
   ) => Promise<AppAPIResponse<{ accessToken: string; refreshToken: string }>>
@@ -99,7 +97,7 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['DB_BATCH'],
   ) => Promise<AppAPIResponse<{ results: unknown[] }>>
   executeDockerJob: (
-    params: AppSocketMessageDataMap['EXECUTE_DOCKER_JOB'],
+    params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
   ) => Promise<
     AppAPIResponse<{ jobId: string; success: boolean; result: unknown }>
   >
@@ -221,7 +219,7 @@ export const buildAppClient = (
       >
     },
     executeDockerJob(params) {
-      return emitWithAck('EXECUTE_DOCKER_JOB', params) as ReturnType<
+      return emitWithAck('EXECUTE_APP_DOCKER_JOB', params) as ReturnType<
         IAppPlatformService['executeDockerJob']
       >
     },

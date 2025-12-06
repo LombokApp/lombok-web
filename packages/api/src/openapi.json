@@ -5209,9 +5209,7 @@
                       "startedAt-asc",
                       "startedAt-desc",
                       "completedAt-asc",
-                      "completedAt-desc",
-                      "errorAt-asc",
-                      "errorAt-desc"
+                      "completedAt-desc"
                     ]
                   }
                 },
@@ -5225,9 +5223,7 @@
                     "startedAt-asc",
                     "startedAt-desc",
                     "completedAt-asc",
-                    "completedAt-desc",
-                    "errorAt-asc",
-                    "errorAt-desc"
+                    "completedAt-desc"
                   ]
                 }
               ]
@@ -5448,9 +5444,7 @@
                       "startedAt-asc",
                       "startedAt-desc",
                       "completedAt-asc",
-                      "completedAt-desc",
-                      "errorAt-asc",
-                      "errorAt-desc"
+                      "completedAt-desc"
                     ]
                   }
                 },
@@ -5464,9 +5458,7 @@
                     "startedAt-asc",
                     "startedAt-desc",
                     "completedAt-asc",
-                    "completedAt-desc",
-                    "errorAt-asc",
-                    "errorAt-desc"
+                    "completedAt-desc"
                   ]
                 }
               ]
@@ -5592,10 +5584,10 @@
         ]
       }
     },
-    "/api/v1/docker/worker-jobs/{jobId}/request-upload-urls": {
+    "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
       "post": {
-        "description": "Returns presigned S3 URLs for uploading job output files. The job token must have permissions for the requested folder/prefix combinations.",
-        "operationId": "requestUploadUrls",
+        "description": "Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.",
+        "operationId": "requestPresignedStorageUrls",
         "parameters": [
           {
             "name": "jobId",
@@ -5622,7 +5614,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkerJobUploadUrlsResponseDTO"
+                  "$ref": "#/components/schemas/WorkerJobPresignedUrlsResponseDTO"
                 }
               }
             }
@@ -5653,13 +5645,70 @@
             "bearer": []
           }
         ],
-        "summary": "Request presigned URLs for file uploads",
+        "summary": "Request presigned URLs for file operations",
         "tags": [
           "WorkerJobs"
         ]
       }
     },
-    "/api/v1/docker/worker-jobs/{jobId}/complete": {
+    "/api/v1/docker/jobs/{jobId}/start": {
+      "post": {
+        "description": "Marks the associated task as started. The job token must be valid.",
+        "operationId": "startJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerJobStartedResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Signal job start",
+        "tags": [
+          "WorkerJobs"
+        ]
+      }
+    },
+    "/api/v1/docker/jobs/{jobId}/complete": {
       "post": {
         "description": "Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.",
         "operationId": "completeJob",
@@ -7245,7 +7294,7 @@
                                         "minLength": 1
                                       }
                                     },
-                                    "jobName": {
+                                    "jobIdentifier": {
                                       "type": "string",
                                       "minLength": 1,
                                       "pattern": "^[a-z_]+$"
@@ -7267,7 +7316,7 @@
                                   "required": [
                                     "kind",
                                     "command",
-                                    "jobName"
+                                    "jobIdentifier"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -7298,11 +7347,6 @@
                                       "items": {
                                         "type": "object",
                                         "properties": {
-                                          "jobName": {
-                                            "type": "string",
-                                            "minLength": 1,
-                                            "pattern": "^[a-z_]+$"
-                                          },
                                           "maxPerContainer": {
                                             "type": "number",
                                             "minimum": 1
@@ -7315,12 +7359,16 @@
                                           },
                                           "priority": {
                                             "type": "number"
+                                          },
+                                          "identifier": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^[a-z_]+$"
                                           }
                                         },
                                         "required": [
-                                          "jobName"
-                                        ],
-                                        "additionalProperties": false
+                                          "identifier"
+                                        ]
                                       }
                                     }
                                   },
@@ -8124,7 +8172,7 @@
                                       "minLength": 1
                                     }
                                   },
-                                  "jobName": {
+                                  "jobIdentifier": {
                                     "type": "string",
                                     "minLength": 1,
                                     "pattern": "^[a-z_]+$"
@@ -8146,7 +8194,7 @@
                                 "required": [
                                   "kind",
                                   "command",
-                                  "jobName"
+                                  "jobIdentifier"
                                 ],
                                 "additionalProperties": false
                               },
@@ -8177,11 +8225,6 @@
                                     "items": {
                                       "type": "object",
                                       "properties": {
-                                        "jobName": {
-                                          "type": "string",
-                                          "minLength": 1,
-                                          "pattern": "^[a-z_]+$"
-                                        },
                                         "maxPerContainer": {
                                           "type": "number",
                                           "minimum": 1
@@ -8194,12 +8237,16 @@
                                         },
                                         "priority": {
                                           "type": "number"
+                                        },
+                                        "identifier": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
                                         }
                                       },
                                       "required": [
-                                        "jobName"
-                                      ],
-                                      "additionalProperties": false
+                                        "identifier"
+                                      ]
                                     }
                                   }
                                 },
@@ -9032,7 +9079,7 @@
                                         "minLength": 1
                                       }
                                     },
-                                    "jobName": {
+                                    "jobIdentifier": {
                                       "type": "string",
                                       "minLength": 1,
                                       "pattern": "^[a-z_]+$"
@@ -9054,7 +9101,7 @@
                                   "required": [
                                     "kind",
                                     "command",
-                                    "jobName"
+                                    "jobIdentifier"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -9085,11 +9132,6 @@
                                       "items": {
                                         "type": "object",
                                         "properties": {
-                                          "jobName": {
-                                            "type": "string",
-                                            "minLength": 1,
-                                            "pattern": "^[a-z_]+$"
-                                          },
                                           "maxPerContainer": {
                                             "type": "number",
                                             "minimum": 1
@@ -9102,12 +9144,16 @@
                                           },
                                           "priority": {
                                             "type": "number"
+                                          },
+                                          "identifier": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^[a-z_]+$"
                                           }
                                         },
                                         "required": [
-                                          "jobName"
-                                        ],
-                                        "additionalProperties": false
+                                          "identifier"
+                                        ]
                                       }
                                     }
                                   },
@@ -9797,7 +9843,7 @@
                                       "minLength": 1
                                     }
                                   },
-                                  "jobName": {
+                                  "jobIdentifier": {
                                     "type": "string",
                                     "minLength": 1,
                                     "pattern": "^[a-z_]+$"
@@ -9819,7 +9865,7 @@
                                 "required": [
                                   "kind",
                                   "command",
-                                  "jobName"
+                                  "jobIdentifier"
                                 ],
                                 "additionalProperties": false
                               },
@@ -9850,11 +9896,6 @@
                                     "items": {
                                       "type": "object",
                                       "properties": {
-                                        "jobName": {
-                                          "type": "string",
-                                          "minLength": 1,
-                                          "pattern": "^[a-z_]+$"
-                                        },
                                         "maxPerContainer": {
                                           "type": "number",
                                           "minimum": 1
@@ -9867,12 +9908,16 @@
                                         },
                                         "priority": {
                                           "type": "number"
+                                        },
+                                        "identifier": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
                                         }
                                       },
                                       "required": [
-                                        "jobName"
-                                      ],
-                                      "additionalProperties": false
+                                        "identifier"
+                                      ]
                                     }
                                   }
                                 },
@@ -10632,7 +10677,10 @@
                   "folderOwnerId"
                 ]
               },
-              "data": {},
+              "data": {
+                "type": "object",
+                "additionalProperties": {}
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -10642,6 +10690,7 @@
               "id",
               "eventIdentifier",
               "emitterIdentifier",
+              "data",
               "createdAt"
             ]
           }
@@ -10703,7 +10752,10 @@
                     "folderOwnerId"
                   ]
                 },
-                "data": {},
+                "data": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -10713,6 +10765,7 @@
                 "id",
                 "eventIdentifier",
                 "emitterIdentifier",
+                "data",
                 "createdAt"
               ]
             }
@@ -12532,7 +12585,7 @@
               "ownerIdentifier": {
                 "type": "string"
               },
-              "triggeringEventId": {
+              "eventId": {
                 "type": "string",
                 "format": "uuid"
               },
@@ -12543,27 +12596,96 @@
               "subjectObjectKey": {
                 "type": "string"
               },
+              "success": {
+                "type": "boolean"
+              },
               "handlerIdentifier": {
                 "type": "string"
               },
-              "inputData": {},
-              "errorAt": {
-                "type": "string",
-                "format": "date-time"
+              "inputData": {
+                "type": "object",
+                "additionalProperties": {}
               },
-              "errorCode": {
-                "type": "string"
-              },
-              "errorDetails": {},
-              "errorMessage": {
-                "type": "string"
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "details": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
               },
               "taskDescription": {
                 "type": "string"
               },
-              "updates": {
+              "systemLog": {
                 "type": "array",
-                "items": {}
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "properties": {
+                        "logType": {
+                          "type": "string",
+                          "enum": [
+                            "started",
+                            "failure",
+                            "requeue",
+                            "success"
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "logType"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "payload"
+                  ]
+                }
+              },
+              "taskLog": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "at"
+                  ]
+                }
               },
               "startedAt": {
                 "type": "string",
@@ -12580,40 +12702,17 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
-              },
-              "subjectContext": {
-                "type": "object",
-                "properties": {
-                  "folderId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "objectKey": {
-                    "type": "string"
-                  },
-                  "folderName": {
-                    "type": "string"
-                  },
-                  "folderOwnerId": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                },
-                "required": [
-                  "folderId",
-                  "folderName",
-                  "folderOwnerId"
-                ]
               }
             },
             "required": [
               "id",
               "taskIdentifier",
               "ownerIdentifier",
-              "triggeringEventId",
+              "eventId",
               "inputData",
               "taskDescription",
-              "updates",
+              "systemLog",
+              "taskLog",
               "createdAt",
               "updatedAt"
             ]
@@ -12652,7 +12751,7 @@
                 "ownerIdentifier": {
                   "type": "string"
                 },
-                "triggeringEventId": {
+                "eventId": {
                   "type": "string",
                   "format": "uuid"
                 },
@@ -12663,27 +12762,96 @@
                 "subjectObjectKey": {
                   "type": "string"
                 },
+                "success": {
+                  "type": "boolean"
+                },
                 "handlerIdentifier": {
                   "type": "string"
                 },
-                "inputData": {},
-                "errorAt": {
-                  "type": "string",
-                  "format": "date-time"
+                "inputData": {
+                  "type": "object",
+                  "additionalProperties": {}
                 },
-                "errorCode": {
-                  "type": "string"
-                },
-                "errorDetails": {},
-                "errorMessage": {
-                  "type": "string"
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
                 },
                 "taskDescription": {
                   "type": "string"
                 },
-                "updates": {
+                "systemLog": {
                   "type": "array",
-                  "items": {}
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "payload": {
+                        "type": "object",
+                        "properties": {
+                          "logType": {
+                            "type": "string",
+                            "enum": [
+                              "started",
+                              "failure",
+                              "requeue",
+                              "success"
+                            ]
+                          },
+                          "data": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": [
+                          "logType"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "at",
+                      "payload"
+                    ]
+                  }
+                },
+                "taskLog": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "payload": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": [
+                      "at"
+                    ]
+                  }
                 },
                 "startedAt": {
                   "type": "string",
@@ -12700,40 +12868,17 @@
                 "updatedAt": {
                   "type": "string",
                   "format": "date-time"
-                },
-                "subjectContext": {
-                  "type": "object",
-                  "properties": {
-                    "folderId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "objectKey": {
-                      "type": "string"
-                    },
-                    "folderName": {
-                      "type": "string"
-                    },
-                    "folderOwnerId": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  },
-                  "required": [
-                    "folderId",
-                    "folderName",
-                    "folderOwnerId"
-                  ]
                 }
               },
               "required": [
                 "id",
                 "taskIdentifier",
                 "ownerIdentifier",
-                "triggeringEventId",
+                "eventId",
                 "inputData",
                 "taskDescription",
-                "updates",
+                "systemLog",
+                "taskLog",
                 "createdAt",
                 "updatedAt"
               ]
@@ -12746,42 +12891,39 @@
         ]
       },
       "WorkerJobUploadUrlsRequestDTO": {
-        "type": "object",
-        "properties": {
-          "files": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "folderId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "objectKey": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "contentType": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "required": [
-                "folderId",
-                "objectKey",
-                "contentType"
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "folderId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "objectKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "PUT",
+                "DELETE",
+                "GET",
+                "HEAD"
               ]
             }
-          }
-        },
-        "required": [
-          "files"
-        ]
+          },
+          "required": [
+            "folderId",
+            "objectKey",
+            "method"
+          ]
+        }
       },
-      "WorkerJobUploadUrlsResponseDTO": {
+      "WorkerJobPresignedUrlsResponseDTO": {
         "type": "object",
         "properties": {
-          "uploads": {
+          "urls": {
             "type": "array",
             "items": {
               "type": "object",
@@ -12793,7 +12935,16 @@
                 "objectKey": {
                   "type": "string"
                 },
-                "presignedUrl": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "PUT",
+                    "DELETE",
+                    "GET",
+                    "HEAD"
+                  ]
+                },
+                "url": {
                   "type": "string",
                   "format": "uri"
                 }
@@ -12801,48 +12952,109 @@
               "required": [
                 "folderId",
                 "objectKey",
-                "presignedUrl"
+                "method",
+                "url"
               ]
             }
           }
         },
         "required": [
-          "uploads"
+          "urls"
+        ]
+      },
+      "WorkerJobStartedResponseDTO": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
         ]
       },
       "WorkerJobCompleteRequestDTO": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "result": {},
-          "error": {
-            "$ref": "#/components/schemas/ApiErrorResponseDTO"
-          },
-          "uploadedFiles": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "folderId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "objectKey": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "required": [
-                "folderId",
-                "objectKey"
-              ]
-            }
-          }
+        "discriminator": {
+          "propertyName": "success"
         },
-        "required": [
-          "success"
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "result": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "uploadedFiles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "folderId",
+                    "objectKey"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "success",
+              "result"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "error": {
+                "$ref": "#/components/schemas/ApiErrorResponseDTO"
+              },
+              "uploadedFiles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "folderId",
+                    "objectKey"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "success",
+              "error"
+            ]
+          }
         ]
       },
       "WorkerJobCompleteResponseDTO": {

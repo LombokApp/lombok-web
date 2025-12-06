@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import type { SafeParseReturnType } from 'zod'
 
+import type { AppConfig } from '../apps.types'
 import {
   appConfigSchema,
   appConfigWithManifestSchema,
@@ -18,11 +19,12 @@ import {
   appWorkersMapSchema,
   ConfigParamType,
   containerProfileConfigSchema,
-  containerProfileJobDefinitionSchema,
   containerProfileResourceHintsSchema,
   dockerWorkerConfigSchema,
+  execJobDefinitionSchema,
   externalAppWorkerSchema,
   folderScopeAppPermissionsSchema,
+  httpJobDefinitionSchema,
   paramConfigSchema,
   platformScopeAppPermissionsSchema,
   taskConfigSchema,
@@ -655,7 +657,7 @@ describe('apps.types', () => {
       const result = dockerWorkerConfigSchema.safeParse({
         kind: 'exec',
         command: ['run'],
-        jobName: 'job',
+        jobIdentifier: 'job',
         maxPerContainer: 1,
         countTowardsGlobalCap: false,
         priority: 10,
@@ -670,20 +672,11 @@ describe('apps.types', () => {
         port: 8080,
         jobs: [
           {
-            jobName: 'job',
+            identifier: 'job',
           },
         ],
       })
       expectZodSuccess(result)
-    })
-
-    it('should reject docker worker command with invalid tokens', () => {
-      const result = dockerWorkerConfigSchema.safeParse({
-        kind: 'exec',
-        command: ['RUN'], // must be lowercase
-        jobName: 'job',
-      })
-      expectZodFailure(result)
     })
   })
 
@@ -698,7 +691,7 @@ describe('apps.types', () => {
           {
             kind: 'exec',
             command: ['run'],
-            jobName: 'job',
+            jobIdentifier: 'job',
           },
         ],
       })
@@ -720,7 +713,7 @@ describe('apps.types', () => {
               {
                 kind: 'exec',
                 command: ['run'],
-                jobName: 'job',
+                jobIdentifier: 'job',
               },
             ],
           },
@@ -733,8 +726,7 @@ describe('apps.types', () => {
             triggers: ['test.event'],
             handler: {
               type: 'docker',
-              profile: 'default',
-              jobName: 'job',
+              identifier: 'default:job',
             },
           },
         ],
@@ -758,14 +750,21 @@ describe('apps.types', () => {
             triggers: ['test.event'],
             handler: {
               type: 'docker',
-              profile: 'missing',
-              jobName: 'job',
+              identifier: 'missing:job',
             },
           },
         ],
       }
 
       const result = appConfigSchema.safeParse(invalidApp)
+      expect(result.error?.issues).toEqual([
+        {
+          code: 'custom',
+          message:
+            'Unknown container profile "missing". Must be one of: (none)',
+          path: ['tasks', 0, 'worker'],
+        },
+      ])
       expectZodFailure(result)
     })
 
@@ -783,7 +782,7 @@ describe('apps.types', () => {
                 {
                   kind: 'exec',
                   command: ['run'],
-                  jobName: 'existing',
+                  jobIdentifier: 'existing',
                 },
               ],
             },
@@ -797,8 +796,7 @@ describe('apps.types', () => {
             triggers: ['test.event'],
             handler: {
               type: 'docker',
-              profile: 'default',
-              jobName: 'missing',
+              identifier: 'default:missing',
             },
           },
         ],
@@ -838,7 +836,7 @@ describe('apps.types', () => {
 
   describe('appConfigSchema duplicate container job detection', () => {
     it('should reject duplicate job names within a single container profile', () => {
-      const invalidApp = {
+      const invalidApp: AppConfig = {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
@@ -846,20 +844,18 @@ describe('apps.types', () => {
         containerProfiles: {
           default: {
             image: 'example-image',
-            workers: {
-              worker: [
-                {
-                  kind: 'exec',
-                  command: ['run'],
-                  jobName: 'job',
-                },
-                {
-                  kind: 'exec',
-                  command: ['run'],
-                  jobName: 'job',
-                },
-              ],
-            },
+            workers: [
+              {
+                kind: 'exec',
+                command: ['run'],
+                jobIdentifier: 'job',
+              },
+              {
+                kind: 'exec',
+                command: ['run'],
+                jobIdentifier: 'job',
+              },
+            ],
           },
         },
       }
@@ -985,10 +981,24 @@ describe('apps.types', () => {
     })
   })
 
-  describe('containerProfileJobDefinitionSchema', () => {
+  describe('httpJobDefinitionSchema', () => {
     it('should validate job definition', () => {
-      const result = containerProfileJobDefinitionSchema.safeParse({
-        jobName: 'job',
+      const result = httpJobDefinitionSchema.safeParse({
+        identifier: 'job',
+        maxPerContainer: 1,
+        countTowardsGlobalCap: false,
+        priority: 5,
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('execJobDefinitionSchema', () => {
+    it('should validate job definition', () => {
+      const result = execJobDefinitionSchema.safeParse({
+        kind: 'exec',
+        command: ['run'],
+        jobIdentifier: 'job',
         maxPerContainer: 1,
         countTowardsGlobalCap: false,
         priority: 5,
@@ -1013,6 +1023,122 @@ describe('apps.types', () => {
         name: 'INVALID',
       })
       expectZodFailure(result)
+    })
+  })
+
+  describe('should validate app config (complex)', () => {
+    it('should validate an exec docker worker config', () => {
+      const result = appConfigSchema.safeParse({
+        description: 'The official Lombok AI app',
+        identifier: 'ai',
+        label: 'Lombok AI',
+        requiresStorage: true,
+        workers: {
+          api_worker: {
+            entrypoint: 'api-worker-entrypoint.js',
+            description: 'The API worker.',
+            environmentVariables: {
+              LLAMACPP_BASE_URL: 'https://llamacpp.phonk.tv/v1',
+              LLAMACPP_API_KEY: '8b90bf27-5fb4-44c6-ad1f-5ca8401a0cc3',
+            },
+          },
+          search_worker: {
+            entrypoint: 'handle-search/index.js',
+            description: 'The search request worker.',
+          },
+          trigger_extract_content_metadata_worker: {
+            entrypoint: 'extract-content-metadata/index.js',
+            description:
+              'The worker that triggers the extract content metadata job.',
+          },
+        },
+        tasks: [
+          {
+            identifier: 'trigger_extract_content_metadata',
+            label: 'Trigger Extract Content Metadata',
+            description:
+              'A task that runs for every newly added object and triggers the job to extract metadata and generate embeddings.',
+            triggers: ['platform:object_added'],
+            handler: {
+              type: 'worker',
+              identifier: 'trigger_extract_content_metadata_worker',
+            },
+          },
+          {
+            identifier: 'extract_content_metadata',
+            label: 'Extract Content Metadata',
+            description:
+              'A docker based task that does deep metadata extraction and generation of embeddings on content.',
+            handler: {
+              type: 'docker',
+              identifier: 'content_indexing:generate_content_embeddings',
+            },
+          },
+        ],
+        ui: {
+          enabled: true,
+        },
+        contributions: {
+          sidebarMenuLinks: [
+            {
+              label: 'Chat',
+              iconPath: '/assets/logo.png',
+              path: '/chat/new',
+            },
+          ],
+          folderSidebarViews: [],
+          objectSidebarViews: [],
+          objectDetailViews: [],
+        },
+        permissions: {
+          platform: ['READ_ACL'],
+          folder: [
+            'READ_OBJECTS',
+            'WRITE_OBJECTS',
+            'WRITE_OBJECTS_METADATA',
+            'WRITE_FOLDER_METADATA',
+          ],
+          user: ['READ_USER'],
+        },
+        emittableEvents: [],
+        containerProfiles: {
+          content_indexing: {
+            image: 'docker.phonk.tv/lombok-content-indexer',
+            workers: [
+              {
+                kind: 'exec',
+                jobIdentifier: 'hello_world',
+                command: ['echo', '{ "message": "Hello, world!" }'],
+              },
+              {
+                kind: 'http',
+                command: ['./start_worker.sh', '8080'],
+                port: 8080,
+                jobs: [
+                  {
+                    identifier: 'generate_content_embeddings',
+                    maxPerContainer: 2,
+                  },
+                  {
+                    identifier: 'generate_text_embedding',
+                    maxPerContainer: 2,
+                    countTowardsGlobalCap: false,
+                  },
+                  {
+                    identifier: 'rerank_search_results',
+                    maxPerContainer: 2,
+                    countTowardsGlobalCap: false,
+                  },
+                ],
+              },
+            ],
+            resources: {
+              gpu: true,
+            },
+          },
+        },
+      })
+      expectZodSuccess(result)
     })
   })
 })

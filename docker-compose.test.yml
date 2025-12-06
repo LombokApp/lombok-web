@@ -7,7 +7,6 @@ services:
       target: local
     volumes:
       - ./:/usr/src/app
-      - ./.test-data/apps-test:/apps-test
       - ./.test-data/minio:/minio-test-data
     env_file: packages/api/.env.test
     environment:
@@ -21,12 +20,11 @@ services:
       target: local
     volumes:
       - ./:/usr/src/app
-      - ./.test-data/apps-test:/apps-test
       - ./.test-data/minio:/minio-test-data
     env_file: packages/api/.env.test
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
-    entrypoint: ['bun', '--cwd', './packages/api', 'test:e2e']
+    entrypoint: ['bun', '--cwd', './packages/api', './test/e2e.run.ts']
   coreworkerutilsunittest:
     container_name: 'lombok-core-worker-utils-unit-test'
     build:

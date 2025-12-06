@@ -1,25 +1,42 @@
 import { createZodDto } from '@anatine/zod-nestjs'
+import { jsonSerializableObjectSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
-export const workerJobCompleteRequestSchema = z.object({
-  success: z.boolean(),
-  result: z.unknown().optional(),
-  error: z
-    .object({
-      code: z.string(),
-      message: z.string(),
-    })
-    .optional(),
+export const uploadedFilesSchema = z.object({
   uploadedFiles: z
     .array(
       z.object({
         folderId: z.string().uuid(),
-        objectKey: z.string().min(1),
+        objectKey: z.string().nonempty(),
       }),
     )
     .optional(),
 })
 
-export class WorkerJobCompleteRequestDTO extends createZodDto(
-  workerJobCompleteRequestSchema,
-) {}
+export const errorResponseSchema = z
+  .object({
+    success: z.literal(false),
+    error: z.object({
+      code: z.string(),
+      message: z.string(),
+    }),
+  })
+  .merge(uploadedFilesSchema)
+
+export const successResponseSchema = z
+  .object({
+    success: z.literal(true),
+    result: jsonSerializableObjectSchema,
+  })
+  .merge(uploadedFilesSchema)
+
+const resultSchema = z.discriminatedUnion('success', [
+  successResponseSchema,
+  errorResponseSchema,
+])
+
+export class WorkerJobCompleteRequestDTO extends createZodDto(resultSchema) {}
+
+export type DiscriminatedWorkerJobCompleteRequestDTO = z.infer<
+  typeof resultSchema
+>

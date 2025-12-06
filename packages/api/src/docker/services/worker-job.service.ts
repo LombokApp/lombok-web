@@ -1,25 +1,35 @@
-import type { FolderScopeAppPermissions } from '@lombokapp/types'
-import { SignedURLsRequestMethod } from '@lombokapp/types'
+import type {
+  FolderScopeAppPermissions,
+  JsonSerializableObject,
+  StorageAccessPolicy,
+  SystemLogEntry,
+} from '@lombokapp/types'
 import {
+  BadRequestException,
   ForbiddenException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { JwtPayload } from 'jsonwebtoken'
 import * as jwt from 'jsonwebtoken'
 import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
+import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
-import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import { v4 as uuidV4 } from 'uuid'
+
+import { WorkerJobUploadUrlsRequestDTO } from '../dto/worker-job-presigned-urls-request.dto'
+import { WorkerJobPresignedUrlsResponseDTO } from '../dto/worker-job-presigned-urls-response.dto'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
@@ -33,35 +43,17 @@ const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
 export interface WorkerJobTokenClaims {
   jobId: string
   taskId: string
-  appIdentifier: string
-  allowedUploads: Record<string, string[]> // folder_id -> allowed prefixes
-}
-
-export interface UploadFileRequest {
-  folderId: string
-  objectKey: string
-  contentType: string
-}
-
-export interface UploadURL {
-  folderId: string
-  objectKey: string
-  presignedUrl: string
-}
-
-export interface UploadedFile {
-  folderId: string
-  objectKey: string
+  storageAccessPolicy: StorageAccessPolicy
 }
 
 export interface CompleteJobRequest {
   success: boolean
-  result?: unknown
+  result?: JsonSerializableObject
   error?: {
     code: string
     message: string
   }
-  uploadedFiles?: UploadedFile[]
+  uploadedFiles?: { folderId: string; objectKey: string }[]
 }
 
 @Injectable()
@@ -74,7 +66,14 @@ export class WorkerJobService {
       typeof platformConfig
     >,
     private readonly ormService: OrmService,
+    private readonly platformTaskService: PlatformTaskService,
+    @Inject(forwardRef(() => AppService))
+    private readonly _appService,
   ) {}
+
+  get appService(): AppService {
+    return this._appService as AppService
+  }
 
   /**
    * Validate and filter allowed uploads based on app permissions.
@@ -183,7 +182,7 @@ export class WorkerJobService {
   createWorkerJobToken(params: {
     jobId: string
     taskId?: string
-    storageAccess: Record<string, string[]>
+    storageAccessPolicy?: StorageAccessPolicy
   }): string {
     const payload = {
       aud: this._platformConfig.platformHost,
@@ -191,7 +190,7 @@ export class WorkerJobService {
       sub: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`,
       job_id: params.jobId,
       task_id: params.taskId,
-      storage_access: params.storageAccess,
+      storage_access_policy: params.storageAccessPolicy,
     }
 
     return jwt.sign(payload, this._authConfig.authJwtSecret, {
@@ -215,15 +214,13 @@ export class WorkerJobService {
       }) as JwtPayload & {
         job_id: string
         task_id: string
-        app_identifier: string
-        allowed_uploads: Record<string, string[]>
+        storage_access_policy: StorageAccessPolicy
       }
 
       return {
         jobId: decoded.job_id,
         taskId: decoded.task_id,
-        appIdentifier: decoded.app_identifier,
-        allowedUploads: decoded.allowed_uploads,
+        storageAccessPolicy: decoded.storage_access_policy,
       }
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -237,84 +234,37 @@ export class WorkerJobService {
   }
 
   /**
-   * Request presigned upload URLs for files
+   * Request presigned URLs for files
    */
-  async requestUploadUrls(
+  async requestPresignedStorageUrls(
     claims: WorkerJobTokenClaims,
-    files: UploadFileRequest[],
-  ): Promise<UploadURL[]> {
+    files: WorkerJobUploadUrlsRequestDTO,
+  ): Promise<WorkerJobPresignedUrlsResponseDTO> {
     // Validate all requested uploads are allowed
-    for (const file of files) {
-      const allowedPrefixes = claims.allowedUploads[file.folderId] as
-        | string[]
-        | undefined
-      if (!allowedPrefixes) {
-        throw new ForbiddenException(
-          `Upload to folder ${file.folderId} is not allowed for this job`,
-        )
-      }
+    // TODO: Check the job is still active
 
-      // Check if the object key starts with any allowed prefix
-      const isAllowed = allowedPrefixes.some((prefix) =>
-        file.objectKey.startsWith(prefix),
+    for (const file of files) {
+      const isAllowed = claims.storageAccessPolicy.some(
+        (storageAccessPolicyRule) => {
+          return (
+            storageAccessPolicyRule.folderId === file.folderId &&
+            storageAccessPolicyRule.methods.includes(file.method) &&
+            (!storageAccessPolicyRule.prefix ||
+              file.objectKey.startsWith(storageAccessPolicyRule.prefix))
+          )
+        },
       )
+
+      // TODO: Check the app still has permission to the folder (is active for the folder)
       if (!isAllowed) {
         throw new ForbiddenException(
-          `Upload to object key ${file.objectKey} in folder ${file.folderId} is not allowed. Allowed prefixes: ${allowedPrefixes.join(', ')}`,
+          `Access to folder ${file.folderId}, with method ${file.method} and object key ${file.objectKey}, is not allowed`,
         )
       }
     }
-
-    // Get unique folder IDs
-    const folderIds = [...new Set(files.map((f) => f.folderId))]
-
-    // Look up folders with their content storage locations in a single query
-    const folders = await this.ormService.db.query.foldersTable.findMany({
-      where: (tbl) => inArray(tbl.id, folderIds),
-      with: { contentLocation: true },
-    })
-
-    if (folders.length !== folderIds.length) {
-      const foundIds = new Set(folders.map((f) => f.id))
-      const missingIds = folderIds.filter((id) => !foundIds.has(id))
-      throw new NotFoundException(`Folders not found: ${missingIds.join(', ')}`)
+    return {
+      urls: await this.appService.createSignedContentUrls(files),
     }
-
-    // Build a map of folder ID -> folder (with contentLocation included)
-    const folderMap = new Map(folders.map((f) => [f.id, f]))
-
-    // Generate presigned URLs
-    const urlRequests = files.map((file) => {
-      const folder = folderMap.get(file.folderId)
-      if (!folder) {
-        throw new NotFoundException(`Folder not found: ${file.folderId}`)
-      }
-      const { contentLocation } = folder
-
-      // Build the full object key with storage location prefix
-      const fullObjectKey = contentLocation.prefix
-        ? `${contentLocation.prefix}/${file.objectKey}`
-        : file.objectKey
-
-      return {
-        endpoint: contentLocation.endpoint,
-        region: contentLocation.region,
-        accessKeyId: contentLocation.accessKeyId,
-        secretAccessKey: contentLocation.secretAccessKey,
-        bucket: contentLocation.bucket,
-        objectKey: fullObjectKey,
-        method: SignedURLsRequestMethod.PUT,
-        expirySeconds: 3600, // 1 hour
-      }
-    })
-
-    const presignedUrls = createS3PresignedUrls(urlRequests)
-
-    return files.map((file, index) => ({
-      folderId: file.folderId,
-      objectKey: file.objectKey,
-      presignedUrl: presignedUrls[index],
-    }))
   }
 
   /**
@@ -324,55 +274,169 @@ export class WorkerJobService {
     claims: WorkerJobTokenClaims,
     request: CompleteJobRequest,
   ): Promise<void> {
-    const { taskId } = claims
-    const { success, result, error, uploadedFiles } = request
+    const { taskId: dockerRunTaskId } = claims
+    const { success, result, error } = request
 
-    // Find the task
-    const task = await this.ormService.db.query.tasksTable.findFirst({
-      where: eq(tasksTable.id, taskId),
-    })
+    await this.ormService.db.transaction(async (tx) => {
+      // Find the task
+      const dockerTask = await this.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerRunTaskId),
+      })
 
-    if (!task) {
-      throw new NotFoundException(`Task not found: ${taskId}`)
-    }
-
-    // Update task status
-    const now = new Date()
-    const updateData: Partial<typeof tasksTable.$inferInsert> = {
-      updatedAt: now,
-    }
-
-    if (success) {
-      updateData.completedAt = now
-      // Store the result and uploaded files info in updates
-      if (result !== undefined || uploadedFiles) {
-        const existingUpdates = task.updates
-        const completionUpdate = {
-          updateData: {
-            result,
-            uploadedFiles,
-          },
-          updateTemplateString: 'Job completed successfully',
-        }
-        updateData.updates = [...existingUpdates, completionUpdate]
+      if (!dockerTask) {
+        throw new NotFoundException(`Task not found: ${dockerRunTaskId}`)
       }
-    } else {
-      updateData.errorAt = now
-      updateData.errorCode = error?.code || 'UNKNOWN_ERROR'
-      updateData.errorMessage =
-        error?.message || 'Job failed without error details'
-      updateData.errorDetails = {
+
+      if (!dockerTask.startedAt) {
+        throw new ForbiddenException(
+          `Task ${dockerRunTaskId} cannot be completed because it has not been started`,
+        )
+      }
+
+      if (dockerTask.completedAt) {
+        throw new ForbiddenException(
+          `Task ${dockerRunTaskId} cannot be completed because it has not been started`,
+        )
+      }
+
+      const innerTask =
+        'innerTaskId' in dockerTask.inputData &&
+        (await tx.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, dockerTask.inputData.innerTaskId as string),
+        }))
+
+      if (!innerTask) {
+        throw new NotFoundException(`Inner task not found: ${innerTask}`)
+      }
+
+      const now = new Date()
+
+      const resolvedError = {
         code: error?.code || 'UNKNOWN_ERROR',
         message: error?.message || 'Job failed without error details',
+        details: {},
       }
-    }
 
-    await this.ormService.db
-      .update(tasksTable)
-      .set(updateData)
-      .where(eq(tasksTable.id, taskId))
+      await this.platformTaskService.registerTaskCompletion(
+        dockerTask.id,
+        success
+          ? { success: true }
+          : { success: false, error: resolvedError, requeue: { delayMs: 0 } },
+        { tx },
+      )
 
-    // TODO: Emit event for job completion (for real-time updates)
-    // TODO: Trigger any follow-up actions based on job result
+      const systemLog: SystemLogEntry = {
+        at: now,
+        payload: success
+          ? {
+              logType: 'success',
+              data: result
+                ? {
+                    result,
+                  }
+                : {},
+            }
+          : {
+              logType: 'failure',
+              data: {
+                error: resolvedError,
+              },
+            },
+      }
+
+      await tx
+        .update(tasksTable)
+        .set({
+          completedAt: now,
+          updatedAt: now,
+          success,
+          error: !success ? resolvedError : null,
+          systemLog: sql<
+            SystemLogEntry[]
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLog)}::jsonb`,
+        })
+        .where(eq(tasksTable.id, innerTask.id))
+    })
+  }
+
+  /**
+   * Mark a worker job as started
+   */
+  async startJob(claims: WorkerJobTokenClaims): Promise<void> {
+    const { taskId: dockerRunTaskId } = claims
+
+    await this.ormService.db.transaction(async (tx) => {
+      const dockerRunTask = await tx.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerRunTaskId),
+      })
+
+      if (!dockerRunTask) {
+        throw new NotFoundException(`Docker task not found: ${dockerRunTaskId}`)
+      }
+
+      const innerTaskId =
+        'innerTaskId' in dockerRunTask.inputData &&
+        typeof dockerRunTask.inputData.innerTaskId === 'string' &&
+        dockerRunTask.inputData.innerTaskId
+
+      if (!innerTaskId) {
+        throw new NotFoundException(
+          `Docker job task has no inner task: ${dockerRunTaskId}`,
+        )
+      }
+
+      const innerTask =
+        innerTaskId &&
+        (await this.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTaskId),
+        }))
+
+      if (!innerTask) {
+        throw new NotFoundException(
+          `Docker handled task not found: ${innerTaskId}`,
+        )
+      }
+
+      if (innerTask.startedAt || innerTask.completedAt) {
+        throw new BadRequestException(
+          `Docker handled task ${innerTask.id} cannot be started because it has already been started`,
+        )
+      }
+
+      if (!dockerRunTask.startedAt) {
+        throw new BadRequestException(
+          `Docker handled task ${innerTask.id} cannot be started because the associated docker task (${dockerRunTaskId}) has not been started`,
+        )
+      }
+
+      if (dockerRunTask.completedAt) {
+        throw new BadRequestException(
+          `Docker handled task ${innerTask.id} cannot be started because the associated docker task (${dockerRunTaskId}) has already been completed`,
+        )
+      }
+
+      const now = new Date()
+      const innerTaskSystemLog: SystemLogEntry = {
+        at: now,
+        payload: {
+          logType: 'started',
+          data: {
+            dockerTaskId: dockerRunTaskId,
+          },
+        },
+      }
+
+      await tx
+        .update(tasksTable)
+        .set({
+          startedAt: now,
+          updatedAt: now,
+          systemLog: sql<
+            SystemLogEntry[]
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(innerTaskSystemLog)}::jsonb`,
+          error: null,
+        })
+        .where(eq(tasksTable.id, innerTask.id))
+    })
   }
 }

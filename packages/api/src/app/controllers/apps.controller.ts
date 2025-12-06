@@ -101,7 +101,7 @@ export class AppsController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const app = await this.appService.getAppAsAdmin(appIdentifier)
+    const app = await this.appService.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException()
     }

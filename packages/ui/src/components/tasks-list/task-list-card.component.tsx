@@ -10,9 +10,9 @@ export function TasksListCard({ task }: { task: TaskDTO }) {
             <div
               className={cn(
                 'size-2 rounded-full',
-                task.completedAt
+                task.success === true
                   ? 'bg-green-500'
-                  : task.errorAt
+                  : task.success === false
                     ? 'bg-red-500'
                     : !task.startedAt
                       ? 'bg-gray-500'

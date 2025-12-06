@@ -1,6 +1,7 @@
-import { Logger } from '@nestjs/common'
+import { Injectable, Logger, Scope } from '@nestjs/common'
 
-import type { DockerExecuteJobOptions } from './docker.schema'
+import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
+import type { ContainerWorkerExecuteOptions } from './docker.schema'
 import type {
   ConnectionTestResult,
   ContainerInfo,
@@ -9,20 +10,18 @@ import type {
   DockerExecResult,
 } from './docker-client.types'
 
-export class DockerClient {
-  private readonly logger = new Logger(DockerClient.name)
-  constructor(
-    private readonly dockerHostAdapters: Record<string, DockerAdapter>,
-  ) {}
+@Injectable({ scope: Scope.DEFAULT })
+export class DockerClientService {
+  private readonly logger = new Logger(DockerClientService.name)
+  private readonly dockerHostAdapters: Record<string, DockerAdapter> = {}
+
+  constructor(private readonly dockerAdapterProvider: DockerAdapterProvider) {}
 
   /**
    * Get a docker adapter by host ID
    */
   private getAdapter(hostId: string): DockerAdapter {
-    if (!(hostId in this.dockerHostAdapters)) {
-      throw new Error(`Docker adapter not found for host: ${hostId}`)
-    }
-    return this.dockerHostAdapters[hostId]
+    return this.dockerAdapterProvider.getDockerAdapter(hostId)
   }
 
   /**
@@ -33,7 +32,7 @@ export class DockerClient {
   }
 
   /**
-   * Test connectivity to a Docker host
+   * Test connectivity to all Docker host
    */
   async testAllHostConnections(): Promise<
     Record<string, { result: ConnectionTestResult; id: string }>
@@ -116,7 +115,7 @@ export class DockerClient {
   async execInContainer<T extends boolean>(
     hostId: string,
     containerId: string,
-    options: DockerExecuteJobOptions & { waitForCompletion: T },
+    options: ContainerWorkerExecuteOptions<T>,
   ): Promise<DockerExecResult<T>> {
     const adapter = this.getAdapter(hostId)
 
@@ -133,7 +132,7 @@ export class DockerClient {
         adapter.getJobLogs(containerId, { jobId: options.jobId }),
         options.jobInterface.kind !== 'exec_per_job'
           ? adapter.getWorkerLogs(containerId, {
-              jobClass: options.jobName,
+              jobClass: options.jobIdentifier,
             })
           : Promise.resolve(''),
       ])
@@ -147,6 +146,7 @@ export class DockerClient {
     }
     return {
       jobId: options.jobId,
+      accepted: true,
     } as DockerExecResult<T>
   }
 }

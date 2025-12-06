@@ -301,8 +301,7 @@ describe('ORM Schema Isolation', () => {
     )
     expect(ownResult.rows[0].value).toBe('allowed')
 
-    // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-    await expect(
+    expect(
       ormService.executeQueryForApp(
         appId,
         `SELECT * FROM public.cross_schema_guard`,

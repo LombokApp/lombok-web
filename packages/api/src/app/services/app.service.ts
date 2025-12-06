@@ -8,6 +8,7 @@ import type {
   ExecuteAppDockerJobOptions,
   ExternalAppWorker,
   FolderScopeAppPermissions,
+  StorageAccessPolicy,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import {
@@ -28,17 +29,7 @@ import {
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { spawn } from 'bun'
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  or,
-  SQL,
-  sql,
-} from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
 import os from 'os'
@@ -166,7 +157,7 @@ export class AppService {
       throw new UnauthorizedException()
     }
 
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -194,7 +185,7 @@ export class AppService {
       throw new UnauthorizedException()
     }
 
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -211,7 +202,7 @@ export class AppService {
     return updated
   }
 
-  getAppAsAdmin(
+  getApp(
     appIdentifier: string,
     {
       enabled,
@@ -244,7 +235,7 @@ export class AppService {
     actor: { appIdentifier: string }
     userId: string
   }) {
-    const app = await this.getAppAsAdmin(actor.appIdentifier, { enabled: true })
+    const app = await this.getApp(actor.appIdentifier, { enabled: true })
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.id, userId),
     })
@@ -259,7 +250,7 @@ export class AppService {
   }
 
   async createAppUserSession(user: User, appIdentifier: string) {
-    const app = await this.getAppAsAdmin(appIdentifier, { enabled: true })
+    const app = await this.getApp(appIdentifier, { enabled: true })
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -355,19 +346,15 @@ export class AppService {
       }
     })
 
-    return {
-      urls,
-    }
+    return urls
   }
 
   async createSignedAppStorageUrls(
     requestingAppIdentifier: string,
     payload: {
-      requests: {
-        objectKey: string
-        method: SignedURLsRequestMethod
-      }[]
-    },
+      objectKey: string
+      method: SignedURLsRequestMethod
+    }[],
   ) {
     const serverStorage =
       await this.serverConfigurationService.getServerStorage()
@@ -375,7 +362,7 @@ export class AppService {
       throw new Error('Server storage not found')
     }
     const urls = this.s3Service.createS3PresignedUrls(
-      payload.requests.map(({ method, objectKey }) => ({
+      payload.map(({ method, objectKey }) => ({
         method,
         objectKey: `${serverStorage.prefix}${!serverStorage.prefix || serverStorage.prefix.endsWith('/') ? '' : '/'}app-runtime-storage/${requestingAppIdentifier}${objectKey.startsWith('/') ? '' : '/'}${objectKey}`,
         accessKeyId: serverStorage.accessKeyId,
@@ -386,9 +373,7 @@ export class AppService {
         region: serverStorage.region,
       })),
     )
-    return {
-      urls,
-    }
+    return urls
   }
 
   async _createSignedUrls(
@@ -490,7 +475,7 @@ export class AppService {
       }
     }
 
-    const workerApp = await this.getAppAsAdmin(requestData.appIdentifier, {
+    const workerApp = await this.getApp(requestData.appIdentifier, {
       enabled: true,
     })
     if (!workerApp) {
@@ -653,7 +638,7 @@ export class AppService {
 
   public async installApp(app: AppWithMigrations, update = false) {
     const now = new Date()
-    const installedApp = await this.getAppAsAdmin(app.identifier)
+    const installedApp = await this.getApp(app.identifier)
     if (installedApp && !update) {
       throw new AppAlreadyInstalledException()
     }
@@ -813,6 +798,7 @@ export class AppService {
 
   public async installAllAppsFromDisk() {
     // get potential app identifier from the directory structure
+
     const allPotentialAppDirectoriesEntries =
       this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
 
@@ -1037,6 +1023,11 @@ export class AppService {
               hash: '',
               size: 0,
             },
+            permissions: {
+              platform: config.permissions?.platform ?? [],
+              user: config.permissions?.user ?? [],
+              folder: config.permissions?.folder ?? [],
+            },
             subscribedEvents:
               config.tasks?.reduce<string[]>(
                 (acc, task) => acc.concat(task.triggers ?? []),
@@ -1080,7 +1071,7 @@ export class AppService {
     environmentVariables: Record<string, string>
   }): Promise<Record<string, string>> {
     // Fetch the app
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -1188,22 +1179,13 @@ export class AppService {
     const tasksLast24Hours = await this.ormService.db
       .select({
         completed: count(tasksTable.id),
-        failed: count(tasksTable.errorAt),
+        failed: count(tasksTable.error),
       })
       .from(tasksTable)
       .where(
         and(
           eq(tasksTable.ownerIdentifier, appIdentifier),
-          or(
-            and(
-              isNotNull(tasksTable.completedAt),
-              sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-            ),
-            and(
-              isNotNull(tasksTable.errorAt),
-              sql`${tasksTable.errorAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-            ),
-          ),
+          sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
         ),
       )
 
@@ -1528,47 +1510,278 @@ export class AppService {
     return this.getFolderAppSettingsAsUser(actor, folderId)
   }
 
+  private getRequiredPermissionsForFolderFromPolicy(
+    storageAccessPolicy: StorageAccessPolicy | undefined,
+    folderId: string,
+  ): FolderScopeAppPermissions[] {
+    const folderPolicies =
+      storageAccessPolicy?.filter((entry) => entry.folderId === folderId) ?? []
+    if (folderPolicies.length === 0) {
+      return []
+    }
+
+    const methods = folderPolicies.flatMap((entry) => entry.methods)
+    const requiredPermissions = new Set<FolderScopeAppPermissions>()
+
+    if (
+      methods.some((method) =>
+        [SignedURLsRequestMethod.GET, SignedURLsRequestMethod.HEAD].includes(
+          method,
+        ),
+      )
+    ) {
+      requiredPermissions.add('READ_OBJECTS')
+    }
+    if (
+      methods.some((method) =>
+        [SignedURLsRequestMethod.PUT, SignedURLsRequestMethod.DELETE].includes(
+          method,
+        ),
+      )
+    ) {
+      requiredPermissions.add('WRITE_OBJECTS')
+    }
+
+    return Array.from(requiredPermissions)
+  }
+
+  async validateAppUserAccess({
+    appIdentifier,
+    userId,
+  }: {
+    appIdentifier: string
+    userId: string
+  }): Promise<void> {
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
+      )
+    }
+
+    const appUserSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where: and(
+          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+          eq(appUserSettingsTable.userId, userId),
+        ),
+      })
+
+    const resolvedUserSettings = resolveUserAppSettings(app, appUserSettings)
+
+    if (!resolvedUserSettings.enabled) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled for user "${userId}".`,
+      )
+    }
+  }
+
+  async validateAppFolderAccess({
+    appIdentifier,
+    folderId,
+  }: {
+    appIdentifier: string
+    folderId: string
+  }): Promise<void> {
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
+      )
+    }
+
+    const folder = await this.ormService.db.query.foldersTable.findFirst({
+      where: eq(foldersTable.id, folderId),
+    })
+
+    if (!folder) {
+      throw new NotFoundException(`Folder not found: ${folderId}`)
+    }
+
+    const appUserSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where: and(
+          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+          eq(appUserSettingsTable.userId, folder.ownerId),
+        ),
+      })
+
+    console.log('appUserSettings:', appUserSettings)
+
+    const appFolderSettings =
+      await this.ormService.db.query.appFolderSettingsTable.findFirst({
+        where: and(
+          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          eq(appFolderSettingsTable.folderId, folderId),
+        ),
+      })
+
+    const resolvedFolderSettings = resolveFolderAppSettings(
+      app,
+      appUserSettings,
+      appFolderSettings,
+    )
+    const enabled =
+      resolvedFolderSettings.enabled === null
+        ? resolvedFolderSettings.enabledFallback.value
+        : resolvedFolderSettings.enabled
+
+    if (!enabled) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled for folder "${folder.id}".`,
+      )
+    }
+  }
+
+  async validateAppStorageAccessPolicy({
+    appIdentifier,
+    storageAccessPolicy,
+  }: {
+    appIdentifier: string
+    storageAccessPolicy?: StorageAccessPolicy
+  }): Promise<void> {
+    const uniqueFolderIds = Array.from(
+      new Set(storageAccessPolicy?.map((entry) => entry.folderId)),
+    )
+    if (uniqueFolderIds.length === 0) {
+      return
+    }
+
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
+      )
+    }
+
+    const folders = await this.ormService.db.query.foldersTable.findMany({
+      where: inArray(foldersTable.id, uniqueFolderIds),
+    })
+
+    if (folders.length !== uniqueFolderIds.length) {
+      const foundIds = new Set(folders.map((folder) => folder.id))
+      const missingIds = uniqueFolderIds.filter((id) => !foundIds.has(id))
+      throw new NotFoundException(
+        `Folder${missingIds.length > 1 ? 's' : ''} not found: ${missingIds.join(', ')}`,
+      )
+    }
+
+    const relevantUserIds = folders.reduce<Set<string>>((acc, folder) => {
+      return acc.add(folder.ownerId)
+    }, new Set<string>())
+
+    const appUserSettings = relevantUserIds.size
+      ? await this.ormService.db.query.appUserSettingsTable.findMany({
+          where: and(
+            eq(appUserSettingsTable.appIdentifier, appIdentifier),
+            inArray(
+              appUserSettingsTable.userId,
+              Array.from(relevantUserIds.values()),
+            ),
+          ),
+        })
+      : []
+
+    const appUserSettingsMap = new Map(
+      appUserSettings.map((setting) => [setting.userId, setting]),
+    )
+
+    const folderSettings =
+      await this.ormService.db.query.appFolderSettingsTable.findMany({
+        where: and(
+          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          inArray(appFolderSettingsTable.folderId, uniqueFolderIds),
+        ),
+      })
+    const folderSettingsMap = new Map(
+      folderSettings.map((setting) => [setting.folderId, setting]),
+    )
+
+    for (const folder of folders) {
+      const userSetting = appUserSettingsMap.get(folder.ownerId) ?? undefined
+      const folderSetting = folderSettingsMap.get(folder.id)
+
+      const resolvedFolderSettings = resolveFolderAppSettings(
+        app,
+        userSetting,
+        folderSetting,
+      )
+
+      const enabled =
+        resolvedFolderSettings.enabled === null
+          ? resolvedFolderSettings.enabledFallback.value
+          : resolvedFolderSettings.enabled
+
+      if (!enabled) {
+        throw new UnauthorizedException(
+          `Unauthorized: app "${appIdentifier}" is not enabled for folder "${folder.id}".`,
+        )
+      }
+
+      const requiredPermissions =
+        this.getRequiredPermissionsForFolderFromPolicy(
+          storageAccessPolicy,
+          folder.id,
+        )
+      for (const permission of requiredPermissions) {
+        const permissions =
+          resolvedFolderSettings.permissions === null
+            ? resolvedFolderSettings.permissionsFallback.value
+            : resolvedFolderSettings.permissions
+        if (!permissions.includes(permission)) {
+          throw new UnauthorizedException(
+            `Unauthorized: app "${appIdentifier}" is missing "${permission}" permission for folder "${folder.id}".`,
+          )
+        }
+      }
+    }
+  }
+
   /**
-   * Execute a docker job for the specified app.
+   * Executes a docker job of the specified app.
+   *
+   * This method is called either synchronously, at the request of the app,
+   * or as a result of a task which is handled the docker job being queued.
    *
    * This method validates that the app has the specified profile and job class,
-   * then delegates to the DockerOrchestrationService to execute the job.
+   * then delegates to the DockerJobsService to execute the job.
    *
    * @param params.waitForCompletion - Whether or not to execute the job synchronously and wait for the result.
    * @param params.appIdentifier - The app's identifier
-   * @param params.profileName - The container profile to use
-   * @param params.jobName - The job class within the profile
+   * @param params.profileIdentifier - The container profile to use
+   * @param params.jobIdentifier - The job class within the profile
    * @param params.eventContext - Event-based context for the job
    * @returns The result of the docker job execution
    */
-  async executeAppDockerJob(
-    params: ExecuteAppDockerJobOptions,
-  ): Promise<DockerExecResult<typeof params.waitForCompletion>> {
+  async executeAppDockerJob<
+    O extends ExecuteAppDockerJobOptions,
+    T extends boolean = O['asyncTaskId'] extends string ? true : false,
+  >(params: ExecuteAppDockerJobOptions): Promise<DockerExecResult<T>> {
     this.logger.debug('executeAppDockerJob params:', params)
     const {
-      waitForCompletion,
       appIdentifier,
-      profileName,
-      jobName,
+      profileIdentifier,
+      jobIdentifier,
       jobInputData,
+      storageAccessPolicy = [],
+      asyncTaskId,
     } = params
 
     const profileSpec = await this.dockerJobsService.getProfileSpec(
       appIdentifier,
-      profileName,
+      profileIdentifier,
     )
 
     // TODO: validate folder access for the requesting app
 
     // Execute the docker job
     return this.dockerJobsService.executeDockerJob({
-      waitForCompletion,
       profileSpec,
-      hostConfigId: `${appIdentifier}:${profileName}`,
-      jobName,
+      profileHostConfigKey: `${appIdentifier}:${profileIdentifier}`,
+      jobIdentifier,
       jobInputData,
-      taskId: params.taskContext?.taskId,
-      storageAccess: params.taskContext?.storageAccess,
+      asyncTaskId,
+      storageAccessPolicy,
     })
   }
 

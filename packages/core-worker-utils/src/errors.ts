@@ -1,4 +1,4 @@
-import type { WorkerErrorDetails } from '@lombokapp/types'
+import type { JsonSerializableObject } from '@lombokapp/types'
 
 export class WorkerError extends Error {
   constructor(
@@ -51,7 +51,7 @@ export class ScriptExecutionError extends Error {
 export class WorkerScriptRuntimeError extends Error {
   constructor(
     message: string,
-    public readonly details: WorkerErrorDetails,
+    public readonly details: JsonSerializableObject,
   ) {
     super(message)
   }

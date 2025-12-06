@@ -17,7 +17,7 @@ export function transformEventToDTO(
             folderOwnerId: event.folder.ownerId,
           }
         : undefined,
-    data: event.data,
+    data: event.data ?? {},
     createdAt: event.createdAt,
   }
 }

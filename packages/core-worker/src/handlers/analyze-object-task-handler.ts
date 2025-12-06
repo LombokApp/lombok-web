@@ -17,25 +17,24 @@ import { v4 as uuidV4 } from 'uuid'
 import { analyzeContent } from '../analyze/analyze-content'
 
 export const analyzeObjectTaskHandler = async (
-  task: TaskDTO & { event: EventDTO },
+  { task }: { event: EventDTO; task: TaskDTO },
   server: IAppPlatformService,
 ) => {
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
-
-  if (!task.event.subjectContext?.folderId) {
+  if (!task.subjectFolderId) {
     throw new AppAPIError('INVALID_TASK', 'Missing folderId.')
   }
 
-  if (!task.event.subjectContext.objectKey) {
+  if (!task.subjectObjectKey) {
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
   const response = await server.getContentSignedUrls([
     {
-      folderId: task.event.subjectContext.folderId,
-      objectKey: task.event.subjectContext.objectKey,
+      folderId: task.subjectFolderId,
+      objectKey: task.subjectObjectKey,
       method: SignedURLsRequestMethod.GET,
     },
   ])
@@ -136,7 +135,7 @@ export const analyzeObjectTaskHandler = async (
         throw new AppAPIError(error.code, error.message)
       }
       return Promise.all(
-        result.urls.map(({ url }, i) => {
+        result.map(({ url }, i) => {
           const preview = previews[Object.keys(previews)[i]]
           return uploadFile(
             path.join(metadataOutFileDirectory, preview.hash),
@@ -156,16 +155,14 @@ export const analyzeObjectTaskHandler = async (
   }
 
   if (Object.keys(metadataDescription).length > 0) {
-    const metadataUpdateResponse = await server.updateContentMetadata({
-      updates: [
-        {
-          folderId: task.event.subjectContext.folderId,
-          objectKey: task.event.subjectContext.objectKey,
-          hash: originalContentHash,
-          metadata: metadataDescription,
-        },
-      ],
-    })
+    const metadataUpdateResponse = await server.updateContentMetadata([
+      {
+        folderId: task.subjectFolderId,
+        objectKey: task.subjectObjectKey,
+        hash: originalContentHash,
+        metadata: metadataDescription,
+      },
+    ])
 
     if (metadataUpdateResponse.error) {
       throw new AppAPIError(

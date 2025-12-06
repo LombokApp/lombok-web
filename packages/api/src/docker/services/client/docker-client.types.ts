@@ -1,7 +1,7 @@
 import type { z } from 'zod'
 
 import type {
-  DockerExecuteJobOptions,
+  ContainerWorkerExecuteOptions,
   dockerExecutionOptionsSchema,
 } from './docker.schema'
 
@@ -17,7 +17,6 @@ export interface CreateContainerOptions {
   image: string
   environmentVariables?: Record<string, string>
   labels: Record<string, string>
-  containerProfileIdentifier: string
   volumes?: Record<string, string>
   gpus?: { driver: string; deviceIds: string[] }
 }
@@ -60,10 +59,10 @@ export interface DockerAdapter {
   /**
    * Execute a command in a running container
    */
-  exec: (
+  exec: <T extends boolean>(
     containerId: string,
-    options: DockerExecuteJobOptions,
-  ) => Promise<DockerExecResult<typeof options.waitForCompletion>>
+    options: ContainerWorkerExecuteOptions<T>,
+  ) => Promise<DockerExecResult<T>>
 
   /**
    * Start a stopped container
@@ -113,8 +112,14 @@ export interface DockerSynchronousExecResult {
     message: string
   }
 }
+
 export type DockerExecResult<T extends boolean> = T extends true
   ? DockerSynchronousExecResult
   : {
       jobId: string
+      accepted: boolean
+      queueError?: {
+        code: string
+        message: string
+      }
     }

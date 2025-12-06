@@ -313,11 +313,10 @@ export function ServerAppDetailScreen({
                     description: task.description,
                     triggers: task.triggers?.join(', ') ?? 'None',
                     handler:
-                      task.handler.type === 'worker'
-                        ? `[worker]:${task.handler.identifier}`
-                        : task.handler.type === 'docker'
-                          ? `[docker]:${task.handler.profile}:${task.handler.jobName}`
-                          : 'external',
+                      task.handler.type === 'worker' ||
+                      task.handler.type === 'docker'
+                        ? `[${task.handler.type}]:${task.handler.identifier}`
+                        : 'external',
                   })) ?? []
                 }
                 columns={[

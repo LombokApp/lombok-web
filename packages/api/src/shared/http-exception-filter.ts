@@ -7,14 +7,10 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 
-type LoggingMode = 'DEBUG' | 'NONE'
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  loggingMode: LoggingMode
   private readonly logger = new Logger(HttpExceptionFilter.name)
-  constructor(loggingMode: LoggingMode = 'NONE') {
-    this.loggingMode = loggingMode
-  }
+
   catch(exception: HttpException, host: ArgumentsHost) {
     // Get the response object from the arguments host
     const ctx = host.switchToHttp()
@@ -22,15 +18,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Get the request object from the arguments host
     const request = ctx.getRequest<Request>()
-
-    if (this.loggingMode === 'DEBUG') {
-      this.logger.debug(
-        'API EXCEPTION (%s %s):',
-        request.method,
-        request.url,
-        exception,
-      )
-    }
+    this.logger.debug(
+      'API EXCEPTION (%s %s):',
+      request.method,
+      request.url,
+      exception,
+    )
 
     // Get the status code from the exception
     const status =

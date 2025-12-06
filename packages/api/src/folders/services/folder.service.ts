@@ -2,6 +2,7 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   InlineMetadataEntry,
+  JsonSerializableObject,
   PreviewMetadata,
   S3ObjectInternal,
   StorageProvisionType,
@@ -1381,7 +1382,12 @@ export class FolderService {
         folderId: record.folderId,
         objectKey: record.objectKey,
       },
-      data: record,
+      data: {
+        ...record,
+        contentMetadata: record.contentMetadata as JsonSerializableObject,
+        createdAt: record.createdAt.toISOString(),
+        updatedAt: record.updatedAt.toISOString(),
+      },
     })
 
     return record

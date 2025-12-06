@@ -20,7 +20,7 @@ const runWorkerScriptTaskInputDataSchema = z.object({
 export const bulidRunWorkerScriptTaskHandler =
   (workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions']) =>
   async (
-    runWorkerScriptTask: TaskDTO & { event: EventDTO },
+    runWorkerScriptTask: { event: EventDTO; task: TaskDTO },
     server: IAppPlatformService,
   ) => {
     if (

@@ -1,5 +1,5 @@
 {
-  "id": "8948e9aa-bfa0-4e03-bd16-170dc86a13fa",
+  "id": "aa01b5c4-8111-40a8-becd-160c36cd40c3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1218,15 +1218,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "updates": {
-          "name": "updates",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "triggeringEventId": {
-          "name": "triggeringEventId",
+        "eventId": {
+          "name": "eventId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -1243,8 +1236,21 @@
           "primaryKey": false,
           "notNull": false
         },
+        "taskLog": {
+          "name": "taskLog",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
         "startedAt": {
           "name": "startedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dontStartBefore": {
+          "name": "dontStartBefore",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -1255,26 +1261,28 @@
           "primaryKey": false,
           "notNull": false
         },
-        "errorAt": {
-          "name": "errorAt",
-          "type": "timestamp",
+        "systemLog": {
+          "name": "systemLog",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "storageAccessPolicy": {
+          "name": "storageAccessPolicy",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "success": {
+          "name": "success",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false
         },
-        "errorCode": {
-          "name": "errorCode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "errorMessage": {
-          "name": "errorMessage",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "errorDetails": {
-          "name": "errorDetails",
+        "error": {
+          "name": "error",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -1306,12 +1314,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "tasks_triggeringEventId_events_id_fk": {
-          "name": "tasks_triggeringEventId_events_id_fk",
+        "tasks_eventId_events_id_fk": {
+          "name": "tasks_eventId_events_id_fk",
           "tableFrom": "tasks",
           "tableTo": "events",
           "columnsFrom": [
-            "triggeringEventId"
+            "eventId"
           ],
           "columnsTo": [
             "id"

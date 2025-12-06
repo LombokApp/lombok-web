@@ -13,9 +13,11 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 
-import { LocalDockerAdapter } from './client/adapters/local.adapter'
-import { DockerExecuteJobOptions } from './client/docker.schema'
-import { DockerClient } from './client/docker-client.service'
+import {
+  ContainerWorkerExecuteOptions,
+  DockerExecuteJobOptions,
+} from './client/docker.schema'
+import { DockerClientService } from './client/docker-client.service'
 import { DockerExecResult } from './client/docker-client.types'
 import { WorkerJobService } from './worker-job.service'
 
@@ -33,7 +35,6 @@ export const DOCKER_LABELS = {
 
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerJobsService {
-  private readonly dockerClient: DockerClient
   private readonly logger = new Logger(DockerJobsService.name)
   constructor(
     @Inject(platformConfig.KEY)
@@ -41,19 +42,11 @@ export class DockerJobsService {
       typeof platformConfig
     >,
     private readonly ormService: OrmService,
+    private readonly dockerClientService: DockerClientService,
     @Inject(forwardRef(() => WorkerJobService))
     private readonly workerJobService: WorkerJobService,
   ) {
-    this.dockerClient = new DockerClient({
-      ...(this._platformConfig.dockerHostConfig &&
-        Object.fromEntries(
-          Object.entries(this._platformConfig.dockerHostConfig).map(
-            ([key, value]) => [key, new LocalDockerAdapter(value.host)],
-          ),
-        )),
-    })
-
-    void this.dockerClient.testAllHostConnections().then((result) => {
+    void this.dockerClientService.testAllHostConnections().then((result) => {
       this.logger.debug('Docker host connection test result:', result)
     })
   }
@@ -63,7 +56,7 @@ export class DockerJobsService {
    */
   async getProfileSpec(
     appIdentifier: string,
-    profileName: string,
+    profileIdentifier: string,
   ): Promise<ContainerProfileConfig> {
     const app = await this.ormService.db.query.appsTable.findFirst({
       where: and(
@@ -76,13 +69,13 @@ export class DockerJobsService {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
 
-    if (!(profileName in app.containerProfiles)) {
+    if (!(profileIdentifier in app.containerProfiles)) {
       throw new NotFoundException(
-        `Container profile "${profileName}" not found for app "${appIdentifier}"`,
+        `Container profile "${profileIdentifier}" not found for app "${appIdentifier}"`,
       )
     }
 
-    return app.containerProfiles[profileName]
+    return app.containerProfiles[profileIdentifier]
   }
 
   /**
@@ -90,23 +83,23 @@ export class DockerJobsService {
    */
   resolveProfileJobDefinition(
     profileSpec: ContainerProfileConfig,
-    jobName: string,
+    jobIdentifier: string,
   ) {
     const workerDefinition = profileSpec.workers.find(
       (worker) =>
-        (worker.kind === 'exec' && worker.jobName === jobName) ||
+        (worker.kind === 'exec' && worker.jobIdentifier === jobIdentifier) ||
         (worker.kind === 'http' &&
-          worker.jobs.find((job) => job.jobName === jobName)),
+          worker.jobs.find((job) => job.identifier === jobIdentifier)),
     )
 
     if (!workerDefinition) {
       const availableJobClasses = profileSpec.workers.flatMap((worker) =>
         worker.kind === 'exec'
-          ? [worker.jobName]
-          : worker.jobs.map((job) => job.jobName),
+          ? [worker.jobIdentifier]
+          : worker.jobs.map((job) => job.identifier),
       )
       throw new NotFoundException(
-        `Job class "${jobName}" not found. Available: ${availableJobClasses.join(', ') || '(none)'}`,
+        `Job class "${jobIdentifier}" not found. Available: ${availableJobClasses.join(', ') || '(none)'}`,
       )
     }
     if (workerDefinition.kind === 'exec') {
@@ -114,11 +107,11 @@ export class DockerJobsService {
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const jobDefinition = workerDefinition.jobs.find(
-      (job) => job.jobName === jobName,
+      (job) => job.identifier === jobIdentifier,
     )!
 
     return {
-      jobName: jobDefinition.jobName,
+      jobIdentifier: jobDefinition.identifier,
       maxPerContainer: jobDefinition.maxPerContainer,
       countTowardsGlobalCap: jobDefinition.countTowardsGlobalCap,
       priority: jobDefinition.priority,
@@ -147,16 +140,9 @@ export class DockerJobsService {
    *
    */
   async executeDockerJob<T extends boolean>(
-    params: Omit<
-      DockerExecuteJobOptions,
-      'jobCommand' | 'jobInterface' | 'jobId' | 'jobToken'
-    > & {
-      taskId?: string
-      storageAccess?: Record<string, string[]>
-      waitForCompletion: T
-    },
+    params: DockerExecuteJobOptions,
   ): Promise<DockerExecResult<T>> {
-    const { jobName, jobInputData, volumes, gpus, hostConfigId, profileSpec } =
+    const { jobIdentifier, jobInputData, profileHostConfigKey, profileSpec } =
       params
 
     // generate a job id to represent this execution
@@ -164,7 +150,10 @@ export class DockerJobsService {
 
     // Generate a hash for the profile to track config drift
     const profileHash = this.hashProfileSpec(profileSpec)
-    const jobDefinition = this.resolveProfileJobDefinition(profileSpec, jobName)
+    const jobDefinition = this.resolveProfileJobDefinition(
+      profileSpec,
+      jobIdentifier,
+    )
 
     const containerProfileIdentifier = `lombok:profile_hash_${profileHash}`
     // Build labels for container discovery
@@ -174,56 +163,58 @@ export class DockerJobsService {
       profileHash,
     )
 
-    // Get the default host (homelab for now)
-    const hostId = 'homelab'
+    // Get the default host (local for now)
+    const hostId = 'local'
 
     // Check if docker host is configured
-    if (!this._platformConfig.dockerHostConfig?.[hostId]) {
+    if (!(hostId in this._platformConfig.dockerHostConfig)) {
       throw new Error('DOCKER_NOT_CONFIGURED')
     }
 
-    const hostConfig =
+    const { gpus = undefined, volumes = undefined } =
       hostId in this._platformConfig.dockerHostConfig
-        ? this._platformConfig.dockerHostConfig[hostId]
-        : {
-            volumes: {} as Record<string, Record<string, string>>,
-            gpus: {} as Record<string, string>,
+        ? {
+            volumes:
+              this._platformConfig.dockerHostConfig[hostId].volumes?.[
+                profileHostConfigKey
+              ],
+            gpus: this._platformConfig.dockerHostConfig[hostId].gpus?.[
+              profileHostConfigKey
+            ],
           }
+        : {}
 
     // create the worker token if one is required
     const jobToken =
-      params.taskId || Object.keys(params.storageAccess || {}).length > 0
+      params.asyncTaskId || (params.storageAccessPolicy ?? []).length > 0
         ? this.workerJobService.createWorkerJobToken({
             jobId,
-            taskId: params.taskId,
-            storageAccess: params.storageAccess || {},
+            ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+            storageAccessPolicy: params.storageAccessPolicy,
           })
         : undefined
 
     // Find an existing container or create a new one
-    const container = await this.dockerClient.findOrCreateContainer(hostId, {
-      image: profileSpec.image,
-      labels,
-      containerProfileIdentifier,
-      volumes:
-        'volumes' in hostConfig
-          ? hostConfig.volumes?.[hostConfigId]
-          : undefined,
-      gpus: this._platformConfig.dockerHostConfig[hostId].gpus?.[hostConfigId],
-    })
+    const container = await this.dockerClientService.findOrCreateContainer(
+      hostId,
+      {
+        image: profileSpec.image,
+        labels,
+        volumes,
+        gpus,
+      },
+    )
 
     if (!container) {
       throw new Error('CONTAINER_CREATE_FAILED')
     }
 
     // Execute the job in the container via docker exec
-    const execOptions: DockerExecuteJobOptions & { waitForCompletion: T } = {
-      waitForCompletion: params.waitForCompletion,
-      hostConfigId,
-      profileSpec,
+    const execOptions: ContainerWorkerExecuteOptions<T> = {
+      waitForCompletion: !params.asyncTaskId as T,
       jobId,
       jobToken,
-      jobName,
+      jobIdentifier,
       jobInputData,
       jobCommand: jobDefinition.command,
       jobInterface:
@@ -242,7 +233,7 @@ export class DockerJobsService {
       gpus,
     }
 
-    const execResult = await this.dockerClient.execInContainer<T>(
+    const execResult = await this.dockerClientService.execInContainer<T>(
       hostId,
       container.id,
       execOptions,

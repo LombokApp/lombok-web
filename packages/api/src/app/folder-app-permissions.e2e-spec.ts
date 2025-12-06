@@ -6,18 +6,28 @@ import {
   createTestUser,
   testS3Location,
 } from 'src/test/test.util'
+import type { User } from 'src/users/entities/user.entity'
 
 const TEST_MODULE_KEY = 'folder_app_permissions'
 
 describe('Folder App Permissions', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
+  let enabledAppsCount = 0
 
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
     })
     apiClient = testModule.apiClient
+    const apps = await testModule.getAppService().listAppsAsAdmin(
+      {
+        id: '1',
+        isAdmin: true,
+      } as User,
+      { enabled: true },
+    )
+    enabledAppsCount = apps.result.length
   })
 
   afterEach(async () => {
@@ -91,7 +101,7 @@ describe('Folder App Permissions', () => {
       expect(getSettingsResponse.response.status).toEqual(200)
       expect(getSettingsResponse.data).toBeDefined()
       expect(Object.keys(getSettingsResponse.data?.settings ?? {}).length).toBe(
-        1,
+        enabledAppsCount,
       )
     })
 
@@ -164,7 +174,9 @@ describe('Folder App Permissions', () => {
 
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
-      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
 
       // Verify by fetching
@@ -179,7 +191,9 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
     })
 
@@ -269,7 +283,9 @@ describe('Folder App Permissions', () => {
 
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
-      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(false)
 
       // Verify by fetching
@@ -366,7 +382,9 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
 
       // Set to null to use default (should delete the setting)
@@ -386,7 +404,9 @@ describe('Folder App Permissions', () => {
 
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
-      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
 
       // Verify by fetching
       getResponse = await apiClient(accessToken).GET(
@@ -400,7 +420,9 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
     })
 
     it(`should bulk update multiple apps in folder settings`, async () => {
@@ -478,7 +500,9 @@ describe('Folder App Permissions', () => {
       if (updateResponse.response.status === 200) {
         expect(updateResponse.data).toBeDefined()
         // Should only have the valid app
-        expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(1)
+        expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
+          enabledAppsCount,
+        )
         expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
       } else {
         // If validation happens, should return 404 or 400
@@ -572,7 +596,9 @@ describe('Folder App Permissions', () => {
 
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
-      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(false)
     })
 
@@ -788,7 +814,9 @@ describe('Folder App Permissions', () => {
 
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
-      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
       expect(updateResponse.data?.settings[appIdentifier].permissions).toEqual([
         'READ_OBJECTS',
@@ -1206,7 +1234,9 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
 
       // Set folder settings
       await apiClient(accessToken).PATCH(
@@ -1322,7 +1352,9 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(1)
+      expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
+        enabledAppsCount,
+      )
       expect(getResponse.data?.settings[appIdentifier].enabled).toBe(null)
       expect(getResponse.data?.settings[appIdentifier].enabledFallback).toEqual(
         { value: false, source: 'system' },

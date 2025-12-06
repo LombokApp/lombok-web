@@ -108,7 +108,7 @@ export async function handleAppSocketMessage(
       }
     case 'EMIT_EVENT':
       try {
-        const app = await appService.getAppAsAdmin(requestingAppIdentifier, {
+        const app = await appService.getApp(requestingAppIdentifier, {
           enabled: true,
         })
         if (!app) {
@@ -184,7 +184,7 @@ export async function handleAppSocketMessage(
     case 'UPDATE_CONTENT_METADATA':
       await folderService.updateFolderObjectMetadata(
         requestingAppIdentifier,
-        requestData.updates,
+        requestData,
       )
       return { result: undefined }
     case 'COMPLETE_HANDLE_TASK': {
@@ -192,7 +192,6 @@ export async function handleAppSocketMessage(
         where: and(
           eq(tasksTable.id, requestData.taskId),
           isNull(tasksTable.completedAt),
-          isNull(tasksTable.errorAt),
           or(
             eq(
               tasksTable.handlerIdentifier,
@@ -227,7 +226,7 @@ export async function handleAppSocketMessage(
       return {
         result: await ormService.db
           .update(tasksTable)
-          .set({ completedAt: now, updatedAt: now })
+          .set({ completedAt: now, success: true, updatedAt: now })
           .where(eq(tasksTable.id, task.id)),
       }
     }
@@ -272,8 +271,9 @@ export async function handleAppSocketMessage(
           },
         }
       }
+
       const event = await ormService.db.query.eventsTable.findFirst({
-        where: eq(eventsTable.id, securedTask.triggeringEventId),
+        where: eq(eventsTable.id, securedTask.eventId),
       })
 
       const result = {
@@ -336,7 +336,7 @@ export async function handleAppSocketMessage(
           .returning()
       )[0]
       const event = await ormService.db.query.eventsTable.findFirst({
-        where: eq(eventsTable.id, updatedTask.triggeringEventId),
+        where: eq(eventsTable.id, updatedTask.eventId),
       })
       return {
         result: {
@@ -359,7 +359,6 @@ export async function handleAppSocketMessage(
             eq(tasksTable.id, requestData.taskId),
             isNotNull(tasksTable.startedAt),
             isNull(tasksTable.completedAt),
-            isNull(tasksTable.errorAt),
             or(
               eq(
                 tasksTable.handlerIdentifier,
@@ -393,10 +392,13 @@ export async function handleAppSocketMessage(
         result: await ormService.db
           .update(tasksTable)
           .set({
-            errorCode: requestData.error.code,
-            errorMessage: requestData.error.message,
-            errorDetails: requestData.error.details,
-            errorAt: now,
+            success: false,
+            completedAt: now,
+            error: {
+              code: requestData.error.code,
+              message: requestData.error.message,
+              details: requestData.error.details,
+            },
             updatedAt: now,
           })
           .where(eq(tasksTable.id, task.id)),
@@ -416,12 +418,9 @@ export async function handleAppSocketMessage(
           error: { code: 403, message: 'Unauthorized.' },
         }
       }
-      const workerApp = await appService.getAppAsAdmin(
-        requestData.appIdentifier,
-        {
-          enabled: true,
-        },
-      )
+      const workerApp = await appService.getApp(requestData.appIdentifier, {
+        enabled: true,
+      })
       if (!workerApp) {
         return {
           result: undefined,
@@ -528,7 +527,7 @@ export async function handleAppSocketMessage(
         }
       }
     }
-    case 'EXECUTE_DOCKER_JOB': {
+    case 'EXECUTE_APP_DOCKER_JOB': {
       return {
         result: await appService.executeAppDockerJob({
           appIdentifier: requestingAppIdentifier,
@@ -537,13 +536,36 @@ export async function handleAppSocketMessage(
       }
     }
     case 'QUEUE_APP_TASK': {
-      // TODO: validate the app is enabled for this user and this folder (if they are defined)
+      // validate user and folder access if task is scoped as such
+      if (requestData.userId) {
+        await appService.validateAppUserAccess({
+          appIdentifier: requestingAppIdentifier,
+          userId: requestData.userId,
+        })
+      }
+
+      if (requestData.subjectContext?.folderId) {
+        await appService.validateAppFolderAccess({
+          appIdentifier: requestingAppIdentifier,
+          folderId: requestData.subjectContext.folderId,
+        })
+      }
+
+      // validate the entire storage access policy if one is provided
+      if (requestData.storageAccessPolicy?.length) {
+        await appService.validateAppStorageAccessPolicy({
+          appIdentifier: requestingAppIdentifier,
+          storageAccessPolicy: requestData.storageAccessPolicy,
+        })
+      }
+
       await eventService.emitEvent({
         emitterIdentifier: PLATFORM_IDENTIFIER,
         eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
         data: {
           appIdentifier: requestingAppIdentifier,
           taskIdentifier: requestData.taskIdentifier,
+          storageAccessPolicy: requestData.storageAccessPolicy ?? [],
           inputData: requestData.inputData,
         },
         subjectContext: requestData.subjectContext,
@@ -551,9 +573,5 @@ export async function handleAppSocketMessage(
       })
       return { result: undefined }
     }
-  }
-  return {
-    result: undefined,
-    error: { code: 400, message: 'Request unrecognized or malformed.' },
   }
 }

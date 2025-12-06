@@ -13,6 +13,10 @@ export async function buildApp() {
     colors: true,
     timestamp: true,
     // json: true,
+    logLevels:
+      process.env.LOG_LEVEL === 'DEBUG'
+        ? ['log', 'error', 'warn', 'debug', 'verbose']
+        : ['log', 'error', 'warn'],
   })
   const creationPromise = NestFactory.create(PlatformModule, {
     logger,
@@ -25,7 +29,7 @@ export async function buildApp() {
   setApp(app)
 
   // set other app configs
-  app.useGlobalFilters(new HttpExceptionFilter('DEBUG'))
+  app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks()
   app.enableCors()
 

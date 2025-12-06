@@ -81,7 +81,7 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const app = await this.appService.getAppAsAdmin(appIdentifier, {
+      const app = await this.appService.getApp(appIdentifier, {
         enabled: true,
       })
       if (!app) {

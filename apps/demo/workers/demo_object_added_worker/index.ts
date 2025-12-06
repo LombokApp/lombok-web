@@ -2,7 +2,7 @@ import type { TaskHandler } from '@lombokapp/app-worker-sdk'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
 
 export const handleTask: TaskHandler = async function handleTask(
-  task,
+  { task },
   { serverClient },
 ) {
   const response = await serverClient.getContentSignedUrls([
@@ -16,7 +16,7 @@ export const handleTask: TaskHandler = async function handleTask(
   ])
 
   console.log('From within object_added worker:', {
-    objectFetchUrl: response.result.urls[0],
+    objectFetchUrl: response.result[0],
     envVars: process.env,
   })
 }

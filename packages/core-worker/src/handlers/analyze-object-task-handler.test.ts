@@ -1,5 +1,5 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type { ContentMetadataType } from '@lombokapp/types'
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type { ContentMetadataType, EventDTO, TaskDTO } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import fs from 'fs'
 import path from 'path'
@@ -40,19 +40,27 @@ describe('Analyze Object Task Handler', () => {
 
   it('should complete analyze object task successfully', async () => {
     // Create mock AppTask for analyze_object
-    const analyzeTask: AppTask = {
+    const analyzeTask: TaskDTO = {
       id: uuidV4(),
       taskIdentifier: 'analyze_object',
       inputData: {},
-      event: {
-        id: uuidV4(),
-        emitterIdentifier: 'test-emitter',
-        eventIdentifier: 'OBJECT_ADDED',
-        data: {},
-        createdAt: new Date().toISOString(),
-      },
       subjectFolderId: testFolderId,
       subjectObjectKey: testObjectKey,
+      ownerIdentifier: 'core-worker',
+      eventId: uuidV4(),
+      systemLog: [],
+      taskLog: [],
+      taskDescription: 'analyze_object',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    const event: EventDTO = {
+      id: uuidV4(),
+      emitterIdentifier: 'test-emitter',
+      eventIdentifier: 'OBJECT_ADDED',
+      data: {},
+      createdAt: new Date().toISOString(),
     }
 
     // Mock fetch to return the test image
@@ -84,14 +92,14 @@ describe('Analyze Object Task Handler', () => {
 
     // Track calls to completion methods with exact parameters
     let metadataUpdatedCalled = false
-    let metadataUpdateParams: {
-      requests: {
-        folderId: string
-        objectKey: string
-        hash: string
-        metadata: ContentMetadataType
-      }[]
-    } | null = null
+    let metadataUpdateParams:
+      | {
+          folderId: string
+          objectKey: string
+          hash: string
+          metadata: ContentMetadataType
+        }[]
+      | null = null
     let contentUrlsRequested = false
     let contentUrlsParams: { requests: unknown[] } | null = null
     let metadataUrlsRequested = false
@@ -120,9 +128,9 @@ describe('Analyze Object Task Handler', () => {
         }),
       saveLogEntry: () => Promise.resolve({ result: true }),
       attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: analyzeTask }),
+        Promise.resolve({ result: { task: analyzeTask, event } }),
       attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: analyzeTask }),
+        Promise.resolve({ result: { task: analyzeTask, event } }),
       failHandleTask: () => Promise.resolve({ result: undefined }),
       completeHandleTask: () => Promise.resolve({ result: undefined }),
       authenticateUser: () =>
@@ -133,42 +141,38 @@ describe('Analyze Object Task Handler', () => {
         metadataUrlsRequested = true
         metadataUrlsParams = { requests }
         return Promise.resolve({
-          result: {
-            urls: [
-              {
-                url: 'https://example.com/metadata-upload',
-                folderId: testFolderId,
-                objectKey: 'metadata.json',
-              },
-            ],
-          },
+          result: [
+            {
+              url: 'https://example.com/metadata-upload',
+              folderId: testFolderId,
+              objectKey: 'metadata.json',
+            },
+          ],
         })
       },
       getContentSignedUrls: (requests: unknown[]) => {
         contentUrlsRequested = true
         contentUrlsParams = { requests }
         return Promise.resolve({
-          result: {
-            urls: [
-              {
-                url: 'https://example.com/test-image.png',
-                folderId: testFolderId,
-                objectKey: testObjectKey,
-              },
-            ],
-          },
+          result: [
+            {
+              url: 'https://example.com/test-image.png',
+              folderId: testFolderId,
+              objectKey: testObjectKey,
+            },
+          ],
         })
       },
       getAppStorageSignedUrls: () =>
         Promise.resolve({
-          result: { urls: ['https://example.com/storage'] },
+          result: ['https://example.com/storage'],
         }),
       getAppUserAccessToken: () =>
         Promise.resolve({
           result: { accessToken: 'test-token', refreshToken: 'test-refresh' },
         }),
       updateContentMetadata: (
-        requests: {
+        params: {
           folderId: string
           objectKey: string
           hash: string
@@ -177,7 +181,7 @@ describe('Analyze Object Task Handler', () => {
       ) => {
         // console.log('updateContentMetadata', JSON.stringify(requests, null, 2))
         metadataUpdatedCalled = true
-        metadataUpdateParams = { requests }
+        metadataUpdateParams = params
         return Promise.resolve({ result: undefined })
       },
       query: () =>
@@ -192,10 +196,21 @@ describe('Analyze Object Task Handler', () => {
         Promise.resolve({
           result: { results: [] },
         }),
+      executeDockerJob: () =>
+        Promise.resolve({
+          result: { jobId: 'test-job-id', success: true, result: {} },
+        }),
+      queueAppTask: () =>
+        Promise.resolve({
+          result: undefined,
+        }),
     }
 
     // Test the analyze object task handler - this should complete successfully
-    await analyzeObjectTaskHandler(analyzeTask, mockServerClient)
+    await analyzeObjectTaskHandler(
+      { task: analyzeTask, event },
+      mockServerClient,
+    )
 
     // Verify the task was completed successfully with exact parameters
     expect(metadataUpdatedCalled).toBe(true)
@@ -208,13 +223,11 @@ describe('Analyze Object Task Handler', () => {
       requests: unknown[]
     }
     metadataUpdateParams = metadataUpdateParams as unknown as {
-      requests: {
-        folderId: string
-        objectKey: string
-        hash: string
-        metadata: ContentMetadataType
-      }[]
-    }
+      folderId: string
+      objectKey: string
+      hash: string
+      metadata: ContentMetadataType
+    }[]
     contentUrlsParams = contentUrlsParams as unknown as {
       requests: {
         folderId: string
@@ -266,7 +279,7 @@ describe('Analyze Object Task Handler', () => {
     })
 
     // Verify updateContentMetadata was called with correct parameters
-    expect(metadataUpdateParams.requests[0]).toEqual({
+    expect(metadataUpdateParams[0]).toEqual({
       folderId: testFolderId,
       objectKey: testObjectKey,
       hash: '379f5137831350c900e757b39e525b9db1426d53',
@@ -311,7 +324,7 @@ describe('Analyze Object Task Handler', () => {
         },
       },
     })
-    expect(metadataUpdateParams.requests[0]).toMatchObject({
+    expect(metadataUpdateParams[0]).toMatchObject({
       folderId: testFolderId,
       objectKey: testObjectKey,
     })

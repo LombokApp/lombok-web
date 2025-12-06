@@ -2,11 +2,11 @@ import type { ZodTypeAny } from 'zod'
 import { z } from 'zod'
 
 import type { AppSocketMessage } from './apps.types'
-import { jsonSerializableValueSchema } from './apps.types'
+import { jsonSerializableObjectSchema } from './apps.types'
 import { metadataEntrySchema } from './content.types'
 import { LogEntryLevel } from './platform.types'
 import { SignedURLsRequestMethod } from './storage.types'
-import { workerErrorDetailsSchema } from './task.types'
+import { storageAccessPolicySchema } from './task.types'
 
 export const logEntrySchema = z.object({
   message: z.string(),
@@ -60,23 +60,21 @@ export const getMetadataSignedUrlsSchema = z.array(
   }),
 )
 
-export const updateMetadataSchema = z.object({
-  updates: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      hash: z.string(),
-      metadata: z.record(z.string(), metadataEntrySchema),
-    }),
-  ),
-})
+export const updateMetadataSchema = z.array(
+  z.object({
+    folderId: z.string(),
+    objectKey: z.string(),
+    hash: z.string(),
+    metadata: z.record(z.string(), metadataEntrySchema),
+  }),
+)
 
 export const failHandleTaskSchema = z.object({
   taskId: z.string().uuid(),
   error: z.object({
     message: z.string(),
     code: z.string(),
-    details: workerErrorDetailsSchema.optional(),
+    details: jsonSerializableObjectSchema.optional(),
   }),
 })
 
@@ -84,14 +82,12 @@ export const completeHandleTaskSchema = z.object({
   taskId: z.string().uuid(),
 })
 
-export const getAppStorageSignedUrlsSchema = z.object({
-  requests: z.array(
-    z.object({
-      objectKey: z.string().min(1),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-    }),
-  ),
-})
+export const getAppStorageSignedUrlsSchema = z.array(
+  z.object({
+    objectKey: z.string().min(1),
+    method: z.nativeEnum(SignedURLsRequestMethod),
+  }),
+)
 
 export const dbQuerySchema = z.object({
   sql: z.string(),
@@ -101,7 +97,7 @@ export const dbQuerySchema = z.object({
 
 export const emitEventSchema = z.object({
   eventIdentifier: z.string(),
-  data: jsonSerializableValueSchema,
+  data: jsonSerializableObjectSchema,
 })
 
 export const dbExecSchema = z.object({
@@ -126,16 +122,16 @@ export const authenticateUserSchema = z.object({
   appIdentifier: z.string(),
 })
 
-export const executeDockerJobSchema = z.object({
-  profileName: z.string(),
-  jobName: z.string(),
-  jobInputData: jsonSerializableValueSchema,
-  waitForCompletion: z.boolean(),
+export const executeAppDockerJobSchema = z.object({
+  profileIdentifier: z.string(),
+  jobIdentifier: z.string(),
+  jobInputData: jsonSerializableObjectSchema,
+  storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
 export const queueAppTaskSchema = z.object({
   taskIdentifier: z.string(),
-  inputData: jsonSerializableValueSchema,
+  inputData: jsonSerializableObjectSchema,
   subjectContext: z
     .object({
       folderId: z.string(),
@@ -143,7 +139,9 @@ export const queueAppTaskSchema = z.object({
     })
     .optional(),
   userId: z.string().uuid().optional(),
+  storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   DB_QUERY: dbQuerySchema,
@@ -162,7 +160,7 @@ export const AppSocketMessageSchemaMap = {
   GET_WORKER_EXECUTION_DETAILS: getWorkerExecutionDetailsSchema,
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
   AUTHENTICATE_USER: authenticateUserSchema,
-  EXECUTE_DOCKER_JOB: executeDockerJobSchema,
+  EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
   QUEUE_APP_TASK: queueAppTaskSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 

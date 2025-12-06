@@ -392,6 +392,35 @@ describe('resolve-app-settings.util.ts', () => {
       })
     })
 
+    it.only('should handle folder disabled at the app level with no user or folder settings', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          appIdentifier: 'test_app',
+          folderScopeEnabledDefault: false,
+          userScopeEnabledDefault: true,
+          permissions: {
+            platform: [],
+            user: [],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: false,
+          source: 'system',
+        },
+        permissionsFallback: {
+          value: ['WRITE_OBJECTS'],
+          source: 'system',
+        },
+        enabled: null,
+        permissions: null,
+      })
+    })
+
     it('should use mixed fallbacks when only user default permissions are set', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
@@ -724,6 +753,35 @@ describe('resolve-app-settings.util.ts', () => {
         permissions: null,
         folderScopeEnabledDefault: true,
         folderScopePermissionsDefault: ['REINDEX_FOLDER'],
+      })
+    })
+
+    it('should still return disabled ath folder level when app.userScopeEnabledDefault is false but app.folderScopeEnabledDefault is true', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          appIdentifier: 'test_app',
+          userScopeEnabledDefault: false,
+          folderScopeEnabledDefault: true,
+          permissions: {
+            platform: [],
+            user: ['CREATE_FOLDERS'],
+            folder: [],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: false,
+          source: 'system',
+        },
+        permissionsFallback: {
+          value: [],
+          source: 'system',
+        },
+        enabled: null,
+        permissions: null,
       })
     })
 

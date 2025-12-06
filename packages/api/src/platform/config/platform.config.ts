@@ -6,6 +6,7 @@ import { isValidDockerHostPathOrHttp } from './docker-host.validator'
 
 // const _conf = {
 //   homelab: {
+//     type: 'docker_endpoint'
 //     host: 'http://10.1.3.20:2375',
 //     gpus: {
 //       'app:content_indexing': {
@@ -37,6 +38,7 @@ export const dockerHostConfigSchema = z
     z
       .object({
         host: z.string(), // the docker host endpoint (http or socket path)
+        type: z.enum(['docker_endpoint']),
         gpus: z
           .record(
             z.string(),
@@ -50,6 +52,8 @@ export const dockerHostConfigSchema = z
       .strict(),
   )
   .optional()
+
+export type DockerHostConfig = z.infer<typeof dockerHostConfigSchema>
 
 export const platformConfig = registerAs('platform', () => {
   const env = parseEnv({
@@ -87,7 +91,7 @@ export const platformConfig = registerAs('platform', () => {
   })
 
   return {
-    dockerHostConfig: env.DOCKER_HOST_CONFIG,
+    dockerHostConfig: env.DOCKER_HOST_CONFIG ?? {},
     installAppsOnStart: !!(
       env.INSTALL_APPS_ON_START === '1' || env.INSTALL_APPS_ON_START === 'true'
     ),

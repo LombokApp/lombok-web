@@ -1,6 +1,6 @@
 import { StorageProvisionDTO } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -137,7 +137,10 @@ export class ServerMetricsService {
       .select({ count: sql<string>`count(*)` })
       .from(tasksTable)
       .where(
-        sql`${tasksTable.errorAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+        and(
+          eq(tasksTable.success, false),
+          sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+        ),
       )
 
     // Get task errors in the last hour
@@ -145,7 +148,10 @@ export class ServerMetricsService {
       .select({ count: sql<string>`count(*)` })
       .from(tasksTable)
       .where(
-        sql`${tasksTable.errorAt} >= ${oneHourAgo.toISOString()}::timestamp`,
+        and(
+          eq(tasksTable.success, false),
+          sql`${tasksTable.completedAt} >= ${oneHourAgo.toISOString()}::timestamp`,
+        ),
       )
 
     // Event metrics

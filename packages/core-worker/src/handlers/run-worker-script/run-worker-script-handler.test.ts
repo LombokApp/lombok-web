@@ -1,5 +1,11 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type { AppLogEntry, SignedURLsRequestMethod } from '@lombokapp/types'
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type {
+  AppLogEntry,
+  EventDTO,
+  SignedURLsRequestMethod,
+  TaskDTO,
+} from '@lombokapp/types'
 import {
   afterAll,
   beforeAll,
@@ -172,54 +178,98 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
   })
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => {
-      if (ioServer) {
-        void ioServer.close(() => resolve())
-      } else {
-        resolve()
+    // Force close socket.io server with timeout
+    if (ioServer) {
+      // Disconnect all sockets in all namespaces immediately
+      for (const [_namespaceName, namespace] of ioServer._nsps) {
+        namespace.disconnectSockets(true)
       }
-    })
-    await new Promise<void>((resolve) => {
-      if (httpServer) {
-        httpServer.close(() => resolve())
-      } else {
-        resolve()
-      }
-    })
+      // Also disconnect from default namespace
+      ioServer.disconnectSockets(true)
+
+      // Close with timeout
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          void ioServer!.close(() => resolve())
+        }),
+        new Promise<void>((resolve) => {
+          setTimeout(() => {
+            // Force close if timeout
+            resolve()
+          }, 1000)
+        }),
+      ])
+    }
+
+    // Force close HTTP server with timeout
+    if (httpServer) {
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          httpServer!.close(() => resolve())
+        }),
+        new Promise<void>((resolve) => {
+          setTimeout(() => {
+            // Force destroy if timeout
+            if ('closeAllConnections' in httpServer!) {
+              ;(
+                httpServer as { closeAllConnections: () => void }
+              ).closeAllConnections()
+            }
+            resolve()
+          }, 1000)
+        }),
+      ])
+    }
   })
 
   it('completes run-worker-script task successfully', async () => {
     // Mock run_worker_script task and the underlying worker script task
-    const workerScriptTask: AppTask = {
+    const workerScriptTask: TaskDTO = {
       id: uuidV4(),
+      ownerIdentifier: 'core-worker',
+      eventId: uuidV4(),
+      taskDescription: 'object_added',
+      systemLog: [],
+      taskLog: [],
       taskIdentifier: 'object_added',
       inputData: {},
-      event: {
-        id: uuidV4(),
-        emitterIdentifier: 'test-emitter',
-        eventIdentifier: 'OBJECT_ADDED',
-        data: {},
-        createdAt: new Date().toISOString(),
-      },
       subjectFolderId: uuidV4(),
       subjectObjectKey: 'test-object-key',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
-    const runWorkerScriptEnvelopeTask: AppTask = {
+    const event: EventDTO = {
       id: uuidV4(),
+      emitterIdentifier: 'test-emitter',
+      eventIdentifier: 'OBJECT_ADDED',
+      data: {},
+      createdAt: new Date().toISOString(),
+    }
+
+    const runWorkerScriptEnvelopeTask: TaskDTO = {
+      id: uuidV4(),
+      ownerIdentifier: 'core-worker',
+      eventId: uuidV4(),
+      systemLog: [],
+      taskLog: [],
+      taskDescription: 'run_worker_script',
       taskIdentifier: 'run_worker_script',
       inputData: {},
-      event: {
-        id: uuidV4(),
-        emitterIdentifier: 'core-worker',
-        eventIdentifier: 'RUN_WORKER_SCRIPT',
-        data: {
-          taskId: workerScriptTask.id,
-          appIdentifier: 'demo',
-          workerIdentifier: 'demo_object_added_worker',
-        },
-        createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    const envelopeEvent: EventDTO = {
+      id: uuidV4(),
+      emitterIdentifier: 'core-worker',
+      eventIdentifier: 'RUN_WORKER_SCRIPT',
+      data: {
+        taskId: workerScriptTask.id,
+        appIdentifier: 'demo',
+        workerIdentifier: 'demo_object_added_worker',
       },
+      createdAt: new Date().toISOString(),
     }
 
     let completed = false
@@ -240,9 +290,9 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           },
         }),
       attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: workerScriptTask }),
+        Promise.resolve({ result: { task: workerScriptTask, event } }),
       attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: workerScriptTask }),
+        Promise.resolve({ result: { task: workerScriptTask, event } }),
       failHandleTask: () => {
         failed = true
         return Promise.resolve({ result: undefined })
@@ -254,15 +304,13 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       getContentSignedUrls: () => {
         getContentSignedUrlsCalled = true
         return Promise.resolve({
-          result: {
-            urls: [
-              {
-                url: 'https://example.com/test-image.png',
-                folderId: String(workerScriptTask.subjectFolderId),
-                objectKey: String(workerScriptTask.subjectObjectKey),
-              },
-            ],
-          },
+          result: [
+            {
+              url: 'https://example.com/test-image.png',
+              folderId: String(workerScriptTask.subjectFolderId),
+              objectKey: String(workerScriptTask.subjectObjectKey),
+            },
+          ],
         })
       },
     })
@@ -275,10 +323,14 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       removeWorkerDirectory: true,
     })
 
-    await handler(runWorkerScriptEnvelopeTask, mockServerClient)
+    await handler(
+      { task: runWorkerScriptEnvelopeTask, event: envelopeEvent },
+      mockServerClient,
+    )
 
     expect(failed).toBe(false)
     expect(completed).toBe(true)
     expect(getContentSignedUrlsCalled).toBe(true)
   })
 })
+/* eslint-enable @typescript-eslint/no-non-null-assertion */
