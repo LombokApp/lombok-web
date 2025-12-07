@@ -287,6 +287,8 @@ export class LocalDockerAdapter implements DockerAdapter {
         job_token: options.jobToken,
         worker_command: options.jobCommand, // Default worker path, can be customized per job class
         interface: options.jobInterface,
+        output_location: options.outputLocation,
+        platform_url: options.platformURL,
       }
 
       // Base64 encode the payload

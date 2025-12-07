@@ -8,6 +8,7 @@
       "identifier": "analyze_object",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
+      "triggers": ["platform:object_added"],
       "handler": {
         "type": "external"
       }

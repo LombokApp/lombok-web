@@ -38,9 +38,7 @@ interface OutputManifest {
 
 interface OutputFile {
   local_path: string
-  folder_id: string
   object_key: string
-  content_type: string
 }
 
 // =============================================================================
@@ -462,7 +460,6 @@ const handleVerboseLog: JobHandler = async (input, ctx) => {
 
 // File output job - demonstrates writing files and manifest
 interface FileOutputInput {
-  folder_id: string
   files: Array<{
     name: string
     content: string
@@ -473,14 +470,14 @@ interface FileOutputInput {
 const handleFileOutput: JobHandler = async (input, ctx) => {
   if (!isObject(input) || !ctx.outputDir) {
     throw new Error(
-      'Invalid input or no output directory: expected { folder_id: string, files: [...] }',
+      'Invalid input or no output directory: expected { files: [...] }',
     )
   }
 
-  const { folder_id, files } = input as unknown as FileOutputInput
+  const { files } = input as unknown as FileOutputInput
 
-  if (!folder_id || !Array.isArray(files)) {
-    throw new Error('folder_id and files array are required')
+  if (!Array.isArray(files)) {
+    throw new Error('files array is required')
   }
 
   ctx.logger.log(`Writing ${files.length} files to output directory`)
@@ -496,9 +493,7 @@ const handleFileOutput: JobHandler = async (input, ctx) => {
 
     manifestFiles.push({
       local_path: file.name,
-      folder_id: folder_id,
       object_key: file.name,
-      content_type: file.content_type ?? 'application/octet-stream',
     })
   }
 

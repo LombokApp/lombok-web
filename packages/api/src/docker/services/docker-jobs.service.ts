@@ -142,8 +142,13 @@ export class DockerJobsService {
   async executeDockerJob<T extends boolean>(
     params: DockerExecuteJobOptions,
   ): Promise<DockerExecResult<T>> {
-    const { jobIdentifier, jobInputData, profileHostConfigKey, profileSpec } =
-      params
+    const {
+      jobIdentifier,
+      jobInputData,
+      profileHostConfigKey,
+      profileSpec,
+      outputLocation,
+    } = params
 
     // generate a job id to represent this execution
     const jobId = crypto.randomUUID()
@@ -216,6 +221,8 @@ export class DockerJobsService {
       jobToken,
       jobIdentifier,
       jobInputData,
+      platformURL: `http${this._platformConfig.platformHttps ? 's' : ''}://${this._platformConfig.platformHost}${this._platformConfig.platformPort !== null ? `:${this._platformConfig.platformPort}` : ''}`,
+      outputLocation,
       jobCommand: jobDefinition.command,
       jobInterface:
         jobDefinition.kind === 'http'

@@ -32,6 +32,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		return fmt.Errorf("failed to ensure directories: %w", err)
 	}
 
+	var platformClient *platform.Client
+	if payload.PlatformURL != "" && payload.JobToken != "" {
+		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
+	}
+
 	// Create job output directory (worker can write files here)
 	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
 		return fmt.Errorf("failed to create job output directory: %w", err)
@@ -96,6 +101,13 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Track worker startup time
 	workerStartTime := time.Now()
+
+	if platformClient != nil {
+		ctx := context.Background()
+		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
+			logs.WriteAgentLog("warning: failed to signal start: %v", err)
+		}
+	}
 
 	// Start the worker process
 	if err := cmd.Start(); err != nil {
@@ -165,22 +177,24 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Handle file uploads and platform completion if configured
 	var uploadedFiles []types.UploadedFile
-	if payload.PlatformURL != "" && payload.JobToken != "" {
-		platformClient := platform.NewClient(payload.PlatformURL, payload.JobToken)
-
+	if platformClient != nil {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
 		if err != nil {
 			logs.WriteAgentLog("warning: failed to read manifest: %v", err)
 		} else if manifest != nil && len(manifest.Files) > 0 {
-			uploader := upload.NewUploader(platformClient)
-			ctx := context.Background()
-
-			uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest)
-			if err != nil {
-				logs.WriteAgentLog("warning: failed to upload files: %v", err)
+			if payload.OutputLocation == nil {
+				logs.WriteAgentLog("warning: output_location not provided; skipping uploads")
 			} else {
-				uploadedFiles = uploaded
+				uploader := upload.NewUploader(platformClient)
+				ctx := context.Background()
+
+				uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest, payload.OutputLocation)
+				if err != nil {
+					logs.WriteAgentLog("warning: failed to upload files: %v", err)
+				} else {
+					uploadedFiles = uploaded
+				}
 			}
 		}
 
@@ -226,7 +240,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Include uploaded files info
 	if len(uploadedFiles) > 0 {
-		result["uploaded_files"] = uploadedFiles
+		result["output_files"] = uploadedFiles
 	}
 
 	if exitCode != 0 {
@@ -245,8 +259,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		JobID:         payload.JobID,
 		JobClass:      payload.JobClass,
 		Timing:        timing,
-		UploadedFiles: uploadedFiles,
+		OutputFiles:   uploadedFiles,
 	}
+	jobResult.ExitCode = &exitCode
 	if workerResult != nil {
 		jobResult.Result = workerResult
 	}
@@ -255,7 +270,6 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			Code:    "WORKER_EXIT_ERROR",
 			Message: fmt.Sprintf("worker exited with code %d", exitCode),
 		}
-		jobResult.ExitCode = &exitCode
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {
 		logs.WriteAgentLog("warning: failed to write job result: %v", err)

@@ -1,7 +1,7 @@
 import { registerAs } from '@nestjs/config'
 import { z } from 'zod'
 
-import { isBoolean, parseEnv } from '../utils/config.util'
+import { isBoolean, isInteger, parseEnv } from '../utils/config.util'
 import { isValidDockerHostPathOrHttp } from './docker-host.validator'
 
 // const _conf = {
@@ -73,6 +73,8 @@ export const platformConfig = registerAs('platform', () => {
       .optional(),
     INSTALL_APPS_ON_START: z.string().refine(isBoolean).optional(),
     PLATFORM_HOST: z.string(),
+    PLATFORM_PORT: z.string().refine(isInteger).optional(),
+    PLATFORM_HTTPS: z.literal('false').or(z.literal('0')).optional(),
     INITIAL_USER: z.string().optional(),
     DISABLE_EMBEDDED_CORE_APP_WORKER: z.string().refine(isBoolean).optional(),
     INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),
@@ -96,6 +98,8 @@ export const platformConfig = registerAs('platform', () => {
       env.INSTALL_APPS_ON_START === '1' || env.INSTALL_APPS_ON_START === 'true'
     ),
     platformHost: env.PLATFORM_HOST,
+    platformHttps: env.PLATFORM_HTTPS !== 'false' && env.PLATFORM_HTTPS !== '0',
+    platformPort: env.PLATFORM_PORT ? parseInt(env.PLATFORM_PORT, 10) : null,
     initialUser: env.INITIAL_USER,
     disableEmbeddedCoreAppWorker:
       env.DISABLE_EMBEDDED_CORE_APP_WORKER === '1' ||

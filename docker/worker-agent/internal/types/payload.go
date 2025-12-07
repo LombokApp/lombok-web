@@ -6,13 +6,14 @@ import (
 
 // JobPayload is the decoded payload sent to the agent via run-job command
 type JobPayload struct {
-	JobID         string          `json:"job_id"`
-	JobClass      string          `json:"job_class"`
-	WorkerCommand []string        `json:"worker_command"`
-	Interface     InterfaceConfig `json:"interface"`
-	JobInput      json.RawMessage `json:"job_input"`
-	JobToken      string          `json:"job_token,omitempty"`    // JWT for platform auth
-	PlatformURL   string          `json:"platform_url,omitempty"` // e.g. "https://api.lombok.app"
+	JobID          string          `json:"job_id"`
+	JobClass       string          `json:"job_class"`
+	WorkerCommand  []string        `json:"worker_command"`
+	Interface      InterfaceConfig `json:"interface"`
+	JobInput       json.RawMessage `json:"job_input"`
+	JobToken       string          `json:"job_token,omitempty"`       // JWT for platform auth
+	PlatformURL    string          `json:"platform_url,omitempty"`    // e.g. "https://api.lombok.app"
+	OutputLocation *OutputLocation `json:"output_location,omitempty"` // Where to upload outputs (optional)
 }
 
 // InterfaceConfig describes how the agent communicates with the worker
@@ -63,14 +64,14 @@ type JobMeta struct {
 
 // JobResult represents the final result of a job execution
 type JobResult struct {
-	Success       bool                   `json:"success"`
-	JobID         string                 `json:"job_id"`
-	JobClass      string                 `json:"job_class"`
-	Result        interface{}            `json:"result,omitempty"`
-	Error         *JobError              `json:"error,omitempty"`
-	UploadedFiles []UploadedFile         `json:"uploaded_files,omitempty"`
-	Timing        map[string]interface{} `json:"timing,omitempty"`
-	ExitCode      *int                   `json:"exit_code,omitempty"`
+	Success     bool                   `json:"success"`
+	JobID       string                 `json:"job_id"`
+	JobClass    string                 `json:"job_class"`
+	Result      interface{}            `json:"result,omitempty"`
+	Error       *JobError              `json:"error,omitempty"`
+	OutputFiles []UploadedFile         `json:"output_files,omitempty"`
+	Timing      map[string]interface{} `json:"timing,omitempty"`
+	ExitCode    *int                   `json:"exit_code,omitempty"`
 }
 
 // HTTPJobRequest is the payload sent to persistent HTTP workers
@@ -123,38 +124,48 @@ type OutputManifest struct {
 
 // OutputFile describes a single file to be uploaded
 type OutputFile struct {
-	LocalPath   string `json:"local_path"`   // Relative path within output directory
-	FolderID    string `json:"folder_id"`    // Target folder UUID in platform
-	ObjectKey   string `json:"object_key"`   // Object key/path within the folder
-	ContentType string `json:"content_type"` // MIME type of the file
+	LocalPath string `json:"local_path"` // Relative path within output directory
+	ObjectKey string `json:"object_key"` // Object key/path within the folder (worker-provided)
+}
+
+// OutputLocation describes where outputs should be stored
+type OutputLocation struct {
+	FolderID string `json:"folder_id"`
+	Prefix   string `json:"prefix,omitempty"`
 }
 
 // =============================================================================
 // Platform API Types
 // =============================================================================
 
-// UploadURLRequest is sent to the platform to request presigned upload URLs
-type UploadURLRequest struct {
-	Files []UploadFileRequest `json:"files"`
-}
+// SignedURLsRequestMethod represents the HTTP method for a presigned URL
+type SignedURLsRequestMethod string
 
-// UploadFileRequest describes a file for which we need a presigned URL
-type UploadFileRequest struct {
-	FolderID    string `json:"folderId"`
-	ObjectKey   string `json:"objectKey"`
-	ContentType string `json:"contentType"`
+const (
+	SignedURLsRequestMethodPUT    SignedURLsRequestMethod = "PUT"
+	SignedURLsRequestMethodDELETE SignedURLsRequestMethod = "DELETE"
+	SignedURLsRequestMethodGET    SignedURLsRequestMethod = "GET"
+	SignedURLsRequestMethodHEAD   SignedURLsRequestMethod = "HEAD"
+)
+
+// UploadURLRequest describes a presigned URL request
+type UploadURLRequest struct {
+	FolderID  string                  `json:"folderId"`
+	ObjectKey string                  `json:"objectKey"`
+	Method    SignedURLsRequestMethod `json:"method"`
 }
 
 // UploadURLResponse is the response from the platform with presigned URLs
 type UploadURLResponse struct {
-	Uploads []UploadURL `json:"uploads"`
+	URLs []UploadURL `json:"urls"`
 }
 
 // UploadURL contains the presigned URL for a single file upload
 type UploadURL struct {
-	FolderID     string `json:"folderId"`
-	ObjectKey    string `json:"objectKey"`
-	PresignedURL string `json:"presignedUrl"`
+	FolderID  string                  `json:"folderId"`
+	ObjectKey string                  `json:"objectKey"`
+	Method    SignedURLsRequestMethod `json:"method"`
+	URL       string                  `json:"url"`
 }
 
 // CompletionRequest is sent to the platform to signal job completion

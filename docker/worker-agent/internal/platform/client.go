@@ -14,8 +14,9 @@ import (
 
 const (
 	// API endpoint paths
-	uploadURLsPath = "/api/v1/docker/worker-jobs/%s/request-upload-urls"
-	completionPath = "/api/v1/docker/worker-jobs/%s/complete"
+	uploadURLsPath = "/api/v1/docker/jobs/%s/request-presigned-urls"
+	startPath      = "/api/v1/docker/jobs/%s/start"
+	completionPath = "/api/v1/docker/jobs/%s/complete"
 
 	// HTTP timeouts
 	requestTimeout = 30 * time.Second
@@ -40,18 +41,14 @@ func NewClient(baseURL, token string) *Client {
 }
 
 // RequestUploadURLs requests presigned URLs for uploading files
-func (c *Client) RequestUploadURLs(ctx context.Context, jobID string, files []types.UploadFileRequest) (*types.UploadURLResponse, error) {
+func (c *Client) RequestUploadURLs(ctx context.Context, jobID string, files []types.UploadURLRequest) (*types.UploadURLResponse, error) {
 	if c.baseURL == "" || c.token == "" {
 		return nil, fmt.Errorf("platform client not configured (missing baseURL or token)")
 	}
 
 	url := fmt.Sprintf(c.baseURL+uploadURLsPath, jobID)
 
-	reqBody := types.UploadURLRequest{
-		Files: files,
-	}
-
-	bodyBytes, err := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(files)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -85,6 +82,35 @@ func (c *Client) RequestUploadURLs(ctx context.Context, jobID string, files []ty
 	}
 
 	return &result, nil
+}
+
+// SignalStart signals job start to the platform
+func (c *Client) SignalStart(ctx context.Context, jobID string) error {
+	if c.baseURL == "" || c.token == "" {
+		return fmt.Errorf("platform client not configured (missing baseURL or token)")
+	}
+
+	url := fmt.Sprintf(c.baseURL+startPath, jobID)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, http.NoBody)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.token)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		respBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("platform returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	return nil
 }
 
 // SignalCompletion signals job completion to the platform

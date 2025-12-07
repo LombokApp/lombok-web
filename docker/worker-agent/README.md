@@ -71,10 +71,10 @@ The `job_token` contains claims restricting which folders can be uploaded to:
 {
   "job_id": "uuid",
   "exp": 1234567890,
-  "allowed_uploads": {
-    "folder-uuid-1": ["outputs/", "results/"],
-    "folder-uuid-2": ["images/"]
-  }
+  "storage_access_policy": [
+    { "folderId": "folder-uuid-1", "prefix": "outputs/", "method": "PUT" },
+    { "folderId": "folder-uuid-2", "prefix": "inputs/", "method": "GET" }
+  ]
 }
 ```
 
@@ -102,7 +102,7 @@ Both interfaces output a consistent JSON result to stdout:
   "job_class": "string",
   "exit_code": 0,
   "result": { "computed": "data", "from": "worker" },
-  "uploaded_files": [
+  "output_files": [
     { "folder_id": "folder-uuid", "object_key": "outputs/result.png" }
   ]
 }
@@ -124,7 +124,7 @@ Both interfaces output a consistent JSON result to stdout:
 }
 ```
 
-**Note**: The `result` field contains the worker's output. Even failed jobs may include partial results if the worker produced output before failing. The `uploaded_files` field is present when files were successfully uploaded to S3 (see File Output section).
+**Note**: The `result` field contains the worker's output. Even failed jobs may include partial results if the worker produced output before failing. The `output_files` field is present when files were successfully uploaded to S3 (see File Output section).
 
 ---
 
@@ -519,18 +519,14 @@ Manifest format:
 
 ```json
 {
-  "files": [
+ "files": [
     {
       "local_path": "result.png",
-      "folder_id": "folder-uuid-1",
-      "object_key": "outputs/result.png",
-      "content_type": "image/png"
+      "object_key": "result.png"
     },
     {
       "local_path": "data.json",
-      "folder_id": "folder-uuid-1",
-      "object_key": "outputs/data.json",
-      "content_type": "application/json"
+      "object_key": "data.json"
     }
   ]
 }
@@ -551,50 +547,65 @@ After job completion (success or failure), if `platform_url` and `job_token` are
 
 When `platform_url` and `job_token` are provided, the agent communicates with the platform.
 
+If the worker produces files, the payload can include an optional `output_location` describing where to store them:
+
+```json
+"output_location": {
+  "folder_id": "folder-uuid-1",
+  "prefix": "outputs" // optional, will be prepended to each manifest object_key
+}
+```
+
 ### Request Presigned Upload URLs
 
 ```http
-POST {platform_url}/api/v1/docker/worker-jobs/{job_id}/request-upload-urls
+POST {platform_url}/api/v1/docker/jobs/{job_id}/request-presigned-urls
 Authorization: Bearer {job_token}
 Content-Type: application/json
 
-{
-  "files": [
-    {
-      "folder_id": "folder-uuid-1",
-      "object_key": "outputs/result.png",
-      "content_type": "image/png"
-    }
-  ]
-}
+[
+  {
+    "folderId": "folder-uuid-1",
+    "objectKey": "outputs/result.png",
+    "method": "PUT"
+  }
+]
 ```
 
 Response:
 
 ```json
 {
-  "uploads": [
+  "urls": [
     {
-      "folder_id": "folder-uuid-1",
-      "object_key": "outputs/result.png",
-      "presigned_url": "https://s3..."
+      "folderId": "folder-uuid-1",
+      "objectKey": "outputs/result.png",
+      "method": "PUT",
+      "url": "https://s3..."
     }
   ]
 }
 ```
 
+### Signal Start
+
+```http
+POST {platform_url}/api/v1/docker/jobs/{job_id}/start
+Authorization: Bearer {job_token}
+```
+
 ### Signal Completion
 
 ```http
-POST {platform_url}/api/v1/docker/worker-jobs/{job_id}/complete
+POST {platform_url}/api/v1/docker/jobs/{job_id}/complete
 Authorization: Bearer {job_token}
 Content-Type: application/json
 
 {
   "success": true,
   "result": { "computed": "data" },
-  "uploaded_files": [
-    { "folder_id": "folder-uuid-1", "object_key": "outputs/result.png" }
+  "uploadedFiles": [
+    { "folderId": "folder-uuid-1", "objectKey": "outputs/result.png" }
   ]
 }
 ```
@@ -608,7 +619,7 @@ For failed jobs:
     "code": "WORKER_EXIT_ERROR",
     "message": "worker exited with code 1"
   },
-  "uploaded_files": []
+  "uploadedFiles": []
 }
 ```
 
@@ -622,42 +633,52 @@ type OutputManifest struct {
 
 type OutputFile struct {
     LocalPath   string `json:"local_path"`
-    FolderID    string `json:"folder_id"`
     ObjectKey   string `json:"object_key"`
-    ContentType string `json:"content_type"`
+}
+
+// Where outputs should be stored (optional on payload)
+type OutputLocation struct {
+    FolderID string `json:"folder_id"`
+    Prefix   string `json:"prefix,omitempty"`
 }
 
 // Platform API request/response types
-type UploadURLRequest struct {
-    Files []UploadFileRequest `json:"files"`
-}
+type SignedURLsRequestMethod string
 
-type UploadFileRequest struct {
-    FolderID    string `json:"folder_id"`
-    ObjectKey   string `json:"object_key"`
-    ContentType string `json:"content_type"`
+const (
+    SignedURLsRequestMethodPUT    SignedURLsRequestMethod = "PUT"
+    SignedURLsRequestMethodDELETE SignedURLsRequestMethod = "DELETE"
+    SignedURLsRequestMethodGET    SignedURLsRequestMethod = "GET"
+    SignedURLsRequestMethodHEAD   SignedURLsRequestMethod = "HEAD"
+)
+
+type UploadURLRequest struct {
+    FolderID  string                  `json:"folderId"`
+    ObjectKey string                  `json:"objectKey"`
+    Method    SignedURLsRequestMethod `json:"method"`
 }
 
 type UploadURLResponse struct {
-    Uploads []UploadURL `json:"uploads"`
+    URLs []UploadURL `json:"urls"`
 }
 
 type UploadURL struct {
-    FolderID     string `json:"folder_id"`
-    ObjectKey    string `json:"object_key"`
-    PresignedURL string `json:"presigned_url"`
+    FolderID  string `json:"folderId"`
+    ObjectKey string `json:"objectKey"`
+    Method    string `json:"method"`
+    URL       string `json:"url"`
 }
 
 type CompletionRequest struct {
     Success       bool            `json:"success"`
     Result        json.RawMessage `json:"result,omitempty"`
     Error         *JobError       `json:"error,omitempty"`
-    UploadedFiles []UploadedFile  `json:"uploaded_files,omitempty"`
+    OutputFiles   []OutputFile    `json:"outputFiles,omitempty"`
 }
 
-type UploadedFile struct {
-    FolderID  string `json:"folder_id"`
-    ObjectKey string `json:"object_key"`
+type OutputFile struct {
+    FolderID  string `json:"folderId"`
+    ObjectKey string `json:"objectKey"`
 }
 ```
 
@@ -711,8 +732,8 @@ Agent                      Platform                     S3
    |                          |                          |
    | (job complete, manifest exists)                     |
    |                          |                          |
-   |-- POST /request-upload-urls -->|                    |
-   |<-- {uploads: [...]} -----|                          |
+   |-- POST /request-presigned-urls -->|                 |
+   |<-- {urls: [...]} --------|                          |
    |                          |                          |
    |-- PUT presigned URL ----------------------------->|
    |<-- 200 OK ----------------------------------------|
@@ -866,9 +887,7 @@ The agent supports automatic upload of worker-generated files to the platform. T
         "files": [
           {
             "local_path": "relative/path/from_output_dir.ext",
-            "folder_id": "folder-uuid-1",
-            "object_key": "outputs/path.ext",
-            "content_type": "mime/type"
+            "object_key": "worker-chosen/path.ext"
           }
         ]
       }
@@ -876,16 +895,14 @@ The agent supports automatic upload of worker-generated files to the platform. T
   - `local_path`:
     - Relative to `job_output_dir`.
     - Must point to an existing file by the time the agent checks for uploads.
-  - `folder_id` and `object_key`:
-    - Provided by the platform via job configuration (your worker can treat them as opaque strings).
-  - `content_type`:
-    - Standard MIME type, used when uploading to S3.
+  - `object_key`:
+    - Worker-chosen relative key. The agent will prepend the optional `output_location.prefix` and use the `output_location.folder_id` from the job payload when uploading.
 
 The agent will:
 
 - Read `__manifest__.json` after the job reaches `completed` or `failed`.
-- Request presigned URLs from the platform for each file entry.
+- Request presigned URLs from the platform for each file entry (using `output_location.folder_id` and prefixed object keys).
 - Upload the files to S3.
-- Include the final `uploaded_files` list in the job completion payload back to the platform.
+- Include the final `output_files` list in the job completion payload back to the platform.
 
 If your worker does not create a manifest, the job will still run correctly; it will simply produce no uploaded files.

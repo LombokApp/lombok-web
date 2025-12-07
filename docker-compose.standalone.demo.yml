@@ -5,6 +5,8 @@ services:
     container_name: lombok-standalone-demo-app
     environment:
       PLATFORM_HOST: lombokdemo.localhost
+      PLATFORM_HTTPS: false
+      PLATFORM_PORT: 8090
       INITIAL_USER: demo
       AUTH_JWT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # replace with a random string
       DB_PASSWORD: demodemodemodemodemodemo

@@ -196,7 +196,7 @@ describe('Analyze Object Task Handler', () => {
         Promise.resolve({
           result: { results: [] },
         }),
-      executeDockerJob: () =>
+      executeAppDockerJob: () =>
         Promise.resolve({
           result: { jobId: 'test-job-id', success: true, result: {} },
         }),

@@ -356,6 +356,7 @@ describe('Docker Jobs', () => {
         jobCommand: ['./start_dummy_worker.sh'],
         jobId: expect.any(String),
         jobInputData: {},
+        platformURL: 'http://localhost:3000',
         jobInterface: {
           kind: 'exec_per_job',
         },
@@ -382,6 +383,7 @@ describe('Docker Jobs', () => {
         jobCommand: ['./start_dummy_worker.sh'],
         jobId: expect.any(String),
         jobInputData: {},
+        platformURL: 'http://localhost:3000',
         jobInterface: {
           kind: 'exec_per_job',
         },

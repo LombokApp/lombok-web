@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"lombok-worker-agent/internal/config"
@@ -64,19 +65,23 @@ func ReadManifest(jobID string) (*types.OutputManifest, error) {
 	return &manifest, nil
 }
 
-// UploadFiles uploads all files from the manifest
-func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *types.OutputManifest) ([]types.UploadedFile, error) {
+// UploadFiles uploads all files from the output manifest
+func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *types.OutputManifest, outputLocation *types.OutputLocation) ([]types.UploadedFile, error) {
 	if manifest == nil || len(manifest.Files) == 0 {
 		return nil, nil
 	}
+	if outputLocation == nil {
+		return nil, fmt.Errorf("output location not provided")
+	}
 
 	// Build the request for presigned URLs
-	fileRequests := make([]types.UploadFileRequest, len(manifest.Files))
+	fileRequests := make([]types.UploadURLRequest, len(manifest.Files))
 	for i, f := range manifest.Files {
-		fileRequests[i] = types.UploadFileRequest{
-			FolderID:    f.FolderID,
-			ObjectKey:   f.ObjectKey,
-			ContentType: f.ContentType,
+		finalObjectKey := buildObjectKey(outputLocation.Prefix, f.ObjectKey)
+		fileRequests[i] = types.UploadURLRequest{
+			FolderID:  outputLocation.FolderID,
+			ObjectKey: finalObjectKey,
+			Method:    types.SignedURLsRequestMethodPUT,
 		}
 	}
 
@@ -87,10 +92,10 @@ func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *type
 	}
 
 	// Build a map of (folder_id, object_key) -> presigned_url
-	urlMap := make(map[string]string)
-	for _, upload := range urlResp.Uploads {
-		key := upload.FolderID + ":" + upload.ObjectKey
-		urlMap[key] = upload.PresignedURL
+	urlMap := make(map[string]types.UploadURL)
+	for _, upload := range urlResp.URLs {
+		key := fmt.Sprintf("%s:%s:%s", upload.FolderID, upload.ObjectKey, upload.Method)
+		urlMap[key] = upload
 	}
 
 	// Upload each file
@@ -98,20 +103,24 @@ func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *type
 	var uploaded []types.UploadedFile
 
 	for _, f := range manifest.Files {
-		key := f.FolderID + ":" + f.ObjectKey
-		presignedURL, ok := urlMap[key]
+		finalObjectKey := buildObjectKey(outputLocation.Prefix, f.ObjectKey)
+		key := fmt.Sprintf("%s:%s:%s", outputLocation.FolderID, finalObjectKey, types.SignedURLsRequestMethodPUT)
+		uploadURL, ok := urlMap[key]
 		if !ok {
-			return uploaded, fmt.Errorf("no presigned URL for %s/%s", f.FolderID, f.ObjectKey)
+			return uploaded, fmt.Errorf("no presigned URL for %s/%s", outputLocation.FolderID, finalObjectKey)
+		}
+		if uploadURL.Method != types.SignedURLsRequestMethodPUT {
+			return uploaded, fmt.Errorf("unexpected presigned method %s for %s/%s", uploadURL.Method, outputLocation.FolderID, finalObjectKey)
 		}
 
 		localPath := filepath.Join(outputDir, f.LocalPath)
-		if err := u.uploadFile(ctx, presignedURL, localPath, f.ContentType); err != nil {
+		if err := u.uploadFile(ctx, uploadURL.URL, localPath, ""); err != nil {
 			return uploaded, fmt.Errorf("failed to upload %s: %w", f.LocalPath, err)
 		}
 
 		uploaded = append(uploaded, types.UploadedFile{
-			FolderID:  f.FolderID,
-			ObjectKey: f.ObjectKey,
+			FolderID:  uploadURL.FolderID,
+			ObjectKey: uploadURL.ObjectKey,
 		})
 	}
 
@@ -130,6 +139,11 @@ func (u *Uploader) uploadFile(ctx context.Context, presignedURL, localPath, cont
 	stat, err := file.Stat()
 	if err != nil {
 		return fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// Determine content type if not provided
+	if contentType == "" {
+		contentType = detectContentType(file)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "PUT", presignedURL, file)
@@ -152,4 +166,27 @@ func (u *Uploader) uploadFile(ctx context.Context, presignedURL, localPath, cont
 	}
 
 	return nil
+}
+
+func buildObjectKey(prefix, objectKey string) string {
+	if prefix == "" {
+		return strings.TrimPrefix(objectKey, "/")
+	}
+
+	cleanPrefix := strings.TrimSuffix(prefix, "/")
+	cleanObject := strings.TrimPrefix(objectKey, "/")
+
+	return fmt.Sprintf("%s/%s", cleanPrefix, cleanObject)
+}
+
+func detectContentType(file *os.File) string {
+	buffer := make([]byte, 512)
+	n, _ := file.Read(buffer)
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return "application/octet-stream"
+	}
+	if n > 0 {
+		return http.DetectContentType(buffer[:n])
+	}
+	return "application/octet-stream"
 }

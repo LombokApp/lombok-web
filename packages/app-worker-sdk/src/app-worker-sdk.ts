@@ -96,7 +96,7 @@ export interface IAppPlatformService {
   batch: (
     params: AppSocketMessageDataMap['DB_BATCH'],
   ) => Promise<AppAPIResponse<{ results: unknown[] }>>
-  executeDockerJob: (
+  executeAppDockerJob: (
     params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
   ) => Promise<
     AppAPIResponse<{ jobId: string; success: boolean; result: unknown }>
@@ -218,9 +218,9 @@ export const buildAppClient = (
         IAppPlatformService['batch']
       >
     },
-    executeDockerJob(params) {
+    executeAppDockerJob(params) {
       return emitWithAck('EXECUTE_APP_DOCKER_JOB', params) as ReturnType<
-        IAppPlatformService['executeDockerJob']
+        IAppPlatformService['executeAppDockerJob']
       >
     },
     queueAppTask(params) {

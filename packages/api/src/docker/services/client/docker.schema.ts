@@ -55,6 +55,11 @@ export interface ContainerWorkerExecuteOptions<T extends boolean> {
         kind: 'exec_per_job'
       }
   jobInputData?: JsonSerializableObject
+  outputLocation?: {
+    folderId: string
+    prefix?: string
+  }
+  platformURL: string
   volumes?: Record<string, string>
   gpus?: { driver: string; deviceIds: string[] } | undefined
 }
@@ -64,6 +69,9 @@ export const dockerExecuteJobOptionsSchema = z.object({
   storageAccessPolicy: storageAccessPolicySchema.optional(),
   profileSpec: containerProfileConfigSchema,
   profileHostConfigKey: z.string(),
+  outputLocation: z
+    .object({ folderId: z.string(), prefix: z.string().optional() })
+    .optional(),
   jobIdentifier: z.string(),
   jobInputData: jsonSerializableObjectSchema,
 })

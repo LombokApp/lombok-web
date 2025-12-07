@@ -60,7 +60,7 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     batch: async () => ({ result: { results: [] } }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    executeDockerJob: async () => ({
+    executeAppDockerJob: async () => ({
       result: { jobId: 'job-id', success: true, result: {} },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await

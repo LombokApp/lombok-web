@@ -3,7 +3,9 @@ services:
     image: ghcr.io/lombokapp/lombok:latest
     container_name: lombok-demo-app
     environment:
-      PLATFORM_HOST: http://lombokdemo.localhost
+      PLATFORM_HOST: lombokdemo.localhost
+      PLATFORM_HTTPS: false
+      PLATFORM_PORT: 8090
       INITIAL_USER: demo
       AUTH_JWT_SECRET: 00000000000000000000000000000000 # replace with a random string
       DB_NAME: lombok_demo_db

@@ -1772,7 +1772,13 @@ export class AppService {
       profileIdentifier,
     )
 
-    // TODO: validate folder access for the requesting app
+    // validate the storage access policy rules if any are provided
+    if (storageAccessPolicy.length) {
+      await this.validateAppStorageAccessPolicy({
+        appIdentifier,
+        storageAccessPolicy,
+      })
+    }
 
     // Execute the docker job
     return this.dockerJobsService.executeDockerJob({
