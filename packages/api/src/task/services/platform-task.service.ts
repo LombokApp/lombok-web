@@ -7,7 +7,9 @@ import {
 import { Maybe } from '@lombokapp/utils'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { and, count, eq, isNull, sql } from 'drizzle-orm'
+import { AppService } from 'src/app/services/app.service'
 import { eventsTable } from 'src/event/entities/event.entity'
+import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { PlatformTaskName } from 'src/task/task.constants'
@@ -30,7 +32,13 @@ export class PlatformTaskService {
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
+  get appService(): AppService {
+    return this._appService as AppService
+  }
   constructor(
+    @Inject(forwardRef(() => AppService))
+    private readonly _appService,
+    private readonly eventService: EventService,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
@@ -149,6 +157,49 @@ export class PlatformTaskService {
         throw new Error(`Task "${taskId}" has already been completed.`)
       }
 
+      const app = await this.appService.getApp(task.ownerIdentifier, {
+        enabled: true,
+      })
+
+      const taskDefinition = app?.config.tasks?.find(
+        (_task) => _task.identifier === task.taskIdentifier,
+      )
+      if (!taskDefinition) {
+        throw new Error(
+          `Task definition not found for task "${task.taskIdentifier}".`,
+        )
+      }
+
+      // enqueue the completion handler task if one was configured for this task
+      const completionHandlerTaskDefinition =
+        taskDefinition.handler.type === 'worker' ||
+        taskDefinition.handler.type === 'docker'
+
+      if (completionHandlerTaskDefinition) {
+        await this.eventService.emitEvent({
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:queue_app_task_completion_handler`,
+          data: {
+            appIdentifier: task.ownerIdentifier,
+            taskIdentifier: completionHandlerTaskDefinition.identifier,
+            completedTask: {
+              id: task.id,
+              success: completion.success,
+              ...(completion.success
+                ? { result: completion.result ?? null }
+                : { error: completion.error }),
+            },
+          },
+          ...(task.subjectFolderId && {
+            subjectContext: {
+              folderId: task.subjectFolderId,
+              ...(task.subjectObjectKey && {
+                objectKey: task.subjectObjectKey,
+              }),
+            },
+          }),
+        })
+      }
       // build the task system log
       const completionSystemLog: SystemLogEntry = {
         at: now,

@@ -320,7 +320,7 @@ export class WorkerJobService {
       await this.platformTaskService.registerTaskCompletion(
         dockerTask.id,
         success
-          ? { success: true }
+          ? { success: true, result }
           : { success: false, error: resolvedError, requeue: { delayMs: 0 } },
         { tx },
       )

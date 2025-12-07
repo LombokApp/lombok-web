@@ -17,6 +17,7 @@ import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
 import { platformConfig } from './config'
 import { QueueAppTaskProcessor } from './processors/queue-app-task.task-processor'
+import { QueueAppTaskCompletionHandlerTaskProcessor } from './processors/queue-app-task-completion-handler.task-processor'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
@@ -40,6 +41,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     QueueAppTaskProcessor,
+    QueueAppTaskCompletionHandlerTaskProcessor,
   ],
   controllers: [],
 })

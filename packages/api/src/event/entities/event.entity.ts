@@ -7,7 +7,7 @@ export const eventsTable = pgTable('events', {
   id: uuid('id').primaryKey(),
   eventIdentifier: text('eventIdentifier').notNull(),
   emitterIdentifier: text('emitterIdentifier').notNull(),
-  userId: text('userId'),
+  userId: uuid('userId'),
   subjectFolderId: uuid('subjectFolderId').references(() => foldersTable.id),
   subjectObjectKey: text('subjectObjectKey'),
   data: jsonb('data').$type<JsonSerializableObject>(),

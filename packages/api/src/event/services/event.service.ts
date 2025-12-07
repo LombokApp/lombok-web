@@ -259,7 +259,7 @@ export class EventService {
           shouldKeepEventDataContext: true,
         },
       ],
-      [`${PLATFORM_IDENTIFIER}:app_action:queue_app_task`]: [
+      [`${PLATFORM_IDENTIFIER}:app_action:${PlatformTaskName.QueueAppTask}`]: [
         {
           taskIdentifier: PlatformTaskName.QueueAppTask,
           taskDescription: 'Queue an app task',
@@ -267,6 +267,15 @@ export class EventService {
           shouldKeepEventDataContext: false,
         },
       ],
+      [`${PLATFORM_IDENTIFIER}:${PlatformTaskName.QueueAppTaskCompletionHandler}`]:
+        [
+          {
+            taskIdentifier: PlatformTaskName.QueueAppTaskCompletionHandler,
+            taskDescription: 'Queue an app task completion handler',
+            shouldKeepEventSubjectContext: true,
+            shouldKeepEventDataContext: false,
+          },
+        ],
     }
 
     const platformTasks =
