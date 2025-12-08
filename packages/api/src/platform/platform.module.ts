@@ -16,8 +16,6 @@ import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
 import { platformConfig } from './config'
-import { QueueAppTaskProcessor } from './processors/queue-app-task.task-processor'
-import { QueueAppTaskCompletionHandlerTaskProcessor } from './processors/queue-app-task-completion-handler.task-processor'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
@@ -38,11 +36,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     LogModule,
     DockerModule,
   ],
-  providers: [
-    { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
-    QueueAppTaskProcessor,
-    QueueAppTaskCompletionHandlerTaskProcessor,
-  ],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
   controllers: [],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

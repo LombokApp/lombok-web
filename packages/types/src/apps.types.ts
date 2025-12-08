@@ -78,12 +78,6 @@ export const appSocketMessageSchema = z.object({
 
 export type AppSocketApiRequest = z.infer<typeof appSocketMessageSchema>
 
-export interface AppTaskTrigger {
-  taskIdentifier: string
-  label: string
-  description: string
-}
-
 export enum ConfigParamType {
   boolean = 'boolean',
   string = 'string',

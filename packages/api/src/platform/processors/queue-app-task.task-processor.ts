@@ -1,4 +1,4 @@
-import { JsonSerializableObject, StorageAccessPolicy } from '@lombokapp/types'
+import { TaskTrigger } from '@lombokapp/types'
 import {
   forwardRef,
   Inject,
@@ -7,11 +7,10 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { AppService } from 'src/app/services/app.service'
-import { Event } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { BaseProcessor } from 'src/task/base.processor'
-import { Task, tasksTable } from 'src/task/entities/task.entity'
+import { Task } from 'src/task/entities/task.entity'
 import { PlatformTaskName } from 'src/task/task.constants'
 
 @Injectable()
@@ -34,84 +33,101 @@ export class QueueAppTaskProcessor extends BaseProcessor<PlatformTaskName.QueueA
     this.eventService = _eventService as EventService
   }
 
-  async run(task: Task, event: Event) {
-    const eventData = event.data as {
-      appIdentifier: string
-      taskIdentifier: string
-      inputData: JsonSerializableObject
-      storageAccessPolicy?: StorageAccessPolicy
-    }
-
-    const app = await this.appService.getApp(eventData.appIdentifier, {
-      enabled: true,
-    })
-
-    if (!app) {
-      throw new NotFoundException(`App not found: ${eventData.appIdentifier}`)
-    }
-    const taskDefinition = app.config.tasks?.find(
-      (_task) => _task.identifier === eventData.taskIdentifier,
-    )
-    if (!taskDefinition) {
-      this.logger.error('Task definition not found:', {
-        eventData,
-      })
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async run(task: Task, trigger: TaskTrigger) {
+    if (trigger.kind !== 'event') {
       throw new NotFoundException(
-        `Task definition not found: ${eventData.taskIdentifier}`,
+        'QueueAppTaskProcessor requires event trigger',
       )
     }
+    // const triggerData = trigger.data as {
+    //   eventId?: string
+    //   eventIdentifier?: string
+    //   emitterIdentifier?: string
+    //   payload: {
+    //     appIdentifier: string
+    //     taskIdentifier: string
+    //     inputData: JsonSerializableObject
+    //     storageAccessPolicy?: StorageAccessPolicy
+    //   }
+    //   userId?: string | null
+    //   subjectFolderId?: string | null
+    //   subjectObjectKey?: string | null
+    // }
+    // const eventPayload = triggerData.payload
 
-    if (event.userId) {
-      await this.appService.validateAppUserAccess({
-        appIdentifier: eventData.appIdentifier,
-        userId: event.userId,
-      })
-    }
+    // const app = await this.appService.getApp(eventPayload.appIdentifier, {
+    //   enabled: true,
+    // })
 
-    if (event.subjectFolderId) {
-      await this.appService.validateAppFolderAccess({
-        appIdentifier: eventData.appIdentifier,
-        folderId: event.subjectFolderId,
-      })
-    }
+    // if (!app) {
+    //   throw new NotFoundException(
+    //     `App not found: ${eventPayload.appIdentifier}`,
+    //   )
+    // }
+    // const taskDefinition = app.config.tasks?.find(
+    //   (_task) => _task.identifier === eventPayload.taskIdentifier,
+    // )
+    // if (!taskDefinition) {
+    //   this.logger.error('Task definition not found:', {
+    //     triggerData,
+    //   })
+    //   throw new NotFoundException(
+    //     `Task definition not found: ${eventPayload.taskIdentifier}`,
+    //   )
+    // }
 
-    if (eventData.storageAccessPolicy?.length) {
-      await this.appService.validateAppStorageAccessPolicy({
-        appIdentifier: eventData.appIdentifier,
-        storageAccessPolicy: eventData.storageAccessPolicy,
-      })
-    }
+    // if (triggerData.userId) {
+    //   await this.appService.validateAppUserAccess({
+    //     appIdentifier: eventPayload.appIdentifier,
+    //     userId: triggerData.userId,
+    //   })
+    // }
 
-    await this.ormService.db.transaction(async (tx) => {
-      const now = new Date()
-      const newTask = {
-        id: crypto.randomUUID(),
-        ownerIdentifier: eventData.appIdentifier,
-        taskDescription: taskDefinition.description,
-        createdAt: now,
-        updatedAt: now,
-        handlerType: taskDefinition.handler.type,
-        handlerIdentifier:
-          taskDefinition.handler.type === 'worker' ||
-          taskDefinition.handler.type === 'docker'
-            ? taskDefinition.handler.identifier
-            : '',
-        eventId: event.id,
-        subjectFolderId: event.subjectFolderId,
-        subjectObjectKey: event.subjectObjectKey,
-        taskIdentifier: eventData.taskIdentifier,
-        inputData: eventData.inputData,
-        storageAccessPolicy: eventData.storageAccessPolicy,
-      }
-      await tx.insert(tasksTable).values(newTask)
-      if (
-        taskDefinition.handler.type === 'worker' ||
-        taskDefinition.handler.type === 'docker'
-      ) {
-        await this.eventService.emitRunnableTaskEnqueuedEvent(newTask, {
-          tx,
-        })
-      }
-    })
+    // if (triggerData.subjectFolderId) {
+    //   await this.appService.validateAppFolderAccess({
+    //     appIdentifier: eventPayload.appIdentifier,
+    //     folderId: triggerData.subjectFolderId,
+    //   })
+    // }
+
+    // if (eventPayload.storageAccessPolicy?.length) {
+    //   await this.appService.validateAppStorageAccessPolicy({
+    //     appIdentifier: eventPayload.appIdentifier,
+    //     storageAccessPolicy: eventPayload.storageAccessPolicy,
+    //   })
+    // }
+
+    // await this.ormService.db.transaction(async (tx) => {
+    //   const now = new Date()
+    //   const newTask = {
+    //     id: crypto.randomUUID(),
+    //     ownerIdentifier: eventPayload.appIdentifier,
+    //     taskDescription: taskDefinition.description,
+    //     createdAt: now,
+    //     updatedAt: now,
+    //     handlerType: taskDefinition.handler.type,
+    //     handlerIdentifier:
+    //       taskDefinition.handler.type === 'worker' ||
+    //       taskDefinition.handler.type === 'docker'
+    //         ? taskDefinition.handler.identifier
+    //         : '',
+    //     trigger,
+    //     subjectFolderId: triggerData.subjectFolderId ?? undefined,
+    //     subjectObjectKey: triggerData.subjectObjectKey ?? undefined,
+    //     taskIdentifier: eventPayload.taskIdentifier,
+    //     inputData: eventPayload.inputData,
+    //     storageAccessPolicy: eventPayload.storageAccessPolicy,
+    //   }
+    //   await tx.insert(tasksTable).values(newTask)
+    //   if (
+    //     taskDefinition.handler.type === 'worker' ||
+    //     taskDefinition.handler.type === 'docker'
+    //   ) {
+    //     await this.eventService.emitRunnableTaskEnqueuedEvent(newTask, {
+    //       tx,
+    //     })
+    //   }
+    // })
   }
 }

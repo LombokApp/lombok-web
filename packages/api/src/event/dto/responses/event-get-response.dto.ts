@@ -1,10 +1,10 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { eventSchema } from '../event.dto'
+import { eventSchemaWithTargetLocationContext } from '../event.dto'
 
 export const eventGetResponseSchema = z.object({
-  event: eventSchema,
+  event: eventSchemaWithTargetLocationContext,
 })
 
 export class EventGetResponse extends createZodDto(eventGetResponseSchema) {}

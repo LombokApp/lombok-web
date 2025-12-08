@@ -1,5 +1,5 @@
+import { TaskTrigger } from '@lombokapp/types'
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
-import { Event } from 'src/event/entities/event.entity'
 import { BaseProcessor } from 'src/task/base.processor'
 import { Task } from 'src/task/entities/task.entity'
 import { PlatformTaskName } from 'src/task/task.constants'
@@ -13,13 +13,23 @@ export class ReindexFolderProcessor extends BaseProcessor<PlatformTaskName.Reind
     super(PlatformTaskName.ReindexFolder)
     this.folderService = _folderService as FolderService
   }
-  async run(task: Task, event: Event) {
-    if (!event.subjectFolderId || !event.userId) {
-      throw new Error('Missing folder id or user id.')
+  async run(task: Task, trigger: TaskTrigger) {
+    if (trigger.kind !== 'event') {
+      throw new Error('ReindexFolderProcessor requires event trigger.')
+    }
+
+    if (
+      !task.targetLocation?.folderId ||
+      !task.data.userId ||
+      typeof task.data.userId !== 'string'
+    ) {
+      throw new Error(
+        `Missing folder id or calling user id in "${PlatformTaskName.ReindexFolder}" task processing.`,
+      )
     }
     await this.folderService.reindexFolder({
-      folderId: event.subjectFolderId,
-      userId: event.userId,
+      folderId: task.targetLocation.folderId,
+      userId: task.data.userId,
     })
   }
 }

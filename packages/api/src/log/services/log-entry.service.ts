@@ -5,7 +5,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { and, count, eq, ilike, inArray, or, SQL } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
+import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
@@ -40,13 +41,13 @@ export class LogEntryService {
     logMessage,
     data,
     level = LogEntryLevel.INFO,
-    subjectContext,
+    targetLocation,
   }: {
     emitterIdentifier: string
     logMessage: string
     data: unknown
     level: LogEntryLevel
-    subjectContext?: { folderId: string; objectKey?: string }
+    targetLocation?: { folderId: string; objectKey?: string }
   }) {
     const now = new Date()
 
@@ -55,8 +56,7 @@ export class LogEntryService {
         id: uuidV4(),
         emitterIdentifier,
         level,
-        subjectFolderId: subjectContext?.folderId,
-        subjectObjectKey: subjectContext?.objectKey,
+        targetLocation,
         createdAt: now,
         message: logMessage,
         data,
@@ -69,26 +69,30 @@ export class LogEntryService {
     actor: User,
     { folderId, logId }: { folderId: string; logId: string },
   ): Promise<LogEntry & { folder?: { name: string; ownerId: string } }> {
+    const targetFolderId = sql<string>`${logEntriesTable.targetLocation} ->> 'folderId'`
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
-    const logEntry = await this.ormService.db.query.logEntriesTable.findFirst({
-      where: and(
-        eq(logEntriesTable.subjectFolderId, folder.id),
-        eq(logEntriesTable.id, logId),
-      ),
-      with: {
-        folder: true,
-      },
-    })
+    const result = await this.ormService.db
+      .select({
+        logEntry: logEntriesTable,
+        folderName: foldersTable.name,
+        folderOwnerId: foldersTable.ownerId,
+      })
+      .from(logEntriesTable)
+      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .where(and(eq(targetFolderId, folder.id), eq(logEntriesTable.id, logId)))
+      .limit(1)
 
-    if (!logEntry) {
+    const record = result.at(0)
+
+    if (!record) {
       throw new NotFoundException()
     }
 
     return {
-      ...logEntry,
-      folder: logEntry.folder
-        ? { name: logEntry.folder.name, ownerId: logEntry.folder.ownerId }
+      ...record.logEntry,
+      folder: record.folderName
+        ? { name: record.folderName, ownerId: record.folderOwnerId }
         : undefined,
     } as LogEntry & { folder?: { name: string; ownerId: string } }
   }
@@ -114,19 +118,25 @@ export class LogEntryService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const logEntry = await this.ormService.db.query.logEntriesTable.findFirst({
-      where: eq(logEntriesTable.id, logId),
-      with: {
-        folder: true,
-      },
-    })
-    if (!logEntry) {
+    const targetFolderId = sql<string>`${logEntriesTable.targetLocation} ->> 'folderId'`
+    const result = await this.ormService.db
+      .select({
+        logEntry: logEntriesTable,
+        folderName: foldersTable.name,
+        folderOwnerId: foldersTable.ownerId,
+      })
+      .from(logEntriesTable)
+      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .where(eq(logEntriesTable.id, logId))
+      .limit(1)
+    const record = result.at(0)
+    if (!record) {
       throw new NotFoundException()
     }
     return {
-      ...logEntry,
-      folder: logEntry.folder
-        ? { name: logEntry.folder.name, ownerId: logEntry.folder.ownerId }
+      ...record.logEntry,
+      folder: record.folderName
+        ? { name: record.folderName, ownerId: record.folderOwnerId }
         : undefined,
     } as LogEntry & { folder?: { name: string; ownerId: string } }
   }
@@ -208,9 +218,11 @@ export class LogEntryService {
     meta: { totalCount: number }
     result: (LogEntry & { folder?: { name: string; ownerId: string } })[]
   }> {
+    const targetFolderId = sql<string>`${logEntriesTable.targetLocation} ->> 'folderId'`
+    const targetObjectKey = sql<string>`${logEntriesTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(logEntriesTable.subjectFolderId, folderId))
+      conditions.push(eq(targetFolderId, folderId))
     }
 
     const levelFilters: LogEntryLevel[] = []
@@ -243,21 +255,26 @@ export class LogEntryService {
     }
 
     if (objectKey) {
-      conditions.push(eq(logEntriesTable.subjectObjectKey, objectKey))
+      conditions.push(eq(targetObjectKey, objectKey))
     }
 
-    const logEntries = await this.ormService.db.query.logEntriesTable.findMany({
-      ...(conditions.length ? { where: and(...conditions) } : {}),
-      offset: Math.max(0, offset ?? 0),
-      limit: Math.min(100, limit ?? 25),
-      orderBy: parseSort(
-        logEntriesTable,
-        normalizeSortParam(sort) ?? [LogSort.CreatedAtAsc],
-      ),
-      with: {
-        folder: true,
-      },
-    })
+    const logEntries = await this.ormService.db
+      .select({
+        logEntry: logEntriesTable,
+        folderName: foldersTable.name,
+        folderOwnerId: foldersTable.ownerId,
+      })
+      .from(logEntriesTable)
+      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .offset(Math.max(0, offset ?? 0))
+      .limit(Math.min(100, limit ?? 25))
+      .orderBy(
+        ...parseSort(
+          logEntriesTable,
+          normalizeSortParam(sort) ?? [LogSort.CreatedAtAsc],
+        ),
+      )
 
     const logEntriesCountResult = await this.ormService.db
       .select({
@@ -267,11 +284,12 @@ export class LogEntryService {
       .where(conditions.length ? and(...conditions) : undefined)
 
     return {
-      result: logEntries.map((logEntry) => ({
+      result: logEntries.map(({ logEntry, folderName, folderOwnerId }) => ({
         ...logEntry,
-        folder: logEntry.folder
-          ? { name: logEntry.folder.name, ownerId: logEntry.folder.ownerId }
-          : undefined,
+        folder:
+          logEntry.targetLocation?.folderId && folderName
+            ? { name: folderName, ownerId: folderOwnerId }
+            : undefined,
       })) as (LogEntry & { folder?: { name: string; ownerId: string } })[],
       meta: { totalCount: logEntriesCountResult[0].count },
     }

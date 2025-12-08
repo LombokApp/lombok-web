@@ -132,13 +132,23 @@ export const executeAppDockerJobSchema = z.object({
 export const queueAppTaskSchema = z.object({
   taskIdentifier: z.string(),
   inputData: jsonSerializableObjectSchema,
-  subjectContext: z
+  dontStartBefore: z
+    .union([
+      z.object({
+        timestamp: z.date(),
+      }),
+      z.object({
+        delayMs: z.number(),
+      }),
+    ])
+    .optional(),
+  targetLocation: z
     .object({
       folderId: z.string(),
       objectKey: z.string().optional(),
     })
     .optional(),
-  userId: z.string().uuid().optional(),
+  targetUserId: z.string().uuid().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 

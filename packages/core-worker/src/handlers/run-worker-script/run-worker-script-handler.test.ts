@@ -228,14 +228,24 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     const workerScriptTask: TaskDTO = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
-      eventId: uuidV4(),
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: uuidV4(),
+          eventIdentifier: 'platform:object_added',
+          emitterIdentifier: 'platform',
+          eventData: {},
+        },
+      },
       taskDescription: 'object_added',
       systemLog: [],
       taskLog: [],
       taskIdentifier: 'object_added',
-      inputData: {},
-      subjectFolderId: uuidV4(),
-      subjectObjectKey: 'test-object-key',
+      data: {},
+      targetLocation: {
+        folderId: uuidV4(),
+        objectKey: 'test-object-key',
+      },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -251,12 +261,20 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     const runWorkerScriptEnvelopeTask: TaskDTO = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
-      eventId: uuidV4(),
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: uuidV4(),
+          eventIdentifier: 'platform:object_added',
+          emitterIdentifier: 'platform',
+          eventData: {},
+        },
+      },
       systemLog: [],
       taskLog: [],
       taskDescription: 'run_worker_script',
       taskIdentifier: 'run_worker_script',
-      inputData: {},
+      data: {},
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -307,8 +325,8 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           result: [
             {
               url: 'https://example.com/test-image.png',
-              folderId: String(workerScriptTask.subjectFolderId),
-              objectKey: String(workerScriptTask.subjectObjectKey),
+              folderId: String(workerScriptTask.targetLocation?.folderId),
+              objectKey: String(workerScriptTask.targetLocation?.objectKey),
             },
           ],
         })

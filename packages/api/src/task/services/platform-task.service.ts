@@ -4,11 +4,9 @@ import {
   PLATFORM_IDENTIFIER,
   SystemLogEntry,
 } from '@lombokapp/types'
-import { Maybe } from '@lombokapp/utils'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { and, count, eq, isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
-import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
@@ -174,6 +172,8 @@ export class PlatformTaskService {
       const completionHandlerTaskDefinition =
         taskDefinition.handler.type === 'worker' ||
         taskDefinition.handler.type === 'docker'
+          ? taskDefinition.handler
+          : undefined
 
       if (completionHandlerTaskDefinition) {
         await this.eventService.emitEvent({
@@ -190,11 +190,11 @@ export class PlatformTaskService {
                 : { error: completion.error }),
             },
           },
-          ...(task.subjectFolderId && {
-            subjectContext: {
-              folderId: task.subjectFolderId,
-              ...(task.subjectObjectKey && {
-                objectKey: task.subjectObjectKey,
+          ...(task.targetLocation?.folderId && {
+            targetLocation: {
+              folderId: task.targetLocation.folderId,
+              ...(task.targetLocation.objectKey && {
+                objectKey: task.targetLocation.objectKey,
               }),
             },
           }),
@@ -283,28 +283,23 @@ export class PlatformTaskService {
   }
 
   async executePlatformTask(taskId: string) {
-    const rows = await this.ormService.db
-      .select({ task: tasksTable, event: eventsTable })
-      .from(tasksTable)
-      .innerJoin(eventsTable, eq(tasksTable.eventId, eventsTable.id))
-      .where(eq(tasksTable.id, taskId))
-      .limit(1)
-
-    const row = rows[0] as Maybe<(typeof rows)[number]>
-    if (!row) {
+    const task = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+    if (!task) {
       throw new Error(`Task not found by ID "${taskId}".`)
     }
-    if (row.task.startedAt) {
+    if (task.startedAt) {
       this.logger.warn(
         'Platform task already started during drain (should not happen)',
       )
-    } else if (row.task.ownerIdentifier !== PLATFORM_IDENTIFIER) {
+    } else if (task.ownerIdentifier !== PLATFORM_IDENTIFIER) {
       this.logger.warn(
         'Platform task execution run for non-plaform task (should not happen)',
       )
     } else {
       const startedTimestamp = new Date()
-      const task = await this.ormService.db.transaction(async (tx) => {
+      const startedTask = await this.ormService.db.transaction(async (tx) => {
         const updatedTaskResult = await tx
           .update(tasksTable)
           .set({ startedAt: startedTimestamp, updatedAt: startedTimestamp })
@@ -330,22 +325,22 @@ export class PlatformTaskService {
         return updatedTaskResult[0]
       })
 
-      if (task.subjectFolderId) {
+      if (startedTask.targetLocation?.folderId) {
         // notify folder rooms of updated task
         this.folderSocketService.sendToFolderRoom(
-          task.subjectFolderId,
+          startedTask.targetLocation.folderId,
           FolderPushMessage.TASK_UPDATED,
-          { task },
+          { task: startedTask },
         )
       }
       // we have secured the task, so perform execution
-      const processorName = task.taskIdentifier
+      const processorName = startedTask.taskIdentifier
 
       const processor = this.processors[processorName]
       const shouldRegisterComplete = processor.shouldRegisterComplete()
       this.runningTasksCount++
       await processor
-        ._run(task, row.event)
+        ._run(startedTask, startedTask.trigger)
         .then((processorResult) => {
           if (shouldRegisterComplete) {
             return this.registerTaskCompletion(taskId, {
@@ -372,23 +367,15 @@ export class PlatformTaskService {
         })
         .finally(() => {
           // send a folder socket message to the frontend that the task status was updated
-          if (task.subjectFolderId) {
-            void this.ormService.db.query.tasksTable
-              .findFirst({
-                where: eq(tasksTable.id, taskId),
-              })
-              .then((_task) => {
-                if (task.subjectFolderId) {
-                  // notify folder rooms of updated task
-                  this.folderSocketService.sendToFolderRoom(
-                    task.subjectFolderId,
-                    FolderPushMessage.TASK_UPDATED,
-                    {
-                      task: _task,
-                    },
-                  )
-                }
-              })
+          if (startedTask.targetLocation?.folderId) {
+            // notify folder rooms of updated task
+            this.folderSocketService.sendToFolderRoom(
+              startedTask.targetLocation.folderId,
+              FolderPushMessage.TASK_UPDATED,
+              {
+                task: startedTask,
+              },
+            )
           }
         })
         .finally(() => {

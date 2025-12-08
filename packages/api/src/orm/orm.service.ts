@@ -16,7 +16,7 @@ import {
 } from '../app/entities/app-user-settings.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
-import { eventsRelations, eventsTable } from '../event/entities/event.entity'
+import { eventsTable } from '../event/entities/event.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -26,13 +26,10 @@ import {
   folderSharesRelations,
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
-import {
-  logEntriesRelations,
-  logEntriesTable,
-} from '../log/entities/log-entry.entity'
+import { logEntriesTable } from '../log/entities/log-entry.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
-import { tasksRelations, tasksTable } from '../task/entities/task.entity'
+import { tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
 import { SHARED_ACL_FOLDER_VIEW, SHARED_ACL_SCHEMA } from './constants'
@@ -53,11 +50,8 @@ export const dbSchema = {
   appUserSettingsTable,
   appUserSettingsRelations,
   eventsTable,
-  eventsRelations,
   logEntriesTable,
-  logEntriesRelations,
   tasksTable,
-  tasksRelations,
   folderSharesTable,
 }
 

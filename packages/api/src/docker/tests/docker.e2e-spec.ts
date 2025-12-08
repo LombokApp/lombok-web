@@ -48,23 +48,33 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
     id: eventId,
     eventIdentifier: 'testapp:test_job',
     emitterIdentifier: 'testapp',
-    userId: 'system',
     data: {},
     createdAt: now,
   })
 
-  await testModule.getOrmService().db.insert(tasksTable).values({
-    id: taskId,
-    ownerIdentifier: 'testapp',
-    taskDescription: 'Test task',
-    createdAt: now,
-    updatedAt: now,
-    handlerType: 'docker',
-    handlerIdentifier: 'testapp:test_job',
-    taskIdentifier: 'test_job_task',
-    inputData: {},
-    eventId,
-  })
+  await testModule
+    .getOrmService()
+    .db.insert(tasksTable)
+    .values({
+      id: taskId,
+      ownerIdentifier: 'testapp',
+      taskDescription: 'Test task',
+      createdAt: now,
+      updatedAt: now,
+      handlerType: 'docker',
+      handlerIdentifier: 'testapp:test_job',
+      taskIdentifier: 'test_job_task',
+      data: {},
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId,
+          eventIdentifier: 'testapp:test_job',
+          emitterIdentifier: 'testapp',
+          eventData: {},
+        },
+      },
+    })
 
   return { taskId, eventId, createdAt: now }
 }
@@ -158,9 +168,8 @@ const triggerAppDockerHandledTask = async (
       id: expect.any(String),
       eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
       emitterIdentifier: PLATFORM_IDENTIFIER,
-      userId: null,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      targetUserId: null,
+      targetLocation: null,
       data: {
         inputData,
         appIdentifier,
@@ -173,9 +182,8 @@ const triggerAppDockerHandledTask = async (
       id: expect.any(String),
       eventIdentifier: `${PLATFORM_IDENTIFIER}:docker_task_enqueued`,
       emitterIdentifier: PLATFORM_IDENTIFIER,
-      userId: null,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      targetUserId: null,
+      targetLocation: null,
       data: {
         innerTaskId: expect.any(String),
         appIdentifier,
@@ -190,10 +198,23 @@ const triggerAppDockerHandledTask = async (
       ownerIdentifier: PLATFORM_IDENTIFIER,
       taskIdentifier: 'queue_app_task',
       taskDescription: 'Queue an app task',
-      inputData: {},
-      eventId: events[0].id,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      data: {},
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: events[0].id,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {
+            inputData,
+            appIdentifier,
+            taskIdentifier: taskDefinition.identifier,
+            ...(storageAccessPolicy && { storageAccessPolicy }),
+          },
+        },
+      },
+      targetLocation: null,
+      targetUserId: null,
       dontStartBefore: null,
       storageAccessPolicy: [],
       systemLog: [
@@ -222,14 +243,14 @@ const triggerAppDockerHandledTask = async (
     })
     expect(queueTask?.completedAt).toEqual(queueTask?.updatedAt)
 
-    expect(dockerRunTask?.inputData.innerTaskId).toBeDefined()
+    expect(dockerRunTask?.data.innerTaskId).toBeDefined()
     expect(dockerRunTask).toEqual({
       id: expect.any(String),
       ownerIdentifier: PLATFORM_IDENTIFIER,
       taskIdentifier: 'run_docker_job',
       taskDescription: 'Run a docker job',
       storageAccessPolicy: [],
-      inputData: {
+      data: {
         appIdentifier,
         jobClassIdentifier,
         profileIdentifier,
@@ -245,9 +266,22 @@ const triggerAppDockerHandledTask = async (
         },
       ],
       taskLog: [],
-      eventId: events[1].id,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: events[1].id,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:docker_task_enqueued`,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {
+            innerTaskId: expect.any(String),
+            appIdentifier,
+            profileIdentifier,
+            jobClassIdentifier,
+          },
+        },
+      },
+      targetLocation: null,
+      targetUserId: null,
       startedAt: expect.any(Date),
       completedAt: null,
       success: null,
@@ -612,14 +646,26 @@ describe('Docker Jobs', () => {
       ownerIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
-      inputData: { myTaskData: 'test' },
+      data: { myTaskData: 'test' },
       dontStartBefore: null,
       storageAccessPolicy: [],
       systemLog: [],
       taskLog: [],
-      eventId: taskQueueEvent.id,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: taskQueueEvent.id,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {
+            inputData: { myTaskData: 'test' },
+            appIdentifier: 'testapp',
+            taskIdentifier: 'non_triggered_docker_job_task',
+          },
+        },
+      },
+      targetLocation: null,
+      targetUserId: null,
       startedAt: null,
       completedAt: null,
       success: null,
@@ -663,14 +709,26 @@ describe('Docker Jobs', () => {
       ownerIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
-      inputData: { myTaskData: 'test' },
+      data: { myTaskData: 'test' },
       storageAccessPolicy: [],
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
-      eventId: taskQueueEvent.id,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: taskQueueEvent.id,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {
+            inputData: { myTaskData: 'test' },
+            appIdentifier: 'testapp',
+            taskIdentifier: 'non_triggered_docker_job_task',
+          },
+        },
+      },
+      targetLocation: null,
+      targetUserId: null,
       startedAt: null,
       completedAt: null,
       success: null,
@@ -749,7 +807,7 @@ describe('Docker Jobs', () => {
       ownerIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
-      inputData: { myTaskData: 'test' },
+      data: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
           folderId: testFolder.folder.id,
@@ -765,9 +823,36 @@ describe('Docker Jobs', () => {
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
-      eventId: taskQueueEvent.id,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: taskQueueEvent.id,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {
+            inputData: { myTaskData: 'test' },
+            appIdentifier: 'testapp',
+            taskIdentifier: 'non_triggered_docker_job_task',
+            storageAccessPolicy: [
+              {
+                folderId: testFolder.folder.id,
+                methods: [
+                  SignedURLsRequestMethod.PUT,
+                  SignedURLsRequestMethod.GET,
+                ],
+                prefix: 'this/is/the/test',
+              },
+              {
+                folderId: testFolder2.folder.id,
+                methods: [SignedURLsRequestMethod.DELETE],
+                prefix: 'this/is/another/test',
+              },
+            ],
+          },
+        },
+      },
+      targetLocation: null,
+      targetUserId: null,
       startedAt: null,
       completedAt: null,
       success: null,
@@ -1378,14 +1463,27 @@ describe('Docker Jobs', () => {
       ownerIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
-      inputData: { myTaskData: 'test' },
+      data: { myTaskData: 'test' },
       storageAccessPolicy: [storageAccessPolicyRule],
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
-      eventId: taskQueueEvent.id,
-      subjectFolderId: null,
-      subjectObjectKey: null,
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: taskQueueEvent.id,
+          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {
+            inputData: { myTaskData: 'test' },
+            appIdentifier: 'testapp',
+            taskIdentifier: 'non_triggered_docker_job_task',
+            storageAccessPolicy: [storageAccessPolicyRule],
+          },
+        },
+      },
+      targetLocation: null,
+      targetUserId: null,
       startedAt: null,
       completedAt: null,
       success: null,

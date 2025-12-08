@@ -6,7 +6,6 @@ import {
   appSocketMessageSchema,
   AppSocketMessageSchemaMap,
   CORE_APP_IDENTIFIER,
-  PLATFORM_IDENTIFIER,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { and, eq, inArray, isNotNull, isNull, not, or } from 'drizzle-orm'
@@ -21,6 +20,7 @@ import type { ServerConfigurationService } from 'src/server/services/server-conf
 import type { S3Service } from 'src/storage/s3.service'
 import type { Task } from 'src/task/entities/task.entity'
 import { tasksTable } from 'src/task/entities/task.entity'
+import type { TaskService } from 'src/task/services/task.service'
 import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import type { z, ZodTypeAny } from 'zod'
 
@@ -69,6 +69,7 @@ export async function handleAppSocketMessage(
     eventService,
     ormService,
     logEntryService,
+    taskService,
     folderService,
     appService,
     jwtService,
@@ -79,6 +80,7 @@ export async function handleAppSocketMessage(
     ormService: OrmService
     logEntryService: LogEntryService
     folderService: FolderService
+    taskService: TaskService
     jwtService: JWTService
     appService: AppService
     serverConfigurationService: ServerConfigurationService
@@ -174,7 +176,7 @@ export async function handleAppSocketMessage(
         logMessage: requestData.message,
         data: requestData.data,
         level: requestData.level,
-        subjectContext: requestData.subjectContext,
+        targetLocation: requestData.subjectContext,
       })
       return { result: undefined }
     case 'GET_CONTENT_SIGNED_URLS':
@@ -272,14 +274,20 @@ export async function handleAppSocketMessage(
         }
       }
 
-      const event = await ormService.db.query.eventsTable.findFirst({
-        where: eq(eventsTable.id, securedTask.eventId),
-      })
+      const event =
+        securedTask.trigger.kind === 'event' && securedTask.trigger.data.eventId
+          ? await ormService.db.query.eventsTable.findFirst({
+              where: eq(eventsTable.id, securedTask.trigger.data.eventId),
+            })
+          : undefined
 
       const result = {
         task: transformTaskToDTO(securedTask),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        event: transformEventToDTO(event!),
+        ...(event
+          ? {
+              event: transformEventToDTO(event),
+            }
+          : {}),
       }
 
       return {
@@ -335,14 +343,20 @@ export async function handleAppSocketMessage(
           .where(eq(tasksTable.id, task.id))
           .returning()
       )[0]
-      const event = await ormService.db.query.eventsTable.findFirst({
-        where: eq(eventsTable.id, updatedTask.eventId),
-      })
+      const event =
+        updatedTask.trigger.kind === 'event' && updatedTask.trigger.data.eventId
+          ? await ormService.db.query.eventsTable.findFirst({
+              where: eq(eventsTable.id, updatedTask.trigger.data.eventId),
+            })
+          : undefined
       return {
         result: {
           task: transformTaskToDTO(updatedTask),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          event: transformEventToDTO(event!),
+          ...(event
+            ? {
+                event: transformEventToDTO(event),
+              }
+            : {}),
         },
       }
     }
@@ -536,41 +550,16 @@ export async function handleAppSocketMessage(
       }
     }
     case 'QUEUE_APP_TASK': {
-      // validate user and folder access if task is scoped as such
-      if (requestData.userId) {
-        await appService.validateAppUserAccess({
-          appIdentifier: requestingAppIdentifier,
-          userId: requestData.userId,
-        })
-      }
-
-      if (requestData.subjectContext?.folderId) {
-        await appService.validateAppFolderAccess({
-          appIdentifier: requestingAppIdentifier,
-          folderId: requestData.subjectContext.folderId,
-        })
-      }
-
-      // validate the entire storage access policy if one is provided
-      if (requestData.storageAccessPolicy?.length) {
-        await appService.validateAppStorageAccessPolicy({
-          appIdentifier: requestingAppIdentifier,
-          storageAccessPolicy: requestData.storageAccessPolicy,
-        })
-      }
-
-      await eventService.emitEvent({
-        emitterIdentifier: PLATFORM_IDENTIFIER,
-        eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-        data: {
-          appIdentifier: requestingAppIdentifier,
-          taskIdentifier: requestData.taskIdentifier,
-          storageAccessPolicy: requestData.storageAccessPolicy ?? [],
-          inputData: requestData.inputData,
-        },
-        subjectContext: requestData.subjectContext,
-        userId: requestData.userId,
+      await taskService.triggerAppActionTask({
+        targetUserId: requestData.targetUserId,
+        targetLocation: requestData.targetLocation,
+        storageAccessPolicy: requestData.storageAccessPolicy,
+        appIdentifier: requestingAppIdentifier,
+        taskIdentifier: requestData.taskIdentifier,
+        taskData: requestData.inputData,
+        dontStartBefore: requestData.dontStartBefore,
       })
+
       return { result: undefined }
     }
   }

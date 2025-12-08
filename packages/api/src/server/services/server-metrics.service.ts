@@ -155,36 +155,38 @@ export class ServerMetricsService {
       )
 
     // Event metrics
-    // Get server events (subjectFolderId is null) emitted in the last day
+    const eventFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+
+    // Get server events (targetLocation.folderId is null) emitted in the last day
     const serverEventsEmittedPreviousDayResult = await this.ormService.db
       .select({ count: sql<string>`count(*)` })
       .from(eventsTable)
       .where(
-        sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventsTable.subjectFolderId} IS NULL`,
+        sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
       )
 
-    // Get server events (subjectFolderId is null) emitted in the last hour
+    // Get server events (targetLocation.folderId is null) emitted in the last hour
     const serverEventsEmittedPreviousHourResult = await this.ormService.db
       .select({ count: sql<string>`count(*)` })
       .from(eventsTable)
       .where(
-        sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventsTable.subjectFolderId} IS NULL`,
+        sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
       )
 
-    // Get folder events (subjectFolderId is not null) emitted in the last day
+    // Get folder events (targetLocation.folderId is not null) emitted in the last day
     const folderEventsEmittedPreviousDayResult = await this.ormService.db
       .select({ count: sql<string>`count(*)` })
       .from(eventsTable)
       .where(
-        sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventsTable.subjectFolderId} IS NOT NULL`,
+        sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
       )
 
-    // Get folder events (subjectFolderId is not null) emitted in the last hour
+    // Get folder events (targetLocation.folderId is not null) emitted in the last hour
     const folderEventsEmittedPreviousHourResult = await this.ormService.db
       .select({ count: sql<string>`count(*)` })
       .from(eventsTable)
       .where(
-        sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventsTable.subjectFolderId} IS NOT NULL`,
+        sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
       )
 
     // Get count of user storage provisions (count of storage locations with providerType = 'SERVER')

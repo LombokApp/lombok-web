@@ -63,9 +63,8 @@ export function configureTasksTableColumns(
         />
       ),
       cell: ({ row: { original: task } }) => {
-        const hasFolder =
-          task.subjectContext?.folderName || task.subjectContext?.folderId
-        const hasObject = task.subjectContext?.objectKey
+        const hasFolder = !!task.targetLocation
+        const hasObject = task.targetLocation?.objectKey
 
         if (!hasFolder && !hasObject) {
           return (
@@ -79,13 +78,13 @@ export function configureTasksTableColumns(
           <div className="flex max-w-80 flex-col gap-1">
             {config.showFolderInFolderObjectColumn && hasFolder && (
               <div className="truncate font-medium">
-                {task.subjectContext?.folderName ||
-                  task.subjectContext?.folderId}
+                {task.targetLocationContext?.folderName ||
+                  task.targetLocation?.folderId}
               </div>
             )}
             {hasObject && (
               <div className="max-w-80 truncate text-sm text-muted-foreground">
-                {task.subjectContext?.objectKey}
+                {task.targetLocation?.objectKey}
               </div>
             )}
           </div>

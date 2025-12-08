@@ -1,10 +1,12 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import {
+  elaboratedTargetLocationContextSchema,
   jsonSerializableObjectSchema,
-  subjectContextSchema,
+  targetLocationContextSchema,
   taskInputDataSchema,
   taskLogEntrySchema,
   taskSystemLogEntrySchema,
+  taskTriggerSchema,
 } from '@lombokapp/types'
 import { z } from 'zod'
 
@@ -12,12 +14,11 @@ export const taskSchema = z.object({
   id: z.string().uuid(),
   taskIdentifier: z.string(),
   ownerIdentifier: z.string(),
-  eventId: z.string().uuid(),
-  subjectFolderId: z.string().uuid().optional(),
-  subjectObjectKey: z.string().optional(),
+  trigger: taskTriggerSchema,
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),
-  inputData: taskInputDataSchema,
+  data: taskInputDataSchema,
+  targetLocation: targetLocationContextSchema.optional(),
   error: z
     .object({
       code: z.string(),
@@ -34,11 +35,11 @@ export const taskSchema = z.object({
   updatedAt: z.date(),
 })
 
-export const taskSchemaWithFolderSubjectContext = taskSchema.extend({
-  subjectContext: subjectContextSchema.optional(),
+export const taskSchemaWithTargetLocationContext = taskSchema.extend({
+  targetLocationContext: elaboratedTargetLocationContextSchema.optional(),
 })
 
 export class TaskDTO extends createZodDto(taskSchema) {}
-export class TaskWithFolderSubjectContextDTO extends createZodDto(
-  taskSchemaWithFolderSubjectContext,
+export class TaskWithTargetLocationContextDTO extends createZodDto(
+  taskSchemaWithTargetLocationContext,
 ) {}

@@ -1,5 +1,6 @@
 import {
   DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
+  EventTaskTrigger,
   FolderPushMessage,
   JsonSerializableObject,
   PLATFORM_IDENTIFIER,
@@ -17,9 +18,10 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
+import { and, arrayContains, count, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
+import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
@@ -77,13 +79,13 @@ export class EventService {
       emitterIdentifier,
       eventIdentifier,
       data,
-      subjectContext,
+      targetLocation: locationTarget,
       userId,
     }: {
       emitterIdentifier: string
       eventIdentifier: PlatformEvent | string
       data: JsonSerializableObject
-      subjectContext?: { folderId: string; objectKey?: string }
+      targetLocation?: { folderId: string; objectKey?: string }
       userId?: string
     },
     _db?: OrmService['db'],
@@ -138,9 +140,8 @@ export class EventService {
             id: uuidV4(),
             eventIdentifier,
             emitterIdentifier,
-            subjectFolderId: subjectContext?.folderId,
-            subjectObjectKey: subjectContext?.objectKey,
-            userId,
+            targetLocation: locationTarget,
+            targetUserId: userId,
             createdAt: now,
             data,
           },
@@ -186,12 +187,16 @@ export class EventService {
                 // Build the base task object
                 const baseTask: NewTask = {
                   id: newTaskId,
-                  eventId: event.id,
-                  subjectFolderId: subjectContext?.folderId,
-                  subjectObjectKey: subjectContext?.objectKey,
+                  trigger: this.buildEventTrigger(event),
+                  targetLocation: locationTarget?.folderId
+                    ? {
+                        folderId: locationTarget.folderId,
+                        objectKey: locationTarget.objectKey,
+                      }
+                    : undefined,
                   taskDescription: taskDefinition.description,
                   taskIdentifier: taskDefinition.identifier,
-                  inputData: {},
+                  data: {},
                   ownerIdentifier: subscribedApp.identifier,
                   createdAt: now,
                   updatedAt: now,
@@ -219,9 +224,9 @@ export class EventService {
         await tx.insert(tasksTable).values(tasks)
         // notify folder rooms of new tasks
         tasks.forEach((_task) => {
-          if (_task.subjectFolderId) {
+          if (_task.targetLocation?.folderId) {
             this.folderSocketService.sendToFolderRoom(
-              _task.subjectFolderId,
+              _task.targetLocation.folderId,
               FolderPushMessage.TASK_ADDED,
               { task: _task },
             )
@@ -229,9 +234,9 @@ export class EventService {
         })
       }
       // Emit EVENT_CREATED to folder room if folderId is present
-      if (subjectContext?.folderId) {
+      if (locationTarget?.folderId) {
         this.folderSocketService.sendToFolderRoom(
-          subjectContext.folderId,
+          locationTarget.folderId,
           FolderPushMessage.EVENT_CREATED as FolderPushMessage,
           { event },
         )
@@ -240,17 +245,31 @@ export class EventService {
     void this.platformTaskService.drainPlatformTasks()
   }
 
+  private buildEventTrigger(event: Event): EventTaskTrigger {
+    return {
+      kind: 'event',
+      data: {
+        eventId: event.id,
+        eventIdentifier: event.eventIdentifier,
+        emitterIdentifier: event.emitterIdentifier,
+        targetUserId: event.targetUserId ?? undefined,
+        targetLocation: event.targetLocation ?? undefined,
+        eventData: event.data ?? {},
+      },
+    }
+  }
+
   gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
     const platformEventSubscriptions = {
-      [`${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`]:
-        [
-          {
-            taskIdentifier: PlatformTaskName.ReindexFolder,
-            taskDescription: 'Reindex folder on user request',
-            shouldKeepEventSubjectContext: true,
-            shouldKeepEventDataContext: false,
-          },
-        ],
+      // [`${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`]:
+      //   [
+      //     {
+      //       taskIdentifier: PlatformTaskName.ReindexFolder,
+      //       taskDescription: 'Reindex folder on user request',
+      //       shouldKeepEventSubjectContext: true,
+      //       shouldKeepEventDataContext: false,
+      //     },
+      //   ],
       [DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER]: [
         {
           taskIdentifier: PlatformTaskName.RunDockerJob,
@@ -259,42 +278,40 @@ export class EventService {
           shouldKeepEventDataContext: true,
         },
       ],
-      [`${PLATFORM_IDENTIFIER}:app_action:${PlatformTaskName.QueueAppTask}`]: [
-        {
-          taskIdentifier: PlatformTaskName.QueueAppTask,
-          taskDescription: 'Queue an app task',
-          shouldKeepEventSubjectContext: true,
-          shouldKeepEventDataContext: false,
-        },
-      ],
-      [`${PLATFORM_IDENTIFIER}:${PlatformTaskName.QueueAppTaskCompletionHandler}`]:
-        [
-          {
-            taskIdentifier: PlatformTaskName.QueueAppTaskCompletionHandler,
-            taskDescription: 'Queue an app task completion handler',
-            shouldKeepEventSubjectContext: true,
-            shouldKeepEventDataContext: false,
-          },
-        ],
+      // [`${PLATFORM_IDENTIFIER}:app_action:${PlatformTaskName.QueueAppTask}`]: [
+      //   {
+      //     taskIdentifier: PlatformTaskName.QueueAppTask,
+      //     taskDescription: 'Queue an app task',
+      //     shouldKeepEventSubjectContext: true,
+      //     shouldKeepEventDataContext: false,
+      //   },
+      // ],
+      // [`${PLATFORM_IDENTIFIER}:${PlatformTaskName.QueueAppTaskCompletionHandler}`]:
+      //   [
+      //     {
+      //       taskIdentifier: PlatformTaskName.QueueAppTaskCompletionHandler,
+      //       taskDescription: 'Queue an app task completion handler',
+      //       shouldKeepEventSubjectContext: true,
+      //       shouldKeepEventDataContext: false,
+      //     },
+      //   ],
     }
 
-    const platformTasks =
+    const platformTasks: NewTask[] =
       event.eventIdentifier in platformEventSubscriptions
         ? platformEventSubscriptions[
             event.eventIdentifier as keyof typeof platformEventSubscriptions
           ].map((taskDefinition) => ({
             id: uuidV4(),
-            eventId: event.id,
+            trigger: this.buildEventTrigger(event),
             ...(taskDefinition.shouldKeepEventSubjectContext
               ? {
-                  userId: event.userId,
-                  subjectFolderId: event.subjectFolderId,
-                  subjectObjectKey: event.subjectObjectKey,
+                  targetLocation: event.targetLocation ?? undefined,
                 }
               : {}),
             taskDescription: taskDefinition.taskDescription,
             taskIdentifier: taskDefinition.taskIdentifier,
-            inputData: taskDefinition.shouldKeepEventDataContext
+            data: taskDefinition.shouldKeepEventDataContext
               ? (event.data ?? {})
               : {},
             ownerIdentifier: PLATFORM_IDENTIFIER,
@@ -329,12 +346,7 @@ export class EventService {
           task.handlerType === 'worker'
             ? WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER
             : DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
-        subjectContext: task.subjectFolderId
-          ? {
-              folderId: task.subjectFolderId,
-              objectKey: task.subjectObjectKey ?? undefined,
-            }
-          : undefined,
+        targetLocation: task.targetLocation ?? undefined,
         data: {
           innerTaskId: task.id,
           appIdentifier: task.ownerIdentifier,
@@ -358,28 +370,35 @@ export class EventService {
     actor: User,
     { folderId, eventId }: { folderId: string; eventId: string },
   ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
+    const targetFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
-    const event = await this.ormService.db.query.eventsTable.findFirst({
-      where: and(
-        eq(eventsTable.subjectFolderId, folder.id),
-        eq(eventsTable.id, eventId),
-      ),
-      with: {
-        folder: true,
-      },
-    })
+    const result = await this.ormService.db
+      .select({
+        event: eventsTable,
+        folderName: foldersTable.name,
+        folderOwnerId: foldersTable.ownerId,
+      })
+      .from(eventsTable)
+      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .where(and(eq(targetFolderId, folder.id), eq(eventsTable.id, eventId)))
+      .limit(1)
 
-    if (!event) {
+    const record = result.at(0)
+
+    if (!record) {
       // no event matching the given input
       throw new NotFoundException()
     }
 
     return {
-      ...event,
-      folder: event.folder
-        ? { name: event.folder.name, ownerId: event.folder.ownerId }
-        : undefined,
+      ...record.event,
+      folder:
+        record.event.targetLocation?.folderId &&
+        record.folderName &&
+        record.folderOwnerId
+          ? { name: record.folderName, ownerId: record.folderOwnerId }
+          : undefined,
     } as Event & { folder?: { name: string; ownerId: string } }
   }
 
@@ -405,20 +424,29 @@ export class EventService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const event = await this.ormService.db.query.eventsTable.findFirst({
-      where: eq(eventsTable.id, eventId),
-      with: {
-        folder: true,
-      },
-    })
-    if (!event) {
+    const targetFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+    const result = await this.ormService.db
+      .select({
+        event: eventsTable,
+        folderName: foldersTable.name,
+        folderOwnerId: foldersTable.ownerId,
+      })
+      .from(eventsTable)
+      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .where(eq(eventsTable.id, eventId))
+      .limit(1)
+    const record = result.at(0)
+    if (!record) {
       throw new NotFoundException()
     }
     return {
-      ...event,
-      folder: event.folder
-        ? { name: event.folder.name, ownerId: event.folder.ownerId }
-        : undefined,
+      ...record.event,
+      folder:
+        record.event.targetLocation?.folderId &&
+        record.folderName &&
+        record.folderOwnerId
+          ? { name: record.folderName, ownerId: record.folderOwnerId }
+          : undefined,
     } as Event & { folder?: { name: string; ownerId: string } }
   }
 
@@ -471,9 +499,11 @@ export class EventService {
     limit?: number
     sort?: EventSort[]
   }) {
+    const targetFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+    const targetObjectKey = sql<string>`${eventsTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(eventsTable.subjectFolderId, folderId))
+      conditions.push(eq(targetFolderId, folderId))
     }
 
     if (search) {
@@ -486,21 +516,26 @@ export class EventService {
     }
 
     if (objectKey) {
-      conditions.push(eq(eventsTable.subjectObjectKey, objectKey))
+      conditions.push(eq(targetObjectKey, objectKey))
     }
 
-    const events = await this.ormService.db.query.eventsTable.findMany({
-      ...(conditions.length ? { where: and(...conditions) } : {}),
-      offset: Math.max(0, offset ?? 0),
-      limit: Math.min(100, limit ?? 25),
-      orderBy: parseSort(
-        eventsTable,
-        normalizeSortParam(sort) ?? [EventSort.CreatedAtAsc],
-      ),
-      with: {
-        folder: true,
-      },
-    })
+    const events = await this.ormService.db
+      .select({
+        event: eventsTable,
+        folderName: foldersTable.name,
+        folderOwnerId: foldersTable.ownerId,
+      })
+      .from(eventsTable)
+      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .offset(Math.max(0, offset ?? 0))
+      .limit(Math.min(100, limit ?? 25))
+      .orderBy(
+        ...parseSort(
+          eventsTable,
+          normalizeSortParam(sort) ?? [EventSort.CreatedAtAsc],
+        ),
+      )
 
     const eventsCountResult = await this.ormService.db
       .select({
@@ -510,11 +545,12 @@ export class EventService {
       .where(conditions.length ? and(...conditions) : undefined)
 
     return {
-      result: events.map((event) => ({
+      result: events.map(({ event, folderName, folderOwnerId }) => ({
         ...event,
-        folder: event.folder
-          ? { name: event.folder.name, ownerId: event.folder.ownerId }
-          : undefined,
+        folder:
+          event.targetLocation?.folderId && folderName && folderOwnerId
+            ? { name: folderName, ownerId: folderOwnerId }
+            : undefined,
       })),
       meta: { totalCount: eventsCountResult[0].count },
     }

@@ -1,5 +1,4 @@
-import type { JsonSerializableObject } from '@lombokapp/types'
-import type { Event } from 'src/event/entities/event.entity'
+import type { JsonSerializableObject, TaskTrigger } from '@lombokapp/types'
 import { getApp } from 'src/shared/app-helper'
 
 import type { Task } from './entities/task.entity'
@@ -24,18 +23,18 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
 
   async _run(
     task: Task,
-    event: Event,
+    trigger: TaskTrigger,
   ): Promise<undefined | { result: JsonSerializableObject }> {
-    const result = await this.run(task, event)
+    const result = await this.run(task, trigger)
     return result
   }
 
   abstract run<T extends { result: JsonSerializableObject } | undefined>(
     task: Task,
-    event: Event,
+    trigger: TaskTrigger,
   ): Promise<T>
 
-  abstract run(task: Task, event: Event): Promise<void>
+  abstract run(task: Task, trigger: TaskTrigger): Promise<void>
 
   async registerProcessor() {
     const app = await getApp()

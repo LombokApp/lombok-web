@@ -581,12 +581,23 @@ export class FolderService {
     }
 
     await this.ormService.db.transaction(async (tx) => {
+      // Delete all folder tasks and events
       await tx
         .delete(tasksTable)
-        .where(eq(tasksTable.subjectFolderId, folderId))
+        .where(
+          eq(
+            sql<string>`${tasksTable.targetLocation} ->> 'folderId'`,
+            folderId,
+          ),
+        )
       await tx
         .delete(eventsTable)
-        .where(eq(eventsTable.subjectFolderId, folderId))
+        .where(
+          eq(
+            sql<string>`${eventsTable.targetLocation} ->> 'folderId'`,
+            folderId,
+          ),
+        )
       await tx.delete(foldersTable).where(eq(foldersTable.id, folderId))
     })
 
@@ -1175,7 +1186,7 @@ export class FolderService {
     await this.eventService.emitEvent({
       emitterIdentifier: PLATFORM_IDENTIFIER,
       eventIdentifier: `${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`,
-      subjectContext: {
+      targetLocation: {
         folderId,
       },
       data: {},
@@ -1378,7 +1389,7 @@ export class FolderService {
       eventIdentifier: wasAdded
         ? `${PLATFORM_IDENTIFIER}:object_added`
         : `${PLATFORM_IDENTIFIER}:object_updated`,
-      subjectContext: {
+      targetLocation: {
         folderId: record.folderId,
         objectKey: record.objectKey,
       },

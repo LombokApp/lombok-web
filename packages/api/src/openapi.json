@@ -10684,6 +10684,30 @@
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "targetLocationContext": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
+                ]
               }
             },
             "required": [
@@ -10802,7 +10826,22 @@
               "emitterIdentifier": {
                 "type": "string"
               },
-              "subjectContext": {
+              "targetLocation": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "folderId"
+                ]
+              },
+              "targetLocationContext": {
                 "type": "object",
                 "properties": {
                   "folderId": {
@@ -10873,7 +10912,22 @@
                 "emitterIdentifier": {
                   "type": "string"
                 },
-                "subjectContext": {
+                "targetLocation": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "folderId"
+                  ]
+                },
+                "targetLocationContext": {
                   "type": "object",
                   "properties": {
                     "folderId": {
@@ -12585,16 +12639,174 @@
               "ownerIdentifier": {
                 "type": "string"
               },
-              "eventId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "subjectFolderId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "subjectObjectKey": {
-                "type": "string"
+              "trigger": {
+                "discriminator": {
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "event"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "eventIdentifier": {
+                            "type": "string"
+                          },
+                          "emitterIdentifier": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "targetLocation": {
+                            "type": "object",
+                            "properties": {
+                              "folderId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "objectKey": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "folderId"
+                            ]
+                          },
+                          "eventData": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": [
+                          "eventId",
+                          "eventIdentifier",
+                          "emitterIdentifier",
+                          "eventData"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "data"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "schedule"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "scheduleIdentifier": {
+                            "type": "string",
+                            "enum": [
+                              "daily",
+                              "hourly",
+                              "every_five_minutes"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "scheduleIdentifier"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "data"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "user_action"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "userId": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "userId"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "data"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "app_action"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "task_child"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "parentTaskId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "parentTaskIdentifier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "parentTaskId",
+                          "parentTaskIdentifier"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "data"
+                    ]
+                  }
+                ]
               },
               "success": {
                 "type": "boolean"
@@ -12602,9 +12814,24 @@
               "handlerIdentifier": {
                 "type": "string"
               },
-              "inputData": {
+              "data": {
                 "type": "object",
                 "additionalProperties": {}
+              },
+              "targetLocation": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "folderId"
+                ]
               },
               "error": {
                 "type": "object",
@@ -12702,14 +12929,38 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "targetLocationContext": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
+                ]
               }
             },
             "required": [
               "id",
               "taskIdentifier",
               "ownerIdentifier",
-              "eventId",
-              "inputData",
+              "trigger",
+              "data",
               "taskDescription",
               "systemLog",
               "taskLog",
@@ -12751,16 +13002,174 @@
                 "ownerIdentifier": {
                   "type": "string"
                 },
-                "eventId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "subjectFolderId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "subjectObjectKey": {
-                  "type": "string"
+                "trigger": {
+                  "discriminator": {
+                    "propertyName": "kind"
+                  },
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "event"
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "eventId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "eventIdentifier": {
+                              "type": "string"
+                            },
+                            "emitterIdentifier": {
+                              "type": "string"
+                            },
+                            "targetUserId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "targetLocation": {
+                              "type": "object",
+                              "properties": {
+                                "folderId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "objectKey": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "folderId"
+                              ]
+                            },
+                            "eventData": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": [
+                            "eventId",
+                            "eventIdentifier",
+                            "emitterIdentifier",
+                            "eventData"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "schedule"
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "scheduleIdentifier": {
+                              "type": "string",
+                              "enum": [
+                                "daily",
+                                "hourly",
+                                "every_five_minutes"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "scheduleIdentifier"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "user_action"
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "userId": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "userId"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "app_action"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "task_child"
+                          ]
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "parentTaskId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "parentTaskIdentifier": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "parentTaskId",
+                            "parentTaskIdentifier"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "data"
+                      ]
+                    }
+                  ]
                 },
                 "success": {
                   "type": "boolean"
@@ -12768,9 +13177,24 @@
                 "handlerIdentifier": {
                   "type": "string"
                 },
-                "inputData": {
+                "data": {
                   "type": "object",
                   "additionalProperties": {}
+                },
+                "targetLocation": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "folderId"
+                  ]
                 },
                 "error": {
                   "type": "object",
@@ -12874,8 +13298,8 @@
                 "id",
                 "taskIdentifier",
                 "ownerIdentifier",
-                "eventId",
-                "inputData",
+                "trigger",
+                "data",
                 "taskDescription",
                 "systemLog",
                 "taskLog",

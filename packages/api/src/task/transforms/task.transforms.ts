@@ -1,10 +1,10 @@
-import type { TaskDTO, TaskWithFolderSubjectContextDTO } from '../dto/task.dto'
+import type { TaskDTO, TaskWithTargetLocationContextDTO } from '../dto/task.dto'
 import type { Task } from '../entities/task.entity'
 
 // Overload for when folder is present
 export function transformTaskToDTO(
   task: Task & { folder: { name: string; ownerId: string } },
-): TaskWithFolderSubjectContextDTO
+): TaskWithTargetLocationContextDTO
 
 // Overload for when folder is not present
 export function transformTaskToDTO(task: Task): TaskDTO
@@ -12,17 +12,16 @@ export function transformTaskToDTO(task: Task): TaskDTO
 // Implementation
 export function transformTaskToDTO(
   task: Task & { folder?: { name: string; ownerId: string } },
-): TaskDTO | TaskWithFolderSubjectContextDTO {
+): TaskDTO | TaskWithTargetLocationContextDTO {
   const baseDTO: TaskDTO = {
     id: task.id,
     ownerIdentifier: task.ownerIdentifier,
-    eventId: task.eventId,
+    trigger: task.trigger,
     systemLog: task.systemLog,
     taskLog: task.taskLog,
     handlerIdentifier: task.handlerIdentifier ?? undefined,
-    inputData: task.inputData,
-    subjectFolderId: task.subjectFolderId ?? undefined,
-    subjectObjectKey: task.subjectObjectKey ?? undefined,
+    data: task.data,
+    targetLocation: task.targetLocation ?? undefined,
     success: task.success ?? undefined,
     error: task.error ?? undefined,
     createdAt: task.createdAt,
@@ -34,12 +33,12 @@ export function transformTaskToDTO(
   }
 
   // If folder is present, add subjectContext and return TaskWithFolderSubjectContextDTO
-  if (task.subjectFolderId && task.folder) {
+  if (task.targetLocation?.folderId && task.folder) {
     return {
       ...baseDTO,
-      subjectContext: {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey ?? undefined,
+      targetLocationContext: {
+        folderId: task.targetLocation.folderId,
+        objectKey: task.targetLocation.objectKey ?? undefined,
         folderName: task.folder.name,
         folderOwnerId: task.folder.ownerId,
       },

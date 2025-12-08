@@ -4,6 +4,7 @@ import {
   type JsonSerializableObject,
   jsonSerializableObjectSchema,
 } from './apps.types'
+import { targetLocationContextSchema } from './folder.types'
 import { SignedURLsRequestMethod } from './storage.types'
 
 export type TaskInputData = JsonSerializableObject
@@ -45,3 +46,54 @@ export type StorageAccessPolicyEntry = z.infer<
 export const storageAccessPolicySchema = storageAccessPolicyEntrySchema.array()
 
 export type StorageAccessPolicy = z.infer<typeof storageAccessPolicySchema>
+
+export const eventTriggerDataSchema = z.object({
+  eventId: z.string().uuid(),
+  eventIdentifier: z.string(),
+  emitterIdentifier: z.string(),
+  targetUserId: z.string().uuid().optional(),
+  targetLocation: targetLocationContextSchema.optional(),
+  eventData: jsonSerializableObjectSchema,
+})
+
+export const scheduleTriggerDataSchema = z.object({
+  scheduleIdentifier: z.enum(['daily', 'hourly', 'every_five_minutes']),
+})
+
+export const userActionTriggerDataSchema = z.object({
+  userId: z.string().uuid(),
+})
+
+export const taskChildTriggerDataSchema = z.object({
+  parentTaskId: z.string().uuid(),
+  parentTaskIdentifier: z.string(),
+})
+
+export const taskTriggerSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('event'),
+    data: eventTriggerDataSchema,
+  }),
+  z.object({
+    kind: z.literal('schedule'),
+    data: scheduleTriggerDataSchema,
+  }),
+  z.object({
+    kind: z.literal('user_action'),
+    data: userActionTriggerDataSchema,
+  }),
+  z.object({
+    kind: z.literal('app_action'),
+  }),
+  z.object({
+    kind: z.literal('task_child'),
+    data: taskChildTriggerDataSchema,
+  }),
+])
+
+export type TaskTrigger = z.infer<typeof taskTriggerSchema>
+
+export interface EventTaskTrigger {
+  kind: 'event'
+  data: z.infer<typeof eventTriggerDataSchema>
+}

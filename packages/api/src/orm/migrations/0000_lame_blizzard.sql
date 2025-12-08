@@ -68,9 +68,8 @@ CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"eventIdentifier" text NOT NULL,
 	"emitterIdentifier" text NOT NULL,
-	"userId" text,
-	"subjectFolderId" uuid,
-	"subjectObjectKey" text,
+	"targetUserId" uuid,
+	"targetLocation" jsonb,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL
 );
@@ -114,9 +113,8 @@ CREATE TABLE "log_entries" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"message" text NOT NULL,
 	"emitterIdentifier" text NOT NULL,
-	"subjectFolderId" uuid,
+	"targetLocation" jsonb,
 	"level" text NOT NULL,
-	"subjectObjectKey" text,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL
 );
@@ -150,10 +148,10 @@ CREATE TABLE "tasks" (
 	"ownerIdentifier" text NOT NULL,
 	"taskIdentifier" text NOT NULL,
 	"taskDescription" text NOT NULL,
-	"inputData" jsonb NOT NULL,
-	"eventId" uuid NOT NULL,
-	"subjectFolderId" uuid,
-	"subjectObjectKey" text,
+	"data" jsonb NOT NULL,
+	"trigger" jsonb NOT NULL,
+	"targetUserId" uuid,
+	"targetLocation" jsonb,
 	"taskLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"startedAt" timestamp,
 	"dontStartBefore" timestamp,
@@ -188,15 +186,11 @@ ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_appIdentif
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_appIdentifier_apps_identifier_fk" FOREIGN KEY ("appIdentifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "events" ADD CONSTRAINT "events_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storage_locations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_ownerId_users_id_fk" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "log_entries" ADD CONSTRAINT "log_entries_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "tasks" ADD CONSTRAINT "tasks_eventId_events_id_fk" FOREIGN KEY ("eventId") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "tasks" ADD CONSTRAINT "tasks_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING btree ("folderId");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folderId","appIdentifier");--> statement-breakpoint
 CREATE INDEX "app_user_settings_user_id_idx" ON "app_user_settings" USING btree ("userId");--> statement-breakpoint
@@ -205,4 +199,6 @@ CREATE INDEX "folder_objects_folder_id_media_type_size_bytes_idx" ON "folder_obj
 CREATE INDEX "folder_objects_folder_id_media_type_idx" ON "folder_objects" USING btree ("folderId","mediaType");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_objects_folder_id_object_key_unique" ON "folder_objects" USING btree ("folderId","objectKey");--> statement-breakpoint
 CREATE INDEX "user_idx" ON "folder_shares" USING btree ("userId");--> statement-breakpoint
-CREATE UNIQUE INDEX "folder_user_unique" ON "folder_shares" USING btree ("folderId","userId");
+CREATE UNIQUE INDEX "folder_user_unique" ON "folder_shares" USING btree ("folderId","userId");--> statement-breakpoint
+CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("trigger" ->> 'kind'));--> statement-breakpoint
+CREATE INDEX "tasks_folder_idx" ON "tasks" USING btree (("targetLocation" ->> 'folderId'));

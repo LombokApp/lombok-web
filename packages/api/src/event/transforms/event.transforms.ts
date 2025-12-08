@@ -4,20 +4,25 @@ import type { Event } from '../entities/event.entity'
 export function transformEventToDTO(
   event: Event & { folder?: { name: string; ownerId: string } },
 ): EventDTO {
-  return {
+  const baseDTO: EventDTO = {
     id: event.id,
     emitterIdentifier: event.emitterIdentifier,
     eventIdentifier: event.eventIdentifier,
-    subjectContext:
-      event.subjectFolderId && event.folder
-        ? {
-            folderId: event.subjectFolderId,
-            objectKey: event.subjectObjectKey ?? undefined,
-            folderName: event.folder.name,
-            folderOwnerId: event.folder.ownerId,
-          }
-        : undefined,
     data: event.data ?? {},
     createdAt: event.createdAt,
   }
+
+  if (event.targetLocation?.folderId && event.folder) {
+    return {
+      ...baseDTO,
+      subjectContext: {
+        folderId: event.targetLocation.folderId,
+        objectKey: event.targetLocation.objectKey ?? undefined,
+        folderName: event.folder.name,
+        folderOwnerId: event.folder.ownerId,
+      },
+    }
+  }
+
+  return baseDTO
 }

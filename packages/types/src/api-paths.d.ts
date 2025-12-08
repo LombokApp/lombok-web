@@ -2299,6 +2299,14 @@ export interface components {
                 };
                 /** Format: date-time */
                 createdAt: string;
+                targetLocationContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
             };
         };
         EventListResponse: {
@@ -2333,7 +2341,12 @@ export interface components {
                 /** @enum {string} */
                 level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2354,7 +2367,12 @@ export interface components {
                 /** @enum {string} */
                 level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2791,15 +2809,60 @@ export interface components {
                 id: string;
                 taskIdentifier: string;
                 ownerIdentifier: string;
-                /** Format: uuid */
-                eventId: string;
-                /** Format: uuid */
-                subjectFolderId?: string;
-                subjectObjectKey?: string;
+                trigger: {
+                    /** @enum {string} */
+                    kind: "event";
+                    data: {
+                        /** Format: uuid */
+                        eventId: string;
+                        eventIdentifier: string;
+                        emitterIdentifier: string;
+                        /** Format: uuid */
+                        targetUserId?: string;
+                        targetLocation?: {
+                            /** Format: uuid */
+                            folderId: string;
+                            objectKey?: string;
+                        };
+                        eventData: {
+                            [key: string]: unknown;
+                        };
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "schedule";
+                    data: {
+                        /** @enum {string} */
+                        scheduleIdentifier: "daily" | "hourly" | "every_five_minutes";
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "user_action";
+                    data: {
+                        /** Format: uuid */
+                        userId: string;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "app_action";
+                } | {
+                    /** @enum {string} */
+                    kind: "task_child";
+                    data: {
+                        /** Format: uuid */
+                        parentTaskId: string;
+                        parentTaskIdentifier: string;
+                    };
+                };
                 success?: boolean;
                 handlerIdentifier?: string;
-                inputData: {
+                data: {
                     [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
                 };
                 error?: {
                     code: string;
@@ -2836,6 +2899,14 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                targetLocationContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
             };
         };
         TaskListResponse: {
@@ -2847,15 +2918,60 @@ export interface components {
                 id: string;
                 taskIdentifier: string;
                 ownerIdentifier: string;
-                /** Format: uuid */
-                eventId: string;
-                /** Format: uuid */
-                subjectFolderId?: string;
-                subjectObjectKey?: string;
+                trigger: {
+                    /** @enum {string} */
+                    kind: "event";
+                    data: {
+                        /** Format: uuid */
+                        eventId: string;
+                        eventIdentifier: string;
+                        emitterIdentifier: string;
+                        /** Format: uuid */
+                        targetUserId?: string;
+                        targetLocation?: {
+                            /** Format: uuid */
+                            folderId: string;
+                            objectKey?: string;
+                        };
+                        eventData: {
+                            [key: string]: unknown;
+                        };
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "schedule";
+                    data: {
+                        /** @enum {string} */
+                        scheduleIdentifier: "daily" | "hourly" | "every_five_minutes";
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "user_action";
+                    data: {
+                        /** Format: uuid */
+                        userId: string;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "app_action";
+                } | {
+                    /** @enum {string} */
+                    kind: "task_child";
+                    data: {
+                        /** Format: uuid */
+                        parentTaskId: string;
+                        parentTaskIdentifier: string;
+                    };
+                };
                 success?: boolean;
                 handlerIdentifier?: string;
-                inputData: {
+                data: {
                     [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
                 };
                 error?: {
                     code: string;

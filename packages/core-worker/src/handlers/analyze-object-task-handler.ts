@@ -23,18 +23,18 @@ export const analyzeObjectTaskHandler = async (
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
-  if (!task.subjectFolderId) {
+  if (!task.targetLocation?.folderId) {
     throw new AppAPIError('INVALID_TASK', 'Missing folderId.')
   }
 
-  if (!task.subjectObjectKey) {
+  if (!task.targetLocation.objectKey) {
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
   const response = await server.getContentSignedUrls([
     {
-      folderId: task.subjectFolderId,
-      objectKey: task.subjectObjectKey,
+      folderId: task.targetLocation.folderId,
+      objectKey: task.targetLocation.objectKey,
       method: SignedURLsRequestMethod.GET,
     },
   ])
@@ -63,15 +63,15 @@ export const analyzeObjectTaskHandler = async (
     if (!mimeType) {
       throw new AppAPIError(
         'UNRECOGNIZED_MIME_TYPE',
-        `Cannot resolve mimeType for objectKey ${task.subjectObjectKey}`,
+        `Cannot resolve mimeType for objectKey ${task.targetLocation.objectKey}`,
       )
     }
   } catch (e: unknown) {
     throw new AppAPIError(
       'STORAGE_ACCESS_FAILURE',
       `Failure accessing underlying storage: ${JSON.stringify({
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
+        folderId: task.targetLocation.folderId,
+        objectKey: task.targetLocation.objectKey,
       })}.\nError: ${e instanceof Error ? e.name : String(e)}`,
     )
   }
@@ -122,10 +122,10 @@ export const analyzeObjectTaskHandler = async (
     .getMetadataSignedUrls(
       Object.values(previews).map((preview) => ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        folderId: task.subjectFolderId!,
+        folderId: task.targetLocation!.folderId,
         contentHash: originalContentHash,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        objectKey: task.subjectObjectKey!,
+        objectKey: task.targetLocation!.objectKey!,
         method: SignedURLsRequestMethod.PUT,
         metadataHash: preview.hash,
       })),
@@ -157,8 +157,8 @@ export const analyzeObjectTaskHandler = async (
   if (Object.keys(metadataDescription).length > 0) {
     const metadataUpdateResponse = await server.updateContentMetadata([
       {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
+        folderId: task.targetLocation.folderId,
+        objectKey: task.targetLocation.objectKey,
         hash: originalContentHash,
         metadata: metadataDescription,
       },

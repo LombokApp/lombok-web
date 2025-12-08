@@ -300,9 +300,9 @@ export class WorkerJobService {
       }
 
       const innerTask =
-        'innerTaskId' in dockerTask.inputData &&
+        'innerTaskId' in dockerTask.data &&
         (await tx.query.tasksTable.findFirst({
-          where: eq(tasksTable.id, dockerTask.inputData.innerTaskId as string),
+          where: eq(tasksTable.id, dockerTask.data.innerTaskId as string),
         }))
 
       if (!innerTask) {
@@ -375,9 +375,9 @@ export class WorkerJobService {
       }
 
       const innerTaskId =
-        'innerTaskId' in dockerRunTask.inputData &&
-        typeof dockerRunTask.inputData.innerTaskId === 'string' &&
-        dockerRunTask.inputData.innerTaskId
+        'innerTaskId' in dockerRunTask.data &&
+        typeof dockerRunTask.data.innerTaskId === 'string' &&
+        dockerRunTask.data.innerTaskId
 
       if (!innerTaskId) {
         throw new NotFoundException(

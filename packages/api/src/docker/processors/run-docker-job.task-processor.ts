@@ -1,3 +1,4 @@
+import { TaskTrigger } from '@lombokapp/types'
 import {
   forwardRef,
   Inject,
@@ -6,7 +7,6 @@ import {
 } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
-import { Event } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { BaseProcessor } from 'src/task/base.processor'
 import { Task, tasksTable } from 'src/task/entities/task.entity'
@@ -31,8 +31,14 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     return false
   }
 
-  async run(task: Task, event: Event) {
-    const eventData = event.data as {
+  async run(task: Task, trigger: TaskTrigger) {
+    if (trigger.kind !== 'event') {
+      throw new NotFoundException(
+        'RunDockerJobProcessor requires event trigger',
+      )
+    }
+    const triggerData = trigger.data
+    const eventData = triggerData.eventData as {
       innerTaskId: string
       profileIdentifier: string
       jobClassIdentifier: string
@@ -52,10 +58,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     // Have the executor tell us if it accepted the job
     const { accepted } = await this.appService.executeAppDockerJob({
       appIdentifier: eventData.appIdentifier,
-      jobInputData: {
-        folderId: event.subjectFolderId,
-        objectKey: event.subjectObjectKey,
-      },
+      jobInputData: triggerData.targetLocation ?? {},
       profileIdentifier: eventData.profileIdentifier,
       jobIdentifier: eventData.jobClassIdentifier,
       asyncTaskId: task.id,

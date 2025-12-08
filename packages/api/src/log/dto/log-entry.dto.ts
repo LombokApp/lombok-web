@@ -1,5 +1,9 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { LogEntryLevel, subjectContextSchema } from '@lombokapp/types'
+import {
+  elaboratedTargetLocationContextSchema,
+  LogEntryLevel,
+  targetLocationContextSchema,
+} from '@lombokapp/types'
 import { z } from 'zod'
 
 export const logEntrySchema = z.object({
@@ -7,7 +11,8 @@ export const logEntrySchema = z.object({
   message: z.string(),
   level: z.nativeEnum(LogEntryLevel),
   emitterIdentifier: z.string(),
-  subjectContext: subjectContextSchema.optional(),
+  targetLocation: targetLocationContextSchema.optional(),
+  targetLocationContext: elaboratedTargetLocationContextSchema.optional(),
   data: z.unknown(),
   createdAt: z.date(),
 })

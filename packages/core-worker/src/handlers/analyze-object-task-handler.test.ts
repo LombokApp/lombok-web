@@ -43,11 +43,21 @@ describe('Analyze Object Task Handler', () => {
     const analyzeTask: TaskDTO = {
       id: uuidV4(),
       taskIdentifier: 'analyze_object',
-      inputData: {},
-      subjectFolderId: testFolderId,
-      subjectObjectKey: testObjectKey,
+      data: {},
+      targetLocation: {
+        folderId: testFolderId,
+        objectKey: testObjectKey,
+      },
       ownerIdentifier: 'core-worker',
-      eventId: uuidV4(),
+      trigger: {
+        kind: 'event',
+        data: {
+          eventId: uuidV4(),
+          eventIdentifier: 'platform:object_added',
+          emitterIdentifier: 'platform',
+          eventData: {},
+        },
+      },
       systemLog: [],
       taskLog: [],
       taskDescription: 'analyze_object',

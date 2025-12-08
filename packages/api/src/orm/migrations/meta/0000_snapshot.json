@@ -1,5 +1,5 @@
 {
-  "id": "aa01b5c4-8111-40a8-becd-160c36cd40c3",
+  "id": "cbbb0cde-7386-4c87-99b4-5dc7aae0a67e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -550,21 +550,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "subjectFolderId": {
-          "name": "subjectFolderId",
+        "targetUserId": {
+          "name": "targetUserId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "subjectObjectKey": {
-          "name": "subjectObjectKey",
-          "type": "text",
+        "targetLocation": {
+          "name": "targetLocation",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -582,21 +576,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "events_subjectFolderId_folders_id_fk": {
-          "name": "events_subjectFolderId_folders_id_fk",
-          "tableFrom": "events",
-          "tableTo": "folders",
-          "columnsFrom": [
-            "subjectFolderId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -983,9 +963,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "subjectFolderId": {
-          "name": "subjectFolderId",
-          "type": "uuid",
+        "targetLocation": {
+          "name": "targetLocation",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -994,12 +974,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "subjectObjectKey": {
-          "name": "subjectObjectKey",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "data": {
           "name": "data",
@@ -1015,21 +989,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "log_entries_subjectFolderId_folders_id_fk": {
-          "name": "log_entries_subjectFolderId_folders_id_fk",
-          "tableFrom": "log_entries",
-          "tableTo": "folders",
-          "columnsFrom": [
-            "subjectFolderId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1212,27 +1172,27 @@
           "primaryKey": false,
           "notNull": true
         },
-        "inputData": {
-          "name": "inputData",
+        "data": {
+          "name": "data",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
-        "eventId": {
-          "name": "eventId",
-          "type": "uuid",
+        "trigger": {
+          "name": "trigger",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
-        "subjectFolderId": {
-          "name": "subjectFolderId",
+        "targetUserId": {
+          "name": "targetUserId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "subjectObjectKey": {
-          "name": "subjectObjectKey",
-          "type": "text",
+        "targetLocation": {
+          "name": "targetLocation",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -1312,35 +1272,39 @@
           "notNull": false
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "tasks_eventId_events_id_fk": {
-          "name": "tasks_eventId_events_id_fk",
-          "tableFrom": "tasks",
-          "tableTo": "events",
-          "columnsFrom": [
-            "eventId"
+      "indexes": {
+        "tasks_trigger_kind_idx": {
+          "name": "tasks_trigger_kind_idx",
+          "columns": [
+            {
+              "expression": "(\"trigger\" ->> 'kind')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
           ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
-        "tasks_subjectFolderId_folders_id_fk": {
-          "name": "tasks_subjectFolderId_folders_id_fk",
-          "tableFrom": "tasks",
-          "tableTo": "folders",
-          "columnsFrom": [
-            "subjectFolderId"
+        "tasks_folder_idx": {
+          "name": "tasks_folder_idx",
+          "columns": [
+            {
+              "expression": "(\"targetLocation\" ->> 'folderId')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
           ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

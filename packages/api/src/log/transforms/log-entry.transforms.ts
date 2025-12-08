@@ -4,21 +4,27 @@ import type { LogEntry } from '../entities/log-entry.entity'
 export function transformLogEntryToDTO(
   logEntry: LogEntry & { folder?: { name: string; ownerId: string } },
 ): LogEntryDTO {
-  return {
+  const baseDTO: LogEntryDTO = {
     id: logEntry.id,
     emitterIdentifier: logEntry.emitterIdentifier,
     message: logEntry.message,
     level: logEntry.level,
-    subjectContext:
-      logEntry.subjectFolderId && logEntry.folder
-        ? {
-            folderId: logEntry.subjectFolderId,
-            objectKey: logEntry.subjectObjectKey ?? undefined,
-            folderName: logEntry.folder.name,
-            folderOwnerId: logEntry.folder.ownerId,
-          }
-        : undefined,
+    targetLocation: logEntry.targetLocation ?? undefined,
     data: logEntry.data,
     createdAt: logEntry.createdAt,
   }
+
+  if (logEntry.targetLocation?.folderId && logEntry.folder) {
+    return {
+      ...baseDTO,
+      targetLocationContext: {
+        folderId: logEntry.targetLocation.folderId,
+        objectKey: logEntry.targetLocation.objectKey ?? undefined,
+        folderName: logEntry.folder.name,
+        folderOwnerId: logEntry.folder.ownerId,
+      },
+    }
+  }
+
+  return baseDTO
 }
