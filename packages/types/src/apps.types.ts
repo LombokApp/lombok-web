@@ -102,13 +102,40 @@ export const genericIdentifierSchema = z
 
 export const taskIdentifierSchema = genericIdentifierSchema
 
+export const taskEventTriggerConfigSchema = z.object({
+  kind: z.literal('event'),
+  identifier: eventIdentifierSchema.or(platformPrefixedEventIdentifierSchema),
+  data: jsonSerializableObjectSchema.optional(),
+})
+
+export type TaskEventTriggerConfig = z.infer<
+  typeof taskEventTriggerConfigSchema
+>
+
+export const taskScheduleTriggerConfigSchema = z.object({
+  kind: z.literal('schedule'),
+  config: z.object({
+    interval: z.number().int().positive(),
+    unit: z.enum(['minutes', 'hours', 'days']),
+  }),
+})
+
+export type TaskScheduleTriggerConfig = z.infer<
+  typeof taskScheduleTriggerConfigSchema
+>
+
+export const taskTriggerConfigSchema = z.discriminatedUnion('kind', [
+  taskEventTriggerConfigSchema,
+  taskScheduleTriggerConfigSchema,
+])
+
+export type TaskTriggerConfig = z.infer<typeof taskTriggerConfigSchema>
+
 export const taskConfigSchema = z
   .object({
     identifier: taskIdentifierSchema,
     label: z.string().nonempty().min(1).max(128),
-    triggers: z
-      .array(eventIdentifierSchema.or(platformPrefixedEventIdentifierSchema))
-      .optional(),
+    triggers: taskTriggerConfigSchema.array().optional(),
     description: z.string(),
     handler: z.discriminatedUnion('type', [
       z.object({

@@ -1,5 +1,5 @@
 {
-  "description": "An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.",
+  "description": "An app implementing core functionality.",
   "identifier": "core",
   "label": "Core",
   "requiresStorage": false,
@@ -14,7 +14,16 @@
       "identifier": "analyze_object",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
-      "triggers": ["platform:object_added"],
+      "triggers": [
+        {
+          "kind": "event",
+          "identifier": "platform:object_added",
+          "data": {
+            "folderId": "{{event.data.folderId}}",
+            "objectKey": "{{event.data.objectKey}}"
+          }
+        }
+      ],
       "handler": {
         "type": "external"
       }
@@ -23,7 +32,17 @@
       "identifier": "run_worker_script",
       "label": "Run Worker",
       "description": "Run a worker script.",
-      "triggers": ["platform:worker_task_enqueued"],
+      "triggers": [
+        {
+          "kind": "event",
+          "identifier": "platform:worker_task_enqueued",
+          "data": {
+            "innerTaskId": "{{event.data.innerTaskId}}",
+            "appIdentifier": "{{event.data.appIdentifier}}",
+            "workerIdentifier": "{{event.data.workerIdentifier}}"
+          }
+        }
+      ],
       "handler": {
         "type": "external"
       }

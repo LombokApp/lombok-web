@@ -305,6 +305,45 @@ describe('apps.types', () => {
       const result = appConfigSchema.safeParse(invalidApp)
       expectZodFailure(result)
     })
+
+    it('should validate event trigger data templating', () => {
+      const appWithTemplatedTrigger = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        workers: {
+          worker1: {
+            entrypoint: 'worker.js',
+            description: 'Test worker',
+          },
+        },
+        tasks: [
+          {
+            identifier: 'templated_task',
+            label: 'Templated Task',
+            description: 'Uses event data interpolation',
+            handler: {
+              type: 'worker',
+              identifier: 'worker1',
+            },
+            triggers: [
+              {
+                kind: 'event',
+                identifier: 'platform:worker_task_enqueued',
+                data: {
+                  innerTaskId: '{{event.data.innerTaskId}}',
+                  appIdentifier: '{{event.data.appIdentifier}}',
+                  workerIdentifier: '{{event.data.workerIdentifier}}',
+                },
+              },
+            ],
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(appWithTemplatedTrigger)
+      expectZodSuccess(result)
+    })
   })
 
   describe('appConfigWithManifestSchema', () => {

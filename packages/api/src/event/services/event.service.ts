@@ -5,6 +5,7 @@ import {
   JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
+  TaskEventTriggerConfig,
 } from '@lombokapp/types'
 import {
   forwardRef,
@@ -34,6 +35,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import type { Event } from '../entities/event.entity'
 import { eventsTable } from '../entities/event.entity'
+import { parseDataFromEventWithTrigger } from './event-template.util'
 
 export enum EventSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -163,11 +165,12 @@ export class EventService {
         subscribedApps.map(async (subscribedApp) => {
           return Promise.all(
             (subscribedApp.config.tasks ?? []).map(async (taskDefinition) => {
-              if (
-                taskDefinition.triggers?.find(
-                  (trigger) => trigger === eventTriggerIdentifier,
-                )
-              ) {
+              const eventTriggers = taskDefinition.triggers?.filter(
+                (trigger) =>
+                  trigger.kind === 'event' &&
+                  trigger.identifier === eventTriggerIdentifier,
+              ) as TaskEventTriggerConfig[]
+              for (const eventTrigger of eventTriggers) {
                 const { handlerType, handlerIdentifier } =
                   taskDefinition.handler.type === 'worker'
                     ? {
@@ -196,7 +199,9 @@ export class EventService {
                     : undefined,
                   taskDescription: taskDefinition.description,
                   taskIdentifier: taskDefinition.identifier,
-                  data: {},
+                  data: eventTrigger.data
+                    ? parseDataFromEventWithTrigger(event, eventTrigger.data)
+                    : {},
                   ownerIdentifier: subscribedApp.identifier,
                   createdAt: now,
                   updatedAt: now,

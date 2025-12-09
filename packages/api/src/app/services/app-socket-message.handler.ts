@@ -394,7 +394,6 @@ export async function handleAppSocketMessage(
     case 'GET_WORKER_EXECUTION_DETAILS': {
       if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
         return {
-          result: undefined,
           error: { code: 403, message: 'Unauthorized.' },
         }
       }

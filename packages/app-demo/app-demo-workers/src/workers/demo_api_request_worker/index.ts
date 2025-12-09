@@ -59,12 +59,12 @@ export const handleRequest: RequestHandler = async function handleRequest(
 
     // Try to query the demo tables if they exist
     try {
-      const usersResult = await dbClient.query(
-        'SELECT COUNT(*) as user_count FROM users',
+      const demoEntitiesResult = await dbClient.query(
+        'SELECT COUNT(*) as demo_entity_count FROM demo_entities',
       )
-      console.log('Users table query result:', usersResult)
+      console.log('Demo entities table query result:', demoEntitiesResult)
     } catch (error) {
-      console.log('Users table not found or not accessible:', error)
+      console.log('Demo entities table not found or not accessible:', error)
     }
   } catch (error) {
     console.log('Database query failed:', error)

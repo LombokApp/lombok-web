@@ -33,7 +33,17 @@ const testAppDefinitions: AppConfig[] = [
         identifier: 'run_worker_script',
         label: 'Run Worker',
         description: 'Run a worker script.',
-        triggers: ['platform:worker_task_enqueued'],
+        triggers: [
+          {
+            kind: 'event',
+            identifier: 'platform:worker_task_enqueued',
+            data: {
+              innerTaskId: '{{event.data.innerTaskId}}',
+              appIdentifier: '{{event.data.appIdentifier}}',
+              workerIdentifier: '{{event.data.workerIdentifier}}',
+            },
+          },
+        ],
         handler: {
           type: 'external',
         },
@@ -60,7 +70,6 @@ const testAppDefinitions: AppConfig[] = [
           type: 'docker',
           identifier: 'dummy_profile:test_job',
         },
-        triggers: ['job_trigger_event'],
       },
       {
         identifier: 'non_triggered_docker_job_task',

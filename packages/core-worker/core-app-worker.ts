@@ -324,6 +324,8 @@ process.stdin.once('data', (data) => {
                 appIdentifier,
               })
 
+              console.log('bundleResponse', bundleResponse)
+
               if ('error' in bundleResponse) {
                 return new Response(`Error: ${bundleResponse.error.message}`, {
                   status:

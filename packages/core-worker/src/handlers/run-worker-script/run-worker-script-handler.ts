@@ -11,7 +11,7 @@ import { z } from 'zod'
 import { runWorkerScript } from '../../worker-scripts/run-worker-script'
 
 const runWorkerScriptTaskInputDataSchema = z.object({
-  taskId: z.string(),
+  innerTaskId: z.string().uuid(),
   appIdentifier: z.string(),
   workerIdentifier: z.string(),
 })
@@ -36,7 +36,7 @@ export const bulidRunWorkerScriptTaskHandler =
     }
 
     const attemptStartHandleResponse = await server.attemptStartHandleTaskById({
-      taskId: runWorkerScriptTask.id,
+      taskId: parsedRunWorkerTaskData.innerTaskId,
     })
     if ('error' in attemptStartHandleResponse) {
       throw new AppAPIError(

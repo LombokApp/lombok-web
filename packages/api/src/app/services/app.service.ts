@@ -510,7 +510,6 @@ export class AppService {
 
     if (!serverStorageLocation) {
       return {
-        result: undefined,
         error: {
           code: 500,
           message: 'Server storage location not available.',
@@ -532,9 +531,11 @@ export class AppService {
     ])
 
     return {
-      manifest: workerApp.ui.manifest,
-      bundleUrl: presignedGetURL[0],
-      csp: workerApp.ui.csp,
+      result: {
+        manifest: workerApp.ui.manifest,
+        bundleUrl: presignedGetURL[0],
+        csp: workerApp.ui.csp,
+      },
     }
   }
 

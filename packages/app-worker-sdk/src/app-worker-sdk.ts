@@ -3,9 +3,8 @@ import type {
   AppSocketMessageDataMap,
   AppSocketMessageResultMap,
   AppSocketResponseError,
-  EventDTO,
   JsonSerializableObject,
-  TaskDTO,
+  taskSchema,
   WorkerApiActor,
 } from '@lombokapp/types'
 import {
@@ -496,7 +495,7 @@ export type RequestHandler = (
 ) => Promise<Response> | Response
 
 export type TaskHandler = (
-  { task, event }: { task: TaskDTO; event: EventDTO },
+  task: z.infer<typeof taskSchema>,
   {
     serverClient,
     dbClient,
