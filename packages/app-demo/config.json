@@ -82,6 +82,5 @@
         "iconPath": "/assets/logo.png"
       }
     ]
-  },
-  "emittableEvents": []
+  }
 }

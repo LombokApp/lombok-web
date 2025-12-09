@@ -7144,11 +7144,12 @@
                       "minLength": 1,
                       "maxLength": 1024
                     },
-                    "emittableEvents": {
+                    "subscribedPlatformEvents": {
                       "type": "array",
                       "items": {
                         "type": "string",
-                        "minLength": 1
+                        "minLength": 1,
+                        "pattern": "^platform:[a-z_]+$"
                       }
                     },
                     "tasks": {
@@ -7169,7 +7170,18 @@
                           "triggers": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^platform:[a-z_]+$"
+                                }
+                              ]
                             }
                           },
                           "description": {
@@ -7556,8 +7568,7 @@
                   "required": [
                     "identifier",
                     "label",
-                    "description",
-                    "emittableEvents"
+                    "description"
                   ],
                   "additionalProperties": false
                 },
@@ -8022,11 +8033,12 @@
                     "minLength": 1,
                     "maxLength": 1024
                   },
-                  "emittableEvents": {
+                  "subscribedPlatformEvents": {
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "pattern": "^platform:[a-z_]+$"
                     }
                   },
                   "tasks": {
@@ -8047,7 +8059,18 @@
                         "triggers": {
                           "type": "array",
                           "items": {
-                            "type": "string"
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^platform:[a-z_]+$"
+                              }
+                            ]
                           }
                         },
                         "description": {
@@ -8434,8 +8457,7 @@
                 "required": [
                   "identifier",
                   "label",
-                  "description",
-                  "emittableEvents"
+                  "description"
                 ],
                 "additionalProperties": false
               },
@@ -8929,11 +8951,12 @@
                       "minLength": 1,
                       "maxLength": 1024
                     },
-                    "emittableEvents": {
+                    "subscribedPlatformEvents": {
                       "type": "array",
                       "items": {
                         "type": "string",
-                        "minLength": 1
+                        "minLength": 1,
+                        "pattern": "^platform:[a-z_]+$"
                       }
                     },
                     "tasks": {
@@ -8954,7 +8977,18 @@
                           "triggers": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^platform:[a-z_]+$"
+                                }
+                              ]
                             }
                           },
                           "description": {
@@ -9341,8 +9375,7 @@
                   "required": [
                     "identifier",
                     "label",
-                    "description",
-                    "emittableEvents"
+                    "description"
                   ],
                   "additionalProperties": false
                 },
@@ -9693,11 +9726,12 @@
                     "minLength": 1,
                     "maxLength": 1024
                   },
-                  "emittableEvents": {
+                  "subscribedPlatformEvents": {
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "pattern": "^platform:[a-z_]+$"
                     }
                   },
                   "tasks": {
@@ -9718,7 +9752,18 @@
                         "triggers": {
                           "type": "array",
                           "items": {
-                            "type": "string"
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^platform:[a-z_]+$"
+                              }
+                            ]
                           }
                         },
                         "description": {
@@ -10105,8 +10150,7 @@
                 "required": [
                   "identifier",
                   "label",
-                  "description",
-                  "emittableEvents"
+                  "description"
                 ],
                 "additionalProperties": false
               },

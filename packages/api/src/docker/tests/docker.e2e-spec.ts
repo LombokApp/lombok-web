@@ -84,31 +84,37 @@ const triggerAppDockerHandledTask = async (
   {
     appIdentifier,
     taskIdentifier,
-    inputData,
+    taskData,
     storageAccessPolicy,
     expectRecords = true,
   }: {
     appIdentifier: string
     taskIdentifier: string
-    inputData: JsonSerializableObject
+    taskData: JsonSerializableObject
     storageAccessPolicy?: StorageAccessPolicy | undefined
     expectRecords?: boolean
   },
 ) => {
-  await testModule.getEventService().emitEvent({
-    emitterIdentifier: PLATFORM_IDENTIFIER,
-    eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-    data: {
-      appIdentifier,
-      taskIdentifier,
-      inputData,
-      ...(storageAccessPolicy && { storageAccessPolicy }),
-    },
+  // await testModule.getEventService().emitEvent({
+  //   emitterIdentifier: PLATFORM_IDENTIFIER,
+  //   eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+  //   data: {
+  //     appIdentifier,
+  //     taskIdentifier,
+  //     inputData,
+  //     ...(storageAccessPolicy && { storageAccessPolicy }),
+  //   },
+  // })
+  await testModule.services.taskService.triggerAppActionTask({
+    appIdentifier,
+    taskIdentifier,
+    ...(storageAccessPolicy && { storageAccessPolicy }),
+    taskData,
   })
 
   // drain the platform tasks (twice) to ensure the docker run task is enqueued and started
-  await testModule.getPlatformTaskService().drainPlatformTasks(true)
-  await testModule.getPlatformTaskService().drainPlatformTasks(true)
+  await testModule.services.platformTaskService.drainPlatformTasks(true)
+  await testModule.services.platformTaskService.drainPlatformTasks(true)
 
   const events = await testModule
     .getOrmService()
@@ -171,7 +177,7 @@ const triggerAppDockerHandledTask = async (
       targetUserId: null,
       targetLocation: null,
       data: {
-        inputData,
+        inputData: taskData,
         appIdentifier,
         taskIdentifier: taskDefinition.identifier,
         ...(storageAccessPolicy && { storageAccessPolicy }),
@@ -206,7 +212,7 @@ const triggerAppDockerHandledTask = async (
           eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {
-            inputData,
+            inputData: taskData,
             appIdentifier,
             taskIdentifier: taskDefinition.identifier,
             ...(storageAccessPolicy && { storageAccessPolicy }),
@@ -638,7 +644,7 @@ describe('Docker Jobs', () => {
       await triggerAppDockerHandledTask(testModule!, {
         appIdentifier: 'testapp',
         taskIdentifier: 'non_triggered_docker_job_task',
-        inputData: { myTaskData: 'test' },
+        taskData: { myTaskData: 'test' },
       })
 
     expect(innerTask).toEqual({
@@ -700,7 +706,7 @@ describe('Docker Jobs', () => {
       {
         appIdentifier: 'testapp',
         taskIdentifier: 'non_triggered_docker_job_task',
-        inputData: { myTaskData: 'test' },
+        taskData: { myTaskData: 'test' },
       },
     )
 
@@ -786,7 +792,7 @@ describe('Docker Jobs', () => {
       {
         appIdentifier: 'testapp',
         taskIdentifier: 'non_triggered_docker_job_task',
-        inputData: { myTaskData: 'test' },
+        taskData: { myTaskData: 'test' },
         storageAccessPolicy: [
           {
             folderId: allowedFolderId,
@@ -1357,7 +1363,7 @@ describe('Docker Jobs', () => {
     const firstTry = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
-      inputData: { myTaskData: 'test' },
+      taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
           folderId: testFolder.folder.id,
@@ -1400,7 +1406,7 @@ describe('Docker Jobs', () => {
     const secondTry = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
-      inputData: { myTaskData: 'test' },
+      taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
           folderId: testFolder2.folder.id,
@@ -1453,7 +1459,7 @@ describe('Docker Jobs', () => {
       {
         appIdentifier: 'testapp',
         taskIdentifier: 'non_triggered_docker_job_task',
-        inputData: { myTaskData: 'test' },
+        taskData: { myTaskData: 'test' },
         storageAccessPolicy: [storageAccessPolicyRule],
       },
     )
@@ -1514,7 +1520,7 @@ describe('Docker Jobs', () => {
       {
         appIdentifier: 'testapp',
         taskIdentifier: 'non_triggered_docker_job_task',
-        inputData: { myTaskData: 'test' },
+        taskData: { myTaskData: 'test' },
       },
     )
 

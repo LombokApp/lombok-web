@@ -1,8 +1,10 @@
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type {
-  ContentMetadataType,
-  JsonSerializableObject,
-  taskSchema,
+import {
+  type ContentMetadataType,
+  type JsonSerializableObject,
+  PLATFORM_IDENTIFIER,
+  PlatformEvent,
+  type taskSchema,
 } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import fs from 'fs'
@@ -58,8 +60,8 @@ describe('Analyze Object Task Handler', () => {
         kind: 'event',
         data: {
           eventId: uuidV4(),
-          eventIdentifier: 'platform:object_added',
-          emitterIdentifier: 'platform',
+          eventIdentifier: PlatformEvent.object_added,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {} as JsonSerializableObject,
         },
       },

@@ -218,7 +218,7 @@ export class LogEntryService {
     meta: { totalCount: number }
     result: (LogEntry & { folder?: { name: string; ownerId: string } })[]
   }> {
-    const targetFolderId = sql<string>`(>${logEntriesTable.targetLocation} ->> 'folderId')::uuid`
+    const targetFolderId = sql<string>`(${logEntriesTable.targetLocation} ->> 'folderId')::uuid`
     const targetObjectKey = sql<string>`${logEntriesTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {

@@ -1033,11 +1033,7 @@ export class AppService {
               user: config.permissions?.user ?? [],
               folder: config.permissions?.folder ?? [],
             },
-            subscribedEvents:
-              config.tasks?.reduce<string[]>(
-                (acc, task) => acc.concat(task.triggers ?? []),
-                [],
-              ) ?? [],
+            subscribedPlatformEvents: config.subscribedPlatformEvents ?? [],
             implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||

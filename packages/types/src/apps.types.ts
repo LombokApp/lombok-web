@@ -1,12 +1,13 @@
 import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
-import { PLATFORM_IDENTIFIER } from './platform.types'
+import {
+  eventIdentifierSchema,
+  platformPrefixedEventIdentifierSchema,
+} from './events.types'
 import type { StorageAccessPolicy } from './task.types'
 
 export const CORE_APP_IDENTIFIER = 'core'
-export const WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:worker_task_enqueued`
-export const DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER = `${PLATFORM_IDENTIFIER}:docker_task_enqueued`
 
 export const AppSocketMessage = z.enum([
   'DB_QUERY',
@@ -105,7 +106,9 @@ export const taskConfigSchema = z
   .object({
     identifier: taskIdentifierSchema,
     label: z.string().nonempty().min(1).max(128),
-    triggers: z.array(z.string()).optional(),
+    triggers: z
+      .array(eventIdentifierSchema.or(platformPrefixedEventIdentifierSchema))
+      .optional(),
     description: z.string(),
     handler: z.discriminatedUnion('type', [
       z.object({
@@ -310,7 +313,9 @@ export const appConfigSchema = z
     identifier: appIdentifierSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
-    emittableEvents: z.array(z.string().nonempty()),
+    subscribedPlatformEvents: z
+      .array(platformPrefixedEventIdentifierSchema)
+      .optional(),
     tasks: z.array(taskConfigSchema).optional(),
     containerProfiles: z
       .record(

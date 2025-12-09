@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import { PlatformObjectAddedEventTriggerIdentifier } from 'src/events.types'
 import type { SafeParseReturnType } from 'zod'
 
 import type { AppConfig } from '../apps.types'
@@ -163,7 +164,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1', 'event2'],
         tasks: [
           {
             identifier: 'task',
@@ -193,7 +193,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
       }
       const result = appConfigSchema.safeParse(validApp)
       expectZodSuccess(result)
@@ -203,7 +202,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         tasks: [
           {
             identifier: 'task',
@@ -233,7 +231,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         tasks: [
           {
             identifier: 'task',
@@ -263,7 +260,6 @@ describe('apps.types', () => {
         identifier: 'TEST_APP', // uppercase not allowed
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -281,7 +277,6 @@ describe('apps.types', () => {
         identifier: 'platform',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -299,7 +294,6 @@ describe('apps.types', () => {
         identifier: '',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -332,7 +326,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -370,7 +363,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         workers: {
           script1: {
             entrypoint: 'nonexistent.js',
@@ -399,7 +391,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -705,7 +696,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         containerProfiles: {
           default: {
             image: 'example-image',
@@ -741,7 +731,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         tasks: [
           {
             identifier: 'task',
@@ -773,7 +762,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         containerProfiles: {
           default: {
             image: 'example-image',
@@ -813,7 +801,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         requiresStorage: true,
         permissions: {
           platform: ['READ_ACL'],
@@ -840,7 +827,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         containerProfiles: {
           default: {
             image: 'example-image',
@@ -1058,7 +1044,7 @@ describe('apps.types', () => {
             label: 'Trigger Extract Content Metadata',
             description:
               'A task that runs for every newly added object and triggers the job to extract metadata and generate embeddings.',
-            triggers: ['platform:object_added'],
+            triggers: [PlatformObjectAddedEventTriggerIdentifier],
             handler: {
               type: 'worker',
               identifier: 'trigger_extract_content_metadata_worker',
@@ -1100,7 +1086,6 @@ describe('apps.types', () => {
           ],
           user: ['READ_USER'],
         },
-        emittableEvents: [],
         containerProfiles: {
           content_indexing: {
             image: 'docker.phonk.tv/lombok-content-indexer',

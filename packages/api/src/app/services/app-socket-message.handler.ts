@@ -122,16 +122,6 @@ export async function handleAppSocketMessage(
             error: { code: 404, message: 'App not found.' },
           }
         }
-        if (
-          !app.config.emittableEvents.includes(
-            parsedRequest.data.eventIdentifier,
-          )
-        ) {
-          return {
-            result: { success: false },
-            error: { code: 403, message: 'Event not emittable.' },
-          }
-        }
         await eventService.emitEvent({
           emitterIdentifier: requestingAppIdentifier,
           eventIdentifier: parsedRequest.data.eventIdentifier,
@@ -183,7 +173,7 @@ export async function handleAppSocketMessage(
         logMessage: parsedRequest.data.message,
         data: parsedRequest.data.data,
         level: parsedRequest.data.level,
-        targetLocation: parsedRequest.data.subjectContext,
+        targetLocation: parsedRequest.data.targetLocation,
       })
       return { result: undefined }
     case 'GET_CONTENT_SIGNED_URLS':

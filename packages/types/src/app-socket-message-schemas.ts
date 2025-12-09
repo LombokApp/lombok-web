@@ -7,20 +7,21 @@ import {
   jsonSerializableObjectSchema,
 } from './apps.types'
 import { metadataEntrySchema } from './content.types'
+import { eventIdentifierSchema } from './events.types'
 import { LogEntryLevel } from './platform.types'
 import { SignedURLsRequestMethod } from './storage.types'
 import { storageAccessPolicySchema, taskSchema } from './task.types'
 
 export const logEntrySchema = z.object({
-  message: z.string(),
+  message: z.string().max(1024),
   level: z.nativeEnum(LogEntryLevel),
-  subjectContext: z
+  targetLocation: z
     .object({
       folderId: z.string(),
       objectKey: z.string().optional(),
     })
     .optional(),
-  data: z.unknown().optional(),
+  data: jsonSerializableObjectSchema.optional(),
 })
 
 export const attemptStartHandleTaskSchema = z.object({
@@ -99,7 +100,7 @@ export const dbQuerySchema = z.object({
 })
 
 export const emitEventSchema = z.object({
-  eventIdentifier: z.string(),
+  eventIdentifier: eventIdentifierSchema,
   data: jsonSerializableObjectSchema,
 })
 

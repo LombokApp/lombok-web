@@ -1,16 +1,13 @@
 import {
-  DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
+  eventIdentifierSchema,
   EventTaskTrigger,
   FolderPushMessage,
   JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
-  WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
 } from '@lombokapp/types'
 import {
   forwardRef,
-  HttpException,
-  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -26,9 +23,12 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
+import {
+  PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP,
+  PLATFORM_TASKS,
+} from 'src/task/constants/platform-tasks.constants'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
-import { PlatformTaskName } from 'src/task/task.constants'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -79,23 +79,28 @@ export class EventService {
       emitterIdentifier,
       eventIdentifier,
       data,
-      targetLocation: locationTarget,
-      userId,
+      targetLocation,
+      targetUserId,
     }: {
       emitterIdentifier: string
-      eventIdentifier: PlatformEvent | string
+      eventIdentifier: string
       data: JsonSerializableObject
       targetLocation?: { folderId: string; objectKey?: string }
-      userId?: string
+      targetUserId?: string
     },
     _db?: OrmService['db'],
   ) {
+    if (!eventIdentifierSchema.safeParse(eventIdentifier).success) {
+      throw new InternalServerErrorException(
+        `Invalid event identifier: ${eventIdentifier}`,
+      )
+    }
+
     const db = _db ?? this.ormService.db
     const now = new Date()
 
     const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
-    const isAppEmitter = !isPlatformEmitter
-    const appIdentifier = isAppEmitter ? emitterIdentifier : undefined
+    const appIdentifier = !isPlatformEmitter ? emitterIdentifier : undefined
 
     const app = appIdentifier
       ? await this.appService.getApp(appIdentifier.toLowerCase(), {
@@ -109,16 +114,6 @@ export class EventService {
       )
     }
 
-    if (appIdentifier && !eventIdentifier.startsWith(`${appIdentifier}:`)) {
-      throw new InternalServerErrorException(
-        `Invalid eventIdentifier emitted by "${appIdentifier}" app. Event Identifier: '${appIdentifier}'`,
-      )
-    }
-
-    const authorized = !!(
-      isPlatformEmitter || app?.config.emittableEvents.includes(eventIdentifier)
-    )
-
     // console.log('emitEvent:', {
     //   eventIdentifier,
     //   emitterIdentifier,
@@ -128,10 +123,6 @@ export class EventService {
     //   userId,
     // })
 
-    if (!authorized) {
-      throw new HttpException('ForbiddenEmitEvent', HttpStatus.FORBIDDEN)
-    }
-
     await db.transaction(async (tx) => {
       const [event] = await tx
         .insert(eventsTable)
@@ -140,8 +131,8 @@ export class EventService {
             id: uuidV4(),
             eventIdentifier,
             emitterIdentifier,
-            targetLocation: locationTarget,
-            targetUserId: userId,
+            targetLocation,
+            targetUserId,
             createdAt: now,
             data,
           },
@@ -149,23 +140,32 @@ export class EventService {
         .returning()
 
       // regular event, so we should lookup apps that have subscribed to this event
-      const subscribedApps = await tx.query.appsTable.findMany({
-        where: and(
-          arrayContains(appsTable.subscribedEvents, [eventIdentifier]),
-          eq(appsTable.enabled, true),
-        ),
-        limit: 100, // TODO: manage this limit somehow
-      })
+      const eventTriggerIdentifier = isPlatformEmitter
+        ? `${PLATFORM_IDENTIFIER}:${eventIdentifier}`
+        : eventIdentifier
+
+      const subscribedApps = isPlatformEmitter
+        ? await tx.query.appsTable.findMany({
+            where: and(
+              arrayContains(appsTable.subscribedPlatformEvents, [
+                eventTriggerIdentifier,
+              ]),
+              eq(appsTable.enabled, true),
+            ),
+            limit: 100, // TODO: manage this limit somehow
+          })
+        : app
+          ? [app]
+          : []
 
       const tasks: NewTask[] = []
-
       await Promise.all(
         subscribedApps.map(async (subscribedApp) => {
           return Promise.all(
             (subscribedApp.config.tasks ?? []).map(async (taskDefinition) => {
               if (
                 taskDefinition.triggers?.find(
-                  (trigger) => trigger === eventIdentifier,
+                  (trigger) => trigger === eventTriggerIdentifier,
                 )
               ) {
                 const { handlerType, handlerIdentifier } =
@@ -188,10 +188,10 @@ export class EventService {
                 const baseTask: NewTask = {
                   id: newTaskId,
                   trigger: this.buildEventTrigger(event),
-                  targetLocation: locationTarget?.folderId
+                  targetLocation: targetLocation?.folderId
                     ? {
-                        folderId: locationTarget.folderId,
-                        objectKey: locationTarget.objectKey,
+                        folderId: targetLocation.folderId,
+                        objectKey: targetLocation.objectKey,
                       }
                     : undefined,
                   taskDescription: taskDefinition.description,
@@ -218,7 +218,10 @@ export class EventService {
       )
 
       // Insert platform tasks that are subscribed to this event
-      tasks.push(...this.gatherPlatformTasksForEvent(event, now))
+      if (isPlatformEmitter) {
+        // Collect platform tasks registered for the platform event that was emitted
+        tasks.push(...this.gatherPlatformTasksForEvent(event, now))
+      }
 
       if (tasks.length) {
         await tx.insert(tasksTable).values(tasks)
@@ -234,9 +237,9 @@ export class EventService {
         })
       }
       // Emit EVENT_CREATED to folder room if folderId is present
-      if (locationTarget?.folderId) {
+      if (targetLocation?.folderId) {
         this.folderSocketService.sendToFolderRoom(
-          locationTarget.folderId,
+          targetLocation.folderId,
           FolderPushMessage.EVENT_CREATED as FolderPushMessage,
           { event },
         )
@@ -260,57 +263,28 @@ export class EventService {
   }
 
   gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
-    const platformEventSubscriptions = {
-      [DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER]: [
-        {
-          taskIdentifier: PlatformTaskName.RunDockerJob,
-          taskDescription: 'Run a docker job',
-          shouldKeepEventSubjectContext: true,
-          shouldKeepEventDataContext: true,
-        },
-      ],
-      // [`${PLATFORM_IDENTIFIER}:app_action:${PlatformTaskName.QueueAppTask}`]: [
-      //   {
-      //     taskIdentifier: PlatformTaskName.QueueAppTask,
-      //     taskDescription: 'Queue an app task',
-      //     shouldKeepEventSubjectContext: true,
-      //     shouldKeepEventDataContext: false,
-      //   },
-      // ],
-      // [`${PLATFORM_IDENTIFIER}:${PlatformTaskName.QueueAppTaskCompletionHandler}`]:
-      //   [
-      //     {
-      //       taskIdentifier: PlatformTaskName.QueueAppTaskCompletionHandler,
-      //       taskDescription: 'Queue an app task completion handler',
-      //       shouldKeepEventSubjectContext: true,
-      //       shouldKeepEventDataContext: false,
-      //     },
-      //   ],
+    if (event.emitterIdentifier !== PLATFORM_IDENTIFIER) {
+      return []
     }
 
-    const platformTasks: NewTask[] =
-      event.eventIdentifier in platformEventSubscriptions
-        ? platformEventSubscriptions[
-            event.eventIdentifier as keyof typeof platformEventSubscriptions
-          ].map((taskDefinition) => ({
-            id: uuidV4(),
-            trigger: this.buildEventTrigger(event),
-            ...(taskDefinition.shouldKeepEventSubjectContext
-              ? {
-                  targetLocation: event.targetLocation ?? undefined,
-                }
-              : {}),
-            taskDescription: taskDefinition.taskDescription,
-            taskIdentifier: taskDefinition.taskIdentifier,
-            data: taskDefinition.shouldKeepEventDataContext
-              ? (event.data ?? {})
-              : {},
-            ownerIdentifier: PLATFORM_IDENTIFIER,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-            handlerType: 'platform',
-          }))
-        : []
+    const platformTaskDefinitions =
+      PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP[
+        event.eventIdentifier as PlatformEvent
+      ] ?? []
+
+    const platformTasks: NewTask[] = platformTaskDefinitions.map(
+      ({ taskIdentifier, buildData }) => ({
+        id: uuidV4(),
+        trigger: this.buildEventTrigger(event),
+        taskIdentifier,
+        taskDescription: PLATFORM_TASKS[taskIdentifier].description,
+        data: buildData(event),
+        ownerIdentifier: PLATFORM_IDENTIFIER,
+        handlerType: PLATFORM_IDENTIFIER,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      }),
+    )
 
     return platformTasks
   }
@@ -335,8 +309,8 @@ export class EventService {
         emitterIdentifier: PLATFORM_IDENTIFIER,
         eventIdentifier:
           task.handlerType === 'worker'
-            ? WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER
-            : DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
+            ? PlatformEvent.worker_task_enqueued
+            : PlatformEvent.docker_task_enqueued,
         targetLocation: task.targetLocation ?? undefined,
         data: {
           innerTaskId: task.id,

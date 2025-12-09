@@ -1,5 +1,5 @@
 {
-  "id": "5d92f8f6-0724-42b1-8545-4535d6bf74a2",
+  "id": "c210371c-db41-4142-870c-7e9887a12c5d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -270,8 +270,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "subscribedEvents": {
-          "name": "subscribedEvents",
+        "subscribedPlatformEvents": {
+          "name": "subscribedPlatformEvents",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,

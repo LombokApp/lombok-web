@@ -39,7 +39,6 @@ const testAppDefinitions: AppConfig[] = [
         },
       },
     ],
-    emittableEvents: [],
   },
   {
     description: 'A dummy app for testing docker jobs.',
@@ -105,7 +104,6 @@ const testAppDefinitions: AppConfig[] = [
         ],
       },
     },
-    emittableEvents: [],
   },
 ]
 

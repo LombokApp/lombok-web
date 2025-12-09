@@ -23,7 +23,7 @@ CREATE TABLE "apps" (
 	"label" text NOT NULL,
 	"publicKey" text NOT NULL,
 	"requiresStorage" boolean NOT NULL,
-	"subscribedEvents" text[] DEFAULT ARRAY[]::text[] NOT NULL,
+	"subscribedPlatformEvents" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"implementedTasks" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,

@@ -3,6 +3,12 @@
   "identifier": "core",
   "label": "Core",
   "requiresStorage": false,
+  "subscribedPlatformEvents": [
+    "platform:object_added",
+    "platform:object_removed",
+    "platform:object_updated",
+    "platform:worker_task_enqueued"
+  ],
   "tasks": [
     {
       "identifier": "analyze_object",

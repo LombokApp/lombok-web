@@ -12,6 +12,7 @@ import {
   FolderPushMessage,
   MediaType,
   PLATFORM_IDENTIFIER,
+  PlatformEvent,
   previewMetadataSchema,
   SignedURLsRequestMethod,
   StorageProvisionTypeEnum,
@@ -63,6 +64,7 @@ import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
@@ -184,6 +186,7 @@ export class FolderService {
     private readonly _platformTaskService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly taskService: TaskService,
     private readonly userService: UserService,
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
@@ -1183,13 +1186,10 @@ export class FolderService {
   }
 
   async queueReindexFolder(folderId: string, userId: string) {
-    await this.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
-      eventIdentifier: `${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`,
-      targetLocation: {
-        folderId,
-      },
-      data: {},
+    await this.taskService.triggerPlatformUserActionTask({
+      taskIdentifier: PlatformTaskName.ReindexFolder,
+      taskData: { folderId },
+      targetLocation: { folderId },
       userId,
     })
   }
@@ -1387,8 +1387,8 @@ export class FolderService {
     await this.eventService.emitEvent({
       emitterIdentifier: PLATFORM_IDENTIFIER,
       eventIdentifier: wasAdded
-        ? `${PLATFORM_IDENTIFIER}:object_added`
-        : `${PLATFORM_IDENTIFIER}:object_updated`,
+        ? PlatformEvent.object_added
+        : PlatformEvent.object_updated,
       targetLocation: {
         folderId: record.folderId,
         objectKey: record.objectKey,

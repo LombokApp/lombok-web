@@ -88,38 +88,6 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             <dt
               className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
-              Emit Events
-            </dt>
-            <dd
-              className={cn(
-                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-                VALUE_TEXT_COLOR,
-              )}
-            >
-              <div className="flex flex-wrap gap-2">
-                {typeof app === 'undefined' ? (
-                  <span className="italic opacity-50">Unknown</span>
-                ) : !app.config.emittableEvents.length ? (
-                  <span className="italic opacity-50">None</span>
-                ) : (
-                  app.config.emittableEvents.map((emitEvent, i) => (
-                    <Badge variant={'outline'} key={i}>
-                      {emitEvent}
-                    </Badge>
-                  ))
-                )}
-              </div>
-            </dd>
-          </div>
-          <div
-            className={cn(
-              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-              ROW_SPACING,
-            )}
-          >
-            <dt
-              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-            >
               Tasks
             </dt>
             <dd

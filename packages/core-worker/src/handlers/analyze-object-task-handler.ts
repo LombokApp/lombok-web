@@ -32,15 +32,18 @@ export const analyzeObjectTaskHandler = async (
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
-  const response = await server.getContentSignedUrls([
+  const contentDownloadUrlResponse = await server.getContentSignedUrls([
     {
       folderId: task.targetLocation.folderId,
       objectKey: task.targetLocation.objectKey,
       method: SignedURLsRequestMethod.GET,
     },
   ])
-  if ('error' in response) {
-    throw new AppAPIError(response.error.code, response.error.message)
+  if ('error' in contentDownloadUrlResponse) {
+    throw new AppAPIError(
+      contentDownloadUrlResponse.error.code,
+      contentDownloadUrlResponse.error.message,
+    )
   }
 
   const tempDir = await fs.promises.mkdtemp(
@@ -56,7 +59,7 @@ export const analyzeObjectTaskHandler = async (
   let mimeType = ''
   try {
     const downloadResult = await downloadFileToDisk(
-      response.result[0].url,
+      contentDownloadUrlResponse.result[0].url,
       inFilePath,
     )
     mimeType = downloadResult.mimeType
@@ -130,11 +133,14 @@ export const analyzeObjectTaskHandler = async (
         metadataHash: preview.hash,
       })),
     )
-    .then((_response) => {
-      if ('error' in _response) {
-        throw new AppAPIError(_response.error.code, _response.error.message)
+    .then((metadataUploadResponse) => {
+      if ('error' in metadataUploadResponse) {
+        throw new AppAPIError(
+          metadataUploadResponse.error.code,
+          metadataUploadResponse.error.message,
+        )
       }
-      const { result } = response
+      const { result } = metadataUploadResponse
       return Promise.all(
         result.map(({ url }, i) => {
           const preview = previews[Object.keys(previews)[i]]

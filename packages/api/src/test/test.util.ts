@@ -15,6 +15,7 @@ import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { TaskService } from 'src/task/services/task.service'
 import { usersTable } from 'src/users/entities/user.entity'
 
 import { ormConfig } from '../orm/config'
@@ -90,6 +91,7 @@ export async function buildTestModule({
   const kvService = await app.resolve(KVService)
   const appService = await app.resolve(AppService)
   const eventService = await app.resolve(EventService)
+  const taskService = await app.resolve(TaskService)
   const platformTaskService = await app.resolve(PlatformTaskService)
   const workerJobService = await app.resolve(WorkerJobService)
 
@@ -122,6 +124,15 @@ export async function buildTestModule({
     resolveDep<T extends Type>(token: T) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       return app.resolve(token) as Promise<InstanceType<T>>
+    },
+    services: {
+      appService,
+      workerJobService,
+      platformTaskService,
+      eventService,
+      taskService,
+      ormService,
+      kvService,
     },
     getAppService: () => {
       return appService

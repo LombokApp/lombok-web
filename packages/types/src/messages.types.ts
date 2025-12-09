@@ -1,3 +1,4 @@
+import type { JsonSerializableObject } from './apps.types'
 import type { LogEntryLevel } from './platform.types'
 
 export enum FolderPushMessage {
@@ -27,5 +28,5 @@ export type AppPushMessage = ServerPushMessage | FolderPushMessage
 export interface AppLogEntry {
   level: LogEntryLevel
   message: string
-  data: Record<string, unknown>
+  data: JsonSerializableObject
 }

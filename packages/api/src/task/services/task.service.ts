@@ -52,10 +52,9 @@ export enum TaskSort {
 @Injectable()
 export class TaskService {
   appService: AppService
+  appSocketService: AppSocketService
+  folderService: FolderService
   private readonly logger = new Logger(TaskService.name)
-  get appSocketService(): AppSocketService {
-    return this._appSocketService as AppSocketService
-  }
 
   constructor(
     private readonly ormService: OrmService,
@@ -63,9 +62,12 @@ export class TaskService {
     private readonly _appSocketService,
     @Inject(forwardRef(() => AppService))
     private readonly _appService,
-    private readonly folderService: FolderService,
+    @Inject(forwardRef(() => FolderService))
+    private readonly _folderService,
   ) {
     this.appService = _appService as AppService
+    this.folderService = _folderService as FolderService
+    this.appSocketService = _appSocketService as AppSocketService
   }
 
   async getFolderTaskAsUser(
@@ -294,6 +296,153 @@ export class TaskService {
     }
   }
 
+  /**
+   * Used to trigger a platform task on request from a user.
+   *
+   * @param userId - The user ID triggering the task.
+   * @param taskIdentifier - The identifier of the platform task to trigger.
+   * @param taskData - The data to pass to the task (must be serializable).
+   * @param dontStartBefore - The time before which the task should not start.
+   * @param targetUserId - The user ID to relate the task to.
+   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   *
+   ** @returns The created task record.
+   */
+  async triggerPlatformUserActionTask({
+    userId,
+    taskIdentifier,
+    taskData,
+    dontStartBefore,
+    targetUserId,
+    targetLocation,
+    storageAccessPolicy,
+  }: {
+    userId: string
+    taskIdentifier: string
+    taskData: JsonSerializableObject
+    dontStartBefore?: { timestamp: Date } | { delayMs: number }
+    targetUserId?: string
+    targetLocation?: { folderId: string; objectKey?: string }
+    storageAccessPolicy?: StorageAccessPolicy
+  }) {
+    const now = new Date()
+    const newTask: NewTask = {
+      id: crypto.randomUUID(),
+      ownerIdentifier: PLATFORM_IDENTIFIER,
+      taskIdentifier,
+      trigger: {
+        kind: 'user_action',
+        data: {
+          userId,
+        },
+      },
+      taskDescription: 'Platform task on user request',
+      data: taskData,
+      dontStartBefore:
+        dontStartBefore instanceof Date
+          ? dontStartBefore
+          : typeof dontStartBefore === 'number'
+            ? addMs(now, dontStartBefore)
+            : undefined,
+      createdAt: now,
+      updatedAt: now,
+      handlerType: 'platform',
+      storageAccessPolicy,
+      targetLocation,
+      targetUserId,
+    }
+
+    return this.ormService.db.insert(tasksTable).values(newTask)
+  }
+
+  /**
+   * Used to trigger an app's task on request from a user.
+   *
+   * @param userId - The user ID triggering the task.
+   * @param appIdentifier - The identifier of the app that owns the task.
+   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
+   * @param taskData - The data to pass to the task (must be serializable).
+   * @param dontStartBefore - The time before which the task should not start.
+   * @param targetUserId - The user ID to relate the task to.
+   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   *
+   ** @returns The created task record.
+   */
+  async triggerAppUserActionTask({
+    userId,
+    appIdentifier,
+    taskIdentifier,
+    taskData,
+    dontStartBefore,
+    targetUserId,
+    targetLocation,
+    storageAccessPolicy,
+  }: {
+    userId: string
+    appIdentifier: string
+    taskIdentifier: string
+    taskData: JsonSerializableObject
+    dontStartBefore?: { timestamp: Date } | { delayMs: number }
+    targetUserId: string
+    targetLocation?: { folderId: string; objectKey?: string }
+    storageAccessPolicy?: StorageAccessPolicy
+  }) {
+    const now = new Date()
+
+    const app = await this.appService.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+    const taskDefinition = app.config.tasks?.find(
+      (task) => task.identifier === taskIdentifier,
+    )
+    if (!taskDefinition) {
+      throw new NotFoundException(
+        `Task definition not found: ${taskIdentifier}`,
+      )
+    }
+
+    const newTask: NewTask = {
+      id: crypto.randomUUID(),
+      ownerIdentifier: appIdentifier,
+      taskIdentifier,
+      trigger: {
+        kind: 'user_action',
+        data: {
+          userId,
+        },
+      },
+      taskDescription: taskDefinition.description,
+      data: taskData,
+      dontStartBefore:
+        dontStartBefore instanceof Date
+          ? dontStartBefore
+          : typeof dontStartBefore === 'number'
+            ? addMs(now, dontStartBefore)
+            : undefined,
+      createdAt: now,
+      updatedAt: now,
+      handlerType: 'platform',
+      storageAccessPolicy,
+      targetLocation,
+      targetUserId,
+    }
+
+    return this.ormService.db.insert(tasksTable).values(newTask)
+  }
+
+  /**
+   * Used to trigger an app's own tasks.
+   *
+   * @param appIdentifier - The identifier of the app triggering the task.
+   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
+   * @param taskData - The data to pass to the task (must be serializable).
+   * @param dontStartBefore - The time before which the task should not start.
+   * @param targetUserId - The user ID to relate the task to.
+   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   * @param storageAccessPolicy - The storage access policy to use for the task.
+   * @returns The created task record.
+   */
   async triggerAppActionTask({
     appIdentifier,
     taskIdentifier,
@@ -374,6 +523,6 @@ export class TaskService {
       targetLocation,
     }
 
-    await this.ormService.db.insert(tasksTable).values(newTask)
+    return this.ormService.db.insert(tasksTable).values(newTask)
   }
 }

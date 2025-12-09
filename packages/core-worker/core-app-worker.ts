@@ -72,7 +72,22 @@ process.stdin.once('data', (data) => {
             workerData: {
               socketBaseUrl: workerData.socketBaseUrl,
               host: workerData.platformHost,
-              executionOptions: workerData.executionOptions,
+              executionOptions: workerData.executionOptions
+                ? {
+                    ...(workerData.executionOptions.printWorkerOutput
+                      ? {
+                          printWorkerOutput:
+                            workerData.executionOptions.printWorkerOutput,
+                        }
+                      : { printWorkerOutput: null }),
+                    ...(workerData.executionOptions.removeWorkerDirectory
+                      ? {
+                          removeWorkerDirectory:
+                            workerData.executionOptions.removeWorkerDirectory,
+                        }
+                      : { removeWorkerDirectory: null }),
+                  }
+                : { printWorkerOutput: null, removeWorkerDirectory: null },
               appWorkerId: workerData.appWorkerId,
               appToken: '[REDACTED]',
             },
@@ -104,9 +119,9 @@ process.stdin.once('data', (data) => {
             message: 'Core app external worker thread error',
             level: LogEntryLevel.ERROR,
             data: {
-              name: e.name,
-              message: e.message,
-              stack: e.stack,
+              name: e.name as string,
+              message: e.message as string,
+              stack: e.stack as string,
               appWorkerId: workerData.appWorkerId,
             },
           })

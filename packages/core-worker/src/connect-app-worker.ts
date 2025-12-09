@@ -1,6 +1,5 @@
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
-import type { SerializeableError } from '@lombokapp/core-worker-utils'
 import { serializeWorkerError } from '@lombokapp/core-worker-utils'
 import {
   type AppLogEntry,
@@ -126,7 +125,7 @@ export const connectAndPerformWork = (
             data: {
               errorObj: JSON.parse(
                 serializeWorkerError(error),
-              ) as SerializeableError,
+              ) as JsonSerializableObject,
               errorStr: serializeError(error),
             },
           })
@@ -144,7 +143,7 @@ export const connectAndPerformWork = (
           appWorkerId,
           errorObj: JSON.parse(
             serializeWorkerError(error),
-          ) as SerializeableError,
+          ) as JsonSerializableObject,
           errorStr: serializeError(error),
         },
       })

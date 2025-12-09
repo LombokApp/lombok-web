@@ -1499,11 +1499,11 @@ export interface components {
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: string[];
+                        triggers?: (string)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1697,11 +1697,11 @@ export interface components {
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: string[];
+                        triggers?: (string)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1904,11 +1904,11 @@ export interface components {
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: string[];
+                        triggers?: (string)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2076,11 +2076,11 @@ export interface components {
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: string[];
+                        triggers?: (string)[];
                         description: string;
                         handler: {
                             /** @enum {string} */

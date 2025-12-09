@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type {
-  JsonSerializableObject,
-  LogEntryLevel,
-  SignedURLsRequestMethod,
-  taskSchema,
+import {
+  type JsonSerializableObject,
+  type LogEntryLevel,
+  PLATFORM_IDENTIFIER,
+  PlatformEvent,
+  type SignedURLsRequestMethod,
+  type taskSchema,
 } from '@lombokapp/types'
 import {
   afterAll,
@@ -238,15 +240,15 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         kind: 'event',
         data: {
           eventId: uuidV4(),
-          eventIdentifier: 'platform:object_added',
-          emitterIdentifier: 'platform',
+          eventIdentifier: PlatformEvent.object_added,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {},
         },
       },
       taskDescription: 'object_added',
       systemLog: [],
       taskLog: [],
-      taskIdentifier: 'object_added',
+      taskIdentifier: 'object_added_task',
       data: {},
       targetLocation: {
         folderId: uuidV4(),
@@ -263,8 +265,8 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         kind: 'event',
         data: {
           eventId: uuidV4(),
-          eventIdentifier: 'platform:object_added',
-          emitterIdentifier: 'platform',
+          eventIdentifier: PlatformEvent.object_added,
+          emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {},
         },
       },
