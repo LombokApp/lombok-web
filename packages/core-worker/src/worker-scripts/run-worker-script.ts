@@ -1,6 +1,7 @@
-import type {
-  IAppPlatformService,
-  SerializeableRequest,
+import {
+  AppAPIError,
+  type IAppPlatformService,
+  type SerializeableRequest,
 } from '@lombokapp/app-worker-sdk'
 import type {
   WorkerModuleStartContext,
@@ -13,10 +14,11 @@ import {
   ScriptExecutionError,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { EventDTO, TaskDTO } from '@lombokapp/types'
+import type { taskSchema } from '@lombokapp/types'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import type { z } from 'zod'
 
 import {
   cleanupWorkerPipes,
@@ -1067,12 +1069,19 @@ async function createWorkerProcess(
   // Create bidirectional pipes
   await createWorkerPipes(requestPipePath, responsePipePath)
 
-  const { result: workerExecutionDetails } =
+  const getWorkerExecutionDetailsResponse =
     await server.getWorkerExecutionDetails({
       appIdentifier,
       workerIdentifier,
     })
 
+  if ('error' in getWorkerExecutionDetailsResponse) {
+    throw new AppAPIError(
+      getWorkerExecutionDetailsResponse.error.code,
+      getWorkerExecutionDetailsResponse.error.message,
+    )
+  }
+  const { result: workerExecutionDetails } = getWorkerExecutionDetailsResponse
   const workerEnvVars = Object.keys(
     workerExecutionDetails.environmentVariables,
   ).reduce<string[]>(
@@ -1276,7 +1285,7 @@ export const runWorkerScript = async ({
   onStdoutChunk,
 }: {
   server: IAppPlatformService
-  requestOrTask: Request | { task: TaskDTO; event: EventDTO }
+  requestOrTask: Request | z.infer<typeof taskSchema>
   appIdentifier: string
   workerIdentifier: string
   workerExecutionId: string
@@ -1309,7 +1318,7 @@ export const runWorkerScript = async ({
     // Serialize the request or task for the pipe
     let serializedRequestOrTask:
       | SerializeableRequest
-      | { task: TaskDTO; event: EventDTO }
+      | z.infer<typeof taskSchema>
 
     if (isRequest) {
       const request = requestOrTask

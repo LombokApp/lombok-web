@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import type {
-  AppLogEntry,
-  EventDTO,
+  JsonSerializableObject,
+  LogEntryLevel,
   SignedURLsRequestMethod,
-  TaskDTO,
+  taskSchema,
 } from '@lombokapp/types'
 import {
   afterAll,
@@ -21,6 +21,7 @@ import os from 'os'
 import path from 'path'
 import { Server as IOServer } from 'socket.io'
 import { v4 as uuidV4 } from 'uuid'
+import type z from 'zod'
 
 import { buildTestServerClient } from '../../test/test-server-client.mock'
 import { bulidRunWorkerScriptTaskHandler } from './run-worker-script-handler'
@@ -109,9 +110,15 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
                 return
               }
               case 'SAVE_LOG_ENTRY': {
-                const res = await currentServerClient.saveLogEntry(
-                  payload.data as AppLogEntry,
-                )
+                const data = payload.data as {
+                  message: string
+                  level: LogEntryLevel
+                  data: JsonSerializableObject
+                  subjectContext:
+                    | { folderId: string; objectKey?: string | undefined }
+                    | undefined
+                }
+                const res = await currentServerClient.saveLogEntry(data)
                 ack(res)
                 return
               }
@@ -190,7 +197,6 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       // Close with timeout
       await Promise.race([
         new Promise<void>((resolve) => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           void ioServer!.close(() => resolve())
         }),
         new Promise<void>((resolve) => {
@@ -225,7 +231,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
 
   it('completes run-worker-script task successfully', async () => {
     // Mock run_worker_script task and the underlying worker script task
-    const workerScriptTask: TaskDTO = {
+    const workerScriptTask: z.infer<typeof taskSchema> = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
@@ -246,19 +252,11 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         folderId: uuidV4(),
         objectKey: 'test-object-key',
       },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
-    const event: EventDTO = {
-      id: uuidV4(),
-      emitterIdentifier: 'test-emitter',
-      eventIdentifier: 'OBJECT_ADDED',
-      data: {},
-      createdAt: new Date().toISOString(),
-    }
-
-    const runWorkerScriptEnvelopeTask: TaskDTO = {
+    const runWorkerScriptEnvelopeTask: z.infer<typeof taskSchema> = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
@@ -274,20 +272,13 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       taskLog: [],
       taskDescription: 'run_worker_script',
       taskIdentifier: 'run_worker_script',
-      data: {},
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    const envelopeEvent: EventDTO = {
-      id: uuidV4(),
-      emitterIdentifier: 'core-worker',
-      eventIdentifier: 'RUN_WORKER_SCRIPT',
       data: {
         taskId: workerScriptTask.id,
-        appIdentifier: 'demo',
-        workerIdentifier: 'demo_object_added_worker',
+        appIdentifier: 'core-worker',
+        workerIdentifier: 'test-worker',
       },
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     let completed = false
@@ -308,9 +299,9 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           },
         }),
       attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: { task: workerScriptTask, event } }),
+        Promise.resolve({ result: { task: workerScriptTask } }),
       attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: { task: workerScriptTask, event } }),
+        Promise.resolve({ result: { task: workerScriptTask } }),
       failHandleTask: () => {
         failed = true
         return Promise.resolve({ result: undefined })
@@ -341,10 +332,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       removeWorkerDirectory: true,
     })
 
-    await handler(
-      { task: runWorkerScriptEnvelopeTask, event: envelopeEvent },
-      mockServerClient,
-    )
+    await handler(runWorkerScriptEnvelopeTask, mockServerClient)
 
     expect(failed).toBe(false)
     expect(completed).toBe(true)

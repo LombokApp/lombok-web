@@ -23,6 +23,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       request.method,
       request.url,
       exception,
+      exception.stack,
     )
 
     // Get the status code from the exception

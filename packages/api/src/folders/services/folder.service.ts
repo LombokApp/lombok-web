@@ -586,7 +586,7 @@ export class FolderService {
         .delete(tasksTable)
         .where(
           eq(
-            sql<string>`${tasksTable.targetLocation} ->> 'folderId'`,
+            sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`,
             folderId,
           ),
         )
@@ -594,7 +594,7 @@ export class FolderService {
         .delete(eventsTable)
         .where(
           eq(
-            sql<string>`${eventsTable.targetLocation} ->> 'folderId'`,
+            sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`,
             folderId,
           ),
         )

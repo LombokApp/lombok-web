@@ -9,7 +9,7 @@ export function transformEventToDTO(
     emitterIdentifier: event.emitterIdentifier,
     eventIdentifier: event.eventIdentifier,
     data: event.data ?? {},
-    createdAt: event.createdAt,
+    createdAt: event.createdAt.toISOString(),
   }
 
   if (event.targetLocation?.folderId && event.folder) {

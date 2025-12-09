@@ -1,9 +1,14 @@
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type { ContentMetadataType, EventDTO, TaskDTO } from '@lombokapp/types'
+import type {
+  ContentMetadataType,
+  JsonSerializableObject,
+  taskSchema,
+} from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import fs from 'fs'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
+import type z from 'zod'
 
 import { analyzeObjectTaskHandler } from './analyze-object-task-handler'
 
@@ -40,10 +45,10 @@ describe('Analyze Object Task Handler', () => {
 
   it('should complete analyze object task successfully', async () => {
     // Create mock AppTask for analyze_object
-    const analyzeTask: TaskDTO = {
+    const analyzeTask: z.infer<typeof taskSchema> = {
       id: uuidV4(),
       taskIdentifier: 'analyze_object',
-      data: {},
+      data: {} as JsonSerializableObject,
       targetLocation: {
         folderId: testFolderId,
         objectKey: testObjectKey,
@@ -55,22 +60,14 @@ describe('Analyze Object Task Handler', () => {
           eventId: uuidV4(),
           eventIdentifier: 'platform:object_added',
           emitterIdentifier: 'platform',
-          eventData: {},
+          eventData: {} as JsonSerializableObject,
         },
       },
       systemLog: [],
       taskLog: [],
       taskDescription: 'analyze_object',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    const event: EventDTO = {
-      id: uuidV4(),
-      emitterIdentifier: 'test-emitter',
-      eventIdentifier: 'OBJECT_ADDED',
-      data: {},
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     // Mock fetch to return the test image
@@ -118,7 +115,7 @@ describe('Analyze Object Task Handler', () => {
     // Create mock server client with all required methods
     const mockServerClient: IAppPlatformService = {
       getServerBaseUrl: () => 'http://localhost:3000',
-      emitEvent: () => Promise.resolve({ result: undefined }),
+      emitEvent: () => Promise.resolve({ result: { success: true } }),
       getWorkerExecutionDetails: () =>
         Promise.resolve({
           result: {
@@ -136,11 +133,11 @@ describe('Analyze Object Task Handler', () => {
             bundleUrl: 'https://example.com/bundle',
           },
         }),
-      saveLogEntry: () => Promise.resolve({ result: true }),
+      saveLogEntry: () => Promise.resolve({ result: undefined }),
       attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: { task: analyzeTask, event } }),
+        Promise.resolve({ result: { task: analyzeTask } }),
       attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: { task: analyzeTask, event } }),
+        Promise.resolve({ result: { task: analyzeTask } }),
       failHandleTask: () => Promise.resolve({ result: undefined }),
       completeHandleTask: () => Promise.resolve({ result: undefined }),
       authenticateUser: () =>
@@ -217,10 +214,7 @@ describe('Analyze Object Task Handler', () => {
     }
 
     // Test the analyze object task handler - this should complete successfully
-    await analyzeObjectTaskHandler(
-      { task: analyzeTask, event },
-      mockServerClient,
-    )
+    await analyzeObjectTaskHandler(analyzeTask, mockServerClient)
 
     // Verify the task was completed successfully with exact parameters
     expect(metadataUpdatedCalled).toBe(true)

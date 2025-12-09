@@ -6,18 +6,19 @@ import {
   readFileMetadata,
   uploadFile,
 } from '@lombokapp/core-worker-utils'
-import type { EventDTO, TaskDTO } from '@lombokapp/types'
+import type { taskSchema } from '@lombokapp/types'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
+import type z from 'zod'
 
 import { analyzeContent } from '../analyze/analyze-content'
 
 export const analyzeObjectTaskHandler = async (
-  { task }: { event: EventDTO; task: TaskDTO },
+  task: z.infer<typeof taskSchema>,
   server: IAppPlatformService,
 ) => {
   if (!task.id) {
@@ -38,8 +39,7 @@ export const analyzeObjectTaskHandler = async (
       method: SignedURLsRequestMethod.GET,
     },
   ])
-
-  if (response.error) {
+  if ('error' in response) {
     throw new AppAPIError(response.error.code, response.error.message)
   }
 
@@ -130,10 +130,11 @@ export const analyzeObjectTaskHandler = async (
         metadataHash: preview.hash,
       })),
     )
-    .then(({ result, error }) => {
-      if (error) {
-        throw new AppAPIError(error.code, error.message)
+    .then((_response) => {
+      if ('error' in _response) {
+        throw new AppAPIError(_response.error.code, _response.error.message)
       }
+      const { result } = response
       return Promise.all(
         result.map(({ url }, i) => {
           const preview = previews[Object.keys(previews)[i]]
@@ -155,7 +156,7 @@ export const analyzeObjectTaskHandler = async (
   }
 
   if (Object.keys(metadataDescription).length > 0) {
-    const metadataUpdateResponse = await server.updateContentMetadata([
+    await server.updateContentMetadata([
       {
         folderId: task.targetLocation.folderId,
         objectKey: task.targetLocation.objectKey,
@@ -163,13 +164,6 @@ export const analyzeObjectTaskHandler = async (
         metadata: metadataDescription,
       },
     ])
-
-    if (metadataUpdateResponse.error) {
-      throw new AppAPIError(
-        metadataUpdateResponse.error.code,
-        metadataUpdateResponse.error.message,
-      )
-    }
   }
 
   // remove the temporary directory

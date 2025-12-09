@@ -58,9 +58,9 @@ export const tasksTable = pgTable(
       'btree',
       sql`(${table.trigger} ->> 'kind')`,
     ),
-    index('tasks_folder_idx').using(
+    index('tasks_target_location_folder_id_idx').using(
       'btree',
-      sql`(${table.targetLocation} ->> 'folderId')`,
+      sql`((${table.targetLocation} ->> 'folderId')::uuid)`,
     ),
   ],
 )

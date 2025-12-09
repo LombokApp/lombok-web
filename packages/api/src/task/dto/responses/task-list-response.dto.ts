@@ -1,7 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
+import { taskSchema } from '@lombokapp/types'
 import { z } from 'zod'
-
-import { taskSchema } from '../task.dto'
 
 export const taskListResponseSchema = z.object({
   meta: z.object({

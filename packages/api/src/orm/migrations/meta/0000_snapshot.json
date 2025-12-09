@@ -1,5 +1,5 @@
 {
-  "id": "cbbb0cde-7386-4c87-99b4-5dc7aae0a67e",
+  "id": "5d92f8f6-0724-42b1-8545-4535d6bf74a2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -575,7 +575,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "events_target_location_folder_id_idx": {
+          "name": "events_target_location_folder_id_idx",
+          "columns": [
+            {
+              "expression": "((\"targetLocation\" ->> 'folderId')::uuid)",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -988,7 +1004,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "log_entries_target_location_folder_id_idx": {
+          "name": "log_entries_target_location_folder_id_idx",
+          "columns": [
+            {
+              "expression": "((\"targetLocation\" ->> 'folderId')::uuid)",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -1288,11 +1320,11 @@
           "method": "btree",
           "with": {}
         },
-        "tasks_folder_idx": {
-          "name": "tasks_folder_idx",
+        "tasks_target_location_folder_id_idx": {
+          "name": "tasks_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "(\"targetLocation\" ->> 'folderId')",
+              "expression": "((\"targetLocation\" ->> 'folderId')::uuid)",
               "asc": true,
               "isExpression": true,
               "nulls": "last"

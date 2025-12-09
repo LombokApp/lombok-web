@@ -73,7 +73,7 @@ export class TaskService {
     { folderId, taskId }: { folderId: string; taskId: string },
   ): Promise<Task & { folder?: { name: string; ownerId: string } }> {
     await this.folderService.getFolderAsUser(actor, folderId)
-    const targetFolderId = sql<string>`${tasksTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         task: tasksTable,
@@ -123,7 +123,7 @@ export class TaskService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`${tasksTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         task: tasksTable,
@@ -158,7 +158,7 @@ export class TaskService {
     includeWaiting,
     folderId,
   }: TasksListQueryParamsDTO) {
-    const targetFolderId = sql<string>`${tasksTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const targetObjectKey = sql<string>`${tasksTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
@@ -370,6 +370,8 @@ export class TaskService {
             : undefined,
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
+      targetUserId,
+      targetLocation,
     }
 
     await this.ormService.db.insert(tasksTable).values(newTask)

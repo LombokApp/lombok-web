@@ -5,8 +5,7 @@ import {
   uniqueExecutionKey,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { EventDTO, TaskDTO } from '@lombokapp/types'
-import { safeZodParse } from '@lombokapp/utils'
+import type { taskSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 import { runWorkerScript } from '../../worker-scripts/run-worker-script'
@@ -20,35 +19,39 @@ const runWorkerScriptTaskInputDataSchema = z.object({
 export const bulidRunWorkerScriptTaskHandler =
   (workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions']) =>
   async (
-    runWorkerScriptTask: { event: EventDTO; task: TaskDTO },
+    runWorkerScriptTask: z.infer<typeof taskSchema>,
     server: IAppPlatformService,
   ) => {
-    if (
-      !safeZodParse(
-        runWorkerScriptTask.event.data,
-        runWorkerScriptTaskInputDataSchema,
+    const {
+      data: parsedRunWorkerTaskData,
+      error: parseRunWorkerTaskDataError,
+      success: parseRunWorkerTaskDataSuccess,
+    } = runWorkerScriptTaskInputDataSchema.safeParse(runWorkerScriptTask.data)
+    if (!parseRunWorkerTaskDataSuccess) {
+      throw new AppAPIError(
+        'INVALID_TASK',
+        'Invalid RunWorkerScript task data',
+        parseRunWorkerTaskDataError.flatten().fieldErrors,
       )
-    ) {
-      throw new AppAPIError('INVALID_TASK', 'Missing task id.')
     }
 
     const attemptStartHandleResponse = await server.attemptStartHandleTaskById({
-      taskId: runWorkerScriptTask.event.data.taskId,
+      taskId: runWorkerScriptTask.id,
     })
-    if (attemptStartHandleResponse.error) {
+    if ('error' in attemptStartHandleResponse) {
       throw new AppAPIError(
         attemptStartHandleResponse.error.code,
         attemptStartHandleResponse.error.message,
       )
     }
 
-    const { task, event } = attemptStartHandleResponse.result
-    const appIdentifier = runWorkerScriptTask.event.data.appIdentifier
-    const workerIdentifier = runWorkerScriptTask.event.data.workerIdentifier
+    const { task } = attemptStartHandleResponse.result
+    const appIdentifier = parsedRunWorkerTaskData.appIdentifier
+    const workerIdentifier = parsedRunWorkerTaskData.workerIdentifier
     const workerExecutionId = `${workerIdentifier.toLowerCase()}__task__${uniqueExecutionKey()}`
     try {
       await runWorkerScript({
-        requestOrTask: { task, event },
+        requestOrTask: task,
         server,
         appIdentifier,
         workerIdentifier,

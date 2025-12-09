@@ -261,15 +261,6 @@ export class EventService {
 
   gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
     const platformEventSubscriptions = {
-      // [`${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`]:
-      //   [
-      //     {
-      //       taskIdentifier: PlatformTaskName.ReindexFolder,
-      //       taskDescription: 'Reindex folder on user request',
-      //       shouldKeepEventSubjectContext: true,
-      //       shouldKeepEventDataContext: false,
-      //     },
-      //   ],
       [DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER]: [
         {
           taskIdentifier: PlatformTaskName.RunDockerJob,
@@ -370,7 +361,7 @@ export class EventService {
     actor: User,
     { folderId, eventId }: { folderId: string; eventId: string },
   ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
-    const targetFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const result = await this.ormService.db
@@ -424,7 +415,7 @@ export class EventService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         event: eventsTable,
@@ -499,7 +490,7 @@ export class EventService {
     limit?: number
     sort?: EventSort[]
   }) {
-    const targetFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const targetObjectKey = sql<string>`${eventsTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
@@ -526,7 +517,10 @@ export class EventService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(eventsTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        sql`${foldersTable.id} = (${eventsTable.targetLocation} ->> 'folderId')::uuid`,
+      )
       .where(conditions.length ? and(...conditions) : undefined)
       .offset(Math.max(0, offset ?? 0))
       .limit(Math.min(100, limit ?? 25))

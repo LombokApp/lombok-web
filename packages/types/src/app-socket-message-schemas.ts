@@ -1,12 +1,15 @@
-import type { ZodTypeAny } from 'zod'
-import { z } from 'zod'
+import { z, type ZodType, type ZodTypeAny } from 'zod'
 
 import type { AppSocketMessage } from './apps.types'
-import { jsonSerializableObjectSchema } from './apps.types'
+import {
+  appManifestSchema,
+  appMessageErrorSchema,
+  jsonSerializableObjectSchema,
+} from './apps.types'
 import { metadataEntrySchema } from './content.types'
 import { LogEntryLevel } from './platform.types'
 import { SignedURLsRequestMethod } from './storage.types'
-import { storageAccessPolicySchema } from './task.types'
+import { storageAccessPolicySchema, taskSchema } from './task.types'
 
 export const logEntrySchema = z.object({
   message: z.string(),
@@ -178,4 +181,134 @@ export type AppSocketMessageDataMap = {
   [K in keyof typeof AppSocketMessageSchemaMap]: z.infer<
     (typeof AppSocketMessageSchemaMap)[K]
   >
+}
+
+const createResponseSchema = <T extends ZodTypeAny>(resultSchema: T) =>
+  z.union([
+    z.object({
+      result: resultSchema,
+    }),
+    z.object({
+      error: appMessageErrorSchema,
+    }),
+  ])
+
+// const taskDTOSchema: ZodType<TaskDTO> = z.custom<TaskDTO>()
+
+const signedUrlSchema = z.object({
+  url: z.string(),
+  folderId: z.string(),
+  objectKey: z.string(),
+})
+
+const dbFieldSchema: ZodType<unknown> = z.custom<unknown>()
+
+export const AppSocketMessageResponseSchemaMap = {
+  EMIT_EVENT: createResponseSchema(
+    z.object({
+      success: z.boolean(),
+    }),
+  ),
+  DB_QUERY: createResponseSchema(
+    z.object({
+      command: z.string().optional(),
+      rowCount: z.number().nullable().optional(),
+      oid: z.number().nullable().optional(),
+      rows: z.array(z.unknown()),
+      fields: z.array(dbFieldSchema),
+    }),
+  ),
+  DB_EXEC: createResponseSchema(
+    z.object({
+      rowCount: z.number(),
+    }),
+  ),
+  DB_BATCH: createResponseSchema(
+    z.object({
+      results: z.array(z.unknown()),
+    }),
+  ),
+  SAVE_LOG_ENTRY: createResponseSchema(z.undefined()),
+  GET_CONTENT_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
+  GET_APP_USER_ACCESS_TOKEN: createResponseSchema(
+    z.object({
+      accessToken: z.string(),
+      refreshToken: z.string(),
+    }),
+  ),
+  GET_METADATA_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
+  UPDATE_CONTENT_METADATA: createResponseSchema(z.undefined()),
+  COMPLETE_HANDLE_TASK: createResponseSchema(z.undefined()),
+  ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: createResponseSchema(
+    z.object({
+      task: taskSchema,
+    }),
+  ),
+  FAIL_HANDLE_TASK: createResponseSchema(z.undefined()),
+  ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID: createResponseSchema(
+    z.object({
+      task: taskSchema,
+    }),
+  ),
+  GET_APP_UI_BUNDLE: createResponseSchema(
+    z.object({
+      manifest: appManifestSchema,
+      bundleUrl: z.string(),
+      csp: z.string().optional(),
+    }),
+  ),
+  GET_WORKER_EXECUTION_DETAILS: createResponseSchema(
+    z.object({
+      payloadUrl: z.string(),
+      workerToken: z.string(),
+      environmentVariables: z.record(z.string(), z.string()),
+      entrypoint: z.string(),
+      hash: z.string(),
+    }),
+  ),
+  GET_APP_STORAGE_SIGNED_URLS: createResponseSchema(z.array(z.string())),
+  AUTHENTICATE_USER: createResponseSchema(
+    z.object({
+      userId: z.string(),
+      success: z.boolean(),
+    }),
+  ),
+  EXECUTE_APP_DOCKER_JOB: createResponseSchema(
+    z.union([
+      z.object({
+        jobId: z.string(),
+        success: z.boolean(),
+        result: z.unknown(),
+        jobError: z
+          .object({
+            code: z.string(),
+            message: z.string(),
+          })
+          .optional(),
+      }),
+      z.object({
+        jobId: z.string(),
+        accepted: z.boolean(),
+        queueError: z
+          .object({
+            code: z.string(),
+            message: z.string(),
+          })
+          .optional(),
+      }),
+    ]),
+  ),
+  QUEUE_APP_TASK: createResponseSchema(z.undefined()),
+} as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
+
+export type AppSocketResponseError = z.infer<typeof appMessageErrorSchema>
+
+export type AppSocketMessageResponseMap = {
+  [K in keyof typeof AppSocketMessageResponseSchemaMap]: z.infer<
+    (typeof AppSocketMessageResponseSchemaMap)[K]
+  >
+}
+
+export type AppSocketMessageResultMap = {
+  [K in keyof AppSocketMessageResponseMap]: AppSocketMessageResponseMap[K]
 }

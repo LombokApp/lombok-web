@@ -46,7 +46,6 @@ export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
       z.number(),
       z.boolean(),
       z.null(),
-      // z.date(),
       z.array(jsonSerializableValueSchema),
       z.record(jsonSerializableValueSchema),
     ]),
@@ -61,6 +60,12 @@ export type JsonSerializableObject = z.infer<
   typeof jsonSerializableObjectSchema
 >
 
+export const appMessageErrorSchema = z.object({
+  code: z.union([z.number(), z.string()]),
+  message: z.string(),
+  details: jsonSerializableObjectSchema.optional(),
+})
+
 export type WorkerApiActor =
   | {
       actorType: 'user'
@@ -73,7 +78,7 @@ export type WorkerApiActor =
 
 export const appSocketMessageSchema = z.object({
   name: AppSocketMessage,
-  data: z.unknown().optional(),
+  data: z.unknown(),
 })
 
 export type AppSocketApiRequest = z.infer<typeof appSocketMessageSchema>

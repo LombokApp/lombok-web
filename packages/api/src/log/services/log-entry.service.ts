@@ -69,7 +69,7 @@ export class LogEntryService {
     actor: User,
     { folderId, logId }: { folderId: string; logId: string },
   ): Promise<LogEntry & { folder?: { name: string; ownerId: string } }> {
-    const targetFolderId = sql<string>`${logEntriesTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${logEntriesTable.targetLocation} ->> 'folderId')::uuid`
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const result = await this.ormService.db
@@ -118,7 +118,7 @@ export class LogEntryService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`${logEntriesTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(${logEntriesTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         logEntry: logEntriesTable,
@@ -218,7 +218,7 @@ export class LogEntryService {
     meta: { totalCount: number }
     result: (LogEntry & { folder?: { name: string; ownerId: string } })[]
   }> {
-    const targetFolderId = sql<string>`${logEntriesTable.targetLocation} ->> 'folderId'`
+    const targetFolderId = sql<string>`(>${logEntriesTable.targetLocation} ->> 'folderId')::uuid`
     const targetObjectKey = sql<string>`${logEntriesTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {

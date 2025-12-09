@@ -2,15 +2,16 @@ import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
 import type { SerializeableError } from '@lombokapp/core-worker-utils'
 import { serializeWorkerError } from '@lombokapp/core-worker-utils'
-import type {
-  AppLogEntry,
-  EventDTO,
-  JsonSerializableObject,
-  TaskDTO,
+import {
+  type AppLogEntry,
+  type JsonSerializableObject,
+  LogEntryLevel,
+  type taskSchema,
 } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
+import type z from 'zod'
 
 interface ConnectAndPerformWorkResult {
   shutdown: () => void
@@ -26,7 +27,7 @@ export const connectAndPerformWork = (
   taskHandlers: Record<
     string,
     (
-      task: { task: TaskDTO; event: EventDTO },
+      task: z.infer<typeof taskSchema>,
       serverClient: IAppPlatformService,
     ) => Promise<void>
   >,
@@ -47,7 +48,7 @@ export const connectAndPerformWork = (
   const log = async (logEntryProperties: Partial<AppLogEntry>) => {
     const logEntry: AppLogEntry = {
       data: logEntryProperties.data ?? {},
-      level: logEntryProperties.level ?? 'INFO',
+      level: logEntryProperties.level ?? LogEntryLevel.INFO,
       message: logEntryProperties.message ?? '',
     }
     await serverClient.saveLogEntry(logEntry)
@@ -62,7 +63,7 @@ export const connectAndPerformWork = (
   const wait = new Promise<void>((resolve, reject) => {
     socket.on('disconnect', (reason) => {
       void log({
-        level: 'DEBUG',
+        level: LogEntryLevel.DEBUG,
         message: `Worker disconnected - Reason: ${reason}`,
         data: {
           appWorkerId,
@@ -75,7 +76,7 @@ export const connectAndPerformWork = (
       // eslint-disable-next-line no-console
       void ((socket.disconnected ? console.log : log) as typeof log)({
         message: 'Got event in worker thread',
-        level: 'DEBUG',
+        level: LogEntryLevel.DEBUG,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: _data,
       })
@@ -89,18 +90,17 @@ export const connectAndPerformWork = (
             await serverClient.attemptStartHandleAnyAvailableTask({
               taskIdentifiers,
             })
-          const { task, event } = attemptStartHandleResponse.result
-          if (attemptStartHandleResponse.error) {
+
+          if ('error' in attemptStartHandleResponse) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
             await log({
               message: `Error attempting to start handle task: ${errorMessage}`,
-              level: 'ERROR',
+              level: LogEntryLevel.ERROR,
             })
+            reject(new Error(errorMessage))
           } else {
-            await taskHandlers[task.taskIdentifier](
-              { task, event },
-              serverClient,
-            )
+            const { task } = attemptStartHandleResponse.result
+            await taskHandlers[task.taskIdentifier](task, serverClient)
               .then(() => serverClient.completeHandleTask({ taskId: task.id }))
               .catch((e: unknown) => {
                 return serverClient.failHandleTask({
@@ -121,7 +121,7 @@ export const connectAndPerformWork = (
           }
         } catch (error: unknown) {
           void ((socket.disconnected ? console.log : log) as typeof log)({
-            level: 'ERROR',
+            level: LogEntryLevel.ERROR,
             message: 'Unexpected error during app worker execution',
             data: {
               errorObj: JSON.parse(
@@ -139,7 +139,7 @@ export const connectAndPerformWork = (
     socket.on('error', (error) => {
       void ((socket.disconnected ? console.log : log) as typeof log)({
         message: 'Core app worker websocket error',
-        level: 'ERROR',
+        level: LogEntryLevel.ERROR,
         data: {
           appWorkerId,
           errorObj: JSON.parse(

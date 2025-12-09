@@ -11,7 +11,7 @@ export const eventSchema = z.object({
   emitterIdentifier: z.string(),
   subjectContext: elaboratedTargetLocationContextSchema.optional(),
   data: jsonSerializableObjectSchema,
-  createdAt: z.date(),
+  createdAt: z.string().datetime(),
 })
 
 export class EventDTO extends createZodDto(eventSchema) {}

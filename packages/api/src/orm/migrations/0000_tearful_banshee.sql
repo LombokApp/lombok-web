@@ -195,10 +195,12 @@ CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING 
 CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folderId","appIdentifier");--> statement-breakpoint
 CREATE INDEX "app_user_settings_user_id_idx" ON "app_user_settings" USING btree ("userId");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_user_settings_user_app_unique" ON "app_user_settings" USING btree ("userId","appIdentifier");--> statement-breakpoint
+CREATE INDEX "events_target_location_folder_id_idx" ON "events" USING btree ((("targetLocation" ->> 'folderId')::uuid));--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_size_bytes_idx" ON "folder_objects" USING btree ("folderId","sizeBytes","mediaType");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_idx" ON "folder_objects" USING btree ("folderId","mediaType");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_objects_folder_id_object_key_unique" ON "folder_objects" USING btree ("folderId","objectKey");--> statement-breakpoint
 CREATE INDEX "user_idx" ON "folder_shares" USING btree ("userId");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_user_unique" ON "folder_shares" USING btree ("folderId","userId");--> statement-breakpoint
+CREATE INDEX "log_entries_target_location_folder_id_idx" ON "log_entries" USING btree ((("targetLocation" ->> 'folderId')::uuid));--> statement-breakpoint
 CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("trigger" ->> 'kind'));--> statement-breakpoint
-CREATE INDEX "tasks_folder_idx" ON "tasks" USING btree (("targetLocation" ->> 'folderId'));
+CREATE INDEX "tasks_target_location_folder_id_idx" ON "tasks" USING btree ((("targetLocation" ->> 'folderId')::uuid));

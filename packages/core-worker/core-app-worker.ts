@@ -8,6 +8,7 @@ import {
   type AppManifest,
   EXECUTE_SYSTEM_REQUEST_MESSAGE,
   type JsonSerializableValue,
+  LogEntryLevel,
 } from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
@@ -66,7 +67,7 @@ process.stdin.once('data', (data) => {
       async () => {
         await log({
           message: 'Core app external worker thread started',
-          level: 'DEBUG',
+          level: LogEntryLevel.DEBUG,
           data: {
             workerData: {
               socketBaseUrl: workerData.socketBaseUrl,
@@ -84,12 +85,12 @@ process.stdin.once('data', (data) => {
       .then(() => {
         return log({
           message: 'Core app external worker ending work',
-          level: 'INFO',
+          level: LogEntryLevel.INFO,
         })
       })
       .catch((e: unknown) => {
         void log({
-          level: 'ERROR',
+          level: LogEntryLevel.ERROR,
           message: e instanceof Error ? e.message : '',
         })
         if (
@@ -101,7 +102,7 @@ process.stdin.once('data', (data) => {
         ) {
           void log({
             message: 'Core app external worker thread error',
-            level: 'ERROR',
+            level: LogEntryLevel.ERROR,
             data: {
               name: e.name,
               message: e.message,
@@ -113,7 +114,7 @@ process.stdin.once('data', (data) => {
         throw e
       })
       .finally(() => {
-        void log({ level: 'INFO', message: 'Shutting down.' })
+        void log({ level: LogEntryLevel.INFO, message: 'Shutting down.' })
         cleanup()
       })
 
@@ -299,7 +300,7 @@ process.stdin.once('data', (data) => {
             } catch (error) {
               void log({
                 message: `Error loading manifest: ${error instanceof Error ? error.message : String(error)}`,
-                level: 'ERROR',
+                level: LogEntryLevel.ERROR,
               })
             }
           } else {
@@ -308,7 +309,7 @@ process.stdin.once('data', (data) => {
                 appIdentifier,
               })
 
-              if (bundleResponse.error) {
+              if ('error' in bundleResponse) {
                 return new Response(`Error: ${bundleResponse.error.message}`, {
                   status:
                     typeof bundleResponse.error.code === 'number'
@@ -360,7 +361,7 @@ process.stdin.once('data', (data) => {
             } catch (error) {
               void log({
                 message: `Error downloading/extracting bundle: ${error instanceof Error ? error.message : String(error)}`,
-                level: 'ERROR',
+                level: LogEntryLevel.ERROR,
               })
               return new Response('Internal server error', { status: 500 })
             }
@@ -391,7 +392,7 @@ process.stdin.once('data', (data) => {
             } catch (error) {
               void log({
                 message: `Error reading file: ${error instanceof Error ? error.message : String(error)}`,
-                level: 'ERROR',
+                level: LogEntryLevel.ERROR,
               })
               return new Response('Internal server error', { status: 500 })
             }
@@ -403,7 +404,7 @@ process.stdin.once('data', (data) => {
 
       void log({
         message: `HTTP server started on port ${server.port}`,
-        level: 'DEBUG',
+        level: LogEntryLevel.DEBUG,
       })
       try {
         process.stdout.write(
@@ -421,7 +422,7 @@ process.stdin.once('data', (data) => {
       const message = error instanceof Error ? error.message : String(error)
       void log({
         message: `HTTP server failed to start: ${message}`,
-        level: 'ERROR',
+        level: LogEntryLevel.ERROR,
       })
       try {
         process.stdout.write(

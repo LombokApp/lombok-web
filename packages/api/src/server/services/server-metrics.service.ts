@@ -155,7 +155,7 @@ export class ServerMetricsService {
       )
 
     // Event metrics
-    const eventFolderId = sql<string>`${eventsTable.targetLocation} ->> 'folderId'`
+    const eventFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
 
     // Get server events (targetLocation.folderId is null) emitted in the last day
     const serverEventsEmittedPreviousDayResult = await this.ormService.db
