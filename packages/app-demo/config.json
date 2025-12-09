@@ -5,8 +5,7 @@
   "subscribedPlatformEvents": [
     "platform:object_added",
     "platform:object_removed",
-    "platform:object_updated",
-    "platform:schedule_every_hour"
+    "platform:object_updated"
   ],
   "tasks": [
     {

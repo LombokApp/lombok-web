@@ -1,4 +1,5 @@
 import {
+  AppTaskConfig,
   eventIdentifierSchema,
   EventTaskTrigger,
   FolderPushMessage,
@@ -6,6 +7,7 @@ import {
   PLATFORM_IDENTIFIER,
   PlatformEvent,
   TaskEventTriggerConfig,
+  TaskScheduleTriggerConfig,
 } from '@lombokapp/types'
 import {
   forwardRef,
@@ -16,7 +18,18 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { and, arrayContains, count, eq, ilike, or, SQL, sql } from 'drizzle-orm'
+import {
+  and,
+  arrayContains,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  or,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -51,6 +64,7 @@ export enum EventSort {
 @Injectable()
 export class EventService {
   private readonly logger = new Logger(EventService.name)
+  private isProcessingScheduleTriggers = false
   get folderService(): FolderService {
     return this._folderService as FolderService
   }
@@ -75,6 +89,137 @@ export class EventService {
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
+
+  private getScheduleIntervalMs(scheduleTrigger: TaskScheduleTriggerConfig) {
+    if (scheduleTrigger.config.unit === 'minutes') {
+      return scheduleTrigger.config.interval * 60 * 1000
+    }
+    if (scheduleTrigger.config.unit === 'hours') {
+      return scheduleTrigger.config.interval * 60 * 60 * 1000
+    }
+    return scheduleTrigger.config.interval * 24 * 60 * 60 * 1000
+  }
+
+  private resolveTaskHandler(taskDefinition: AppTaskConfig): {
+    handlerType: NewTask['handlerType']
+    handlerIdentifier?: NewTask['handlerIdentifier']
+  } {
+    if (
+      taskDefinition.handler.type === 'worker' ||
+      taskDefinition.handler.type === 'docker'
+    ) {
+      return {
+        handlerType: taskDefinition.handler.type,
+        handlerIdentifier: taskDefinition.handler.identifier,
+      }
+    }
+    return { handlerType: 'external' }
+  }
+
+  async processScheduledTaskTriggers() {
+    if (this.isProcessingScheduleTriggers) {
+      this.logger.warn(
+        'Skipping scheduled trigger processing; previous run still in progress',
+      )
+      return
+    }
+
+    this.isProcessingScheduleTriggers = true
+    try {
+      const now = new Date()
+      const enabledApps = await this.ormService.db.query.appsTable.findMany({
+        where: eq(appsTable.enabled, true),
+        columns: {
+          identifier: true,
+          config: true,
+        },
+      })
+
+      const tasksToInsert: NewTask[] = []
+
+      for (const app of enabledApps) {
+        const scheduleEnabledTasks = app.config.tasks ?? []
+        for (const taskDefinition of scheduleEnabledTasks) {
+          const scheduleTriggers = (taskDefinition.triggers ?? []).filter(
+            (trigger) => trigger.kind === 'schedule',
+          )
+
+          if (!scheduleTriggers.length) {
+            continue
+          }
+
+          for (const scheduleTrigger of scheduleTriggers) {
+            const earliestAllowed = new Date(
+              now.getTime() - this.getScheduleIntervalMs(scheduleTrigger),
+            )
+
+            const existingTask =
+              await this.ormService.db.query.tasksTable.findFirst({
+                columns: { id: true, createdAt: true },
+                where: and(
+                  eq(tasksTable.ownerIdentifier, app.identifier),
+                  eq(tasksTable.taskIdentifier, taskDefinition.identifier),
+                  sql`(${tasksTable.trigger} ->> 'kind') = 'schedule'`,
+                  sql`(${tasksTable.trigger} -> 'data' ->> 'unit') = ${scheduleTrigger.config.unit}`,
+                  sql`(${tasksTable.trigger} -> 'data' ->> 'interval')::int = ${scheduleTrigger.config.interval}`,
+                  gte(tasksTable.createdAt, earliestAllowed),
+                ),
+                orderBy: desc(tasksTable.createdAt),
+              })
+
+            if (existingTask) {
+              continue
+            }
+
+            const { handlerType, handlerIdentifier } =
+              this.resolveTaskHandler(taskDefinition)
+
+            const newTask: NewTask = {
+              id: uuidV4(),
+              trigger: {
+                kind: 'schedule',
+                data: {
+                  interval: scheduleTrigger.config.interval,
+                  unit: scheduleTrigger.config.unit,
+                },
+              },
+              taskIdentifier: taskDefinition.identifier,
+              taskDescription: taskDefinition.description,
+              data: {},
+              ownerIdentifier: app.identifier,
+              createdAt: now,
+              updatedAt: now,
+              handlerType,
+              handlerIdentifier,
+            }
+
+            tasksToInsert.push(newTask)
+          }
+        }
+      }
+
+      if (!tasksToInsert.length) {
+        return
+      }
+
+      await this.ormService.db.transaction(async (tx) => {
+        await tx.insert(tasksTable).values(tasksToInsert)
+
+        for (const task of tasksToInsert) {
+          if (task.handlerType === 'worker' || task.handlerType === 'docker') {
+            await this.emitRunnableTaskEnqueuedEvent(task, { tx })
+          }
+        }
+      })
+    } catch (error) {
+      this.logger.error(
+        'Failed to process scheduled task triggers',
+        error as Error,
+      )
+    } finally {
+      this.isProcessingScheduleTriggers = false
+    }
+  }
 
   async emitEvent(
     {

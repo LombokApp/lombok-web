@@ -57,7 +57,8 @@ export const eventTriggerDataSchema = z.object({
 })
 
 export const scheduleTriggerDataSchema = z.object({
-  scheduleIdentifier: z.enum(['daily', 'hourly', 'every_five_minutes']),
+  interval: z.number().int().positive(),
+  unit: z.enum(['minutes', 'hours', 'days']),
 })
 
 export const userActionTriggerDataSchema = z.object({
