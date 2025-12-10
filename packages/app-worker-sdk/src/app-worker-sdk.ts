@@ -16,7 +16,7 @@ import {
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 
-const SOCKET_RESPONSE_TIMEOUT = 2000
+const DEFAULT_SOCKET_RESPONSE_TIMEOUT = 5000
 
 export class AppAPIError extends Error {
   errorCode: string | number
@@ -40,75 +40,101 @@ export interface IAppPlatformService {
   getServerBaseUrl: () => string
   emitEvent: (
     params: AppSocketMessageDataMap['EMIT_EVENT'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'EMIT_EVENT'>>
   getWorkerExecutionDetails: (
     params: AppSocketMessageDataMap['GET_WORKER_EXECUTION_DETAILS'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_WORKER_EXECUTION_DETAILS'>>
   getAppUIbundle: (
     params: AppSocketMessageDataMap['GET_APP_UI_BUNDLE'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_APP_UI_BUNDLE'>>
   saveLogEntry: (
     entry: AppSocketMessageDataMap['SAVE_LOG_ENTRY'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'SAVE_LOG_ENTRY'>>
   attemptStartHandleTaskById: (
     params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID'>>
   attemptStartHandleAnyAvailableTask: (
     params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'>>
   completeHandleTask: (
     params: AppSocketMessageDataMap['COMPLETE_HANDLE_TASK'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'COMPLETE_HANDLE_TASK'>>
   authenticateUser: (
     params: AppSocketMessageDataMap['AUTHENTICATE_USER'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'AUTHENTICATE_USER'>>
   getMetadataSignedUrls: (
     params: AppSocketMessageDataMap['GET_METADATA_SIGNED_URLS'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_METADATA_SIGNED_URLS'>>
   getContentSignedUrls: (
     params: AppSocketMessageDataMap['GET_CONTENT_SIGNED_URLS'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_CONTENT_SIGNED_URLS'>>
   getAppStorageSignedUrls: (
     params: AppSocketMessageDataMap['GET_APP_STORAGE_SIGNED_URLS'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_APP_STORAGE_SIGNED_URLS'>>
   getAppUserAccessToken: (
     params: AppSocketMessageDataMap['GET_APP_USER_ACCESS_TOKEN'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_APP_USER_ACCESS_TOKEN'>>
   updateContentMetadata: (
     params: AppSocketMessageDataMap['UPDATE_CONTENT_METADATA'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'UPDATE_CONTENT_METADATA'>>
   // Database methods
   query: (
     params: AppSocketMessageDataMap['DB_QUERY'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'DB_QUERY'>>
   exec: (
     params: AppSocketMessageDataMap['DB_EXEC'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'DB_EXEC'>>
   batch: (
     params: AppSocketMessageDataMap['DB_BATCH'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'DB_BATCH'>>
   executeAppDockerJob: (
     params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'EXECUTE_APP_DOCKER_JOB'>>
   triggerAppTask: (
     params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
+    options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'TRIGGER_APP_TASK'>>
+}
+
+interface PlatformApiExecuteOptions {
+  timeoutMs?: number
 }
 
 export const buildAppClient = (
   socket: Socket,
   serverBaseUrl: string,
+  defaultTimeoutMs = DEFAULT_SOCKET_RESPONSE_TIMEOUT,
 ): IAppPlatformService => {
   const emitWithAck = async <K extends z.infer<typeof AppSocketMessage>>(
     name: K,
     data: AppSocketMessageDataMap[K],
+    options: PlatformApiExecuteOptions = {},
   ): Promise<SocketResponse<K>> => {
-    const response = (await socket
-      .timeout(SOCKET_RESPONSE_TIMEOUT)
-      .emitWithAck('APP_API', {
-        name,
-        data,
-      })) as SocketResponse<K> | { error: AppSocketResponseError }
+    const timeoutMs =
+      typeof options.timeoutMs === 'undefined'
+        ? defaultTimeoutMs
+        : options.timeoutMs
+    const response = (await socket.timeout(timeoutMs).emitWithAck('APP_API', {
+      name,
+      data,
+    })) as SocketResponse<K> | { error: AppSocketResponseError }
 
     const parsedResponse =
       AppSocketMessageResponseSchemaMap[name].safeParse(response)
@@ -133,59 +159,67 @@ export const buildAppClient = (
     getServerBaseUrl() {
       return serverBaseUrl
     },
-    emitEvent(params) {
-      return emitWithAck('EMIT_EVENT', params)
+    emitEvent(params, options) {
+      return emitWithAck('EMIT_EVENT', params, options)
     },
-    getWorkerExecutionDetails(params) {
-      return emitWithAck('GET_WORKER_EXECUTION_DETAILS', params)
+    getWorkerExecutionDetails(params, options) {
+      return emitWithAck('GET_WORKER_EXECUTION_DETAILS', params, options)
     },
-    getAppUIbundle(params) {
-      return emitWithAck('GET_APP_UI_BUNDLE', params)
+    getAppUIbundle(params, options) {
+      return emitWithAck('GET_APP_UI_BUNDLE', params, options)
     },
-    saveLogEntry(params) {
-      return emitWithAck('SAVE_LOG_ENTRY', params)
+    saveLogEntry(params, options) {
+      return emitWithAck('SAVE_LOG_ENTRY', params, options)
     },
-    getContentSignedUrls(params) {
-      return emitWithAck('GET_CONTENT_SIGNED_URLS', params)
+    getContentSignedUrls(params, options) {
+      return emitWithAck('GET_CONTENT_SIGNED_URLS', params, options)
     },
-    getMetadataSignedUrls(requests) {
-      return emitWithAck('GET_METADATA_SIGNED_URLS', requests)
+    getMetadataSignedUrls(requests, options) {
+      return emitWithAck('GET_METADATA_SIGNED_URLS', requests, options)
     },
-    getAppStorageSignedUrls(params) {
-      return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', params)
+    getAppStorageSignedUrls(params, options) {
+      return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', params, options)
     },
-    getAppUserAccessToken(params) {
-      return emitWithAck('GET_APP_USER_ACCESS_TOKEN', params)
+    getAppUserAccessToken(params, options) {
+      return emitWithAck('GET_APP_USER_ACCESS_TOKEN', params, options)
     },
-    updateContentMetadata(params) {
-      return emitWithAck('UPDATE_CONTENT_METADATA', params)
+    updateContentMetadata(params, options) {
+      return emitWithAck('UPDATE_CONTENT_METADATA', params, options)
     },
-    completeHandleTask(params) {
-      return emitWithAck('COMPLETE_HANDLE_TASK', params)
+    completeHandleTask(params, options) {
+      return emitWithAck('COMPLETE_HANDLE_TASK', params, options)
     },
-    authenticateUser(params) {
-      return emitWithAck('AUTHENTICATE_USER', params)
+    authenticateUser(params, options) {
+      return emitWithAck('AUTHENTICATE_USER', params, options)
     },
-    attemptStartHandleTaskById(params) {
-      return emitWithAck('ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID', params)
+    attemptStartHandleTaskById(params, options) {
+      return emitWithAck(
+        'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
+        params,
+        options,
+      )
     },
-    attemptStartHandleAnyAvailableTask(params) {
-      return emitWithAck('ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK', params)
+    attemptStartHandleAnyAvailableTask(params, options) {
+      return emitWithAck(
+        'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
+        params,
+        options,
+      )
     },
-    executeAppDockerJob(params) {
-      return emitWithAck('EXECUTE_APP_DOCKER_JOB', params)
+    executeAppDockerJob(params, options) {
+      return emitWithAck('EXECUTE_APP_DOCKER_JOB', params, options)
     },
-    triggerAppTask(params) {
-      return emitWithAck('TRIGGER_APP_TASK', params)
+    triggerAppTask(params, options) {
+      return emitWithAck('TRIGGER_APP_TASK', params, options)
     },
-    query(params) {
-      return emitWithAck('DB_QUERY', params)
+    query(params, options) {
+      return emitWithAck('DB_QUERY', params, options)
     },
-    exec(params) {
-      return emitWithAck('DB_EXEC', params)
+    exec(params, options) {
+      return emitWithAck('DB_EXEC', params, options)
     },
-    batch(params) {
-      return emitWithAck('DB_BATCH', params)
+    batch(params, options) {
+      return emitWithAck('DB_BATCH', params, options)
     },
   }
 }
