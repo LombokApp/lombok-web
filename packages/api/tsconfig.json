@@ -21,6 +21,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": true,
     "paths": {
       "@lombokapp/core-worker/core-app-worker.ts": [
         "../core-worker/core-app-worker.ts"

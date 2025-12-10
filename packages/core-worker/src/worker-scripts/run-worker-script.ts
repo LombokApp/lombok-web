@@ -729,7 +729,8 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   ): Promise<string> => {
     const isScoped = pkgName.startsWith('@')
     const linkPath = isScoped
-      ? path.join(mirrorRoot, pkgName.split('/')[0], pkgName.split('/')[1])
+      ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
       : path.join(mirrorRoot, pkgName)
 
     // Ensure scope dir exists if scoped
@@ -772,7 +773,8 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   for (const pkgName of STATIC_NODE_MODULES_TO_LINK) {
     const isScoped = pkgName.startsWith('@')
     const candidate = isScoped
-      ? path.join(mirrorRoot, pkgName.split('/')[0], pkgName.split('/')[1])
+      ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
       : path.join(mirrorRoot, pkgName)
     if (!desiredStatic.has(candidate)) {
       // Remove file only if present and we own the slot
@@ -1086,7 +1088,7 @@ async function createWorkerProcess(
   ).reduce<string[]>(
     (acc, next) =>
       acc.concat(
-        `WORKER_ENV_${next.trim()}=${workerExecutionDetails.environmentVariables[next].trim()}`,
+        `WORKER_ENV_${next.trim()}=${workerExecutionDetails.environmentVariables[next]?.trim()}`,
       ),
     [],
   )

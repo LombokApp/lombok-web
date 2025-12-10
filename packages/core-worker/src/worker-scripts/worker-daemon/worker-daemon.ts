@@ -87,7 +87,8 @@ void (async () => {
   const originalConsoleLog = console.log
 
   const workerModuleStartContext = JSON.parse(
-    process.argv[2],
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    process.argv[2]!,
   ) as WorkerModuleStartContext
 
   const writeOutput = async (output: string) => {

@@ -338,7 +338,8 @@ export class FolderService {
         throw new BadRequestException()
       }
 
-      return location
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return location!
     }
 
     const contentLocation = await buildLocation(
@@ -351,6 +352,7 @@ export class FolderService {
       body.metadataLocation,
     )
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const folder = (
       await this.ormService.db
         .insert(foldersTable)
@@ -364,7 +366,7 @@ export class FolderService {
           updatedAt: now,
         })
         .returning()
-    )[0]
+    )[0]!
 
     await this.checkAndUpdateFolderAccessError(folder.id)
 
@@ -642,6 +644,7 @@ export class FolderService {
     }
 
     const now = new Date()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const updatedFolder = (
       await this.ormService.db
         .update(foldersTable)
@@ -651,7 +654,7 @@ export class FolderService {
         })
         .where(eq(foldersTable.id, folderId))
         .returning()
-    )[0]
+    )[0]!
 
     return {
       ...updatedFolder,
@@ -715,17 +718,17 @@ export class FolderService {
 
     const folderMetadata = await this.ormService.db
       .select({
-        totalCount: sql<string | undefined>`count(*)`,
-        totalSizeBytes: sql<
-          string | undefined
-        >`sum(${folderObjectsTable.sizeBytes})`,
+        totalCount: sql<string>`count(*)`,
+        totalSizeBytes: sql<string>`sum(${folderObjectsTable.sizeBytes})`,
       })
       .from(folderObjectsTable)
       .where(eq(folderObjectsTable.folderId, folder.id))
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { totalCount, totalSizeBytes } = folderMetadata[0]!
     return {
-      totalCount: parseInt(folderMetadata[0].totalCount ?? '0', 10),
-      totalSizeBytes: parseInt(folderMetadata[0].totalSizeBytes ?? '0', 10),
+      totalCount: parseInt(totalCount, 10),
+      totalSizeBytes: parseInt(totalSizeBytes, 10),
     }
   }
 
@@ -900,7 +903,8 @@ export class FolderService {
             string,
             'asc' | 'desc',
           ]
-          const column = colMap[colName]
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const column = colMap[colName]!
           const rawValue = decoded.keys?.[colName]
           if (!(colName in colMap) || rawValue === undefined) {
             continue
@@ -970,8 +974,8 @@ export class FolderService {
         limit: limit + 1,
         orderBy,
       })
-    const [folderObjectsCount] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
+    const folderObjectsCountResult = await this.ormService.db
+      .select({ count: sql<string>`count(*)` })
       .from(folderObjectsTable)
       .where(where)
 
@@ -985,11 +989,13 @@ export class FolderService {
     // Slice to page size; if we got more than limit, there is a next page
     const page = normalized.slice(0, limit)
     if (folderObjects.length > limit) {
-      const last = page[page.length - 1]
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const last = page[page.length - 1]!
       const keys: Record<string, unknown> = {}
       const lastAny = last as Record<string, unknown>
       for (const s of orderSorts) {
-        const [colName] = String(s).split('-')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const colName = String(s).split('-')[0]!
         if (colName === 'id') {
           continue
         }
@@ -1007,11 +1013,13 @@ export class FolderService {
 
     // Check if there's a previous page by looking for items before the first item
     if (page.length > 0) {
-      const first = page[0]
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const first = page[0]!
       const firstKeys: Record<string, unknown> = {}
       const firstAny = first as Record<string, unknown>
       for (const s of orderSorts) {
-        const [colName] = String(s).split('-')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const colName = String(s).split('-')[0]!
         if (colName === 'id') {
           continue
         }
@@ -1064,7 +1072,8 @@ export class FolderService {
                     const prevConditions = orderSorts
                       .slice(0, i)
                       .map((prevS) => {
-                        const [prevColName] = String(prevS).split('-')
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        const prevColName = String(prevS).split('-')[0]!
                         const prevColumn = {
                           sizeBytes: folderObjectsTable.sizeBytes,
                           filename: folderObjectsTable.filename,
@@ -1089,7 +1098,8 @@ export class FolderService {
                 ...orderSorts
                   .filter((s) => !String(s).startsWith('id-'))
                   .map((s) => {
-                    const [colName] = String(s).split('-')
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    const colName = String(s).split('-')[0]!
                     const column = {
                       sizeBytes: folderObjectsTable.sizeBytes,
                       filename: folderObjectsTable.filename,
@@ -1124,7 +1134,7 @@ export class FolderService {
     return {
       result: page,
       meta: {
-        totalCount: parseInt(folderObjectsCount.count ?? '0', 10),
+        totalCount: parseInt(folderObjectsCountResult[0]?.count ?? '0', 10),
         nextCursor,
         previousCursor,
       },
@@ -1384,6 +1394,7 @@ export class FolderService {
       })
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const record = (
       await this.ormService.db
         .insert(folderObjectsTable)
@@ -1393,7 +1404,7 @@ export class FolderService {
           set: updateSet,
         })
         .returning()
-    )[0]
+    )[0]!
 
     // Decide event type based on createdAt vs updatedAt: insert sets both to now, update changes only updatedAt
     const wasAdded = record.createdAt.getTime() === record.updatedAt.getTime()
@@ -1562,14 +1573,14 @@ export class FolderService {
       offset: offset ?? 0,
       limit: limit ?? 25,
     })
-    const [usersCount] = await this.ormService.db
+    const usersCountResult = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(usersTable)
       .where(where)
 
     return {
       result: users.map((user) => ({ id: user.id, username: user.username })),
-      meta: { totalCount: parseInt(usersCount.count ?? '0', 10) },
+      meta: { totalCount: parseInt(usersCountResult[0]?.count ?? '0', 10) },
     }
   }
 

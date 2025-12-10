@@ -251,7 +251,8 @@ export class TaskService {
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })),
-      meta: { totalCount: tasksCountResult[0].count },
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      meta: { totalCount: tasksCountResult[0]!.count },
     }
   }
 
@@ -290,10 +291,12 @@ export class TaskService {
 
     for (const appIdentifier of Object.keys(pendingTasksByApp)) {
       for (const taskIdentifier of Object.keys(
-        pendingTasksByApp[appIdentifier],
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        pendingTasksByApp[appIdentifier]!,
       )) {
         const pendingTaskCount =
-          pendingTasksByApp[appIdentifier][taskIdentifier]
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          pendingTasksByApp[appIdentifier]![taskIdentifier]!
         this.appSocketService.notifyAppWorkersOfPendingTasks(
           appIdentifier,
           taskIdentifier,
@@ -537,7 +540,8 @@ export class TaskService {
 
     return this.ormService.db.transaction(async (tx) => {
       const task = await tx.insert(tasksTable).values(newTask).returning()
-      await this.eventService.emitRunnableTaskEnqueuedEvent(task[0], { tx })
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await this.eventService.emitRunnableTaskEnqueuedEvent(task[0]!, { tx })
       return task[0]
     })
   }

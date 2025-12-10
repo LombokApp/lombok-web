@@ -18,7 +18,8 @@
       "@lombokapp/types/*": ["../types/src/*"],
       "@lombokapp/utils": ["../utils/src"],
       "@lombokapp/utils/*": ["../utils/src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": true
   },
   "include": [".", "src", "index.ts", "index.d.ts", "eslint.config.ts"],
   "exclude": ["dist"]

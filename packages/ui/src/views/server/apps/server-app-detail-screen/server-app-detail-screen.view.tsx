@@ -311,7 +311,10 @@ export function ServerAppDetailScreen({
                     identifier: task.identifier,
                     label: task.label,
                     description: task.description,
-                    triggers: task.triggers?.join(', ') ?? 'None',
+                    triggers:
+                      task.triggers
+                        ?.map((trigger) => trigger.kind)
+                        .join(', ') ?? 'None',
                     handler:
                       task.handler.type === 'worker' ||
                       task.handler.type === 'docker'

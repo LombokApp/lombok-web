@@ -315,7 +315,8 @@ export async function handleAppSocketMessage(
           },
         }
       }
-      const { task } = rows[0]
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const { task } = rows[0]!
       if (task.startedAt || task.completedAt) {
         return {
           error: { code: 400, message: 'Task already started.' },
@@ -332,9 +333,16 @@ export async function handleAppSocketMessage(
               ? { handlerIdentifier: `${requestingAppIdentifier}:${handlerId}` }
               : {}),
           })
-          .where(eq(tasksTable.id, task.id))
+          .where(and(eq(tasksTable.id, task.id), isNull(tasksTable.startedAt)))
           .returning()
       )[0]
+
+      if (!updatedTask) {
+        return {
+          error: { code: 400, message: 'Failed to secure task.' },
+        }
+      }
+
       return { result: { task: transformTaskToDTO(updatedTask) } }
     }
     // case 'FAIL_HANDLE_TASK': {
@@ -446,12 +454,15 @@ export async function handleAppSocketMessage(
       ])
       return {
         result: {
-          payloadUrl: presignedGetURL[0],
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          payloadUrl: presignedGetURL[0]!,
           entrypoint:
-            workerApp.workers.definitions[parsedRequest.data.workerIdentifier]
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            workerApp.workers.definitions[parsedRequest.data.workerIdentifier]!
               .entrypoint,
           environmentVariables:
-            workerApp.workers.definitions[parsedRequest.data.workerIdentifier]
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            workerApp.workers.definitions[parsedRequest.data.workerIdentifier]!
               .environmentVariables,
           workerToken: await jwtService.createAppWorkerToken(
             parsedRequest.data.appIdentifier,
@@ -487,8 +498,10 @@ export async function handleAppSocketMessage(
             error: { code: 401, message: 'Invalid token format' },
           }
         }
-        const userId = subjectParts[1]
-        const tokenAppIdentifier = subjectParts[2]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const userId = subjectParts[1]!
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const tokenAppIdentifier = subjectParts[2]!
         if (tokenAppIdentifier !== parsedRequest.data.appIdentifier) {
           return {
             error: { code: 401, message: 'Token app identifier mismatch' },

@@ -95,10 +95,18 @@ export const connectAndPerformWork = (
             reject(new Error(errorMessage))
           } else {
             const { task } = attemptStartHandleResponse.result
-            await taskHandlers[task.taskIdentifier](
-              task as TaskDTO,
-              serverClient,
-            )
+            const taskHandler = taskHandlers[task.taskIdentifier]
+            if (!taskHandler) {
+              await log({
+                message: `Unknown task identifier: ${task.taskIdentifier}`,
+                level: LogEntryLevel.ERROR,
+              })
+              reject(
+                new Error(`Unknown task identifier: ${task.taskIdentifier}`),
+              )
+              return
+            }
+            await taskHandler(task as TaskDTO, serverClient)
               .then(() =>
                 serverClient.completeHandleTask({
                   success: true,

@@ -57,10 +57,9 @@ export const analyzeObjectTaskHandler = async (
 
   let mimeType = ''
   try {
-    const downloadResult = await downloadFileToDisk(
-      contentDownloadUrlResponse.result[0].url,
-      inFilePath,
-    )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const urlResult = contentDownloadUrlResponse.result[0]!
+    const downloadResult = await downloadFileToDisk(urlResult.url, inFilePath)
     mimeType = downloadResult.mimeType
     if (!mimeType) {
       throw new AppAPIError(
@@ -142,7 +141,8 @@ export const analyzeObjectTaskHandler = async (
       const { result } = metadataUploadResponse
       return Promise.all(
         result.map(({ url }, i) => {
-          const preview = previews[Object.keys(previews)[i]]
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const preview = previews[Object.keys(previews)[i]!]!
           return uploadFile(
             path.join(metadataOutFileDirectory, preview.hash),
             url,

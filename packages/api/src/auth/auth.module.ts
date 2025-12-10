@@ -47,10 +47,10 @@ export class AuthModule implements OnModuleInit {
   onModuleInit() {
     void this.ormService.waitForInit().then(async () => {
       if (this._platformConfig.initialUser) {
-        const [{ count: userCountStr = '0' }] = await this.ormService.db
+        const [userCountResult] = await this.ormService.db
           .select({ count: sql<string | null>`count(*)` })
           .from(usersTable)
-        const userCount = parseInt(userCountStr ?? '0', 10)
+        const userCount = parseInt(userCountResult?.count ?? '0', 10)
         if (userCount === 0) {
           this.logger.log(
             'Creating initial user:',

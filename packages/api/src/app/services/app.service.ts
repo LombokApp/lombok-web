@@ -180,6 +180,9 @@ export class AppService {
     } else {
       void this.coreAppService.startCoreAppThread()
     }
+    if (!updated) {
+      throw new NotFoundException('Failed to update app enabled status.')
+    }
     return updated
   }
 
@@ -206,6 +209,9 @@ export class AppService {
       })
       .where(eq(appsTable.identifier, appIdentifier))
       .returning()
+    if (!updated) {
+      throw new NotFoundException('Failed to update app enabled status.')
+    }
     return updated
   }
 
@@ -347,9 +353,11 @@ export class AppService {
         }),
       ),
     ).map((_url, i) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const request = requests[i]!
       return {
-        folderId: requests[i].folderId,
-        objectKey: requests[i].objectKey,
+        folderId: request.folderId,
+        objectKey: request.objectKey,
         url: _url,
       }
     })
@@ -454,7 +462,8 @@ export class AppService {
           .map((url, i) => ({
             url,
             folderId,
-            ...folderRequests[i],
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            ...folderRequests[i]!,
           })),
       )
     }
@@ -536,7 +545,8 @@ export class AppService {
     return {
       result: {
         manifest: workerApp.ui.manifest,
-        bundleUrl: presignedGetURL[0],
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        bundleUrl: presignedGetURL[0]!,
         csp: workerApp.ui.csp,
       },
     }
@@ -742,7 +752,8 @@ export class AppService {
         ])
 
         // Upload the zip file
-        await uploadFile(zipPath, url, 'application/zip')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await uploadFile(zipPath, url!, 'application/zip')
 
         const zipSize = fs.statSync(zipPath).size
         // Clean up temp dir
@@ -997,7 +1008,8 @@ export class AppService {
         .reduce<AppManifest>((acc, filePath) => {
           return {
             ...acc,
-            [filePath.slice(`/ui/`.length)]: manifest[filePath],
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            [filePath.slice(`/ui/`.length)]: manifest[filePath]!,
           }
         }, {}),
     }
@@ -1011,7 +1023,8 @@ export class AppService {
       .reduce<AppManifest>((acc, filePath) => {
         return {
           ...acc,
-          [filePath.slice(`/workers/`.length)]: manifest[filePath],
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          [filePath.slice(`/workers/`.length)]: manifest[filePath]!,
         }
       }, {})
 
@@ -1131,7 +1144,8 @@ export class AppService {
               return {
                 ...acc,
                 [parsed.appIdentifier]: (parsed.appIdentifier in acc
-                  ? acc[parsed.appIdentifier]
+                  ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    acc[parsed.appIdentifier]!
                   : []
                 ).concat([parsed]),
               }
@@ -1461,6 +1475,8 @@ export class AppService {
           // Delete settings (fallback to default)
           await tx.delete(appFolderSettingsTable).where(where)
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const notNullUpdatedSettings = updatedSettings!
           // Upsert/merge settings
           const existingSettings =
             await tx.query.appFolderSettingsTable.findFirst({
@@ -1473,11 +1489,11 @@ export class AppService {
             await tx
               .update(appFolderSettingsTable)
               .set({
-                ...('enabled' in updatedSettings
-                  ? { enabled: updatedSettings.enabled }
+                ...('enabled' in notNullUpdatedSettings
+                  ? { enabled: notNullUpdatedSettings.enabled }
                   : {}),
-                ...('permissions' in updatedSettings
-                  ? { permissions: updatedSettings.permissions }
+                ...('permissions' in notNullUpdatedSettings
+                  ? { permissions: notNullUpdatedSettings.permissions }
                   : {}),
                 updatedAt: now,
               })
@@ -1487,10 +1503,12 @@ export class AppService {
               folderId: folder.id,
               appIdentifier,
               enabled:
-                'enabled' in updatedSettings ? updatedSettings.enabled : null,
+                'enabled' in notNullUpdatedSettings
+                  ? notNullUpdatedSettings.enabled
+                  : null,
               permissions:
-                'permissions' in updatedSettings
-                  ? updatedSettings.permissions
+                'permissions' in notNullUpdatedSettings
+                  ? notNullUpdatedSettings.permissions
                   : null,
               createdAt: now,
               updatedAt: now,

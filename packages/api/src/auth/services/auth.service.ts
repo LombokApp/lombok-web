@@ -126,10 +126,10 @@ export class AuthService {
       updatedAt: now,
     }
 
-    const [createdUser] = await this.ormService.db
-      .insert(usersTable)
-      .values(newUser)
-      .returning()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const createdUser = (
+      await this.ormService.db.insert(usersTable).values(newUser).returning()
+    )[0]!
 
     return createdUser
   }
@@ -318,10 +318,10 @@ export class AuthService {
       updatedAt: now,
     }
 
-    const [user] = await this.ormService.db
-      .insert(usersTable)
-      .values(newUser)
-      .returning()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const user = (
+      await this.ormService.db.insert(usersTable).values(newUser).returning()
+    )[0]!
 
     // Create identity record
     await this.createIdentity(user.id, provider, providerUserInfo)
@@ -441,7 +441,8 @@ export class AuthService {
       return 'user'
     }
 
-    const localPart = email.split('@')[0]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const localPart = email.split('@')[0]!
     return (
       localPart
         .toLowerCase()

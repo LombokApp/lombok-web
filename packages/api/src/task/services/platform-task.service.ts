@@ -97,7 +97,7 @@ export class PlatformTaskService {
   }
 
   async unstartedPlatformTaskCount() {
-    const [{ count: unstartedPlatformTaskCount }] = await this.ormService.db
+    const [unstartedPlatformTaskCountResult] = await this.ormService.db
       .select({
         count: count(),
       })
@@ -108,7 +108,8 @@ export class PlatformTaskService {
           eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
         ),
       )
-    return unstartedPlatformTaskCount
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return unstartedPlatformTaskCountResult!.count
   }
 
   async executePlatformTask(taskId: string) {
@@ -154,6 +155,12 @@ export class PlatformTaskService {
         return updatedTaskResult[0]
       })
 
+      if (!startedTask) {
+        throw new Error(
+          `Task by ID "${taskId}" not found when attempting to start.`,
+        )
+      }
+
       if (startedTask.targetLocation?.folderId) {
         // notify folder rooms of updated task
         this.folderSocketService.sendToFolderRoom(
@@ -166,6 +173,9 @@ export class PlatformTaskService {
       const processorName = startedTask.taskIdentifier
 
       const processor = this.processors[processorName]
+      if (!processor) {
+        throw new Error(`Processor not found by name "${processorName}".`)
+      }
       const shouldRegisterComplete = processor.shouldRegisterComplete()
       this.runningTasksCount++
       await processor
