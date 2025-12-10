@@ -75,11 +75,10 @@ export function configureEventsTableColumns(
         />
       ),
       cell: ({ row: { original: event } }) => {
-        const hasFolder =
-          event.subjectContext?.folderName || event.subjectContext?.folderId
-        const hasObject = event.subjectContext?.objectKey
+        const hasFolder = event.targetLocation
+        const objectKey = event.targetLocation?.objectKey
 
-        if (!hasFolder && !hasObject) {
+        if (!hasFolder && !objectKey) {
           return (
             <div className="flex items-center gap-2 font-normal">
               <span className="italic text-muted-foreground">None</span>
@@ -87,20 +86,23 @@ export function configureEventsTableColumns(
           )
         }
 
+        const folderLabel =
+          event.targetLocationContext?.folderName ??
+          event.targetLocation?.folderId
+
         return (
-          <div className="flex max-w-80 flex-col gap-1">
-            {config.showFolderInFolderObjectColumn && hasFolder && (
-              <div className="font-medium">
-                {event.subjectContext?.folderName ||
-                  event.subjectContext?.folderId}
-              </div>
-            )}
-            {hasObject && (
-              <div className="truncate text-sm text-muted-foreground">
-                {event.subjectContext?.objectKey}
-              </div>
-            )}
-          </div>
+          folderLabel && (
+            <div className="flex max-w-80 flex-col gap-1">
+              {config.showFolderInFolderObjectColumn && hasFolder && (
+                <div className="font-medium">{folderLabel}</div>
+              )}
+              {objectKey && (
+                <div className="truncate text-sm text-muted-foreground">
+                  {objectKey}
+                </div>
+              )}
+            </div>
+          )
         )
       },
       enableSorting: false,

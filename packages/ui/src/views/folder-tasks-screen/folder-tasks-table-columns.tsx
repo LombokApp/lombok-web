@@ -2,7 +2,7 @@ import { configureTasksTableColumns } from '@/src/components/tasks-table-columns
 
 export const folderTasksTableColumns = configureTasksTableColumns({
   getLinkTo: (task) =>
-    `/folders/${task.subjectContext?.folderId || task.subjectFolderId}/tasks/${task.id}`,
+    `/folders/${task.targetLocation?.folderId}/tasks/${task.id}`,
   taskIdentifierTitle: 'Task',
   showOwnerSubtext: true,
   folderObjectColumnTitle: 'Object',

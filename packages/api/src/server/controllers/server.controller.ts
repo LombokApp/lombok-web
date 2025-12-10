@@ -113,7 +113,7 @@ export class ServerController {
     await this.appService.installAllAppsFromDisk()
     return {
       message: 'Apps installation completed',
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     }
   }
 

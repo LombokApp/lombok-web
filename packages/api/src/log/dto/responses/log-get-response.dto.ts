@@ -1,10 +1,10 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { logEntrySchema } from '../log-entry.dto'
+import { logEntrytDTOSchema } from '../log-entry.dto'
 
 export const logGetResponseSchema = z.object({
-  log: logEntrySchema,
+  log: logEntrytDTOSchema,
 })
 
 export class LogGetResponse extends createZodDto(logGetResponseSchema) {}

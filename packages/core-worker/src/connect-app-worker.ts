@@ -5,12 +5,11 @@ import {
   type AppLogEntry,
   type JsonSerializableObject,
   LogEntryLevel,
-  type taskSchema,
+  type TaskDTO,
 } from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
-import type z from 'zod'
 
 interface ConnectAndPerformWorkResult {
   shutdown: () => void
@@ -25,10 +24,7 @@ export const connectAndPerformWork = (
   appToken: string,
   taskHandlers: Record<
     string,
-    (
-      task: z.infer<typeof taskSchema>,
-      serverClient: IAppPlatformService,
-    ) => Promise<void>
+    (task: TaskDTO, serverClient: IAppPlatformService) => Promise<void>
   >,
   onConnect: () => Promise<void>,
 ): ConnectAndPerformWorkResult => {
@@ -99,10 +95,19 @@ export const connectAndPerformWork = (
             reject(new Error(errorMessage))
           } else {
             const { task } = attemptStartHandleResponse.result
-            await taskHandlers[task.taskIdentifier](task, serverClient)
-              .then(() => serverClient.completeHandleTask({ taskId: task.id }))
+            await taskHandlers[task.taskIdentifier](
+              task as TaskDTO,
+              serverClient,
+            )
+              .then(() =>
+                serverClient.completeHandleTask({
+                  success: true,
+                  taskId: task.id,
+                }),
+              )
               .catch((e: unknown) => {
-                return serverClient.failHandleTask({
+                return serverClient.completeHandleTask({
+                  success: false,
                   taskId: task.id,
                   error: {
                     code: String(

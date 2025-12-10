@@ -74,7 +74,7 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'subjectContext',
+    accessorKey: 'targetLocation',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
@@ -83,8 +83,8 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
       />
     ),
     cell: ({ row }) => {
-      const subjectContext = row.original.subjectContext
-      if (!subjectContext) {
+      const targetLocationContext = row.original.targetLocationContext
+      if (!targetLocationContext) {
         return (
           <div className="flex items-center gap-2 font-normal">
             <span className="italic text-muted-foreground">None</span>
@@ -96,12 +96,12 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         <div className="flex flex-col gap-1">
           <div className="font-medium">
             Folder:{' '}
-            {subjectContext.folderName ||
-              `${subjectContext.folderId.slice(0, 8)}...`}
+            {targetLocationContext.folderName ||
+              `${targetLocationContext.folderId.slice(0, 8)}...`}
           </div>
-          {subjectContext.objectKey && (
+          {targetLocationContext.objectKey && (
             <div className="text-sm text-muted-foreground">
-              Object: {subjectContext.objectKey}
+              Object: {targetLocationContext.objectKey}
             </div>
           )}
         </div>

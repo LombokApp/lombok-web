@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { userSchema } from 'src/users/dto/user.dto'
+import { userDTOSchema } from 'src/users/dto/user.dto'
 import { z } from 'zod'
 
 // Provider user info from SSO
@@ -12,10 +12,10 @@ const providerUserInfoSchema = z.object({
 
 // Response when existing user logs in
 const ssoLoginResponseSchema = z.object({
-  user: userSchema,
+  user: userDTOSchema,
   accessToken: z.string(),
   refreshToken: z.string(),
-  expiresAt: z.date(),
+  expiresAt: z.string().datetime(),
 })
 
 // Response when new user needs to select username
@@ -25,7 +25,7 @@ const ssoUsernameSelectionResponseSchema = z.object({
   providerUserInfo: providerUserInfoSchema,
   suggestedUsername: z.string(),
   signature: z.string(),
-  expiry: z.date(),
+  expiry: z.string().datetime(),
 })
 
 // Union type for the callback response

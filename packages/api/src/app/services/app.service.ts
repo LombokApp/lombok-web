@@ -62,6 +62,7 @@ import { storageLocationsTable } from 'src/storage/entities/storage-location.ent
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
@@ -123,6 +124,7 @@ export class AppService {
   eventService: EventService
   coreAppService: CoreAppService
   taskService: TaskService
+  platformTaskService: PlatformTaskService
   private readonly appSocketService: AppSocketService
   private readonly dockerJobsService: DockerJobsService
   private readonly logger = new Logger(AppService.name)
@@ -132,24 +134,25 @@ export class AppService {
     private readonly ormService: OrmService,
     private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
-    @Inject(forwardRef(() => CoreAppService)) _coreAppService,
-    @Inject(forwardRef(() => TaskService)) _taskService,
-    @Inject(forwardRef(() => EventService)) _eventService,
     private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
+    private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => CoreAppService)) _coreAppService,
+    @Inject(forwardRef(() => PlatformTaskService)) _platformTaskService,
+    @Inject(forwardRef(() => TaskService)) _taskService,
+    @Inject(forwardRef(() => EventService)) _eventService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
-    private readonly s3Service: S3Service,
-    @Inject(forwardRef(() => DockerJobsService))
-    _dockerOrchestrationService,
+    @Inject(forwardRef(() => DockerJobsService)) _dockerJobsService,
   ) {
+    this.platformTaskService = _platformTaskService as PlatformTaskService
     this.coreAppService = _coreAppService as CoreAppService
     this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
     this.appSocketService = _appSocketService as AppSocketService
-    this.dockerJobsService = _dockerOrchestrationService as DockerJobsService
+    this.dockerJobsService = _dockerJobsService as DockerJobsService
   }
 
   public async setAppEnabledAsAdmin(
@@ -1764,7 +1767,7 @@ export class AppService {
       appIdentifier,
       profileIdentifier,
       jobIdentifier,
-      jobInputData,
+      jobData,
       storageAccessPolicy = [],
       asyncTaskId,
     } = params
@@ -1787,7 +1790,7 @@ export class AppService {
       profileSpec,
       profileHostConfigKey: `${appIdentifier}:${profileIdentifier}`,
       jobIdentifier,
-      jobInputData,
+      jobData,
       asyncTaskId,
       storageAccessPolicy,
     })

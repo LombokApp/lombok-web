@@ -134,21 +134,6 @@ export async function buildTestModule({
       ormService,
       kvService,
     },
-    getAppService: () => {
-      return appService
-    },
-    getWorkerJobService: () => {
-      return workerJobService
-    },
-    getPlatformTaskService: () => {
-      return platformTaskService
-    },
-    getEventService: () => {
-      return eventService
-    },
-    getOrmService: () => {
-      return ormService
-    },
     resetAppState: async () => {
       kvService.ops.flushall()
       await ormService.resetTestDb()
@@ -259,9 +244,8 @@ export async function createTestUser(
       },
     })
   if (admin) {
-    await testModule
-      .getOrmService()
-      .db.update(usersTable)
+    await testModule.services.ormService.db
+      .update(usersTable)
       .set({
         isAdmin: true,
         name,

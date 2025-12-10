@@ -10,6 +10,7 @@ import type {
 import { sql } from 'drizzle-orm'
 import {
   boolean,
+  customType,
   index,
   jsonb,
   pgTable,
@@ -17,6 +18,34 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
+
+// Custom type to handle the nested dates (that will be serialized as ISO strings) in the log entries
+export const logJsonb = <TLog extends { at: Date }>(name: string) =>
+  customType<{ data: TLog[]; driverData: unknown }>({
+    dataType() {
+      return 'jsonb'
+    },
+    toDriver(value: TLog[]) {
+      // Persist as ISO strings for `at`
+      const raw = value.map((entry) => ({
+        ...entry,
+        at: entry.at.toISOString(),
+      }))
+
+      return JSON.stringify(raw)
+    },
+    fromDriver(value: unknown): TLog[] {
+      // Depending on driver, this might already be parsed
+      const rawArray = (
+        typeof value === 'string' ? JSON.parse(value) : value
+      ) as (TLog & { at: string })[]
+
+      return rawArray.map((entry) => ({
+        ...entry,
+        at: new Date(entry.at),
+      }))
+    },
+  })(name)
 
 // Recursive type for nested Records with string keys and string/number values
 export const tasksTable = pgTable(
@@ -30,14 +59,11 @@ export const tasksTable = pgTable(
     trigger: jsonb('trigger').$type<TaskTrigger>().notNull(),
     targetUserId: uuid('targetUserId'),
     targetLocation: jsonb('targetLocation').$type<TargetLocationContext>(),
-    taskLog: jsonb('taskLog').$type<TaskLogEntry[]>().notNull().default([]),
     startedAt: timestamp('startedAt'),
     dontStartBefore: timestamp('dontStartBefore'),
     completedAt: timestamp('completedAt'),
-    systemLog: jsonb('systemLog')
-      .$type<SystemLogEntry[]>()
-      .notNull()
-      .default([]),
+    systemLog: logJsonb<SystemLogEntry>('systemLog').notNull().default([]),
+    taskLog: logJsonb<TaskLogEntry>('taskLog').notNull().default([]),
     storageAccessPolicy: jsonb('storageAccessPolicy')
       .$type<StorageAccessPolicy>()
       .notNull()

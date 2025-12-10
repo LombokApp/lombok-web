@@ -14,11 +14,10 @@ import {
   ScriptExecutionError,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { taskSchema } from '@lombokapp/types'
+import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import type { z } from 'zod'
 
 import {
   cleanupWorkerPipes,
@@ -1271,21 +1270,8 @@ async function getOrCreateWorkerProcess(
   }
 }
 
-export const runWorkerScript = async ({
-  requestOrTask,
-  server,
-  appIdentifier,
-  workerIdentifier,
-  workerExecutionId,
-  options = {
-    printWorkerOutput: true,
-    removeWorkerDirectory: true,
-    printNsjailVerboseOutput: false,
-  },
-  onStdoutChunk,
-}: {
+interface RunWorkerScriptBaseArgs {
   server: IAppPlatformService
-  requestOrTask: Request | z.infer<typeof taskSchema>
   appIdentifier: string
   workerIdentifier: string
   workerExecutionId: string
@@ -1295,9 +1281,40 @@ export const runWorkerScript = async ({
     printNsjailVerboseOutput?: boolean
   }
   onStdoutChunk?: (text: string) => void
-}): Promise<Response | undefined> => {
+}
+
+interface RunWorkerScriptRequestArgs extends RunWorkerScriptBaseArgs {
+  requestOrTask: Request
+}
+
+interface RunWorkerScriptTaskArgs extends RunWorkerScriptBaseArgs {
+  requestOrTask: TaskDTO
+}
+
+export async function runWorkerScript(
+  args: RunWorkerScriptRequestArgs,
+): Promise<Response | undefined>
+export async function runWorkerScript(
+  args: RunWorkerScriptTaskArgs,
+): Promise<JsonSerializableObject | undefined>
+export async function runWorkerScript(
+  args: RunWorkerScriptRequestArgs | RunWorkerScriptTaskArgs,
+): Promise<Response | JsonSerializableObject | undefined> {
+  const {
+    requestOrTask,
+    server,
+    appIdentifier,
+    workerIdentifier,
+    workerExecutionId,
+    options = {
+      printWorkerOutput: true,
+      removeWorkerDirectory: true,
+      printNsjailVerboseOutput: false,
+    },
+    onStdoutChunk,
+  } = args
+
   const overallStartTime = performance.now()
-  const isRequest = requestOrTask instanceof Request
 
   try {
     // Get or create long-running worker process
@@ -1316,11 +1333,9 @@ export const runWorkerScript = async ({
     const requestId = `${workerExecutionId}__${Date.now()}_${crypto.randomUUID()}`
 
     // Serialize the request or task for the pipe
-    let serializedRequestOrTask:
-      | SerializeableRequest
-      | z.infer<typeof taskSchema>
+    let serializedRequestOrTask: SerializeableRequest | TaskDTO
 
-    if (isRequest) {
+    if (requestOrTask instanceof Request) {
       const request = requestOrTask
       const parsedBody = await parseRequestBody(request)
       const bodyString =
@@ -1358,13 +1373,13 @@ export const runWorkerScript = async ({
     // Create pipe request
     const pipeRequest: WorkerPipeRequest = {
       id: requestId,
-      type: isRequest ? 'request' : 'task',
+      type: requestOrTask instanceof Request ? 'request' : 'task',
       timestamp: Date.now(),
       data: serializedRequestOrTask,
       outputLogFilepath: jailOutLogPath,
       errorLogFilepath: jailErrLogPath,
       // Extract app identifier and auth token from request
-      ...(isRequest &&
+      ...(requestOrTask instanceof Request &&
         (() => {
           const request = requestOrTask
           return {
@@ -1454,7 +1469,7 @@ export const runWorkerScript = async ({
       }
     }
 
-    if (!isRequest) {
+    if (!(requestOrTask instanceof Request)) {
       // Task execution completed
       console.log(
         `[TIMING] Task execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,

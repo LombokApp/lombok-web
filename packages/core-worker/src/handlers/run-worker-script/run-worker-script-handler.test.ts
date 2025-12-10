@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import {
-  type JsonSerializableObject,
-  type LogEntryLevel,
-  PLATFORM_IDENTIFIER,
-  PlatformEvent,
-  type SignedURLsRequestMethod,
-  type taskSchema,
+import type {
+  JsonSerializableObject,
+  LogEntryLevel,
+  SignedURLsRequestMethod,
+  TaskDTO,
 } from '@lombokapp/types'
+import { PLATFORM_IDENTIFIER, PlatformEvent } from '@lombokapp/types'
 import {
   afterAll,
   beforeAll,
@@ -23,7 +22,6 @@ import os from 'os'
 import path from 'path'
 import { Server as IOServer } from 'socket.io'
 import { v4 as uuidV4 } from 'uuid'
-import type z from 'zod'
 
 import { buildTestServerClient } from '../../test/test-server-client.mock'
 import { bulidRunWorkerScriptTaskHandler } from './run-worker-script-handler'
@@ -116,7 +114,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
                   message: string
                   level: LogEntryLevel
                   data: JsonSerializableObject
-                  subjectContext:
+                  targetLocation:
                     | { folderId: string; objectKey?: string | undefined }
                     | undefined
                 }
@@ -233,11 +231,11 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
 
   it('completes run-worker-script task successfully', async () => {
     // Mock run_worker_script task and the underlying worker script task
-    const workerScriptTask: z.infer<typeof taskSchema> = {
+    const workerScriptTask = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
-        kind: 'event',
+        kind: 'event' as const,
         data: {
           eventId: uuidV4(),
           eventIdentifier: PlatformEvent.object_added,
@@ -254,11 +252,11 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         folderId: uuidV4(),
         objectKey: 'test-object-key',
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
-    const runWorkerScriptEnvelopeTask: z.infer<typeof taskSchema> = {
+    const runWorkerScriptEnvelopeTask: TaskDTO = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
@@ -275,12 +273,12 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       taskDescription: 'run_worker_script',
       taskIdentifier: 'run_worker_script',
       data: {
-        taskId: workerScriptTask.id,
+        innerTaskId: workerScriptTask.id,
         appIdentifier: 'core-worker',
         workerIdentifier: 'test-worker',
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
     let completed = false
@@ -301,15 +299,30 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           },
         }),
       attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: { task: workerScriptTask } }),
+        Promise.resolve({
+          result: {
+            task: workerScriptTask,
+          },
+        }),
       attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: { task: workerScriptTask } }),
-      failHandleTask: () => {
-        failed = true
-        return Promise.resolve({ result: undefined })
-      },
-      completeHandleTask: () => {
-        completed = true
+        Promise.resolve({
+          result: {
+            task: workerScriptTask,
+          },
+        }),
+      completeHandleTask: ({
+        success,
+      }: {
+        success: boolean
+        taskId: string
+        error?: {
+          code: string
+          message: string
+          details?: JsonSerializableObject
+        }
+      }) => {
+        completed = !!success
+        failed = !success
         return Promise.resolve({ result: undefined })
       },
       getContentSignedUrls: () => {
@@ -318,8 +331,8 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           result: [
             {
               url: 'https://example.com/test-image.png',
-              folderId: String(workerScriptTask.targetLocation?.folderId),
-              objectKey: String(workerScriptTask.targetLocation?.objectKey),
+              folderId: String(workerScriptTask.targetLocation.folderId),
+              objectKey: String(workerScriptTask.targetLocation.objectKey),
             },
           ],
         })

@@ -2,32 +2,43 @@ import z from 'zod'
 
 import {
   type JsonSerializableObject,
-  jsonSerializableObjectSchema,
+  jsonSerializableObjectDTOSchema,
 } from './apps.types'
-import { targetLocationContextSchema } from './folder.types'
+import { targetLocationContextDTOSchema } from './folder.types'
 import { SignedURLsRequestMethod } from './storage.types'
 
 export type TaskInputData = JsonSerializableObject
 
 export const taskInputDataSchema: z.ZodType<TaskInputData> =
-  jsonSerializableObjectSchema
+  jsonSerializableObjectDTOSchema
 
-export const taskSystemLogEntrySchema = z.object({
-  at: z.date(),
+export const taskSystemLogEntryDTOSchema = z.object({
+  at: z.string().datetime(),
   payload: z.object({
     logType: z.enum(['started', 'failure', 'requeue', 'success']),
-    data: jsonSerializableObjectSchema.optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
   }),
 })
 
-export const taskLogEntrySchema = z.object({
-  at: z.date(),
-  message: z.string().optional(),
-  payload: jsonSerializableObjectSchema.optional(),
+export const taskLogEntryDTOSchema = z.object({
+  at: z.string().datetime(),
+  message: z.string(),
+  payload: z.record(z.string(), z.unknown()).optional(),
 })
 
-export type SystemLogEntry = z.infer<typeof taskSystemLogEntrySchema>
-export type TaskLogEntry = z.infer<typeof taskLogEntrySchema>
+export interface SystemLogEntry {
+  at: Date
+  payload: {
+    logType: 'started' | 'failure' | 'requeue' | 'success'
+    data?: JsonSerializableObject
+  }
+}
+
+export interface TaskLogEntry {
+  at: Date
+  message: string
+  payload?: JsonSerializableObject
+}
 
 export const storageAccessPolicyEntrySchema = z.object({
   folderId: z.string(),
@@ -52,8 +63,8 @@ export const eventTriggerDataSchema = z.object({
   eventIdentifier: z.string(),
   emitterIdentifier: z.string(),
   targetUserId: z.string().uuid().optional(),
-  targetLocation: targetLocationContextSchema.optional(),
-  eventData: jsonSerializableObjectSchema,
+  targetLocation: targetLocationContextDTOSchema.optional(),
+  eventData: jsonSerializableObjectDTOSchema,
 })
 
 export const scheduleTriggerDataSchema = z.object({
@@ -99,7 +110,7 @@ export interface EventTaskTrigger {
   data: z.infer<typeof eventTriggerDataSchema>
 }
 
-export const taskSchema = z.object({
+export const taskDTOSchema = z.object({
   id: z.string().uuid(),
   taskIdentifier: z.string(),
   ownerIdentifier: z.string(),
@@ -107,19 +118,23 @@ export const taskSchema = z.object({
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),
   data: taskInputDataSchema,
-  targetLocation: targetLocationContextSchema.optional(),
+  targetLocation: targetLocationContextDTOSchema.optional(),
   error: z
     .object({
       code: z.string(),
       message: z.string(),
-      details: jsonSerializableObjectSchema.optional(),
+      details: jsonSerializableObjectDTOSchema.optional(),
     })
     .optional(),
   taskDescription: z.string(),
-  systemLog: z.array(taskSystemLogEntrySchema),
-  taskLog: z.array(taskLogEntrySchema),
-  startedAt: z.date().optional(),
-  completedAt: z.date().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  systemLog: z.array(taskSystemLogEntryDTOSchema),
+  taskLog: z.array(taskLogEntryDTOSchema),
+  startedAt: z.string().datetime().optional(),
+  completedAt: z.string().datetime().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 })
+
+export type RequeueConfig =
+  | { shouldRequeue: true; delayMs: number; notBefore: Date | undefined }
+  | { shouldRequeue: false }

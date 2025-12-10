@@ -135,8 +135,12 @@ export function TaskDetailUI({
   // Check if the current user owns the folder
   const isFolderOwner =
     currentUserId &&
-    taskData.subjectContext?.folderOwnerId &&
-    currentUserId === taskData.subjectContext.folderOwnerId
+    taskData.targetLocationContext?.folderOwnerId &&
+    currentUserId === taskData.targetLocationContext.folderOwnerId
+
+  const folderLabel =
+    taskData.targetLocationContext?.folderName ??
+    taskData.targetLocation?.folderId
 
   const statusInfo = getStatusInfo(taskData)
   const errorDetails = taskData.error
@@ -269,84 +273,74 @@ export function TaskDetailUI({
                       </div>
                     </div>
                   </div>
-                  {taskData.subjectContext && (
+                  {taskData.targetLocation && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Folder / Object
                       </label>
                       <div className="mt-1 space-y-1">
-                        {taskData.subjectContext.folderName &&
-                          taskData.subjectContext.folderId && (
-                            <p className="text-sm font-medium">
-                              Folder:{' '}
-                              {isFolderOwner ? (
-                                <Link
-                                  to={`/folders/${taskData.subjectContext.folderId}`}
-                                  className="text-primary hover:underline"
-                                >
-                                  {taskData.subjectContext.folderName}
-                                </Link>
-                              ) : (
-                                <span>
-                                  {taskData.subjectContext.folderName}
-                                </span>
-                              )}
-                            </p>
+                        <p className="text-sm font-medium">
+                          Folder:{' '}
+                          {isFolderOwner ? (
+                            <Link
+                              to={`/folders/${taskData.targetLocation.folderId}`}
+                              className="text-primary hover:underline"
+                            >
+                              {folderLabel}
+                            </Link>
+                          ) : (
+                            <span>{folderLabel}</span>
                           )}
-                        {taskData.subjectContext.objectKey &&
-                          taskData.subjectContext.folderId && (
-                            <p className="text-sm text-muted-foreground">
-                              Object:{' '}
-                              {isFolderOwner ? (
-                                <Link
-                                  to={`/folders/${taskData.subjectContext.folderId}/objects/${taskData.subjectContext.objectKey}`}
-                                  className="text-primary hover:underline"
-                                >
-                                  {taskData.subjectContext.objectKey}
-                                </Link>
-                              ) : (
-                                <span>{taskData.subjectContext.objectKey}</span>
-                              )}
-                            </p>
-                          )}
-                        {!taskData.subjectContext.folderName &&
-                          taskData.subjectContext.folderId && (
-                            <p className="font-mono text-sm text-muted-foreground">
-                              Folder ID: {taskData.subjectContext.folderId}
-                            </p>
-                          )}
+                        </p>
+                        {taskData.targetLocation.objectKey && (
+                          <p className="text-sm text-muted-foreground">
+                            Object:{' '}
+                            {isFolderOwner ? (
+                              <Link
+                                to={`/folders/${taskData.targetLocation.folderId}/objects/${taskData.targetLocation.objectKey}`}
+                                className="text-primary hover:underline"
+                              >
+                                {taskData.targetLocation.objectKey}
+                              </Link>
+                            ) : (
+                              <span>{taskData.targetLocation.objectKey}</span>
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
-                  {taskData.subjectObjectKey && !taskData.subjectContext && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Object Key
-                      </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.subjectObjectKey}
-                      </p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        From Event
-                      </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.eventId}
-                      </p>
-                    </div>
-                    {taskData.subjectFolderId && !taskData.subjectContext && (
+                  {taskData.targetLocation?.objectKey &&
+                    !taskData.targetLocationContext && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
-                          Subject Folder ID
+                          Object Key
                         </label>
                         <p className="mt-1 break-all font-mono text-sm">
-                          {taskData.subjectFolderId}
+                          {taskData.targetLocation.objectKey}
                         </p>
                       </div>
                     )}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Trigger
+                      </label>
+                      <p className="mt-1 break-all font-mono text-sm">
+                        {taskData.trigger.kind}
+                      </p>
+                    </div>
+                    {taskData.targetLocation?.folderId &&
+                      !taskData.targetLocationContext && (
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Subject Folder ID
+                          </label>
+                          <p className="mt-1 break-all font-mono text-sm">
+                            {taskData.targetLocation.folderId}
+                          </p>
+                        </div>
+                      )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
@@ -354,7 +348,7 @@ export function TaskDetailUI({
                     </label>
                     <div className="mt-1 rounded-md bg-muted/50 p-3">
                       <pre className="overflow-x-auto font-mono text-sm">
-                        {JSON.stringify(taskData.inputData, null, 2)}
+                        {JSON.stringify(taskData.data, null, 2)}
                       </pre>
                     </div>
                   </div>

@@ -15,7 +15,8 @@ describe('Server Apps', () => {
       testModuleKey: TEST_MODULE_KEY,
     })
     apiClient = testModule.apiClient
-    const apps = await testModule.getOrmService().db.query.appsTable.findMany()
+    const apps =
+      await testModule.services.ormService.db.query.appsTable.findMany()
     appsCount = apps.length
   })
 

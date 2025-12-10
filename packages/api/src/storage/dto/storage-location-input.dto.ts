@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-export const storageLocationInputSchema = z.union([
+export const storageLocationInputDTOSchema = z.union([
   z.object({
     accessKeyId: z.string(),
     secretAccessKey: z.string(),
@@ -27,5 +27,5 @@ export const storageLocationInputSchema = z.union([
 ])
 
 export class StorageLocationInputDTO extends createZodDto(
-  storageLocationInputSchema,
+  storageLocationInputDTOSchema,
 ) {}

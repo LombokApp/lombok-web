@@ -23,15 +23,13 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
 
   async _run(
     task: Task,
-    trigger: TaskTrigger,
   ): Promise<undefined | { result: JsonSerializableObject }> {
-    const result = await this.run(task, trigger)
+    const result = await this.run(task)
     return result
   }
 
   abstract run<T extends { result: JsonSerializableObject } | undefined>(
     task: Task,
-    trigger: TaskTrigger,
   ): Promise<T>
 
   abstract run(task: Task, trigger: TaskTrigger): Promise<void>

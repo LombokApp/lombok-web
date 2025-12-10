@@ -1,10 +1,10 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { logEntrySchema } from '../log-entry.dto'
+import { logEntrytDTOSchema } from '../log-entry.dto'
 
 export const logListResponseSchema = z.object({
-  result: z.array(logEntrySchema),
+  result: z.array(logEntrytDTOSchema),
   meta: z.object({
     totalCount: z.number(),
   }),

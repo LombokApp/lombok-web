@@ -1,11 +1,13 @@
-import type {
-  AppSocketMessage,
-  AppSocketMessageDataMap,
-  AppSocketMessageResultMap,
-  AppSocketResponseError,
-  JsonSerializableObject,
-  taskSchema,
-  WorkerApiActor,
+import {
+  type AppSocketMessage,
+  type AppSocketMessageDataMap,
+  type AppSocketMessageResultMap,
+  AppSocketMessageSchemaMap,
+  type AppSocketResponseError,
+  createResponseSchema,
+  type JsonSerializableObject,
+  type TaskDTO,
+  type WorkerApiActor,
 } from '@lombokapp/types'
 import {
   drizzle,
@@ -55,9 +57,6 @@ export interface IAppPlatformService {
   attemptStartHandleAnyAvailableTask: (
     params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'],
   ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'>>
-  failHandleTask: (
-    params: AppSocketMessageDataMap['FAIL_HANDLE_TASK'],
-  ) => Promise<SocketResponse<'FAIL_HANDLE_TASK'>>
   completeHandleTask: (
     params: AppSocketMessageDataMap['COMPLETE_HANDLE_TASK'],
   ) => Promise<SocketResponse<'COMPLETE_HANDLE_TASK'>>
@@ -92,9 +91,9 @@ export interface IAppPlatformService {
   executeAppDockerJob: (
     params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
   ) => Promise<SocketResponse<'EXECUTE_APP_DOCKER_JOB'>>
-  queueAppTask: (
-    params: AppSocketMessageDataMap['QUEUE_APP_TASK'],
-  ) => Promise<SocketResponse<'QUEUE_APP_TASK'>>
+  triggerAppTask: (
+    params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
+  ) => Promise<SocketResponse<'TRIGGER_APP_TASK'>>
 }
 
 export const buildAppClient = (
@@ -111,7 +110,22 @@ export const buildAppClient = (
         name,
         data,
       })) as SocketResponse<K> | { error: AppSocketResponseError }
-    return response
+
+    const parsedResponse = createResponseSchema(
+      AppSocketMessageSchemaMap[name],
+    ).safeParse(response)
+
+    if (!parsedResponse.success) {
+      return {
+        error: {
+          code: 'APP_API_ERROR',
+          message: 'Failed to parse response',
+          details: parsedResponse.error.flatten().fieldErrors,
+        },
+      }
+    }
+
+    return parsedResponse.data as SocketResponse<K>
   }
 
   return {
@@ -157,10 +171,12 @@ export const buildAppClient = (
     attemptStartHandleAnyAvailableTask(params) {
       return emitWithAck('ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK', params)
     },
-    failHandleTask(params) {
-      return emitWithAck('FAIL_HANDLE_TASK', params)
+    executeAppDockerJob(params) {
+      return emitWithAck('EXECUTE_APP_DOCKER_JOB', params)
     },
-    // Database methods
+    triggerAppTask(params) {
+      return emitWithAck('TRIGGER_APP_TASK', params)
+    },
     query(params) {
       return emitWithAck('DB_QUERY', params)
     },
@@ -169,12 +185,6 @@ export const buildAppClient = (
     },
     batch(params) {
       return emitWithAck('DB_BATCH', params)
-    },
-    executeAppDockerJob(params) {
-      return emitWithAck('EXECUTE_APP_DOCKER_JOB', params)
-    },
-    queueAppTask(params) {
-      return emitWithAck('QUEUE_APP_TASK', params)
     },
   }
 }
@@ -495,7 +505,7 @@ export type RequestHandler = (
 ) => Promise<Response> | Response
 
 export type TaskHandler = (
-  task: z.infer<typeof taskSchema>,
+  task: TaskDTO,
   {
     serverClient,
     dbClient,

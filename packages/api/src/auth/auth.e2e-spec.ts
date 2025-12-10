@@ -242,9 +242,8 @@ describe('Auth', () => {
     }
 
     expect(refreshTokenResponse.response.status).toEqual(201)
-    const sessionRows = await testModule
-      ?.getOrmService()
-      .db.query.sessionsTable.findMany()
+    const sessionRows =
+      await testModule?.services.ormService.db.query.sessionsTable.findMany()
     expect(sessionRows?.length).toEqual(1)
   })
 

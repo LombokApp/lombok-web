@@ -23,7 +23,7 @@ describe('ORM Schema Isolation', () => {
   afterEach(() => testModule?.resetAppState())
 
   it('should not interfere with main app queries after app queries', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     const testAppId = 'testapp'
 
     // Ensure the test app schema exists
@@ -96,7 +96,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle batch operations with proper isolation', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     const testAppId = 'testapp_batch'
 
     // Ensure the test app schema exists
@@ -167,7 +167,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle multiple concurrent app schemas without interference', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     const app1Id = 'concurrent_app_1'
     const app2Id = 'concurrent_app_2'
 
@@ -263,7 +263,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should prevent app queries from accessing other schemas', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     const appId = 'role_isolation_test'
 
     await ormService.ensureAppSchema(appId)
@@ -315,7 +315,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should expose shared ACL view with owner and share entries', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     await ormService.ensureSharedAclSchema()
 
     const ownerUsername = 'acl_owner'
@@ -381,8 +381,8 @@ describe('ORM Schema Isolation', () => {
       folderId,
       userId: member.id,
       permissions: ['FOLDER_REINDEX'],
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
+      createdAt: now,
+      updatedAt: now,
     })
 
     const aclResult = await ormService.client.query<{
@@ -410,7 +410,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle app migrations with proper isolation', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     const testAppId = 'migration_test'
 
     // Ensure the test app schema exists
@@ -493,7 +493,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle rowMode array format correctly', async () => {
-    const ormService = testModule!.getOrmService()
+    const ormService = testModule!.services.ormService
     const testAppId = 'rowmode_test'
 
     // Ensure the test app schema exists

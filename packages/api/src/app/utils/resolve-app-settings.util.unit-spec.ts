@@ -391,7 +391,7 @@ describe('resolve-app-settings.util.ts', () => {
       })
     })
 
-    it.only('should handle folder disabled at the app level with no user or folder settings', () => {
+    it('should handle folder disabled at the app level with no user or folder settings', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
           appIdentifier: 'test_app',

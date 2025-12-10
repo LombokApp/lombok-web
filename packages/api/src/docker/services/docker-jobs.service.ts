@@ -144,7 +144,7 @@ export class DockerJobsService {
   ): Promise<DockerExecResult<T>> {
     const {
       jobIdentifier,
-      jobInputData,
+      jobData,
       profileHostConfigKey,
       profileSpec,
       outputLocation,
@@ -220,7 +220,7 @@ export class DockerJobsService {
       jobId,
       jobToken,
       jobIdentifier,
-      jobInputData,
+      jobData,
       platformURL: `http${this._platformConfig.platformHttps ? 's' : ''}://${this._platformConfig.platformHost}${this._platformConfig.platformPort !== null ? `:${this._platformConfig.platformPort}` : ''}`,
       outputLocation,
       jobCommand: jobDefinition.command,

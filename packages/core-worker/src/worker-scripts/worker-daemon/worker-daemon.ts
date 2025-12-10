@@ -21,7 +21,7 @@ import {
   WorkerInvalidError,
   WorkerRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { EventDTO, paths, TaskDTO } from '@lombokapp/types'
+import type { paths, TaskDTO } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
 import createFetchClient from 'openapi-fetch'
@@ -323,15 +323,16 @@ void (async () => {
                 appIdentifier: pipeRequest.appIdentifier,
               })
 
-              if (authResult.error || !authResult.result.success) {
+              if ('error' in authResult) {
+                const errorMessage = authResult.error.message
                 logTiming('authentication_failed', authStartTime, {
                   requestId: pipeRequest.id,
-                  error: authResult.error?.message || 'Invalid token',
+                  error: errorMessage,
                   appIdentifier: pipeRequest.appIdentifier,
                 })
                 throw new WorkerRuntimeError(
                   'Authentication failed',
-                  new Error(authResult.error?.message || 'Invalid token'),
+                  new Error(errorMessage),
                 )
               }
 
@@ -393,11 +394,6 @@ void (async () => {
                 }
               : undefined,
           })
-          console.log(
-            'response outside handleRequest:',
-            response,
-            typeof response,
-          )
         } else {
           // Handle task
           logTiming('execution_start', executionStartTime, {
@@ -411,14 +407,11 @@ void (async () => {
             )
           }
 
-          await userModule.handleTask(
-            pipeRequest.data as { task: TaskDTO; event: EventDTO },
-            {
-              serverClient,
-              dbClient,
-              createDb,
-            },
-          )
+          await userModule.handleTask(pipeRequest.data as TaskDTO, {
+            serverClient,
+            dbClient,
+            createDb,
+          })
           // Tasks don't return responses
           response = undefined
         }

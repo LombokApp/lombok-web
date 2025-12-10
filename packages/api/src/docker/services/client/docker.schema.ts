@@ -1,7 +1,7 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   containerProfileConfigSchema,
-  jsonSerializableObjectSchema,
+  jsonSerializableObjectDTOSchema,
   jsonSerializableValueSchema,
   storageAccessPolicySchema,
 } from '@lombokapp/types'
@@ -30,7 +30,7 @@ export const containerWorkerExecuteOptionsSchema = z.object({
       })
       .optional(),
   }),
-  jobInputData: jsonSerializableValueSchema,
+  jobData: jsonSerializableValueSchema,
   volumes: z.record(z.string(), z.string()).optional(),
   gpus: z
     .object({ driver: z.string(), deviceIds: z.array(z.string()) })
@@ -54,7 +54,7 @@ export interface ContainerWorkerExecuteOptions<T extends boolean> {
     | {
         kind: 'exec_per_job'
       }
-  jobInputData?: JsonSerializableObject
+  jobData?: JsonSerializableObject
   outputLocation?: {
     folderId: string
     prefix?: string
@@ -73,7 +73,7 @@ export const dockerExecuteJobOptionsSchema = z.object({
     .object({ folderId: z.string(), prefix: z.string().optional() })
     .optional(),
   jobIdentifier: z.string(),
-  jobInputData: jsonSerializableObjectSchema,
+  jobData: jsonSerializableObjectDTOSchema,
 })
 
 export type DockerExecuteJobOptions = z.infer<

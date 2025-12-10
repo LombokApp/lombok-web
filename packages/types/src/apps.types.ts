@@ -24,11 +24,10 @@ export const AppSocketMessage = z.enum([
   'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
   'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
   'COMPLETE_HANDLE_TASK',
-  'FAIL_HANDLE_TASK',
   'AUTHENTICATE_USER',
   'EMIT_EVENT',
   'EXECUTE_APP_DOCKER_JOB',
-  'QUEUE_APP_TASK',
+  'TRIGGER_APP_TASK',
 ])
 
 export const EXECUTE_SYSTEM_REQUEST_MESSAGE = 'EXECUTE_SYSTEM_REQUEST'
@@ -52,19 +51,19 @@ export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
     ]),
   )
 
-export const jsonSerializableObjectSchema = z.record(
+export const jsonSerializableObjectDTOSchema = z.record(
   z.string(),
   jsonSerializableValueSchema,
 )
 
 export type JsonSerializableObject = z.infer<
-  typeof jsonSerializableObjectSchema
+  typeof jsonSerializableObjectDTOSchema
 >
 
 export const appMessageErrorSchema = z.object({
   code: z.union([z.number(), z.string()]),
   message: z.string(),
-  details: jsonSerializableObjectSchema.optional(),
+  details: jsonSerializableObjectDTOSchema.optional(),
 })
 
 export type WorkerApiActor =
@@ -105,7 +104,7 @@ export const taskIdentifierSchema = genericIdentifierSchema
 export const taskEventTriggerConfigSchema = z.object({
   kind: z.literal('event'),
   identifier: eventIdentifierSchema.or(platformPrefixedEventIdentifierSchema),
-  data: jsonSerializableObjectSchema.optional(),
+  data: jsonSerializableObjectDTOSchema.optional(),
 })
 
 export type TaskEventTriggerConfig = z.infer<
@@ -448,6 +447,7 @@ export const appConfigSchema = z
         const jobIdentifier = task.handler.identifier.split(':')[1]
         if (
           // Profile is not defined
+          !profile ||
           !containerProfilesKeys.includes(profile)
         ) {
           ctx.addIssue({
@@ -458,9 +458,11 @@ export const appConfigSchema = z
           return
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const profileJobDefinitions = containerWorkerJobDefinitions[profile]!
         if (
           // Job is not defined
-          !containerWorkerJobDefinitions[profile].some(
+          !profileJobDefinitions.some(
             (jobDefinition) =>
               task.handler.type === 'docker' &&
               jobDefinition.jobIdentifier === jobIdentifier,
@@ -468,7 +470,7 @@ export const appConfigSchema = z
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Unknown container job class "${jobIdentifier}". Must be one of: ${containerWorkerJobDefinitions[profile].map((jobDefinition) => jobDefinition.jobIdentifier).join(', ')}`,
+            message: `Unknown container job class "${jobIdentifier}". Must be one of: ${profileJobDefinitions.map((jobDefinition) => jobDefinition.jobIdentifier).join(', ')}`,
             path: ['tasks', index, 'worker'],
           })
         }
@@ -548,7 +550,7 @@ export interface ExecuteAppDockerJobOptions {
   appIdentifier: string
   profileIdentifier: string
   jobIdentifier: string
-  jobInputData: JsonSerializableObject
+  jobData: JsonSerializableObject
   storageAccessPolicy?: StorageAccessPolicy
   asyncTaskId?: string
 }

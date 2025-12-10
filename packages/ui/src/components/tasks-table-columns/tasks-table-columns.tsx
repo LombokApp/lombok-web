@@ -54,7 +54,7 @@ export function configureTasksTableColumns(
       enableHiding: false,
     },
     {
-      accessorKey: 'subjectContext',
+      accessorKey: 'targetLocation',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}

@@ -10,8 +10,8 @@ export function transformUserToDTO(user: User): UserDTO {
     email: user.email ?? null,
     emailVerified: user.emailVerified,
     isAdmin: user.isAdmin,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
     permissions: user.permissions,
   }
 }

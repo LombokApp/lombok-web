@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-export const userSchema = z.object({
+export const userDTOSchema = z.object({
   id: z.string().uuid(),
   name: z.string().nullable(),
   email: z.string().nullable(),
@@ -9,8 +9,8 @@ export const userSchema = z.object({
   isAdmin: z.boolean(),
   username: z.string(),
   permissions: z.array(z.string()),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 })
 
-export class UserDTO extends createZodDto(userSchema) {}
+export class UserDTO extends createZodDto(userDTOSchema) {}

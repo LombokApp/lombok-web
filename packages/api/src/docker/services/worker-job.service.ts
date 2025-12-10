@@ -26,6 +26,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { TaskService } from 'src/task/services/task.service'
 import { v4 as uuidV4 } from 'uuid'
 
 import { WorkerJobUploadUrlsRequestDTO } from '../dto/worker-job-presigned-urls-request.dto'
@@ -58,6 +59,9 @@ export interface CompleteJobRequest {
 
 @Injectable()
 export class WorkerJobService {
+  taskService: TaskService
+  platformTaskService: PlatformTaskService
+  appService: AppService
   constructor(
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
@@ -66,13 +70,16 @@ export class WorkerJobService {
       typeof platformConfig
     >,
     private readonly ormService: OrmService,
-    private readonly platformTaskService: PlatformTaskService,
+    @Inject(forwardRef(() => PlatformTaskService))
+    _platformTaskService,
+    @Inject(forwardRef(() => TaskService))
+    _taskService,
     @Inject(forwardRef(() => AppService))
-    private readonly _appService,
-  ) {}
-
-  get appService(): AppService {
-    return this._appService as AppService
+    _appService,
+  ) {
+    this.platformTaskService = _platformTaskService as PlatformTaskService
+    this.appService = _appService as AppService
+    this.taskService = _taskService as TaskService
   }
 
   /**
@@ -309,53 +316,29 @@ export class WorkerJobService {
         throw new NotFoundException(`Inner task not found: ${innerTask}`)
       }
 
-      const now = new Date()
-
       const resolvedError = {
         code: error?.code || 'UNKNOWN_ERROR',
         message: error?.message || 'Job failed without error details',
         details: {},
       }
 
-      await this.platformTaskService.registerTaskCompletion(
+      // Trigger completion of the docker handler task
+      await this.taskService.registerTaskCompletion(
         dockerTask.id,
+        success
+          ? { success: true }
+          : { success: false, error: resolvedError, requeue: { delayMs: 0 } },
+        { tx },
+      )
+
+      // Trigger completion of the inner task
+      await this.taskService.registerTaskCompletion(
+        innerTask.id,
         success
           ? { success: true, result }
           : { success: false, error: resolvedError, requeue: { delayMs: 0 } },
         { tx },
       )
-
-      const systemLog: SystemLogEntry = {
-        at: now,
-        payload: success
-          ? {
-              logType: 'success',
-              data: result
-                ? {
-                    result,
-                  }
-                : {},
-            }
-          : {
-              logType: 'failure',
-              data: {
-                error: resolvedError,
-              },
-            },
-      }
-
-      await tx
-        .update(tasksTable)
-        .set({
-          completedAt: now,
-          updatedAt: now,
-          success,
-          error: !success ? resolvedError : null,
-          systemLog: sql<
-            SystemLogEntry[]
-          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLog)}::jsonb`,
-        })
-        .where(eq(tasksTable.id, innerTask.id))
     })
   }
 

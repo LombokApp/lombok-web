@@ -5,7 +5,7 @@ import {
   uniqueExecutionKey,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { taskSchema } from '@lombokapp/types'
+import type { TaskDTO } from '@lombokapp/types'
 import { z } from 'zod'
 
 import { runWorkerScript } from '../../worker-scripts/run-worker-script'
@@ -18,10 +18,7 @@ const runWorkerScriptTaskInputDataSchema = z.object({
 
 export const bulidRunWorkerScriptTaskHandler =
   (workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions']) =>
-  async (
-    runWorkerScriptTask: z.infer<typeof taskSchema>,
-    server: IAppPlatformService,
-  ) => {
+  async (runWorkerScriptTask: TaskDTO, server: IAppPlatformService) => {
     const {
       data: parsedRunWorkerTaskData,
       error: parseRunWorkerTaskDataError,
@@ -60,32 +57,27 @@ export const bulidRunWorkerScriptTaskHandler =
       })
 
       // Report success
-      await server.completeHandleTask({ taskId: task.id })
+      await server.completeHandleTask({ success: true, taskId: task.id })
     } catch (error) {
       const isWorkerError = error instanceof WorkerScriptRuntimeError
       // Report failure
-      if (isWorkerError) {
-        // If it's a worker script error, report it as a failure against the worker script task
-        await server.failHandleTask({
-          taskId: task.id,
-          error: {
-            code: 'WORKER_SCRIPT_RUNTIME_ERROR',
-            message: 'Worker task script failed to load and/or execute.',
-            details: error.details,
-          },
-        })
-      } else {
-        // If it's not a worker error, report it as an internal server error for the script task and then rethrow so it fails the run_worker_script task
-        await server.failHandleTask({
-          taskId: task.id,
-          error: {
-            code: 'WORKER_EXECUTOR_ERROR',
-            message:
-              'A system error occurred while executing the worker task script.',
-          },
-        })
-
-        throw error
-      }
+      await server.completeHandleTask({
+        taskId: task.id,
+        success: false,
+        error: isWorkerError
+          ? {
+              // If it's a worker script error, report it as a failure against the worker script task
+              code: 'WORKER_SCRIPT_RUNTIME_ERROR',
+              message: 'Worker task script failed to load and/or execute.',
+              details: error.details,
+            }
+          : {
+              // If it's not a worker error, report it as an internal server error for the script task and then rethrow so it fails the run_worker_script task
+              code: 'WORKER_EXECUTOR_ERROR',
+              message:
+                'A system error occurred while executing the worker task script.',
+            },
+      })
+      throw error
     }
   }

@@ -6641,6 +6641,7 @@
             "example": "Apps installation completed"
           },
           "timestamp": {
+            "format": "date-time",
             "type": "string",
             "description": "Timestamp when the installation was completed",
             "example": "2024-01-01T00:00:00.000Z"
@@ -7170,16 +7171,79 @@
                           "triggers": {
                             "type": "array",
                             "items": {
+                              "discriminator": {
+                                "propertyName": "kind"
+                              },
                               "oneOf": [
                                 {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "pattern": "^[a-z_]+$"
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "event"
+                                      ]
+                                    },
+                                    "identifier": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^platform:[a-z_]+$"
+                                        }
+                                      ]
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "identifier"
+                                  ]
                                 },
                                 {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "pattern": "^platform:[a-z_]+$"
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "schedule"
+                                      ]
+                                    },
+                                    "config": {
+                                      "type": "object",
+                                      "properties": {
+                                        "interval": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "unit": {
+                                          "type": "string",
+                                          "enum": [
+                                            "minutes",
+                                            "hours",
+                                            "days"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "interval",
+                                        "unit"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "config"
+                                  ]
                                 }
                               ]
                             }
@@ -8059,16 +8123,79 @@
                         "triggers": {
                           "type": "array",
                           "items": {
+                            "discriminator": {
+                              "propertyName": "kind"
+                            },
                             "oneOf": [
                               {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^[a-z_]+$"
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "event"
+                                    ]
+                                  },
+                                  "identifier": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^[a-z_]+$"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^platform:[a-z_]+$"
+                                      }
+                                    ]
+                                  },
+                                  "data": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "identifier"
+                                ]
                               },
                               {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^platform:[a-z_]+$"
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "schedule"
+                                    ]
+                                  },
+                                  "config": {
+                                    "type": "object",
+                                    "properties": {
+                                      "interval": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "exclusiveMinimum": true
+                                      },
+                                      "unit": {
+                                        "type": "string",
+                                        "enum": [
+                                          "minutes",
+                                          "hours",
+                                          "days"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "interval",
+                                      "unit"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "config"
+                                ]
                               }
                             ]
                           }
@@ -8977,16 +9104,79 @@
                           "triggers": {
                             "type": "array",
                             "items": {
+                              "discriminator": {
+                                "propertyName": "kind"
+                              },
                               "oneOf": [
                                 {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "pattern": "^[a-z_]+$"
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "event"
+                                      ]
+                                    },
+                                    "identifier": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^platform:[a-z_]+$"
+                                        }
+                                      ]
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "identifier"
+                                  ]
                                 },
                                 {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "pattern": "^platform:[a-z_]+$"
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "schedule"
+                                      ]
+                                    },
+                                    "config": {
+                                      "type": "object",
+                                      "properties": {
+                                        "interval": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "unit": {
+                                          "type": "string",
+                                          "enum": [
+                                            "minutes",
+                                            "hours",
+                                            "days"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "interval",
+                                        "unit"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "config"
+                                  ]
                                 }
                               ]
                             }
@@ -9752,16 +9942,79 @@
                         "triggers": {
                           "type": "array",
                           "items": {
+                            "discriminator": {
+                              "propertyName": "kind"
+                            },
                             "oneOf": [
                               {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^[a-z_]+$"
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "event"
+                                    ]
+                                  },
+                                  "identifier": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^[a-z_]+$"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^platform:[a-z_]+$"
+                                      }
+                                    ]
+                                  },
+                                  "data": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "identifier"
+                                ]
                               },
                               {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^platform:[a-z_]+$"
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "schedule"
+                                    ]
+                                  },
+                                  "config": {
+                                    "type": "object",
+                                    "properties": {
+                                      "interval": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "exclusiveMinimum": true
+                                      },
+                                      "unit": {
+                                        "type": "string",
+                                        "enum": [
+                                          "minutes",
+                                          "hours",
+                                          "days"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "interval",
+                                      "unit"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "config"
+                                ]
                               }
                             ]
                           }
@@ -10697,7 +10950,7 @@
               "emitterIdentifier": {
                 "type": "string"
               },
-              "subjectContext": {
+              "targetLocationContext": {
                 "type": "object",
                 "properties": {
                   "folderId": {
@@ -10725,11 +10978,7 @@
                 "type": "object",
                 "additionalProperties": {}
               },
-              "createdAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "targetLocationContext": {
+              "targetLocation": {
                 "type": "object",
                 "properties": {
                   "folderId": {
@@ -10738,20 +10987,15 @@
                   },
                   "objectKey": {
                     "type": "string"
-                  },
-                  "folderName": {
-                    "type": "string"
-                  },
-                  "folderOwnerId": {
-                    "type": "string",
-                    "format": "uuid"
                   }
                 },
                 "required": [
-                  "folderId",
-                  "folderName",
-                  "folderOwnerId"
+                  "folderId"
                 ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
@@ -10796,7 +11040,7 @@
                 "emitterIdentifier": {
                   "type": "string"
                 },
-                "subjectContext": {
+                "targetLocationContext": {
                   "type": "object",
                   "properties": {
                     "folderId": {
@@ -10823,6 +11067,21 @@
                 "data": {
                   "type": "object",
                   "additionalProperties": {}
+                },
+                "targetLocation": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "folderId"
+                  ]
                 },
                 "createdAt": {
                   "type": "string",
@@ -12759,17 +13018,23 @@
                       "data": {
                         "type": "object",
                         "properties": {
-                          "scheduleIdentifier": {
+                          "interval": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "exclusiveMinimum": true
+                          },
+                          "unit": {
                             "type": "string",
                             "enum": [
-                              "daily",
-                              "hourly",
-                              "every_five_minutes"
+                              "minutes",
+                              "hours",
+                              "days"
                             ]
                           }
                         },
                         "required": [
-                          "scheduleIdentifier"
+                          "interval",
+                          "unit"
                         ]
                       }
                     },
@@ -12954,7 +13219,8 @@
                     }
                   },
                   "required": [
-                    "at"
+                    "at",
+                    "message"
                   ]
                 }
               },
@@ -13122,17 +13388,23 @@
                         "data": {
                           "type": "object",
                           "properties": {
-                            "scheduleIdentifier": {
+                            "interval": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            },
+                            "unit": {
                               "type": "string",
                               "enum": [
-                                "daily",
-                                "hourly",
-                                "every_five_minutes"
+                                "minutes",
+                                "hours",
+                                "days"
                               ]
                             }
                           },
                           "required": [
-                            "scheduleIdentifier"
+                            "interval",
+                            "unit"
                           ]
                         }
                       },
@@ -13317,7 +13589,8 @@
                       }
                     },
                     "required": [
-                      "at"
+                      "at",
+                      "message"
                     ]
                   }
                 },

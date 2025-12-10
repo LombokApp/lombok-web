@@ -68,10 +68,12 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
               )}
             </div>
           </div>
-          {task.subjectObjectKey && (
+          {task.targetLocation?.objectKey && (
             <div className="mt-1 flex gap-1 text-xs text-muted-foreground">
               <div>Object:</div>
-              <div className="truncate font-mono">{task.subjectObjectKey}</div>
+              <div className="truncate font-mono">
+                {task.targetLocation.objectKey}
+              </div>
             </div>
           )}
         </div>

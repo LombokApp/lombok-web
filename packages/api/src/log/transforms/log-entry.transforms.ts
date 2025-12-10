@@ -1,9 +1,20 @@
-import type { LogEntryDTO } from '../dto/log-entry.dto'
+import type {
+  LogEntryDTO,
+  LogEntryWithTargetLocationContextDTO,
+} from '../dto/log-entry.dto'
 import type { LogEntry } from '../entities/log-entry.entity'
+
+// Overload for when folder is present
+export function transformLogEntryToDTO(
+  logEntry: LogEntry & { folder: { name: string; ownerId: string } },
+): LogEntryWithTargetLocationContextDTO
+
+// Overload for when folder is not present
+export function transformLogEntryToDTO(logEntry: LogEntry): LogEntryDTO
 
 export function transformLogEntryToDTO(
   logEntry: LogEntry & { folder?: { name: string; ownerId: string } },
-): LogEntryDTO {
+): LogEntryDTO | LogEntryWithTargetLocationContextDTO {
   const baseDTO: LogEntryDTO = {
     id: logEntry.id,
     emitterIdentifier: logEntry.emitterIdentifier,
@@ -11,9 +22,10 @@ export function transformLogEntryToDTO(
     level: logEntry.level,
     targetLocation: logEntry.targetLocation ?? undefined,
     data: logEntry.data,
-    createdAt: logEntry.createdAt,
+    createdAt: logEntry.createdAt.toISOString(),
   }
 
+  // If folder is present, add subjectContext and return LogEntryWithFolderSubjectContextDTO
   if (logEntry.targetLocation?.folderId && logEntry.folder) {
     return {
       ...baseDTO,
@@ -26,5 +38,6 @@ export function transformLogEntryToDTO(
     }
   }
 
+  // Otherwise return base LogEntryDTO
   return baseDTO
 }

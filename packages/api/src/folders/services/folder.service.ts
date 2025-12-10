@@ -28,6 +28,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
@@ -165,6 +166,7 @@ const serverProvisionPayloadSchema = z.object({
 
 @Injectable()
 export class FolderService {
+  private readonly logger = new Logger(FolderService.name)
   eventService: EventService
   appService: AppService
   get folderSocketService(): FolderSocketService {
@@ -373,14 +375,35 @@ export class FolderService {
     }
   }
 
-  async getFolder({ folderId }: { folderId: string }) {
+  async getFolder<
+    C extends boolean,
+    M extends boolean,
+    T = [C, M] extends [true, false]
+      ? Folder & { contentLocation: StorageLocation }
+      : [C, M] extends [false, true]
+        ? Folder & { metadataLocation: StorageLocation }
+        : [C, M] extends [true, true]
+          ? Folder & {
+              contentLocation: StorageLocation
+              metadataLocation: StorageLocation
+            }
+          : Folder,
+  >({
+    folderId,
+    includeContentLocation,
+  }: {
+    folderId: string
+    includeContentLocation?: C
+    includeMetadataLocation?: M
+  }): Promise<T> {
     const folder = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
+      with: includeContentLocation ? { contentLocation: true } : undefined,
     })
     if (!folder) {
       throw new FolderNotFoundException()
     }
-    return folder
+    return folder as T
   }
 
   async checkAndUpdateFolderAccessError(folderId: string): Promise<void> {
@@ -1185,24 +1208,23 @@ export class FolderService {
     )
   }
 
-  async queueReindexFolder(folderId: string, userId: string) {
-    await this.taskService.triggerPlatformUserActionTask({
-      taskIdentifier: PlatformTaskName.ReindexFolder,
-      taskData: { folderId },
-      targetLocation: { folderId },
-      userId,
-    })
+  async queueReindexFolderAsUser(actor: User, folderId: string) {
+    const folder = await this.getFolderAsUser(actor, folderId)
+    if (folder.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
+      await this.taskService.triggerPlatformUserActionTask({
+        taskIdentifier: PlatformTaskName.ReindexFolder,
+        taskData: { folderId },
+        targetLocation: { folderId },
+        userId: actor.id,
+      })
+    }
   }
 
-  async reindexFolder({
-    folderId,
-    userId,
-  }: {
-    folderId: string
-    userId: string
-  }) {
-    const actor = await this.userService.getUserById({ id: userId })
-    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
+  async reindexFolder({ folderId }: { folderId: string }) {
+    const folder = await this.getFolder({
+      folderId,
+      includeContentLocation: true,
+    })
     const contentStorageLocation = folder.contentLocation
 
     const s3Client = configureS3Client({
@@ -1211,9 +1233,6 @@ export class FolderService {
       endpoint: contentStorageLocation.endpoint,
       region: contentStorageLocation.region,
     })
-    if (!permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      throw new FolderOperationForbiddenException()
-    }
 
     // delete all objects related to this folder
     await this.ormService.db
@@ -1238,6 +1257,9 @@ export class FolderService {
         prefix: contentStorageLocation.prefix,
       })
       for (const obj of response.result) {
+        this.logger.debug(
+          `Found new object: ${obj.key} in folder "${folder.name}" (ID: ${folder.id})`,
+        )
         const objectKey = folder.contentLocation.prefix.length
           ? obj.key.slice(
               folder.contentLocation.prefix.length +

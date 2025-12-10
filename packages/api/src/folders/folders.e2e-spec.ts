@@ -1,6 +1,5 @@
 import { StorageProvisionTypeEnum } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -8,7 +7,6 @@ import {
   createTestUser,
   reindexTestFolder,
   testS3Location,
-  waitForTrue,
 } from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'folders'
@@ -292,9 +290,6 @@ describe('Folders', () => {
     expect(folderGetResponse.response.status).toEqual(200)
     expect(folderGetResponse.data?.folder.id).toEqual(testFolder.folder.id)
 
-    const platformTaskService =
-      await testModule?.app.resolve(PlatformTaskService)
-
     await reindexTestFolder({
       accessToken,
       apiClient,
@@ -302,10 +297,8 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await waitForTrue(() => platformTaskService?.runningTasksCount === 0, {
-      retryPeriod: 100,
-      maxRetries: 10,
-    })
+    await testModule?.services.platformTaskService.drainPlatformTasks(true)
+
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
       { params: { path: { folderId: testFolder.folder.id } } },

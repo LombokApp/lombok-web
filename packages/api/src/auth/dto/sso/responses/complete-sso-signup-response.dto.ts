@@ -1,12 +1,12 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { userSchema } from 'src/users/dto/user.dto'
+import { userDTOSchema } from 'src/users/dto/user.dto'
 import { z } from 'zod'
 
 export const completeSSOSignupResponseSchema = z.object({
-  user: userSchema,
+  user: userDTOSchema,
   accessToken: z.string(),
   refreshToken: z.string(),
-  expiresAt: z.date(),
+  expiresAt: z.string().datetime(),
 })
 
 export class CompleteSSOSignupResponse extends createZodDto(

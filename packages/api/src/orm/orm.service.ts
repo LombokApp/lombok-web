@@ -680,13 +680,11 @@ export class OrmService {
         client.release()
       }
 
-      // eslint-disable-next-line no-console
-      console.log(
+      this.logger.log(
         `Executed migration ${migrationFile.filename} for app ${appIdentifier}`,
       )
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(
+      this.logger.error(
         `Failed to execute migration ${migrationFile.filename} for app ${appIdentifier}:`,
         error,
       )

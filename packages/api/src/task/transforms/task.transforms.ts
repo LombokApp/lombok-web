@@ -17,19 +17,26 @@ export function transformTaskToDTO(
     id: task.id,
     ownerIdentifier: task.ownerIdentifier,
     trigger: task.trigger,
-    systemLog: task.systemLog,
-    taskLog: task.taskLog,
+    systemLog: task.systemLog.map((log) => ({
+      at: log.at.toISOString(),
+      payload: log.payload,
+    })),
+    taskLog: task.taskLog.map((log) => ({
+      at: log.at.toISOString(),
+      message: log.message,
+      payload: log.payload,
+    })),
     handlerIdentifier: task.handlerIdentifier ?? undefined,
     data: task.data,
     targetLocation: task.targetLocation ?? undefined,
     success: task.success ?? undefined,
     error: task.error ?? undefined,
-    createdAt: task.createdAt,
-    updatedAt: task.updatedAt,
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString(),
     taskIdentifier: task.taskIdentifier,
     taskDescription: task.taskDescription,
-    startedAt: task.startedAt ?? undefined,
-    completedAt: task.completedAt ?? undefined,
+    startedAt: task.startedAt?.toISOString() ?? undefined,
+    completedAt: task.completedAt?.toISOString() ?? undefined,
   }
 
   // If folder is present, add subjectContext and return TaskWithFolderSubjectContextDTO

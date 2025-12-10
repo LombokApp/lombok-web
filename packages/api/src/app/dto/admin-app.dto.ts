@@ -10,7 +10,7 @@ import {
 } from '@lombokapp/types'
 import { z } from 'zod'
 
-export const adminAppSchema = z.object({
+export const adminAppDTOSchema = z.object({
   identifier: z.string(),
   label: z.string(),
   publicKey: z.string(),
@@ -25,8 +25,8 @@ export const adminAppSchema = z.object({
   ui: appUiBundleSchema.nullable(),
   contributions: appContributionsSchema,
   metrics: appMetricsSchema.nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 })
 
-export class AdminAppDTO extends createZodDto(adminAppSchema) {}
+export class AdminAppDTO extends createZodDto(adminAppDTOSchema) {}

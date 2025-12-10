@@ -1,7 +1,9 @@
 import {
   JsonSerializableObject,
   PLATFORM_IDENTIFIER,
+  RequeueConfig,
   StorageAccessPolicy,
+  SystemLogEntry,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
 import {
@@ -26,6 +28,7 @@ import {
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
+import { EventService } from 'src/event/services/event.service'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -54,12 +57,15 @@ export class TaskService {
   appService: AppService
   appSocketService: AppSocketService
   folderService: FolderService
+  eventService: EventService
   private readonly logger = new Logger(TaskService.name)
 
   constructor(
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppSocketService))
     private readonly _appSocketService,
+    @Inject(forwardRef(() => EventService))
+    private readonly _eventService,
     @Inject(forwardRef(() => AppService))
     private readonly _appService,
     @Inject(forwardRef(() => FolderService))
@@ -68,6 +74,7 @@ export class TaskService {
     this.appService = _appService as AppService
     this.folderService = _folderService as FolderService
     this.appSocketService = _appSocketService as AppSocketService
+    this.eventService = _eventService as EventService
   }
 
   async getFolderTaskAsUser(
@@ -352,7 +359,12 @@ export class TaskService {
       targetUserId,
     }
 
-    return this.ormService.db.insert(tasksTable).values(newTask)
+    const [task] = await this.ormService.db
+      .insert(tasksTable)
+      .values(newTask)
+      .returning()
+
+    return task
   }
 
   /**
@@ -523,6 +535,181 @@ export class TaskService {
       targetLocation,
     }
 
-    return this.ormService.db.insert(tasksTable).values(newTask)
+    return this.ormService.db.transaction(async (tx) => {
+      const task = await tx.insert(tasksTable).values(newTask).returning()
+      await this.eventService.emitRunnableTaskEnqueuedEvent(task[0], { tx })
+      return task[0]
+    })
+  }
+
+  async registerTaskCompletion(
+    taskId: string,
+    completion:
+      | {
+          success: false
+          requeue?: { delayMs: number }
+          error: {
+            code: string
+            message: string
+            details?: JsonSerializableObject
+          }
+        }
+      | {
+          success: true
+          result?: JsonSerializableObject
+        },
+    options: { tx?: OrmService['db'] } = { tx: undefined },
+  ) {
+    const db = options.tx ?? this.ormService.db
+    const now = new Date()
+    await db.transaction(async (tx) => {
+      const task = await tx.query.tasksTable.findFirst({
+        where: and(eq(tasksTable.id, taskId)),
+      })
+
+      if (!task) {
+        throw new Error(`Platform task not found by ID "${taskId}".`)
+      }
+
+      const isPlatformTask = task.ownerIdentifier === PLATFORM_IDENTIFIER
+
+      if (!task.startedAt) {
+        throw new Error(`Task "${taskId}" has not been started.`)
+      }
+
+      if (task.completedAt) {
+        throw new Error(`Task "${taskId}"  has already been completed.`)
+      }
+
+      // build the task system log
+      const completionSystemLog: SystemLogEntry = {
+        at: now,
+        payload: completion.success
+          ? {
+              logType: 'success',
+              data: completion.result
+                ? {
+                    result: completion.result,
+                  }
+                : undefined,
+            }
+          : {
+              logType: 'failure',
+              data: {
+                error: completion.error,
+              },
+            },
+      }
+
+      // If the task is not a platform task, we need to check for a configured completion handler task
+      if (!isPlatformTask) {
+        const app = await this.appService.getApp(task.ownerIdentifier, {
+          enabled: true,
+        })
+
+        const taskDefinition = app?.config.tasks?.find(
+          (_task) => _task.identifier === task.taskIdentifier,
+        )
+
+        if (!taskDefinition) {
+          throw new Error(
+            `Task definition not found for task "${task.taskIdentifier}".`,
+          )
+        }
+
+        // enqueue the completion handler task if one was configured for this task
+        const completionHandlerTaskDefinition =
+          taskDefinition.handler.type === 'worker' ||
+          taskDefinition.handler.type === 'docker'
+            ? taskDefinition.handler
+            : undefined
+
+        if (completionHandlerTaskDefinition) {
+          // await this.eventService.emitEvent({
+          //   emitterIdentifier: PLATFORM_IDENTIFIER,
+          //   eventIdentifier: `${PLATFORM_IDENTIFIER}:queue_app_task_completion_handler`,
+          //   data: {
+          //     appIdentifier: task.ownerIdentifier,
+          //     taskIdentifier: completionHandlerTaskDefinition.identifier,
+          //     completedTask: {
+          //       id: task.id,
+          //       success: completion.success,
+          //       ...(completion.success
+          //         ? { result: completion.result ?? null }
+          //         : { error: completion.error }),
+          //     },
+          //   },
+          //   ...(task.targetLocation?.folderId && {
+          //     targetLocation: {
+          //       folderId: task.targetLocation.folderId,
+          //       ...(task.targetLocation.objectKey && {
+          //         objectKey: task.targetLocation.objectKey,
+          //       }),
+          //     },
+          //   }),
+          // })
+        }
+      }
+
+      const requeueConfig: RequeueConfig =
+        !completion.success && completion.requeue
+          ? ({
+              shouldRequeue: true,
+              delayMs: Math.max(completion.requeue.delayMs, 0),
+              notBefore:
+                completion.requeue.delayMs > 0
+                  ? new Date(now.getTime() + completion.requeue.delayMs)
+                  : undefined,
+            } as const)
+          : { shouldRequeue: false }
+
+      const systemLogs = [completionSystemLog].concat(
+        requeueConfig.shouldRequeue
+          ? [
+              {
+                at: now,
+                payload: {
+                  logType: 'requeue',
+                  data: {
+                    delayMs: requeueConfig.delayMs,
+                    dontStartBefore:
+                      requeueConfig.notBefore?.toISOString() ?? null,
+                  },
+                },
+              },
+            ]
+          : [],
+      )
+
+      await tx
+        .update(tasksTable)
+        .set({
+          updatedAt: now,
+          ...(completion.success
+            ? {
+                success: true,
+                completedAt: now,
+                error: null,
+              }
+            : {
+                success: false,
+                error: {
+                  code: completion.error.code,
+                  message: completion.error.message,
+                  details: completion.error.details,
+                },
+                ...(requeueConfig.shouldRequeue
+                  ? {
+                      dontStartBefore: requeueConfig.notBefore,
+                      startedAt: null,
+                    }
+                  : {}),
+              }),
+          systemLog: sql<
+            SystemLogEntry[]
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLogs)}::jsonb`,
+        })
+        .where(eq(tasksTable.id, taskId))
+    })
   }
 }

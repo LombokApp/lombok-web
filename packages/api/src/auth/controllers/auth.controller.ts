@@ -36,7 +36,11 @@ export class AuthController {
   async login(@Body() input: LoginCredentialsDTO): Promise<LoginResponse> {
     const session = await this.authService.login(input)
     return {
-      session,
+      session: {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        expiresAt: session.expiresAt.toISOString(),
+      },
     }
   }
 
@@ -72,7 +76,7 @@ export class AuthController {
       session: {
         accessToken,
         refreshToken,
-        expiresAt: session.expiresAt,
+        expiresAt: session.expiresAt.toISOString(),
       },
     }
   }

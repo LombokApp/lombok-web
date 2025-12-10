@@ -1,4 +1,3 @@
-import { TaskTrigger } from '@lombokapp/types'
 import {
   forwardRef,
   Inject,
@@ -10,7 +9,7 @@ import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { BaseProcessor } from 'src/task/base.processor'
 import { Task, tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 
 @Injectable()
@@ -19,7 +18,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
 
   constructor(
     private readonly ormService: OrmService,
-    private readonly platformTaskService: PlatformTaskService,
+    private readonly taskService: TaskService,
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
@@ -31,13 +30,13 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     return false
   }
 
-  async run(task: Task, trigger: TaskTrigger) {
-    if (trigger.kind !== 'event') {
+  async run(task: Task) {
+    if (task.trigger.kind !== 'event') {
       throw new NotFoundException(
         'RunDockerJobProcessor requires event trigger',
       )
     }
-    const triggerData = trigger.data
+    const triggerData = task.trigger.data
     const eventData = triggerData.eventData as {
       innerTaskId: string
       profileIdentifier: string
@@ -58,7 +57,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     // Have the executor tell us if it accepted the job
     const { accepted } = await this.appService.executeAppDockerJob({
       appIdentifier: eventData.appIdentifier,
-      jobInputData: triggerData.targetLocation ?? {},
+      jobData: triggerData.targetLocation ?? {},
       profileIdentifier: eventData.profileIdentifier,
       jobIdentifier: eventData.jobClassIdentifier,
       asyncTaskId: task.id,
@@ -66,7 +65,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     })
 
     if (!accepted) {
-      await this.platformTaskService.registerTaskCompletion(task.id, {
+      await this.taskService.registerTaskCompletion(task.id, {
         success: false,
         error: {
           // TODO: Improve this context

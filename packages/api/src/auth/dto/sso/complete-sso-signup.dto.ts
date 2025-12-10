@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-const googleSsoProviderDataSchema = z.object({
+const googleSsoProviderDataDTOSchema = z.object({
   provider: z.literal('google'),
   providerUserInfo: z.object({
     id: z.string(),
@@ -12,12 +12,12 @@ const googleSsoProviderDataSchema = z.object({
   expiry: z.coerce.date(),
 }) // add more providers here with union types
 
-export const completeSSOSignupSchema = z.object({
+export const completeSSOSignupDTOSchema = z.object({
   username: z.string().min(3).max(64),
-  providerData: googleSsoProviderDataSchema,
+  providerData: googleSsoProviderDataDTOSchema,
   signature: z.string(),
 })
 
 export class CompleteSSOSignupDTO extends createZodDto(
-  completeSSOSignupSchema,
+  completeSSOSignupDTOSchema,
 ) {}

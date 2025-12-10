@@ -1,16 +1,13 @@
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import {
-  type ContentMetadataType,
-  type JsonSerializableObject,
-  PLATFORM_IDENTIFIER,
-  PlatformEvent,
-  type taskSchema,
+import type {
+  ContentMetadataType,
+  JsonSerializableObject,
 } from '@lombokapp/types'
+import { PLATFORM_IDENTIFIER, PlatformEvent } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import fs from 'fs'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
-import type z from 'zod'
 
 import { analyzeObjectTaskHandler } from './analyze-object-task-handler'
 
@@ -46,8 +43,8 @@ describe('Analyze Object Task Handler', () => {
   })
 
   it('should complete analyze object task successfully', async () => {
-    // Create mock AppTask for analyze_object
-    const analyzeTask: z.infer<typeof taskSchema> = {
+    // Create mock TaskDTO for analyze_object
+    const analyzeTask = {
       id: uuidV4(),
       taskIdentifier: 'analyze_object',
       data: {} as JsonSerializableObject,
@@ -57,7 +54,7 @@ describe('Analyze Object Task Handler', () => {
       },
       ownerIdentifier: 'core-worker',
       trigger: {
-        kind: 'event',
+        kind: 'event' as const,
         data: {
           eventId: uuidV4(),
           eventIdentifier: PlatformEvent.object_added,
@@ -68,8 +65,8 @@ describe('Analyze Object Task Handler', () => {
       systemLog: [],
       taskLog: [],
       taskDescription: 'analyze_object',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
     // Mock fetch to return the test image
@@ -140,7 +137,6 @@ describe('Analyze Object Task Handler', () => {
         Promise.resolve({ result: { task: analyzeTask } }),
       attemptStartHandleAnyAvailableTask: () =>
         Promise.resolve({ result: { task: analyzeTask } }),
-      failHandleTask: () => Promise.resolve({ result: undefined }),
       completeHandleTask: () => Promise.resolve({ result: undefined }),
       authenticateUser: () =>
         Promise.resolve({
@@ -209,7 +205,7 @@ describe('Analyze Object Task Handler', () => {
         Promise.resolve({
           result: { jobId: 'test-job-id', success: true, result: {} },
         }),
-      queueAppTask: () =>
+      triggerAppTask: () =>
         Promise.resolve({
           result: undefined,
         }),

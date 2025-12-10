@@ -20,7 +20,7 @@ describe('Folder App Permissions', () => {
       testModuleKey: TEST_MODULE_KEY,
     })
     apiClient = testModule.apiClient
-    const apps = await testModule.getAppService().listAppsAsAdmin(
+    const apps = await testModule.services.appService.listAppsAsAdmin(
       {
         id: '1',
         isAdmin: true,

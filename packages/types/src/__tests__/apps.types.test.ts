@@ -124,7 +124,9 @@ describe('apps.types', () => {
         identifier: 'test_task',
         label: 'Test Task',
         description: 'A test task',
-        triggers: ['test.event'],
+        triggers: [
+          { kind: 'event', identifier: 'platform:worker_task_enqueued' },
+        ],
         handler: {
           type: 'worker',
           identifier: 'test-worker',
@@ -139,7 +141,6 @@ describe('apps.types', () => {
         identifier: 'test_task',
         label: 'Test Task',
         description: 'A test task',
-        triggers: ['test.event'],
         handler: {
           type: 'external',
         },
@@ -156,6 +157,123 @@ describe('apps.types', () => {
       const result = taskConfigSchema.safeParse(invalidTask)
       expectZodFailure(result)
     })
+
+    it('should validate task with event trigger and data', () => {
+      const validTask = {
+        identifier: 'event_task',
+        label: 'Event Task',
+        description: 'Task triggered by event',
+        triggers: [
+          {
+            kind: 'event',
+            identifier: 'custom_event',
+            data: {
+              foo: 'bar',
+            },
+          },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'event-worker',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with schedule trigger', () => {
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers: [
+          {
+            kind: 'schedule',
+            config: {
+              interval: 15,
+              unit: 'minutes',
+            },
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with multiple trigger types', () => {
+      const validTask = {
+        identifier: 'multi_trigger_task',
+        label: 'Multi Trigger Task',
+        description: 'Task with event and schedule triggers',
+        triggers: [
+          {
+            kind: 'event',
+            identifier: PlatformObjectAddedEventTriggerIdentifier,
+          },
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+          },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'multi-worker',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should reject task with schedule trigger missing config', () => {
+      const invalidTask = {
+        identifier: 'invalid_schedule_task',
+        label: 'Invalid Schedule Task',
+        description: 'Schedule trigger without config',
+        triggers: [
+          {
+            kind: 'schedule',
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(
+        invalidTask as unknown as typeof invalidTask,
+      )
+      expectZodFailure(result)
+    })
+
+    it('should reject task with event trigger using invalid identifier', () => {
+      const invalidTask = {
+        identifier: 'invalid_event_task',
+        label: 'Invalid Event Task',
+        description: 'Event trigger with invalid identifier',
+        triggers: [
+          {
+            kind: 'event',
+            identifier: 'INVALID-EVENT',
+          },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'event-worker',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(invalidTask)
+      expectZodFailure(result)
+    })
   })
 
   describe('appConfigSchema', () => {
@@ -169,7 +287,9 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
+            triggers: [
+              { kind: 'event', identifier: 'platform:worker_task_enqueued' },
+            ],
             handler: {
               type: 'worker',
               identifier: 'script1',
@@ -207,7 +327,6 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
             handler: {
               type: 'worker',
               identifier: 'script1',
@@ -370,7 +489,6 @@ describe('apps.types', () => {
             identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
             handler: {
               type: 'worker',
               identifier: 'script1',
@@ -435,7 +553,6 @@ describe('apps.types', () => {
             identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
             handler: {
               type: 'external',
             },
@@ -752,7 +869,6 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
             handler: {
               type: 'docker',
               identifier: 'default:job',
@@ -775,7 +891,6 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
             handler: {
               type: 'docker',
               identifier: 'missing:job',
@@ -1083,7 +1198,12 @@ describe('apps.types', () => {
             label: 'Trigger Extract Content Metadata',
             description:
               'A task that runs for every newly added object and triggers the job to extract metadata and generate embeddings.',
-            triggers: [PlatformObjectAddedEventTriggerIdentifier],
+            triggers: [
+              {
+                kind: 'event',
+                identifier: PlatformObjectAddedEventTriggerIdentifier,
+              },
+            ],
             handler: {
               type: 'worker',
               identifier: 'trigger_extract_content_metadata_worker',

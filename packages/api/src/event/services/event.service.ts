@@ -348,6 +348,12 @@ export class EventService {
                     ? parseDataFromEventWithTrigger(event, eventTrigger.data)
                     : {},
                   ownerIdentifier: subscribedApp.identifier,
+                  systemLog: [
+                    {
+                      at: new Date(),
+                      payload: { logType: 'started', data: {} },
+                    },
+                  ],
                   createdAt: now,
                   updatedAt: now,
                   handlerType,

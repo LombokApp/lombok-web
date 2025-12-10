@@ -1381,6 +1381,7 @@ export interface components {
              */
             message: string;
             /**
+             * Format: date-time
              * @description Timestamp when the installation was completed
              * @example 2024-01-01T00:00:00.000Z
              */
@@ -1503,7 +1504,22 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: (string)[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            kind: "event";
+                            identifier: string;
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            kind: "schedule";
+                            config: {
+                                interval: number;
+                                /** @enum {string} */
+                                unit: "minutes" | "hours" | "days";
+                            };
+                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1701,7 +1717,22 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: (string)[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            kind: "event";
+                            identifier: string;
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            kind: "schedule";
+                            config: {
+                                interval: number;
+                                /** @enum {string} */
+                                unit: "minutes" | "hours" | "days";
+                            };
+                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1908,7 +1939,22 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: (string)[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            kind: "event";
+                            identifier: string;
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            kind: "schedule";
+                            config: {
+                                interval: number;
+                                /** @enum {string} */
+                                unit: "minutes" | "hours" | "days";
+                            };
+                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2080,7 +2126,22 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: (string)[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            kind: "event";
+                            identifier: string;
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            kind: "schedule";
+                            config: {
+                                interval: number;
+                                /** @enum {string} */
+                                unit: "minutes" | "hours" | "days";
+                            };
+                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2286,7 +2347,7 @@ export interface components {
                 id: string;
                 eventIdentifier: string;
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2297,16 +2358,13 @@ export interface components {
                 data: {
                     [key: string]: unknown;
                 };
-                /** Format: date-time */
-                createdAt: string;
-                targetLocationContext?: {
+                targetLocation?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
                 };
+                /** Format: date-time */
+                createdAt: string;
             };
         };
         EventListResponse: {
@@ -2318,7 +2376,7 @@ export interface components {
                 id: string;
                 eventIdentifier: string;
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2328,6 +2386,11 @@ export interface components {
                 };
                 data: {
                     [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
                 };
                 /** Format: date-time */
                 createdAt: string;
@@ -2832,8 +2895,9 @@ export interface components {
                     /** @enum {string} */
                     kind: "schedule";
                     data: {
+                        interval: number;
                         /** @enum {string} */
-                        scheduleIdentifier: "daily" | "hourly" | "every_five_minutes";
+                        unit: "minutes" | "hours" | "days";
                     };
                 } | {
                     /** @enum {string} */
@@ -2886,7 +2950,7 @@ export interface components {
                 taskLog: {
                     /** Format: date-time */
                     at: string;
-                    message?: string;
+                    message: string;
                     payload?: {
                         [key: string]: unknown;
                     };
@@ -2941,8 +3005,9 @@ export interface components {
                     /** @enum {string} */
                     kind: "schedule";
                     data: {
+                        interval: number;
                         /** @enum {string} */
-                        scheduleIdentifier: "daily" | "hourly" | "every_five_minutes";
+                        unit: "minutes" | "hours" | "days";
                     };
                 } | {
                     /** @enum {string} */
@@ -2995,7 +3060,7 @@ export interface components {
                 taskLog: {
                     /** Format: date-time */
                     at: string;
-                    message?: string;
+                    message: string;
                     payload?: {
                         [key: string]: unknown;
                     };

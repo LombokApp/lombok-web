@@ -34,7 +34,7 @@ async function main() {
       stderr: 'inherit',
     }).exited
   } else {
-    await Bun.spawn(['bun', 'test', './src/**/*.e2e-spec.ts'], {
+    await Bun.spawn(['sh', '-lc', 'bun test ./src/**/*.e2e-spec.ts'], {
       stdout: 'inherit',
       stderr: 'inherit',
     }).exited

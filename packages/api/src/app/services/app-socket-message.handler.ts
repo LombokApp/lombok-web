@@ -9,7 +9,7 @@ import {
   CORE_APP_IDENTIFIER,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
-import { and, eq, inArray, isNotNull, isNull, not, or } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import type { JWTService } from 'src/auth/services/jwt.service'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
@@ -191,45 +191,52 @@ export async function handleAppSocketMessage(
       )
       return { result: undefined }
     case 'COMPLETE_HANDLE_TASK': {
-      const task = await ormService.db.query.tasksTable.findFirst({
-        where: and(
-          eq(tasksTable.id, parsedRequest.data.taskId),
-          isNull(tasksTable.completedAt),
-          or(
-            eq(
-              tasksTable.handlerIdentifier,
-              `${requestingAppIdentifier}:${handlerId}`,
-            ),
-            not(eq(tasksTable.handlerType, 'external')),
-          ),
-          ...(isCoreApp
-            ? [
-                or(
-                  eq(tasksTable.handlerType, 'worker'),
-                  eq(tasksTable.handlerType, 'platform'),
-                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                ),
-              ]
-            : [
-                eq(tasksTable.handlerType, 'external'),
-                eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-              ]),
-        ),
-      })
-      if (!task) {
-        return {
-          error: {
-            code: 400,
-            message: 'Invalid request.',
-            details: { reason: 'No task found.' },
-          },
-        }
-      }
-      const now = new Date()
-      await ormService.db
-        .update(tasksTable)
-        .set({ completedAt: now, success: true, updatedAt: now })
-        .where(eq(tasksTable.id, task.id))
+      await taskService.registerTaskCompletion(
+        parsedRequest.data.taskId,
+        parsedRequest.data.success
+          ? { success: true, result: parsedRequest.data.result }
+          : { success: false, error: parsedRequest.data.error },
+      )
+
+      // const task = await ormService.db.query.tasksTable.findFirst({
+      //   where: and(
+      //     eq(tasksTable.id, parsedRequest.data.taskId),
+      //     isNull(tasksTable.completedAt),
+      //     or(
+      //       eq(
+      //         tasksTable.handlerIdentifier,
+      //         `${requestingAppIdentifier}:${handlerId}`,
+      //       ),
+      //       not(eq(tasksTable.handlerType, 'external')),
+      //     ),
+      //     ...(isCoreApp
+      //       ? [
+      //           or(
+      //             eq(tasksTable.handlerType, 'worker'),
+      //             eq(tasksTable.handlerType, 'platform'),
+      //             eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+      //           ),
+      //         ]
+      //       : [
+      //           eq(tasksTable.handlerType, 'external'),
+      //           eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+      //         ]),
+      //   ),
+      // })
+      // if (!task) {
+      //   return {
+      //     error: {
+      //       code: 400,
+      //       message: 'Invalid request.',
+      //       details: { reason: 'No task found.' },
+      //     },
+      //   }
+      // }
+      // const now = new Date()
+      // await ormService.db
+      //   .update(tasksTable)
+      //   .set({ completedAt: now, success: true, updatedAt: now })
+      //   .where(eq(tasksTable.id, task.id))
       return { result: undefined }
     }
     case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
@@ -330,62 +337,62 @@ export async function handleAppSocketMessage(
       )[0]
       return { result: { task: transformTaskToDTO(updatedTask) } }
     }
-    case 'FAIL_HANDLE_TASK': {
-      const taskWithApp = await ormService.db
-        .select({ task: tasksTable, app: appsTable })
-        .from(tasksTable)
-        .innerJoin(
-          appsTable,
-          eq(tasksTable.ownerIdentifier, appsTable.identifier),
-        )
-        .where(
-          and(
-            eq(tasksTable.id, parsedRequest.data.taskId),
-            isNotNull(tasksTable.startedAt),
-            isNull(tasksTable.completedAt),
-            or(
-              eq(
-                tasksTable.handlerIdentifier,
-                `${requestingAppIdentifier}:${handlerId}`,
-              ),
-              not(eq(tasksTable.handlerType, 'external')),
-            ),
-            ...(isCoreApp
-              ? [
-                  or(
-                    eq(tasksTable.handlerIdentifier, 'worker'),
-                    eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                  ),
-                ]
-              : [
-                  eq(tasksTable.handlerIdentifier, 'external'),
-                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                ]),
-          ),
-        )
-        .limit(1)
-      const task = taskWithApp.at(0)?.task
-      if (!task) {
-        return {
-          error: { code: 400, message: 'Invalid request.' },
-        }
-      }
-      const now = new Date()
-      await ormService.db
-        .update(tasksTable)
-        .set({
-          success: false,
-          completedAt: now,
-          error: {
-            code: parsedRequest.data.error.code,
-            message: parsedRequest.data.error.message,
-            details: parsedRequest.data.error.details,
-          },
-          updatedAt: now,
-        })
-        .where(eq(tasksTable.id, task.id))
-      return { result: undefined }
-    }
+    // case 'FAIL_HANDLE_TASK': {
+    //   const taskWithApp = await ormService.db
+    //     .select({ task: tasksTable, app: appsTable })
+    //     .from(tasksTable)
+    //     .innerJoin(
+    //       appsTable,
+    //       eq(tasksTable.ownerIdentifier, appsTable.identifier),
+    //     )
+    //     .where(
+    //       and(
+    //         eq(tasksTable.id, parsedRequest.data.taskId),
+    //         isNotNull(tasksTable.startedAt),
+    //         isNull(tasksTable.completedAt),
+    //         or(
+    //           eq(
+    //             tasksTable.handlerIdentifier,
+    //             `${requestingAppIdentifier}:${handlerId}`,
+    //           ),
+    //           not(eq(tasksTable.handlerType, 'external')),
+    //         ),
+    //         ...(isCoreApp
+    //           ? [
+    //               or(
+    //                 eq(tasksTable.handlerIdentifier, 'worker'),
+    //                 eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+    //               ),
+    //             ]
+    //           : [
+    //               eq(tasksTable.handlerIdentifier, 'external'),
+    //               eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+    //             ]),
+    //       ),
+    //     )
+    //     .limit(1)
+    //   const task = taskWithApp.at(0)?.task
+    //   if (!task) {
+    //     return {
+    //       error: { code: 400, message: 'Invalid request.' },
+    //     }
+    //   }
+    //   const now = new Date()
+    //   await ormService.db
+    //     .update(tasksTable)
+    //     .set({
+    //       success: false,
+    //       completedAt: now,
+    //       error: {
+    //         code: parsedRequest.data.error.code,
+    //         message: parsedRequest.data.error.message,
+    //         details: parsedRequest.data.error.details,
+    //       },
+    //       updatedAt: now,
+    //     })
+    //     .where(eq(tasksTable.id, task.id))
+    //   return { result: undefined }
+    // }
     case 'GET_APP_UI_BUNDLE':
       return appService.getAppUIbundle(
         requestingAppIdentifier,
@@ -511,7 +518,7 @@ export async function handleAppSocketMessage(
         }),
       }
     }
-    case 'QUEUE_APP_TASK': {
+    case 'TRIGGER_APP_TASK': {
       await taskService.triggerAppActionTask({
         targetUserId: parsedRequest.data.targetUserId,
         targetLocation: parsedRequest.data.targetLocation,
@@ -519,7 +526,17 @@ export async function handleAppSocketMessage(
         appIdentifier: requestingAppIdentifier,
         taskIdentifier: parsedRequest.data.taskIdentifier,
         taskData: parsedRequest.data.inputData,
-        dontStartBefore: parsedRequest.data.dontStartBefore,
+        dontStartBefore: parsedRequest.data.dontStartBefore
+          ? 'timestamp' in parsedRequest.data.dontStartBefore
+            ? {
+                timestamp: new Date(
+                  parsedRequest.data.dontStartBefore.timestamp,
+                ),
+              }
+            : {
+                delayMs: parsedRequest.data.dontStartBefore.delayMs,
+              }
+          : undefined,
       })
 
       return { result: undefined }

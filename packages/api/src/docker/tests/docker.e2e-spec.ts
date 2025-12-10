@@ -3,7 +3,11 @@ import type {
   JsonSerializableObject,
   StorageAccessPolicy,
 } from '@lombokapp/types'
-import { PLATFORM_IDENTIFIER, SignedURLsRequestMethod } from '@lombokapp/types'
+import {
+  PLATFORM_IDENTIFIER,
+  PlatformEvent,
+  SignedURLsRequestMethod,
+} from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
 import {
   afterAll,
@@ -44,7 +48,7 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
   const eventId = crypto.randomUUID()
   const now = new Date()
 
-  await testModule.getOrmService().db.insert(eventsTable).values({
+  await testModule.services.ormService.db.insert(eventsTable).values({
     id: eventId,
     eventIdentifier: 'testapp:test_job',
     emitterIdentifier: 'testapp',
@@ -52,29 +56,26 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
     createdAt: now,
   })
 
-  await testModule
-    .getOrmService()
-    .db.insert(tasksTable)
-    .values({
-      id: taskId,
-      ownerIdentifier: 'testapp',
-      taskDescription: 'Test task',
-      createdAt: now,
-      updatedAt: now,
-      handlerType: 'docker',
-      handlerIdentifier: 'testapp:test_job',
-      taskIdentifier: 'test_job_task',
-      data: {},
-      trigger: {
-        kind: 'event',
-        data: {
-          eventId,
-          eventIdentifier: 'testapp:test_job',
-          emitterIdentifier: 'testapp',
-          eventData: {},
-        },
+  await testModule.services.ormService.db.insert(tasksTable).values({
+    id: taskId,
+    ownerIdentifier: 'testapp',
+    taskDescription: 'Test task',
+    createdAt: now,
+    updatedAt: now,
+    handlerType: 'docker',
+    handlerIdentifier: 'testapp:test_job',
+    taskIdentifier: 'test_job_task',
+    data: {},
+    trigger: {
+      kind: 'event',
+      data: {
+        eventId,
+        eventIdentifier: 'testapp:test_job',
+        emitterIdentifier: 'testapp',
+        eventData: {},
       },
-    })
+    },
+  })
 
   return { taskId, eventId, createdAt: now }
 }
@@ -95,16 +96,6 @@ const triggerAppDockerHandledTask = async (
     expectRecords?: boolean
   },
 ) => {
-  // await testModule.getEventService().emitEvent({
-  //   emitterIdentifier: PLATFORM_IDENTIFIER,
-  //   eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-  //   data: {
-  //     appIdentifier,
-  //     taskIdentifier,
-  //     inputData,
-  //     ...(storageAccessPolicy && { storageAccessPolicy }),
-  //   },
-  // })
   await testModule.services.taskService.triggerAppActionTask({
     appIdentifier,
     taskIdentifier,
@@ -116,9 +107,8 @@ const triggerAppDockerHandledTask = async (
   await testModule.services.platformTaskService.drainPlatformTasks(true)
   await testModule.services.platformTaskService.drainPlatformTasks(true)
 
-  const events = await testModule
-    .getOrmService()
-    .db.select()
+  const events = await testModule.services.ormService.db
+    .select()
     .from(eventsTable)
     .where(
       notIlike(
@@ -126,8 +116,10 @@ const triggerAppDockerHandledTask = async (
         `${PLATFORM_IDENTIFIER}:schedule:%`,
       ),
     )
-  const tasks = await testModule.getOrmService().db.select().from(tasksTable)
-  const app = await testModule.getAppService().getApp(appIdentifier, {
+  const tasks = await testModule.services.ormService.db
+    .select()
+    .from(tasksTable)
+  const app = await testModule.services.appService.getApp(appIdentifier, {
     enabled: true,
   })
   const taskDefinition = app?.config.tasks?.find(
@@ -157,12 +149,9 @@ const triggerAppDockerHandledTask = async (
   const dockerRunTask = tasks.find(
     (task) => task.taskIdentifier === 'run_docker_job',
   )
-  const queueTask = tasks.find(
-    (task) => task.taskIdentifier === 'queue_app_task',
-  )
 
-  const taskQueueEvent = events[0]
-  const dockerTaskEnqueuedEvent = events[1]
+  // console.log('events', events)
+  const dockerTaskEnqueuedEvent = events[0]
 
   if (expectRecords) {
     const profileIdentifier = taskDefinition.handler.identifier.split(':')[0]
@@ -170,23 +159,10 @@ const triggerAppDockerHandledTask = async (
 
     // logger.log('events', events)
     // logger.log('tasks', tasks)
-    expect(taskQueueEvent).toEqual({
-      id: expect.any(String),
-      eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-      emitterIdentifier: PLATFORM_IDENTIFIER,
-      targetUserId: null,
-      targetLocation: null,
-      data: {
-        inputData: taskData,
-        appIdentifier,
-        taskIdentifier: taskDefinition.identifier,
-        ...(storageAccessPolicy && { storageAccessPolicy }),
-      },
-      createdAt: expect.any(Date),
-    })
+
     expect(dockerTaskEnqueuedEvent).toEqual({
       id: expect.any(String),
-      eventIdentifier: `${PLATFORM_IDENTIFIER}:docker_task_enqueued`,
+      eventIdentifier: PlatformEvent.docker_task_enqueued,
       emitterIdentifier: PLATFORM_IDENTIFIER,
       targetUserId: null,
       targetLocation: null,
@@ -199,62 +175,12 @@ const triggerAppDockerHandledTask = async (
       createdAt: expect.any(Date),
     })
 
-    expect(queueTask).toEqual({
-      id: expect.any(String),
-      ownerIdentifier: PLATFORM_IDENTIFIER,
-      taskIdentifier: 'queue_app_task',
-      taskDescription: 'Queue an app task',
-      data: {},
-      trigger: {
-        kind: 'event',
-        data: {
-          eventId: events[0].id,
-          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-          emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {
-            inputData: taskData,
-            appIdentifier,
-            taskIdentifier: taskDefinition.identifier,
-            ...(storageAccessPolicy && { storageAccessPolicy }),
-          },
-        },
-      },
-      targetLocation: null,
-      targetUserId: null,
-      dontStartBefore: null,
-      storageAccessPolicy: [],
-      systemLog: [
-        {
-          at: expect.any(String),
-          payload: {
-            logType: 'started',
-          },
-        },
-        {
-          at: expect.any(String),
-          payload: {
-            logType: 'success',
-          },
-        },
-      ],
-      taskLog: [],
-      startedAt: expect.any(Date),
-      completedAt: expect.any(Date),
-      success: true,
-      error: null,
-      createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
-      handlerType: PLATFORM_IDENTIFIER,
-      handlerIdentifier: null,
-    })
-    expect(queueTask?.completedAt).toEqual(queueTask?.updatedAt)
-
     expect(dockerRunTask?.data.innerTaskId).toBeDefined()
     expect(dockerRunTask).toEqual({
       id: expect.any(String),
       ownerIdentifier: PLATFORM_IDENTIFIER,
       taskIdentifier: 'run_docker_job',
-      taskDescription: 'Run a docker job',
+      taskDescription: 'Run a docker job to execute a docker handled task',
       storageAccessPolicy: [],
       data: {
         appIdentifier,
@@ -265,7 +191,7 @@ const triggerAppDockerHandledTask = async (
       dontStartBefore: null,
       systemLog: [
         {
-          at: expect.any(String),
+          at: expect.any(Date),
           payload: {
             logType: 'started',
           },
@@ -275,8 +201,8 @@ const triggerAppDockerHandledTask = async (
       trigger: {
         kind: 'event',
         data: {
-          eventId: events[1].id,
-          eventIdentifier: `${PLATFORM_IDENTIFIER}:docker_task_enqueued`,
+          eventId: events[0].id,
+          eventIdentifier: PlatformEvent.docker_task_enqueued,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {
             innerTaskId: expect.any(String),
@@ -302,8 +228,6 @@ const triggerAppDockerHandledTask = async (
   return {
     innerTask: innerTask!,
     dockerRunTask: dockerRunTask!,
-    taskQueueEvent,
-    queueTask: queueTask!,
   }
 }
 
@@ -338,7 +262,7 @@ describe('Docker Jobs', () => {
       ],
       // debug: true,
     })
-    const apps = await testModule.getAppService().listAppsAsAdmin(
+    const apps = await testModule.services.appService.listAppsAsAdmin(
       {
         id: '1',
         isAdmin: true,
@@ -364,11 +288,11 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
-    await testModule?.getAppService().executeAppDockerJob({
+    await testModule?.services.appService.executeAppDockerJob({
       appIdentifier: 'testapp',
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
-      jobInputData: {},
+      jobData: {},
     })
     expect(getAdapterSpy).toHaveBeenCalledWith('local')
     expect(createContainerSpy).toHaveBeenCalledWith({
@@ -395,7 +319,7 @@ describe('Docker Jobs', () => {
         },
         jobCommand: ['./start_dummy_worker.sh'],
         jobId: expect.any(String),
-        jobInputData: {},
+        jobData: {},
         platformURL: 'http://localhost:3000',
         jobInterface: {
           kind: 'exec_per_job',
@@ -409,11 +333,11 @@ describe('Docker Jobs', () => {
       },
     ])
 
-    await testModule?.getAppService().executeAppDockerJob({
+    await testModule?.services.appService.executeAppDockerJob({
       appIdentifier: 'testapp',
       profileIdentifier: 'dummy_profile_two',
       jobIdentifier: 'test_job_other',
-      jobInputData: {},
+      jobData: {},
     })
 
     expect(execSpy.mock.calls[1]).toEqual([
@@ -422,7 +346,7 @@ describe('Docker Jobs', () => {
         gpus: undefined,
         jobCommand: ['./start_dummy_worker.sh'],
         jobId: expect.any(String),
-        jobInputData: {},
+        jobData: {},
         platformURL: 'http://localhost:3000',
         jobInterface: {
           kind: 'exec_per_job',
@@ -435,159 +359,45 @@ describe('Docker Jobs', () => {
     ])
   })
 
-  // it(`should generate a token that can call docker task lifecycle endpoints when AppService.executeAppDockerJob(...) is called with a taskId`, async () => {
-  //   const {
-  //     session: { accessToken: _testUserAccessToken },
-  //   } = await createTestUser(testModule!, {
-  //     username: 'testuser',
-  //     password: '123',
-  //   })
+  it('should call exec with waitForCompletion=true when no asyncTaskId is provided', async () => {
+    await createTestUser(testModule!, {
+      username: 'testuser',
+      password: '123',
+    })
 
-  //   const { innerTaskId, dockerRunTaskId } = await triggerAppDockerHandledTask(
-  //     testModule!,
-  //     {
-  //       appIdentifier: 'testapp',
-  //       taskIdentifier: 'non_triggered_docker_job_task',
-  //       inputData: { myTaskData: 'test' },
-  //     },
-  //   )
+    await testModule?.services.appService.executeAppDockerJob({
+      appIdentifier: 'testapp',
+      profileIdentifier: 'dummy_profile',
+      jobIdentifier: 'test_job',
+      jobData: { foo: 'bar' },
+    })
 
-  //   expect(getAdapterSpy).toHaveBeenCalledWith('local')
-  //   expect(createContainerSpy).toHaveBeenCalledWith({
-  //     gpus: {
-  //       deviceIds: ['0'],
-  //       driver: 'nvidia',
-  //     },
-  //     image: 'dummy-namespace/dummy-image',
-  //     labels: {
-  //       'lombok.platform': 'lombok',
-  //       'lombok.profile_hash': '59da6c5f',
-  //       'lombok.profile_id': 'lombok:profile_hash_59da6c5f',
-  //     },
-  //     volumes: {
-  //       '/app/model_cache': '/mnt/user/appdata/somepath',
-  //     },
-  //   })
-
-  //   expect(execSpy).toHaveBeenCalledWith('1', {
-  //     gpus: {
-  //       deviceIds: ['0'],
-  //       driver: 'nvidia',
-  //     },
-  //     profileHostConfigKey: 'testapp:dummy_profile',
-  //     jobCommand: ['./start_dummy_worker.sh'],
-  //     jobId: expect.any(String),
-  //     jobInputData: {},
-  //     jobInterface: {
-  //       kind: 'exec_per_job',
-  //     },
-  //     jobIdentifier: 'test_job',
-  //     jobToken: expect.any(String),
-  //     profileSpec: {
-  //       image: 'dummy-namespace/dummy-image',
-  //       workers: [
-  //         {
-  //           command: ['./start_dummy_worker.sh'],
-  //           jobIdentifier: 'test_job',
-  //           kind: 'exec',
-  //         },
-  //         {
-  //           command: ['./start_dummy_worker.sh'],
-  //           jobs: [
-  //             {
-  //               identifier: 'test_job_http',
-  //             },
-  //           ],
-  //           kind: 'http',
-  //           port: 8080,
-  //         },
-  //       ],
-  //     },
-  //     volumes: {
-  //       '/app/model_cache': '/mnt/user/appdata/somepath',
-  //     },
-  //     waitForCompletion: true,
-  //   })
-
-  //   expect(execSpy.mock.calls.length).toBe(1)
-  //   const token = execSpy.mock.calls[0][1].jobToken ?? ''
-  //   const jobId = execSpy.mock.calls[0][1].jobId
-  //   const workerJobService = await testModule!.resolveDep(WorkerJobService)
-  //   const claims = workerJobService.verifyWorkerJobToken(token, jobId)
-
-  //   expect(claims.jobId).toBe(jobId)
-  //   expect(claims.taskId).toBe(dockerRunTaskId)
-
-  //   await _apiClient(token).POST(`/api/v1/docker/jobs/{jobId}/start`, {
-  //     params: {
-  //       path: {
-  //         jobId,
-  //       },
-  //     },
-  //   })
-
-  //   const startedTask = await testModule!
-  //     .getOrmService()
-  //     .db.query.tasksTable.findFirst({
-  //       where: eq(tasksTable.id, dockerRunTaskId),
-  //     })
-
-  //   expect(startedTask?.startedAt).toBeDefined()
-
-  //   await _apiClient(token).POST(`/api/v1/docker/jobs/{jobId}/complete`, {
-  //     params: {
-  //       path: {
-  //         jobId,
-  //       },
-  //     },
-  //     body: {
-  //       success: true,
-  //       result: {
-  //         message: 'Test result',
-  //       },
-  //       uploadedFiles: [],
-  //     },
-  //   })
-
-  //   const completedTask = await testModule!
-  //     .getOrmService()
-  //     .db.query.tasksTable.findFirst({
-  //       where: eq(tasksTable.id, dockerRunTaskId),
-  //     })
-
-  //   expect(completedTask?.completedAt).toBeDefined()
-
-  //   expect(completedTask?.updates.at(-1)?.updateData ?? {}).toEqual({
-  //     jobId: expect.any(String),
-  //     success: expect.any(Boolean),
-  //     result: expect.any(Object),
-  //   })
-  // })
-
-  // it('should call exec with waitForCompletion=false when no asyncTaskId is provided', async () => {
-  //   await createTestUser(testModule!, {
-  //     username: 'testuser',
-  //     password: '123',
-  //   })
-
-  //   await testModule?.getAppService().executeAppDockerJob({
-  //     appIdentifier: 'testapp',
-  //     profileIdentifier: 'dummy_profile',
-  //     jobIdentifier: 'test_job',
-  //     jobInputData: { foo: 'bar' },
-  //   })
-
-  //   expect(execSpy).toHaveBeenCalledWith(
-  //     ...[
-  //       '1',
-  //       expect.objectContaining({
-  //         waitForCompletion: false,
-  //         jobToken: undefined,
-  //         jobInputData: { foo: 'bar' },
-  //       }),
-  //     ],
-  //   )
-  // })
+    expect(execSpy).toHaveBeenCalledWith(
+      ...[
+        '1',
+        expect.objectContaining({
+          waitForCompletion: true,
+          jobToken: undefined,
+          jobData: { foo: 'bar' },
+          jobCommand: ['./start_dummy_worker.sh'],
+          jobId: expect.any(String),
+          jobIdentifier: 'test_job',
+          jobInterface: {
+            kind: 'exec_per_job',
+          },
+          outputLocation: undefined,
+          platformURL: 'http://localhost:3000',
+          volumes: {
+            '/app/model_cache': '/mnt/user/appdata/somepath',
+          },
+          gpus: {
+            deviceIds: ['0'],
+            driver: 'nvidia',
+          },
+        }),
+      ],
+    )
+  })
 
   it('should reject completion when the task has not been started', async () => {
     await createTestUser(testModule!, {
@@ -597,11 +407,11 @@ describe('Docker Jobs', () => {
 
     const { taskId } = await insertTaskWithEvent(testModule!)
 
-    await testModule?.getAppService().executeAppDockerJob({
+    await testModule?.services.appService.executeAppDockerJob({
       appIdentifier: 'testapp',
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
-      jobInputData: {},
+      jobData: {},
       asyncTaskId: taskId,
     })
 
@@ -624,9 +434,8 @@ describe('Docker Jobs', () => {
 
     expect(responseStatus(completeAttempt)).toBe(403)
 
-    const task = await testModule!
-      .getOrmService()
-      .db.query.tasksTable.findFirst({
+    const task =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: eq(tasksTable.id, taskId),
       })
 
@@ -640,55 +449,20 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
-    const { innerTask, taskQueueEvent, dockerRunTask } =
-      await triggerAppDockerHandledTask(testModule!, {
-        appIdentifier: 'testapp',
-        taskIdentifier: 'non_triggered_docker_job_task',
-        taskData: { myTaskData: 'test' },
-      })
-
-    expect(innerTask).toEqual({
-      id: expect.any(String),
-      ownerIdentifier: 'testapp',
+    const { dockerRunTask } = await triggerAppDockerHandledTask(testModule!, {
+      appIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
-      taskDescription: 'Task that is handled by a docker job.',
-      data: { myTaskData: 'test' },
-      dontStartBefore: null,
-      storageAccessPolicy: [],
-      systemLog: [],
-      taskLog: [],
-      trigger: {
-        kind: 'event',
-        data: {
-          eventId: taskQueueEvent.id,
-          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-          emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {
-            inputData: { myTaskData: 'test' },
-            appIdentifier: 'testapp',
-            taskIdentifier: 'non_triggered_docker_job_task',
-          },
-        },
-      },
-      targetLocation: null,
-      targetUserId: null,
-      startedAt: null,
-      completedAt: null,
-      success: null,
-      error: null,
-      createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
-      handlerType: 'docker',
-      handlerIdentifier: 'dummy_profile_two:test_job_other',
+      taskData: { myTaskData: 'test' },
     })
 
     const jobToken = execSpy.mock.calls[0][1].jobToken ?? ''
     const jobId = execSpy.mock.calls[0][1].jobId
     expect(jobToken.length).toBeGreaterThan(0)
 
-    const claims = testModule!
-      .getWorkerJobService()
-      .verifyWorkerJobToken(jobToken, jobId)
+    const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
+      jobToken,
+      jobId,
+    )
 
     expect(claims.jobId).toBe(jobId)
     expect(claims.taskId).toBe(dockerRunTask.id)
@@ -701,14 +475,11 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
-    const { innerTask, taskQueueEvent } = await triggerAppDockerHandledTask(
-      testModule!,
-      {
-        appIdentifier: 'testapp',
-        taskIdentifier: 'non_triggered_docker_job_task',
-        taskData: { myTaskData: 'test' },
-      },
-    )
+    const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
+      appIdentifier: 'testapp',
+      taskIdentifier: 'non_triggered_docker_job_task',
+      taskData: { myTaskData: 'test' },
+    })
 
     expect(innerTask).toEqual({
       id: expect.any(String),
@@ -721,17 +492,7 @@ describe('Docker Jobs', () => {
       systemLog: [],
       taskLog: [],
       trigger: {
-        kind: 'event',
-        data: {
-          eventId: taskQueueEvent.id,
-          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-          emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {
-            inputData: { myTaskData: 'test' },
-            appIdentifier: 'testapp',
-            taskIdentifier: 'non_triggered_docker_job_task',
-          },
-        },
+        kind: 'app_action',
       },
       targetLocation: null,
       targetUserId: null,
@@ -778,35 +539,31 @@ describe('Docker Jobs', () => {
     const allowedFolderId = testFolder.folder.id
     const allowedFolderId2 = testFolder2.folder.id
 
-    await testModule!
-      .getOrmService()
-      .db.update(appsTable)
+    await testModule!.services.ormService.db
+      .update(appsTable)
       .set({
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
       .where(eq(appsTable.identifier, 'testapp'))
 
-    const { innerTask, taskQueueEvent } = await triggerAppDockerHandledTask(
-      testModule!,
-      {
-        appIdentifier: 'testapp',
-        taskIdentifier: 'non_triggered_docker_job_task',
-        taskData: { myTaskData: 'test' },
-        storageAccessPolicy: [
-          {
-            folderId: allowedFolderId,
-            methods: [SignedURLsRequestMethod.PUT, SignedURLsRequestMethod.GET],
-            prefix: 'this/is/the/test',
-          },
-          {
-            folderId: allowedFolderId2,
-            methods: [SignedURLsRequestMethod.DELETE],
-            prefix: 'this/is/another/test',
-          },
-        ],
-      },
-    )
+    const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
+      appIdentifier: 'testapp',
+      taskIdentifier: 'non_triggered_docker_job_task',
+      taskData: { myTaskData: 'test' },
+      storageAccessPolicy: [
+        {
+          folderId: allowedFolderId,
+          methods: [SignedURLsRequestMethod.PUT, SignedURLsRequestMethod.GET],
+          prefix: 'this/is/the/test',
+        },
+        {
+          folderId: allowedFolderId2,
+          methods: [SignedURLsRequestMethod.DELETE],
+          prefix: 'this/is/another/test',
+        },
+      ],
+    })
 
     expect(innerTask).toEqual({
       id: expect.any(String),
@@ -830,32 +587,7 @@ describe('Docker Jobs', () => {
       systemLog: [],
       taskLog: [],
       trigger: {
-        kind: 'event',
-        data: {
-          eventId: taskQueueEvent.id,
-          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-          emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {
-            inputData: { myTaskData: 'test' },
-            appIdentifier: 'testapp',
-            taskIdentifier: 'non_triggered_docker_job_task',
-            storageAccessPolicy: [
-              {
-                folderId: testFolder.folder.id,
-                methods: [
-                  SignedURLsRequestMethod.PUT,
-                  SignedURLsRequestMethod.GET,
-                ],
-                prefix: 'this/is/the/test',
-              },
-              {
-                folderId: testFolder2.folder.id,
-                methods: [SignedURLsRequestMethod.DELETE],
-                prefix: 'this/is/another/test',
-              },
-            ],
-          },
-        },
+        kind: 'app_action',
       },
       targetLocation: null,
       targetUserId: null,
@@ -1306,7 +1038,7 @@ describe('Docker Jobs', () => {
     expect(responseStatus(batchInvalidTokenResponse)).toBe(401)
   })
 
-  it('should disallow queuing of an app task with an invalid access policy', async () => {
+  it('should disallow triggering of an app task with an invalid access policy', async () => {
     const {
       session: { accessToken: folderOwnerAccessToken },
     } = await createTestUser(testModule!, {
@@ -1322,21 +1054,19 @@ describe('Docker Jobs', () => {
       apiClient: testModule!.apiClient,
     })
 
-    // const app = await testModule!.getAppService().getApp('testapp', {
-    //   enabled: true,
-    // })
+    const userSettings =
+      await testModule!.services.ormService.db.query.appUserSettingsTable.findFirst(
+        {
+          where: eq(appUserSettingsTable.appIdentifier, 'testapp'),
+        },
+      )
 
-    const userSettings = await testModule!
-      .getOrmService()
-      .db.query.appUserSettingsTable.findFirst({
-        where: eq(appUserSettingsTable.appIdentifier, 'testapp'),
-      })
-
-    const folderSettings = await testModule!
-      .getOrmService()
-      .db.query.appFolderSettingsTable.findFirst({
-        where: eq(appUserSettingsTable.appIdentifier, 'testapp'),
-      })
+    const folderSettings =
+      await testModule!.services.ormService.db.query.appFolderSettingsTable.findFirst(
+        {
+          where: eq(appUserSettingsTable.appIdentifier, 'testapp'),
+        },
+      )
     // console.log(
     //   JSON.stringify(
     //     {
@@ -1351,9 +1081,8 @@ describe('Docker Jobs', () => {
     expect(userSettings).toBeUndefined()
     expect(folderSettings).toBeUndefined()
 
-    await testModule!
-      .getOrmService()
-      .db.update(appsTable)
+    await testModule!.services.ormService.db
+      .update(appsTable)
       .set({
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
@@ -1373,12 +1102,11 @@ describe('Docker Jobs', () => {
       ],
       expectRecords: false,
     })
-    expect(firstTry.queueTask.error).toBeNull()
+    expect(firstTry.dockerRunTask.error).toBeNull()
 
     // set the app to not be allowed user access by default
-    await testModule!
-      .getOrmService()
-      .db.update(appsTable)
+    await testModule!.services.ormService.db
+      .update(appsTable)
       .set({
         userScopeEnabledDefault: false,
         folderScopeEnabledDefault: true,
@@ -1403,7 +1131,7 @@ describe('Docker Jobs', () => {
       apiClient: testModule!.apiClient,
     })
 
-    const secondTry = await triggerAppDockerHandledTask(testModule!, {
+    const triggerAppTask = triggerAppDockerHandledTask(testModule!, {
       appIdentifier: 'testapp',
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
@@ -1416,11 +1144,9 @@ describe('Docker Jobs', () => {
       ],
       expectRecords: false,
     })
-
-    expect(secondTry.queueTask.error).toEqual({
-      code: 'UnauthorizedException',
-      message: `Unauthorized: app "testapp" is not enabled for folder "${testFolder2.folder.id}".`,
-    })
+    expect(triggerAppTask).rejects.toThrow(
+      `Unauthorized: app "testapp" is not enabled for folder "${testFolder2.folder.id}".`,
+    )
   })
 
   it('should result in the storage access policy being encoded in the jobToken', async () => {
@@ -1445,24 +1171,20 @@ describe('Docker Jobs', () => {
       prefix: 'valid/prefix',
     }
 
-    await testModule!
-      .getOrmService()
-      .db.update(appsTable)
+    await testModule!.services.ormService.db
+      .update(appsTable)
       .set({
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
       .where(eq(appsTable.identifier, 'testapp'))
 
-    const { innerTask, taskQueueEvent } = await triggerAppDockerHandledTask(
-      testModule!,
-      {
-        appIdentifier: 'testapp',
-        taskIdentifier: 'non_triggered_docker_job_task',
-        taskData: { myTaskData: 'test' },
-        storageAccessPolicy: [storageAccessPolicyRule],
-      },
-    )
+    const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
+      appIdentifier: 'testapp',
+      taskIdentifier: 'non_triggered_docker_job_task',
+      taskData: { myTaskData: 'test' },
+      storageAccessPolicy: [storageAccessPolicyRule],
+    })
 
     expect(innerTask).toEqual({
       id: expect.any(String),
@@ -1475,18 +1197,7 @@ describe('Docker Jobs', () => {
       systemLog: [],
       taskLog: [],
       trigger: {
-        kind: 'event',
-        data: {
-          eventId: taskQueueEvent.id,
-          eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
-          emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {
-            inputData: { myTaskData: 'test' },
-            appIdentifier: 'testapp',
-            taskIdentifier: 'non_triggered_docker_job_task',
-            storageAccessPolicy: [storageAccessPolicyRule],
-          },
-        },
+        kind: 'app_action',
       },
       targetLocation: null,
       targetUserId: null,
@@ -1502,9 +1213,10 @@ describe('Docker Jobs', () => {
 
     const jobToken = execSpy.mock.calls[0][1].jobToken ?? ''
     const jobId = execSpy.mock.calls[0][1].jobId
-    const claims = testModule!
-      .getWorkerJobService()
-      .verifyWorkerJobToken(jobToken, jobId)
+    const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
+      jobToken,
+      jobId,
+    )
 
     expect(claims.storageAccessPolicy).toEqual([storageAccessPolicyRule])
   })
@@ -1536,9 +1248,8 @@ describe('Docker Jobs', () => {
 
     expect(responseStatus(startResponse)).toBe(200)
 
-    const startedInnerTask = await testModule!
-      .getOrmService()
-      .db.query.tasksTable.findFirst({
+    const startedInnerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: eq(tasksTable.id, innerTask.id),
       })
 
@@ -1546,7 +1257,7 @@ describe('Docker Jobs', () => {
     expect(startedInnerTask?.startedAt).toBeDefined()
     expect(startedInnerTask?.systemLog.length).toBe(1)
     expect(startedInnerTask?.systemLog.at(0)).toEqual({
-      at: expect.any(String),
+      at: expect.any(Date),
       payload: {
         logType: 'started',
         data: {
@@ -1568,9 +1279,8 @@ describe('Docker Jobs', () => {
 
     expect(responseStatus(completeResponse)).toBe(200)
 
-    const completedInnerTask = await testModule!
-      .getOrmService()
-      .db.query.tasksTable.findFirst({
+    const completedInnerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: eq(tasksTable.id, innerTask.id),
       })
 
@@ -1578,7 +1288,7 @@ describe('Docker Jobs', () => {
     expect(completedInnerTask?.systemLog.length).toEqual(2)
     expect(completedInnerTask?.systemLog).toEqual([
       {
-        at: expect.any(String),
+        at: expect.any(Date),
         payload: {
           logType: 'started',
           data: {
@@ -1587,7 +1297,7 @@ describe('Docker Jobs', () => {
         },
       },
       {
-        at: expect.any(String),
+        at: expect.any(Date),
         payload: {
           logType: 'success',
           data: {
@@ -1597,9 +1307,8 @@ describe('Docker Jobs', () => {
       },
     ])
 
-    const completedDockerTask = await testModule!
-      .getOrmService()
-      .db.query.tasksTable.findFirst({
+    const completedDockerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: eq(tasksTable.id, dockerRunTask.id),
       })
 
@@ -1607,13 +1316,13 @@ describe('Docker Jobs', () => {
     expect(completedDockerTask?.systemLog.length).toEqual(2)
     expect(completedDockerTask?.systemLog).toEqual([
       {
-        at: expect.any(String),
+        at: expect.any(Date),
         payload: {
           logType: 'started',
         },
       },
       {
-        at: expect.any(String),
+        at: expect.any(Date),
         payload: {
           logType: 'success',
         },

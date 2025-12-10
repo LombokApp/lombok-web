@@ -6,19 +6,18 @@ import {
   readFileMetadata,
   uploadFile,
 } from '@lombokapp/core-worker-utils'
-import type { taskSchema } from '@lombokapp/types'
+import type { TaskDTO } from '@lombokapp/types'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
-import type z from 'zod'
 
 import { analyzeContent } from '../analyze/analyze-content'
 
 export const analyzeObjectTaskHandler = async (
-  task: z.infer<typeof taskSchema>,
+  task: TaskDTO,
   server: IAppPlatformService,
 ) => {
   if (!task.id) {

@@ -220,7 +220,10 @@ export class FoldersController {
     const result = await this.folderService.getFolderAsUser(req.user, folderId)
 
     if (result.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      await this.folderService.queueReindexFolder(result.folder.id, req.user.id)
+      await this.folderService.queueReindexFolderAsUser(
+        req.user,
+        result.folder.id,
+      )
     } else {
       throw new FolderOperationForbiddenException()
     }

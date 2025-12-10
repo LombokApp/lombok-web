@@ -4,13 +4,13 @@ import type { AppSocketMessage } from './apps.types'
 import {
   appManifestSchema,
   appMessageErrorSchema,
-  jsonSerializableObjectSchema,
+  jsonSerializableObjectDTOSchema,
 } from './apps.types'
 import { metadataEntrySchema } from './content.types'
 import { eventIdentifierSchema } from './events.types'
 import { LogEntryLevel } from './platform.types'
 import { SignedURLsRequestMethod } from './storage.types'
-import { storageAccessPolicySchema, taskSchema } from './task.types'
+import { storageAccessPolicySchema, taskDTOSchema } from './task.types'
 
 export const logEntrySchema = z.object({
   message: z.string().max(1024),
@@ -21,7 +21,7 @@ export const logEntrySchema = z.object({
       objectKey: z.string().optional(),
     })
     .optional(),
-  data: jsonSerializableObjectSchema.optional(),
+  data: jsonSerializableObjectDTOSchema.optional(),
 })
 
 export const attemptStartHandleTaskSchema = z.object({
@@ -73,18 +73,22 @@ export const updateMetadataSchema = z.array(
   }),
 )
 
-export const failHandleTaskSchema = z.object({
-  taskId: z.string().uuid(),
-  error: z.object({
-    message: z.string(),
-    code: z.string(),
-    details: jsonSerializableObjectSchema.optional(),
+export const completeHandleTaskSchema = z.discriminatedUnion('success', [
+  z.object({
+    success: z.literal(true),
+    taskId: z.string().uuid(),
+    result: jsonSerializableObjectDTOSchema.optional(),
   }),
-})
-
-export const completeHandleTaskSchema = z.object({
-  taskId: z.string().uuid(),
-})
+  z.object({
+    success: z.literal(false),
+    taskId: z.string().uuid(),
+    error: z.object({
+      code: z.string(),
+      message: z.string(),
+      details: jsonSerializableObjectDTOSchema.optional(),
+    }),
+  }),
+])
 
 export const getAppStorageSignedUrlsSchema = z.array(
   z.object({
@@ -101,7 +105,7 @@ export const dbQuerySchema = z.object({
 
 export const emitEventSchema = z.object({
   eventIdentifier: eventIdentifierSchema,
-  data: jsonSerializableObjectSchema,
+  data: jsonSerializableObjectDTOSchema,
 })
 
 export const dbExecSchema = z.object({
@@ -129,17 +133,17 @@ export const authenticateUserSchema = z.object({
 export const executeAppDockerJobSchema = z.object({
   profileIdentifier: z.string(),
   jobIdentifier: z.string(),
-  jobInputData: jsonSerializableObjectSchema,
+  jobData: jsonSerializableObjectDTOSchema,
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
-export const queueAppTaskSchema = z.object({
+export const triggerAppTaskSchema = z.object({
   taskIdentifier: z.string(),
-  inputData: jsonSerializableObjectSchema,
+  inputData: jsonSerializableObjectDTOSchema,
   dontStartBefore: z
     .union([
       z.object({
-        timestamp: z.date(),
+        timestamp: z.string().datetime(),
       }),
       z.object({
         delayMs: z.number(),
@@ -168,14 +172,13 @@ export const AppSocketMessageSchemaMap = {
   UPDATE_CONTENT_METADATA: updateMetadataSchema,
   COMPLETE_HANDLE_TASK: completeHandleTaskSchema,
   ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: attemptStartHandleTaskSchema,
-  FAIL_HANDLE_TASK: failHandleTaskSchema,
   ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID: attemptStartHandleTaskByIdSchema,
   GET_APP_UI_BUNDLE: getAppUIbundleSchema,
   GET_WORKER_EXECUTION_DETAILS: getWorkerExecutionDetailsSchema,
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
-  QUEUE_APP_TASK: queueAppTaskSchema,
+  TRIGGER_APP_TASK: triggerAppTaskSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 
 export type AppSocketMessageDataMap = {
@@ -184,7 +187,7 @@ export type AppSocketMessageDataMap = {
   >
 }
 
-const createResponseSchema = <T extends ZodTypeAny>(resultSchema: T) =>
+export const createResponseSchema = <T extends ZodTypeAny>(resultSchema: T) =>
   z.union([
     z.object({
       result: resultSchema,
@@ -242,13 +245,12 @@ export const AppSocketMessageResponseSchemaMap = {
   COMPLETE_HANDLE_TASK: createResponseSchema(z.undefined()),
   ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: createResponseSchema(
     z.object({
-      task: taskSchema,
+      task: taskDTOSchema,
     }),
   ),
-  FAIL_HANDLE_TASK: createResponseSchema(z.undefined()),
   ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID: createResponseSchema(
     z.object({
-      task: taskSchema,
+      task: taskDTOSchema,
     }),
   ),
   GET_APP_UI_BUNDLE: createResponseSchema(
@@ -299,7 +301,7 @@ export const AppSocketMessageResponseSchemaMap = {
       }),
     ]),
   ),
-  QUEUE_APP_TASK: createResponseSchema(z.undefined()),
+  TRIGGER_APP_TASK: createResponseSchema(z.undefined()),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 
 export type AppSocketResponseError = z.infer<typeof appMessageErrorSchema>

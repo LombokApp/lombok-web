@@ -26,7 +26,7 @@ export function transformAppToDTO(
     },
     ui: app.ui,
     metrics: null,
-    createdAt: app.createdAt,
-    updatedAt: app.updatedAt,
+    createdAt: app.createdAt.toISOString(),
+    updatedAt: app.updatedAt.toISOString(),
   }
 }

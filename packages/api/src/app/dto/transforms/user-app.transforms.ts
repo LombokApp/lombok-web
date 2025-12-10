@@ -19,7 +19,7 @@ export function transformAppToUserDTO(app: App): UserAppDTO {
       objectDetailViews: [],
     },
     ui: app.ui,
-    createdAt: app.createdAt,
-    updatedAt: app.updatedAt,
+    createdAt: app.createdAt.toISOString(),
+    updatedAt: app.updatedAt.toISOString(),
   }
 }

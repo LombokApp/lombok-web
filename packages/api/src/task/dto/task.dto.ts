@@ -1,14 +1,14 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import {
-  elaboratedTargetLocationContextSchema,
-  taskSchema,
+  elaboratedTargetLocationContextDTOSchema,
+  taskDTOSchema,
 } from '@lombokapp/types'
 
-export const taskSchemaWithTargetLocationContext = taskSchema.extend({
-  targetLocationContext: elaboratedTargetLocationContextSchema.optional(),
+export const taskSchemaWithTargetLocationContext = taskDTOSchema.extend({
+  targetLocationContext: elaboratedTargetLocationContextDTOSchema.optional(),
 })
 
-export class TaskDTO extends createZodDto(taskSchema) {}
+export class TaskDTO extends createZodDto(taskDTOSchema) {}
 export class TaskWithTargetLocationContextDTO extends createZodDto(
   taskSchemaWithTargetLocationContext,
 ) {}

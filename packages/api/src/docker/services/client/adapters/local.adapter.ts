@@ -283,7 +283,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       const payload: Record<string, unknown> = {
         job_id: options.jobId,
         job_class: options.jobIdentifier,
-        job_input: options.jobInputData,
+        job_input: options.jobData,
         job_token: options.jobToken,
         worker_command: options.jobCommand, // Default worker path, can be customized per job class
         interface: options.jobInterface,
