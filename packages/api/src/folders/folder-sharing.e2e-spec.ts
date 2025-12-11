@@ -13,7 +13,10 @@ describe('Shared folders', () => {
   let apiClient: TestApiClient
 
   beforeAll(async () => {
-    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+      // debug: true,
+    })
     apiClient = testModule.apiClient
   })
 
@@ -113,11 +116,11 @@ describe('Shared folders', () => {
 
     expect(folderListResponse.response.status).toEqual(200)
     expect(folderListResponse.data.meta.totalCount).toEqual(1)
-    expect(folderListResponse.data.result[0].folder.id).toEqual(
+    expect(folderListResponse.data.result[0]!.folder.id).toEqual(
       folderGetResponse.data.folder.id,
     )
 
-    expect(folderListResponse.data.result[0].permissions).toEqual([
+    expect(folderListResponse.data.result[0]!.permissions).toEqual([
       'OBJECT_EDIT',
       'OBJECT_MANAGE',
     ])
@@ -214,7 +217,7 @@ describe('Shared folders', () => {
       throw new Error('Failed to list folders')
     }
 
-    expect(folderListResponse.data.result[0].permissions).toEqual([
+    expect(folderListResponse.data.result[0]!.permissions).toEqual([
       'OBJECT_EDIT',
       'OBJECT_MANAGE',
     ])

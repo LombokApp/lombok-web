@@ -1,4 +1,5 @@
 import type {
+  JsonSerializableObject,
   StorageAccessPolicy,
   SystemLogEntry,
   TargetLocationContext,
@@ -6,7 +7,6 @@ import type {
   TaskLogEntry,
   TaskTrigger,
 } from '@lombokapp/types'
-import type { JsonSerializableObject } from '@lombokapp/types/json.types'
 import { sql } from 'drizzle-orm'
 import {
   boolean,

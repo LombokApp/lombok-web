@@ -181,15 +181,17 @@ export async function buildTestModule({
       )
 
       await Promise.all(
-        uploadUrls.map((uploadUrl, i) =>
-          fetch(uploadUrl, {
+        uploadUrls.map((uploadUrl, i) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const createFile = createFiles[i]!
+          return fetch(uploadUrl, {
             method: 'PUT',
             body:
-              typeof createFiles[i].content === 'string'
-                ? createFiles[i].content
-                : new Uint8Array(createFiles[i].content),
-          }),
-        ),
+              typeof createFile.content === 'string'
+                ? createFile.content
+                : new Uint8Array(createFile.content),
+          })
+        }),
       )
       return bucketName
     },
@@ -243,6 +245,13 @@ export async function createTestUser(
         email: email ?? `${username}@example.com`,
       },
     })
+
+  if (signupResponse.error) {
+    throw new Error(
+      `Signup failed [${signupResponse.error.code}]: ${signupResponse.error.message}`,
+    )
+  }
+
   if (admin) {
     await testModule.services.ormService.db
       .update(usersTable)
@@ -250,18 +259,22 @@ export async function createTestUser(
         isAdmin: true,
         name,
       })
-      .where(eq(usersTable.username, signupResponse.data?.user.username ?? ''))
+      .where(eq(usersTable.username, signupResponse.data.user.username))
   }
 
-  const result = await testModule.apiClient().POST('/api/v1/auth/login', {
-    body: { login: username, password },
-  })
+  const loginResponse = await testModule
+    .apiClient()
+    .POST('/api/v1/auth/login', {
+      body: { login: username, password },
+    })
 
-  if (!result.data) {
-    throw new Error('Login failed - no response data')
+  if (loginResponse.error) {
+    throw new Error(
+      `Login failed [${loginResponse.error.code}]: ${loginResponse.error.message}`,
+    )
   }
 
-  return result.data
+  return loginResponse.data
 }
 
 export function testS3Location({

@@ -56,7 +56,7 @@ process.stdin.once('data', (data) => {
     initialized = true
     const { wait, log, socket } = connectAndPerformWork(
       workerData.socketBaseUrl,
-      workerData.appWorkerId,
+      workerData.instanceId,
       workerData.appToken,
       {
         ['analyze_object']: analyzeObjectTaskHandler,
@@ -88,7 +88,7 @@ process.stdin.once('data', (data) => {
                       : { removeWorkerDirectory: null }),
                   }
                 : { printWorkerOutput: null, removeWorkerDirectory: null },
-              appWorkerId: workerData.appWorkerId,
+              instanceId: workerData.instanceId,
               appToken: '[REDACTED]',
             },
           },
@@ -122,7 +122,7 @@ process.stdin.once('data', (data) => {
               name: e.name as string,
               message: e.message as string,
               stack: e.stack as string,
-              appWorkerId: workerData.appWorkerId,
+              instanceId: workerData.instanceId,
             },
           })
         }
@@ -138,7 +138,7 @@ process.stdin.once('data', (data) => {
     const uiBundleCacheRoot = path.join(os.tmpdir(), 'lombok-ui-bundle-cache')
     const uiBundleCacheWorkerRoot = path.join(
       uiBundleCacheRoot,
-      workerData.appWorkerId,
+      workerData.instanceId,
     )
 
     console.log(
@@ -167,7 +167,8 @@ process.stdin.once('data', (data) => {
           return new Response('Invalid worker API path', { status: 400 })
         }
 
-        const workerIdentifier = workerIdentifierMatch[1]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const workerIdentifier = workerIdentifierMatch[1]!
 
         try {
           return await runWorkerScript({
@@ -221,7 +222,8 @@ process.stdin.once('data', (data) => {
               return new Response('Invalid worker API path', { status: 400 })
             }
 
-            const workerIdentifier = workerIdentifierMatch[1]
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const workerIdentifier = workerIdentifierMatch[1]!
 
             const host = req.headers.get('host') || ''
             const hostParts = host.split('.')
@@ -273,7 +275,7 @@ process.stdin.once('data', (data) => {
               JSON.stringify({
                 status: 'ok',
                 timestamp: new Date().toISOString(),
-                workerId: workerData.appWorkerId,
+                workerId: workerData.instanceId,
                 message: 'Core app worker is running',
               }),
               { headers: { 'Content-Type': 'application/json' } },
@@ -427,7 +429,7 @@ process.stdin.once('data', (data) => {
             type: 'core_worker_status',
             status: 'ready',
             port: server.port,
-            appWorkerId: workerData.appWorkerId,
+            instanceId: workerData.instanceId,
           })}\n`,
         )
       } catch {
@@ -445,7 +447,7 @@ process.stdin.once('data', (data) => {
             type: 'core_worker_status',
             status: 'error',
             error: message,
-            appWorkerId: workerData.appWorkerId,
+            instanceId: workerData.instanceId,
           })}\n`,
         )
       } catch {

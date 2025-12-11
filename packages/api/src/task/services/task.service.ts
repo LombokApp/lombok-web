@@ -1,12 +1,13 @@
 import {
+  JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   RequeueConfig,
   StorageAccessPolicy,
   SystemLogEntry,
 } from '@lombokapp/types'
-import { JsonSerializableObject } from '@lombokapp/types/json.types'
 import { addMs } from '@lombokapp/utils'
 import {
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -16,9 +17,11 @@ import {
 } from '@nestjs/common'
 import {
   and,
+  asc,
   count,
   eq,
   ilike,
+  inArray,
   isNotNull,
   isNull,
   ne,
@@ -546,7 +549,102 @@ export class TaskService {
     })
   }
 
-  async registerTaskCompletion(
+  async registerTaskStarted({
+    taskId,
+    startContext,
+    tx,
+  }: {
+    taskId: string
+    startContext: {
+      __executor: JsonSerializableObject
+    } & JsonSerializableObject
+    tx?: OrmService['db']
+  }) {
+    const db = tx ?? this.ormService.db
+    const task = await db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+    if (!task) {
+      throw new NotFoundException('Invalid request (no task found by id).')
+    } else if (task.completedAt || task.startedAt) {
+      throw new ConflictException('Task not in a state to be started.')
+    }
+
+    const now = new Date()
+
+    const startSystemLog: SystemLogEntry = {
+      at: now,
+      payload: {
+        logType: 'started',
+        data: startContext,
+      },
+    }
+
+    const updatedTask = (
+      await db
+        .update(tasksTable)
+        .set({
+          startedAt: now,
+          updatedAt: now,
+          systemLog: sql<
+            SystemLogEntry[]
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(startSystemLog)}::jsonb`,
+        })
+        .where(and(eq(tasksTable.id, task.id), isNull(tasksTable.startedAt)))
+        .returning()
+    )[0]
+
+    if (!updatedTask) {
+      throw new ConflictException('Failed to secure task.')
+    }
+
+    return { task: updatedTask }
+  }
+
+  async startAnyAvailableTask({
+    appIdentifier,
+    taskIdentifiers,
+    startContext,
+    maxAttempts = 5,
+    tx = undefined,
+  }: {
+    appIdentifier: string
+    taskIdentifiers: string[]
+    startContext: {
+      __executor: JsonSerializableObject
+    } & JsonSerializableObject
+    maxAttempts?: number
+    tx?: OrmService['db']
+  }) {
+    const db = tx ?? this.ormService.db
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const task = await db.query.tasksTable.findFirst({
+        where: and(
+          eq(tasksTable.ownerIdentifier, appIdentifier),
+          inArray(tasksTable.taskIdentifier, taskIdentifiers),
+          isNull(tasksTable.startedAt),
+        ),
+        orderBy: [asc(tasksTable.createdAt)],
+      })
+      if (!task || task.completedAt || task.startedAt) {
+        break
+      }
+
+      const { task: securedTask } = await this.registerTaskStarted({
+        taskId: task.id,
+        startContext,
+        tx: db,
+      })
+      return { task: securedTask }
+    }
+
+    throw new ConflictException(
+      `Failed to secure a task after ${maxAttempts} attempts.`,
+    )
+  }
+
+  async registerTaskCompleted(
     taskId: string,
     completion:
       | {

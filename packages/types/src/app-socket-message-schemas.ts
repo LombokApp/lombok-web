@@ -21,13 +21,18 @@ export const logEntrySchema = z.object({
   data: jsonSerializableObjectDTOSchema.optional(),
 })
 
+export const startContextSchema = jsonSerializableObjectDTOSchema
+  .refine((v) => !Object.keys(v).some((key) => key.startsWith('__')))
+  .optional()
+
 export const attemptStartHandleTaskSchema = z.object({
   taskIdentifiers: z.array(z.string()),
+  startContext: startContextSchema.optional(),
 })
 
 export const attemptStartHandleTaskByIdSchema = z.object({
   taskId: z.string().uuid(),
-  taskHandlerId: z.string().nonempty().max(512).optional(),
+  startContext: startContextSchema.optional(),
 })
 
 export const getWorkerExecutionDetailsSchema = z.object({

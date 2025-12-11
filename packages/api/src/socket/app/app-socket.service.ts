@@ -24,7 +24,7 @@ import {
 } from '../../auth/services/jwt.service'
 
 const AppAuthPayload = z.object({
-  appWorkerId: z.string(),
+  instanceId: z.string(),
   token: z.string(),
   handledTaskIdentifiers: z.array(z.string()).optional(),
 })
@@ -116,10 +116,10 @@ export class AppSocketService {
         appIdentifier,
         socketClientId: socket.id,
         handledTaskIdentifiers: auth.handledTaskIdentifiers ?? [], // TODO: validate worker reported task keys to match their config
-        workerId: auth.appWorkerId,
+        workerId: auth.instanceId,
         ip: socket.handshake.address,
       }
-      const workerCacheKey = `${appIdentifier}:${auth.appWorkerId}`
+      const workerCacheKey = `${appIdentifier}:${auth.instanceId}`
       // persist worker state in memory
       void this.kvService.ops.set(
         `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
@@ -140,11 +140,11 @@ export class AppSocketService {
         async (message: string, ack?: (response: unknown) => void) => {
           this.logger.log('APP Message Request:', {
             message,
-            appWorkerId: auth.appWorkerId,
+            instanceId: auth.instanceId,
             appIdentifier,
           })
           const response = await this.appService
-            .handleAppRequest(auth.appWorkerId, appIdentifier, message)
+            .handleAppRequest(auth.instanceId, appIdentifier, message)
             .catch((error: unknown) => {
               this.logger.error('Unexpected error during message handling:', {
                 message,
@@ -287,7 +287,8 @@ export class AppSocketService {
     }
 
     // Get the first connected client for the core app
-    const clientId = Array.from(clientIds)[0]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const clientId = Array.from(clientIds)[0]!
     const socket = this.connectedAppWorkers.get(clientId)
     if (!socket) {
       throw new Error(`Socket not found for client "${clientId}"`)

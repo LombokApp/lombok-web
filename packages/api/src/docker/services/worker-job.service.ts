@@ -2,10 +2,9 @@ import type {
   FolderScopeAppPermissions,
   JsonSerializableObject,
   StorageAccessPolicy,
-  SystemLogEntry,
 } from '@lombokapp/types'
 import {
-  BadRequestException,
+  ConflictException,
   ForbiddenException,
   forwardRef,
   Inject,
@@ -14,7 +13,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import type { JwtPayload } from 'jsonwebtoken'
 import * as jwt from 'jsonwebtoken'
 import { appsTable } from 'src/app/entities/app.entity'
@@ -43,6 +42,7 @@ const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
 
 export interface WorkerJobTokenClaims {
   jobId: string
+  executorContext: JsonSerializableObject
   taskId: string
   storageAccessPolicy: StorageAccessPolicy
 }
@@ -177,7 +177,7 @@ export class WorkerJobService {
       }
 
       // All checks passed - include this folder
-      validatedUploads[folderId] = requestedUploads[folderId]
+      validatedUploads[folderId] = requestedUploads[folderId] ?? []
     }
 
     return validatedUploads
@@ -190,6 +190,7 @@ export class WorkerJobService {
     jobId: string
     taskId?: string
     storageAccessPolicy?: StorageAccessPolicy
+    executorContext?: JsonSerializableObject
   }): string {
     const payload = {
       aud: this._platformConfig.platformHost,
@@ -198,6 +199,7 @@ export class WorkerJobService {
       job_id: params.jobId,
       task_id: params.taskId,
       storage_access_policy: params.storageAccessPolicy,
+      executor_context: params.executorContext,
     }
 
     return jwt.sign(payload, this._authConfig.authJwtSecret, {
@@ -221,12 +223,14 @@ export class WorkerJobService {
       }) as JwtPayload & {
         job_id: string
         task_id: string
+        executor_context: JsonSerializableObject
         storage_access_policy: StorageAccessPolicy
       }
 
       return {
         jobId: decoded.job_id,
         taskId: decoded.task_id,
+        executorContext: decoded.executor_context,
         storageAccessPolicy: decoded.storage_access_policy,
       }
     } catch (error) {
@@ -275,7 +279,14 @@ export class WorkerJobService {
   }
 
   /**
-   * Mark a worker job as complete
+   * Mark a worker job as complete.
+   *
+   * This calls registerTaskCompletion on the docker task and the inner
+   * task, i.e. the task that is being "handled" by the docker task.
+   *
+   * @param claims - The claims from the worker job token
+   * @param request - The request to complete the job
+   *
    */
   async completeJob(
     claims: WorkerJobTokenClaims,
@@ -323,7 +334,7 @@ export class WorkerJobService {
       }
 
       // Trigger completion of the docker handler task
-      await this.taskService.registerTaskCompletion(
+      await this.taskService.registerTaskCompleted(
         dockerTask.id,
         success
           ? { success: true }
@@ -332,7 +343,7 @@ export class WorkerJobService {
       )
 
       // Trigger completion of the inner task
-      await this.taskService.registerTaskCompletion(
+      await this.taskService.registerTaskCompleted(
         innerTask.id,
         success
           ? { success: true, result }
@@ -343,7 +354,11 @@ export class WorkerJobService {
   }
 
   /**
-   * Mark a worker job as started
+   * Mark a worker job as started.
+   *
+   * This calls registerTaskCompletion on the docker task and the inner
+   * task, i.e. the task that is being "handled" by the docker task.
+
    */
   async startJob(claims: WorkerJobTokenClaims): Promise<void> {
     const { taskId: dockerRunTaskId } = claims
@@ -381,45 +396,30 @@ export class WorkerJobService {
       }
 
       if (innerTask.startedAt || innerTask.completedAt) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `Docker handled task ${innerTask.id} cannot be started because it has already been started`,
         )
       }
 
       if (!dockerRunTask.startedAt) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `Docker handled task ${innerTask.id} cannot be started because the associated docker task (${dockerRunTaskId}) has not been started`,
         )
       }
 
       if (dockerRunTask.completedAt) {
-        throw new BadRequestException(
+        throw new ConflictException(
           `Docker handled task ${innerTask.id} cannot be started because the associated docker task (${dockerRunTaskId}) has already been completed`,
         )
       }
 
-      const now = new Date()
-      const innerTaskSystemLog: SystemLogEntry = {
-        at: now,
-        payload: {
-          logType: 'started',
-          data: {
-            dockerTaskId: dockerRunTaskId,
-          },
+      await this.taskService.registerTaskStarted({
+        taskId: innerTask.id,
+        startContext: {
+          __executor: claims.executorContext,
         },
-      }
-
-      await tx
-        .update(tasksTable)
-        .set({
-          startedAt: now,
-          updatedAt: now,
-          systemLog: sql<
-            SystemLogEntry[]
-          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(innerTaskSystemLog)}::jsonb`,
-          error: null,
-        })
-        .where(eq(tasksTable.id, innerTask.id))
+        tx,
+      })
     })
   }
 }

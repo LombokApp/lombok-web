@@ -75,7 +75,8 @@ export class DockerJobsService {
       )
     }
 
-    return app.containerProfiles[profileIdentifier]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return app.containerProfiles[profileIdentifier]!
   }
 
   /**
@@ -196,6 +197,11 @@ export class DockerJobsService {
             jobId,
             ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
             storageAccessPolicy: params.storageAccessPolicy,
+            executorContext: {
+              profileKey: profileHostConfigKey,
+              profileHash,
+              jobIdentifier,
+            },
           })
         : undefined
 

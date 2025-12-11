@@ -154,8 +154,8 @@ const triggerAppDockerHandledTask = async (
   const dockerTaskEnqueuedEvent = events[0]
 
   if (expectRecords) {
-    const profileIdentifier = taskDefinition.handler.identifier.split(':')[0]
-    const jobClassIdentifier = taskDefinition.handler.identifier.split(':')[1]
+    const profileIdentifier = taskDefinition.handler.identifier.split(':')[0]!
+    const jobClassIdentifier = taskDefinition.handler.identifier.split(':')[1]!
 
     // logger.log('events', events)
     // logger.log('tasks', tasks)
@@ -201,7 +201,7 @@ const triggerAppDockerHandledTask = async (
       trigger: {
         kind: 'event',
         data: {
-          eventId: events[0].id,
+          eventId: events[0]!.id,
           eventIdentifier: PlatformEvent.docker_task_enqueued,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {
@@ -415,8 +415,8 @@ describe('Docker Jobs', () => {
       asyncTaskId: taskId,
     })
 
-    const token = execSpy.mock.calls[0][1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0][1].jobId
+    const token = execSpy.mock.calls[0]![1].jobToken ?? ''
+    const jobId = execSpy.mock.calls[0]![1].jobId
 
     const completeAttempt = await _apiClient(token).POST(
       `/api/v1/docker/jobs/{jobId}/complete`,
@@ -455,8 +455,8 @@ describe('Docker Jobs', () => {
       taskData: { myTaskData: 'test' },
     })
 
-    const jobToken = execSpy.mock.calls[0][1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0][1].jobId
+    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
+    const jobId = execSpy.mock.calls[0]![1].jobId
     expect(jobToken.length).toBeGreaterThan(0)
 
     const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
@@ -601,8 +601,8 @@ describe('Docker Jobs', () => {
       handlerIdentifier: 'dummy_profile_two:test_job_other',
     })
 
-    const jobToken = execSpy.mock.calls[0][1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0][1].jobId
+    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
+    const jobId = execSpy.mock.calls[0]![1].jobId
 
     const deniedFolderId = crypto.randomUUID()
 
@@ -1211,8 +1211,8 @@ describe('Docker Jobs', () => {
       handlerIdentifier: 'dummy_profile_two:test_job_other',
     })
 
-    const jobToken = execSpy.mock.calls[0][1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0][1].jobId
+    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
+    const jobId = execSpy.mock.calls[0]![1].jobId
     const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
       jobToken,
       jobId,
@@ -1236,8 +1236,8 @@ describe('Docker Jobs', () => {
       },
     )
 
-    const jobToken = execSpy.mock.calls[0][1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0][1].jobId
+    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
+    const jobId = execSpy.mock.calls[0]![1].jobId
 
     const startResponse = await _apiClient(jobToken).POST(
       `/api/v1/docker/jobs/{jobId}/start`,

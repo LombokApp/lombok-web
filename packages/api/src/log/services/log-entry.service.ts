@@ -291,7 +291,8 @@ export class LogEntryService {
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })) as (LogEntry & { folder?: { name: string; ownerId: string } })[],
-      meta: { totalCount: logEntriesCountResult[0].count },
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      meta: { totalCount: logEntriesCountResult[0]!.count },
     }
   }
 }

@@ -272,21 +272,26 @@ export class AppService {
   }
 
   async handleAppRequest(
-    handlerId: string,
+    handlerInstanceId: string,
     requestingAppIdentifier: string,
     message: unknown,
   ) {
-    return handleAppSocketMessage(handlerId, requestingAppIdentifier, message, {
-      eventService: this.eventService,
-      ormService: this.ormService,
-      logEntryService: this.logEntryService,
-      folderService: this.folderService,
-      taskService: this.taskService,
-      appService: this,
-      jwtService: this.jwtService,
-      serverConfigurationService: this.serverConfigurationService,
-      s3Service: this.s3Service,
-    })
+    return handleAppSocketMessage(
+      handlerInstanceId,
+      requestingAppIdentifier,
+      message,
+      {
+        eventService: this.eventService,
+        ormService: this.ormService,
+        logEntryService: this.logEntryService,
+        folderService: this.folderService,
+        taskService: this.taskService,
+        appService: this,
+        jwtService: this.jwtService,
+        serverConfigurationService: this.serverConfigurationService,
+        s3Service: this.s3Service,
+      },
+    )
   }
 
   async createSignedContentUrls(

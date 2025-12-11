@@ -17,7 +17,7 @@ export interface WorkerModuleStartContext {
 }
 
 export const coreWorkerProcessDataPayloadSchema = z.object({
-  appWorkerId: z.string(),
+  instanceId: z.string(),
   appToken: z.string(),
   socketBaseUrl: z.string(),
   platformHost: z.string(),

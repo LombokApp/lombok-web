@@ -182,7 +182,7 @@ export class PlatformTaskService {
         ._run(startedTask)
         .then((processorResult) => {
           if (shouldRegisterComplete) {
-            return this.taskService.registerTaskCompletion(taskId, {
+            return this.taskService.registerTaskCompleted(taskId, {
               success: true,
               result: processorResult?.result,
             })

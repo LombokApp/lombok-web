@@ -1,6 +1,6 @@
 import { StorageProvisionDTO } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, count, eq, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -55,227 +55,237 @@ export class ServerMetricsService {
     oneDayAgo.setDate(oneDayAgo.getDate() - 1)
 
     // Get total users
-    const totalUsersResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(usersTable)
-
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const totalUsersResult = (
+      await this.ormService.db.select({ count: count(sql`*`) }).from(usersTable)
+    )[0]!
     // Get new users in last week
-    const usersPreviousWeekResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(usersTable)
-      .where(
-        sql`${usersTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const usersPreviousWeekResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(usersTable)
+        .where(
+          sql`${usersTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
+        )
+    )[0]!
 
     // Get new sessions in last week
-    const sessionsCreatedPreviousWeekResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(sessionsTable)
-      .where(
-        sql`${sessionsTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const sessionsCreatedPreviousWeekResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(sessionsTable)
+        .where(
+          sql`${sessionsTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
+        )
+    )[0]!
 
     // Get new sessions in last 24 hours
-    const sessionsCreatedPrevious24HoursResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(sessionsTable)
-      .where(
-        sql`${sessionsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const sessionsCreatedPrevious24HoursResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(sessionsTable)
+        .where(
+          sql`${sessionsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+        )
+    )[0]!
 
     // Get total folders
-    const totalFoldersResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(foldersTable)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const totalFoldersResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(foldersTable)
+    )[0]!
 
     // Get new folders in last week
-    const foldersCreatedLastWeekResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(foldersTable)
-      .where(
-        sql`${foldersTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const foldersCreatedLastWeekResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(foldersTable)
+        .where(
+          sql`${foldersTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
+        )
+    )[0]!
 
     // Get installed apps count
     const installedAppsResult = await this.ormService.db
       .select({
         identifier: appsTable.identifier,
         label: appsTable.label,
-        totalCount: sql<string>`count(*) over()`,
+        totalCount: sql<number>`count(*) over ()`,
       })
       .from(appsTable)
-
     // Get total indexed size (sum of all folderObject.sizeBytes)
-    const totalIndexedSizeResult = await this.ormService.db
-      .select({
-        totalSize: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)`,
-      })
-      .from(folderObjectsTable)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const totalIndexedSizeResult = (
+      await this.ormService.db
+        .select({
+          totalSize: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
+        })
+        .from(folderObjectsTable)
+    )[0]!
 
     // Task metrics
     const oneHourAgo = new Date()
     oneHourAgo.setHours(oneHourAgo.getHours() - 1)
 
     // Get tasks created in the last day
-    const tasksCreatedPreviousDayResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(tasksTable)
-      .where(
-        sql`${tasksTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const tasksCreatedPreviousDayResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(tasksTable)
+        .where(
+          sql`${tasksTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+        )
+    )[0]!
 
     // Get tasks created in the last hour
-    const tasksCreatedPreviousHourResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(tasksTable)
-      .where(
-        sql`${tasksTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const tasksCreatedPreviousHourResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(tasksTable)
+        .where(
+          sql`${tasksTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp`,
+        )
+    )[0]!
 
     // Get task errors in the last day
-    const taskErrorsPreviousDayResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(tasksTable)
-      .where(
-        and(
-          eq(tasksTable.success, false),
-          sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-        ),
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const taskErrorsPreviousDayResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(tasksTable)
+        .where(
+          and(
+            eq(tasksTable.success, false),
+            sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+          ),
+        )
+    )[0]!
 
     // Get task errors in the last hour
-    const taskErrorsPreviousHourResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(tasksTable)
-      .where(
-        and(
-          eq(tasksTable.success, false),
-          sql`${tasksTable.completedAt} >= ${oneHourAgo.toISOString()}::timestamp`,
-        ),
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const taskErrorsPreviousHourResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(tasksTable)
+        .where(
+          and(
+            eq(tasksTable.success, false),
+            sql`${tasksTable.completedAt} >= ${oneHourAgo.toISOString()}::timestamp`,
+          ),
+        )
+    )[0]!
 
     // Event metrics
     const eventFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
 
     // Get server events (targetLocation.folderId is null) emitted in the last day
-    const serverEventsEmittedPreviousDayResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(eventsTable)
-      .where(
-        sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const serverEventsEmittedPreviousDayResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(eventsTable)
+        .where(
+          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
+        )
+    )[0]!
 
     // Get server events (targetLocation.folderId is null) emitted in the last hour
-    const serverEventsEmittedPreviousHourResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(eventsTable)
-      .where(
-        sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const serverEventsEmittedPreviousHourResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(eventsTable)
+        .where(
+          sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
+        )
+    )[0]!
 
     // Get folder events (targetLocation.folderId is not null) emitted in the last day
-    const folderEventsEmittedPreviousDayResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(eventsTable)
-      .where(
-        sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const folderEventsEmittedPreviousDayResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(eventsTable)
+        .where(
+          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
+        )
+    )[0]!
 
     // Get folder events (targetLocation.folderId is not null) emitted in the last hour
-    const folderEventsEmittedPreviousHourResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
-      .from(eventsTable)
-      .where(
-        sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
-      )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const folderEventsEmittedPreviousHourResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(eventsTable)
+        .where(
+          sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
+        )
+    )[0]!
 
     // Get count of user storage provisions (count of storage locations with providerType = 'SERVER')
     const allStorageProvisions =
       await this.serverConfigurationService.listStorageProvisionsAsUser(actor)
 
     // Get total persisted size (sum of folderObject.sizeBytes for all folders)
-    const totalIndexedAcrossStorageProvisionsResult = await this.ormService.db
-      .select({
-        totalSize: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)`,
-      })
-      .from(folderObjectsTable)
-      .innerJoin(foldersTable, eq(folderObjectsTable.folderId, foldersTable.id))
-      .innerJoin(
-        storageLocationsTable,
-        eq(foldersTable.contentLocationId, storageLocationsTable.id),
-      )
-      .where(eq(storageLocationsTable.providerType, 'SERVER'))
-
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const totalIndexedAcrossStorageProvisionsResult = (
+      await this.ormService.db
+        .select({
+          totalSize: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
+        })
+        .from(folderObjectsTable)
+        .innerJoin(
+          foldersTable,
+          eq(folderObjectsTable.folderId, foldersTable.id),
+        )
+        .innerJoin(
+          storageLocationsTable,
+          eq(foldersTable.contentLocationId, storageLocationsTable.id),
+        )
+        .where(eq(storageLocationsTable.providerType, 'SERVER'))
+    )[0]!
     return {
-      totalUsers: parseInt(totalUsersResult[0]?.count ?? '0', 10),
-      sessionsCreatedPreviousWeek: parseInt(
-        sessionsCreatedPreviousWeekResult[0]?.count ?? '0',
-        10,
-      ),
-      sessionsCreatedPrevious24Hours: parseInt(
-        sessionsCreatedPrevious24HoursResult[0]?.count ?? '0',
-        10,
-      ),
-      usersCreatedPreviousWeek: parseInt(
-        usersPreviousWeekResult[0]?.count ?? '0',
-        10,
-      ),
-      totalFolders: parseInt(totalFoldersResult[0]?.count ?? '0', 10),
-      foldersCreatedPreviousWeek: parseInt(
-        foldersCreatedLastWeekResult[0]?.count ?? '0',
-        10,
-      ),
-      totalIndexedSizeBytes: parseInt(
-        totalIndexedSizeResult[0]?.totalSize ?? '0',
-        10,
-      ),
+      totalUsers: totalUsersResult.count,
+      sessionsCreatedPreviousWeek: sessionsCreatedPreviousWeekResult.count,
+      sessionsCreatedPrevious24Hours:
+        sessionsCreatedPrevious24HoursResult.count,
+      usersCreatedPreviousWeek: usersPreviousWeekResult.count,
+      totalFolders: totalFoldersResult.count,
+      foldersCreatedPreviousWeek: foldersCreatedLastWeekResult.count,
+      totalIndexedSizeBytes: totalIndexedSizeResult.totalSize,
       provisionedStorage: {
         totalCount: allStorageProvisions.length,
         summary: generateStorageProvisionsSummary(allStorageProvisions),
       },
       totalStorageProvisions: allStorageProvisions.length,
-      totalIndexedSizeBytesAcrossStorageProvisions: parseInt(
-        totalIndexedAcrossStorageProvisionsResult[0]?.totalSize ?? '0',
-        10,
-      ),
+      totalIndexedSizeBytesAcrossStorageProvisions:
+        totalIndexedAcrossStorageProvisionsResult.totalSize,
       installedApps: {
-        totalCount: parseInt(installedAppsResult[0]?.totalCount ?? '0', 10),
+        totalCount: installedAppsResult[0]?.totalCount ?? 0,
         summary: generateInstalledAppsSummary(installedAppsResult),
       },
       // Task metrics
-      tasksCreatedPreviousDay: parseInt(
-        tasksCreatedPreviousDayResult[0]?.count ?? '0',
-        10,
-      ),
-      tasksCreatedPreviousHour: parseInt(
-        tasksCreatedPreviousHourResult[0]?.count ?? '0',
-        10,
-      ),
-      taskErrorsPreviousDay: parseInt(
-        taskErrorsPreviousDayResult[0]?.count ?? '0',
-        10,
-      ),
-      taskErrorsPreviousHour: parseInt(
-        taskErrorsPreviousHourResult[0]?.count ?? '0',
-        10,
-      ),
+      tasksCreatedPreviousDay: tasksCreatedPreviousDayResult.count,
+      tasksCreatedPreviousHour: tasksCreatedPreviousHourResult.count,
+      taskErrorsPreviousDay: taskErrorsPreviousDayResult.count,
+      taskErrorsPreviousHour: taskErrorsPreviousHourResult.count,
       // Event metrics
-      serverEventsEmittedPreviousDay: parseInt(
-        serverEventsEmittedPreviousDayResult[0]?.count ?? '0',
-        10,
-      ),
-      serverEventsEmittedPreviousHour: parseInt(
-        serverEventsEmittedPreviousHourResult[0]?.count ?? '0',
-        10,
-      ),
-      folderEventsEmittedPreviousDay: parseInt(
-        folderEventsEmittedPreviousDayResult[0]?.count ?? '0',
-        10,
-      ),
-      folderEventsEmittedPreviousHour: parseInt(
-        folderEventsEmittedPreviousHourResult[0]?.count ?? '0',
-        10,
-      ),
+      serverEventsEmittedPreviousDay:
+        serverEventsEmittedPreviousDayResult.count,
+      serverEventsEmittedPreviousHour:
+        serverEventsEmittedPreviousHourResult.count,
+      folderEventsEmittedPreviousDay:
+        folderEventsEmittedPreviousDayResult.count,
+      folderEventsEmittedPreviousHour:
+        folderEventsEmittedPreviousHourResult.count,
     }
   }
 }

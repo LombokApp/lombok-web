@@ -65,7 +65,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     })
 
     if (!accepted) {
-      await this.taskService.registerTaskCompletion(task.id, {
+      await this.taskService.registerTaskCompleted(task.id, {
         success: false,
         error: {
           // TODO: Improve this context

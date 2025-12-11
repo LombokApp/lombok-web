@@ -36,6 +36,7 @@ import { ModuleRef } from '@nestjs/core'
 import {
   aliasedTable,
   and,
+  count,
   eq,
   gt,
   ilike,
@@ -548,7 +549,7 @@ export class FolderService {
         contentLocation: contentLocationTable,
         metadataLocation: metadataLocationTable,
         folderShares: folderSharesTable,
-        totalCount: sql<string>`count(*) over()`,
+        totalCount: sql<number>`coalesce(count(*) over(), 0)::int`,
       })
       .from(foldersTable)
       .leftJoin(
@@ -597,7 +598,7 @@ export class FolderService {
             ? OWNER_PERMISSIONS
             : (folder.folderShares?.permissions ?? []),
       })),
-      meta: { totalCount: parseInt(folders[0]?.totalCount ?? '0', 10) },
+      meta: { totalCount: folders[0]?.totalCount ?? 0 },
     }
   }
 
@@ -718,8 +719,8 @@ export class FolderService {
 
     const folderMetadata = await this.ormService.db
       .select({
-        totalCount: sql<string>`count(*)`,
-        totalSizeBytes: sql<string>`sum(${folderObjectsTable.sizeBytes})`,
+        totalCount: count(sql`*`),
+        totalSizeBytes: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
       })
       .from(folderObjectsTable)
       .where(eq(folderObjectsTable.folderId, folder.id))
@@ -727,8 +728,8 @@ export class FolderService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const { totalCount, totalSizeBytes } = folderMetadata[0]!
     return {
-      totalCount: parseInt(totalCount, 10),
-      totalSizeBytes: parseInt(totalSizeBytes, 10),
+      totalCount,
+      totalSizeBytes,
     }
   }
 
@@ -975,7 +976,7 @@ export class FolderService {
         orderBy,
       })
     const folderObjectsCountResult = await this.ormService.db
-      .select({ count: sql<string>`count(*)` })
+      .select({ count: count(sql`*`) })
       .from(folderObjectsTable)
       .where(where)
 
@@ -1033,7 +1034,7 @@ export class FolderService {
 
       // Count items that would come before this page
       const previousCount = await this.ormService.db
-        .select({ count: sql<string>`count(*)` })
+        .select({ count: count(sql`*`) })
         .from(folderObjectsTable)
         .where(
           and(
@@ -1120,7 +1121,8 @@ export class FolderService {
           ),
         )
 
-      if (parseInt(previousCount[0]?.count ?? '0', 10) > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (previousCount[0]!.count > 0) {
         previousCursor = Buffer.from(
           JSON.stringify({
             lastId: first.id,
@@ -1134,7 +1136,8 @@ export class FolderService {
     return {
       result: page,
       meta: {
-        totalCount: parseInt(folderObjectsCountResult[0]?.count ?? '0', 10),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        totalCount: folderObjectsCountResult[0]!.count,
         nextCursor,
         previousCursor,
       },
@@ -1573,14 +1576,17 @@ export class FolderService {
       offset: offset ?? 0,
       limit: limit ?? 25,
     })
-    const usersCountResult = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
-      .from(usersTable)
-      .where(where)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const usersCountResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(usersTable)
+        .where(where)
+    )[0]!
 
     return {
       result: users.map((user) => ({ id: user.id, username: user.username })),
-      meta: { totalCount: parseInt(usersCountResult[0]?.count ?? '0', 10) },
+      meta: { totalCount: usersCountResult.count },
     }
   }
 

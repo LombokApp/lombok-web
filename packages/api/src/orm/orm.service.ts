@@ -287,9 +287,10 @@ export class OrmService {
           )
 
           for (const schema of Object.keys(schemaToTableMapping)) {
-            const tableNames = schemaToTableMapping[schema]
-              .map((t) => `"${t}"`)
-              .join(', ')
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const tableNames = schemaToTableMapping[schema]!.map(
+              (t) => `"${t}"`,
+            ).join(', ')
             const client = await this.client.connect()
             try {
               await client.query('BEGIN')

@@ -271,7 +271,7 @@ export class EventService {
     // })
 
     await db.transaction(async (tx) => {
-      const [event] = await tx
+      const events = await tx
         .insert(eventsTable)
         .values([
           {
@@ -285,6 +285,9 @@ export class EventService {
           },
         ])
         .returning()
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const event = events[0]!
 
       // regular event, so we should lookup apps that have subscribed to this event
       const eventTriggerIdentifier = isPlatformEmitter
@@ -676,7 +679,7 @@ export class EventService {
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })),
-      meta: { totalCount: eventsCountResult[0].count },
+      meta: { totalCount: eventsCountResult[0]?.count ?? 0 },
     }
   }
 }

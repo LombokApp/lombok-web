@@ -42,7 +42,7 @@ export class CoreAppService {
   }
 
   async startCoreAppThread() {
-    const appWorkerId = `embedded_worker_1_${crypto.randomUUID()}`
+    const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
     const coreApp = await this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, CORE_APP_IDENTIFIER),
     })
@@ -52,7 +52,7 @@ export class CoreAppService {
     }
     const isEmbeddedCoreAppEnabled =
       !this._platformConfig.disableEmbeddedCoreAppWorker
-    if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
+    if (!this.workers[instanceId] && isEmbeddedCoreAppEnabled) {
       // Resolve the core-app-worker entry: use src in dev, dist in production
       const isProduction = process.env.NODE_ENV === 'production'
       const workerEntry = isProduction
@@ -71,7 +71,7 @@ export class CoreAppService {
         status: 'ready' | 'error'
         port?: number
         error?: string
-        appWorkerId: string
+        instanceId: string
       }
 
       const handleStatusLine = (line: string) => {
@@ -81,8 +81,8 @@ export class CoreAppService {
             typeof evt === 'object' &&
             'type' in evt &&
             (evt as { type?: unknown }).type === 'core_worker_status' &&
-            'appWorkerId' in evt &&
-            (evt as { appWorkerId?: unknown }).appWorkerId === appWorkerId
+            'instanceId' in evt &&
+            (evt as { instanceId?: unknown }).instanceId === instanceId
           ) {
             if (evt.status === 'ready') {
               this.logger.debug(
@@ -194,7 +194,7 @@ export class CoreAppService {
         const workerDataPayload: CoreWorkerProcessDataPayload = {
           socketBaseUrl: `http://127.0.0.1:3000`,
           appToken,
-          appWorkerId,
+          instanceId,
           platformHost: this._platformConfig.platformHost,
           executionOptions,
         }

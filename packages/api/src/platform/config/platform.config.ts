@@ -64,7 +64,8 @@ export const platformConfig = registerAs('platform', () => {
         (val) =>
           val !== undefined &&
           Object.keys(val).every((key) =>
-            isValidDockerHostPathOrHttp(val[key].host),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            isValidDockerHostPathOrHttp(val[key]!.host),
           ),
         {
           message: 'DOCKER_HOST_CONFIG must be a valid JSON object',

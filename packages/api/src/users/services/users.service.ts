@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { and, eq, ilike, or, SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
@@ -104,14 +104,14 @@ export class UserService {
     })
 
     const [userCountResult] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
+      .select({ count: count(sql`*`) })
       .from(usersTable)
       .where(where)
 
     return {
       results: users,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      totalCount: parseInt(userCountResult!.count ?? '0', 10),
+      totalCount: userCountResult!.count,
     }
   }
 

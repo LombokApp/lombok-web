@@ -1505,6 +1505,28 @@ export interface components {
                         identifier: string;
                         label: string;
                         triggers?: ({
+                            onComplete?: {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            } | {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            }[];
+                        } & Omit<{
                             /** @enum {string} */
                             kind: "event";
                             identifier: string;
@@ -1519,7 +1541,19 @@ export interface components {
                                 /** @enum {string} */
                                 unit: "minutes" | "hours" | "days";
                             };
-                        })[];
+                        } | {
+                            /** @enum {string} */
+                            kind: "user_action";
+                            scope?: {
+                                user?: {
+                                    permissions: string;
+                                };
+                                folder?: {
+                                    /** Format: uuid */
+                                    folderId: string;
+                                };
+                            };
+                        }, "kind">)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1718,6 +1752,28 @@ export interface components {
                         identifier: string;
                         label: string;
                         triggers?: ({
+                            onComplete?: {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            } | {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            }[];
+                        } & Omit<{
                             /** @enum {string} */
                             kind: "event";
                             identifier: string;
@@ -1732,7 +1788,19 @@ export interface components {
                                 /** @enum {string} */
                                 unit: "minutes" | "hours" | "days";
                             };
-                        })[];
+                        } | {
+                            /** @enum {string} */
+                            kind: "user_action";
+                            scope?: {
+                                user?: {
+                                    permissions: string;
+                                };
+                                folder?: {
+                                    /** Format: uuid */
+                                    folderId: string;
+                                };
+                            };
+                        }, "kind">)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1940,6 +2008,28 @@ export interface components {
                         identifier: string;
                         label: string;
                         triggers?: ({
+                            onComplete?: {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            } | {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            }[];
+                        } & Omit<{
                             /** @enum {string} */
                             kind: "event";
                             identifier: string;
@@ -1954,7 +2044,19 @@ export interface components {
                                 /** @enum {string} */
                                 unit: "minutes" | "hours" | "days";
                             };
-                        })[];
+                        } | {
+                            /** @enum {string} */
+                            kind: "user_action";
+                            scope?: {
+                                user?: {
+                                    permissions: string;
+                                };
+                                folder?: {
+                                    /** Format: uuid */
+                                    folderId: string;
+                                };
+                            };
+                        }, "kind">)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2127,6 +2229,28 @@ export interface components {
                         identifier: string;
                         label: string;
                         triggers?: ({
+                            onComplete?: {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            } | {
+                                taskIdentifier: string;
+                                data?: {
+                                    success?: {
+                                        [key: string]: unknown;
+                                    };
+                                    failure?: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                            }[];
+                        } & Omit<{
                             /** @enum {string} */
                             kind: "event";
                             identifier: string;
@@ -2141,7 +2265,19 @@ export interface components {
                                 /** @enum {string} */
                                 unit: "minutes" | "hours" | "days";
                             };
-                        })[];
+                        } | {
+                            /** @enum {string} */
+                            kind: "user_action";
+                            scope?: {
+                                user?: {
+                                    permissions: string;
+                                };
+                                folder?: {
+                                    /** Format: uuid */
+                                    folderId: string;
+                                };
+                            };
+                        }, "kind">)[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2873,6 +3009,28 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 trigger: {
+                    onComplete?: {
+                        taskIdentifier: string;
+                        data?: {
+                            success?: {
+                                [key: string]: unknown;
+                            };
+                            failure?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    } | {
+                        taskIdentifier: string;
+                        data?: {
+                            success?: {
+                                [key: string]: unknown;
+                            };
+                            failure?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    }[];
+                } & Omit<{
                     /** @enum {string} */
                     kind: "event";
                     data: {
@@ -2917,7 +3075,7 @@ export interface components {
                         parentTaskId: string;
                         parentTaskIdentifier: string;
                     };
-                };
+                }, "kind">;
                 success?: boolean;
                 handlerIdentifier?: string;
                 data: {
@@ -2983,6 +3141,28 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 trigger: {
+                    onComplete?: {
+                        taskIdentifier: string;
+                        data?: {
+                            success?: {
+                                [key: string]: unknown;
+                            };
+                            failure?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    } | {
+                        taskIdentifier: string;
+                        data?: {
+                            success?: {
+                                [key: string]: unknown;
+                            };
+                            failure?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    }[];
+                } & Omit<{
                     /** @enum {string} */
                     kind: "event";
                     data: {
@@ -3027,7 +3207,7 @@ export interface components {
                         parentTaskId: string;
                         parentTaskIdentifier: string;
                     };
-                };
+                }, "kind">;
                 success?: boolean;
                 handlerIdentifier?: string;
                 data: {

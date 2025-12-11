@@ -29,15 +29,17 @@ export class ZodSerializerInterceptor implements NestInterceptor {
     }
     const loadedMetadata = await this.nestJSMetadata
     for (const c of loadedMetadata['@nestjs/swagger'].controllers) {
-      for (const controllerName of Object.keys(c[1])) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const c1 = c[1]!
+      for (const controllerName of Object.keys(c1)) {
         this.controllers[controllerName] = Object.keys(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          c[1][controllerName],
+          c1[controllerName],
         ).reduce(
           (acc, handlerName) => ({
             ...acc,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            [handlerName]: c[1][controllerName][handlerName],
+            [handlerName]: c1[controllerName][handlerName],
           }),
           {},
         )
@@ -62,7 +64,7 @@ export class ZodSerializerInterceptor implements NestInterceptor {
         const handler = context.getHandler()
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const handlerDefinition: { type: unknown } | undefined =
-          this.controllers[cls.name][handler.name]
+          this.controllers[cls.name]?.[handler.name]
 
         if (typeof res !== 'object' || res instanceof StreamableFile) {
           return res

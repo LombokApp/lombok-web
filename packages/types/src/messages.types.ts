@@ -1,4 +1,4 @@
-import type { JsonSerializableObject } from './apps.types'
+import type { JsonSerializableObject } from './json.types'
 import type { LogEntryLevel } from './platform.types'
 
 export enum FolderPushMessage {

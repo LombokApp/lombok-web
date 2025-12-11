@@ -63,10 +63,11 @@ export async function readFileMetadata(
         const match = line.match(/^([^\s]+)\s+(\w+)\s+(\d+)\s+(.*)$/)
         if (match) {
           const [, tagName, type, count, value] = match
-          metadata[tagName] = {
-            type,
-            count: parseInt(count, 10),
-            value: value.trim(),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          metadata[tagName!] = {
+            type: type ?? '',
+            count: parseInt(count ?? '0', 10),
+            value: value?.trim() ?? '',
           }
         }
       }
@@ -107,7 +108,7 @@ export function parseOrientationToNumeric(orientation: string): number {
   // Check if it's an Exif orientation description
   const normalizedOrientation = orientation.toLowerCase().trim()
   if (normalizedOrientation in exifOrientationMap) {
-    return exifOrientationMap[normalizedOrientation]
+    return exifOrientationMap[normalizedOrientation] ?? 0
   }
 
   // Fallback: Extract the rotation value from the orientation string (legacy format)
@@ -116,7 +117,7 @@ export function parseOrientationToNumeric(orientation: string): number {
     return 0
   }
 
-  const degrees = parseInt(rotationMatch[1], 10)
+  const degrees = parseInt(rotationMatch[1] ?? '0', 10)
   const direction = rotationMatch[2]
 
   // Convert to position number (0-359)

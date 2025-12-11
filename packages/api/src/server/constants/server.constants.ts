@@ -94,7 +94,8 @@ export const CONFIGURATION_KEYS_MAP = CONFIGURATION_KEYS.reduce<
 export const PUBLIC_SERVER_CONFIGURATION_KEYS = Object.keys(
   CONFIGURATION_KEYS_MAP,
 ).reduce<typeof CONFIGURATION_KEYS_MAP>((acc, nextKey) => {
-  return CONFIGURATION_KEYS_MAP[nextKey].private
+  return CONFIGURATION_KEYS_MAP[nextKey]?.private
     ? acc
-    : { ...acc, [nextKey]: CONFIGURATION_KEYS_MAP[nextKey] }
+    : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      { ...acc, [nextKey]: CONFIGURATION_KEYS_MAP[nextKey]! }
 }, {})

@@ -7,7 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
-import { eq, sql } from 'drizzle-orm'
+import { count, eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
@@ -48,10 +48,9 @@ export class AuthModule implements OnModuleInit {
     void this.ormService.waitForInit().then(async () => {
       if (this._platformConfig.initialUser) {
         const [userCountResult] = await this.ormService.db
-          .select({ count: sql<string | null>`count(*)` })
+          .select({ count: count(sql`*`) })
           .from(usersTable)
-        const userCount = parseInt(userCountResult?.count ?? '0', 10)
-        if (userCount === 0) {
+        if (userCountResult?.count === 0) {
           this.logger.log(
             'Creating initial user:',
             this._platformConfig.initialUser,

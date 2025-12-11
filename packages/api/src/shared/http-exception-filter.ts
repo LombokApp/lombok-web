@@ -51,7 +51,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Send a JSON response using the response object
     response.status(status).json({
-      statusCode: status,
+      code: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       serviceErrorKey,

@@ -505,7 +505,7 @@ void (async () => {
     logTiming('socket_connection_start', socketStartTime)
     const socket = io(`${workerModuleStartContext.serverBaseUrl}/apps`, {
       auth: {
-        appWorkerId: `worker-daemon--${workerModuleStartContext.workerIdentifier}--${workerModuleStartContext.executionId}`,
+        instanceId: `worker-daemon--${workerModuleStartContext.workerIdentifier}--${workerModuleStartContext.executionId}`,
         token: workerModuleStartContext.workerToken,
       },
       reconnection: false,

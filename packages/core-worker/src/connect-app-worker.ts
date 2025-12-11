@@ -20,7 +20,7 @@ interface ConnectAndPerformWorkResult {
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,
-  appWorkerId: string,
+  instanceId: string,
   appToken: string,
   taskHandlers: Record<
     string,
@@ -33,7 +33,7 @@ export const connectAndPerformWork = (
   // log({ message: 'Connecting...', data: { connectURL, taskIdentifiers } })
   const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
-      appWorkerId,
+      instanceId,
       token: appToken,
       handledTaskIdentifiers: taskIdentifiers,
     },
@@ -61,7 +61,7 @@ export const connectAndPerformWork = (
         level: LogEntryLevel.DEBUG,
         message: `Worker disconnected - Reason: ${reason}`,
         data: {
-          appWorkerId,
+          instanceId,
         },
       })
       resolve()
@@ -153,7 +153,7 @@ export const connectAndPerformWork = (
         message: 'Core app worker websocket error',
         level: LogEntryLevel.ERROR,
         data: {
-          appWorkerId,
+          instanceId,
           errorObj: JSON.parse(
             serializeWorkerError(error),
           ) as JsonSerializableObject,
