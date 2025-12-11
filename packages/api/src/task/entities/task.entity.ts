@@ -1,12 +1,12 @@
 import type {
-  JsonSerializableObject,
   StorageAccessPolicy,
   SystemLogEntry,
   TargetLocationContext,
-  TaskInputData,
+  TaskData,
   TaskLogEntry,
   TaskTrigger,
 } from '@lombokapp/types'
+import type { JsonSerializableObject } from '@lombokapp/types/json.types'
 import { sql } from 'drizzle-orm'
 import {
   boolean,
@@ -55,7 +55,7 @@ export const tasksTable = pgTable(
     ownerIdentifier: text('ownerIdentifier').notNull(), // core, app:core, app:other, ...
     taskIdentifier: text('taskIdentifier').notNull(),
     taskDescription: text('taskDescription').notNull(),
-    data: jsonb('data').notNull().$type<TaskInputData>(),
+    data: jsonb('data').notNull().$type<TaskData>(),
     trigger: jsonb('trigger').$type<TaskTrigger>().notNull(),
     targetUserId: uuid('targetUserId'),
     targetLocation: jsonb('targetLocation').$type<TargetLocationContext>(),

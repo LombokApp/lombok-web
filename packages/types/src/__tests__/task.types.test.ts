@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'bun:test'
+import { PlatformObjectAddedEventTriggerIdentifier } from 'src/events.types'
 import type { SafeParseReturnType } from 'zod'
 
-import { storageAccessPolicySchema, taskInputDataSchema } from '../task.types'
+import type { TaskTriggerConfig } from '../task.types'
+import {
+  storageAccessPolicySchema,
+  taskConfigSchema,
+  taskDataSchema,
+} from '../task.types'
 
 const expectZodSuccess = (result: SafeParseReturnType<unknown, unknown>) => {
   try {
@@ -41,9 +47,9 @@ const expectZodFailure = (result: SafeParseReturnType<unknown, unknown>) => {
 }
 
 describe('task.types', () => {
-  describe('taskInputDataSchema', () => {
+  describe('taskDataSchema', () => {
     it('accepts an empty object', () => {
-      const result = taskInputDataSchema.safeParse({})
+      const result = taskDataSchema.safeParse({})
       expectZodSuccess(result)
     })
 
@@ -52,7 +58,7 @@ describe('task.types', () => {
         message: 'failed',
         code: 500,
       }
-      const result = taskInputDataSchema.safeParse(valid)
+      const result = taskDataSchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
@@ -69,12 +75,12 @@ describe('task.types', () => {
           },
         },
       }
-      const result = taskInputDataSchema.safeParse(valid)
+      const result = taskDataSchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
     it('rejects non-object top-level values', () => {
-      const result = taskInputDataSchema.safeParse(123)
+      const result = taskDataSchema.safeParse(123)
       expectZodFailure(result)
     })
   })
@@ -253,6 +259,337 @@ describe('task.types', () => {
         methods: ['GET'],
       }
       const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+  })
+
+  describe('taskOnCompleteConfigSchema', () => {
+    it('should validate task with a single onComplete handler config', () => {
+      const triggers: TaskTriggerConfig[] = [
+        {
+          kind: 'schedule',
+          config: {
+            interval: 15,
+            unit: 'minutes',
+          },
+          onComplete: {
+            taskIdentifier: 'test_task',
+            data: {
+              success: {
+                someKey: '{{task.result.someKey}}',
+              },
+              failure: {
+                someKey: '{{task.result.someOtherKey}}',
+              },
+            },
+          },
+        },
+      ]
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers,
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with a single onComplete handler config with no data config', () => {
+      const triggers: TaskTriggerConfig[] = [
+        {
+          kind: 'schedule',
+          config: {
+            interval: 15,
+            unit: 'minutes',
+          },
+          onComplete: {
+            taskIdentifier: 'test_task',
+          },
+        },
+      ]
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers,
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with a single onComplete handler config with no just a success data config', () => {
+      const triggers: TaskTriggerConfig[] = [
+        {
+          kind: 'schedule',
+          config: {
+            interval: 15,
+            unit: 'minutes',
+          },
+          onComplete: {
+            taskIdentifier: 'test_task',
+            data: {
+              success: {
+                someKey: '{{task.result.someKey}}',
+              },
+            },
+          },
+        },
+      ]
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers,
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with a single onComplete handler config with no just a failure data config', () => {
+      const triggers: TaskTriggerConfig[] = [
+        {
+          kind: 'schedule',
+          config: {
+            interval: 15,
+            unit: 'minutes',
+          },
+          onComplete: {
+            taskIdentifier: 'test_task',
+            data: {
+              failure: {
+                someKey: '{{task.result.someKey}}',
+              },
+            },
+          },
+        },
+      ]
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers,
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with an array of onComplete handler configs', () => {
+      const triggers: TaskTriggerConfig[] = [
+        {
+          kind: 'schedule',
+          config: {
+            interval: 15,
+            unit: 'minutes',
+          },
+          onComplete: [
+            {
+              taskIdentifier: 'test_task',
+              data: {
+                success: {
+                  someKey: '{{task.result.someKey}}',
+                },
+              },
+            },
+            {
+              taskIdentifier: 'test_taskk',
+              data: {
+                success: {
+                  someKey: '{{task.result.someKey}}',
+                },
+                failure: {
+                  someOtherKey: '{{task.error.someOtherKey}}',
+                },
+              },
+            },
+          ],
+        },
+      ]
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers,
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('taskConfigSchema', () => {
+    it('should validate complete task config', () => {
+      const validTask = {
+        identifier: 'test_task',
+        label: 'Test Task',
+        description: 'A test task',
+        triggers: [
+          { kind: 'event', identifier: 'platform:worker_task_enqueued' },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'test-worker',
+        },
+      }
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate minimal task config', () => {
+      const validTask = {
+        identifier: 'test_task',
+        label: 'Test Task',
+        description: 'A test task',
+        handler: {
+          type: 'external',
+        },
+      }
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should reject task without required fields', () => {
+      const invalidTask = {
+        identifier: 'test_task',
+        // missing label and description and triggers
+      }
+      const result = taskConfigSchema.safeParse(invalidTask)
+      expectZodFailure(result)
+    })
+
+    it('should validate task with event trigger and data', () => {
+      const validTask = {
+        identifier: 'event_task',
+        label: 'Event Task',
+        description: 'Task triggered by event',
+        triggers: [
+          {
+            kind: 'event',
+            identifier: 'custom_event',
+            data: {
+              foo: 'bar',
+            },
+          },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'event-worker',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with schedule trigger', () => {
+      const validTask = {
+        identifier: 'scheduled_task',
+        label: 'Scheduled Task',
+        description: 'Task triggered on a schedule',
+        triggers: [
+          {
+            kind: 'schedule',
+            config: {
+              interval: 15,
+              unit: 'minutes',
+            },
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should validate task with multiple trigger types', () => {
+      const validTask = {
+        identifier: 'multi_trigger_task',
+        label: 'Multi Trigger Task',
+        description: 'Task with event and schedule triggers',
+        triggers: [
+          {
+            kind: 'event',
+            identifier: PlatformObjectAddedEventTriggerIdentifier,
+          },
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+          },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'multi-worker',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(validTask)
+      expectZodSuccess(result)
+    })
+
+    it('should reject task with schedule trigger missing config', () => {
+      const invalidTask = {
+        identifier: 'invalid_schedule_task',
+        label: 'Invalid Schedule Task',
+        description: 'Schedule trigger without config',
+        triggers: [
+          {
+            kind: 'schedule',
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(
+        invalidTask as unknown as typeof invalidTask,
+      )
+      expectZodFailure(result)
+    })
+
+    it('should reject task with event trigger using invalid identifier', () => {
+      const invalidTask = {
+        identifier: 'invalid_event_task',
+        label: 'Invalid Event Task',
+        description: 'Event trigger with invalid identifier',
+        triggers: [
+          {
+            kind: 'event',
+            identifier: 'INVALID-EVENT',
+          },
+        ],
+        handler: {
+          type: 'worker',
+          identifier: 'event-worker',
+        },
+      }
+
+      const result = taskConfigSchema.safeParse(invalidTask)
       expectZodFailure(result)
     })
   })

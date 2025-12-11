@@ -1,10 +1,10 @@
 import {
-  JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   RequeueConfig,
   StorageAccessPolicy,
   SystemLogEntry,
 } from '@lombokapp/types'
+import { JsonSerializableObject } from '@lombokapp/types/json.types'
 import { addMs } from '@lombokapp/utils'
 import {
   forwardRef,

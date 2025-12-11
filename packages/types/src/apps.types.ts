@@ -1,11 +1,9 @@
 import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
-import {
-  eventIdentifierSchema,
-  platformPrefixedEventIdentifierSchema,
-} from './events.types'
-import type { StorageAccessPolicy } from './task.types'
+import { platformPrefixedEventIdentifierSchema } from './events.types'
+import { jsonSerializableObjectDTOSchema } from './json.types'
+import { taskConfigSchema, taskIdentifierSchema } from './task.types'
 
 export const CORE_APP_IDENTIFIER = 'core'
 
@@ -31,34 +29,6 @@ export const AppSocketMessage = z.enum([
 ])
 
 export const EXECUTE_SYSTEM_REQUEST_MESSAGE = 'EXECUTE_SYSTEM_REQUEST'
-
-export type JsonSerializablePrimitive = string | number | boolean | null
-
-export type JsonSerializableValue =
-  | JsonSerializablePrimitive
-  | JsonSerializableValue[]
-  | { [key: string]: JsonSerializableValue }
-
-export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
-  z.lazy(() =>
-    z.union([
-      z.string(),
-      z.number(),
-      z.boolean(),
-      z.null(),
-      z.array(jsonSerializableValueSchema),
-      z.record(jsonSerializableValueSchema),
-    ]),
-  )
-
-export const jsonSerializableObjectDTOSchema = z.record(
-  z.string(),
-  jsonSerializableValueSchema,
-)
-
-export type JsonSerializableObject = z.infer<
-  typeof jsonSerializableObjectDTOSchema
->
 
 export const appMessageErrorSchema = z.object({
   code: z.union([z.number(), z.string()]),
@@ -93,64 +63,6 @@ export const paramConfigSchema = z.object({
   type: z.nativeEnum(ConfigParamType),
   default: z.union([z.string(), z.number(), z.boolean()]).optional().nullable(),
 })
-
-export const genericIdentifierSchema = z
-  .string()
-  .nonempty()
-  .regex(/^[a-z_]+$/)
-
-export const taskIdentifierSchema = genericIdentifierSchema
-
-export const taskEventTriggerConfigSchema = z.object({
-  kind: z.literal('event'),
-  identifier: eventIdentifierSchema.or(platformPrefixedEventIdentifierSchema),
-  data: jsonSerializableObjectDTOSchema.optional(),
-})
-
-export type TaskEventTriggerConfig = z.infer<
-  typeof taskEventTriggerConfigSchema
->
-
-export const taskScheduleTriggerConfigSchema = z.object({
-  kind: z.literal('schedule'),
-  config: z.object({
-    interval: z.number().int().positive(),
-    unit: z.enum(['minutes', 'hours', 'days']),
-  }),
-})
-
-export type TaskScheduleTriggerConfig = z.infer<
-  typeof taskScheduleTriggerConfigSchema
->
-
-export const taskTriggerConfigSchema = z.discriminatedUnion('kind', [
-  taskEventTriggerConfigSchema,
-  taskScheduleTriggerConfigSchema,
-])
-
-export type TaskTriggerConfig = z.infer<typeof taskTriggerConfigSchema>
-
-export const taskConfigSchema = z
-  .object({
-    identifier: taskIdentifierSchema,
-    label: z.string().nonempty().min(1).max(128),
-    triggers: taskTriggerConfigSchema.array().optional(),
-    description: z.string(),
-    handler: z.discriminatedUnion('type', [
-      z.object({
-        type: z.literal('worker'),
-        identifier: z.string().nonempty(),
-      }),
-      z.object({
-        type: z.literal('docker'),
-        identifier: z.string().nonempty(),
-      }),
-      z.object({
-        type: z.literal('external'),
-      }),
-    ]),
-  })
-  .strict()
 
 export const appUILinkSchema = z.object({
   label: z.string(),
@@ -545,15 +457,6 @@ export const appMetricsSchema = z.object({
     last10Minutes: z.number(),
   }),
 })
-
-export interface ExecuteAppDockerJobOptions {
-  appIdentifier: string
-  profileIdentifier: string
-  jobIdentifier: string
-  jobData: JsonSerializableObject
-  storageAccessPolicy?: StorageAccessPolicy
-  asyncTaskId?: string
-}
 
 export type AppTaskConfig = z.infer<typeof taskConfigSchema>
 

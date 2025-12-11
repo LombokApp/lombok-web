@@ -1,15 +1,57 @@
 import z from 'zod'
 
-import {
-  type JsonSerializableObject,
-  jsonSerializableObjectDTOSchema,
-} from './apps.types'
+import { platformPrefixedEventIdentifierSchema } from './events.types'
 import { targetLocationContextDTOSchema } from './folder.types'
+import { genericIdentifierSchema } from './identifiers.types'
+import type { JsonSerializableObject } from './json.types'
+import { jsonSerializableObjectDTOSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 
-export type TaskInputData = JsonSerializableObject
+export const taskIdentifierSchema = genericIdentifierSchema
 
-export const taskInputDataSchema: z.ZodType<TaskInputData> =
+export const taskUserActionTriggerConfigSchema = z.object({
+  kind: z.literal('user_action'),
+  scope: z
+    .object({
+      user: z
+        .object({
+          permissions: z.string(),
+        })
+        .optional(),
+      folder: z
+        .object({
+          folderId: z.string().uuid(),
+        })
+        .optional(),
+    })
+    .optional(),
+})
+
+export const taskEventTriggerConfigSchema = z.object({
+  kind: z.literal('event'),
+  identifier: genericIdentifierSchema.or(platformPrefixedEventIdentifierSchema),
+  data: jsonSerializableObjectDTOSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
+})
+
+export type TaskEventTriggerConfig = z.infer<
+  typeof taskEventTriggerConfigSchema
+>
+
+export const taskScheduleTriggerConfigSchema = z.object({
+  kind: z.literal('schedule'),
+  config: z.object({
+    interval: z.number().int().positive(),
+    unit: z.enum(['minutes', 'hours', 'days']),
+  }),
+})
+
+export type TaskScheduleTriggerConfig = z.infer<
+  typeof taskScheduleTriggerConfigSchema
+>
+
+export type TaskData = JsonSerializableObject
+
+export const taskDataSchema: z.ZodType<TaskData> =
   jsonSerializableObjectDTOSchema
 
 export const taskSystemLogEntryDTOSchema = z.object({
@@ -58,6 +100,23 @@ export const storageAccessPolicySchema = storageAccessPolicyEntrySchema.array()
 
 export type StorageAccessPolicy = z.infer<typeof storageAccessPolicySchema>
 
+export const taskOnCompleteConfigSchema = z.object({
+  taskIdentifier: taskIdentifierSchema,
+  data: z
+    .object({
+      success: jsonSerializableObjectDTOSchema.optional(), // { "someKey": "{{task.result.someKey}}" }
+      failure: jsonSerializableObjectDTOSchema.optional(), // { "someOtherKey": "{{task.error.someOtherKey}}" }
+    })
+    .optional(),
+  // keepTargetLocation: z.boolean().optional(), // default true
+})
+
+export const taskOnCompleteConfigBaseSchema = z.object({
+  onComplete: z
+    .union([taskOnCompleteConfigSchema, taskOnCompleteConfigSchema.array()])
+    .optional(),
+})
+
 export const eventTriggerDataSchema = z.object({
   eventId: z.string().uuid(),
   eventIdentifier: z.string(),
@@ -81,29 +140,62 @@ export const taskChildTriggerDataSchema = z.object({
   parentTaskIdentifier: z.string(),
 })
 
-export const taskTriggerSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('event'),
-    data: eventTriggerDataSchema,
-  }),
-  z.object({
-    kind: z.literal('schedule'),
-    data: scheduleTriggerDataSchema,
-  }),
-  z.object({
-    kind: z.literal('user_action'),
-    data: userActionTriggerDataSchema,
-  }),
-  z.object({
-    kind: z.literal('app_action'),
-  }),
-  z.object({
-    kind: z.literal('task_child'),
-    data: taskChildTriggerDataSchema,
-  }),
-])
+export const taskInvocationSchema = taskOnCompleteConfigBaseSchema.and(
+  z.discriminatedUnion('kind', [
+    z.object({
+      kind: z.literal('event'),
+      data: eventTriggerDataSchema,
+    }),
+    z.object({
+      kind: z.literal('schedule'),
+      data: scheduleTriggerDataSchema,
+    }),
+    z.object({
+      kind: z.literal('user_action'),
+      data: userActionTriggerDataSchema,
+    }),
+    z.object({
+      kind: z.literal('app_action'),
+    }),
+    z.object({
+      kind: z.literal('task_child'),
+      data: taskChildTriggerDataSchema,
+    }),
+  ]),
+)
+export const taskTriggerConfigSchema = taskOnCompleteConfigBaseSchema.and(
+  z.discriminatedUnion('kind', [
+    taskEventTriggerConfigSchema,
+    taskScheduleTriggerConfigSchema,
+    taskUserActionTriggerConfigSchema,
+  ]),
+)
 
-export type TaskTrigger = z.infer<typeof taskTriggerSchema>
+export type TaskTriggerConfig = z.infer<typeof taskTriggerConfigSchema>
+
+export const taskConfigSchema = z
+  .object({
+    identifier: taskIdentifierSchema,
+    label: z.string().nonempty().min(1).max(128),
+    triggers: taskTriggerConfigSchema.array().optional(),
+    description: z.string(),
+    handler: z.discriminatedUnion('type', [
+      z.object({
+        type: z.literal('worker'),
+        identifier: z.string().nonempty(),
+      }),
+      z.object({
+        type: z.literal('docker'),
+        identifier: z.string().nonempty(),
+      }),
+      z.object({
+        type: z.literal('external'),
+      }),
+    ]),
+  })
+  .strict()
+
+export type TaskTrigger = z.infer<typeof taskInvocationSchema>
 
 export interface EventTaskTrigger {
   kind: 'event'
@@ -114,10 +206,10 @@ export const taskDTOSchema = z.object({
   id: z.string().uuid(),
   taskIdentifier: z.string(),
   ownerIdentifier: z.string(),
-  trigger: taskTriggerSchema,
+  trigger: taskInvocationSchema,
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),
-  data: taskInputDataSchema,
+  data: taskDataSchema,
   targetLocation: targetLocationContextDTOSchema.optional(),
   error: z
     .object({
