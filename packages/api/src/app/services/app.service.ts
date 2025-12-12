@@ -845,7 +845,7 @@ export class AppService {
       } else {
         this.logger.warn(
           `APP PARSE ERROR - (dir: '${directoryName}'): App config is invalid`,
-          app.validation.error?.errors,
+          JSON.stringify(app.validation.error?.errors, null, 2),
         )
       }
     } catch (error) {

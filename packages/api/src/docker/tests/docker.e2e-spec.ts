@@ -68,9 +68,9 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
     data: {},
     trigger: {
       kind: 'event',
-      data: {
+      eventIdentifier: 'testapp:test_job',
+      invokeContext: {
         eventId,
-        eventIdentifier: 'testapp:test_job',
         emitterIdentifier: 'testapp',
         eventData: {},
       },
@@ -200,9 +200,9 @@ const triggerAppDockerHandledTask = async (
       taskLog: [],
       trigger: {
         kind: 'event',
-        data: {
+        eventIdentifier: PlatformEvent.docker_task_enqueued,
+        invokeContext: {
           eventId: events[0]!.id,
-          eventIdentifier: PlatformEvent.docker_task_enqueued,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {
             innerTaskId: expect.any(String),

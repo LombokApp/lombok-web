@@ -300,7 +300,8 @@ describe('Folder Objects', () => {
         params: {
           path: {
             folderId: testFolder.folder.id,
-            objectKey: initialListObjectsResponse.data.result[0].objectKey,
+            objectKey:
+              initialListObjectsResponse.data.result[0]?.objectKey ?? '',
           },
         },
       },

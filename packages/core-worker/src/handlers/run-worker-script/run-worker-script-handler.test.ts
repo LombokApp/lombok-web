@@ -5,6 +5,7 @@ import type {
   LogEntryLevel,
   SignedURLsRequestMethod,
   TaskDTO,
+  TaskInvocation,
 } from '@lombokapp/types'
 import { PLATFORM_IDENTIFIER, PlatformEvent } from '@lombokapp/types'
 import {
@@ -231,18 +232,18 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
 
   it('completes run-worker-script task successfully', async () => {
     // Mock run_worker_script task and the underlying worker script task
-    const workerScriptTask = {
+    const workerScriptTask: TaskDTO = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
-        kind: 'event' as const,
-        data: {
+        kind: 'event',
+        eventIdentifier: PlatformEvent.object_added,
+        invokeContext: {
           eventId: uuidV4(),
-          eventIdentifier: PlatformEvent.object_added,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {},
         },
-      },
+      } as TaskInvocation,
       taskDescription: 'object_added',
       systemLog: [],
       taskLog: [],
@@ -261,13 +262,13 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       ownerIdentifier: 'core-worker',
       trigger: {
         kind: 'event',
-        data: {
+        eventIdentifier: PlatformEvent.object_added,
+        invokeContext: {
           eventId: uuidV4(),
-          eventIdentifier: PlatformEvent.object_added,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {},
         },
-      },
+      } as TaskInvocation,
       systemLog: [],
       taskLog: [],
       taskDescription: 'run_worker_script',

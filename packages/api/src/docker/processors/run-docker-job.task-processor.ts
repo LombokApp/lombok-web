@@ -36,8 +36,8 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
         'RunDockerJobProcessor requires event trigger',
       )
     }
-    const triggerData = task.trigger.data
-    const eventData = triggerData.eventData as {
+    const invokeContext = task.trigger.invokeContext
+    const eventData = invokeContext.eventData as {
       innerTaskId: string
       profileIdentifier: string
       jobClassIdentifier: string
@@ -57,7 +57,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     // Have the executor tell us if it accepted the job
     const { accepted } = await this.appService.executeAppDockerJob({
       appIdentifier: eventData.appIdentifier,
-      jobData: triggerData.targetLocation ?? {},
+      jobData: invokeContext.targetLocation ?? {},
       profileIdentifier: eventData.profileIdentifier,
       jobIdentifier: eventData.jobClassIdentifier,
       asyncTaskId: task.id,

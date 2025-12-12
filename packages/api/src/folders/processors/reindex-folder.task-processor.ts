@@ -14,7 +14,9 @@ export class ReindexFolderProcessor extends BaseProcessor<PlatformTaskName.Reind
   }
   async run(task: Task) {
     const userId =
-      task.trigger.kind === 'user_action' ? task.trigger.data.userId : undefined
+      task.trigger.kind === 'user_action'
+        ? task.trigger.invokeContext.userId
+        : undefined
     if (!task.targetLocation?.folderId || !userId) {
       throw new Error(
         `Missing folder id or calling user id in "${PlatformTaskName.ReindexFolder}" task processing.`,

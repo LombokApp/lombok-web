@@ -187,24 +187,25 @@ export class PlatformTaskService {
               result: processorResult?.result,
             })
           }
+          return startedTask
         })
         .catch((error: Error | TaskProcessorError) => {
           // handle failure
-          const errorTimestamp = new Date()
           const isCaughtError = error instanceof TaskProcessorError
-          return this.ormService.db
-            .update(tasksTable)
-            .set({
-              error: {
-                code: isCaughtError ? error.code : error.name,
-                message: error.message,
-                details: isCaughtError ? error.details : undefined,
-              },
-              updatedAt: errorTimestamp,
-            })
-            .where(eq(tasksTable.id, taskId))
+
+          return this.taskService.registerTaskCompleted(taskId, {
+            success: false,
+            error: {
+              code: isCaughtError ? error.code : error.name,
+              message: error.message,
+              details: isCaughtError ? error.details : undefined,
+            },
+          })
         })
-        .finally(() => {
+        .then((updatedTask) => {
+          if (updatedTask.completedAt && !updatedTask.success) {
+            this.logger.warn('Platform task error:', { updatedTask })
+          }
           // send a folder socket message to the frontend that the task status was updated
           if (startedTask.targetLocation?.folderId) {
             // notify folder rooms of updated task
@@ -212,7 +213,7 @@ export class PlatformTaskService {
               startedTask.targetLocation.folderId,
               FolderPushMessage.TASK_UPDATED,
               {
-                task: startedTask,
+                updatedTask,
               },
             )
           }

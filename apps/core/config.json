@@ -17,11 +17,20 @@
       "triggers": [
         {
           "kind": "event",
-          "identifier": "platform:object_added",
-          "data": {
+          "eventIdentifier": "platform:object_added",
+          "dataTemplate": {
             "folderId": "{{event.data.folderId}}",
             "objectKey": "{{event.data.objectKey}}"
+          },
+          "onComplete": {
+            "taskIdentifier": "analyze_object",
+            "dataTemplate": {
+              "success": {
+                "someKey": "{{task.result.someKey}}"
+              }
+            }
           }
+
         }
       ],
       "handler": {
@@ -35,8 +44,8 @@
       "triggers": [
         {
           "kind": "event",
-          "identifier": "platform:worker_task_enqueued",
-          "data": {
+          "eventIdentifier": "platform:worker_task_enqueued",
+          "dataTemplate": {
             "innerTaskId": "{{event.data.innerTaskId}}",
             "appIdentifier": "{{event.data.appIdentifier}}",
             "workerIdentifier": "{{event.data.workerIdentifier}}"

@@ -274,7 +274,7 @@ describe('task.types', () => {
           },
           onComplete: {
             taskIdentifier: 'test_task',
-            data: {
+            dataTemplate: {
               success: {
                 someKey: '{{task.result.someKey}}',
               },
@@ -336,7 +336,7 @@ describe('task.types', () => {
           },
           onComplete: {
             taskIdentifier: 'test_task',
-            data: {
+            dataTemplate: {
               success: {
                 someKey: '{{task.result.someKey}}',
               },
@@ -368,7 +368,7 @@ describe('task.types', () => {
           },
           onComplete: {
             taskIdentifier: 'test_task',
-            data: {
+            dataTemplate: {
               failure: {
                 someKey: '{{task.result.someKey}}',
               },
@@ -401,7 +401,7 @@ describe('task.types', () => {
           onComplete: [
             {
               taskIdentifier: 'test_task',
-              data: {
+              dataTemplate: {
                 success: {
                   someKey: '{{task.result.someKey}}',
                 },
@@ -409,7 +409,7 @@ describe('task.types', () => {
             },
             {
               taskIdentifier: 'test_taskk',
-              data: {
+              dataTemplate: {
                 success: {
                   someKey: '{{task.result.someKey}}',
                 },
@@ -443,7 +443,7 @@ describe('task.types', () => {
         label: 'Test Task',
         description: 'A test task',
         triggers: [
-          { kind: 'event', identifier: 'platform:worker_task_enqueued' },
+          { kind: 'event', eventIdentifier: 'platform:worker_task_enqueued' },
         ],
         handler: {
           type: 'worker',
@@ -484,8 +484,8 @@ describe('task.types', () => {
         triggers: [
           {
             kind: 'event',
-            identifier: 'custom_event',
-            data: {
+            eventIdentifier: 'custom_event',
+            dataTemplate: {
               foo: 'bar',
             },
           },
@@ -531,7 +531,7 @@ describe('task.types', () => {
         triggers: [
           {
             kind: 'event',
-            identifier: PlatformObjectAddedEventTriggerIdentifier,
+            eventIdentifier: PlatformObjectAddedEventTriggerIdentifier,
           },
           {
             kind: 'schedule',
@@ -580,7 +580,7 @@ describe('task.types', () => {
         triggers: [
           {
             kind: 'event',
-            identifier: 'INVALID-EVENT',
+            eventIdentifier: 'INVALID-EVENT',
           },
         ],
         handler: {

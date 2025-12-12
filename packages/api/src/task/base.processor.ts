@@ -1,4 +1,4 @@
-import type { JsonSerializableObject, TaskTrigger } from '@lombokapp/types'
+import type { JsonSerializableObject, TaskInvocation } from '@lombokapp/types'
 import { getApp } from 'src/shared/app-helper'
 
 import type { Task } from './entities/task.entity'
@@ -32,7 +32,7 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
     task: Task,
   ): Promise<T>
 
-  abstract run(task: Task, trigger: TaskTrigger): Promise<void>
+  abstract run(task: Task, trigger: TaskInvocation): Promise<void>
 
   async registerProcessor() {
     const app = await getApp()

@@ -290,9 +290,10 @@ export const appConfigSchema = z
   })
   .strict()
   .superRefine((value, ctx) => {
-    const workerKeyArray = Object.keys(value.workers ?? {})
-    const workerKeys = new Set(workerKeyArray)
-
+    const workerIdentifiersArray = Object.keys(value.workers ?? {})
+    const workerIdentifiers = new Set(workerIdentifiersArray)
+    const taskIdentifiersArray = value.tasks?.map((t) => t.identifier) ?? []
+    const taskIdentifiers = new Set(taskIdentifiersArray)
     const containerWorkerJobDefinitions = Object.keys(
       value.containerProfiles ?? {},
     ).reduce<Record<string, { workerIndex: number; jobIdentifier: string }[]>>(
@@ -346,11 +347,11 @@ export const appConfigSchema = z
     value.tasks?.forEach((task, index) => {
       if (
         task.handler.type === 'worker' &&
-        !workerKeys.has(task.handler.identifier)
+        !workerIdentifiers.has(task.handler.identifier)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Unknown worker "${task.handler.identifier}". Must be one of: ${workerKeyArray.length > 0 ? workerKeyArray.join(', ') : '(none)'}`,
+          message: `Unknown worker "${task.handler.identifier}" in task "${task.identifier}". Must be one of: ${workerIdentifiersArray.length > 0 ? workerIdentifiersArray.join(', ') : '(none)'}`,
           path: ['tasks', index, 'worker'],
         })
       } else if (task.handler.type === 'docker') {
@@ -387,6 +388,31 @@ export const appConfigSchema = z
           })
         }
       }
+
+      ;(task.triggers ?? []).forEach((trigger, triggerIndex) => {
+        ;(Array.isArray(trigger.onComplete)
+          ? trigger.onComplete
+          : trigger.onComplete
+            ? [trigger.onComplete]
+            : []
+        ).forEach((onComplete, onCompleteIndex) => {
+          if (!taskIdentifiers.has(onComplete.taskIdentifier)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Unknown task "${onComplete.taskIdentifier}". Must be one of: ${taskIdentifiersArray.length > 0 ? taskIdentifiersArray.join(', ') : '(none)'}`,
+              path: [
+                'tasks',
+                index,
+                'triggers',
+                triggerIndex,
+                'onComplete',
+                ...(Array.isArray(trigger.onComplete) ? [onCompleteIndex] : []),
+                'taskIdentifier',
+              ],
+            })
+          }
+        })
+      })
     })
   })
 

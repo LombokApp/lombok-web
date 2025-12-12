@@ -36,8 +36,8 @@ const testAppDefinitions: AppConfig[] = [
         triggers: [
           {
             kind: 'event',
-            identifier: 'platform:worker_task_enqueued',
-            data: {
+            eventIdentifier: 'platform:worker_task_enqueued',
+            dataTemplate: {
               innerTaskId: '{{event.data.innerTaskId}}',
               appIdentifier: '{{event.data.appIdentifier}}',
               workerIdentifier: '{{event.data.workerIdentifier}}',
@@ -113,6 +113,129 @@ const testAppDefinitions: AppConfig[] = [
         ],
       },
     },
+  },
+  {
+    description: 'Test app for task lifecycle flows.',
+    identifier: 'tasklifecycle',
+    label: 'Task Lifecycle App',
+    requiresStorage: false,
+    permissions: {
+      platform: [],
+      user: [],
+      folder: [],
+    },
+    tasks: [
+      {
+        identifier: 'lifecycle_app_action_task',
+        label: 'App Action Task',
+        description: 'Created via triggerAppActionTask.',
+        handler: {
+          type: 'external',
+        },
+      },
+      {
+        identifier: 'lifecycle_schedule_task',
+        label: 'Schedule Task',
+        description: 'Runs on a schedule trigger.',
+        triggers: [
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      },
+      {
+        identifier: 'lifecycle_user_action_task',
+        label: 'User Action Task',
+        description: 'Triggered by a user action.',
+        handler: {
+          type: 'external',
+        },
+      },
+      {
+        identifier: 'lifecycle_on_complete',
+        label: 'On Complete Handler',
+        description: 'Runs after the parent task completes.',
+        handler: {
+          type: 'external',
+        },
+      },
+      {
+        identifier: 'lifecycle_parent_task_single_oncomplete',
+        label: 'Parent Event Task',
+        description:
+          'Triggered by an event registers a single onComplete handler.',
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'dummy_event_other',
+            dataTemplate: {
+              payload: '{{event.data.payload}}',
+            },
+            onComplete: {
+              taskIdentifier: 'lifecycle_on_complete',
+              dataTemplate: {
+                success: {
+                  inheritedPayload: '{{task.data.payload}}',
+                },
+              },
+            },
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      },
+      {
+        identifier: 'lifecycle_parent_task',
+        label: 'Parent Event Task',
+        description: 'Triggered by an event and chains an onComplete handler.',
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'dummy_event',
+            dataTemplate: {
+              payload: '{{event.data.payload}}',
+            },
+            onComplete: [
+              {
+                taskIdentifier: 'lifecycle_on_complete',
+                dataTemplate: {
+                  success: {
+                    inheritedPayload: '{{task.data.payload}}',
+                  },
+                },
+              },
+              {
+                taskIdentifier: 'lifecycle_chain_one',
+                dataTemplate: {
+                  success: {
+                    doubleInheritedPayload: '{{task.data.inheritedPayload}}',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+        handler: {
+          type: 'external',
+        },
+      },
+      {
+        identifier: 'lifecycle_chain_one',
+        label: 'On Complete Chain One',
+        description: 'First chain onComplete task.',
+        handler: {
+          type: 'external',
+        },
+      },
+    ],
   },
 ]
 

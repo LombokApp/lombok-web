@@ -4,8 +4,8 @@ import type {
   SystemLogEntry,
   TargetLocationContext,
   TaskData,
+  TaskInvocation,
   TaskLogEntry,
-  TaskTrigger,
 } from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
 import {
@@ -56,7 +56,7 @@ export const tasksTable = pgTable(
     taskIdentifier: text('taskIdentifier').notNull(),
     taskDescription: text('taskDescription').notNull(),
     data: jsonb('data').notNull().$type<TaskData>(),
-    trigger: jsonb('trigger').$type<TaskTrigger>().notNull(),
+    trigger: jsonb('trigger').$type<TaskInvocation>().notNull(),
     targetUserId: uuid('targetUserId'),
     targetLocation: jsonb('targetLocation').$type<TargetLocationContext>(),
     startedAt: timestamp('startedAt'),

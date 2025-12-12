@@ -2,7 +2,8 @@ import crypto from 'node:crypto'
 
 import { UnauthorizedException } from '@nestjs/common'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
-import { eq } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
+import { appsTable } from 'src/app/entities/app.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { ServerMetricsService } from 'src/server/services/server-metrics.service'
 import type { NewTask } from 'src/task/entities/task.entity'
@@ -51,24 +52,22 @@ describe('Server Metrics', () => {
 
     const metrics = await serverMetricsService.getServerMetrics(adminActor)
 
-    expect(Number(metrics.totalUsers)).toEqual(0)
-    expect(Number(metrics.sessionsCreatedPreviousWeek)).toEqual(0)
-    expect(Number(metrics.sessionsCreatedPrevious24Hours)).toEqual(0)
-    expect(Number(metrics.usersCreatedPreviousWeek)).toEqual(0)
-    expect(Number(metrics.totalFolders)).toEqual(0)
-    expect(Number(metrics.foldersCreatedPreviousWeek)).toEqual(0)
-    expect(Number(metrics.tasksCreatedPreviousDay)).toEqual(0)
-    expect(Number(metrics.tasksCreatedPreviousHour)).toEqual(0)
-    expect(Number(metrics.taskErrorsPreviousDay)).toEqual(0)
-    expect(Number(metrics.taskErrorsPreviousHour)).toEqual(0)
-    expect(Number(metrics.serverEventsEmittedPreviousDay)).toEqual(0)
-    expect(Number(metrics.serverEventsEmittedPreviousHour)).toEqual(0)
-    expect(Number(metrics.folderEventsEmittedPreviousDay)).toEqual(0)
-    expect(Number(metrics.folderEventsEmittedPreviousHour)).toEqual(0)
-    expect(Number(metrics.totalIndexedSizeBytes)).toEqual(0)
-    expect(
-      Number(metrics.totalIndexedSizeBytesAcrossStorageProvisions),
-    ).toEqual(0)
+    expect(metrics.totalUsers).toEqual(0)
+    expect(metrics.sessionsCreatedPreviousWeek).toEqual(0)
+    expect(metrics.sessionsCreatedPrevious24Hours).toEqual(0)
+    expect(metrics.usersCreatedPreviousWeek).toEqual(0)
+    expect(metrics.totalFolders).toEqual(0)
+    expect(metrics.foldersCreatedPreviousWeek).toEqual(0)
+    expect(metrics.tasksCreatedPreviousDay).toEqual(0)
+    expect(metrics.tasksCreatedPreviousHour).toEqual(0)
+    expect(metrics.taskErrorsPreviousDay).toEqual(0)
+    expect(metrics.taskErrorsPreviousHour).toEqual(0)
+    expect(metrics.serverEventsEmittedPreviousDay).toEqual(0)
+    expect(metrics.serverEventsEmittedPreviousHour).toEqual(0)
+    expect(metrics.folderEventsEmittedPreviousDay).toEqual(0)
+    expect(metrics.folderEventsEmittedPreviousHour).toEqual(0)
+    expect(metrics.totalIndexedSizeBytes).toEqual(0)
+    expect(metrics.totalIndexedSizeBytesAcrossStorageProvisions).toEqual(0)
     expect(metrics.provisionedStorage.totalCount).toEqual(0)
     expect(metrics.totalStorageProvisions).toEqual(0)
   })
@@ -83,22 +82,16 @@ describe('Server Metrics', () => {
 
     const baselineMetrics =
       await serverMetricsService.getServerMetrics(adminUser)
-    const baselineUsers = Number(baselineMetrics.totalUsers)
-    const baselineUsersCreatedWeek = Number(
-      baselineMetrics.usersCreatedPreviousWeek,
-    )
-    const baselineTasksDay = Number(baselineMetrics.tasksCreatedPreviousDay)
-    const baselineTasksHour = Number(baselineMetrics.tasksCreatedPreviousHour)
-    const baselineTaskErrorsDay = Number(baselineMetrics.taskErrorsPreviousDay)
-    const baselineTaskErrorsHour = Number(
-      baselineMetrics.taskErrorsPreviousHour,
-    )
-    const baselineServerEventsHour = Number(
-      baselineMetrics.serverEventsEmittedPreviousHour,
-    )
-    const baselineFolderEventsHour = Number(
-      baselineMetrics.folderEventsEmittedPreviousHour,
-    )
+    const baselineUsers = baselineMetrics.totalUsers
+    const baselineUsersCreatedWeek = baselineMetrics.usersCreatedPreviousWeek
+    const baselineTasksDay = baselineMetrics.tasksCreatedPreviousDay
+    const baselineTasksHour = baselineMetrics.tasksCreatedPreviousHour
+    const baselineTaskErrorsDay = baselineMetrics.taskErrorsPreviousDay
+    const baselineTaskErrorsHour = baselineMetrics.taskErrorsPreviousHour
+    const baselineServerEventsHour =
+      baselineMetrics.serverEventsEmittedPreviousHour
+    const baselineFolderEventsHour =
+      baselineMetrics.folderEventsEmittedPreviousHour
 
     await createTestUser(testModule!, {
       username: 'metricsuser2',
@@ -171,27 +164,33 @@ describe('Server Metrics', () => {
     const updatedMetrics =
       await serverMetricsService.getServerMetrics(adminUser)
 
-    expect(Number(updatedMetrics.totalUsers)).toEqual(baselineUsers + 1)
-    expect(Number(updatedMetrics.installedApps.totalCount)).toEqual(2)
-    expect(Number(updatedMetrics.usersCreatedPreviousWeek)).toEqual(
+    const installedAppsCount = (
+      await testModule!.services.ormService.db
+        .select({ count: count() })
+        .from(appsTable)
+    )[0]!
+
+    expect(updatedMetrics.totalUsers).toEqual(baselineUsers + 1)
+    expect(updatedMetrics.installedApps.totalCount).toEqual(
+      installedAppsCount.count,
+    )
+    expect(updatedMetrics.usersCreatedPreviousWeek).toEqual(
       baselineUsersCreatedWeek + 1,
     )
-    expect(Number(updatedMetrics.tasksCreatedPreviousDay)).toEqual(
-      baselineTasksDay + 2,
-    )
-    expect(Number(updatedMetrics.tasksCreatedPreviousHour)).toEqual(
+    expect(updatedMetrics.tasksCreatedPreviousDay).toEqual(baselineTasksDay + 2)
+    expect(updatedMetrics.tasksCreatedPreviousHour).toEqual(
       baselineTasksHour + 2,
     )
-    expect(Number(updatedMetrics.taskErrorsPreviousDay)).toEqual(
+    expect(updatedMetrics.taskErrorsPreviousDay).toEqual(
       baselineTaskErrorsDay + 1,
     )
-    expect(Number(updatedMetrics.taskErrorsPreviousHour)).toEqual(
+    expect(updatedMetrics.taskErrorsPreviousHour).toEqual(
       baselineTaskErrorsHour + 1,
     )
-    expect(Number(updatedMetrics.serverEventsEmittedPreviousHour)).toEqual(
+    expect(updatedMetrics.serverEventsEmittedPreviousHour).toEqual(
       baselineServerEventsHour + 1,
     )
-    expect(Number(updatedMetrics.folderEventsEmittedPreviousHour)).toEqual(
+    expect(updatedMetrics.folderEventsEmittedPreviousHour).toEqual(
       baselineFolderEventsHour + 1,
     )
   })

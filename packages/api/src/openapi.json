@@ -7171,10 +7171,37 @@
                           "triggers": {
                             "type": "array",
                             "items": {
-                              "allOf": [
+                              "discriminator": {
+                                "propertyName": "kind"
+                              },
+                              "oneOf": [
                                 {
                                   "type": "object",
                                   "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "event"
+                                      ]
+                                    },
+                                    "eventIdentifier": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^platform:[a-z_]+$"
+                                        }
+                                      ]
+                                    },
+                                    "dataTemplate": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
                                     "onComplete": {
                                       "oneOf": [
                                         {
@@ -7185,7 +7212,7 @@
                                               "minLength": 1,
                                               "pattern": "^[a-z_]+$"
                                             },
-                                            "data": {
+                                            "dataTemplate": {
                                               "type": "object",
                                               "properties": {
                                                 "success": {
@@ -7213,7 +7240,7 @@
                                                 "minLength": 1,
                                                 "pattern": "^[a-z_]+$"
                                               },
-                                              "data": {
+                                              "dataTemplate": {
                                                 "type": "object",
                                                 "properties": {
                                                   "success": {
@@ -7234,125 +7261,207 @@
                                         }
                                       ]
                                     }
-                                  }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "eventIdentifier"
+                                  ]
                                 },
                                 {
-                                  "discriminator": {
-                                    "propertyName": "kind"
-                                  },
-                                  "oneOf": [
-                                    {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "schedule"
+                                      ]
+                                    },
+                                    "config": {
                                       "type": "object",
                                       "properties": {
-                                        "kind": {
+                                        "interval": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "unit": {
                                           "type": "string",
                                           "enum": [
-                                            "event"
+                                            "minutes",
+                                            "hours",
+                                            "days"
                                           ]
-                                        },
-                                        "identifier": {
-                                          "oneOf": [
-                                            {
+                                        }
+                                      },
+                                      "required": [
+                                        "interval",
+                                        "unit"
+                                      ]
+                                    },
+                                    "onComplete": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
                                               "type": "string",
                                               "minLength": 1,
                                               "pattern": "^[a-z_]+$"
                                             },
-                                            {
-                                              "type": "string",
-                                              "minLength": 1,
-                                              "pattern": "^platform:[a-z_]+$"
-                                            }
-                                          ]
-                                        },
-                                        "data": {
-                                          "type": "object",
-                                          "additionalProperties": {}
-                                        }
-                                      },
-                                      "required": [
-                                        "kind",
-                                        "identifier"
-                                      ]
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "kind": {
-                                          "type": "string",
-                                          "enum": [
-                                            "schedule"
-                                          ]
-                                        },
-                                        "config": {
-                                          "type": "object",
-                                          "properties": {
-                                            "interval": {
-                                              "type": "integer",
-                                              "minimum": 0,
-                                              "exclusiveMinimum": true
-                                            },
-                                            "unit": {
-                                              "type": "string",
-                                              "enum": [
-                                                "minutes",
-                                                "hours",
-                                                "days"
-                                              ]
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
                                             }
                                           },
                                           "required": [
-                                            "interval",
-                                            "unit"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "kind",
-                                        "config"
-                                      ]
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "kind": {
-                                          "type": "string",
-                                          "enum": [
-                                            "user_action"
+                                            "taskIdentifier"
                                           ]
                                         },
-                                        "scope": {
-                                          "type": "object",
-                                          "properties": {
-                                            "user": {
-                                              "type": "object",
-                                              "properties": {
-                                                "permissions": {
-                                                  "type": "string"
-                                                }
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "taskIdentifier": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "pattern": "^[a-z_]+$"
                                               },
-                                              "required": [
-                                                "permissions"
-                                              ]
+                                              "dataTemplate": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "success": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  },
+                                                  "failure": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  }
+                                                }
+                                              }
                                             },
-                                            "folder": {
-                                              "type": "object",
-                                              "properties": {
-                                                "folderId": {
-                                                  "type": "string",
-                                                  "format": "uuid"
-                                                }
-                                              },
-                                              "required": [
-                                                "folderId"
-                                              ]
-                                            }
+                                            "required": [
+                                              "taskIdentifier"
+                                            ]
                                           }
                                         }
-                                      },
-                                      "required": [
-                                        "kind"
                                       ]
                                     }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "config"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "user_action"
+                                      ]
+                                    },
+                                    "scope": {
+                                      "type": "object",
+                                      "properties": {
+                                        "user": {
+                                          "type": "object",
+                                          "properties": {
+                                            "permissions": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": [
+                                            "permissions"
+                                          ]
+                                        },
+                                        "folder": {
+                                          "type": "object",
+                                          "properties": {
+                                            "folderId": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            }
+                                          },
+                                          "required": [
+                                            "folderId"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "onComplete": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "pattern": "^[a-z_]+$"
+                                            },
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "taskIdentifier"
+                                          ]
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "taskIdentifier": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "pattern": "^[a-z_]+$"
+                                              },
+                                              "dataTemplate": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "success": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  },
+                                                  "failure": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "taskIdentifier"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind"
                                   ]
                                 }
                               ]
@@ -8233,10 +8342,37 @@
                         "triggers": {
                           "type": "array",
                           "items": {
-                            "allOf": [
+                            "discriminator": {
+                              "propertyName": "kind"
+                            },
+                            "oneOf": [
                               {
                                 "type": "object",
                                 "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "event"
+                                    ]
+                                  },
+                                  "eventIdentifier": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^[a-z_]+$"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^platform:[a-z_]+$"
+                                      }
+                                    ]
+                                  },
+                                  "dataTemplate": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  },
                                   "onComplete": {
                                     "oneOf": [
                                       {
@@ -8247,7 +8383,7 @@
                                             "minLength": 1,
                                             "pattern": "^[a-z_]+$"
                                           },
-                                          "data": {
+                                          "dataTemplate": {
                                             "type": "object",
                                             "properties": {
                                               "success": {
@@ -8275,7 +8411,7 @@
                                               "minLength": 1,
                                               "pattern": "^[a-z_]+$"
                                             },
-                                            "data": {
+                                            "dataTemplate": {
                                               "type": "object",
                                               "properties": {
                                                 "success": {
@@ -8296,125 +8432,207 @@
                                       }
                                     ]
                                   }
-                                }
+                                },
+                                "required": [
+                                  "kind",
+                                  "eventIdentifier"
+                                ]
                               },
                               {
-                                "discriminator": {
-                                  "propertyName": "kind"
-                                },
-                                "oneOf": [
-                                  {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "schedule"
+                                    ]
+                                  },
+                                  "config": {
                                     "type": "object",
                                     "properties": {
-                                      "kind": {
+                                      "interval": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "exclusiveMinimum": true
+                                      },
+                                      "unit": {
                                         "type": "string",
                                         "enum": [
-                                          "event"
+                                          "minutes",
+                                          "hours",
+                                          "days"
                                         ]
-                                      },
-                                      "identifier": {
-                                        "oneOf": [
-                                          {
+                                      }
+                                    },
+                                    "required": [
+                                      "interval",
+                                      "unit"
+                                    ]
+                                  },
+                                  "onComplete": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "taskIdentifier": {
                                             "type": "string",
                                             "minLength": 1,
                                             "pattern": "^[a-z_]+$"
                                           },
-                                          {
-                                            "type": "string",
-                                            "minLength": 1,
-                                            "pattern": "^platform:[a-z_]+$"
-                                          }
-                                        ]
-                                      },
-                                      "data": {
-                                        "type": "object",
-                                        "additionalProperties": {}
-                                      }
-                                    },
-                                    "required": [
-                                      "kind",
-                                      "identifier"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "kind": {
-                                        "type": "string",
-                                        "enum": [
-                                          "schedule"
-                                        ]
-                                      },
-                                      "config": {
-                                        "type": "object",
-                                        "properties": {
-                                          "interval": {
-                                            "type": "integer",
-                                            "minimum": 0,
-                                            "exclusiveMinimum": true
-                                          },
-                                          "unit": {
-                                            "type": "string",
-                                            "enum": [
-                                              "minutes",
-                                              "hours",
-                                              "days"
-                                            ]
+                                          "dataTemplate": {
+                                            "type": "object",
+                                            "properties": {
+                                              "success": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              },
+                                              "failure": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              }
+                                            }
                                           }
                                         },
                                         "required": [
-                                          "interval",
-                                          "unit"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "kind",
-                                      "config"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "kind": {
-                                        "type": "string",
-                                        "enum": [
-                                          "user_action"
+                                          "taskIdentifier"
                                         ]
                                       },
-                                      "scope": {
-                                        "type": "object",
-                                        "properties": {
-                                          "user": {
-                                            "type": "object",
-                                            "properties": {
-                                              "permissions": {
-                                                "type": "string"
-                                              }
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "pattern": "^[a-z_]+$"
                                             },
-                                            "required": [
-                                              "permissions"
-                                            ]
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
+                                            }
                                           },
-                                          "folder": {
-                                            "type": "object",
-                                            "properties": {
-                                              "folderId": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                              }
-                                            },
-                                            "required": [
-                                              "folderId"
-                                            ]
-                                          }
+                                          "required": [
+                                            "taskIdentifier"
+                                          ]
                                         }
                                       }
-                                    },
-                                    "required": [
-                                      "kind"
                                     ]
                                   }
+                                },
+                                "required": [
+                                  "kind",
+                                  "config"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "user_action"
+                                    ]
+                                  },
+                                  "scope": {
+                                    "type": "object",
+                                    "properties": {
+                                      "user": {
+                                        "type": "object",
+                                        "properties": {
+                                          "permissions": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "permissions"
+                                        ]
+                                      },
+                                      "folder": {
+                                        "type": "object",
+                                        "properties": {
+                                          "folderId": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                          }
+                                        },
+                                        "required": [
+                                          "folderId"
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "onComplete": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "taskIdentifier": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^[a-z_]+$"
+                                          },
+                                          "dataTemplate": {
+                                            "type": "object",
+                                            "properties": {
+                                              "success": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              },
+                                              "failure": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "required": [
+                                          "taskIdentifier"
+                                        ]
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "pattern": "^[a-z_]+$"
+                                            },
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "taskIdentifier"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "kind"
                                 ]
                               }
                             ]
@@ -9324,10 +9542,37 @@
                           "triggers": {
                             "type": "array",
                             "items": {
-                              "allOf": [
+                              "discriminator": {
+                                "propertyName": "kind"
+                              },
+                              "oneOf": [
                                 {
                                   "type": "object",
                                   "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "event"
+                                      ]
+                                    },
+                                    "eventIdentifier": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
+                                        },
+                                        {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^platform:[a-z_]+$"
+                                        }
+                                      ]
+                                    },
+                                    "dataTemplate": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
                                     "onComplete": {
                                       "oneOf": [
                                         {
@@ -9338,7 +9583,7 @@
                                               "minLength": 1,
                                               "pattern": "^[a-z_]+$"
                                             },
-                                            "data": {
+                                            "dataTemplate": {
                                               "type": "object",
                                               "properties": {
                                                 "success": {
@@ -9366,7 +9611,7 @@
                                                 "minLength": 1,
                                                 "pattern": "^[a-z_]+$"
                                               },
-                                              "data": {
+                                              "dataTemplate": {
                                                 "type": "object",
                                                 "properties": {
                                                   "success": {
@@ -9387,125 +9632,207 @@
                                         }
                                       ]
                                     }
-                                  }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "eventIdentifier"
+                                  ]
                                 },
                                 {
-                                  "discriminator": {
-                                    "propertyName": "kind"
-                                  },
-                                  "oneOf": [
-                                    {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "schedule"
+                                      ]
+                                    },
+                                    "config": {
                                       "type": "object",
                                       "properties": {
-                                        "kind": {
+                                        "interval": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "unit": {
                                           "type": "string",
                                           "enum": [
-                                            "event"
+                                            "minutes",
+                                            "hours",
+                                            "days"
                                           ]
-                                        },
-                                        "identifier": {
-                                          "oneOf": [
-                                            {
+                                        }
+                                      },
+                                      "required": [
+                                        "interval",
+                                        "unit"
+                                      ]
+                                    },
+                                    "onComplete": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
                                               "type": "string",
                                               "minLength": 1,
                                               "pattern": "^[a-z_]+$"
                                             },
-                                            {
-                                              "type": "string",
-                                              "minLength": 1,
-                                              "pattern": "^platform:[a-z_]+$"
-                                            }
-                                          ]
-                                        },
-                                        "data": {
-                                          "type": "object",
-                                          "additionalProperties": {}
-                                        }
-                                      },
-                                      "required": [
-                                        "kind",
-                                        "identifier"
-                                      ]
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "kind": {
-                                          "type": "string",
-                                          "enum": [
-                                            "schedule"
-                                          ]
-                                        },
-                                        "config": {
-                                          "type": "object",
-                                          "properties": {
-                                            "interval": {
-                                              "type": "integer",
-                                              "minimum": 0,
-                                              "exclusiveMinimum": true
-                                            },
-                                            "unit": {
-                                              "type": "string",
-                                              "enum": [
-                                                "minutes",
-                                                "hours",
-                                                "days"
-                                              ]
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
                                             }
                                           },
                                           "required": [
-                                            "interval",
-                                            "unit"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "kind",
-                                        "config"
-                                      ]
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "kind": {
-                                          "type": "string",
-                                          "enum": [
-                                            "user_action"
+                                            "taskIdentifier"
                                           ]
                                         },
-                                        "scope": {
-                                          "type": "object",
-                                          "properties": {
-                                            "user": {
-                                              "type": "object",
-                                              "properties": {
-                                                "permissions": {
-                                                  "type": "string"
-                                                }
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "taskIdentifier": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "pattern": "^[a-z_]+$"
                                               },
-                                              "required": [
-                                                "permissions"
-                                              ]
+                                              "dataTemplate": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "success": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  },
+                                                  "failure": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  }
+                                                }
+                                              }
                                             },
-                                            "folder": {
-                                              "type": "object",
-                                              "properties": {
-                                                "folderId": {
-                                                  "type": "string",
-                                                  "format": "uuid"
-                                                }
-                                              },
-                                              "required": [
-                                                "folderId"
-                                              ]
-                                            }
+                                            "required": [
+                                              "taskIdentifier"
+                                            ]
                                           }
                                         }
-                                      },
-                                      "required": [
-                                        "kind"
                                       ]
                                     }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "config"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "user_action"
+                                      ]
+                                    },
+                                    "scope": {
+                                      "type": "object",
+                                      "properties": {
+                                        "user": {
+                                          "type": "object",
+                                          "properties": {
+                                            "permissions": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": [
+                                            "permissions"
+                                          ]
+                                        },
+                                        "folder": {
+                                          "type": "object",
+                                          "properties": {
+                                            "folderId": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            }
+                                          },
+                                          "required": [
+                                            "folderId"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "onComplete": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "pattern": "^[a-z_]+$"
+                                            },
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "taskIdentifier"
+                                          ]
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "taskIdentifier": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "pattern": "^[a-z_]+$"
+                                              },
+                                              "dataTemplate": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "success": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  },
+                                                  "failure": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "taskIdentifier"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind"
                                   ]
                                 }
                               ]
@@ -10272,10 +10599,37 @@
                         "triggers": {
                           "type": "array",
                           "items": {
-                            "allOf": [
+                            "discriminator": {
+                              "propertyName": "kind"
+                            },
+                            "oneOf": [
                               {
                                 "type": "object",
                                 "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "event"
+                                    ]
+                                  },
+                                  "eventIdentifier": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^[a-z_]+$"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "^platform:[a-z_]+$"
+                                      }
+                                    ]
+                                  },
+                                  "dataTemplate": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  },
                                   "onComplete": {
                                     "oneOf": [
                                       {
@@ -10286,7 +10640,7 @@
                                             "minLength": 1,
                                             "pattern": "^[a-z_]+$"
                                           },
-                                          "data": {
+                                          "dataTemplate": {
                                             "type": "object",
                                             "properties": {
                                               "success": {
@@ -10314,7 +10668,7 @@
                                               "minLength": 1,
                                               "pattern": "^[a-z_]+$"
                                             },
-                                            "data": {
+                                            "dataTemplate": {
                                               "type": "object",
                                               "properties": {
                                                 "success": {
@@ -10335,125 +10689,207 @@
                                       }
                                     ]
                                   }
-                                }
+                                },
+                                "required": [
+                                  "kind",
+                                  "eventIdentifier"
+                                ]
                               },
                               {
-                                "discriminator": {
-                                  "propertyName": "kind"
-                                },
-                                "oneOf": [
-                                  {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "schedule"
+                                    ]
+                                  },
+                                  "config": {
                                     "type": "object",
                                     "properties": {
-                                      "kind": {
+                                      "interval": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "exclusiveMinimum": true
+                                      },
+                                      "unit": {
                                         "type": "string",
                                         "enum": [
-                                          "event"
+                                          "minutes",
+                                          "hours",
+                                          "days"
                                         ]
-                                      },
-                                      "identifier": {
-                                        "oneOf": [
-                                          {
+                                      }
+                                    },
+                                    "required": [
+                                      "interval",
+                                      "unit"
+                                    ]
+                                  },
+                                  "onComplete": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "taskIdentifier": {
                                             "type": "string",
                                             "minLength": 1,
                                             "pattern": "^[a-z_]+$"
                                           },
-                                          {
-                                            "type": "string",
-                                            "minLength": 1,
-                                            "pattern": "^platform:[a-z_]+$"
-                                          }
-                                        ]
-                                      },
-                                      "data": {
-                                        "type": "object",
-                                        "additionalProperties": {}
-                                      }
-                                    },
-                                    "required": [
-                                      "kind",
-                                      "identifier"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "kind": {
-                                        "type": "string",
-                                        "enum": [
-                                          "schedule"
-                                        ]
-                                      },
-                                      "config": {
-                                        "type": "object",
-                                        "properties": {
-                                          "interval": {
-                                            "type": "integer",
-                                            "minimum": 0,
-                                            "exclusiveMinimum": true
-                                          },
-                                          "unit": {
-                                            "type": "string",
-                                            "enum": [
-                                              "minutes",
-                                              "hours",
-                                              "days"
-                                            ]
+                                          "dataTemplate": {
+                                            "type": "object",
+                                            "properties": {
+                                              "success": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              },
+                                              "failure": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              }
+                                            }
                                           }
                                         },
                                         "required": [
-                                          "interval",
-                                          "unit"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "kind",
-                                      "config"
-                                    ]
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "kind": {
-                                        "type": "string",
-                                        "enum": [
-                                          "user_action"
+                                          "taskIdentifier"
                                         ]
                                       },
-                                      "scope": {
-                                        "type": "object",
-                                        "properties": {
-                                          "user": {
-                                            "type": "object",
-                                            "properties": {
-                                              "permissions": {
-                                                "type": "string"
-                                              }
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "pattern": "^[a-z_]+$"
                                             },
-                                            "required": [
-                                              "permissions"
-                                            ]
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
+                                            }
                                           },
-                                          "folder": {
-                                            "type": "object",
-                                            "properties": {
-                                              "folderId": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                              }
-                                            },
-                                            "required": [
-                                              "folderId"
-                                            ]
-                                          }
+                                          "required": [
+                                            "taskIdentifier"
+                                          ]
                                         }
                                       }
-                                    },
-                                    "required": [
-                                      "kind"
                                     ]
                                   }
+                                },
+                                "required": [
+                                  "kind",
+                                  "config"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "user_action"
+                                    ]
+                                  },
+                                  "scope": {
+                                    "type": "object",
+                                    "properties": {
+                                      "user": {
+                                        "type": "object",
+                                        "properties": {
+                                          "permissions": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "permissions"
+                                        ]
+                                      },
+                                      "folder": {
+                                        "type": "object",
+                                        "properties": {
+                                          "folderId": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                          }
+                                        },
+                                        "required": [
+                                          "folderId"
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "onComplete": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "taskIdentifier": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^[a-z_]+$"
+                                          },
+                                          "dataTemplate": {
+                                            "type": "object",
+                                            "properties": {
+                                              "success": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              },
+                                              "failure": {
+                                                "type": "object",
+                                                "additionalProperties": {}
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "required": [
+                                          "taskIdentifier"
+                                        ]
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "taskIdentifier": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "pattern": "^[a-z_]+$"
+                                            },
+                                            "dataTemplate": {
+                                              "type": "object",
+                                              "properties": {
+                                                "success": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                },
+                                                "failure": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "taskIdentifier"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "kind"
                                 ]
                               }
                             ]
@@ -13383,10 +13819,37 @@
                 "type": "string"
               },
               "trigger": {
-                "allOf": [
+                "discriminator": {
+                  "propertyName": "kind"
+                },
+                "oneOf": [
                   {
                     "type": "object",
                     "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "event"
+                        ]
+                      },
+                      "eventIdentifier": {
+                        "oneOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z_]+$"
+                          },
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^platform:[a-z_]+$"
+                          }
+                        ]
+                      },
+                      "dataTemplate": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      },
                       "onComplete": {
                         "oneOf": [
                           {
@@ -13397,7 +13860,7 @@
                                 "minLength": 1,
                                 "pattern": "^[a-z_]+$"
                               },
-                              "data": {
+                              "dataTemplate": {
                                 "type": "object",
                                 "properties": {
                                   "success": {
@@ -13425,7 +13888,337 @@
                                   "minLength": 1,
                                   "pattern": "^[a-z_]+$"
                                 },
-                                "data": {
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "invokeContext": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "emitterIdentifier": {
+                            "type": "string"
+                          },
+                          "targetUserId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "targetLocation": {
+                            "type": "object",
+                            "properties": {
+                              "folderId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "objectKey": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "folderId"
+                            ]
+                          },
+                          "eventData": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": [
+                          "eventId",
+                          "emitterIdentifier",
+                          "eventData"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "eventIdentifier",
+                      "invokeContext"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "schedule"
+                        ]
+                      },
+                      "config": {
+                        "type": "object",
+                        "properties": {
+                          "interval": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "exclusiveMinimum": true
+                          },
+                          "unit": {
+                            "type": "string",
+                            "enum": [
+                              "minutes",
+                              "hours",
+                              "days"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "interval",
+                          "unit"
+                        ]
+                      },
+                      "onComplete": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "dataTemplate": {
+                                "type": "object",
+                                "properties": {
+                                  "success": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  },
+                                  "failure": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  }
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "invokeContext": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "config",
+                      "invokeContext"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "user_action"
+                        ]
+                      },
+                      "scope": {
+                        "type": "object",
+                        "properties": {
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "permissions": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "permissions"
+                            ]
+                          },
+                          "folder": {
+                            "type": "object",
+                            "properties": {
+                              "folderId": {
+                                "type": "string",
+                                "format": "uuid"
+                              }
+                            },
+                            "required": [
+                              "folderId"
+                            ]
+                          }
+                        }
+                      },
+                      "onComplete": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "dataTemplate": {
+                                "type": "object",
+                                "properties": {
+                                  "success": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  },
+                                  "failure": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  }
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "invokeContext": {
+                        "type": "object",
+                        "properties": {
+                          "userId": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "userId"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "invokeContext"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "app_action"
+                        ]
+                      },
+                      "onComplete": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "dataTemplate": {
+                                "type": "object",
+                                "properties": {
+                                  "success": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  },
+                                  "failure": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                  }
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                "dataTemplate": {
                                   "type": "object",
                                   "properties": {
                                     "success": {
@@ -13446,181 +14239,103 @@
                           }
                         ]
                       }
-                    }
+                    },
+                    "required": [
+                      "kind"
+                    ]
                   },
                   {
-                    "discriminator": {
-                      "propertyName": "kind"
-                    },
-                    "oneOf": [
-                      {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "task_child"
+                        ]
+                      },
+                      "invokeContext": {
                         "type": "object",
                         "properties": {
-                          "kind": {
+                          "parentTaskId": {
                             "type": "string",
-                            "enum": [
-                              "event"
-                            ]
+                            "format": "uuid"
                           },
-                          "data": {
+                          "parentTaskSuccess": {
+                            "type": "boolean"
+                          },
+                          "parentTaskIdentifier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "parentTaskId",
+                          "parentTaskSuccess",
+                          "parentTaskIdentifier"
+                        ]
+                      },
+                      "onComplete": {
+                        "oneOf": [
+                          {
                             "type": "object",
                             "properties": {
-                              "eventId": {
+                              "taskIdentifier": {
                                 "type": "string",
-                                "format": "uuid"
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "eventIdentifier": {
-                                "type": "string"
-                              },
-                              "emitterIdentifier": {
-                                "type": "string"
-                              },
-                              "targetUserId": {
-                                "type": "string",
-                                "format": "uuid"
-                              },
-                              "targetLocation": {
+                              "dataTemplate": {
                                 "type": "object",
                                 "properties": {
-                                  "folderId": {
-                                    "type": "string",
-                                    "format": "uuid"
+                                  "success": {
+                                    "type": "object",
+                                    "additionalProperties": {}
                                   },
-                                  "objectKey": {
-                                    "type": "string"
+                                  "failure": {
+                                    "type": "object",
+                                    "additionalProperties": {}
                                   }
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
                                 },
-                                "required": [
-                                  "folderId"
-                                ]
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
                               },
-                              "eventData": {
-                                "type": "object",
-                                "additionalProperties": {}
-                              }
-                            },
-                            "required": [
-                              "eventId",
-                              "eventIdentifier",
-                              "emitterIdentifier",
-                              "eventData"
-                            ]
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            }
                           }
-                        },
-                        "required": [
-                          "kind",
-                          "data"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "kind": {
-                            "type": "string",
-                            "enum": [
-                              "schedule"
-                            ]
-                          },
-                          "data": {
-                            "type": "object",
-                            "properties": {
-                              "interval": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "exclusiveMinimum": true
-                              },
-                              "unit": {
-                                "type": "string",
-                                "enum": [
-                                  "minutes",
-                                  "hours",
-                                  "days"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "interval",
-                              "unit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "kind",
-                          "data"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "kind": {
-                            "type": "string",
-                            "enum": [
-                              "user_action"
-                            ]
-                          },
-                          "data": {
-                            "type": "object",
-                            "properties": {
-                              "userId": {
-                                "type": "string",
-                                "format": "uuid"
-                              }
-                            },
-                            "required": [
-                              "userId"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "kind",
-                          "data"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "kind": {
-                            "type": "string",
-                            "enum": [
-                              "app_action"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "kind"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "kind": {
-                            "type": "string",
-                            "enum": [
-                              "task_child"
-                            ]
-                          },
-                          "data": {
-                            "type": "object",
-                            "properties": {
-                              "parentTaskId": {
-                                "type": "string",
-                                "format": "uuid"
-                              },
-                              "parentTaskIdentifier": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "parentTaskId",
-                              "parentTaskIdentifier"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "kind",
-                          "data"
                         ]
                       }
+                    },
+                    "required": [
+                      "kind",
+                      "invokeContext"
                     ]
                   }
                 ]
@@ -13688,7 +14403,7 @@
                           "type": "string",
                           "enum": [
                             "started",
-                            "failure",
+                            "error",
                             "requeue",
                             "success"
                           ]
@@ -13821,10 +14536,37 @@
                   "type": "string"
                 },
                 "trigger": {
-                  "allOf": [
+                  "discriminator": {
+                    "propertyName": "kind"
+                  },
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "event"
+                          ]
+                        },
+                        "eventIdentifier": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
+                            },
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^platform:[a-z_]+$"
+                            }
+                          ]
+                        },
+                        "dataTemplate": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
                         "onComplete": {
                           "oneOf": [
                             {
@@ -13835,7 +14577,7 @@
                                   "minLength": 1,
                                   "pattern": "^[a-z_]+$"
                                 },
-                                "data": {
+                                "dataTemplate": {
                                   "type": "object",
                                   "properties": {
                                     "success": {
@@ -13863,7 +14605,337 @@
                                     "minLength": 1,
                                     "pattern": "^[a-z_]+$"
                                   },
-                                  "data": {
+                                  "dataTemplate": {
+                                    "type": "object",
+                                    "properties": {
+                                      "success": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      },
+                                      "failure": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "invokeContext": {
+                          "type": "object",
+                          "properties": {
+                            "eventId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "emitterIdentifier": {
+                              "type": "string"
+                            },
+                            "targetUserId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "targetLocation": {
+                              "type": "object",
+                              "properties": {
+                                "folderId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "objectKey": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "folderId"
+                              ]
+                            },
+                            "eventData": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": [
+                            "eventId",
+                            "emitterIdentifier",
+                            "eventData"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "eventIdentifier",
+                        "invokeContext"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "schedule"
+                          ]
+                        },
+                        "config": {
+                          "type": "object",
+                          "properties": {
+                            "interval": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "minutes",
+                                "hours",
+                                "days"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "interval",
+                            "unit"
+                          ]
+                        },
+                        "onComplete": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskIdentifier": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
+                                  },
+                                  "dataTemplate": {
+                                    "type": "object",
+                                    "properties": {
+                                      "success": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      },
+                                      "failure": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "invokeContext": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "config",
+                        "invokeContext"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "user_action"
+                          ]
+                        },
+                        "scope": {
+                          "type": "object",
+                          "properties": {
+                            "user": {
+                              "type": "object",
+                              "properties": {
+                                "permissions": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "permissions"
+                              ]
+                            },
+                            "folder": {
+                              "type": "object",
+                              "properties": {
+                                "folderId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                }
+                              },
+                              "required": [
+                                "folderId"
+                              ]
+                            }
+                          }
+                        },
+                        "onComplete": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskIdentifier": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
+                                  },
+                                  "dataTemplate": {
+                                    "type": "object",
+                                    "properties": {
+                                      "success": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      },
+                                      "failure": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "invokeContext": {
+                          "type": "object",
+                          "properties": {
+                            "userId": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "userId"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "invokeContext"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "app_action"
+                          ]
+                        },
+                        "onComplete": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "taskIdentifier": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                "dataTemplate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    },
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskIdentifier": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "properties": {
                                       "success": {
@@ -13884,181 +14956,103 @@
                             }
                           ]
                         }
-                      }
+                      },
+                      "required": [
+                        "kind"
+                      ]
                     },
                     {
-                      "discriminator": {
-                        "propertyName": "kind"
-                      },
-                      "oneOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "task_child"
+                          ]
+                        },
+                        "invokeContext": {
                           "type": "object",
                           "properties": {
-                            "kind": {
+                            "parentTaskId": {
                               "type": "string",
-                              "enum": [
-                                "event"
-                              ]
+                              "format": "uuid"
                             },
-                            "data": {
+                            "parentTaskSuccess": {
+                              "type": "boolean"
+                            },
+                            "parentTaskIdentifier": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "parentTaskId",
+                            "parentTaskSuccess",
+                            "parentTaskIdentifier"
+                          ]
+                        },
+                        "onComplete": {
+                          "oneOf": [
+                            {
                               "type": "object",
                               "properties": {
-                                "eventId": {
+                                "taskIdentifier": {
                                   "type": "string",
-                                  "format": "uuid"
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
                                 },
-                                "eventIdentifier": {
-                                  "type": "string"
-                                },
-                                "emitterIdentifier": {
-                                  "type": "string"
-                                },
-                                "targetUserId": {
-                                  "type": "string",
-                                  "format": "uuid"
-                                },
-                                "targetLocation": {
+                                "dataTemplate": {
                                   "type": "object",
                                   "properties": {
-                                    "folderId": {
-                                      "type": "string",
-                                      "format": "uuid"
+                                    "success": {
+                                      "type": "object",
+                                      "additionalProperties": {}
                                     },
-                                    "objectKey": {
-                                      "type": "string"
+                                    "failure": {
+                                      "type": "object",
+                                      "additionalProperties": {}
                                     }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "taskIdentifier"
+                              ]
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskIdentifier": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "required": [
-                                    "folderId"
-                                  ]
+                                  "dataTemplate": {
+                                    "type": "object",
+                                    "properties": {
+                                      "success": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      },
+                                      "failure": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      }
+                                    }
+                                  }
                                 },
-                                "eventData": {
-                                  "type": "object",
-                                  "additionalProperties": {}
-                                }
-                              },
-                              "required": [
-                                "eventId",
-                                "eventIdentifier",
-                                "emitterIdentifier",
-                                "eventData"
-                              ]
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
                             }
-                          },
-                          "required": [
-                            "kind",
-                            "data"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "schedule"
-                              ]
-                            },
-                            "data": {
-                              "type": "object",
-                              "properties": {
-                                "interval": {
-                                  "type": "integer",
-                                  "minimum": 0,
-                                  "exclusiveMinimum": true
-                                },
-                                "unit": {
-                                  "type": "string",
-                                  "enum": [
-                                    "minutes",
-                                    "hours",
-                                    "days"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "interval",
-                                "unit"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "kind",
-                            "data"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "user_action"
-                              ]
-                            },
-                            "data": {
-                              "type": "object",
-                              "properties": {
-                                "userId": {
-                                  "type": "string",
-                                  "format": "uuid"
-                                }
-                              },
-                              "required": [
-                                "userId"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "kind",
-                            "data"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "app_action"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "kind"
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "task_child"
-                              ]
-                            },
-                            "data": {
-                              "type": "object",
-                              "properties": {
-                                "parentTaskId": {
-                                  "type": "string",
-                                  "format": "uuid"
-                                },
-                                "parentTaskIdentifier": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "parentTaskId",
-                                "parentTaskIdentifier"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "kind",
-                            "data"
                           ]
                         }
+                      },
+                      "required": [
+                        "kind",
+                        "invokeContext"
                       ]
                     }
                   ]
@@ -14126,7 +15120,7 @@
                             "type": "string",
                             "enum": [
                               "started",
-                              "failure",
+                              "error",
                               "requeue",
                               "success"
                             ]

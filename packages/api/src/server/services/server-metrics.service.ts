@@ -116,7 +116,7 @@ export class ServerMetricsService {
       .select({
         identifier: appsTable.identifier,
         label: appsTable.label,
-        totalCount: sql<number>`count(*) over ()`,
+        totalCount: sql<number>`count(*) over ()::int`,
       })
       .from(appsTable)
     // Get total indexed size (sum of all folderObject.sizeBytes)
@@ -252,6 +252,8 @@ export class ServerMetricsService {
         )
         .where(eq(storageLocationsTable.providerType, 'SERVER'))
     )[0]!
+
+    console.log(installedAppsResult, typeof installedAppsResult)
     return {
       totalUsers: totalUsersResult.count,
       sessionsCreatedPreviousWeek: sessionsCreatedPreviousWeekResult.count,

@@ -1,12 +1,10 @@
 import {
   AppTaskConfig,
   eventIdentifierSchema,
-  EventTaskTrigger,
   FolderPushMessage,
   JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
-  TaskEventTriggerConfig,
   TaskScheduleTriggerConfig,
 } from '@lombokapp/types'
 import {
@@ -160,8 +158,8 @@ export class EventService {
                   eq(tasksTable.ownerIdentifier, app.identifier),
                   eq(tasksTable.taskIdentifier, taskDefinition.identifier),
                   sql`(${tasksTable.trigger} ->> 'kind') = 'schedule'`,
-                  sql`(${tasksTable.trigger} -> 'data' ->> 'unit') = ${scheduleTrigger.config.unit}`,
-                  sql`(${tasksTable.trigger} -> 'data' ->> 'interval')::int = ${scheduleTrigger.config.interval}`,
+                  sql`(${tasksTable.trigger} -> 'config' ->> 'unit') = ${scheduleTrigger.config.unit}`,
+                  sql`(${tasksTable.trigger} -> 'config' ->> 'interval')::int = ${scheduleTrigger.config.interval}`,
                   gte(tasksTable.createdAt, earliestAllowed),
                 ),
                 orderBy: desc(tasksTable.createdAt),
@@ -178,7 +176,8 @@ export class EventService {
               id: uuidV4(),
               trigger: {
                 kind: 'schedule',
-                data: {
+                invokeContext: {},
+                config: {
                   interval: scheduleTrigger.config.interval,
                   unit: scheduleTrigger.config.unit,
                 },
@@ -261,14 +260,15 @@ export class EventService {
       )
     }
 
-    // console.log('emitEvent:', {
-    //   eventIdentifier,
-    //   emitterIdentifier,
-    //   data,
-    //   authorized,
-    //   subjectContext,
-    //   userId,
-    // })
+    this.logger.debug('emitEvent:', {
+      eventIdentifier,
+      emitterIdentifier,
+      data,
+      target: {
+        location: targetLocation,
+        userId: targetUserId,
+      },
+    })
 
     await db.transaction(async (tx) => {
       const events = await tx
@@ -313,61 +313,67 @@ export class EventService {
         subscribedApps.map(async (subscribedApp) => {
           return Promise.all(
             (subscribedApp.config.tasks ?? []).map(async (taskDefinition) => {
-              const eventTriggers = taskDefinition.triggers?.filter(
-                (trigger) =>
-                  trigger.kind === 'event' &&
-                  trigger.identifier === eventTriggerIdentifier,
-              ) as TaskEventTriggerConfig[]
-              for (const eventTrigger of eventTriggers) {
-                const { handlerType, handlerIdentifier } =
-                  taskDefinition.handler.type === 'worker'
-                    ? {
-                        handlerType: 'worker',
-                        handlerIdentifier: taskDefinition.handler.identifier,
-                      }
-                    : taskDefinition.handler.type === 'docker'
+              for (const eventTrigger of taskDefinition.triggers ?? []) {
+                if (
+                  eventTrigger.kind === 'event' &&
+                  eventTrigger.eventIdentifier === eventTriggerIdentifier
+                ) {
+                  const { handlerType, handlerIdentifier } =
+                    taskDefinition.handler.type === 'worker'
                       ? {
-                          handlerType: 'docker',
+                          handlerType: 'worker',
                           handlerIdentifier: taskDefinition.handler.identifier,
                         }
-                      : {
-                          handlerType: 'external',
-                          handlerIdentifier: undefined,
-                        }
-                const newTaskId = uuidV4()
-                // Build the base task object
-                const baseTask: NewTask = {
-                  id: newTaskId,
-                  trigger: this.buildEventTrigger(event),
-                  targetLocation: targetLocation?.folderId
-                    ? {
-                        folderId: targetLocation.folderId,
-                        objectKey: targetLocation.objectKey,
-                      }
-                    : undefined,
-                  taskDescription: taskDefinition.description,
-                  taskIdentifier: taskDefinition.identifier,
-                  data: eventTrigger.data
-                    ? parseDataFromEventWithTrigger(event, eventTrigger.data)
-                    : {},
-                  ownerIdentifier: subscribedApp.identifier,
-                  systemLog: [
-                    {
-                      at: new Date(),
-                      payload: { logType: 'started', data: {} },
+                      : taskDefinition.handler.type === 'docker'
+                        ? {
+                            handlerType: 'docker',
+                            handlerIdentifier:
+                              taskDefinition.handler.identifier,
+                          }
+                        : {
+                            handlerType: 'external',
+                            handlerIdentifier: undefined,
+                          }
+                  // Build the base task object
+                  const baseTask: NewTask = {
+                    id: uuidV4(),
+                    trigger: {
+                      ...eventTrigger,
+                      invokeContext: this.buildEventInvocation(event),
                     },
-                  ],
-                  createdAt: now,
-                  updatedAt: now,
-                  handlerType,
-                  handlerIdentifier,
-                }
-                tasks.push(baseTask)
-                if (handlerType === 'worker' || handlerType === 'docker') {
-                  // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                  await this.emitRunnableTaskEnqueuedEvent(baseTask, {
-                    tx,
-                  })
+                    targetLocation: targetLocation?.folderId
+                      ? {
+                          folderId: targetLocation.folderId,
+                          objectKey: targetLocation.objectKey,
+                        }
+                      : undefined,
+                    taskDescription: taskDefinition.description,
+                    taskIdentifier: taskDefinition.identifier,
+                    data: eventTrigger.dataTemplate
+                      ? parseDataFromEventWithTrigger(
+                          event,
+                          eventTrigger.dataTemplate,
+                        )
+                      : {},
+                    ownerIdentifier: subscribedApp.identifier,
+                    systemLog: [
+                      {
+                        at: new Date(),
+                        payload: { logType: 'started', data: {} },
+                      },
+                    ],
+                    createdAt: now,
+                    updatedAt: now,
+                    handlerType,
+                    handlerIdentifier,
+                  }
+                  tasks.push(baseTask)
+                  if (handlerType === 'worker' || handlerType === 'docker') {
+                    // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
+                    await this.emitRunnableTaskEnqueuedEvent(baseTask, {
+                      tx,
+                    })
+                  }
                 }
                 return Promise.resolve()
               }
@@ -376,7 +382,7 @@ export class EventService {
         }),
       )
 
-      // Insert platform tasks that are subscribed to this event
+      // Insert platform tasks that are subscribed to this platform emitted event
       if (isPlatformEmitter) {
         // Collect platform tasks registered for the platform event that was emitted
         tasks.push(...this.gatherPlatformTasksForEvent(event, now))
@@ -407,17 +413,14 @@ export class EventService {
     void this.platformTaskService.drainPlatformTasks()
   }
 
-  private buildEventTrigger(event: Event): EventTaskTrigger {
+  private buildEventInvocation(event: Event) {
     return {
-      kind: 'event',
-      data: {
-        eventId: event.id,
-        eventIdentifier: event.eventIdentifier,
-        emitterIdentifier: event.emitterIdentifier,
-        targetUserId: event.targetUserId ?? undefined,
-        targetLocation: event.targetLocation ?? undefined,
-        eventData: event.data ?? {},
-      },
+      eventId: event.id,
+      eventIdentifier: event.eventIdentifier,
+      emitterIdentifier: event.emitterIdentifier,
+      targetUserId: event.targetUserId ?? undefined,
+      targetLocation: event.targetLocation ?? undefined,
+      eventData: event.data ?? {},
     }
   }
 
@@ -434,7 +437,11 @@ export class EventService {
     const platformTasks: NewTask[] = platformTaskDefinitions.map(
       ({ taskIdentifier, buildData }) => ({
         id: uuidV4(),
-        trigger: this.buildEventTrigger(event),
+        trigger: {
+          kind: 'event',
+          eventIdentifier: event.eventIdentifier,
+          invokeContext: this.buildEventInvocation(event),
+        },
         taskIdentifier,
         taskDescription: PLATFORM_TASKS[taskIdentifier].description,
         data: buildData(event),
