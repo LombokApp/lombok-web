@@ -2,6 +2,7 @@ import type {
   AppSocketMessage,
   AppSocketMessageDataMap,
   AppSocketMessageResponseMap,
+  JsonSerializableObject,
 } from '@lombokapp/types'
 import {
   appSocketMessageSchema,
@@ -35,8 +36,7 @@ export type ParsedRequest = {
 }[AppSocketMessageName]
 
 export interface ParseError {
-  error: true
-  details?: unknown
+  error: JsonSerializableObject
 }
 
 type AppSocketResponse<K extends AppSocketMessageName> =
@@ -47,7 +47,11 @@ export function parseAppSocketRequest(
 ): ParsedRequest | ParseError {
   const parsedMessage = appSocketMessageSchema.safeParse(message)
   if (!parsedMessage.success) {
-    return { error: true, details: parsedMessage.error }
+    return {
+      error: {
+        fieldErrors: parsedMessage.error.flatten().fieldErrors,
+      },
+    }
   }
   const schema: ZodTypeAny | undefined =
     AppSocketMessageSchemaMap[parsedMessage.data.name]
@@ -57,7 +61,15 @@ export function parseAppSocketRequest(
     return parsedMessage.data as ParsedRequest
   }
 
-  return { error: true, details: parsed.error }
+  return {
+    error: {
+      issues: parsed.error.issues.map((issue) => ({
+        code: issue.code,
+        path: issue.path,
+        message: issue.message,
+      })),
+    },
+  }
 }
 
 export async function handleAppSocketMessage(
@@ -92,9 +104,7 @@ export async function handleAppSocketMessage(
       error: {
         code: 400,
         message: 'Invalid request.',
-        details: {
-          parseError: parsedRequest.error,
-        },
+        details: parsedRequest.error,
       },
     }
   }

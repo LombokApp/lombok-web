@@ -4,8 +4,6 @@ import type {
   JsonSerializableObject,
   LogEntryLevel,
   SignedURLsRequestMethod,
-  TaskDTO,
-  TaskInvocation,
 } from '@lombokapp/types'
 import { PLATFORM_IDENTIFIER, PlatformEvent } from '@lombokapp/types'
 import {
@@ -232,23 +230,23 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
 
   it('completes run-worker-script task successfully', async () => {
     // Mock run_worker_script task and the underlying worker script task
-    const workerScriptTask: TaskDTO = {
+    const workerScriptTask = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
-        kind: 'event',
+        kind: 'event' as const,
         eventIdentifier: PlatformEvent.object_added,
         invokeContext: {
           eventId: uuidV4(),
           emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {},
+          eventData: {} as JsonSerializableObject,
         },
-      } as TaskInvocation,
+      },
       taskDescription: 'object_added',
       systemLog: [],
       taskLog: [],
       taskIdentifier: 'object_added_task',
-      data: {},
+      data: {} as JsonSerializableObject,
       targetLocation: {
         folderId: uuidV4(),
         objectKey: 'test-object-key',
@@ -257,18 +255,18 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       updatedAt: new Date().toISOString(),
     }
 
-    const runWorkerScriptEnvelopeTask: TaskDTO = {
+    const runWorkerScriptEnvelopeTask = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
-        kind: 'event',
+        kind: 'event' as const,
         eventIdentifier: PlatformEvent.object_added,
         invokeContext: {
           eventId: uuidV4(),
           emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {},
+          eventData: {} as JsonSerializableObject,
         },
-      } as TaskInvocation,
+      },
       systemLog: [],
       taskLog: [],
       taskDescription: 'run_worker_script',
