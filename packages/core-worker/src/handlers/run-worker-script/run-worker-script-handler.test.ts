@@ -90,7 +90,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         ) => {
           try {
             if (!currentServerClient) {
-              ack({ result: undefined })
+              ack({ result: null })
               return
             }
             switch (payload.name) {
@@ -122,7 +122,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
                 return
               }
               default: {
-                ack({ result: undefined })
+                ack({ result: null })
               }
             }
           } catch (err) {
@@ -322,7 +322,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       }) => {
         completed = !!success
         failed = !success
-        return Promise.resolve({ result: undefined })
+        return Promise.resolve({ result: null })
       },
       getContentSignedUrls: () => {
         getContentSignedUrlsCalled = true

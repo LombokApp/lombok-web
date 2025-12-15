@@ -234,7 +234,7 @@ export const AppSocketMessageResponseSchemaMap = {
       results: z.array(z.unknown()),
     }),
   ),
-  SAVE_LOG_ENTRY: createResponseSchema(z.undefined()),
+  SAVE_LOG_ENTRY: createResponseSchema(z.null()),
   GET_CONTENT_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
   GET_APP_USER_ACCESS_TOKEN: createResponseSchema(
     z.object({
@@ -243,8 +243,8 @@ export const AppSocketMessageResponseSchemaMap = {
     }),
   ),
   GET_METADATA_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
-  UPDATE_CONTENT_METADATA: createResponseSchema(z.undefined()),
-  COMPLETE_HANDLE_TASK: createResponseSchema(z.undefined()),
+  UPDATE_CONTENT_METADATA: createResponseSchema(z.null()),
+  COMPLETE_HANDLE_TASK: createResponseSchema(z.null()),
   ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: createResponseSchema(
     z.object({
       task: taskDTOSchema,
@@ -303,7 +303,7 @@ export const AppSocketMessageResponseSchemaMap = {
       }),
     ]),
   ),
-  TRIGGER_APP_TASK: createResponseSchema(z.undefined()),
+  TRIGGER_APP_TASK: createResponseSchema(z.null()),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 
 export type AppSocketResponseError = z.infer<typeof appMessageErrorSchema>

@@ -327,7 +327,13 @@ describe('App Socket Interface', () => {
       success: true,
       result: { message: 'Task completed successfully' },
     })
-    expect(completeResponse).toEqual({})
+    if ('error' in completeResponse) {
+      throw new Error('Expected successful COMPLETE_HANDLE_TASK response')
+    }
+    expect('result' in completeResponse).toBe(true)
+    if ('result' in completeResponse) {
+      expect(completeResponse.result).toBeNull()
+    }
 
     // Verify the task is completed
     const task =
@@ -348,7 +354,13 @@ describe('App Socket Interface', () => {
         inputData: { testInput: 'value' },
       },
     )
-    expect(response).toEqual({})
+    if ('error' in response) {
+      throw new Error('Expected successful TRIGGER_APP_TASK response')
+    }
+    expect('result' in response).toBe(true)
+    if ('result' in response) {
+      expect(response.result).toBeNull()
+    }
 
     // Verify the task was created
     const tasks = await testModule!.services.ormService.db
@@ -467,8 +479,13 @@ describe('App Socket Interface', () => {
       success: true,
       result: { message: 'Task completed successfully' },
     })
-
-    expect(completeResponse).toEqual({})
+    if ('error' in completeResponse) {
+      throw new Error('Expected successful COMPLETE_HANDLE_TASK response')
+    }
+    expect('result' in completeResponse).toBe(true)
+    if ('result' in completeResponse) {
+      expect(completeResponse.result).toBeNull()
+    }
 
     // Verify the task is completed
     const task =

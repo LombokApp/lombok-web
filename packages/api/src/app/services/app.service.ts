@@ -504,7 +504,7 @@ export class AppService {
     } catch (error: unknown) {
       if (error instanceof UnauthorizedException) {
         return {
-          result: undefined,
+          result: null,
           error: {
             code: 403,
             message: 'Unauthorized.',
@@ -648,7 +648,7 @@ export class AppService {
     } catch (error: unknown) {
       if (error instanceof UnauthorizedException) {
         return {
-          result: undefined,
+          result: null,
           error: {
             code: 403,
             message: 'Unauthorized.',
@@ -664,7 +664,7 @@ export class AppService {
     if (!workerApp) {
       // app by appIdentifier not found
       return {
-        result: undefined,
+        result: null,
         error: {
           code: 404,
           message: 'App not found.',
@@ -675,7 +675,7 @@ export class AppService {
     if (Object.keys(workerApp.ui.manifest).length === 0) {
       // No UI bundle exists for this app
       return {
-        result: undefined,
+        result: null,
         error: {
           code: 404,
           message: 'UI bundle not found.',

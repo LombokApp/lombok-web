@@ -132,12 +132,12 @@ describe('Analyze Object Task Handler', () => {
             bundleUrl: 'https://example.com/bundle',
           },
         }),
-      saveLogEntry: () => Promise.resolve({ result: undefined }),
+      saveLogEntry: () => Promise.resolve({ result: null }),
       attemptStartHandleTaskById: () =>
         Promise.resolve({ result: { task: analyzeTask } }),
       attemptStartHandleAnyAvailableTask: () =>
         Promise.resolve({ result: { task: analyzeTask } }),
-      completeHandleTask: () => Promise.resolve({ result: undefined }),
+      completeHandleTask: () => Promise.resolve({ result: null }),
       authenticateUser: () =>
         Promise.resolve({
           result: { userId: 'test-user', success: true },
@@ -187,7 +187,7 @@ describe('Analyze Object Task Handler', () => {
         // console.log('updateContentMetadata', JSON.stringify(requests, null, 2))
         metadataUpdatedCalled = true
         metadataUpdateParams = params
-        return Promise.resolve({ result: undefined })
+        return Promise.resolve({ result: null })
       },
       query: () =>
         Promise.resolve({
@@ -207,7 +207,7 @@ describe('Analyze Object Task Handler', () => {
         }),
       triggerAppTask: () =>
         Promise.resolve({
-          result: undefined,
+          result: null,
         }),
     }
 

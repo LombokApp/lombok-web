@@ -221,7 +221,7 @@ export async function handleAppSocketMessage(
         level: parsedRequest.data.level,
         targetLocation: parsedRequest.data.targetLocation,
       })
-      return { result: undefined }
+      return { result: null }
     case 'GET_CONTENT_SIGNED_URLS':
       return {
         result: await appService.createSignedContentUrls(parsedRequest.data),
@@ -235,7 +235,7 @@ export async function handleAppSocketMessage(
         requestingAppIdentifier,
         parsedRequest.data,
       )
-      return { result: undefined }
+      return { result: null }
     case 'COMPLETE_HANDLE_TASK': {
       try {
         await appService.registerTaskCompletedAsApp(
@@ -257,7 +257,7 @@ export async function handleAppSocketMessage(
         }
       }
 
-      return { result: undefined }
+      return { result: null }
     }
     case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
       const startContext = {
@@ -418,7 +418,7 @@ export async function handleAppSocketMessage(
           : undefined,
       })
 
-      return { result: undefined }
+      return { result: null }
     }
   }
 }

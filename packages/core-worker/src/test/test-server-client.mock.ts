@@ -12,9 +12,9 @@ const dummyTask = {
   ownerIdentifier: 'core-worker',
   trigger: {
     kind: 'event' as const,
-    data: {
+    eventIdentifier: '__dummy__',
+    invokeContext: {
       eventId: crypto.randomUUID(),
-      eventIdentifier: '__dummy__',
       emitterIdentifier: '__dummy__',
       eventData: {} as JsonSerializableObject,
     },
@@ -46,7 +46,7 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     getAppUIbundle: async () => ({ result: { manifest: {}, bundleUrl: '' } }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    saveLogEntry: async () => ({ result: undefined }),
+    saveLogEntry: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await, no-empty-pattern
     attemptStartHandleTaskById: async ({}: { taskId: string }) => ({
       result: { task: dummyTask },
@@ -56,7 +56,7 @@ export function buildTestServerClient(
       result: { task: dummyTask },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    completeHandleTask: async () => ({ result: undefined }),
+    completeHandleTask: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await
     authenticateUser: async () => ({
       result: { userId: 'user', success: true },
@@ -72,7 +72,7 @@ export function buildTestServerClient(
       result: { accessToken: '', refreshToken: '' },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    updateContentMetadata: async () => ({ result: undefined }),
+    updateContentMetadata: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await
     query: async () => ({ result: { rows: [], fields: [] } }),
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -84,7 +84,7 @@ export function buildTestServerClient(
       result: { jobId: 'job-id', success: true, result: {} },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    triggerAppTask: async () => ({ result: undefined }),
+    triggerAppTask: async () => ({ result: null }),
   }
 
   return { ...base, ...overrides }
