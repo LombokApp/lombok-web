@@ -146,9 +146,10 @@ export const appContributionsSchema = z
   .strict()
 
 // Permissions that can be granted to an app for the platform
-export const platformScopeAppPermissionsSchema = z.enum(
-  ['READ_ACL'], // Read the user <-> folder ACL context
-)
+export const platformScopeAppPermissionsSchema = z.enum([
+  'READ_ACL', // Read the user <-> folder ACL context
+  'SERVE_APPS', // Serve other apps
+])
 
 // Permissions that can be granted to an app for a specific user
 export const userScopeAppPermissionsSchema = z.enum([

@@ -18,10 +18,10 @@ async function main() {
     }
   }
 
-  // await Bun.spawn(['bun', 'install'], {
-  //   stdout: 'inherit',
-  //   stderr: 'inherit',
-  // }).exited
+  await Bun.spawn(['bun', 'install'], {
+    stdout: 'inherit',
+    stderr: 'inherit',
+  }).exited
 
   await Bun.spawn(['bun', './test/e2e.setup.ts'], {
     stdout: 'inherit',

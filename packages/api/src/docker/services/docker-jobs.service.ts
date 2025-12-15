@@ -21,9 +21,6 @@ import { DockerClientService } from './client/docker-client.service'
 import { DockerExecResult } from './client/docker-client.types'
 import { WorkerJobService } from './worker-job.service'
 
-export const USER_JWT_SUB_PREFIX = 'user:'
-export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
-export const APP_JWT_SUB_PREFIX = 'app:'
 export const APP_WORKER_JWT_SUB_PREFIX = 'app_worker:'
 
 /** Labels applied to worker containers for discovery */

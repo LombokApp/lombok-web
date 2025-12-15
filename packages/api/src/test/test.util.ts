@@ -5,8 +5,10 @@ import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
+import type { Server } from 'http'
 import path from 'path'
 import { AppService } from 'src/app/services/app.service'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
 import { EventService } from 'src/event/services/event.service'
@@ -34,15 +36,25 @@ export async function buildTestModule({
   testModuleKey,
   overrides = [],
   debug,
+  startServerOnPort,
 }: {
   testModuleKey: string
   debug?: true
+  startServerOnPort?: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   overrides?: { token: any; value: unknown }[]
 }) {
+  if (
+    typeof startServerOnPort === 'number' &&
+    (startServerOnPort < 7000 || startServerOnPort > 9000)
+  ) {
+    throw new Error(
+      'startServerOnPort must be a number between 7000 and 9000, and must not already be used by other tests',
+    )
+  }
   const dbName = `test_db_${testModuleKey}`
   const bucketPathsToRemove: string[] = []
-
+  let httpServer: Server | undefined = undefined
   const { PlatformTestModule } = await import('src/test/platform-test.module')
 
   const initTestModuleWithOverrides = (
@@ -87,22 +99,36 @@ export async function buildTestModule({
   // Ensure all modules complete onModuleInit before using providers
   await app.enableShutdownHooks().init()
 
-  const ormService = await app.resolve(OrmService)
-  const kvService = await app.resolve(KVService)
-  const appService = await app.resolve(AppService)
-  const eventService = await app.resolve(EventService)
-  const taskService = await app.resolve(TaskService)
-  const platformTaskService = await app.resolve(PlatformTaskService)
-  const workerJobService = await app.resolve(WorkerJobService)
+  if (typeof startServerOnPort === 'number') {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    httpServer = await app.listen(startServerOnPort, '0.0.0.0', () => {
+      logger.log(
+        `API started and listening on port ${startServerOnPort}`,
+        'TestModule Bootstrap',
+      )
+    })
+  }
+
+  const services = {
+    jwtService: await app.resolve(JWTService),
+    appService: await app.resolve(AppService),
+    workerJobService: await app.resolve(WorkerJobService),
+    platformTaskService: await app.resolve(PlatformTaskService),
+    eventService: await app.resolve(EventService),
+    taskService: await app.resolve(TaskService),
+    ormService: await app.resolve(OrmService),
+    kvService: await app.resolve(KVService),
+  }
 
   // Truncate the DB after app init (migrations/initialization complete)
-  await ormService.truncateAllTestTables()
+  await services.ormService.truncateAllTestTables()
 
   // Install apps from disk for tests (since installAppsOnStart may not be set in test env)
-  await appService.installAllAppsFromDisk()
+  await services.appService.installAllAppsFromDisk()
 
   return {
     app,
+    services,
     apiClient: buildSupertestApiClient(app),
     shutdown: async () => {
       // remove created minio buckets
@@ -111,6 +137,9 @@ export async function buildTestModule({
       }
 
       // shutdown the app
+      if (httpServer) {
+        httpServer.close()
+      }
       await app.close()
     },
     cleanupMinioTestBuckets: () => {
@@ -125,19 +154,10 @@ export async function buildTestModule({
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       return app.resolve(token) as Promise<InstanceType<T>>
     },
-    services: {
-      appService,
-      workerJobService,
-      platformTaskService,
-      eventService,
-      taskService,
-      ormService,
-      kvService,
-    },
     resetAppState: async () => {
-      kvService.ops.flushall()
-      await ormService.resetTestDb()
-      await appService.installAllAppsFromDisk()
+      services.kvService.ops.flushall()
+      await services.ormService.resetTestDb()
+      await services.appService.installAllAppsFromDisk()
     },
     testS3ClientConfig: () => ({
       accessKeyId: MINIO_ACCESS_KEY_ID,

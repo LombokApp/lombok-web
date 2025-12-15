@@ -9,6 +9,11 @@
     "platform:object_updated",
     "platform:worker_task_enqueued"
   ],
+  "permissions": {
+    "platform": ["SERVE_APPS"],
+    "user": [],
+    "folder": []
+  },
   "tasks": [
     {
       "identifier": "analyze_object",

@@ -8,18 +8,19 @@ import type {
   ExecuteAppDockerJobOptions,
   ExternalAppWorker,
   FolderScopeAppPermissions,
+  JsonSerializableObject,
   StorageAccessPolicy,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import {
   appConfigWithManifestSchema,
-  CORE_APP_IDENTIFIER,
   FolderPermissionEnum,
   LogEntryLevel,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { mimeFromExtension } from '@lombokapp/utils'
 import {
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -91,7 +92,10 @@ import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
 } from '../utils/resolve-app-settings.utils'
-import { handleAppSocketMessage } from './app-socket-message.handler'
+import {
+  AppRequestByName,
+  handleAppSocketMessage,
+} from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -288,8 +292,6 @@ export class AppService {
         taskService: this.taskService,
         appService: this,
         jwtService: this.jwtService,
-        serverConfigurationService: this.serverConfigurationService,
-        s3Service: this.s3Service,
       },
     )
   }
@@ -481,20 +483,179 @@ export class AppService {
     }))
   }
 
-  async getAppUIbundle(
+  async ensureAppHasServerAppPermission(appIdentifier: string) {
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(`App not found: ${appIdentifier}`)
+    }
+    if (!app.permissions.platform.includes('SERVE_APPS')) {
+      throw new ForbiddenException(
+        'Forbidden without the SERVE_APPS permission.',
+      )
+    }
+  }
+
+  async getWorkerExecutionDetailsAsAppServer(
+    requestingAppIdentifier: string,
+    requestData: { appIdentifier: string; workerIdentifier: string },
+  ) {
+    try {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        return {
+          result: undefined,
+          error: {
+            code: 403,
+            message: 'Unauthorized.',
+          },
+        }
+      }
+      throw error
+    }
+
+    const workerApp = await this.ormService.db.query.appsTable.findFirst({
+      where: and(
+        eq(appsTable.identifier, requestData.appIdentifier),
+        eq(appsTable.enabled, true),
+      ),
+    })
+
+    if (!workerApp) {
+      return {
+        error: { code: 404, message: 'Worker app not found.' },
+      }
+    }
+
+    if (!(requestData.workerIdentifier in workerApp.workers.definitions)) {
+      return {
+        error: {
+          code: 404,
+          message: `App worker "${requestData.workerIdentifier}" not found.`,
+        },
+      }
+    }
+
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorage()
+    if (!serverStorageLocation) {
+      return {
+        error: {
+          code: 409,
+          message: 'Server storage location not available.',
+        },
+      }
+    }
+    const presignedGetURL = this.s3Service.createS3PresignedUrls([
+      {
+        method: SignedURLsRequestMethod.GET,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
+        accessKeyId: serverStorageLocation.accessKeyId,
+        secretAccessKey: serverStorageLocation.secretAccessKey,
+        bucket: serverStorageLocation.bucket,
+        endpoint: serverStorageLocation.endpoint,
+        expirySeconds: 3600,
+        region: serverStorageLocation.region,
+      },
+    ])
+    return {
+      result: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        payloadUrl: presignedGetURL[0]!,
+        entrypoint:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          workerApp.workers.definitions[requestData.workerIdentifier]!
+            .entrypoint,
+        environmentVariables:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          workerApp.workers.definitions[requestData.workerIdentifier]!
+            .environmentVariables,
+        workerToken: await this.jwtService.createAppWorkerToken(
+          requestData.appIdentifier,
+        ),
+        hash: workerApp.workers.hash,
+      },
+    }
+  }
+
+  async registerTaskCompletedAsApp(
+    requestingAppIdentifier: string,
+    data: AppRequestByName<'COMPLETE_HANDLE_TASK'>['data'],
+  ) {
+    const taskToComplete = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, data.taskId),
+    })
+
+    if (!taskToComplete) {
+      throw new NotFoundException(`Worker task not found: ${data.taskId}`)
+    }
+
+    if (taskToComplete.ownerIdentifier !== requestingAppIdentifier) {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+      if (taskToComplete.handlerType !== 'worker') {
+        throw new NotFoundException(`Worker task not found: ${data.taskId}`)
+      }
+    }
+
+    await this.taskService.registerTaskCompleted(
+      data.taskId,
+      data.success
+        ? { success: true, result: data.result }
+        : { success: false, error: data.error },
+    )
+  }
+
+  async startWorkerTaskByIdAsApp(
+    requestingAppIdentifier: string,
+    {
+      taskId,
+      startContext,
+    }: {
+      taskId: string
+      startContext: {
+        __executor: JsonSerializableObject
+      } & JsonSerializableObject
+    },
+  ) {
+    const taskToStart = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+
+    if (!taskToStart) {
+      throw new NotFoundException(`Worker task not found: ${taskId}`)
+    }
+
+    if (taskToStart.ownerIdentifier !== requestingAppIdentifier) {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+      if (taskToStart.handlerType !== 'worker') {
+        throw new NotFoundException(`Worker task not found: ${taskId}`)
+      }
+    }
+
+    const { task } = await this.taskService.registerTaskStarted({
+      taskId,
+      startContext,
+    })
+    return task
+  }
+
+  async getAppUIbundleAsAppServer(
     requestingAppIdentifier: string,
     requestData: { appIdentifier: string },
   ) {
-    // verify the app is the installed "core" app
-    if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
-      // must be "core" app to access app UI bundles
-      return {
-        result: undefined,
-        error: {
-          code: 403,
-          message: 'Unauthorized.',
-        },
+    try {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        return {
+          result: undefined,
+          error: {
+            code: 403,
+            message: 'Unauthorized.',
+          },
+        }
       }
+      throw error
     }
 
     const workerApp = await this.getApp(requestData.appIdentifier, {
@@ -528,7 +689,7 @@ export class AppService {
     if (!serverStorageLocation) {
       return {
         error: {
-          code: 500,
+          code: 409,
           message: 'Server storage location not available.',
         },
       }
@@ -781,6 +942,16 @@ export class AppService {
           ...app.workers,
           ...(await createAndUploadBundle('workers')),
         }
+      }
+    }
+
+    if (app.config.database?.enabled) {
+      await this.ormService.ensureAppSchema(app.identifier)
+      if (app.migrationFiles.length > 0) {
+        await this.ormService.runAppMigrations(
+          app.identifier,
+          app.migrationFiles,
+        )
       }
     }
 
@@ -1098,7 +1269,7 @@ export class AppService {
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     if (!app.workers.definitions[workerIdentifier]) {
       throw new NotFoundException(
         `Worker script not found: ${workerIdentifier}`,
@@ -1633,8 +1804,6 @@ export class AppService {
           eq(appUserSettingsTable.userId, folder.ownerId),
         ),
       })
-
-    console.log('appUserSettings:', appUserSettings)
 
     const appFolderSettings =
       await this.ormService.db.query.appFolderSettingsTable.findFirst({

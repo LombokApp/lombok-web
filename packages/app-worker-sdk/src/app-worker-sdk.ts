@@ -1,4 +1,5 @@
 import {
+  appMessageErrorSchema,
   type AppSocketMessage,
   type AppSocketMessageDataMap,
   AppSocketMessageResponseSchemaMap,
@@ -135,6 +136,25 @@ export const buildAppClient = (
       name,
       data,
     })) as SocketResponse<K> | { error: AppSocketResponseError }
+
+    if ('error' in response) {
+      const parsedError = appMessageErrorSchema.safeParse(response.error)
+      if (parsedError.success) {
+        return {
+          error: response.error,
+        }
+      }
+      return {
+        error: {
+          code: 'APP_API_ERROR',
+          message: 'Failed to parse response',
+          details: {
+            fieldErrors: parsedError.error.flatten().fieldErrors,
+            formErrors: parsedError.error.flatten().formErrors,
+          },
+        },
+      }
+    }
 
     const parsedResponse =
       AppSocketMessageResponseSchemaMap[name].safeParse(response)

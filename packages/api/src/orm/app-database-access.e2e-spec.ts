@@ -59,7 +59,7 @@ describe('ORM Schema Isolation', () => {
     )
     // Verify the app query worked
     expect(appResult.rows.length).toBe(1)
-    expect(appResult.rows[0].name).toBe('test data')
+    expect(appResult.rows[0]?.name).toBe('test data')
 
     // Now try to query the main app's tables (should still work)
     // This would fail if the search path wasn't properly isolated
@@ -69,7 +69,7 @@ describe('ORM Schema Isolation', () => {
 
     // Verify the main app query still works
     expect(mainAppResult.rows.length).toBe(1)
-    expect(mainAppResult.rows[0].test_value).toBe(1)
+    expect(mainAppResult.rows[0]?.test_value).toBe(1)
 
     // Test that we can still access main app tables through the API
     const {
@@ -133,14 +133,14 @@ describe('ORM Schema Isolation', () => {
       'object',
     )
     expect(selectResult.rows.length).toBe(3)
-    expect(selectResult.rows[0].value).toBe(1)
-    expect(selectResult.rows[1].value).toBe(2)
-    expect(selectResult.rows[2].value).toBe(3)
+    expect(selectResult.rows[0]?.value).toBe(1)
+    expect(selectResult.rows[1]?.value).toBe(2)
+    expect(selectResult.rows[2]?.value).toBe(3)
 
     // Verify batch operations worked
     expect(batchResult.results.length).toBe(4)
     expect(
-      Number((batchResult.results[3] as { count: string }[])[0].count),
+      Number((batchResult.results[3] as { count: string }[])[0]?.count),
     ).toBe(3)
 
     // Verify main app queries still work
@@ -148,7 +148,7 @@ describe('ORM Schema Isolation', () => {
       'SELECT 1 as test_value',
     )
     expect(mainAppResult.rows.length).toBe(1)
-    expect(mainAppResult.rows[0].test_value).toBe(1)
+    expect(mainAppResult.rows[0]?.test_value).toBe(1)
 
     // Test API access still works
     const {
@@ -224,17 +224,17 @@ describe('ORM Schema Isolation', () => {
 
     // Verify both queries worked correctly
     expect(app1Result.rows.length).toBe(1)
-    expect(app1Result.rows[0].value).toBe('app1 data')
+    expect(app1Result.rows[0]?.value).toBe('app1 data')
 
     expect(app2Result.rows.length).toBe(1)
-    expect(app2Result.rows[0].value).toBe('app2 data')
+    expect(app2Result.rows[0]?.value).toBe('app2 data')
 
     // Verify main app queries still work
     const mainAppResult = await ormService.client.query<{ test_value: number }>(
       'SELECT 1 as test_value',
     )
     expect(mainAppResult.rows.length).toBe(1)
-    expect(mainAppResult.rows[0].test_value).toBe(1)
+    expect(mainAppResult.rows[0]?.test_value).toBe(1)
 
     // Test API functionality
     const {
@@ -299,7 +299,7 @@ describe('ORM Schema Isolation', () => {
       [],
       'object',
     )
-    expect(ownResult.rows[0].value).toBe('allowed')
+    expect(ownResult.rows[0]?.value).toBe('allowed')
 
     expect(
       ormService.executeQueryForApp(
@@ -464,7 +464,7 @@ describe('ORM Schema Isolation', () => {
       'SELECT 1 as test_value',
     )
     expect(mainAppResult.rows.length).toBe(1)
-    expect(mainAppResult.rows[0].test_value).toBe(1)
+    expect(mainAppResult.rows[0]?.test_value).toBe(1)
 
     // Test API functionality
     const {
@@ -578,7 +578,7 @@ describe('ORM Schema Isolation', () => {
     expect((batchResult.results[0] as { rowCount: number }).rowCount).toBe(1)
 
     // Second result is query in object mode
-    expect((batchResult.results[1] as { count: string }[])[0].count).toBe('3')
+    expect((batchResult.results[1] as { count: string }[])[0]?.count).toBe('3')
 
     // Third result is query in array mode
     expect((batchResult.results[2] as [number, string][]).length).toBe(1)
@@ -592,10 +592,102 @@ describe('ORM Schema Isolation', () => {
       'SELECT 1 as test_value',
     )
     expect(mainAppResult.rows.length).toBe(1)
-    expect(mainAppResult.rows[0].test_value).toBe(1)
+    expect(mainAppResult.rows[0]?.test_value).toBe(1)
 
     // Clean up
     await ormService.dropAppSchema(testAppId)
+  })
+
+  describe('Database Access Restrictions', () => {
+    it('should have database field set to false for app without database enabled', async () => {
+      const app =
+        await testModule!.services.appService.getApp('sockettestappnodb')
+
+      expect(app).toBeDefined()
+      if (!app) {
+        throw new Error('App not found')
+      }
+
+      expect(app.database).toBe(false)
+    })
+
+    it('should have database field set to true for app with database enabled', async () => {
+      const app = await testModule!.services.appService.getApp('sockettestapp')
+
+      expect(app).toBeDefined()
+      if (!app) {
+        throw new Error('App not found')
+      }
+
+      expect(app.database).toBe(true)
+    })
+
+    it('should allow ORM service methods for app with database enabled', async () => {
+      const appIdentifier = 'sockettestapp'
+      const ormService = testModule!.services.ormService
+
+      // Ensure the schema exists
+      await ormService.ensureAppSchema(appIdentifier)
+
+      // Test query
+      const queryResult = await ormService.executeQueryForApp(
+        appIdentifier,
+        'SELECT 1 as test_value',
+        [],
+      )
+      expect(queryResult.rows.length).toBe(1)
+
+      // Test exec
+      const execResult = await ormService.executeExecForApp(
+        appIdentifier,
+        'CREATE TABLE IF NOT EXISTS test_restriction_table (id SERIAL PRIMARY KEY)',
+        [],
+      )
+      expect(execResult.rowCount).toBeDefined()
+
+      // Test batch
+      const batchResult = await ormService.executeBatchForApp(
+        appIdentifier,
+        [
+          {
+            sql: 'SELECT 1 as test_value',
+            kind: 'query',
+          },
+        ],
+        false,
+      )
+      expect(batchResult.results.length).toBe(1)
+    })
+
+    it('should verify database restriction check logic correctly identifies restricted apps', async () => {
+      const appService = testModule!.services.appService
+
+      // Helper function to simulate the restriction check from socket handler
+      const checkDatabaseAccess = async (appIdentifier: string) => {
+        const app = await appService.getApp(appIdentifier, { enabled: true })
+        if (!app) {
+          return { allowed: false, reason: 'App not found' }
+        }
+        if (!app.database) {
+          return {
+            allowed: false,
+            reason: 'Database is not enabled for this app.',
+          }
+        }
+        return { allowed: true }
+      }
+
+      // App without database enabled should be restricted
+      const checkWithoutDb = await checkDatabaseAccess('sockettestappnodb')
+      expect(checkWithoutDb.allowed).toBe(false)
+      expect(checkWithoutDb.reason).toBe(
+        'Database is not enabled for this app.',
+      )
+
+      // App with database enabled should be allowed
+      const checkWithDb = await checkDatabaseAccess('sockettestapp')
+      expect(checkWithDb.allowed).toBe(true)
+    })
   })
 
   afterAll(async () => {

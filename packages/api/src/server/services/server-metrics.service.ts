@@ -253,7 +253,6 @@ export class ServerMetricsService {
         .where(eq(storageLocationsTable.providerType, 'SERVER'))
     )[0]!
 
-    console.log(installedAppsResult, typeof installedAppsResult)
     return {
       totalUsers: totalUsersResult.count,
       sessionsCreatedPreviousWeek: sessionsCreatedPreviousWeekResult.count,

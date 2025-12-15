@@ -1,10 +1,42 @@
 import type { AppConfig } from '@lombokapp/types'
+import crypto from 'crypto'
 import fs from 'fs'
 
 const APPS_PATH = '/apps-test'
 
 if (!fs.existsSync(APPS_PATH)) {
   fs.mkdirSync(APPS_PATH)
+}
+
+// Generate key pair for socket test app
+const generateKeyPair = (): Promise<{
+  publicKey: string
+  privateKey: string
+}> => {
+  return new Promise((resolve) => {
+    crypto.generateKeyPair(
+      'rsa',
+      {
+        modulusLength: 4096,
+        publicKeyEncoding: {
+          type: 'spki',
+          format: 'pem',
+        },
+        privateKeyEncoding: {
+          type: 'pkcs8',
+          format: 'pem',
+          cipher: undefined,
+          passphrase: undefined,
+        },
+      },
+      (err, publicKey, privateKey) => {
+        if (err) {
+          throw err
+        }
+        resolve({ publicKey, privateKey })
+      },
+    )
+  })
 }
 
 const testAppDefinitions: AppConfig[] = [
@@ -15,7 +47,7 @@ const testAppDefinitions: AppConfig[] = [
     label: 'Core',
     requiresStorage: false,
     permissions: {
-      platform: [],
+      platform: ['SERVE_APPS'],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -237,9 +269,55 @@ const testAppDefinitions: AppConfig[] = [
       },
     ],
   },
+  {
+    description: 'Test app for app socket interface testing.',
+    identifier: 'sockettestapp',
+    label: 'Socket Test App',
+    requiresStorage: false,
+    database: {
+      enabled: true,
+    },
+    permissions: {
+      platform: [],
+      user: [],
+      folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
+    },
+    tasks: [
+      {
+        identifier: 'socket_test_task',
+        label: 'Socket Test Task',
+        description: 'A task for testing socket interface.',
+        handler: {
+          type: 'external',
+        },
+      },
+    ],
+  },
+  {
+    description:
+      'Test app for app socket interface testing without db enabled.',
+    identifier: 'sockettestappnodb',
+    label: 'Socket Test App',
+    requiresStorage: false,
+    permissions: {
+      platform: [],
+      user: [],
+      folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
+    },
+    tasks: [
+      {
+        identifier: 'socket_test_task',
+        label: 'Socket Test Task',
+        description: 'A task for testing socket interface.',
+        handler: {
+          type: 'external',
+        },
+      },
+    ],
+  },
 ]
 
-const addTestAppDefinition = (appConfig: AppConfig) => {
+const addTestAppDefinition = async (appConfig: AppConfig) => {
   if (!fs.existsSync(`${APPS_PATH}/${appConfig.identifier}`)) {
     fs.mkdirSync(`${APPS_PATH}/${appConfig.identifier}`)
   }
@@ -248,6 +326,17 @@ const addTestAppDefinition = (appConfig: AppConfig) => {
     `${APPS_PATH}/${appConfig.identifier}/config.json`,
     JSON.stringify(appConfig),
   )
+
+  // Generate and store public key for sockettestapp
+  const { publicKey, privateKey } = await generateKeyPair()
+  fs.writeFileSync(`${APPS_PATH}/${appConfig.identifier}/.publicKey`, publicKey)
+  // Store private key in a file that tests can read
+  fs.writeFileSync(
+    `${APPS_PATH}/${appConfig.identifier}/.privateKey`,
+    privateKey,
+  )
 }
 
-testAppDefinitions.forEach((appDef) => addTestAppDefinition(appDef))
+await Promise.all(
+  testAppDefinitions.map((appDef) => addTestAppDefinition(appDef)),
+)

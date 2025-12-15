@@ -7,8 +7,6 @@ import type {
 import {
   appSocketMessageSchema,
   AppSocketMessageSchemaMap,
-  CORE_APP_IDENTIFIER,
-  SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { HttpException } from '@nestjs/common'
 import type { JWTService } from 'src/auth/services/jwt.service'
@@ -16,8 +14,6 @@ import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
-import type { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import type { S3Service } from 'src/storage/s3.service'
 import type { TaskService } from 'src/task/services/task.service'
 import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import type { z, ZodTypeAny } from 'zod'
@@ -84,8 +80,6 @@ export async function handleAppSocketMessage(
     folderService,
     appService,
     jwtService,
-    serverConfigurationService,
-    s3Service,
   }: {
     eventService: EventService
     ormService: OrmService
@@ -94,8 +88,6 @@ export async function handleAppSocketMessage(
     taskService: TaskService
     jwtService: JWTService
     appService: AppService
-    serverConfigurationService: ServerConfigurationService
-    s3Service: S3Service
   },
 ): Promise<AppSocketResponse<AppSocketMessageName>> {
   const parsedRequest = parseAppSocketRequest(message)
@@ -109,7 +101,6 @@ export async function handleAppSocketMessage(
     }
   }
 
-  const isCoreApp = requestingAppIdentifier === CORE_APP_IDENTIFIER
   switch (parsedRequest.name) {
     case 'GET_APP_USER_ACCESS_TOKEN':
       return {
@@ -142,6 +133,22 @@ export async function handleAppSocketMessage(
         }
       }
     case 'DB_QUERY': {
+      const app = await appService.getApp(requestingAppIdentifier, {
+        enabled: true,
+      })
+      if (!app) {
+        return {
+          error: { code: 404, message: 'App not found.' },
+        }
+      }
+      if (!app.database) {
+        return {
+          error: {
+            code: 409,
+            message: 'Database is not enabled for this app.',
+          },
+        }
+      }
       const result = await ormService.executeQueryForApp(
         requestingAppIdentifier,
         parsedRequest.data.sql,
@@ -159,6 +166,22 @@ export async function handleAppSocketMessage(
       }
     }
     case 'DB_EXEC': {
+      const app = await appService.getApp(requestingAppIdentifier, {
+        enabled: true,
+      })
+      if (!app) {
+        return {
+          error: { code: 404, message: 'App not found.' },
+        }
+      }
+      if (!app.database) {
+        return {
+          error: {
+            code: 409,
+            message: 'Database is not enabled for this app.',
+          },
+        }
+      }
       const result = await ormService.executeExecForApp(
         requestingAppIdentifier,
         parsedRequest.data.sql,
@@ -167,6 +190,22 @@ export async function handleAppSocketMessage(
       return { result: { rowCount: result.rowCount } }
     }
     case 'DB_BATCH': {
+      const app = await appService.getApp(requestingAppIdentifier, {
+        enabled: true,
+      })
+      if (!app) {
+        return {
+          error: { code: 404, message: 'App not found.' },
+        }
+      }
+      if (!app.database) {
+        return {
+          error: {
+            code: 409,
+            message: 'Database is not enabled for this app.',
+          },
+        }
+      }
       const result = await ormService.executeBatchForApp(
         requestingAppIdentifier,
         parsedRequest.data.steps,
@@ -198,28 +237,41 @@ export async function handleAppSocketMessage(
       )
       return { result: undefined }
     case 'COMPLETE_HANDLE_TASK': {
-      // TODO: check if the task is owned by the requesting app, or the app has permission to execute worker tasks (and it is a worker task)
-      await taskService.registerTaskCompleted(
-        parsedRequest.data.taskId,
-        parsedRequest.data.success
-          ? { success: true, result: parsedRequest.data.result }
-          : { success: false, error: parsedRequest.data.error },
-      )
+      try {
+        await appService.registerTaskCompletedAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+      } catch (error) {
+        return {
+          error:
+            error instanceof HttpException
+              ? { code: error.getStatus(), message: error.message }
+              : {
+                  code: 500,
+                  message:
+                    error instanceof Error
+                      ? `Unexpected server error: ${error.message}`
+                      : `Unexpected server error: ${String(error)}`,
+                },
+        }
+      }
 
       return { result: undefined }
     }
     case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
+      const startContext = {
+        ...(parsedRequest.data.startContext ?? {}),
+        __executor: {
+          appIdentifier: requestingAppIdentifier,
+          handlerInstanceId,
+        },
+      }
       try {
         const { task: securedTask } = await taskService.startAnyAvailableTask({
           appIdentifier: requestingAppIdentifier,
           taskIdentifiers: parsedRequest.data.taskIdentifiers,
-          startContext: {
-            ...(parsedRequest.data.startContext ?? {}),
-            __executor: {
-              appIdentifier: requestingAppIdentifier,
-              handlerInstanceId,
-            },
-          },
+          startContext,
         })
         return { result: { task: transformTaskToDTO(securedTask) } }
       } catch (error) {
@@ -240,16 +292,6 @@ export async function handleAppSocketMessage(
       }
     }
     case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
-      // TODO: check if the requesting app has permission to execute worker tasks (and it is a worker task)
-      if (!isCoreApp) {
-        return {
-          error: {
-            code: 403,
-            message: 'Unauthorized to handle worker tasks',
-          },
-        }
-      }
-
       const startContext = {
         __executor: {
           appIdentifier: requestingAppIdentifier,
@@ -257,13 +299,15 @@ export async function handleAppSocketMessage(
         },
         ...(parsedRequest.data.startContext ?? {}),
       }
-
       try {
-        const { task } = await taskService.registerTaskStarted({
-          taskId: parsedRequest.data.taskId,
-          startContext,
-        })
-        return { result: { task: transformTaskToDTO(task) } }
+        const startedTask = await appService.startWorkerTaskByIdAsApp(
+          requestingAppIdentifier,
+          {
+            taskId: parsedRequest.data.taskId,
+            startContext,
+          },
+        )
+        return { result: { task: transformTaskToDTO(startedTask) } }
       } catch (error) {
         if (error instanceof HttpException) {
           return {
@@ -283,76 +327,15 @@ export async function handleAppSocketMessage(
     }
 
     case 'GET_APP_UI_BUNDLE':
-      // TODO: Move this to the app service and check a permission for the app
-      return appService.getAppUIbundle(
+      return appService.getAppUIbundleAsAppServer(
         requestingAppIdentifier,
         parsedRequest.data,
       )
     case 'GET_WORKER_EXECUTION_DETAILS': {
-      // TODO: Move this to the app service and check a permission for the app
-      if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
-        return {
-          error: { code: 403, message: 'Unauthorized.' },
-        }
-      }
-      const workerApp = await appService.getApp(
-        parsedRequest.data.appIdentifier,
-        {
-          enabled: true,
-        },
+      return appService.getWorkerExecutionDetailsAsAppServer(
+        requestingAppIdentifier,
+        parsedRequest.data,
       )
-      if (!workerApp) {
-        return {
-          error: { code: 404, message: 'Worker app not found.' },
-        }
-      }
-      if (
-        !(parsedRequest.data.workerIdentifier in workerApp.workers.definitions)
-      ) {
-        return {
-          error: { code: 404, message: 'Worker not found.' },
-        }
-      }
-      const serverStorageLocation =
-        await serverConfigurationService.getServerStorage()
-      if (!serverStorageLocation) {
-        return {
-          error: {
-            code: 500,
-            message: 'Server storage location not available.',
-          },
-        }
-      }
-      const presignedGetURL = s3Service.createS3PresignedUrls([
-        {
-          method: SignedURLsRequestMethod.GET,
-          objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${parsedRequest.data.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
-          accessKeyId: serverStorageLocation.accessKeyId,
-          secretAccessKey: serverStorageLocation.secretAccessKey,
-          bucket: serverStorageLocation.bucket,
-          endpoint: serverStorageLocation.endpoint,
-          expirySeconds: 3600,
-          region: serverStorageLocation.region,
-        },
-      ])
-      return {
-        result: {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          payloadUrl: presignedGetURL[0]!,
-          entrypoint:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            workerApp.workers.definitions[parsedRequest.data.workerIdentifier]!
-              .entrypoint,
-          environmentVariables:
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            workerApp.workers.definitions[parsedRequest.data.workerIdentifier]!
-              .environmentVariables,
-          workerToken: await jwtService.createAppWorkerToken(
-            parsedRequest.data.appIdentifier,
-          ),
-          hash: workerApp.workers.hash,
-        },
-      }
     }
     case 'GET_APP_STORAGE_SIGNED_URLS':
       return {

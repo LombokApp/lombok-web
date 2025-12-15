@@ -180,7 +180,7 @@ export class CoreAppService {
           `Embedded core app worker process error: ${String(err.message)}`,
         )
       })
-      const appToken = await this.generateEmbeddedAppKeys()
+      const appToken = await this.generateEmbeddedAppKeys() // TODO: Replace this work a "worker token"
       setTimeout(() => {
         // send the config as the first message
         const executionOptions = {
