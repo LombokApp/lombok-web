@@ -7,7 +7,11 @@ import { eventIdentifierSchema } from './events.types'
 import { jsonSerializableObjectDTOSchema } from './json.types'
 import { LogEntryLevel } from './platform.types'
 import { SignedURLsRequestMethod } from './storage.types'
-import { storageAccessPolicySchema, taskDTOSchema } from './task.types'
+import {
+  storageAccessPolicySchema,
+  taskDTOSchema,
+  taskOnCompleteConfigSchema,
+} from './task.types'
 
 export const logEntrySchema = z.object({
   message: z.string().max(1024),
@@ -159,6 +163,9 @@ export const triggerAppTaskSchema = z.object({
     })
     .optional(),
   targetUserId: z.string().uuid().optional(),
+  onComplete: z
+    .union([taskOnCompleteConfigSchema, taskOnCompleteConfigSchema.array()])
+    .optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 

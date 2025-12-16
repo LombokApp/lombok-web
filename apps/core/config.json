@@ -14,30 +14,38 @@
     "user": [],
     "folder": []
   },
+  "triggers": [
+    {
+      "kind": "event",
+      "eventIdentifier": "platform:object_added",
+      "dataTemplate": {
+        "folderId": "{{event.data.folderId}}",
+        "objectKey": "{{event.data.objectKey}}"
+      },
+      "handler": {
+        "type": "task",
+        "identifier": "analyze_object"
+      }
+    },
+    {
+      "kind": "event",
+      "eventIdentifier": "platform:worker_task_enqueued",
+      "dataTemplate": {
+        "innerTaskId": "{{event.data.innerTaskId}}",
+        "appIdentifier": "{{event.data.appIdentifier}}",
+        "workerIdentifier": "{{event.data.workerIdentifier}}"
+      },
+      "handler": {
+        "type": "task",
+        "identifier": "run_worker_script"
+      }
+    }
+  ],
   "tasks": [
     {
       "identifier": "analyze_object",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
-      "triggers": [
-        {
-          "kind": "event",
-          "eventIdentifier": "platform:object_added",
-          "dataTemplate": {
-            "folderId": "{{event.data.folderId}}",
-            "objectKey": "{{event.data.objectKey}}"
-          },
-          "onComplete": {
-            "taskIdentifier": "analyze_object",
-            "dataTemplate": {
-              "success": {
-                "someKey": "{{task.result.someKey}}"
-              }
-            }
-          }
-
-        }
-      ],
       "handler": {
         "type": "external"
       }
@@ -46,17 +54,6 @@
       "identifier": "run_worker_script",
       "label": "Run Worker",
       "description": "Run a worker script.",
-      "triggers": [
-        {
-          "kind": "event",
-          "eventIdentifier": "platform:worker_task_enqueued",
-          "dataTemplate": {
-            "innerTaskId": "{{event.data.innerTaskId}}",
-            "appIdentifier": "{{event.data.appIdentifier}}",
-            "workerIdentifier": "{{event.data.workerIdentifier}}"
-          }
-        }
-      ],
       "handler": {
         "type": "external"
       }
