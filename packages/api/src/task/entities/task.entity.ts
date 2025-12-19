@@ -69,6 +69,7 @@ export const tasksTable = pgTable(
       .notNull()
       .default([]),
     success: boolean('success'),
+    userVisible: boolean('userVisible').default(true),
     error: jsonb('error').$type<{
       code: string
       message: string

@@ -1,5 +1,5 @@
 {
-  "id": "c210371c-db41-4142-870c-7e9887a12c5d",
+  "id": "8082e533-b734-4cdb-96aa-52aa44dfc4f7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -784,14 +784,14 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "CURRENT_TIMESTAMP"
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "CURRENT_TIMESTAMP"
@@ -1228,13 +1228,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "taskLog": {
-          "name": "taskLog",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
         "startedAt": {
           "name": "startedAt",
           "type": "timestamp",
@@ -1260,6 +1253,13 @@
           "notNull": true,
           "default": "'[]'::jsonb"
         },
+        "taskLog": {
+          "name": "taskLog",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
         "storageAccessPolicy": {
           "name": "storageAccessPolicy",
           "type": "jsonb",
@@ -1272,6 +1272,13 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false
+        },
+        "userVisible": {
+          "name": "userVisible",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
         },
         "error": {
           "name": "error",

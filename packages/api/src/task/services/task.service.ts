@@ -45,6 +45,10 @@ import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-pa
 import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import type { NewTask, Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
+import {
+  evalOnCompleteHandlerCondition,
+  OnCompleteConditionTaskContext,
+} from '../util/eval-oncomplete-condition.util'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -68,13 +72,13 @@ export class TaskService {
   constructor(
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppSocketService))
-    private readonly _appSocketService,
+    _appSocketService,
     @Inject(forwardRef(() => EventService))
-    private readonly _eventService,
+    _eventService,
     @Inject(forwardRef(() => AppService))
-    private readonly _appService,
+    _appService,
     @Inject(forwardRef(() => FolderService))
-    private readonly _folderService,
+    _folderService,
   ) {
     this.appService = _appService as AppService
     this.folderService = _folderService as FolderService
@@ -487,7 +491,7 @@ export class TaskService {
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
     storageAccessPolicy?: StorageAccessPolicy
-    onComplete?: TaskOnCompleteConfig | TaskOnCompleteConfig[]
+    onComplete?: TaskOnCompleteConfig[]
   }) {
     const app = await this.appService.getApp(appIdentifier, { enabled: true })
     if (!app) {
@@ -575,7 +579,7 @@ export class TaskService {
    * @param storageAccessPolicy - The storage access policy to use for the task.
    * @returns The created task record.
    */
-  async triggerOnCompleteTask({
+  async executeOnCompleteHandler({
     parentTask,
     parentTaskSuccess,
     taskIdentifier,
@@ -583,7 +587,7 @@ export class TaskService {
     dontStartBefore,
     targetUserId,
     targetLocation,
-    onCompletions = [],
+    onComplete = [],
     storageAccessPolicy,
     tx,
   }: {
@@ -594,7 +598,7 @@ export class TaskService {
     dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
-    onCompletions: TaskOnCompleteConfig[]
+    onComplete?: TaskOnCompleteConfig[]
     storageAccessPolicy?: StorageAccessPolicy
     tx?: OrmService['db']
   }) {
@@ -615,6 +619,24 @@ export class TaskService {
       )
     }
 
+    const parentTaskSuccessLog = parentTask.systemLog
+      .reverse()
+      .find((log) => log.payload.logType === 'success')?.payload.data as
+      | { result: JsonSerializableObject }
+      | undefined
+
+    const parentTaskErrorLog = parentTask.systemLog
+      .reverse()
+      .find((log) => log.payload.logType === 'error')?.payload.data as
+      | {
+          error: {
+            code: string
+            message: string
+            details: JsonSerializableObject
+          }
+        }
+      | undefined
+
     const now = new Date()
     const newTask: NewTask = {
       id: crypto.randomUUID(),
@@ -623,14 +645,42 @@ export class TaskService {
       trigger: {
         kind: 'task_child',
         invokeContext: {
-          parentTaskId: parentTask.id,
-          parentTaskIdentifier: parentTask.taskIdentifier,
-          parentTaskSuccess,
+          parentTask: {
+            id: parentTask.id,
+            identifier: parentTask.taskIdentifier,
+            ...(parentTaskSuccess
+              ? {
+                  success: true,
+                  result: parentTaskSuccessLog?.result ?? {},
+                }
+              : {
+                  success: false,
+                  error: parentTaskErrorLog?.error ?? {
+                    code: 'UNKNOWN_ERROR',
+                    message: 'Parent task failed',
+                    details: {},
+                  },
+                }),
+          },
         },
-        onComplete: onCompletions.length > 0 ? onCompletions : undefined,
+        onComplete: onComplete.length > 0 ? onComplete : undefined,
       },
       data: taskDataTemplate
-        ? dataFromTemplate({ task: parentTask }, taskDataTemplate)
+        ? await dataFromTemplate(taskDataTemplate, {
+            objects: {
+              task: {
+                id: parentTask.id,
+                success: true,
+                result: parentTaskSuccessLog?.result ?? {},
+              },
+            },
+            functions: {
+              createPresignedUrl:
+                this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
+                  parentTask.ownerIdentifier,
+                ),
+            },
+          })
         : {},
       handlerType: taskDefinition.handler.type,
       handlerIdentifier:
@@ -652,6 +702,8 @@ export class TaskService {
     }
 
     const db = tx ?? this.ormService.db
+
+    this.logger.debug('onComplete handler task queued', newTask)
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const task = (await db.insert(tasksTable).values(newTask).returning())[0]!
 
@@ -888,28 +940,45 @@ export class TaskService {
       }
 
       // Enqueue the completion handler task if one was configured for this task
-      const [currentOnCompleteHandler, nextOnCompleteHandlers] = Array.isArray(
-        task.trigger.onComplete,
-      )
-        ? [task.trigger.onComplete[0], task.trigger.onComplete.slice(1)]
-        : task.trigger.onComplete
-          ? [task.trigger.onComplete, []]
-          : [undefined, []]
-
-      if (currentOnCompleteHandler) {
-        await this.triggerOnCompleteTask({
-          parentTaskSuccess: completion.success,
-          parentTask: task,
-          onCompletions: nextOnCompleteHandlers,
-          taskIdentifier: currentOnCompleteHandler.taskIdentifier,
-          taskDataTemplate: completion.success
-            ? currentOnCompleteHandler.dataTemplate?.success
-            : currentOnCompleteHandler.dataTemplate?.failure,
-          targetUserId: task.targetUserId ?? undefined,
-          targetLocation: task.targetLocation ?? undefined,
-          storageAccessPolicy: task.storageAccessPolicy,
-          tx,
-        })
+      for (const onCompleteHandler of task.trigger.onComplete ?? []) {
+        const conditionInput: OnCompleteConditionTaskContext = {
+          id: updatedTask.id,
+          ...(completion.success
+            ? { success: true, result: completion.result ?? {} }
+            : {
+                success: false,
+                error: completion.error,
+              }),
+        }
+        const onCompleteConditionResult = onCompleteHandler.condition
+          ? evalOnCompleteHandlerCondition(
+              onCompleteHandler.condition,
+              conditionInput,
+            )
+          : undefined
+        if (onCompleteHandler.condition) {
+          console.log('onCompleteConditionResult', {
+            onCompleteConditionResult,
+            conditionInput,
+            onCompleteHandlerCondition: onCompleteHandler.condition,
+          })
+        }
+        if (
+          !onCompleteHandler.condition ||
+          onCompleteConditionResult === true
+        ) {
+          await this.executeOnCompleteHandler({
+            parentTaskSuccess: completion.success,
+            parentTask: updatedTask,
+            onComplete: onCompleteHandler.onComplete ?? [],
+            taskIdentifier: onCompleteHandler.taskIdentifier,
+            taskDataTemplate: onCompleteHandler.dataTemplate ?? {},
+            targetUserId: updatedTask.targetUserId ?? undefined,
+            targetLocation: updatedTask.targetLocation ?? undefined,
+            storageAccessPolicy: updatedTask.storageAccessPolicy,
+            tx,
+          })
+        }
       }
 
       return updatedTask

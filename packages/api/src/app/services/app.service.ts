@@ -296,18 +296,26 @@ export class AppService {
     )
   }
 
-  async createSignedContentUrls(
+  async createSignedContentUrlsAsApp(
+    requestingAppIdentifier: string,
     requests: {
       folderId: string
       objectKey: string
       method: SignedURLsRequestMethod
     }[],
   ) {
+    for (const request of requests) {
+      await this.validateAppFolderAccess({
+        appIdentifier: requestingAppIdentifier,
+        folderId: request.folderId,
+      })
+    }
     // get presigned upload URLs for content objects
     return this._createSignedUrls(requests)
   }
 
-  async createSignedMetadataUrls(
+  async createSignedMetadataUrlsAsApp(
+    requestingAppIdentifier: string,
     requests: {
       folderId: string
       objectKey: string
@@ -316,6 +324,12 @@ export class AppService {
       metadataHash: string
     }[],
   ) {
+    for (const request of requests) {
+      await this.validateAppFolderAccess({
+        appIdentifier: requestingAppIdentifier,
+        folderId: request.folderId,
+      })
+    }
     const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
@@ -1943,7 +1957,7 @@ export class AppService {
    * This method validates that the app has the specified profile and job class,
    * then delegates to the DockerJobsService to execute the job.
    *
-   * @param params.waitForCompletion - Whether or not to execute the job synchronously and wait for the result.
+   * @param params.asyncId - If provided...
    * @param params.appIdentifier - The app's identifier
    * @param params.profileIdentifier - The container profile to use
    * @param params.jobIdentifier - The job class within the profile

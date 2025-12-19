@@ -167,25 +167,40 @@ export class DockerJobsService {
     )
 
     // Get the default host (local for now)
-    const hostId = 'local'
+    const hostId =
+      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
+        profileHostConfigKey
+      ] ?? 'local'
 
     // Check if docker host is configured
-    if (!(hostId in this._platformConfig.dockerHostConfig)) {
+    if (!(hostId in (this._platformConfig.dockerHostConfig.hosts ?? {}))) {
       throw new Error('DOCKER_NOT_CONFIGURED')
     }
 
-    const { gpus = undefined, volumes = undefined } =
-      hostId in this._platformConfig.dockerHostConfig
-        ? {
-            volumes:
-              this._platformConfig.dockerHostConfig[hostId].volumes?.[
-                profileHostConfigKey
-              ],
-            gpus: this._platformConfig.dockerHostConfig[hostId].gpus?.[
+    const {
+      gpus = undefined,
+      volumes = undefined,
+      networkMode = undefined,
+      extraHosts = undefined,
+    } = this._platformConfig.dockerHostConfig.hosts?.[hostId]
+      ? {
+          volumes:
+            this._platformConfig.dockerHostConfig.hosts[hostId].volumes?.[
               profileHostConfigKey
             ],
-          }
-        : {}
+          gpus: this._platformConfig.dockerHostConfig.hosts[hostId].gpus?.[
+            profileHostConfigKey
+          ],
+          extraHosts:
+            this._platformConfig.dockerHostConfig.hosts[hostId].extraHosts?.[
+              profileHostConfigKey
+            ],
+          networkMode:
+            this._platformConfig.dockerHostConfig.hosts[hostId].networkMode?.[
+              profileHostConfigKey
+            ],
+        }
+      : {}
 
     // create the worker token if one is required
     const jobToken =
@@ -209,7 +224,9 @@ export class DockerJobsService {
         image: profileSpec.image,
         labels,
         volumes,
+        extraHosts,
         gpus,
+        networkMode,
       },
     )
 
@@ -240,6 +257,7 @@ export class DockerJobsService {
               kind: 'exec_per_job',
             },
       volumes,
+      networkMode,
       gpus,
     }
 
@@ -248,6 +266,8 @@ export class DockerJobsService {
       container.id,
       execOptions,
     )
+
+    console.log('execResult:', execResult)
 
     return execResult
   }

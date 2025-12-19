@@ -252,7 +252,27 @@ export class WorkerJobService {
     files: WorkerJobUploadUrlsRequestDTO,
   ): Promise<WorkerJobPresignedUrlsResponseDTO> {
     // Validate all requested uploads are allowed
-    // TODO: Check the job is still active
+    const task = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, claims.taskId),
+    })
+
+    if (!task) {
+      throw new NotFoundException(`Task not found: ${claims.taskId}`)
+    }
+
+    if (!task.startedAt) {
+      throw new ForbiddenException(
+        `Task ${claims.taskId} has not been started yet`,
+      )
+    }
+
+    if (task.completedAt) {
+      throw new ForbiddenException(
+        `Task ${claims.taskId} has already been completed`,
+      )
+    }
+
+    const appIdentifier = task.ownerIdentifier
 
     for (const file of files) {
       const isAllowed = claims.storageAccessPolicy.some(
@@ -266,7 +286,6 @@ export class WorkerJobService {
         },
       )
 
-      // TODO: Check the app still has permission to the folder (is active for the folder)
       if (!isAllowed) {
         throw new ForbiddenException(
           `Access to folder ${file.folderId}, with method ${file.method} and object key ${file.objectKey}, is not allowed`,
@@ -274,7 +293,10 @@ export class WorkerJobService {
       }
     }
     return {
-      urls: await this.appService.createSignedContentUrls(files),
+      urls: await this.appService.createSignedContentUrlsAsApp(
+        appIdentifier,
+        files,
+      ),
     }
   }
 
@@ -292,6 +314,7 @@ export class WorkerJobService {
     claims: WorkerJobTokenClaims,
     request: CompleteJobRequest,
   ): Promise<void> {
+    console.log('completeJob', { claims, request })
     const { taskId: dockerRunTaskId } = claims
     const { success, result, error } = request
 
@@ -333,12 +356,12 @@ export class WorkerJobService {
         details: {},
       }
 
+      // TODO: Implement dynamic requeue in the event of failure
+
       // Trigger completion of the docker handler task
       await this.taskService.registerTaskCompleted(
         dockerTask.id,
-        success
-          ? { success: true }
-          : { success: false, error: resolvedError, requeue: { delayMs: 0 } },
+        success ? { success: true } : { success: false, error: resolvedError },
         { tx },
       )
 
@@ -347,7 +370,7 @@ export class WorkerJobService {
         innerTask.id,
         success
           ? { success: true, result }
-          : { success: false, error: resolvedError, requeue: { delayMs: 0 } },
+          : { success: false, error: resolvedError },
         { tx },
       )
     })
@@ -361,6 +384,7 @@ export class WorkerJobService {
 
    */
   async startJob(claims: WorkerJobTokenClaims): Promise<void> {
+    console.log('startJob', claims)
     const { taskId: dockerRunTaskId } = claims
 
     await this.ormService.db.transaction(async (tx) => {

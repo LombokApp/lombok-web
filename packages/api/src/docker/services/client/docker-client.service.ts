@@ -68,6 +68,7 @@ export class DockerClientService {
     hostId: string,
     options: CreateContainerOptions,
   ): Promise<ContainerInfo | null> {
+    console.log('findOrCreateContainer:', { hostId, options })
     // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
     const adapter = this.getAdapter(hostId)
 
@@ -124,7 +125,7 @@ export class DockerClientService {
     if (!isRunning) {
       throw new Error('CONTAINER_NOT_RUNNING')
     }
-
+    console.log('execInContainer:', { hostId, containerId, options })
     const result = await adapter.exec(containerId, options)
     if (options.waitForCompletion) {
       const [agentLogs, jobLogs, workerLogs] = await Promise.all([

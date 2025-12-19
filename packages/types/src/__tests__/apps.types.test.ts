@@ -31,6 +31,10 @@ import {
   userScopeAppPermissionsSchema,
   workerEntrypointSchema,
 } from '../apps.types'
+import {
+  taskOnCompleteConfigSchema,
+  taskTriggerConfigSchema,
+} from '../task.types'
 
 // Helper assertions that print zod errors only if the expectation fails
 const expectZodSuccess = (result: SafeParseReturnType<unknown, unknown>) => {
@@ -118,40 +122,6 @@ describe('apps.types', () => {
   })
 
   describe('appConfigSchema', () => {
-    it('should validate complete app config', () => {
-      const validApp = {
-        identifier: 'testapp',
-        label: 'Test App',
-        description: 'A test application',
-        tasks: [
-          {
-            identifier: 'task',
-            label: 'Task 1',
-            description: 'First task',
-            triggers: [
-              {
-                kind: 'event',
-                eventIdentifier: 'platform:worker_task_enqueued',
-              },
-            ],
-            handler: {
-              type: 'worker',
-              identifier: 'script1',
-            },
-          },
-        ],
-        workers: {
-          script1: {
-            entrypoint: 'worker1.js',
-            description: 'Test script',
-            environmentVariables: { VAR1: 'value1' },
-          },
-        },
-      }
-      const result = appConfigSchema.safeParse(validApp)
-      expectZodSuccess(result)
-    })
-
     it('should validate minimal app config', () => {
       const validApp = {
         identifier: 'testapp',
@@ -199,7 +169,6 @@ describe('apps.types', () => {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
             handler: {
               type: 'worker',
               identifier: 'missing_worker',
@@ -269,8 +238,8 @@ describe('apps.types', () => {
       expectZodFailure(result)
     })
 
-    it('should validate event trigger data templating', () => {
-      const appWithTemplatedTrigger = {
+    it('should validate top-level event trigger data templating', () => {
+      const appWithTemplatedTrigger: AppConfig = {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
@@ -289,22 +258,255 @@ describe('apps.types', () => {
               type: 'worker',
               identifier: 'worker1',
             },
-            triggers: [
+          },
+        ],
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:worker_task_enqueued',
+            taskIdentifier: 'templated_task',
+            dataTemplate: {
+              innerTaskId: '{{event.data.innerTaskId}}',
+              appIdentifier: '{{event.data.appIdentifier}}',
+              workerIdentifier: '{{event.data.workerIdentifier}}',
+            },
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(appWithTemplatedTrigger)
+      expectZodSuccess(result)
+    })
+
+    it('should validate app config with top-level triggers handled by tasks', () => {
+      const validApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        subscribedPlatformEvents: ['platform:object_added'],
+        tasks: [
+          {
+            identifier: 'demo_worker_task_on_complete',
+            label: 'On Complete Handler',
+            description: 'Is run as a completion handler for another task.',
+            handler: {
+              type: 'worker',
+              identifier: 'demo_on_complete_worker',
+            },
+          },
+          {
+            identifier: 'demo_object_added_worker_task',
+            label: 'Demo Object Added Worker',
+            description: 'A task that runs for every newly added object.',
+            handler: {
+              type: 'worker',
+              identifier: 'demo_object_added_worker',
+            },
+          },
+          {
+            identifier: 'demo_scheduled_worker_task',
+            label: 'Demo Scheduled Worker',
+            description: 'A task that runs in response to a schedule event.',
+            handler: {
+              type: 'worker',
+              identifier: 'demo_scheduled_worker',
+            },
+          },
+        ],
+        workers: {
+          demo_object_added_worker: {
+            entrypoint: 'demo_object_added_worker/index.ts',
+            description: 'Runs for every newly added object.',
+          },
+          demo_scheduled_worker: {
+            entrypoint: 'demo_scheduled_worker/index.ts',
+            description: 'Runs in response to a schedule event.',
+          },
+          demo_on_complete_worker: {
+            entrypoint: 'demo_on_complete_worker/index.ts',
+            description: 'Runs as a completion handler for another task.',
+          },
+        },
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:object_added',
+            taskIdentifier: 'demo_object_added_worker_task',
+            onComplete: [
               {
-                kind: 'event',
-                eventIdentifier: 'platform:worker_task_enqueued',
+                taskIdentifier: 'demo_worker_task_on_complete',
                 dataTemplate: {
-                  innerTaskId: '{{event.data.innerTaskId}}',
-                  appIdentifier: '{{event.data.appIdentifier}}',
-                  workerIdentifier: '{{event.data.workerIdentifier}}',
+                  success: {
+                    taskError: '{{task.error}}',
+                  },
                 },
+              },
+            ],
+          },
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+            taskIdentifier: 'demo_scheduled_worker_task',
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should reject app config when top-level trigger handler references unknown task', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:object_added',
+            taskIdentifier: 'missing_task',
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config when onComplete handler references unknown task', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        tasks: [
+          {
+            identifier: 'root_task',
+            label: 'Root task',
+            description: 'First task',
+            handler: {
+              type: 'external',
+            },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+            taskIdentifier: 'root_task',
+            onComplete: [
+              {
+                taskIdentifier: 'missing_task',
               },
             ],
           },
         ],
       }
 
-      const result = appConfigSchema.safeParse(appWithTemplatedTrigger)
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config when nested onComplete handler references unknown task', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        tasks: [
+          {
+            identifier: 'root_task',
+            label: 'Root task',
+            description: 'First task',
+            handler: {
+              type: 'external',
+            },
+          },
+          {
+            identifier: 'first_on_complete',
+            label: 'First onComplete',
+            description: 'First onComplete task',
+            handler: {
+              type: 'external',
+            },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:object_added',
+            taskIdentifier: 'root_task',
+            onComplete: [
+              {
+                taskIdentifier: 'first_on_complete',
+                onComplete: [
+                  {
+                    taskIdentifier: 'deep_missing_task',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+  })
+
+  describe('taskTriggerConfigSchema', () => {
+    it('should validate trigger with onComplete task chain', () => {
+      const result = taskTriggerConfigSchema.safeParse({
+        kind: 'event',
+        eventIdentifier: 'platform:object_added',
+        taskIdentifier: 'demo_worker',
+        onComplete: [
+          {
+            taskIdentifier: 'on_complete_task',
+            condition: 'task.success',
+            dataTemplate: {
+              someKey: '{{task.result.someKey}}',
+            },
+            onComplete: [
+              {
+                taskIdentifier: 'final_task',
+              },
+            ],
+          },
+        ],
+      })
+
+      expectZodSuccess(result)
+    })
+
+    it('should reject trigger without a task identifier', () => {
+      const result = taskTriggerConfigSchema.safeParse({
+        kind: 'event',
+        eventIdentifier: 'platform:object_added',
+      } as unknown)
+
+      expectZodFailure(result)
+    })
+  })
+
+  describe('taskOnCompleteConfigSchema', () => {
+    it('should validate a standalone onComplete config', () => {
+      const result = taskOnCompleteConfigSchema.safeParse({
+        taskIdentifier: 'test_task',
+        dataTemplate: {
+          someKey: '{{result.someKey}}',
+        },
+        onComplete: [
+          {
+            taskIdentifier: 'nested_task',
+          },
+        ],
+      })
       expectZodSuccess(result)
     })
   })
@@ -1043,12 +1245,6 @@ describe('apps.types', () => {
             label: 'Trigger Extract Content Metadata',
             description:
               'A task that runs for every newly added object and triggers the job to extract metadata and generate embeddings.',
-            triggers: [
-              {
-                kind: 'event',
-                eventIdentifier: PlatformObjectAddedEventTriggerIdentifier,
-              },
-            ],
             handler: {
               type: 'worker',
               identifier: 'trigger_extract_content_metadata_worker',
@@ -1063,6 +1259,13 @@ describe('apps.types', () => {
               type: 'docker',
               identifier: 'content_indexing:generate_content_embeddings',
             },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: PlatformObjectAddedEventTriggerIdentifier,
+            taskIdentifier: 'trigger_extract_content_metadata',
           },
         ],
         ui: {
@@ -1129,272 +1332,5 @@ describe('apps.types', () => {
       })
       expectZodSuccess(result)
     })
-  })
-
-  it('should validate an app config with an on complete handler task', () => {
-    const result = appConfigSchema.safeParse({
-      description: 'A dummy app.',
-      identifier: 'dummy',
-      label: 'Dummy App',
-      subscribedPlatformEvents: ['platform:object_added'],
-      tasks: [
-        {
-          identifier: 'dummy_on_complete_handler_worker_task',
-          label: 'On Complete Handler',
-          description: 'Is run as a completion handler for another task.',
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_on_complete_worker',
-          },
-        },
-        {
-          identifier: 'dummy_object_added_worker_task',
-          label: 'Demo Object Added Worker With On Complete Handler',
-          description:
-            'A task that runs for every newly added object and runs an on complete handler task.',
-          triggers: [
-            {
-              kind: 'event',
-              eventIdentifier: 'platform:object_added',
-              onComplete: {
-                taskIdentifier: 'dummy_on_complete_handler_worker_task',
-              },
-            },
-          ],
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_object_added_worker',
-          },
-        },
-      ],
-      workers: {
-        dummy_object_added_worker: {
-          entrypoint: 'dummy_object_added_worker/index.ts',
-          description: 'Runs for every newly added object.',
-        },
-        dummy_on_complete_worker: {
-          entrypoint: 'dummy_on_complete_worker/index.ts',
-          description: 'Runs as a completion handler for another task.',
-        },
-      },
-    })
-    expectZodSuccess(result)
-  })
-
-  it('should validate an app config with an array of on complete handler tasks', () => {
-    const result = appConfigSchema.safeParse({
-      description: 'A dummy app.',
-      identifier: 'dummy',
-      label: 'Dummy App',
-      subscribedPlatformEvents: ['platform:object_added'],
-      tasks: [
-        {
-          identifier: 'dummy_on_complete_handler_worker_task',
-          label: 'On Complete Handler',
-          description: 'Is run as a completion handler for another task.',
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_on_complete_worker',
-          },
-        },
-        {
-          identifier: 'dummy_object_added_worker_task',
-          label: 'Demo Object Added Worker With On Complete Handler',
-          description:
-            'A task that runs for every newly added object and runs an on complete handler task.',
-          triggers: [
-            {
-              kind: 'event',
-              eventIdentifier: 'platform:object_added',
-              onComplete: [
-                {
-                  taskIdentifier: 'dummy_on_complete_handler_worker_task',
-                },
-                {
-                  taskIdentifier: 'dummy_on_complete_handler_worker_task',
-                },
-              ],
-            },
-          ],
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_object_added_worker',
-          },
-        },
-      ],
-      workers: {
-        dummy_object_added_worker: {
-          entrypoint: 'dummy_object_added_worker/index.ts',
-          description: 'Runs for every newly added object.',
-        },
-        dummy_on_complete_worker: {
-          entrypoint: 'dummy_on_complete_worker/index.ts',
-          description: 'Runs as a completion handler for another task.',
-        },
-      },
-    })
-    expectZodSuccess(result)
-  })
-
-  it('should not validate an app config with an invalid on complete handler task', () => {
-    const result = appConfigSchema.safeParse({
-      description: 'A dummy app.',
-      identifier: 'dummy',
-      label: 'Dummy App',
-      subscribedPlatformEvents: ['platform:object_added'],
-      tasks: [
-        {
-          identifier: 'dummy_on_complete_handler_worker_task',
-          label: 'On Complete Handler',
-          description: 'Is run as a completion handler for another task.',
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_on_complete_worker',
-          },
-        },
-        {
-          identifier: 'dummy_object_added_worker_task',
-          label: 'Demo Object Added Worker With On Complete Handler',
-          description:
-            'A task that runs for every newly added object and runs an on complete handler task.',
-          triggers: [
-            {
-              kind: 'event',
-              eventIdentifier: 'platform:object_added',
-              onComplete: {
-                taskIdentifier:
-                  'dummy_on_complete_handler_worker_task_no_exist',
-              },
-            },
-          ],
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_object_added_worker',
-          },
-        },
-      ],
-      workers: {
-        dummy_object_added_worker: {
-          entrypoint: 'dummy_object_added_worker/index.ts',
-          description: 'Runs for every newly added object.',
-        },
-        dummy_on_complete_worker: {
-          entrypoint: 'dummy_on_complete_worker/index.ts',
-          description: 'Runs as a completion handler for another task.',
-        },
-      },
-    })
-    expectZodFailure(result)
-  })
-
-  it('should not validate an app config with an array of invalid on complete handler tasks', () => {
-    const result = appConfigSchema.safeParse({
-      description: 'A dummy app.',
-      identifier: 'dummy',
-      label: 'Dummy App',
-      subscribedPlatformEvents: ['platform:object_added'],
-      tasks: [
-        {
-          identifier: 'dummy_on_complete_handler_worker_task',
-          label: 'On Complete Handler',
-          description: 'Is run as a completion handler for another task.',
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_on_complete_worker',
-          },
-        },
-        {
-          identifier: 'dummy_object_added_worker_task',
-          label: 'Demo Object Added Worker With On Complete Handler',
-          description:
-            'A task that runs for every newly added object and runs an on complete handler task.',
-          triggers: [
-            {
-              kind: 'event',
-              eventIdentifier: 'platform:object_added',
-              onComplete: [
-                {
-                  taskIdentifier:
-                    'dummy_on_complete_handler_worker_task_no_exist',
-                },
-              ],
-            },
-          ],
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_object_added_worker',
-          },
-        },
-      ],
-      workers: {
-        dummy_object_added_worker: {
-          entrypoint: 'dummy_object_added_worker/index.ts',
-          description: 'Runs for every newly added object.',
-        },
-        dummy_on_complete_worker: {
-          entrypoint: 'dummy_on_complete_worker/index.ts',
-          description: 'Runs as a completion handler for another task.',
-        },
-      },
-    })
-    expectZodFailure(result)
-  })
-
-  it('should validate an app config with an on complete handler task', () => {
-    const result = appConfigSchema.safeParse({
-      description: 'A dummy app.',
-      identifier: 'dummy',
-      label: 'Dummy App',
-      subscribedPlatformEvents: ['platform:object_added'],
-      tasks: [
-        {
-          identifier: 'dummy_on_complete_handler_worker_task',
-          label: 'On Complete Handler',
-          description: 'Is run as a completion handler for another task.',
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_on_complete_worker',
-          },
-        },
-        {
-          identifier: 'dummy_object_added_worker_task',
-          label: 'Demo Object Added Worker With On Complete Handler',
-          description:
-            'A task that runs for every newly added object and runs an on complete handler task.',
-          triggers: [
-            {
-              kind: 'event',
-              eventIdentifier: 'platform:object_added',
-              onComplete: {
-                taskIdentifier: 'dummy_on_complete_handler_worker_task',
-                dataTemplate: {
-                  success: {
-                    someKey: '{{task.result.someKey}}',
-                  },
-                  failure: {
-                    someKey: '{{task.error.someKey}}',
-                  },
-                },
-              },
-            },
-          ],
-          handler: {
-            type: 'worker',
-            identifier: 'dummy_object_added_worker',
-          },
-        },
-      ],
-      workers: {
-        dummy_object_added_worker: {
-          entrypoint: 'dummy_object_added_worker/index.ts',
-          description: 'Runs for every newly added object.',
-        },
-        dummy_on_complete_worker: {
-          entrypoint: 'dummy_on_complete_worker/index.ts',
-          description: 'Runs as a completion handler for another task.',
-        },
-      },
-    })
-    expectZodSuccess(result)
   })
 })

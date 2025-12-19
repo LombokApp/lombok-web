@@ -60,7 +60,9 @@ export interface ContainerWorkerExecuteOptions<T extends boolean> {
     prefix?: string
   }
   platformURL: string
-  volumes?: Record<string, string>
+  volumes?: string[]
+  extraHosts?: string[]
+  networkMode?: 'host' | 'bridge' | `container:${string}`
   gpus?: { driver: string; deviceIds: string[] } | undefined
 }
 

@@ -104,19 +104,21 @@ export const analyzeObjectTaskHandler = async (
     mimeType: 'application/json',
   }
 
-  const metadataHash = await hashLocalFile(metadataFilePath)
-  const metadataSize = (await fs.promises.stat(metadataFilePath)).size
-  fs.renameSync(
-    metadataFilePath,
-    path.join(metadataOutFileDirectory, metadataHash),
-  )
+  if (fs.existsSync(metadataFilePath)) {
+    const metadataHash = await hashLocalFile(metadataFilePath)
+    const metadataSize = (await fs.promises.stat(metadataFilePath)).size
+    fs.renameSync(
+      metadataFilePath,
+      path.join(metadataOutFileDirectory, metadataHash),
+    )
 
-  metadataDescription.embeddedMetadata = {
-    type: 'external',
-    sizeBytes: metadataSize,
-    storageKey: metadataHash,
-    hash: metadataHash,
-    mimeType: 'application/json',
+    metadataDescription.embeddedMetadata = {
+      type: 'external',
+      sizeBytes: metadataSize,
+      storageKey: metadataHash,
+      hash: metadataHash,
+      mimeType: 'application/json',
+    }
   }
 
   await server

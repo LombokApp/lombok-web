@@ -1,4 +1,4 @@
-import { Inject, Injectable, Scope } from '@nestjs/common'
+import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { platformConfig } from 'src/platform/config/platform.config'
 
@@ -19,11 +19,11 @@ export class DockerAdapterProvider implements IDockerAdapterProvider {
   ) {}
 
   getDockerAdapter(hostId: string): DockerAdapter {
-    const hostConfig =
-      hostId in this._platformConfig.dockerHostConfig &&
-      this._platformConfig.dockerHostConfig[hostId]
+    const hostConfig = this._platformConfig.dockerHostConfig.hosts?.[hostId]
     if (!hostConfig) {
-      throw new Error(`Docker host config not found for host: ${hostId}`)
+      throw new NotFoundException(
+        `Docker host config not found for host: ${hostId}`,
+      )
     }
     const hostType = hostConfig.type as string
 

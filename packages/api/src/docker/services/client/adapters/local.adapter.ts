@@ -236,7 +236,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       await this.pullImage(options.image)
     }
 
-    const container = await this.docker.createContainer({
+    const createContainerOptions: Docker.ContainerCreateOptions = {
       Image: options.image,
       Env: options.environmentVariables
         ? Object.entries(options.environmentVariables).map(
@@ -244,22 +244,37 @@ export class LocalDockerAdapter implements DockerAdapter {
           )
         : undefined,
       Labels: options.labels,
-      Volumes: options.volumes,
-      ...(options.gpus
+      ...(options.gpus ||
+      options.networkMode ||
+      options.volumes ||
+      options.extraHosts
         ? {
             HostConfig: {
-              DeviceRequests: [
-                {
-                  Driver: options.gpus.driver,
-                  DeviceIDs: options.gpus.deviceIds,
-                  Options: {},
-                  Capabilities: [['gpu']],
-                },
-              ],
+              ...(options.volumes && {
+                Binds: options.volumes,
+              }),
+              ...(options.extraHosts && {
+                ExtraHosts: options.extraHosts,
+              }),
+              ...(options.networkMode && { NetworkMode: options.networkMode }),
+              ...(options.gpus && {
+                DeviceRequests: [
+                  {
+                    Driver: options.gpus.driver,
+                    DeviceIDs: options.gpus.deviceIds,
+                    Options: {},
+                    Capabilities: [['gpu']],
+                  },
+                ],
+              }),
             },
           }
         : {}),
-    })
+    }
+
+    console.log('createContainerOptions:', createContainerOptions)
+
+    const container = await this.docker.createContainer(createContainerOptions)
 
     await container.start()
 

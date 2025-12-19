@@ -17,7 +17,9 @@ export interface CreateContainerOptions {
   image: string
   environmentVariables?: Record<string, string>
   labels: Record<string, string>
-  volumes?: Record<string, string>
+  extraHosts?: string[]
+  volumes?: string[]
+  networkMode?: 'host' | 'bridge' | `container:${string}`
   gpus?: { driver: string; deviceIds: string[] }
 }
 

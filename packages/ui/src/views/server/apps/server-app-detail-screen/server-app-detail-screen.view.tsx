@@ -27,11 +27,60 @@ import { Link } from 'react-router'
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api } from '@/src/services/api'
+import { formatTriggerLabel } from '@/src/utils/trigger-utils'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
 import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
+
+const DockerIcon = ({ className }: { className?: string }) => {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M13.983 12.21c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15zm-1.98-3.21c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15zm-2.98 0c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15zm-2.98 0c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15z" />
+      <path d="M20.5 2h-17C2.67 2 2 2.67 2 3.5v17c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5v-17c0-.83-.67-1.5-1.5-1.5zM20 20H4V4h16v16z" />
+      <path d="M13.09 8.91c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41zm-4.18 0c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41zm4.18 4.18c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41zm-4.18 0c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41z" />
+      <path d="M8.5 6.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5S6.17 5 7 5s1.5.67 1.5 1.5zm9 0c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5zm-9 9c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5S6.17 14 7 14s1.5.67 1.5 1.5zm9 0c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5z" />
+    </svg>
+  )
+}
+
+const ExternalIcon = ({ className }: { className?: string }) => {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  )
+}
+
+const WorkerIcon = ({ className }: { className?: string }) => {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75C23.498 24 24 23.498 24 22.875V1.125C24 .502 23.498 0 22.875 0zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v1.745a5.093 5.093 0 0 0-.643-.306 5.025 5.025 0 0 0-.717-.26 5.067 5.067 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.53.104.156.252.304.443.444s.423.276.696.41c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656a3.033 3.033 0 0 1-1.012 1.085 3.848 3.848 0 0 1-1.487.596c-.566.12-1.163.18-1.79.18a9.916 9.916 0 0 1-1.84-.164 5.544 5.544 0 0 1-1.512-.493v-1.745a5.566 5.566 0 0 0 3.237 1.02c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38a1.023 1.023 0 0 0-.074-1.089 2.12 2.12 0 0 0-.537-.5 5.597 5.597 0 0 0-.807-.444 7.903 7.903 0 0 0-1.01-.436c-.35-.13-.73-.267-1.14-.407-.358-.127-.68-.28-.966-.457a3.476 3.476 0 0 1-.716-.629 2.689 2.689 0 0 1-.422-.808 3.113 3.113 0 0 1-.14-.95c0-.619.125-1.139.373-1.56.249-.422.593-.75 1.033-.985.44-.234.957-.351 1.552-.351zM5.16 7.223h7.314v1.497H6.774v4.823H5.16V7.223zm8.49 0h1.616v9.602h-1.616V7.223z" />
+    </svg>
+  )
+}
 
 export function ServerAppDetailScreen({
   appIdentifier,
@@ -299,11 +348,9 @@ export function ServerAppDetailScreen({
               />
             ) : (
               <DataTable
-                fixedLayout
                 className="bg-background/50"
-                bodyCellClassName="w-1/3 truncate"
+                bodyCellClassName="truncate"
                 headerCellClassName={cn(
-                  'w-1/3',
                   'bg-foreground/[0.02] text-foreground/50',
                 )}
                 data={
@@ -312,28 +359,40 @@ export function ServerAppDetailScreen({
                     label: task.label,
                     description: task.description,
                     triggers:
-                      task.triggers
-                        ?.map((trigger) => trigger.kind)
+                      app.config.triggers
+                        ?.filter(
+                          (trigger) =>
+                            trigger.taskIdentifier === task.identifier,
+                        )
+                        .map(formatTriggerLabel)
                         .join(', ') ?? 'None',
+                    handlerType: task.handler.type,
                     handler:
                       task.handler.type === 'worker' ||
                       task.handler.type === 'docker'
-                        ? `[${task.handler.type}]:${task.handler.identifier}`
+                        ? task.handler.identifier
                         : 'external',
                   })) ?? []
                 }
                 columns={[
                   {
-                    accessorKey: 'identifier',
-                    header: 'Identifier',
-                  },
-                  {
-                    accessorKey: 'label',
-                    header: 'Label',
-                  },
-                  {
                     accessorKey: 'description',
                     header: 'Description',
+                    cell: ({ row }) => (
+                      <div className="truncate">
+                        <div className="flex gap-2">
+                          <div className="font-bold">
+                            {row.original.label || ''}
+                          </div>
+                          <div className="truncate font-mono italic opacity-50">
+                            {row.original.identifier || ''}
+                          </div>
+                        </div>
+                        <div className="truncate text-sm opacity-65">
+                          {row.original.description || ''}
+                        </div>
+                      </div>
+                    ),
                   },
                   {
                     accessorKey: 'triggers',
@@ -342,6 +401,18 @@ export function ServerAppDetailScreen({
                   {
                     accessorKey: 'handler',
                     header: 'Handler',
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        {row.original.handlerType === 'docker' ? (
+                          <DockerIcon className="size-8" />
+                        ) : row.original.handlerType === 'worker' ? (
+                          <WorkerIcon className="size-8" />
+                        ) : (
+                          <ExternalIcon className="size-8" />
+                        )}
+                        <div>{row.original.handler}</div>
+                      </div>
+                    ),
                   },
                 ]}
               />

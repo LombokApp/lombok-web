@@ -3,6 +3,7 @@ import type {
   FolderPermissionName,
   InlineMetadataEntry,
   JsonSerializableObject,
+  JsonSerializableValue,
   PreviewMetadata,
   S3ObjectInternal,
   StorageProvisionType,
@@ -1653,5 +1654,48 @@ export class FolderService {
           eq(folderSharesTable.userId, userId),
         ),
       )
+  }
+
+  dataTemplateFunctions = {
+    buildCreatePresignedUrlFunction:
+      (appIdentifier: string) =>
+      async (
+        folderId?: JsonSerializableValue,
+        objectKey?: JsonSerializableValue,
+        method?: JsonSerializableValue,
+      ) => {
+        ;[folderId, objectKey, method].forEach((arg, i) => {
+          if (typeof arg !== 'string') {
+            throw new Error(
+              // eslint-disable-next-line @typescript-eslint/no-base-to-string
+              `Invalid argument (position ${i}) in createPresignedUrl. Value: "${String(arg)}", Type: "${typeof arg}".`,
+            )
+          }
+        })
+
+        const methodEnum =
+          SignedURLsRequestMethod[
+            method as keyof typeof SignedURLsRequestMethod
+          ]
+
+        if (typeof methodEnum !== 'string') {
+          throw new Error(
+            `Invalid method in createPresignedUrl. Value: "${String(methodEnum)}", Type: "${typeof methodEnum}".`,
+          )
+        }
+
+        const urls = await this.appService.createSignedContentUrlsAsApp(
+          appIdentifier,
+          [
+            {
+              folderId: folderId as string,
+              objectKey: objectKey as string,
+              method: methodEnum,
+            },
+          ],
+        )
+
+        return urls[0]?.url ?? ''
+      },
   }
 }

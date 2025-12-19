@@ -6,9 +6,15 @@ import { dataFromTemplate } from 'src/platform/utils/data-template.util'
 
 import type { Event } from '../entities/event.entity'
 
-export function parseDataFromEventWithTrigger(
+export async function parseDataFromEventWithTrigger(
+  dataTemplate: Record<string, JsonSerializableValue>,
   event: Event,
-  triggerData: Record<string, JsonSerializableValue>,
-): JsonSerializableObject {
-  return dataFromTemplate({ event }, triggerData)
+  functions: Record<
+    string,
+    (
+      ...args: (JsonSerializableValue | undefined)[]
+    ) => JsonSerializableValue | Promise<JsonSerializableValue>
+  > = {},
+): Promise<JsonSerializableObject> {
+  return dataFromTemplate(dataTemplate, { objects: { event }, functions })
 }

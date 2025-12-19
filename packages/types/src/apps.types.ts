@@ -2,8 +2,10 @@ import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
 import { platformPrefixedEventIdentifierSchema } from './events.types'
+import { appIdentifierSchema, taskIdentifierSchema } from './identifiers.types'
 import { jsonSerializableObjectDTOSchema } from './json.types'
-import { taskConfigSchema, taskIdentifierSchema } from './task.types'
+import type { TaskOnCompleteConfig } from './task.types'
+import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 
 export const CORE_APP_IDENTIFIER = 'core'
 
@@ -114,17 +116,6 @@ export const appUIConfigSchema = z
     description: z.string(),
   })
   .strict()
-
-export const appIdentifierSchema = z
-  .string()
-  .nonempty()
-  .regex(/^[a-z]+$/)
-  .refine((v) => v.toLowerCase() === v, {
-    message: 'App identifier must be lowercase',
-  })
-  .refine((v) => v !== 'platform', {
-    message: "App identifier cannot be 'platform'",
-  })
 
 export const appContributionEmbedLinkSchema = z
   .object({
@@ -239,6 +230,12 @@ export const containerProfileConfigSchema = z
   })
   .strict()
 
+export const appProfileIdentifierSchema = z
+  .string()
+  .nonempty()
+  .regex(/^[a-z_]+$/)
+  .refine((v) => v.toLowerCase() === v)
+
 export const appConfigSchema = z
   .object({
     requiresStorage: z.boolean().optional(),
@@ -255,16 +252,10 @@ export const appConfigSchema = z
     subscribedPlatformEvents: z
       .array(platformPrefixedEventIdentifierSchema)
       .optional(),
+    triggers: z.array(taskTriggerConfigSchema).optional(),
     tasks: z.array(taskConfigSchema).optional(),
     containerProfiles: z
-      .record(
-        z
-          .string()
-          .nonempty()
-          .regex(/^[a-z0-9_]+$/)
-          .refine((v) => v.toLowerCase() === v),
-        containerProfileConfigSchema,
-      )
+      .record(appProfileIdentifierSchema, containerProfileConfigSchema)
       .optional(),
     workers: z
       .record(
@@ -295,32 +286,30 @@ export const appConfigSchema = z
     const workerIdentifiers = new Set(workerIdentifiersArray)
     const taskIdentifiersArray = value.tasks?.map((t) => t.identifier) ?? []
     const taskIdentifiers = new Set(taskIdentifiersArray)
-    const containerWorkerJobDefinitions = Object.keys(
-      value.containerProfiles ?? {},
-    ).reduce<Record<string, { workerIndex: number; jobIdentifier: string }[]>>(
-      (acc, profileIdentifier) => {
-        const profile = value.containerProfiles?.[profileIdentifier]
-        if (!profile) {
-          return acc
-        }
+    const containerProfilesKeys = Object.keys(value.containerProfiles ?? {})
+    const containerWorkerJobDefinitions = containerProfilesKeys.reduce<
+      Record<string, { workerIndex: number; jobIdentifier: string }[]>
+    >((acc, profileIdentifier) => {
+      const profile = value.containerProfiles?.[profileIdentifier]
+      if (!profile) {
+        return acc
+      }
 
-        const profileJobDefinitions = profile.workers.flatMap(
-          (worker, workerIndex) =>
-            worker.kind === 'http'
-              ? worker.jobs.map(({ identifier: jobIdentifier }) => ({
-                  workerIndex,
-                  jobIdentifier,
-                }))
-              : { workerIndex, jobIdentifier: worker.jobIdentifier },
-        )
+      const profileJobDefinitions = profile.workers.flatMap(
+        (worker, workerIndex) =>
+          worker.kind === 'http'
+            ? worker.jobs.map(({ identifier: jobIdentifier }) => ({
+                workerIndex,
+                jobIdentifier,
+              }))
+            : { workerIndex, jobIdentifier: worker.jobIdentifier },
+      )
 
-        return {
-          ...acc,
-          [profileIdentifier]: profileJobDefinitions,
-        }
-      },
-      {},
-    )
+      return {
+        ...acc,
+        [profileIdentifier]: profileJobDefinitions,
+      }
+    }, {})
 
     Object.entries(containerWorkerJobDefinitions).forEach(
       ([profileIdentifier, jobDefinitions]) => {
@@ -356,7 +345,6 @@ export const appConfigSchema = z
           path: ['tasks', index, 'worker'],
         })
       } else if (task.handler.type === 'docker') {
-        const containerProfilesKeys = Object.keys(value.containerProfiles ?? {})
         const profile = task.handler.identifier.split(':')[0]
         const jobIdentifier = task.handler.identifier.split(':')[1]
         if (
@@ -389,31 +377,73 @@ export const appConfigSchema = z
           })
         }
       }
+    })
+    const validateOnCompleteTaskIdentifiers = (
+      onComplete: {
+        taskIdentifier?: string
+        onComplete?: TaskOnCompleteConfig[]
+      }[],
+      triggerIndex: number,
+      path: (string | number)[],
+    ) => {
+      onComplete.forEach((onCompleteConfig, onCompleteIndex) => {
+        if (
+          onCompleteConfig.taskIdentifier &&
+          !taskIdentifiers.has(onCompleteConfig.taskIdentifier)
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Unknown task "${onCompleteConfig.taskIdentifier}" in trigger at index ${triggerIndex}. Must be one of: ${
+              taskIdentifiersArray.length > 0
+                ? taskIdentifiersArray.join(', ')
+                : '(none)'
+            }`,
+            path: [...path, onCompleteIndex, 'taskIdentifier'],
+          })
+        }
 
-      ;(task.triggers ?? []).forEach((trigger, triggerIndex) => {
-        ;(Array.isArray(trigger.onComplete)
-          ? trigger.onComplete
-          : trigger.onComplete
-            ? [trigger.onComplete]
-            : []
-        ).forEach((onComplete, onCompleteIndex) => {
-          if (!taskIdentifiers.has(onComplete.taskIdentifier)) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: `Unknown task "${onComplete.taskIdentifier}". Must be one of: ${taskIdentifiersArray.length > 0 ? taskIdentifiersArray.join(', ') : '(none)'}`,
-              path: [
-                'tasks',
-                index,
-                'triggers',
-                triggerIndex,
-                'onComplete',
-                ...(Array.isArray(trigger.onComplete) ? [onCompleteIndex] : []),
-                'taskIdentifier',
-              ],
-            })
-          }
-        })
+        if (onCompleteConfig.onComplete) {
+          validateOnCompleteTaskIdentifiers(
+            onCompleteConfig.onComplete,
+            triggerIndex,
+            [...path, onCompleteIndex, 'onComplete'],
+          )
+        }
       })
+    }
+
+    ;(value.triggers ?? []).forEach((trigger, index) => {
+      if (
+        trigger.kind === 'event' &&
+        trigger.eventIdentifier.startsWith('platform:') &&
+        !value.subscribedPlatformEvents?.includes(trigger.eventIdentifier)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Platform event identifier "${trigger.eventIdentifier}" in trigger at index ${index} is not subscribed to by the app`,
+          path: ['triggers', index, 'eventIdentifier'],
+        })
+      }
+
+      if (!taskIdentifiers.has(trigger.taskIdentifier)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Unknown task "${trigger.taskIdentifier}" in trigger at index ${index}. Must be one of: ${
+            taskIdentifiersArray.length > 0
+              ? taskIdentifiersArray.join(', ')
+              : '(none)'
+          }`,
+          path: ['triggers', index, 'taskIdentifier'],
+        })
+      }
+
+      if (trigger.onComplete) {
+        validateOnCompleteTaskIdentifiers(trigger.onComplete, index, [
+          'triggers',
+          index,
+          'onComplete',
+        ])
+      }
     })
   })
 

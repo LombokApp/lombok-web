@@ -46,11 +46,25 @@ const testAppDefinitions: AppConfig[] = [
     identifier: 'core',
     label: 'Core',
     requiresStorage: false,
+    subscribedPlatformEvents: ['platform:worker_task_enqueued'],
     permissions: {
       platform: ['SERVE_APPS'],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
+    triggers: [
+      {
+        kind: 'event',
+        taskIdentifier: 'run_worker_script',
+        eventIdentifier: 'platform:worker_task_enqueued',
+        dataTemplate: {
+          innerTaskId: '{{event.data.innerTaskId}}',
+          appIdentifier: '{{event.data.appIdentifier}}',
+          workerIdentifier: '{{event.data.workerIdentifier}}',
+        },
+      },
+    ],
+
     tasks: [
       {
         identifier: 'analyze_object',
@@ -65,17 +79,6 @@ const testAppDefinitions: AppConfig[] = [
         identifier: 'run_worker_script',
         label: 'Run Worker',
         description: 'Run a worker script.',
-        triggers: [
-          {
-            kind: 'event',
-            eventIdentifier: 'platform:worker_task_enqueued',
-            dataTemplate: {
-              innerTaskId: '{{event.data.innerTaskId}}',
-              appIdentifier: '{{event.data.appIdentifier}}',
-              workerIdentifier: '{{event.data.workerIdentifier}}',
-            },
-          },
-        ],
         handler: {
           type: 'external',
         },
@@ -87,6 +90,7 @@ const testAppDefinitions: AppConfig[] = [
     identifier: 'testapp',
     label: 'Test App',
     requiresStorage: false,
+    subscribedPlatformEvents: [],
     permissions: {
       platform: [],
       user: [],
@@ -151,11 +155,65 @@ const testAppDefinitions: AppConfig[] = [
     identifier: 'tasklifecycle',
     label: 'Task Lifecycle App',
     requiresStorage: false,
+    subscribedPlatformEvents: [],
     permissions: {
       platform: [],
       user: [],
       folder: [],
     },
+    triggers: [
+      {
+        kind: 'schedule',
+        config: {
+          interval: 1,
+          unit: 'hours',
+        },
+        taskIdentifier: 'lifecycle_schedule_task',
+      },
+      {
+        kind: 'event',
+        eventIdentifier: 'dummy_event_other',
+        dataTemplate: {
+          payload: '{{event.data.payload}}',
+        },
+        taskIdentifier: 'lifecycle_parent_task_single_oncomplete',
+        onComplete: [
+          {
+            taskIdentifier: 'lifecycle_on_complete',
+            condition: 'task.success',
+            dataTemplate: {
+              inheritedPayload: '{{task.data.payload}}',
+            },
+          },
+        ],
+      },
+      {
+        kind: 'event',
+        eventIdentifier: 'dummy_event',
+        taskIdentifier: 'lifecycle_parent_task',
+        dataTemplate: {
+          payload: '{{event.data.payload}}',
+        },
+        onComplete: [
+          {
+            taskIdentifier: 'lifecycle_on_complete',
+            condition: 'task.success',
+            dataTemplate: {
+              inheritedPayload: '{{task.data.payload}}',
+            },
+            onComplete: [
+              {
+                taskIdentifier: 'lifecycle_chain_one',
+                condition: 'task.success',
+                dataTemplate: {
+                  doubleInheritedPayload: '{{task.data.inheritedPayload}}',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
     tasks: [
       {
         identifier: 'lifecycle_app_action_task',
@@ -169,15 +227,6 @@ const testAppDefinitions: AppConfig[] = [
         identifier: 'lifecycle_schedule_task',
         label: 'Schedule Task',
         description: 'Runs on a schedule trigger.',
-        triggers: [
-          {
-            kind: 'schedule',
-            config: {
-              interval: 1,
-              unit: 'hours',
-            },
-          },
-        ],
         handler: {
           type: 'external',
         },
@@ -203,23 +252,6 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Parent Event Task',
         description:
           'Triggered by an event registers a single onComplete handler.',
-        triggers: [
-          {
-            kind: 'event',
-            eventIdentifier: 'dummy_event_other',
-            dataTemplate: {
-              payload: '{{event.data.payload}}',
-            },
-            onComplete: {
-              taskIdentifier: 'lifecycle_on_complete',
-              dataTemplate: {
-                success: {
-                  inheritedPayload: '{{task.data.payload}}',
-                },
-              },
-            },
-          },
-        ],
         handler: {
           type: 'external',
         },
@@ -228,33 +260,6 @@ const testAppDefinitions: AppConfig[] = [
         identifier: 'lifecycle_parent_task',
         label: 'Parent Event Task',
         description: 'Triggered by an event and chains an onComplete handler.',
-        triggers: [
-          {
-            kind: 'event',
-            eventIdentifier: 'dummy_event',
-            dataTemplate: {
-              payload: '{{event.data.payload}}',
-            },
-            onComplete: [
-              {
-                taskIdentifier: 'lifecycle_on_complete',
-                dataTemplate: {
-                  success: {
-                    inheritedPayload: '{{task.data.payload}}',
-                  },
-                },
-              },
-              {
-                taskIdentifier: 'lifecycle_chain_one',
-                dataTemplate: {
-                  success: {
-                    doubleInheritedPayload: '{{task.data.inheritedPayload}}',
-                  },
-                },
-              },
-            ],
-          },
-        ],
         handler: {
           type: 'external',
         },
@@ -274,6 +279,7 @@ const testAppDefinitions: AppConfig[] = [
     identifier: 'sockettestapp',
     label: 'Socket Test App',
     requiresStorage: false,
+    subscribedPlatformEvents: [],
     database: {
       enabled: true,
     },
@@ -299,11 +305,47 @@ const testAppDefinitions: AppConfig[] = [
     identifier: 'sockettestappnodb',
     label: 'Socket Test App',
     requiresStorage: false,
+    subscribedPlatformEvents: [],
     permissions: {
       platform: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
+    tasks: [
+      {
+        identifier: 'socket_test_task',
+        label: 'Socket Test Task',
+        description: 'A task for testing socket interface.',
+        handler: {
+          type: 'external',
+        },
+      },
+    ],
+  },
+  {
+    description: 'Test app for with data template.',
+    identifier: 'sockettestappdatatemplate',
+    label: 'Socket Test App',
+    requiresStorage: false,
+    subscribedPlatformEvents: [],
+    permissions: {
+      platform: [],
+      user: [],
+      folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
+    },
+    triggers: [
+      {
+        kind: 'event',
+        eventIdentifier: 'dummy_event',
+        taskIdentifier: 'socket_test_task',
+        dataTemplate: {
+          folderId: '{{event.data.folderId}}',
+          objectKey: '{{event.data.objectKey}}',
+          fileUrl:
+            "{{createPresignedUrl(event.data.folderId, event.data.objectKey, 'GET')}}",
+        },
+      },
+    ],
     tasks: [
       {
         identifier: 'socket_test_task',

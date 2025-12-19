@@ -41,15 +41,33 @@ export async function readFileMetadata(
     stderr: 'pipe',
   })
 
-  const stdoutText = await readStreamToString(child.stdout)
-  const stderrText = await readStreamToString(child.stderr)
+  // Start reading streams immediately (before process exits)
+  const stdoutPromise = readStreamToString(child.stdout)
+  const stderrPromise = readStreamToString(child.stderr)
 
-  const exitCode = await child.exited
+  // Wait for process to exit and streams to finish reading
+  const [stdoutText, stderrText, exitCode] = await Promise.all([
+    stdoutPromise,
+    stderrPromise,
+    child.exited,
+  ])
 
+  // If exiv2 exits with non-zero code but produces no output, it's likely
+  // an unsupported file type (e.g., PDF). Return empty metadata instead of throwing.
   if (exitCode !== 0) {
-    const errorMessage =
-      stderrText.trim() || 'Failed to read metadata with exif2'
-    throw new Error(errorMessage)
+    const errorMessage = stderrText.trim()
+    // Only throw if there's an actual error message. Empty stderr with non-zero
+    // exit code typically means unsupported file type, which we handle gracefully.
+    if (errorMessage) {
+      throw new Error(`exiv2 error: ${errorMessage}`)
+    }
+    // Unsupported file type - return empty metadata
+    await fs.promises.writeFile(
+      metadataFilePath,
+      JSON.stringify({}, null, 2),
+      'utf-8',
+    )
+    return {}
   }
 
   try {

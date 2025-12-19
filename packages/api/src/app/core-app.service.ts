@@ -111,7 +111,6 @@ export class CoreAppService {
           void 0
         }
       }
-
       let stdoutBuffer = ''
       child.stdout.on('data', (chunk: Buffer) => {
         stdoutBuffer += chunk.toString()

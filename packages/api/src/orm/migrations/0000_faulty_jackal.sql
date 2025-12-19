@@ -94,8 +94,8 @@ CREATE TABLE "folder_shares" (
 	"folderId" uuid NOT NULL,
 	"userId" uuid NOT NULL,
 	"permissions" text[] NOT NULL,
-	"createdAt" text DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"updatedAt" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+	"createdAt" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"updatedAt" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "folders" (
@@ -152,13 +152,14 @@ CREATE TABLE "tasks" (
 	"trigger" jsonb NOT NULL,
 	"targetUserId" uuid,
 	"targetLocation" jsonb,
-	"taskLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"startedAt" timestamp,
 	"dontStartBefore" timestamp,
 	"completedAt" timestamp,
 	"systemLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"taskLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"storageAccessPolicy" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"success" boolean,
+	"userVisible" boolean DEFAULT true,
 	"error" jsonb,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL,

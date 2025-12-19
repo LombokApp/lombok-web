@@ -224,11 +224,17 @@ export async function handleAppSocketMessage(
       return { result: null }
     case 'GET_CONTENT_SIGNED_URLS':
       return {
-        result: await appService.createSignedContentUrls(parsedRequest.data),
+        result: await appService.createSignedContentUrlsAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        ),
       }
     case 'GET_METADATA_SIGNED_URLS':
       return {
-        result: await appService.createSignedMetadataUrls(parsedRequest.data),
+        result: await appService.createSignedMetadataUrlsAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        ),
       }
     case 'UPDATE_CONTENT_METADATA':
       await folderService.updateFolderObjectMetadata(

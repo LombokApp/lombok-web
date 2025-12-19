@@ -20,12 +20,15 @@ const baseEvent: Event = {
 }
 
 describe('parseDataFromEventWithTrigger', () => {
-  it('interpolates full-string template expressions from event data', () => {
-    const parsed = parseDataFromEventWithTrigger(baseEvent, {
-      innerTaskId: '{{ event.data.innerTaskId }}',
-      appIdentifier: '{{event.data.appIdentifier}}',
-      workerIdentifier: '{{ event.data.workerIdentifier }}',
-    })
+  it('interpolates full-string template expressions from event data', async () => {
+    const parsed = await parseDataFromEventWithTrigger(
+      {
+        innerTaskId: '{{ event.data.innerTaskId }}',
+        appIdentifier: '{{event.data.appIdentifier}}',
+        workerIdentifier: '{{ event.data.workerIdentifier }}',
+      },
+      baseEvent,
+    )
 
     expect(parsed).toEqual({
       innerTaskId: 'abc-123',
@@ -34,12 +37,15 @@ describe('parseDataFromEventWithTrigger', () => {
     })
   })
 
-  it('leaves non-template and non-string values unchanged', () => {
-    const parsed = parseDataFromEventWithTrigger(baseEvent, {
-      unchanged: 'static',
-      count: 3,
-      nested: '{{ event.data.nested }}',
-    })
+  it('leaves non-template and non-string values unchanged', async () => {
+    const parsed = await parseDataFromEventWithTrigger(
+      {
+        unchanged: 'static',
+        count: 3,
+        nested: '{{ event.data.nested }}',
+      },
+      baseEvent,
+    )
 
     expect(parsed).toEqual({
       unchanged: 'static',
@@ -48,10 +54,13 @@ describe('parseDataFromEventWithTrigger', () => {
     })
   })
 
-  it('returns null when template path is missing', () => {
-    const parsed = parseDataFromEventWithTrigger(baseEvent, {
-      missing: '{{ event.data.doesNotExist }}',
-    })
+  it('returns null when template path is missing', async () => {
+    const parsed = await parseDataFromEventWithTrigger(
+      {
+        missing: '{{ event.data.doesNotExist }}',
+      },
+      baseEvent,
+    )
 
     expect(parsed).toEqual({
       missing: null,

@@ -57,7 +57,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     // Have the executor tell us if it accepted the job
     const { accepted } = await this.appService.executeAppDockerJob({
       appIdentifier: eventData.appIdentifier,
-      jobData: invokeContext.targetLocation ?? {},
+      jobData: innerTask.data,
       profileIdentifier: eventData.profileIdentifier,
       jobIdentifier: eventData.jobClassIdentifier,
       asyncTaskId: task.id,

@@ -1493,7 +1493,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -1501,100 +1501,43 @@ export interface components {
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: ({
-                            /** @enum {string} */
-                            kind: "event";
-                            eventIdentifier: string;
-                            dataTemplate?: {
-                                [key: string]: unknown;
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "schedule";
-                            config: {
-                                interval: number;
-                                /** @enum {string} */
-                                unit: "minutes" | "hours" | "days";
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "user_action";
-                            scope?: {
-                                user?: {
-                                    permissions: string;
-                                };
-                                folder?: {
-                                    /** Format: uuid */
-                                    folderId: string;
-                                };
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1781,7 +1724,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -1789,100 +1732,43 @@ export interface components {
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: ({
-                            /** @enum {string} */
-                            kind: "event";
-                            eventIdentifier: string;
-                            dataTemplate?: {
-                                [key: string]: unknown;
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "schedule";
-                            config: {
-                                interval: number;
-                                /** @enum {string} */
-                                unit: "minutes" | "hours" | "days";
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "user_action";
-                            scope?: {
-                                user?: {
-                                    permissions: string;
-                                };
-                                folder?: {
-                                    /** Format: uuid */
-                                    folderId: string;
-                                };
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2078,7 +1964,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -2086,100 +1972,43 @@ export interface components {
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: ({
-                            /** @enum {string} */
-                            kind: "event";
-                            eventIdentifier: string;
-                            dataTemplate?: {
-                                [key: string]: unknown;
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "schedule";
-                            config: {
-                                interval: number;
-                                /** @enum {string} */
-                                unit: "minutes" | "hours" | "days";
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "user_action";
-                            scope?: {
-                                user?: {
-                                    permissions: string;
-                                };
-                                folder?: {
-                                    /** Format: uuid */
-                                    folderId: string;
-                                };
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2340,7 +2169,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -2348,100 +2177,43 @@ export interface components {
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers?: ({
-                            /** @enum {string} */
-                            kind: "event";
-                            eventIdentifier: string;
-                            dataTemplate?: {
-                                [key: string]: unknown;
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "schedule";
-                            config: {
-                                interval: number;
-                                /** @enum {string} */
-                                unit: "minutes" | "hours" | "days";
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        } | {
-                            /** @enum {string} */
-                            kind: "user_action";
-                            scope?: {
-                                user?: {
-                                    permissions: string;
-                                };
-                                folder?: {
-                                    /** Format: uuid */
-                                    folderId: string;
-                                };
-                            };
-                            onComplete?: {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            } | {
-                                taskIdentifier: string;
-                                dataTemplate?: {
-                                    success?: {
-                                        [key: string]: unknown;
-                                    };
-                                    failure?: {
-                                        [key: string]: unknown;
-                                    };
-                                };
-                            }[];
-                        })[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -3179,27 +2951,7 @@ export interface components {
                     dataTemplate?: {
                         [key: string]: unknown;
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
@@ -3223,27 +2975,7 @@ export interface components {
                         /** @enum {string} */
                         unit: "minutes" | "hours" | "days";
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                     invokeContext: {
                         [key: string]: unknown;
                     };
@@ -3259,27 +2991,7 @@ export interface components {
                             folderId: string;
                         };
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         userId: string;
@@ -3287,57 +2999,36 @@ export interface components {
                 } | {
                     /** @enum {string} */
                     kind: "app_action";
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "task_child";
                     invokeContext: {
-                        /** Format: uuid */
-                        parentTaskId: string;
-                        parentTaskSuccess: boolean;
-                        parentTaskIdentifier: string;
+                        parentTask: {
+                            /** @enum {boolean} */
+                            success: true;
+                            result: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        } | {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        };
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
@@ -3410,27 +3101,7 @@ export interface components {
                     dataTemplate?: {
                         [key: string]: unknown;
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
@@ -3454,27 +3125,7 @@ export interface components {
                         /** @enum {string} */
                         unit: "minutes" | "hours" | "days";
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                     invokeContext: {
                         [key: string]: unknown;
                     };
@@ -3490,27 +3141,7 @@ export interface components {
                             folderId: string;
                         };
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         userId: string;
@@ -3518,57 +3149,36 @@ export interface components {
                 } | {
                     /** @enum {string} */
                     kind: "app_action";
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "task_child";
                     invokeContext: {
-                        /** Format: uuid */
-                        parentTaskId: string;
-                        parentTaskSuccess: boolean;
-                        parentTaskIdentifier: string;
+                        parentTask: {
+                            /** @enum {boolean} */
+                            success: true;
+                            result: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        } | {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        };
                     };
-                    onComplete?: {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    } | {
-                        taskIdentifier: string;
-                        dataTemplate?: {
-                            success?: {
-                                [key: string]: unknown;
-                            };
-                            failure?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    }[];
+                    onComplete?: unknown[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
