@@ -1,4 +1,5 @@
 import type { JsonSerializableObject, TaskInvocation } from '@lombokapp/types'
+import { Logger } from '@nestjs/common'
 import { getApp } from 'src/shared/app-helper'
 
 import type { Task } from './entities/task.entity'
@@ -16,7 +17,9 @@ export class TaskProcessorError extends Error {
 }
 
 export abstract class BaseProcessor<K extends PlatformTaskName> {
+  protected readonly logger: Logger
   constructor(private readonly platformTaskName: K) {
+    this.logger = new Logger(`${platformTaskName}_PlatformTaskProcessor`)
     // defer the init so the app is created first
     setTimeout(() => void this.registerProcessor(), 100)
   }
@@ -37,8 +40,7 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
   async registerProcessor() {
     const app = await getApp()
     if (!app) {
-      // eslint-disable-next-line no-console
-      console.log('App did not exist when registering processor.')
+      this.logger.error('App did not exist when registering processor.')
       return
     }
     const platformTaskService = await app.resolve(PlatformTaskService)

@@ -9,6 +9,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
@@ -54,11 +55,12 @@ export interface CompleteJobRequest {
     code: string
     message: string
   }
-  uploadedFiles?: { folderId: string; objectKey: string }[]
+  outputFiles?: { folderId: string; objectKey: string }[]
 }
 
 @Injectable()
 export class WorkerJobService {
+  private readonly logger = new Logger(WorkerJobService.name)
   taskService: TaskService
   platformTaskService: PlatformTaskService
   appService: AppService
@@ -252,27 +254,37 @@ export class WorkerJobService {
     files: WorkerJobUploadUrlsRequestDTO,
   ): Promise<WorkerJobPresignedUrlsResponseDTO> {
     // Validate all requested uploads are allowed
-    const task = await this.ormService.db.query.tasksTable.findFirst({
+    const dockerTask = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, claims.taskId),
     })
 
-    if (!task) {
+    if (!dockerTask) {
       throw new NotFoundException(`Task not found: ${claims.taskId}`)
     }
 
-    if (!task.startedAt) {
+    if (!dockerTask.startedAt) {
       throw new ForbiddenException(
         `Task ${claims.taskId} has not been started yet`,
       )
     }
 
-    if (task.completedAt) {
+    if (dockerTask.completedAt) {
       throw new ForbiddenException(
         `Task ${claims.taskId} has already been completed`,
       )
     }
 
-    const appIdentifier = task.ownerIdentifier
+    const innerTask =
+      'innerTaskId' in dockerTask.data &&
+      (await this.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerTask.data.innerTaskId as string),
+      }))
+
+    if (!innerTask) {
+      throw new NotFoundException(`Inner task not found: ${innerTask}`)
+    }
+
+    const appIdentifier = innerTask.ownerIdentifier
 
     for (const file of files) {
       const isAllowed = claims.storageAccessPolicy.some(
@@ -292,6 +304,7 @@ export class WorkerJobService {
         )
       }
     }
+
     return {
       urls: await this.appService.createSignedContentUrlsAsApp(
         appIdentifier,
@@ -314,7 +327,7 @@ export class WorkerJobService {
     claims: WorkerJobTokenClaims,
     request: CompleteJobRequest,
   ): Promise<void> {
-    console.log('completeJob', { claims, request })
+    this.logger.log('WorkerJobService.completeJob', { claims, request })
     const { taskId: dockerRunTaskId } = claims
     const { success, result, error } = request
 
@@ -384,7 +397,7 @@ export class WorkerJobService {
 
    */
   async startJob(claims: WorkerJobTokenClaims): Promise<void> {
-    console.log('startJob', claims)
+    this.logger.log('WorkerJobService.startJob', claims)
     const { taskId: dockerRunTaskId } = claims
 
     await this.ormService.db.transaction(async (tx) => {

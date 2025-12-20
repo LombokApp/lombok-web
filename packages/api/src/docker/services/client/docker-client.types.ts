@@ -1,7 +1,8 @@
+import type { JsonSerializableObject } from '@lombokapp/types'
 import type { z } from 'zod'
 
 import type {
-  ContainerWorkerExecuteOptions,
+  ContainerExecuteOptions,
   dockerExecutionOptionsSchema,
 } from './docker.schema'
 
@@ -59,12 +60,23 @@ export interface DockerAdapter {
   createContainer: (options: CreateContainerOptions) => Promise<ContainerInfo>
 
   /**
+   * Execute a command in a running container and return the output as a string
+   */
+  execInContainerAndReturnOutput: (
+    containerId: string,
+    command: string[],
+  ) => Promise<string>
+
+  /**
    * Execute a command in a running container
    */
-  exec: <T extends boolean>(
+  execInContainer: (
     containerId: string,
-    options: ContainerWorkerExecuteOptions<T>,
-  ) => Promise<DockerExecResult<T>>
+    options: ContainerExecuteOptions,
+  ) => Promise<{
+    state: DockerStateFunc
+    output: () => Promise<string>
+  }>
 
   /**
    * Start a stopped container
@@ -75,41 +87,35 @@ export interface DockerAdapter {
    * Check if a container is running
    */
   isContainerRunning: (containerId: string) => Promise<boolean>
-
-  /**
-   * Get agent logs from a container
-   */
-  getAgentLogs: (
-    containerId: string,
-    options?: { tail?: number; grep?: string },
-  ) => Promise<string>
-
-  /**
-   * Get worker logs from a container
-   */
-  getWorkerLogs: (
-    containerId: string,
-    options: { jobClass: string; tail?: number; err?: boolean },
-  ) => Promise<string>
-
-  /**
-   * Get job logs from a container
-   */
-  getJobLogs: (
-    containerId: string,
-    options: { jobId: string; tail?: number; err?: boolean },
-  ) => Promise<string>
 }
 
 export type DockerExecutionOptions = z.infer<
   typeof dockerExecutionOptionsSchema
 >
 
-export interface DockerSynchronousExecResult {
+export type DockerSynchronousExecResult =
+  | {
+      jobId: string
+      result: JsonSerializableObject
+    }
+  | {
+      jobId: string
+      submitError?: {
+        code: string
+        message: string
+      }
+    }
+  | {
+      jobId: string
+      error?: {
+        code: string
+        message: string
+      }
+    }
+
+export interface DockerAsynchronousExecResult {
   jobId: string
-  success: boolean
-  result: unknown
-  jobError?: {
+  submitError?: {
     code: string
     message: string
   }
@@ -117,11 +123,18 @@ export interface DockerSynchronousExecResult {
 
 export type DockerExecResult<T extends boolean> = T extends true
   ? DockerSynchronousExecResult
-  : {
-      jobId: string
-      accepted: boolean
-      queueError?: {
-        code: string
-        message: string
-      }
-    }
+  : DockerAsynchronousExecResult
+
+export type DockerStateFunc = () => Promise<DockerExecState>
+
+export type DockerExecState = DockerExecStateRunning | DockerExecStateExited
+
+export interface DockerExecStateRunning {
+  running: true
+  exitCode: null
+}
+
+export interface DockerExecStateExited {
+  running: false
+  exitCode: number
+}

@@ -36,4 +36,5 @@ func init() {
 	rootCmd.AddCommand(workerLogCmd)
 	rootCmd.AddCommand(jobLogCmd)
 	rootCmd.AddCommand(jobResultCmd)
+	rootCmd.AddCommand(jobStateCmd)
 }

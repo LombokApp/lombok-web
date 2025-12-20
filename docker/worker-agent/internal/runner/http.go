@@ -42,6 +42,8 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		return fmt.Errorf("failed to ensure directories: %w", err)
 	}
 
+	waitForCompletion := payload.WaitForCompletion == nil || *payload.WaitForCompletion
+
 	var platformClient *platform.Client
 	if payload.PlatformURL != "" && payload.JobToken != "" {
 		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
@@ -247,6 +249,31 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	jobState.Status = "running"
 	state.WriteJobState(jobState)
 
+	if !waitForCompletion {
+		totalJobDuration := time.Since(jobStartTime)
+		timing := map[string]interface{}{
+			"total_time_seconds":          totalJobDuration.Seconds(),
+			"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
+			"worker_ready_time_seconds":   workerStartupDuration.Seconds(),
+		}
+
+		result := map[string]interface{}{
+			"success":   true,
+			"job_id":    payload.JobID,
+			"job_class": payload.JobClass,
+			"status":    "running",
+			"timing":    timing,
+		}
+
+		if workerState != nil {
+			result["worker_pid"] = workerState.PID
+		}
+
+		resultJSON, _ := json.Marshal(result)
+		fmt.Println(string(resultJSON))
+		return nil
+	}
+
 	// Step 2: Poll for job completion
 	statusURL := fmt.Sprintf("%s/job/%s", baseURL, payload.JobID)
 	pollClient := buildHTTPClient(payload.Interface.Listener)
@@ -325,7 +352,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	state.WriteJobState(jobState)
 
 	// Handle file uploads and platform completion if configured
-	var uploadedFiles []types.UploadedFile
+	var outputFiles []types.OutputFileRef
 	if platformClient != nil {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
@@ -342,7 +369,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				if err != nil {
 					logs.WriteAgentLog("warning: failed to upload files: %v", err)
 				} else {
-					uploadedFiles = uploaded
+					outputFiles = uploaded
 				}
 			}
 		}
@@ -350,9 +377,9 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		// Signal completion to platform
 		ctx := context.Background()
 		completionReq := &types.CompletionRequest{
-			Success:       finalStatus.Status == "completed",
-			Result:        finalStatus.Result,
-			UploadedFiles: uploadedFiles,
+			Success:     finalStatus.Status == "completed",
+			Result:      finalStatus.Result,
+			OutputFiles: outputFiles,
 		}
 		if finalStatus.Error != nil {
 			completionReq.Error = finalStatus.Error
@@ -388,8 +415,8 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			result["result"] = parsedResult
 		}
 	}
-	if len(uploadedFiles) > 0 {
-		result["output_files"] = uploadedFiles
+	if len(outputFiles) > 0 {
+		result["output_files"] = outputFiles
 	}
 	if finalStatus.Error != nil {
 		result["error"] = finalStatus.Error
@@ -400,11 +427,11 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	// Save result to file
 	jobResult := &types.JobResult{
-		Success:       finalStatus.Status == "completed",
-		JobID:         payload.JobID,
-		JobClass:      payload.JobClass,
-		Timing:        timing,
-		OutputFiles:   uploadedFiles,
+		Success:     finalStatus.Status == "completed",
+		JobID:       payload.JobID,
+		JobClass:    payload.JobClass,
+		Timing:      timing,
+		OutputFiles: outputFiles,
 	}
 	if finalStatus.Result != nil {
 		var parsedResult interface{}

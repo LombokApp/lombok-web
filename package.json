@@ -17,6 +17,7 @@
     "dev:docker:kill": "docker compose --env-file \"./packages/api/.env\" kill",
     "dev:install": "bun install --force && docker exec -it lombok-api bun install --force",
     "dev:restart:api": "bun --cwd packages/api dev:restart",
+    "dev:enableapps": "bun --cwd packages/api dev:enableapps",
     "dev:restart:api:clean": "bun --cwd packages/api dev:restart:clean",
     "dev:check-all": "sh ./cmd/dev-check-all.sh",
     "dev:lint-all": "sh ./cmd/dev-lint-all.sh",

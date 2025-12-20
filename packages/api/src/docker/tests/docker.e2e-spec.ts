@@ -43,6 +43,54 @@ const responseStatus = (result: { response?: Response; error?: unknown }) =>
   (result as { error?: { status?: number } }).error?.status ??
   -1
 
+const parseJobPayload = (
+  payload: string,
+  { expectJobToken = true }: { expectJobToken: boolean } = {
+    expectJobToken: true,
+  },
+) => {
+  try {
+    const parsedPaylod = JSON.parse(
+      atob(payload.split('--payload-base64=')[1] ?? '{}'),
+    ) as Record<string, string> & {
+      interface:
+        | { kind?: string; listener?: { type: string; port: number } }
+        | undefined
+    }
+
+    if (expectJobToken) {
+      expect(parsedPaylod.job_token?.length).toBeGreaterThan(0)
+      expect(parsedPaylod.platform_url?.length).toBeGreaterThan(0)
+    } else {
+      expect(parsedPaylod.job_token).toBeUndefined()
+    }
+    expect(parsedPaylod.job_id?.length).toBeGreaterThan(0)
+    expect(parsedPaylod.job_class?.length).toBeGreaterThan(0)
+    expect(parsedPaylod.interface?.kind).toBeDefined()
+    if (parsedPaylod.interface?.kind === 'persistent_http') {
+      expect(parsedPaylod.interface.listener?.port).toBeGreaterThan(0)
+    } else if (parsedPaylod.interface?.kind === 'exec_per_job') {
+      expect(parsedPaylod.interface.listener).toBeUndefined()
+    } else {
+      throw new Error('Unknown job interface kind')
+    }
+    expect(parsedPaylod.job_input).toBeDefined()
+
+    return {
+      ...(parsedPaylod.job_token && {
+        jobToken: parsedPaylod.job_token,
+        platformURL: parsedPaylod.platform_url,
+      }),
+      jobId: parsedPaylod.job_id ?? '',
+      jobData: parsedPaylod.job_input ?? {},
+      jobIdentifier: parsedPaylod.job_class ?? '',
+      jobInterface: parsedPaylod.interface,
+    }
+  } catch (error) {
+    throw new Error('Error parsing job payload', { cause: error })
+  }
+}
+
 const insertTaskWithEvent = async (testModule: TestModule) => {
   const taskId = crypto.randomUUID()
   const eventId = crypto.randomUUID()
@@ -217,6 +265,7 @@ const triggerAppDockerHandledTask = async (
       startedAt: expect.any(Date),
       completedAt: null,
       success: null,
+      userVisible: true,
       error: null,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date),
@@ -242,12 +291,17 @@ describe('Docker Jobs', () => {
 
   const getAdapterSpy = spyOn(mockDockerAdapterProvider, 'getDockerAdapter')
   const createContainerSpy = spyOn(mockDockerAdapter, 'createContainer')
-  const execSpy = spyOn(mockDockerAdapter, 'exec')
+  const listContainersByLabelsSpy = spyOn(
+    mockDockerAdapter,
+    'listContainersByLabels',
+  )
+  const execSpy = spyOn(mockDockerAdapter, 'execInContainer')
 
   const resetTestData = async () => {
     execSpy.mockClear()
     getAdapterSpy.mockClear()
     createContainerSpy.mockClear()
+    listContainersByLabelsSpy.mockClear()
     await testModule?.resetAppState()
   }
 
@@ -270,7 +324,7 @@ describe('Docker Jobs', () => {
       { enabled: true },
     )
 
-    if (apps.result.length !== 2) {
+    if (apps.result.length !== 6) {
       throw new Error('Dummy test apps not installed (maybe invalid).')
     }
     _apiClient = testModule.apiClient
@@ -280,7 +334,7 @@ describe('Docker Jobs', () => {
     await resetTestData()
   })
 
-  it(`should properly call the docker adapter with AppService.executeAppDockerJob(...) is called`, async () => {
+  it(`should properly call the docker adapter when AppService.executeAppDockerJob(...) is called`, async () => {
     const {
       session: { accessToken: _testUserAccessToken },
     } = await createTestUser(testModule!, {
@@ -295,7 +349,27 @@ describe('Docker Jobs', () => {
       jobData: {},
     })
     expect(getAdapterSpy).toHaveBeenCalledWith('local')
-    expect(createContainerSpy).toHaveBeenCalledWith({
+
+    const execCall = execSpy.mock.calls[0]!
+
+    expect(execCall).toEqual([
+      '1',
+      { command: ['lombok-worker-agent', 'run-job', expect.any(String)] },
+    ])
+    const payload = parseJobPayload(execCall[1].command.at(-1) ?? '', {
+      expectJobToken: false,
+    })
+
+    expect(payload).toEqual({
+      jobId: expect.any(String),
+      jobIdentifier: 'test_job',
+      jobInterface: { kind: 'exec_per_job' },
+      jobData: {},
+    })
+
+    const createContainerCall = createContainerSpy.mock.calls[0]!
+
+    expect(createContainerCall[0]).toEqual({
       gpus: {
         deviceIds: ['0'],
         driver: 'nvidia',
@@ -306,32 +380,8 @@ describe('Docker Jobs', () => {
         'lombok.profile_hash': '59da6c5f',
         'lombok.profile_id': 'lombok:profile_hash_59da6c5f',
       },
-      volumes: {
-        '/app/model_cache': '/mnt/user/appdata/somepath',
-      },
+      volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
     })
-    expect(execSpy.mock.calls[0]).toEqual([
-      '1',
-      {
-        gpus: {
-          deviceIds: ['0'],
-          driver: 'nvidia',
-        },
-        jobCommand: ['./start_dummy_worker.sh'],
-        jobId: expect.any(String),
-        jobData: {},
-        platformURL: 'http://localhost:3000',
-        jobInterface: {
-          kind: 'exec_per_job',
-        },
-        jobIdentifier: 'test_job',
-        jobToken: undefined,
-        volumes: {
-          '/app/model_cache': '/mnt/user/appdata/somepath',
-        },
-        waitForCompletion: true,
-      },
-    ])
 
     await testModule?.services.appService.executeAppDockerJob({
       appIdentifier: 'testapp',
@@ -340,23 +390,22 @@ describe('Docker Jobs', () => {
       jobData: {},
     })
 
-    expect(execSpy.mock.calls[1]).toEqual([
+    const execCall2 = execSpy.mock.calls[1]!
+
+    expect(execCall2).toEqual([
       '1',
-      {
-        gpus: undefined,
-        jobCommand: ['./start_dummy_worker.sh'],
-        jobId: expect.any(String),
-        jobData: {},
-        platformURL: 'http://localhost:3000',
-        jobInterface: {
-          kind: 'exec_per_job',
-        },
-        jobIdentifier: 'test_job_other',
-        jobToken: undefined,
-        volumes: undefined,
-        waitForCompletion: true,
-      },
+      { command: ['lombok-worker-agent', 'run-job', expect.any(String)] },
     ])
+    const payload2 = parseJobPayload(execCall2[1].command.at(-1) ?? '', {
+      expectJobToken: false,
+    })
+
+    expect(payload2).toEqual({
+      jobId: expect.any(String),
+      jobIdentifier: 'test_job_other',
+      jobInterface: { kind: 'exec_per_job' },
+      jobData: {},
+    })
   })
 
   it('should call exec with waitForCompletion=true when no asyncTaskId is provided', async () => {
@@ -372,31 +421,72 @@ describe('Docker Jobs', () => {
       jobData: { foo: 'bar' },
     })
 
-    expect(execSpy).toHaveBeenCalledWith(
-      ...[
-        '1',
-        expect.objectContaining({
-          waitForCompletion: true,
-          jobToken: undefined,
-          jobData: { foo: 'bar' },
-          jobCommand: ['./start_dummy_worker.sh'],
-          jobId: expect.any(String),
-          jobIdentifier: 'test_job',
-          jobInterface: {
-            kind: 'exec_per_job',
-          },
-          outputLocation: undefined,
-          platformURL: 'http://localhost:3000',
-          volumes: {
-            '/app/model_cache': '/mnt/user/appdata/somepath',
-          },
-          gpus: {
-            deviceIds: ['0'],
-            driver: 'nvidia',
-          },
-        }),
-      ],
+    const execCall = execSpy.mock.calls[0]!
+
+    expect(execCall).toEqual([
+      '1',
+      { command: ['lombok-worker-agent', 'run-job', expect.any(String)] },
+    ])
+    const payload = parseJobPayload(execCall[1].command.at(-1) ?? '', {
+      expectJobToken: false,
+    })
+    expect(payload).toEqual({
+      jobId: expect.any(String),
+      jobIdentifier: 'test_job',
+      jobInterface: { kind: 'exec_per_job' },
+      jobData: { foo: 'bar' },
+    })
+
+    const createContainerCall = createContainerSpy.mock.calls[0]!
+
+    expect(createContainerCall[0]).toEqual({
+      image: 'dummy-namespace/dummy-image',
+      volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
+      gpus: {
+        deviceIds: ['0'],
+        driver: 'nvidia',
+      },
+      labels: {
+        'lombok.platform': 'lombok',
+        'lombok.profile_hash': '59da6c5f',
+        'lombok.profile_id': 'lombok:profile_hash_59da6c5f',
+      },
+      networkMode: undefined,
+    })
+  })
+
+  it('should return an error when submitting a job with an invalid interface', async () => {
+    await createTestUser(testModule!, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    execSpy.mockImplementationOnce(() =>
+      Promise.resolve({
+        output: () => Promise.resolve('unknown interface kind: invalid_kind'),
+        state: () =>
+          Promise.resolve({
+            running: false,
+            exitCode: 1,
+          }),
+      }),
     )
+
+    expect(
+      testModule?.services.appService.executeAppDockerJob({
+        appIdentifier: 'testapp',
+        profileIdentifier: 'dummy_profile',
+        jobIdentifier: 'test_job',
+        jobData: {},
+      }),
+    ).resolves.toEqual({
+      jobId: expect.any(String),
+      submitError: {
+        code: 'SUBMISSION_ERROR',
+        message:
+          'Job submission failed with exit code 1. Output: unknown interface kind: invalid_kind',
+      },
+    })
   })
 
   it('should reject completion when the task has not been started', async () => {
@@ -415,19 +505,19 @@ describe('Docker Jobs', () => {
       asyncTaskId: taskId,
     })
 
-    const token = execSpy.mock.calls[0]![1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0]![1].jobId
+    const payload = execSpy.mock.calls[0]![1].command.at(-1)
+    const parsedPayload = parseJobPayload(payload ?? '')
 
-    const completeAttempt = await _apiClient(token).POST(
+    const completeAttempt = await _apiClient(parsedPayload.jobToken).POST(
       `/api/v1/docker/jobs/{jobId}/complete`,
       {
         params: {
-          path: { jobId },
+          path: { jobId: parsedPayload.jobId },
         },
         body: {
           success: true,
           result: { message: 'should fail' },
-          uploadedFiles: [],
+          outputFiles: [],
         },
       },
     )
@@ -455,16 +545,15 @@ describe('Docker Jobs', () => {
       taskData: { myTaskData: 'test' },
     })
 
-    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0]![1].jobId
-    expect(jobToken.length).toBeGreaterThan(0)
-
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[0]![1].command.at(-1) ?? '',
+    )
     const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
-      jobToken,
-      jobId,
+      parsedPayload.jobToken!,
+      parsedPayload.jobId,
     )
 
-    expect(claims.jobId).toBe(jobId)
+    expect(claims.jobId).toBe(parsedPayload.jobId)
     expect(claims.taskId).toBe(dockerRunTask.id)
     expect(claims.storageAccessPolicy).toEqual([])
   })
@@ -498,6 +587,7 @@ describe('Docker Jobs', () => {
       targetUserId: null,
       startedAt: null,
       completedAt: null,
+      userVisible: true,
       success: null,
       error: null,
       createdAt: expect.any(Date),
@@ -589,6 +679,7 @@ describe('Docker Jobs', () => {
       trigger: {
         kind: 'app_action',
       },
+      userVisible: true,
       targetLocation: null,
       targetUserId: null,
       startedAt: null,
@@ -601,8 +692,11 @@ describe('Docker Jobs', () => {
       handlerIdentifier: 'dummy_profile_two:test_job_other',
     })
 
-    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0]![1].jobId
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[0]![1].command.at(-1) ?? '',
+    )
+    const jobToken = parsedPayload.jobToken
+    const jobId = parsedPayload.jobId
 
     const deniedFolderId = crypto.randomUUID()
 
@@ -899,8 +993,13 @@ describe('Docker Jobs', () => {
         },
       )
       const _responseStatus = responseStatus(response)
+
       if (_responseStatus !== request.expectedStatus) {
-        logger.error(`Presigned URL Request Failure:`, request)
+        logger.error(
+          `Presigned URL request, index[${presignedUrlRequests.indexOf(request)}], failed (expected ${request.expectedStatus}, got ${_responseStatus}):`,
+          request,
+          response,
+        )
       }
 
       expect(_responseStatus).toBe(request.expectedStatus)
@@ -1200,6 +1299,7 @@ describe('Docker Jobs', () => {
         kind: 'app_action',
       },
       targetLocation: null,
+      userVisible: true,
       targetUserId: null,
       startedAt: null,
       completedAt: null,
@@ -1211,10 +1311,13 @@ describe('Docker Jobs', () => {
       handlerIdentifier: 'dummy_profile_two:test_job_other',
     })
 
-    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0]![1].jobId
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[0]![1].command.at(-1) ?? '',
+    )
+    const jobToken = parsedPayload.jobToken
+    const jobId = parsedPayload.jobId
     const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
-      jobToken,
+      jobToken ?? '',
       jobId,
     )
 
@@ -1236,8 +1339,11 @@ describe('Docker Jobs', () => {
       },
     )
 
-    const jobToken = execSpy.mock.calls[0]![1].jobToken ?? ''
-    const jobId = execSpy.mock.calls[0]![1].jobId
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[0]![1].command.at(-1) ?? '',
+    )
+    const jobToken = parsedPayload.jobToken
+    const jobId = parsedPayload.jobId
 
     const startResponse = await _apiClient(jobToken).POST(
       `/api/v1/docker/jobs/{jobId}/start`,
@@ -1261,7 +1367,11 @@ describe('Docker Jobs', () => {
       payload: {
         logType: 'started',
         data: {
-          dockerTaskId: dockerRunTask.id,
+          __executor: {
+            jobIdentifier: 'test_job_other',
+            profileHash: '679f45ae',
+            profileKey: 'testapp:dummy_profile_two',
+          },
         },
       },
     })
@@ -1292,7 +1402,11 @@ describe('Docker Jobs', () => {
         payload: {
           logType: 'started',
           data: {
-            dockerTaskId: expect.any(String),
+            __executor: {
+              jobIdentifier: 'test_job_other',
+              profileHash: '679f45ae',
+              profileKey: 'testapp:dummy_profile_two',
+            },
           },
         },
       },
@@ -1345,7 +1459,7 @@ describe('Docker Jobs', () => {
       `/api/v1/docker/jobs/{jobId}/complete`,
       {
         params: { path: { jobId } },
-        body: { success: true, result: {}, uploadedFiles: [] },
+        body: { success: true, result: {}, outputFiles: [] },
       },
     )
     expect([401, 403]).toContain(responseStatus(completeAttempt))

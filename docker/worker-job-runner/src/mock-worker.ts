@@ -39,6 +39,7 @@ interface OutputManifest {
 interface OutputFile {
   local_path: string
   object_key: string
+  content_type?: string
 }
 
 // =============================================================================
@@ -494,6 +495,7 @@ const handleFileOutput: JobHandler = async (input, ctx) => {
     manifestFiles.push({
       local_path: file.name,
       object_key: file.name,
+      content_type: file.content_type,
     })
   }
 

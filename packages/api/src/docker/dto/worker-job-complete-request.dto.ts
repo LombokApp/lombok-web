@@ -2,8 +2,8 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { jsonSerializableObjectDTOSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
-export const uploadedFilesSchema = z.object({
-  uploadedFiles: z
+export const outputFilesSchema = z.object({
+  outputFiles: z
     .array(
       z.object({
         folderId: z.string().uuid(),
@@ -21,14 +21,14 @@ export const errorResponseSchema = z
       message: z.string(),
     }),
   })
-  .merge(uploadedFilesSchema)
+  .merge(outputFilesSchema)
 
 export const successResponseSchema = z
   .object({
     success: z.literal(true),
     result: jsonSerializableObjectDTOSchema,
   })
-  .merge(uploadedFilesSchema)
+  .merge(outputFilesSchema)
 
 const resultSchema = z.discriminatedUnion('success', [
   successResponseSchema,

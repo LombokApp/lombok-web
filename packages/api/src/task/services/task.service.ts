@@ -672,6 +672,8 @@ export class TaskService {
                 id: parentTask.id,
                 success: true,
                 result: parentTaskSuccessLog?.result ?? {},
+                targetLocation: parentTask.targetLocation ?? {},
+                data: parentTask.data,
               },
             },
             functions: {
@@ -956,11 +958,10 @@ export class TaskService {
               conditionInput,
             )
           : undefined
-        if (onCompleteHandler.condition) {
-          console.log('onCompleteConditionResult', {
-            onCompleteConditionResult,
-            conditionInput,
-            onCompleteHandlerCondition: onCompleteHandler.condition,
+        if (onCompleteHandler.condition && !conditionInput.success) {
+          this.logger.debug('Task onComplete condition evaluation failed:', {
+            condition: onCompleteHandler.condition,
+            input: conditionInput,
           })
         }
         if (

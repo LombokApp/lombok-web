@@ -6,14 +6,15 @@ import (
 
 // JobPayload is the decoded payload sent to the agent via run-job command
 type JobPayload struct {
-	JobID          string          `json:"job_id"`
-	JobClass       string          `json:"job_class"`
-	WorkerCommand  []string        `json:"worker_command"`
-	Interface      InterfaceConfig `json:"interface"`
-	JobInput       json.RawMessage `json:"job_input"`
-	JobToken       string          `json:"job_token,omitempty"`       // JWT for platform auth
-	PlatformURL    string          `json:"platform_url,omitempty"`    // e.g. "https://api.lombok.app"
-	OutputLocation *OutputLocation `json:"output_location,omitempty"` // Where to upload outputs (optional)
+	WaitForCompletion *bool           `json:"wait_for_completion,omitempty"`
+	JobID             string          `json:"job_id"`
+	JobClass          string          `json:"job_class"`
+	WorkerCommand     []string        `json:"worker_command"`
+	Interface         InterfaceConfig `json:"interface"`
+	JobInput          json.RawMessage `json:"job_input"`
+	JobToken          string          `json:"job_token,omitempty"`       // JWT for platform auth
+	PlatformURL       string          `json:"platform_url,omitempty"`    // e.g. "https://api.lombok.app"
+	OutputLocation    *OutputLocation `json:"output_location,omitempty"` // Where to upload outputs (optional)
 }
 
 // InterfaceConfig describes how the agent communicates with the worker
@@ -69,7 +70,7 @@ type JobResult struct {
 	JobClass    string                 `json:"job_class"`
 	Result      interface{}            `json:"result,omitempty"`
 	Error       *JobError              `json:"error,omitempty"`
-	OutputFiles []UploadedFile         `json:"output_files,omitempty"`
+	OutputFiles []OutputFileRef        `json:"output_files,omitempty"`
 	Timing      map[string]interface{} `json:"timing,omitempty"`
 	ExitCode    *int                   `json:"exit_code,omitempty"`
 }
@@ -124,8 +125,9 @@ type OutputManifest struct {
 
 // OutputFile describes a single file to be uploaded
 type OutputFile struct {
-	LocalPath string `json:"local_path"` // Relative path within output directory
-	ObjectKey string `json:"object_key"` // Object key/path within the folder (worker-provided)
+	LocalPath   string `json:"local_path"`             // Relative path within output directory
+	ObjectKey   string `json:"object_key"`             // Object key/path within the folder (worker-provided)
+	ContentType string `json:"content_type,omitempty"` // Optional content type hint for upload
 }
 
 // OutputLocation describes where outputs should be stored
@@ -170,14 +172,14 @@ type UploadURL struct {
 
 // CompletionRequest is sent to the platform to signal job completion
 type CompletionRequest struct {
-	Success       bool            `json:"success"`
-	Result        json.RawMessage `json:"result,omitempty"`
-	Error         *JobError       `json:"error,omitempty"`
-	UploadedFiles []UploadedFile  `json:"uploadedFiles,omitempty"`
+	Success     bool            `json:"success"`
+	Result      json.RawMessage `json:"result,omitempty"`
+	Error       *JobError       `json:"error,omitempty"`
+	OutputFiles []OutputFileRef `json:"outputFiles,omitempty"`
 }
 
-// UploadedFile describes a file that was successfully uploaded
-type UploadedFile struct {
+// OutputFileRef describes a file that was successfully uploaded
+type OutputFileRef struct {
 	FolderID  string `json:"folderId"`
 	ObjectKey string `json:"objectKey"`
 }

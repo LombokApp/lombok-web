@@ -1961,13 +1961,12 @@ export class AppService {
    * @param params.appIdentifier - The app's identifier
    * @param params.profileIdentifier - The container profile to use
    * @param params.jobIdentifier - The job class within the profile
-   * @param params.eventContext - Event-based context for the job
    * @returns The result of the docker job execution
    */
-  async executeAppDockerJob<
-    O extends ExecuteAppDockerJobOptions,
-    T extends boolean = O['asyncTaskId'] extends string ? true : false,
-  >(params: ExecuteAppDockerJobOptions): Promise<DockerExecResult<T>> {
+  async executeAppDockerJob<T extends boolean>(
+    params: ExecuteAppDockerJobOptions,
+    waitForCompletion: T = false as T,
+  ): Promise<DockerExecResult<T>> {
     this.logger.debug('executeAppDockerJob params:', params)
     const {
       appIdentifier,
@@ -1992,14 +1991,17 @@ export class AppService {
     }
 
     // Execute the docker job
-    return this.dockerJobsService.executeDockerJob({
-      profileSpec,
-      profileHostConfigKey: `${appIdentifier}:${profileIdentifier}`,
-      jobIdentifier,
-      jobData,
-      asyncTaskId,
-      storageAccessPolicy,
-    })
+    return this.dockerJobsService.executeDockerJob<T>(
+      {
+        profileSpec,
+        profileKey: `${appIdentifier}:${profileIdentifier}`,
+        jobIdentifier,
+        jobData,
+        asyncTaskId,
+        storageAccessPolicy,
+      },
+      waitForCompletion,
+    ) as Promise<DockerExecResult<T>>
   }
 
   async getSearchResultsFromAppAsUser(

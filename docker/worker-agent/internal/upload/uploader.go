@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -20,14 +21,6 @@ const (
 	// Upload timeout per file
 	uploadTimeout = 5 * time.Minute
 )
-
-// UploadResult contains the result of uploading a single file
-type UploadResult struct {
-	FolderID  string
-	ObjectKey string
-	Success   bool
-	Error     error
-}
 
 // Uploader handles uploading files to S3 via presigned URLs
 type Uploader struct {
@@ -66,7 +59,7 @@ func ReadManifest(jobID string) (*types.OutputManifest, error) {
 }
 
 // UploadFiles uploads all files from the output manifest
-func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *types.OutputManifest, outputLocation *types.OutputLocation) ([]types.UploadedFile, error) {
+func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *types.OutputManifest, outputLocation *types.OutputLocation) ([]types.OutputFileRef, error) {
 	if manifest == nil || len(manifest.Files) == 0 {
 		return nil, nil
 	}
@@ -100,7 +93,7 @@ func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *type
 
 	// Upload each file
 	outputDir := config.JobOutputDir(jobID)
-	var uploaded []types.UploadedFile
+	var uploaded []types.OutputFileRef
 
 	for _, f := range manifest.Files {
 		finalObjectKey := buildObjectKey(outputLocation.Prefix, f.ObjectKey)
@@ -114,11 +107,15 @@ func (u *Uploader) UploadFiles(ctx context.Context, jobID string, manifest *type
 		}
 
 		localPath := filepath.Join(outputDir, f.LocalPath)
-		if err := u.uploadFile(ctx, uploadURL.URL, localPath, ""); err != nil {
+		contentType := f.ContentType
+		if contentType == "" {
+			contentType = guessContentType(localPath)
+		}
+		if err := u.uploadFile(ctx, uploadURL.URL, localPath, contentType); err != nil {
 			return uploaded, fmt.Errorf("failed to upload %s: %w", f.LocalPath, err)
 		}
 
-		uploaded = append(uploaded, types.UploadedFile{
+		uploaded = append(uploaded, types.OutputFileRef{
 			FolderID:  uploadURL.FolderID,
 			ObjectKey: uploadURL.ObjectKey,
 		})
@@ -189,4 +186,15 @@ func detectContentType(file *os.File) string {
 		return http.DetectContentType(buffer[:n])
 	}
 	return "application/octet-stream"
+}
+
+func guessContentType(path string) string {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext == "" {
+		return ""
+	}
+	if ct := mime.TypeByExtension(ext); ct != "" {
+		return ct
+	}
+	return ""
 }

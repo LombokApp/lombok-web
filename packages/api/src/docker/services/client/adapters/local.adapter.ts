@@ -1,14 +1,14 @@
 import { Logger } from '@nestjs/common'
 import Docker from 'dockerode'
 import * as fs from 'fs'
+import { dockerDemuxStream } from 'src/docker/docker.util'
 
-import type { ContainerWorkerExecuteOptions } from '../docker.schema'
+import type { ContainerExecuteOptions } from '../docker.schema'
 import type {
   ConnectionTestResult,
   ContainerInfo,
   CreateContainerOptions,
   DockerAdapter,
-  DockerExecResult,
 } from '../docker-client.types'
 import {
   type DockerEndpointAuth,
@@ -272,7 +272,7 @@ export class LocalDockerAdapter implements DockerAdapter {
         : {}),
     }
 
-    console.log('createContainerOptions:', createContainerOptions)
+    this.logger.log('createContainerOptions:', createContainerOptions)
 
     const container = await this.docker.createContainer(createContainerOptions)
 
@@ -287,125 +287,34 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
-  async exec<T extends boolean>(
-    containerId: string,
-    options: ContainerWorkerExecuteOptions<T>,
-  ): Promise<DockerExecResult<T>> {
+  async execInContainer(containerId: string, options: ContainerExecuteOptions) {
     try {
       const container = this.docker.getContainer(containerId)
-
-      // Build the payload for the lombok-worker-agent
-      const payload: Record<string, unknown> = {
-        job_id: options.jobId,
-        job_class: options.jobIdentifier,
-        job_input: options.jobData,
-        job_token: options.jobToken,
-        worker_command: options.jobCommand, // Default worker path, can be customized per job class
-        interface: options.jobInterface,
-        output_location: options.outputLocation,
-        platform_url: options.platformURL,
-      }
-
-      // Base64 encode the payload
-      const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString(
-        'base64',
-      )
-
-      // Build the command to run in the container
-      const agentCommand = [
-        'lombok-worker-agent',
-        'run-job',
-        `--payload-base64=${payloadBase64}`,
-      ]
-
       const exec = await container.exec({
-        Cmd: agentCommand,
+        Cmd: options.command,
         AttachStdout: true,
         AttachStderr: true,
       })
+      const stream = await exec.start({ Detach: false, Tty: false })
 
-      const stream = await exec.start({
-        Detach: !options.waitForCompletion,
-        Tty: false,
-      })
+      const outputPromise = dockerDemuxStream(stream)
 
-      if (!options.waitForCompletion) {
-        const asyncResponse: DockerExecResult<false> = {
-          jobId: options.jobId,
-          accepted: true,
-        }
-        return asyncResponse as DockerExecResult<
-          typeof options.waitForCompletion
-        >
-      }
-
-      try {
-        // Collect output from the stream
-        const output = await new Promise<string>((resolve, reject) => {
-          let data = ''
-          stream.on('data', (chunk: Buffer) => {
-            // Docker multiplexes stdout/stderr, skip the 8-byte header
-            // Each frame: [STREAM_TYPE(1), 0, 0, 0, SIZE(4), PAYLOAD]
-            let offset = 0
-            while (offset < chunk.length) {
-              if (offset + 8 > chunk.length) {
-                break
-              }
-              const size = chunk.readUInt32BE(offset + 4)
-              if (offset + 8 + size > chunk.length) {
-                break
-              }
-              data += chunk.subarray(offset + 8, offset + 8 + size).toString()
-              offset += 8 + size
-            }
-          })
-          stream.on('end', () => resolve(data))
-          stream.on('error', reject)
-        })
-
-        // Try to parse output as JSON result from the agent
-        try {
-          const lastLineParsedOutout = JSON.parse(
-            output.trim().split('\n').pop() ?? output,
-          ) as {
-            success: boolean
-            result?: unknown
-            job_class: string
-            job_id: string
-            error?: { code: string; message: string }
-          }
-          const resultParsed: DockerExecResult<true> = {
-            success: lastLineParsedOutout.success,
-            result: lastLineParsedOutout.result,
-            jobId: options.jobId,
-            jobError: lastLineParsedOutout.error,
-          }
-          return resultParsed as DockerExecResult<
-            typeof options.waitForCompletion
-          >
-        } catch {
-          // If output is not valid JSON, treat it as a raw result
-          const resultRaw: DockerExecResult<true> = {
-            success: false,
-            result: undefined,
-            jobId: options.jobId,
-            jobError: {
-              code: 'OUTPUT_PARSE_FAILED',
-              message: [
-                `\nRAW DOCKER EXEC OUTPUT`,
-                `====================================================================`,
-                output,
-                `====================================================================\n`,
-              ].join('\n'),
-            },
-          }
-          return resultRaw as DockerExecResult<typeof options.waitForCompletion>
-        }
-      } catch (error) {
-        throw new Error(
-          `OUTPUT_CAPTURE_FAILED: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
-          { cause: error },
-        )
+      return {
+        output: () => outputPromise,
+        state: () =>
+          exec.inspect().then(async (inspect) => {
+            return inspect.Running
+              ? ({
+                  running: true,
+                  exitCode: null,
+                } as const)
+              : ({
+                  running: false,
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  exitCode: inspect.ExitCode!,
+                  output: await outputPromise,
+                } as const)
+          }),
       }
     } catch (error) {
       throw new Error(
@@ -443,9 +352,9 @@ export class LocalDockerAdapter implements DockerAdapter {
   }
 
   /**
-   * Helper method to execute a command in a container and return the output as a string
+   * Execute a command in a container and return the output as a string
    */
-  private async executeCommand(
+  async execInContainerAndReturnOutput(
     containerId: string,
     command: string[],
   ): Promise<string> {
@@ -458,91 +367,6 @@ export class LocalDockerAdapter implements DockerAdapter {
     })
 
     const stream = await exec.start({ Detach: false, Tty: false })
-
-    // Collect output from the stream
-    const output = await new Promise<string>((resolve, reject) => {
-      let data = ''
-      stream.on('data', (chunk: Buffer) => {
-        // Docker multiplexes stdout/stderr, skip the 8-byte header
-        // Each frame: [STREAM_TYPE(1), 0, 0, 0, SIZE(4), PAYLOAD]
-        let offset = 0
-        while (offset < chunk.length) {
-          if (offset + 8 > chunk.length) {
-            break
-          }
-          const size = chunk.readUInt32BE(offset + 4)
-          if (offset + 8 + size > chunk.length) {
-            break
-          }
-          data += chunk.subarray(offset + 8, offset + 8 + size).toString()
-          offset += 8 + size
-        }
-      })
-      stream.on('end', () => resolve(data))
-      stream.on('error', reject)
-    })
-
-    return output
-  }
-
-  async getAgentLogs(
-    containerId: string,
-    options?: { tail?: number; grep?: string },
-  ): Promise<string> {
-    const command = ['lombok-worker-agent', 'agent-log']
-
-    if (options?.grep) {
-      command.push('--grep', options.grep)
-    }
-
-    if (options?.tail) {
-      command.push('--tail', options.tail.toString())
-    }
-
-    return this.executeCommand(containerId, command)
-  }
-
-  async getWorkerLogs(
-    containerId: string,
-    options: { jobClass: string; tail?: number; err?: boolean },
-  ): Promise<string> {
-    const command = [
-      'lombok-worker-agent',
-      'worker-log',
-      '--job-class',
-      options.jobClass,
-    ]
-
-    if (options.err) {
-      command.push('--err')
-    }
-
-    if (options.tail) {
-      command.push('--tail', options.tail.toString())
-    }
-
-    return this.executeCommand(containerId, command)
-  }
-
-  async getJobLogs(
-    containerId: string,
-    options: { jobId: string; tail?: number; err?: boolean },
-  ): Promise<string> {
-    const command = [
-      'lombok-worker-agent',
-      'job-log',
-      '--job-id',
-      options.jobId,
-    ]
-
-    if (options.err) {
-      command.push('--err')
-    }
-
-    if (options.tail) {
-      command.push('--tail', options.tail.toString())
-    }
-
-    return this.executeCommand(containerId, command)
+    return dockerDemuxStream(stream)
   }
 }

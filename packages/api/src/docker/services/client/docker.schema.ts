@@ -2,7 +2,6 @@ import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   containerProfileConfigSchema,
   jsonSerializableObjectDTOSchema,
-  jsonSerializableValueSchema,
   storageAccessPolicySchema,
 } from '@lombokapp/types'
 import z from 'zod'
@@ -15,35 +14,29 @@ export const dockerExecutionOptionsSchema = z
   })
   .strict()
 
-export const containerWorkerExecuteOptionsSchema = z.object({
-  waitForCompletion: z.boolean(),
-  jobId: z.string(),
-  jobToken: z.string().optional(),
-  jobIdentifier: z.string(),
-  jobCommand: z.array(z.string()),
-  jobInterface: z.object({
-    kind: z.enum(['exec_per_job', 'persistent_http']),
-    listener: z
-      .object({
-        type: z.literal('tcp'),
-        port: z.number(),
-      })
-      .optional(),
-  }),
-  jobData: jsonSerializableValueSchema,
-  volumes: z.record(z.string(), z.string()).optional(),
-  gpus: z
-    .object({ driver: z.string(), deviceIds: z.array(z.string()) })
-    .optional(),
-})
+export const containerExecuteOptionsSchema = z
+  .object({
+    command: z.array(z.string()),
+    captureOutput: z.boolean(),
+  })
+  .strict()
 
-export interface ContainerWorkerExecuteOptions<T extends boolean> {
-  waitForCompletion: T
-  jobId: string
-  jobToken?: string
-  jobIdentifier: string
-  jobCommand: string[]
-  jobInterface:
+export interface ContainerCreateAndExecuteOptions {
+  image: string
+  command: string[]
+  labels: Record<string, string>
+}
+
+export interface ContainerExecuteOptions {
+  command: string[]
+}
+
+export interface JobExecuteOptions {
+  job_id: string
+  job_token?: string
+  job_class: string
+  worker_command: string[]
+  interface:
     | {
         kind: 'persistent_http'
         listener: {
@@ -54,23 +47,19 @@ export interface ContainerWorkerExecuteOptions<T extends boolean> {
     | {
         kind: 'exec_per_job'
       }
-  jobData?: JsonSerializableObject
-  outputLocation?: {
+  job_input?: JsonSerializableObject
+  output_location?: {
     folderId: string
     prefix?: string
   }
-  platformURL: string
-  volumes?: string[]
-  extraHosts?: string[]
-  networkMode?: 'host' | 'bridge' | `container:${string}`
-  gpus?: { driver: string; deviceIds: string[] } | undefined
+  platform_url?: string
 }
 
 export const dockerExecuteJobOptionsSchema = z.object({
   asyncTaskId: z.string().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
   profileSpec: containerProfileConfigSchema,
-  profileHostConfigKey: z.string(),
+  profileKey: z.string(),
   outputLocation: z
     .object({ folderId: z.string(), prefix: z.string().optional() })
     .optional(),

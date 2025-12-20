@@ -3254,7 +3254,7 @@ export interface components {
             result: {
                 [key: string]: unknown;
             };
-            uploadedFiles?: {
+            outputFiles?: {
                 /** Format: uuid */
                 folderId: string;
                 objectKey: string;
@@ -3263,7 +3263,7 @@ export interface components {
             /** @enum {boolean} */
             success: false;
             error: components["schemas"]["ApiErrorResponseDTO"];
-            uploadedFiles?: {
+            outputFiles?: {
                 /** Format: uuid */
                 folderId: string;
                 objectKey: string;

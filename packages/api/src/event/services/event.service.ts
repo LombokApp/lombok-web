@@ -475,7 +475,6 @@ export class EventService {
   private buildEventInvocation(event: Event) {
     return {
       eventId: event.id,
-      eventIdentifier: event.eventIdentifier,
       emitterIdentifier: event.emitterIdentifier,
       targetUserId: event.targetUserId ?? undefined,
       targetLocation: event.targetLocation ?? undefined,

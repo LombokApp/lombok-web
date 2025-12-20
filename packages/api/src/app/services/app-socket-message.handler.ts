@@ -396,12 +396,38 @@ export async function handleAppSocketMessage(
       }
     }
     case 'EXECUTE_APP_DOCKER_JOB': {
-      return {
-        result: await appService.executeAppDockerJob({
+      const execResult = await appService.executeAppDockerJob(
+        {
           appIdentifier: requestingAppIdentifier,
           ...parsedRequest.data,
-        }),
+        },
+        true,
+      )
+      if ('submitError' in execResult) {
+        return {
+          error: {
+            code: 500,
+            message: execResult.submitError?.message ?? 'Unknown error',
+          },
+        }
+      } else if ('error' in execResult) {
+        return {
+          result: {
+            jobId: execResult.jobId,
+            jobError: execResult.error,
+            success: false,
+          },
+        }
+      } else if ('result' in execResult) {
+        return {
+          result: {
+            jobId: execResult.jobId,
+            result: execResult.result,
+            success: true,
+          },
+        }
       }
+      throw new Error('Invalid execution result')
     }
     case 'TRIGGER_APP_TASK': {
       await taskService.triggerAppActionTask({

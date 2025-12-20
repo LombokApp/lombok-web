@@ -122,12 +122,12 @@ export class WorkerJobsController {
         ? {
             success: true,
             result: bodyDiscriminated.result,
-            uploadedFiles: bodyDiscriminated.uploadedFiles,
+            outputFiles: bodyDiscriminated.outputFiles,
           }
         : {
             success: false,
             error: bodyDiscriminated.error,
-            uploadedFiles: body.uploadedFiles,
+            outputFiles: body.outputFiles,
           },
     )
 

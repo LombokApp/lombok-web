@@ -1,13 +1,15 @@
-import { Injectable, Logger, Scope } from '@nestjs/common'
+import { Inject, Injectable, Logger, Scope } from '@nestjs/common'
+import nestjsConfig from '@nestjs/config'
+import { platformConfig } from 'src/platform/config'
 
 import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
-import type { ContainerWorkerExecuteOptions } from './docker.schema'
+import type { ContainerCreateAndExecuteOptions } from './docker.schema'
 import type {
   ConnectionTestResult,
   ContainerInfo,
   CreateContainerOptions,
   DockerAdapter,
-  DockerExecResult,
+  DockerStateFunc,
 } from './docker-client.types'
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -15,7 +17,13 @@ export class DockerClientService {
   private readonly logger = new Logger(DockerClientService.name)
   private readonly dockerHostAdapters: Record<string, DockerAdapter> = {}
 
-  constructor(private readonly dockerAdapterProvider: DockerAdapterProvider) {}
+  constructor(
+    private readonly dockerAdapterProvider: DockerAdapterProvider,
+    @Inject(platformConfig.KEY)
+    private readonly _platformConfig: nestjsConfig.ConfigType<
+      typeof platformConfig
+    >,
+  ) {}
 
   /**
    * Get a docker adapter by host ID
@@ -68,7 +76,7 @@ export class DockerClientService {
     hostId: string,
     options: CreateContainerOptions,
   ): Promise<ContainerInfo | null> {
-    console.log('findOrCreateContainer:', { hostId, options })
+    this.logger.debug('findOrCreateContainer:', { hostId, options })
     // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
     const adapter = this.getAdapter(hostId)
 
@@ -110,44 +118,100 @@ export class DockerClientService {
     }
   }
 
-  /**
-   * Execute a command in a running container
-   */
-  async execInContainer<T extends boolean>(
+  async execInContainerAndReturnOutput(
     hostId: string,
     containerId: string,
-    options: ContainerWorkerExecuteOptions<T>,
-  ): Promise<DockerExecResult<T>> {
+    command: string[],
+  ): Promise<string> {
+    return this.getAdapter(hostId).execInContainerAndReturnOutput(
+      containerId,
+      command,
+    )
+  }
+
+  /**
+   * Find or create a container and execute a command
+   */
+  async execInProfileContainer(
+    profileKey: string,
+    { image, command, labels }: ContainerCreateAndExecuteOptions,
+  ): Promise<{
+    containerId: string
+    hostId: string
+    state: DockerStateFunc
+    output: () => Promise<string>
+  }> {
+    // Get the default host (local for now)
+    const hostId =
+      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
+        profileKey
+      ] ?? 'local'
+
+    // Check if docker host is configured
+    if (!(hostId in (this._platformConfig.dockerHostConfig.hosts ?? {}))) {
+      throw new Error('DOCKER_NOT_CONFIGURED')
+    }
     const adapter = this.getAdapter(hostId)
 
+    const {
+      gpus = undefined,
+      volumes = undefined,
+      networkMode = undefined,
+      extraHosts = undefined,
+    } = this._platformConfig.dockerHostConfig.hosts?.[hostId]
+      ? {
+          volumes:
+            this._platformConfig.dockerHostConfig.hosts[hostId].volumes?.[
+              profileKey
+            ],
+          gpus: this._platformConfig.dockerHostConfig.hosts[hostId].gpus?.[
+            profileKey
+          ],
+          extraHosts:
+            this._platformConfig.dockerHostConfig.hosts[hostId].extraHosts?.[
+              profileKey
+            ],
+          networkMode:
+            this._platformConfig.dockerHostConfig.hosts[hostId].networkMode?.[
+              profileKey
+            ],
+        }
+      : {}
+
+    const container = await this.findOrCreateContainer(hostId, {
+      image,
+      labels,
+      volumes,
+      gpus,
+      networkMode,
+      extraHosts,
+    })
+
+    if (!container) {
+      throw new Error('CONTAINER_NOT_FOUND')
+    }
+
     // Ensure container is running
-    const isRunning = await adapter.isContainerRunning(containerId)
+    const isRunning = await adapter.isContainerRunning(container.id)
     if (!isRunning) {
       throw new Error('CONTAINER_NOT_RUNNING')
     }
-    console.log('execInContainer:', { hostId, containerId, options })
-    const result = await adapter.exec(containerId, options)
-    if (options.waitForCompletion) {
-      const [agentLogs, jobLogs, workerLogs] = await Promise.all([
-        adapter.getAgentLogs(containerId),
-        adapter.getJobLogs(containerId, { jobId: options.jobId }),
-        options.jobInterface.kind !== 'exec_per_job'
-          ? adapter.getWorkerLogs(containerId, {
-              jobClass: options.jobIdentifier,
-            })
-          : Promise.resolve(''),
-      ])
-      this.logger.debug('\nresult:\n%s\n', JSON.stringify(result, null, 2))
-      this.logger.debug('\nagentLogs:\n%s\n', agentLogs)
-      this.logger.debug('\njobLogs:\n%s\n', jobLogs)
-      if (options.jobInterface.kind !== 'exec_per_job') {
-        this.logger.debug('\nworkerLogs:\n%s\n', workerLogs)
-      }
-      return result as DockerExecResult<T>
-    }
+    this.logger.debug('execInContainer:', {
+      hostId,
+      container,
+      command,
+      labels,
+    })
+
+    const { state, output } = await adapter.execInContainer(container.id, {
+      command,
+    })
+
     return {
-      jobId: options.jobId,
-      accepted: true,
-    } as DockerExecResult<T>
+      hostId,
+      containerId: container.id,
+      state,
+      output,
+    }
   }
 }

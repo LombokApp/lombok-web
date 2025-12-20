@@ -300,8 +300,7 @@ export const AppSocketMessageResponseSchemaMap = {
       }),
       z.object({
         jobId: z.string(),
-        accepted: z.boolean(),
-        queueError: z
+        submitError: z
           .object({
             code: z.string(),
             message: z.string(),

@@ -55,7 +55,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     }
 
     // Have the executor tell us if it accepted the job
-    const { accepted } = await this.appService.executeAppDockerJob({
+    const execResult = await this.appService.executeAppDockerJob({
       appIdentifier: eventData.appIdentifier,
       jobData: innerTask.data,
       profileIdentifier: eventData.profileIdentifier,
@@ -64,16 +64,14 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
       storageAccessPolicy: innerTask.storageAccessPolicy,
     })
 
-    if (!accepted) {
+    if ('submitError' in execResult) {
+      this.logger.error('Docker job not accepted:', { execResult })
       await this.taskService.registerTaskCompleted(task.id, {
         success: false,
         error: {
           // TODO: Improve this context
           code: 'DOCKER_JOB_NOT_ACCEPTED',
           message: 'Docker job not accepted',
-        },
-        requeue: {
-          delayMs: 10000,
         },
       })
     }

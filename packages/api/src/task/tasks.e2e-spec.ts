@@ -129,19 +129,24 @@ describe('Task lifecycle', () => {
     })
 
     const now = new Date()
-    await testModule!.services.ormService.db.insert(appFolderSettingsTable).values({
-      folderId: testFolder.folder.id,
-      appIdentifier: SOCKET_DATA_APP_ID,
-      enabled: true,
-      createdAt: now,
-      updatedAt: now,
-    })
+    await testModule!.services.ormService.db
+      .insert(appFolderSettingsTable)
+      .values({
+        folderId: testFolder.folder.id,
+        appIdentifier: SOCKET_DATA_APP_ID,
+        enabled: true,
+        createdAt: now,
+        updatedAt: now,
+      })
 
     const parentTask =
       await testModule!.services.taskService.triggerAppActionTask({
         appIdentifier: SOCKET_DATA_APP_ID,
         taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
         taskData: {
+          testKey: 'test-value',
+        },
+        targetLocation: {
           folderId: testFolder.folder.id,
           objectKey: 'file.txt',
         },
@@ -150,10 +155,9 @@ describe('Task lifecycle', () => {
             taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
             condition: 'task.success',
             dataTemplate: {
-              folderId: '{{task.data.folderId}}',
-              objectKey: '{{task.data.objectKey}}',
+              taskKeyValue: '{{task.data.testKey}}',
               fileUrl:
-                "{{createPresignedUrl(task.data.folderId, task.data.objectKey, 'GET')}}",
+                "{{createPresignedUrl(task.targetLocation.folderId, task.targetLocation.objectKey, 'GET')}}",
             },
           },
         ],
@@ -179,12 +183,14 @@ describe('Task lifecycle', () => {
 
     const childTask = tasks.find((t) => t.trigger.kind === 'task_child')
     expect(childTask).toBeTruthy()
-    expect(childTask?.data).toMatchObject({
-      folderId: testFolder.folder.id,
-      objectKey: 'file.txt',
+    expect(childTask?.data).toEqual({
+      taskKeyValue: 'test-value',
+      fileUrl: expect.any(String) as string,
     })
     expect(typeof childTask?.data.fileUrl).toBe('string')
-    expect(childTask?.data.fileUrl).not.toBe('')
+    expect(childTask?.data.fileUrl).toStartWith(
+      `http://miniotest:9000/${testFolder.folder.contentLocation.bucket}/file.txt?X-Amz-Expires=3600&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Date=`,
+    )
   })
 
   it('enqueues an onComplete task when the parent task completes successfully', async () => {

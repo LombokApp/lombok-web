@@ -32,6 +32,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		return fmt.Errorf("failed to ensure directories: %w", err)
 	}
 
+	waitForCompletion := payload.WaitForCompletion != nil && *payload.WaitForCompletion
+
 	var platformClient *platform.Client
 	if payload.PlatformURL != "" && payload.JobToken != "" {
 		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
@@ -96,7 +98,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Capture stdout to both file and buffer (for extracting result)
 	var stdoutBuf bytes.Buffer
-	cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
+	if waitForCompletion {
+		cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
+	} else {
+		cmd.Stdout = stdoutFile
+	}
 	cmd.Stderr = stderrFile
 
 	// Track worker startup time
@@ -125,6 +131,28 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	// Log worker startup time (should be very fast, but log it anyway)
 	workerStartupDuration := time.Since(workerStartTime)
 	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs", payload.JobID, workerStartupDuration.Seconds())
+
+	if !waitForCompletion {
+		// In async mode, return as soon as the worker starts successfully.
+		totalJobDuration := time.Since(jobStartTime)
+		timing := map[string]interface{}{
+			"total_time_seconds":          totalJobDuration.Seconds(),
+			"worker_startup_time_seconds": workerStartupDuration.Seconds(),
+		}
+
+		result := map[string]interface{}{
+			"success":    true,
+			"job_id":     payload.JobID,
+			"job_class":  payload.JobClass,
+			"status":     "running",
+			"timing":     timing,
+			"worker_pid": cmd.Process.Pid,
+		}
+
+		resultJSON, _ := json.Marshal(result)
+		fmt.Println(string(resultJSON))
+		return nil
+	}
 
 	// Track job execution time (from worker start to completion)
 	jobExecutionStartTime := time.Now()
@@ -176,7 +204,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	}
 
 	// Handle file uploads and platform completion if configured
-	var uploadedFiles []types.UploadedFile
+	var outputFiles []types.OutputFileRef
 	if platformClient != nil {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
@@ -193,7 +221,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				if err != nil {
 					logs.WriteAgentLog("warning: failed to upload files: %v", err)
 				} else {
-					uploadedFiles = uploaded
+					outputFiles = uploaded
 				}
 			}
 		}
@@ -201,9 +229,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		// Signal completion to platform
 		ctx := context.Background()
 		completionReq := &types.CompletionRequest{
-			Success:       exitCode == 0,
-			Result:        workerResultRaw,
-			UploadedFiles: uploadedFiles,
+			Success:     exitCode == 0,
+			Result:      workerResultRaw,
+			OutputFiles: outputFiles,
 		}
 		if exitCode != 0 {
 			completionReq.Error = &types.JobError{
@@ -239,8 +267,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	}
 
 	// Include uploaded files info
-	if len(uploadedFiles) > 0 {
-		result["output_files"] = uploadedFiles
+	if len(outputFiles) > 0 {
+		result["output_files"] = outputFiles
 	}
 
 	if exitCode != 0 {
@@ -255,11 +283,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Save result to file
 	jobResult := &types.JobResult{
-		Success:       exitCode == 0,
-		JobID:         payload.JobID,
-		JobClass:      payload.JobClass,
-		Timing:        timing,
-		OutputFiles:   uploadedFiles,
+		Success:     exitCode == 0,
+		JobID:       payload.JobID,
+		JobClass:    payload.JobClass,
+		Timing:      timing,
+		OutputFiles: outputFiles,
 	}
 	jobResult.ExitCode = &exitCode
 	if workerResult != nil {

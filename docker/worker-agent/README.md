@@ -604,7 +604,7 @@ Content-Type: application/json
 {
   "success": true,
   "result": { "computed": "data" },
-  "uploadedFiles": [
+  "outputFiles": [
     { "folderId": "folder-uuid-1", "objectKey": "outputs/result.png" }
   ]
 }
@@ -619,7 +619,7 @@ For failed jobs:
     "code": "WORKER_EXIT_ERROR",
     "message": "worker exited with code 1"
   },
-  "uploadedFiles": []
+  "outputFiles": []
 }
 ```
 

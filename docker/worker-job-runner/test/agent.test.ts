@@ -48,6 +48,7 @@ interface JobPayload {
   worker_command: string[]
   interface: InterfaceConfig
   job_input: unknown
+  wait_for_completion?: boolean
   job_token?: string
   platform_url?: string
   output_location?: {
@@ -61,6 +62,8 @@ interface JobResult {
   job_id?: string
   job_class?: string
   exit_code?: number
+  status?: string
+  worker_pid?: number
   result?: unknown
   output_files?: Array<{ folder_id: string; object_key: string }>
   timing?: {
@@ -886,6 +889,10 @@ async function dirExistsInContainer(dirPath: string): Promise<boolean> {
 // Agent Utilities
 // =============================================================================
 
+function jobStateFilePath(jobId: string): string {
+  return `/var/lib/lombok-worker-agent/jobs/${jobId}.json`
+}
+
 function makePayloadBase64(payload: JobPayload): string {
   return Buffer.from(JSON.stringify(payload)).toString('base64')
 }
@@ -913,7 +920,11 @@ async function runJob(
   payload: JobPayload,
   env?: string[],
 ): Promise<{ result: JobResult; exitCode: number; rawOutput: string }> {
-  const payloadB64 = makePayloadBase64(payload)
+  const payloadWithDefaults: JobPayload = {
+    wait_for_completion: true,
+    ...payload,
+  }
+  const payloadB64 = makePayloadBase64(payloadWithDefaults)
 
   const execResult = await execInContainer(
     ['lombok-worker-agent', 'run-job', '--payload-base64', payloadB64],
@@ -959,6 +970,19 @@ async function runJob(
     exitCode: execResult.exitCode,
     rawOutput: execResult.stdout + execResult.stderr,
   }
+}
+
+async function readJobStateViaCLI(
+  jobId: string,
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  const result = await execInContainer([
+    'lombok-worker-agent',
+    'job-state',
+    '--job-id',
+    jobId,
+  ])
+
+  return result
 }
 
 // =============================================================================
@@ -1234,6 +1258,41 @@ describe('Platform Agent', () => {
       expect(agentLog).toContain('total_time')
       expect(agentLog).toContain('worker_startup_time')
       expect(agentLog).toContain(jobId)
+    })
+
+    test('returns immediately when wait_for_completion is false for exec_per_job', async () => {
+      const jobId = generateJobId('exec-async-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'async_exec',
+        worker_command: ['sh', '-c', 'sleep 5 && echo done'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        wait_for_completion: false,
+      }
+
+      const start = Date.now()
+      const { result, exitCode } = await runJob(payload)
+      const elapsed = Date.now() - start
+
+      expect(exitCode).toBe(0)
+      expect(elapsed).toBeLessThan(2000)
+      expect(result.success).toBe(true)
+      expect(result.status).toBe('running')
+      expect(result.worker_pid).toBeDefined()
+
+      const stateExists = await fileExistsInContainer(jobStateFilePath(jobId))
+      expect(stateExists).toBe(true)
+
+      const jobState = JSON.parse(
+        await readFileInContainer(jobStateFilePath(jobId)),
+      )
+      expect(jobState.status).toBe('running')
+
+      const resultFileExists = await fileExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      expect(resultFileExists).toBe(false)
     })
   })
 
@@ -1739,6 +1798,44 @@ describe('Platform Agent', () => {
       expect(agentLog).toContain('worker_startup_time')
       expect(agentLog).toContain(jobId)
     })
+
+    test('returns immediately when wait_for_completion is false for persistent_http', async () => {
+      const jobClass = 'verbose_log'
+      const port = 8300
+      const jobId = generateJobId('http-async-test')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { steps: 4, delayMs: 500 },
+        wait_for_completion: false,
+      }
+
+      const start = Date.now()
+      const { result, exitCode } = await runJob(payload, [`APP_PORT=${port}`])
+      const elapsed = Date.now() - start
+
+      expect(exitCode).toBe(0)
+      expect(elapsed).toBeLessThan(2000)
+      expect(result.success).toBe(true)
+      expect(result.status).toBe('running')
+      expect(result.worker_pid).toBeDefined()
+
+      const stateExists = await fileExistsInContainer(jobStateFilePath(jobId))
+      expect(stateExists).toBe(true)
+
+      const jobState = JSON.parse(
+        await readFileInContainer(jobStateFilePath(jobId)),
+      )
+      expect(jobState.status).toBe('running')
+
+      const resultFileExists = await fileExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      expect(resultFileExists).toBe(false)
+    })
   })
 
   describe('platform integration', () => {
@@ -1889,7 +1986,6 @@ describe('Platform Agent', () => {
       expect(uploadedFile1).toBeDefined()
       expect(uploadedFile1?.body).toBe('Test content for upload')
       expect(uploadedFile1?.contentType).toBe('text/plain')
-
       const uploadedFile2 = mockPlatformState.outputFiles.find((f) =>
         f.url.includes('data.json'),
       )
@@ -1909,6 +2005,83 @@ describe('Platform Agent', () => {
 
       // Verify agent output includes uploaded files
       expect(result.output_files?.length).toBe(2)
+    })
+
+    test('file_output uses manifest content_type when provided', async () => {
+      const jobClass = 'file_output'
+      const port = 8240
+      const jobId = generateJobId('platform-upload-content-type-manifest')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: {
+          files: [
+            {
+              name: 'data.json',
+              content: '{"k":1}',
+              content_type: 'application/custom+json',
+            },
+            { name: 'note.txt', content: 'hello', content_type: 'text/custom' },
+          ],
+        },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+        output_location: {
+          folder_id: 'test-folder-uuid',
+          prefix: 'outputs',
+        },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(mockPlatformState.outputFiles.length).toBe(2)
+      const customJson = mockPlatformState.outputFiles.find((f) =>
+        f.url.includes('data.json'),
+      )
+      const customTxt = mockPlatformState.outputFiles.find((f) =>
+        f.url.includes('note.txt'),
+      )
+      expect(customJson?.contentType).toBe('application/custom+json')
+      expect(customTxt?.contentType).toBe('text/custom')
+    })
+
+    test('file_output falls back to detecting content type when manifest omits it', async () => {
+      const jobClass = 'file_output'
+      const port = 8241
+      const jobId = generateJobId('platform-upload-content-type-detect')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: {
+          files: [
+            { name: 'data.json', content: '{"key":"value"}' }, // no content_type
+            { name: 'readme.txt', content: 'hello world' }, // no content_type
+          ],
+        },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+        output_location: {
+          folder_id: 'test-folder-uuid',
+          prefix: 'outputs',
+        },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(mockPlatformState.outputFiles.length).toBe(2)
+      const jsonUpload = mockPlatformState.outputFiles.find((f) =>
+        f.url.includes('data.json'),
+      )
+      const txtUpload = mockPlatformState.outputFiles.find((f) =>
+        f.url.includes('readme.txt'),
+      )
+      console.log('jsonUpload?.contentType:', jsonUpload?.contentType)
+      expect(jsonUpload?.contentType.startsWith('application/json')).toBe(true)
+      expect(txtUpload?.contentType.startsWith('text/plain')).toBe(true)
     })
 
     test('file_output job with empty prefix keeps object keys unchanged', async () => {
@@ -2349,6 +2522,35 @@ describe('Platform Agent', () => {
       }
     })
 
+    test('job-state command returns job state JSON', async () => {
+      const jobId = generateJobId('job-state-cmd-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'job_state_cmd',
+        worker_command: ['sh', '-c', 'echo job_state_test'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      const cliResult = await readJobStateViaCLI(jobId)
+      expect(cliResult.exitCode).toBe(0)
+
+      const state = JSON.parse(cliResult.stdout)
+      expect(state.job_id).toBe(jobId)
+      expect(state.job_class).toBe('job_state_cmd')
+      expect(state.status).toBe('success')
+    })
+
+    test('job-state command returns error for missing job', async () => {
+      const missingJobId = 'missing-job-state-12345'
+
+      const cliResult = await readJobStateViaCLI(missingJobId)
+      expect(cliResult.exitCode).not.toBe(0)
+      expect(cliResult.stderr).toContain('job state not found')
+    })
+
     test('job-result file is created for exec_per_job jobs', async () => {
       const jobId = generateJobId('job-result-exec-test')
       const payload: JobPayload = {
@@ -2540,7 +2742,7 @@ describe('Platform Agent', () => {
       )
 
       const result = JSON.parse(resultContent)
-      console.log('result:', JSON.stringify(result, null, 2))
+
       expect(result.success).toBe(true)
       expect(result.output_files).toBeDefined()
       expect(Array.isArray(result.output_files)).toBe(true)

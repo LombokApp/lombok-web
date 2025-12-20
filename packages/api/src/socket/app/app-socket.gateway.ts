@@ -222,7 +222,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                 socket.on(
                   'APP_API',
                   async (
-                    message: string,
+                    message: unknown,
                     ack?: (response: unknown) => void,
                   ) => {
                     this.logger.log('APP Message Request:', {
@@ -250,13 +250,13 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                       })
                     if ('error' in response) {
                       this.logger.log('APP Message Error:', {
-                        message,
+                        message: (message as { name: string }).name,
                         appIdentifier,
                         error: response.error,
                       })
                     } else {
                       this.logger.log('APP Message Response:', {
-                        message,
+                        message: (message as { name: string }).name,
                         appIdentifier,
                         response,
                       })

@@ -1,9 +1,5 @@
 import type { IDockerAdapterProvider } from '../services/client/adapters/docker-adapter.provider'
-import type { ContainerWorkerExecuteOptions } from '../services/client/docker.schema'
-import type {
-  DockerAdapter,
-  DockerExecResult,
-} from '../services/client/docker-client.types'
+import type { DockerAdapter } from '../services/client/docker-client.types'
 
 export class MockDockerAdapterProvider implements IDockerAdapterProvider {
   constructor(private readonly mockAdapter: DockerAdapter) {}
@@ -36,37 +32,34 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
       state: 'running',
       createdAt: new Date().toISOString(),
     }),
+
     // eslint-disable-next-line @typescript-eslint/require-await
-    exec: async <T extends boolean>(
-      containerId: string,
-      options: ContainerWorkerExecuteOptions<T>,
+    execInContainer: async (
+      _containerId: string,
+      _options: { command: string[] },
     ) => {
-      const asyncResult: DockerExecResult<false> = {
-        jobId: options.jobId,
-        accepted: true,
+      return {
+        output: () => Promise.resolve('mock-output'),
+        state: () =>
+          Promise.resolve({
+            running: false,
+            exitCode: 0,
+            output: 'mock-output',
+          }),
       }
-
-      const syncResult: DockerExecResult<true> = {
-        jobId: options.jobId,
-        success: true,
-        result: {
-          message: 'Mock Docker Job Executed Successfully',
-        },
-      }
-
-      return (
-        options.waitForCompletion ? syncResult : asyncResult
-      ) as DockerExecResult<T>
     },
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    execInContainerAndReturnOutput: async (
+      _containerId: string,
+      _command: string[],
+    ) => {
+      return 'mock-output'
+    },
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     startContainer: async () => {},
     // eslint-disable-next-line @typescript-eslint/require-await
     isContainerRunning: async () => true,
-    // eslint-disable-next-line @typescript-eslint/require-await
-    getAgentLogs: async () => '',
-    // eslint-disable-next-line @typescript-eslint/require-await
-    getWorkerLogs: async () => '',
-    // eslint-disable-next-line @typescript-eslint/require-await
-    getJobLogs: async () => '',
   }
 }

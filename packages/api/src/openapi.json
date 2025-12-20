@@ -14302,7 +14302,7 @@
                 "type": "object",
                 "additionalProperties": {}
               },
-              "uploadedFiles": {
+              "outputFiles": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -14340,7 +14340,7 @@
               "error": {
                 "$ref": "#/components/schemas/ApiErrorResponseDTO"
               },
-              "uploadedFiles": {
+              "outputFiles": {
                 "type": "array",
                 "items": {
                   "type": "object",

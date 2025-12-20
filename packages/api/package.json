@@ -35,6 +35,8 @@
     "dev:docker:e2e:watch": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up apitestwatch",
     "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" run --rm apitest --",
     "dev:restart:docker": "bun ./script/dev-restart.ts",
+    "dev:enableapps:docker": "bun ./script/dev-enable-apps.ts",
+    "dev:enableapps": "docker exec -it lombok-api bun --cwd packages/api dev:enableapps:docker",
     "dev:restart": "docker exec -it lombok-api bun --cwd packages/api dev:restart:docker",
     "dev:restart:clean": "docker exec -it lombok-api bun --cwd packages/api dev:restart:clean:docker",
     "dev:restart:clean:docker": "bun db:clean:docker && bun dev:restart:docker",

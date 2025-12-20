@@ -1295,7 +1295,7 @@ describe('apps.types', () => {
         },
         containerProfiles: {
           content_indexing: {
-            image: 'docker.phonk.tv/lombok-content-indexer',
+            image: 'docker.phonk.tv/lombok-ai-search-worker',
             workers: [
               {
                 kind: 'exec',
