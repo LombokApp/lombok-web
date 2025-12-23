@@ -11,21 +11,15 @@
     {
       "kind": "event",
       "eventIdentifier": "platform:object_added",
-      "handler": {
-        "type": "task",
-        "identifier": "demo_object_added_worker_task"
-      },
-      "onComplete": {
-        "handler": {
-          "type": "task",
-          "identifier": "demo_worker_task_on_complete"
-        },
+      "taskIdentifier": "demo_object_added_worker_task",
+      "onComplete": [{
+        "taskIdentifier": "demo_worker_task_on_complete",
         "dataTemplate": {
           "success": {
             "taskError": "{{task.error}}"
           }
         }
-      }
+      }]
     },
     {
       "kind": "schedule",
@@ -33,10 +27,7 @@
         "interval": 1,
         "unit": "hours"
       },
-      "handler": {
-        "type": "task",
-        "identifier": "demo_scheduled_worker_task"
-      }
+      "taskIdentifier": "demo_scheduled_worker_task"
     }
   ],
   "tasks": [

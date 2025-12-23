@@ -177,7 +177,7 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
 
       // Verify by fetching
       const getResponse = await apiClient(accessToken).GET(
@@ -194,7 +194,7 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
     })
 
     it(`should bulk update folder app settings (disable app)`, async () => {
@@ -286,7 +286,7 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(false)
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
 
       // Verify by fetching
       const getResponse = await apiClient(accessToken).GET(
@@ -300,7 +300,7 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(false)
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
     })
 
     it(`should bulk update folder app settings (set to null to use default)`, async () => {
@@ -385,7 +385,7 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
 
       // Set to null to use default (should delete the setting)
       const updateResponse = await apiClient(accessToken).PATCH(
@@ -503,7 +503,7 @@ describe('Folder App Permissions', () => {
         expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
           enabledAppsCount,
         )
-        expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
+        expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
       } else {
         // If validation happens, should return 404 or 400
         expect([400, 404]).toContain(updateResponse.response.status)
@@ -599,7 +599,7 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(false)
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
     })
 
     it(`should require folder edit permission to update folder app settings`, async () => {
@@ -817,11 +817,10 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
-      expect(updateResponse.data?.settings[appIdentifier].permissions).toEqual([
-        'READ_OBJECTS',
-        'WRITE_OBJECTS',
-      ])
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
+      expect(updateResponse.data?.settings[appIdentifier]?.permissions).toEqual(
+        ['READ_OBJECTS', 'WRITE_OBJECTS'],
+      )
 
       // Verify by fetching
       const getResponse = await apiClient(accessToken).GET(
@@ -835,8 +834,8 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
-      expect(getResponse.data?.settings[appIdentifier].permissions).toEqual([
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
+      expect(getResponse.data?.settings[appIdentifier]?.permissions).toEqual([
         'READ_OBJECTS',
         'WRITE_OBJECTS',
       ])
@@ -928,11 +927,10 @@ describe('Folder App Permissions', () => {
       )
 
       expect(updateResponse.response.status).toEqual(200)
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
-      expect(updateResponse.data?.settings[appIdentifier].permissions).toEqual([
-        'WRITE_OBJECTS',
-        'WRITE_OBJECTS_METADATA',
-      ])
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
+      expect(updateResponse.data?.settings[appIdentifier]?.permissions).toEqual(
+        ['WRITE_OBJECTS', 'WRITE_OBJECTS_METADATA'],
+      )
 
       // Verify by fetching
       const getResponse = await apiClient(accessToken).GET(
@@ -946,8 +944,8 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
-      expect(getResponse.data?.settings[appIdentifier].permissions).toEqual([
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
+      expect(getResponse.data?.settings[appIdentifier]?.permissions).toEqual([
         'WRITE_OBJECTS',
         'WRITE_OBJECTS_METADATA',
       ])
@@ -1040,9 +1038,9 @@ describe('Folder App Permissions', () => {
       )
 
       expect(updateResponse.response.status).toEqual(200)
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(true)
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
       expect(
-        updateResponse.data?.settings[appIdentifier].permissions,
+        updateResponse.data?.settings[appIdentifier]?.permissions,
       ).toBeNull()
 
       // Verify by fetching
@@ -1057,8 +1055,8 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(true)
-      expect(getResponse.data?.settings[appIdentifier].permissions).toBeNull()
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
+      expect(getResponse.data?.settings[appIdentifier]?.permissions).toBeNull()
     })
 
     it(`should update only enabled without affecting permissions`, async () => {
@@ -1147,11 +1145,10 @@ describe('Folder App Permissions', () => {
       )
 
       expect(updateResponse.response.status).toEqual(200)
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(false)
-      expect(updateResponse.data?.settings[appIdentifier].permissions).toEqual([
-        'READ_OBJECTS',
-        'WRITE_OBJECTS',
-      ])
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
+      expect(updateResponse.data?.settings[appIdentifier]?.permissions).toEqual(
+        ['READ_OBJECTS', 'WRITE_OBJECTS'],
+      )
 
       // Verify by fetching
       const getResponse = await apiClient(accessToken).GET(
@@ -1165,8 +1162,8 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(false)
-      expect(getResponse.data?.settings[appIdentifier].permissions).toEqual([
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
+      expect(getResponse.data?.settings[appIdentifier]?.permissions).toEqual([
         'READ_OBJECTS',
         'WRITE_OBJECTS',
       ])
@@ -1355,10 +1352,10 @@ describe('Folder App Permissions', () => {
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
         enabledAppsCount,
       )
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(null)
-      expect(getResponse.data?.settings[appIdentifier].enabledFallback).toEqual(
-        { value: false, source: 'system' },
-      )
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(null)
+      expect(
+        getResponse.data?.settings[appIdentifier]?.enabledFallback,
+      ).toEqual({ value: false, source: 'system' })
     })
 
     it(`should delete folder app settings by setting app to null`, async () => {
@@ -1445,7 +1442,7 @@ describe('Folder App Permissions', () => {
       )
 
       expect(updateResponse.response.status).toEqual(200)
-      expect(updateResponse.data?.settings[appIdentifier].enabled).toBe(null)
+      expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(null)
 
       // Verify by fetching
       const getResponse = await apiClient(accessToken).GET(
@@ -1459,7 +1456,7 @@ describe('Folder App Permissions', () => {
         },
       )
 
-      expect(getResponse.data?.settings[appIdentifier].enabled).toBe(null)
+      expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(null)
     })
   })
 

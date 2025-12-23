@@ -81,7 +81,16 @@ export function buildTestServerClient(
     batch: async () => ({ result: { results: [] } }),
     // eslint-disable-next-line @typescript-eslint/require-await
     executeAppDockerJob: async () => ({
-      result: { jobId: 'job-id', success: true, result: {} },
+      result: {
+        jobId: 'test-job-id',
+        success: true,
+        jobSuccess: true,
+        jobResult: {
+          result: {
+            success: true,
+          },
+        },
+      },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await
     triggerAppTask: async () => ({ result: null }),

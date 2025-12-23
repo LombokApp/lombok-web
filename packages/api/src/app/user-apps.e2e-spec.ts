@@ -67,7 +67,7 @@ describe('User Apps', () => {
       listAppsResponse.data.meta.totalCount,
     )
     // Verify user app DTO doesn't have admin-only fields
-    const app = listAppsResponse.data.result[0]
+    const app = listAppsResponse.data.result[0]!
     expect(app.identifier).toBeDefined()
     expect(app.label).toBeDefined()
     expect(app.enabled).toBe(true)

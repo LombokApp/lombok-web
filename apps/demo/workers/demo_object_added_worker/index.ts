@@ -24,7 +24,7 @@ export const handleTask: TaskHandler = async function handleTask(
   }
 
   console.log('From within object_added worker:', {
-    objectFetchUrl: response.result[0].url,
+    objectFetchUrl: response.result[0]?.url ?? '',
     envVars: process.env,
   })
 }

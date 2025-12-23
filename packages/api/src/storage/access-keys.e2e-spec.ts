@@ -53,7 +53,7 @@ describe('Access Keys', () => {
 
     expect(listAccessKeysResponse.response.status).toEqual(200)
     expect(listAccessKeysResponse.data.result.length).toEqual(1)
-    expect(listAccessKeysResponse.data.result[0].accessKeyHashId).toEqual(
+    expect(listAccessKeysResponse.data.result[0]?.accessKeyHashId).toEqual(
       buildAccessKeyHashId({
         accessKeyId: 'testaccesskeyid',
         secretAccessKey: 'testsecretaccesskey',
@@ -61,13 +61,13 @@ describe('Access Keys', () => {
         endpoint: 'http://miniotest:9000',
       }),
     )
-    expect(listAccessKeysResponse.data.result[0].accessKeyId).toEqual(
+    expect(listAccessKeysResponse.data.result[0]?.accessKeyId).toEqual(
       'testaccesskeyid',
     )
-    expect(listAccessKeysResponse.data.result[0].endpointDomain).toEqual(
+    expect(listAccessKeysResponse.data.result[0]?.endpointDomain).toEqual(
       'miniotest:9000',
     )
-    expect(listAccessKeysResponse.data.result[0].folderCount).toEqual(1)
+    expect(listAccessKeysResponse.data.result[0]?.folderCount).toEqual(1)
   })
 
   it(`should 401 on list access keys without token`, async () => {

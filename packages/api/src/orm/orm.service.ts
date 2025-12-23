@@ -217,7 +217,6 @@ export class OrmService {
     }
 
     await this.ensureSharedAclSchema()
-    await this.ensureVectorExtension()
 
     this.initialized = true
   }
@@ -317,17 +316,6 @@ export class OrmService {
         throw error
       }
     })
-  }
-
-  async ensureVectorExtension(): Promise<void> {
-    // Create extensions schema if it doesn't exist
-    await this.client.query(`CREATE SCHEMA IF NOT EXISTS extensions;`)
-    await this.client.query(
-      `GRANT USAGE ON SCHEMA extensions TO ${this._ormConfig.dbUser};`,
-    )
-    await this.client.query(
-      `CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;`,
-    )
   }
 
   async ensureSharedAclSchema(): Promise<void> {

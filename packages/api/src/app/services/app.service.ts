@@ -2019,12 +2019,12 @@ export class AppService {
     }: { appIdentifier: string; workerIdentifier: string; query: string },
   ): Promise<{ vector: number[] }> {
     await this.appSocketService.executeSynchronousAppRequest(appIdentifier, {
-        url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
-        body: {
+      url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
+      body: {
         userId: actor.id,
-          query,
-          // space: 'text-v1',
-        },
+        query,
+        // space: 'text-v1',
+      },
     })
 
     return { vector: [] }

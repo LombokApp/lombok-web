@@ -243,6 +243,7 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        subscribedPlatformEvents: ['platform:worker_task_enqueued'],
         workers: {
           worker1: {
             entrypoint: 'worker.js',
@@ -1220,6 +1221,7 @@ describe('apps.types', () => {
         identifier: 'ai',
         label: 'Lombok AI',
         requiresStorage: true,
+        subscribedPlatformEvents: ['platform:object_added'],
         workers: {
           api_worker: {
             entrypoint: 'api-worker-entrypoint.js',

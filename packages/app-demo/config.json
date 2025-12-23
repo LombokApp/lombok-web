@@ -7,6 +7,29 @@
     "platform:object_removed",
     "platform:object_updated"
   ],
+  "triggers": [
+    {
+      "kind": "event",
+      "eventIdentifier": "platform:object_added",
+      "taskIdentifier": "demo_object_added_worker_task",
+      "onComplete": [{
+        "taskIdentifier": "demo_worker_task_on_complete",
+        "dataTemplate": {
+          "success": {
+            "taskError": "{{task.error}}"
+          }
+        }
+      }]
+    },
+    {
+      "kind": "schedule",
+      "config": {
+        "interval": 1,
+        "unit": "hours"
+      },
+      "taskIdentifier": "demo_scheduled_worker_task"
+    }
+  ],
   "tasks": [
     {
       "identifier": "demo_worker_task_on_complete",
@@ -21,27 +44,6 @@
       "identifier": "demo_object_added_worker_task",
       "label": "Demo Object Added Worker",
       "description": "A task that runs for every newly added object.",
-      "triggers": [
-        {
-          "kind": "event",
-          "eventIdentifier": "platform:object_added",
-          "dataTemplate": {
-            "folderId": "{{event.data.folderId}}",
-            "objectKey": "{{event.data.objectKey}}"
-          },
-          "onComplete": {
-            "taskIdentifier": "demo_worker_task_on_complete",
-            "dataTemplate": {
-              "success": {
-                "taskError": "{{task.error}}"
-              },
-              "failure": {
-                "taskResult": "{{task.result}}"
-              }
-            }
-          }
-        }
-      ],
       "handler": {
         "type": "worker",
         "identifier": "demo_object_added_worker"
@@ -51,16 +53,6 @@
       "identifier": "demo_scheduled_worker_task",
       "label": "Demo Scheduled Worker",
       "description": "A task that runs in response to a schedule event.",
-      "triggers": [
-        {
-          "kind": "schedule",
-          "config": {
-            "interval": 1,
-            "unit": "hours"
-          }
-
-        }
-      ],
       "handler": {
         "type": "worker",
         "identifier": "demo_scheduled_worker"

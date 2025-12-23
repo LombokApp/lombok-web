@@ -59,7 +59,7 @@ describe('Server Access Keys', () => {
     if (!createProvisionResponse.data) {
       throw new Error('No data')
     }
-    const storageProvisionId = createProvisionResponse.data.result[0].id
+    const storageProvisionId = createProvisionResponse.data.result[0]?.id
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: 'Test Folder',
@@ -75,16 +75,16 @@ describe('Server Access Keys', () => {
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: '__dummyfolder__',
-        contentLocation: { storageProvisionId },
-        metadataLocation: { storageProvisionId },
+        contentLocation: { storageProvisionId: storageProvisionId! },
+        metadataLocation: { storageProvisionId: storageProvisionId! },
       },
     })
 
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: '__dummyfolder2__',
-        contentLocation: { storageProvisionId },
-        metadataLocation: { storageProvisionId },
+        contentLocation: { storageProvisionId: storageProvisionId! },
+        metadataLocation: { storageProvisionId: storageProvisionId! },
       },
     })
 
@@ -94,7 +94,9 @@ describe('Server Access Keys', () => {
     if (!listServerAccessKeysResponse.data) {
       throw new Error('No data')
     }
-    expect(listServerAccessKeysResponse.data.result[0].accessKeyHashId).toEqual(
+    expect(
+      listServerAccessKeysResponse.data.result[0]?.accessKeyHashId,
+    ).toEqual(
       buildAccessKeyHashId({
         accessKeyId: s3Config.accessKeyId,
         secretAccessKey: s3Config.secretAccessKey,
@@ -105,13 +107,13 @@ describe('Server Access Keys', () => {
 
     expect(listServerAccessKeysResponse.response.status).toEqual(200)
     expect(listServerAccessKeysResponse.data.result.length).toEqual(1)
-    expect(listServerAccessKeysResponse.data.result[0].accessKeyId).toEqual(
+    expect(listServerAccessKeysResponse.data.result[0]?.accessKeyId).toEqual(
       s3Config.accessKeyId,
     )
-    expect(listServerAccessKeysResponse.data.result[0].endpointDomain).toEqual(
+    expect(listServerAccessKeysResponse.data.result[0]?.endpointDomain).toEqual(
       new URL(s3Config.endpoint).host,
     )
-    expect(listServerAccessKeysResponse.data.result[0].folderCount).toEqual(2)
+    expect(listServerAccessKeysResponse.data.result[0]?.folderCount).toEqual(2)
   })
 
   it(`should 401 on list server access keys without token`, async () => {
