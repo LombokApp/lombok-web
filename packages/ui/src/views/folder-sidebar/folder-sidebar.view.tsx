@@ -148,7 +148,7 @@ export function FolderSidebar({
                       const getAccessTokens = () =>
                         $apiClient
                           .POST(
-                            '/api/v1/server/apps/{appIdentifier}/user-access-token',
+                            '/api/v1/user/apps/{appIdentifier}/access-token',
                             {
                               params: {
                                 path: { appIdentifier: view.appIdentifier },

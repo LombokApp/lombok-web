@@ -399,6 +399,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/apps/{appIdentifier}/access-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateAppAccessSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
         parameters: {
             query?: never;
@@ -415,7 +431,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/apps/{appIdentifier}/user-access-token": {
+    "/api/v1/user/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List enabled apps available for the current user */
+        get: operations["listApps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/apps/{appIdentifier}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an enabled app by identifier for the current user */
+        get: operations["getApp"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/app-contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get app contributions */
+        get: operations["getAppContributions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/apps/{appIdentifier}/access-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -424,6 +491,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Generate app user access token */
         post: operations["generateAppUserAccessToken"];
         delete?: never;
         options?: never;
@@ -431,17 +499,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/app-contributions": {
+    "/api/v1/user/apps/{appIdentifier}/settings": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getAppContributions"];
+        /** Get app user settings for the current user */
+        get: operations["getAppUserSettings"];
         put?: never;
-        post?: never;
-        delete?: never;
+        /** Create or update app user settings for the current user */
+        post: operations["upsertAppUserSettings"];
+        /** Remove app user settings for the current user */
+        delete: operations["removeAppUserSettings"];
         options?: never;
         head?: never;
         patch?: never;
@@ -808,6 +879,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/app-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all app settings for a folder */
+        get: operations["getFolderAppSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Bulk update app settings for a folder */
+        patch: operations["updateFolderAppSettings"];
         trace?: never;
     };
     "/api/v1/access-keys": {
@@ -1359,6 +1448,11 @@ export interface components {
                 publicKey: string;
                 config: {
                     requiresStorage?: boolean;
+                    permissions?: {
+                        platform?: "READ_ACL"[];
+                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                    };
                     identifier: string;
                     label: string;
                     description: string;
@@ -1411,6 +1505,8 @@ export interface components {
                 };
                 requiresStorage: boolean;
                 enabled: boolean;
+                userScopeEnabledDefault: boolean;
+                folderScopeEnabledDefault: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1507,6 +1603,11 @@ export interface components {
                 publicKey: string;
                 config: {
                     requiresStorage?: boolean;
+                    permissions?: {
+                        platform?: "READ_ACL"[];
+                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                    };
                     identifier: string;
                     label: string;
                     description: string;
@@ -1559,6 +1660,8 @@ export interface components {
                 };
                 requiresStorage: boolean;
                 enabled: boolean;
+                userScopeEnabledDefault: boolean;
+                folderScopeEnabledDefault: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1645,11 +1748,276 @@ export interface components {
                 updatedAt: string;
             };
         };
+        UpdateAppAccessSettingsInputDTO: {
+            userScopeEnabledDefault: boolean;
+            folderScopeEnabledDefault: boolean;
+        };
         SetWorkerEnvironmentVariablesInputDTO: {
             environmentVariables: components["schemas"]["StringMapDTO"];
         };
         StringMapDTO: {
             [key: string]: string;
+        };
+        UserAppListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                identifier: string;
+                label: string;
+                config: {
+                    requiresStorage?: boolean;
+                    permissions?: {
+                        platform?: "READ_ACL"[];
+                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                    };
+                    identifier: string;
+                    label: string;
+                    description: string;
+                    emittableEvents: string[];
+                    tasks?: {
+                        identifier: string;
+                        label: string;
+                        triggers: string[];
+                        description: string;
+                        worker?: string;
+                    }[];
+                    workers?: {
+                        [key: string]: {
+                            entrypoint: string;
+                            description: string;
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                        };
+                    };
+                    ui?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                        csp?: string;
+                    };
+                    database?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                    };
+                    contributions?: {
+                        sidebarMenuLinks: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        folderSidebarViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        objectSidebarViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        objectDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                    };
+                };
+                enabled: boolean;
+                userScopeEnabledDefault: boolean;
+                folderScopeEnabledDefault: boolean;
+                manifest: {
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
+                workers: {
+                    hash: string;
+                    size: number;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    definitions: {
+                        [key: string]: {
+                            description: string;
+                            environmentVariables: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
+                        };
+                    };
+                };
+                ui: {
+                    hash: string;
+                    size: number;
+                    csp?: string;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                } | null;
+                contributions: {
+                    sidebarMenuLinks: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderSidebarViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectSidebarViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                };
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        UserAppGetResponse: {
+            app: {
+                identifier: string;
+                label: string;
+                config: {
+                    requiresStorage?: boolean;
+                    permissions?: {
+                        platform?: "READ_ACL"[];
+                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                    };
+                    identifier: string;
+                    label: string;
+                    description: string;
+                    emittableEvents: string[];
+                    tasks?: {
+                        identifier: string;
+                        label: string;
+                        triggers: string[];
+                        description: string;
+                        worker?: string;
+                    }[];
+                    workers?: {
+                        [key: string]: {
+                            entrypoint: string;
+                            description: string;
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                        };
+                    };
+                    ui?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                        csp?: string;
+                    };
+                    database?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                    };
+                    contributions?: {
+                        sidebarMenuLinks: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        folderSidebarViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        objectSidebarViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        objectDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                    };
+                };
+                enabled: boolean;
+                userScopeEnabledDefault: boolean;
+                folderScopeEnabledDefault: boolean;
+                manifest: {
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
+                workers: {
+                    hash: string;
+                    size: number;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    definitions: {
+                        [key: string]: {
+                            description: string;
+                            environmentVariables: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
+                        };
+                    };
+                };
+                ui: {
+                    hash: string;
+                    size: number;
+                    csp?: string;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                } | null;
+                contributions: {
+                    sidebarMenuLinks: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderSidebarViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectSidebarViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                };
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
         };
         AppContributionsResponse: {
             [key: string]: {
@@ -1678,6 +2046,24 @@ export interface components {
                     }[];
                 };
             };
+        };
+        AppUserSettingsGetResponseDTO: {
+            settings: {
+                appIdentifier: string;
+                enabledFallback: boolean;
+                folderScopeEnabledDefaultFallback: boolean;
+                permissionsFallback: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                enabled: boolean | null;
+                folderScopeEnabledDefault: boolean | null;
+                folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+                permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
+            };
+        };
+        AppUserSettingsCreateInputDTO: {
+            enabled: boolean | null;
+            folderScopeEnabledDefault: boolean | null;
+            folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+            permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
         };
         EventGetResponse: {
             event: {
@@ -2111,6 +2497,41 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             };
+        };
+        AppFolderSettingsGetResponseDTO: {
+            settings: {
+                [key: string]: {
+                    appIdentifier: string;
+                    enabledFallback: {
+                        value: boolean;
+                        /** @enum {string} */
+                        source: "system" | "user";
+                    };
+                    permissionsFallback: {
+                        value: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                        /** @enum {string} */
+                        source: "system" | "user";
+                    };
+                    enabled: boolean | null;
+                    permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+                };
+            };
+        };
+        AppFolderSettingsUpdateInputDTO: {
+            [key: string]: (((({
+                enabled: boolean | null;
+                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+            } | {
+                enabled: boolean;
+                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+            }) | {
+                enabled: boolean;
+                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+            }) | {
+                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+            }) | {
+                enabled: boolean | null;
+            }) | null;
         };
         AccessKeyListResponse: {
             meta: {
@@ -3495,6 +3916,49 @@ export interface operations {
             };
         };
     };
+    updateAppAccessSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAppAccessSettingsInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     setWorkerEnvironmentVariables: {
         parameters: {
             query?: never;
@@ -3517,6 +3981,119 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StringMapDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    listApps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAppListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAppGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getAppContributions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppContributionsResponse"];
                 };
             };
             /** @description Server Error */
@@ -3578,11 +4155,13 @@ export interface operations {
             };
         };
     };
-    getAppContributions: {
+    getAppUserSettings: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                appIdentifier: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -3592,8 +4171,88 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AppContributionsResponse"];
+                    "application/json": components["schemas"]["AppUserSettingsGetResponseDTO"];
                 };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    upsertAppUserSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppUserSettingsCreateInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppUserSettingsGetResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    removeAppUserSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
@@ -4712,6 +5371,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderShareUserListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getFolderAppSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppFolderSettingsGetResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    updateFolderAppSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppFolderSettingsUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppFolderSettingsGetResponseDTO"];
                 };
             };
             /** @description Server Error */

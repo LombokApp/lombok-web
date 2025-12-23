@@ -27,7 +27,7 @@ export const AppUIContainer = () => {
   const getAppAccessTokens = React.useCallback(
     () =>
       $apiClient
-        .POST('/api/v1/server/apps/{appIdentifier}/user-access-token', {
+        .POST('/api/v1/user/apps/{appIdentifier}/access-token', {
           params: {
             path: {
               appIdentifier,

@@ -80,7 +80,7 @@ import { FolderLocationNotFoundException } from '../exceptions/folder-location-n
 import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-metadata-write-unauthorized.exception'
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
-import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
+import { FolderOperationForbiddenException } from '../exceptions/folder-operation-forbidden.exception'
 import { FolderShareNotFoundException } from '../exceptions/folder-share-not-found.exception'
 
 export interface OutputUploadUrlsResponse {
@@ -481,7 +481,6 @@ export class FolderService {
       .update(foldersTable)
       .set({ accessError: accessError ?? null, updatedAt: new Date() })
       .where(eq(foldersTable.id, folderId))
-      .execute()
   }
 
   async listFoldersAsUser(
@@ -577,7 +576,7 @@ export class FolderService {
     const { permissions } = await this.getFolderAsUser(user, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.FOLDER_FORGET)) {
-      throw new FolderPermissionUnauthorizedException()
+      throw new FolderOperationForbiddenException()
     }
 
     await this.ormService.db.transaction(async (tx) => {
@@ -601,7 +600,7 @@ export class FolderService {
     const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
-      throw new FolderPermissionUnauthorizedException()
+      throw new FolderOperationForbiddenException()
     }
 
     const now = new Date()
@@ -636,7 +635,7 @@ export class FolderService {
     const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.OBJECT_EDIT)) {
-      throw new FolderPermissionUnauthorizedException()
+      throw new FolderOperationForbiddenException()
     }
 
     const folderObject =
@@ -1134,7 +1133,7 @@ export class FolderService {
             ].includes(urlRequest.method) &&
             !permissions.includes(FolderPermissionEnum.OBJECT_EDIT)
           ) {
-            throw new FolderPermissionUnauthorizedException()
+            throw new FolderOperationForbiddenException()
           }
 
           // deny all write operations for metadata
@@ -1200,7 +1199,7 @@ export class FolderService {
       region: contentStorageLocation.region,
     })
     if (!permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      throw new FolderPermissionUnauthorizedException()
+      throw new FolderOperationForbiddenException()
     }
 
     // delete all objects related to this folder
@@ -1630,6 +1629,5 @@ export class FolderService {
           eq(folderSharesTable.userId, userId),
         ),
       )
-      .execute()
   }
 }

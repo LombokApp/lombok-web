@@ -1,10 +1,10 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { appSchema } from '../app.dto'
+import { adminAppSchema } from '../admin-app.dto'
 
 export const appGetResponseSchema = z.object({
-  app: appSchema,
+  app: adminAppSchema,
 })
 
 export class AppGetResponse extends createZodDto(appGetResponseSchema) {}

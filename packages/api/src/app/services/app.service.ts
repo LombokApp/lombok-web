@@ -6,10 +6,13 @@ import type {
   AppMetrics,
   AppWorkersMap,
   ExternalAppWorker,
+  FolderScopeAppPermissions,
+  UserScopeAppPermissions,
 } from '@lombokapp/types'
 import {
   appConfigWithManifestSchema,
   CORE_APP_IDENTIFIER,
+  FolderPermissionEnum,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { mimeFromExtension } from '@lombokapp/utils'
@@ -22,7 +25,17 @@ import {
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { spawn } from 'bun'
-import { and, count, eq, ilike, isNotNull, or, SQL, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  or,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
 import os from 'os'
@@ -36,6 +49,7 @@ import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
+import { FolderOperationForbiddenException } from 'src/folders/exceptions/folder-operation-forbidden.exception'
 import { FolderService } from 'src/folders/services/folder.service'
 import {
   logEntriesTable,
@@ -60,12 +74,28 @@ import { z } from 'zod'
 
 import { appConfig } from '../config'
 import { CoreAppService } from '../core-app.service'
+import { AppFolderSettingsUpdateInputDTO } from '../dto/app-folder-settings-update-input.dto'
 import { AppSort } from '../dto/apps-list-query-params.dto'
-import { App, appsTable } from '../entities/app.entity'
+import { AppFolderSettingsGetResponseDTO } from '../dto/responses/app-folder-settings-get-response.dto'
+import { AppUserSettingsGetResponseDTO } from '../dto/responses/app-user-settings-get-response.dto'
+import { UpdateAppAccessSettingsInputDTO } from '../dto/update-app-access-settings-input.dto'
+import { App, appsTable, NewApp } from '../entities/app.entity'
+import {
+  AppFolderSettings,
+  appFolderSettingsTable,
+} from '../entities/app-folder-settings.entity'
+import {
+  AppUserSettings,
+  appUserSettingsTable,
+} from '../entities/app-user-settings.entity'
 import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import {
+  resolveFolderAppSettings,
+  resolveUserAppSettings,
+} from '../utils/resolve-app-settings.utils'
 import { handleAppSocketMessage } from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
@@ -89,7 +119,7 @@ export interface AppDefinition {
   >
 }
 
-export interface AppWithMigrations extends App {
+export interface AppWithMigrations extends NewApp {
   migrationFiles: { filename: string; content: string }[]
 }
 
@@ -148,6 +178,32 @@ export class AppService {
     return updated
   }
 
+  public async updateAppAccessSettingsAsAdmin(
+    user: User,
+    appIdentifier: string,
+    accessSettingsUpdate: UpdateAppAccessSettingsInputDTO,
+  ): Promise<App> {
+    if (!user.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const app = await this.getAppAsAdmin(appIdentifier)
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    const now = new Date()
+    const [updated] = await this.ormService.db
+      .update(appsTable)
+      .set({
+        ...accessSettingsUpdate,
+        updatedAt: now,
+      })
+      .where(eq(appsTable.identifier, appIdentifier))
+      .returning()
+    return updated
+  }
+
   getAppAsAdmin(
     appIdentifier: string,
     {
@@ -162,6 +218,15 @@ export class AppService {
         typeof enabled === 'boolean'
           ? and(idCondition, eq(appsTable.enabled, enabled))
           : idCondition,
+    })
+  }
+
+  getAppAsUser(appIdentifier: string): Promise<App | undefined> {
+    return this.ormService.db.query.appsTable.findFirst({
+      where: and(
+        eq(appsTable.identifier, appIdentifier),
+        eq(appsTable.enabled, true),
+      ),
     })
   }
 
@@ -537,6 +602,28 @@ export class AppService {
     }
   }
 
+  public async listEnabledAppsAsUser(): Promise<{
+    meta: { totalCount: number }
+    result: App[]
+  }> {
+    const apps = await this.ormService.db.query.appsTable.findMany({
+      where: eq(appsTable.enabled, true),
+      orderBy: [appsTable.label],
+    })
+
+    const appsCountResult = await this.ormService.db
+      .select({
+        count: count(),
+      })
+      .from(appsTable)
+      .where(eq(appsTable.enabled, true))
+
+    return {
+      result: apps,
+      meta: { totalCount: appsCountResult[0]?.count ?? 0 },
+    }
+  }
+
   public async uninstallApp(app: App) {
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorage()
@@ -582,7 +669,7 @@ export class AppService {
 
     if (installedApp) {
       // uninstall currently installed app instance
-      await this.uninstallApp(app)
+      await this.uninstallApp(installedApp)
     }
 
     if (serverStorageLocation) {
@@ -971,6 +1058,8 @@ export class AppService {
             createdAt: now,
             updatedAt: now,
             contentHash: '', // TODO: calculate the exact content hash
+            userScopeEnabledDefault: false, // TODO: allow some way to enable this on install
+            folderScopeEnabledDefault: false, // TODO: allow some way to enable this on install
             enabled: true,
             migrationFiles, // Add migration files to app definition
           }
@@ -1170,5 +1259,277 @@ export class AppService {
         last10Minutes: Number(eventsLast24Hours[0]?.last10Minutes ?? 0),
       },
     }
+  }
+
+  async getAppUserSettings(
+    actor: User,
+    appIdentifier: string,
+  ): Promise<AppUserSettingsGetResponseDTO['settings']> {
+    const app = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, appIdentifier),
+    })
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    const userAppSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where: and(
+          eq(appUserSettingsTable.userId, actor.id),
+          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+        ),
+      })
+
+    // Return default values if no custom settings exist
+    if (!userAppSettings) {
+      return resolveUserAppSettings(app)
+    }
+
+    // Resolve null values to app defaults
+    return resolveUserAppSettings(app, userAppSettings)
+  }
+
+  async upsertAppUserSettings(
+    actor: User,
+    appIdentifier: string,
+    enabled: boolean | null,
+    folderScopeEnabledDefault: boolean | null,
+    folderScopePermissionsDefault: FolderScopeAppPermissions[] | null,
+    permissions: UserScopeAppPermissions[] | null,
+  ): Promise<AppUserSettingsGetResponseDTO['settings']> {
+    const app = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, appIdentifier),
+    })
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    const where = and(
+      eq(appUserSettingsTable.userId, actor.id),
+      eq(appUserSettingsTable.appIdentifier, appIdentifier),
+    )
+
+    const existingSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where,
+      })
+
+    const now = new Date()
+
+    const updateValues = {
+      enabled,
+      folderScopeEnabledDefault,
+      folderScopePermissionsDefault,
+      permissions,
+      updatedAt: now,
+    }
+
+    if (existingSettings) {
+      await this.ormService.db
+        .update(appUserSettingsTable)
+        .set(updateValues)
+        .where(where)
+    } else {
+      await this.ormService.db.insert(appUserSettingsTable).values({
+        userId: actor.id,
+        appIdentifier,
+        enabled,
+        folderScopePermissionsDefault,
+        folderScopeEnabledDefault,
+        permissions,
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
+
+    // Return resolved values (null becomes app default) - only resolve on read, store null in DB
+    return this.getAppUserSettings(actor, appIdentifier)
+  }
+
+  async removeAppUserSettings(
+    actor: User,
+    appIdentifier: string,
+  ): Promise<void> {
+    const app = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, appIdentifier),
+    })
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    await this.ormService.db
+      .delete(appUserSettingsTable)
+      .where(
+        and(
+          eq(appUserSettingsTable.userId, actor.id),
+          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+        ),
+      )
+      .execute()
+  }
+
+  async getFolderAppSettingsAsUser(
+    actor: User,
+    folderId: string,
+  ): Promise<AppFolderSettingsGetResponseDTO['settings']> {
+    const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
+
+    const enabledApps = await this.ormService.db.query.appsTable.findMany({
+      where: eq(appsTable.enabled, true),
+    })
+
+    const enabledAppIdentifiers = new Set(
+      enabledApps.map((app) => app.identifier),
+    )
+
+    const userSettings = await this.ormService.db.query.appUserSettingsTable
+      .findMany({
+        where: and(
+          eq(appUserSettingsTable.userId, actor.id),
+          inArray(appUserSettingsTable.appIdentifier, [
+            ...enabledAppIdentifiers,
+          ]),
+        ),
+      })
+      .then((result) =>
+        result.reduce<Record<string, AppUserSettings>>((acc, setting) => {
+          acc[setting.appIdentifier] = setting
+          return acc
+        }, {}),
+      )
+
+    const folderSettings = await this.ormService.db.query.appFolderSettingsTable
+      .findMany({
+        where: and(
+          eq(appFolderSettingsTable.folderId, folder.id),
+          inArray(appUserSettingsTable.appIdentifier, [
+            ...enabledAppIdentifiers,
+          ]),
+        ),
+      })
+      .then((result) =>
+        result.reduce<Record<string, AppFolderSettings>>((acc, setting) => {
+          acc[setting.appIdentifier] = setting
+          return acc
+        }, {}),
+      )
+
+    return enabledApps.reduce<AppFolderSettingsGetResponseDTO['settings']>(
+      (acc, enabledApp) => {
+        return {
+          ...acc,
+          [enabledApp.identifier]: resolveFolderAppSettings(
+            enabledApp,
+            userSettings[enabledApp.identifier],
+            folderSettings[enabledApp.identifier],
+          ),
+        }
+      },
+      {},
+    )
+  }
+
+  async updateFolderAppSettingsAsUser(
+    actor: User,
+    folderId: string,
+    updates: AppFolderSettingsUpdateInputDTO,
+  ): Promise<AppFolderSettingsGetResponseDTO['settings']> {
+    const { folder, permissions: folderPermissions } =
+      await this.folderService.getFolderAsUser(actor, folderId)
+    if (!folderPermissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
+      throw new FolderOperationForbiddenException()
+    }
+
+    const allUpdatedAppIdentifiers = Object.keys(updates)
+
+    // Get all app identifiers that are being upserted
+    const upsertedAppIdentifiers = Object.keys(updates).filter(
+      (key) => updates[key] !== null,
+    )
+
+    const appIdentifiersToUpdate = await this.ormService.db.query.appsTable
+      .findMany({
+        where: inArray(appsTable.identifier, allUpdatedAppIdentifiers),
+      })
+      .then((apps) => new Set(apps.map((app) => app.identifier)))
+
+    if (appIdentifiersToUpdate.size !== allUpdatedAppIdentifiers.length) {
+      throw new NotFoundException(
+        `Unknown app/s: ${allUpdatedAppIdentifiers.filter((identifier) => !appIdentifiersToUpdate.has(identifier)).join(', ')}`,
+      )
+    }
+
+    // Get all app identifiers that are being deleted
+    const deletedAppIdentifiers = Object.keys(updates).filter(
+      (key) => updates[key] === null,
+    )
+
+    const now = new Date()
+
+    // Use a transaction for atomicity
+    await this.ormService.db.transaction(async (tx) => {
+      for (const appIdentifier of upsertedAppIdentifiers) {
+        const updatedSettings = updates[appIdentifier]
+        const where = and(
+          eq(appFolderSettingsTable.folderId, folder.id),
+          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+        )
+
+        if (updatedSettings === null) {
+          // Delete settings (fallback to default)
+          await tx.delete(appFolderSettingsTable).where(where)
+        } else {
+          // Upsert/merge settings
+          const existingSettings =
+            await tx.query.appFolderSettingsTable.findFirst({
+              where,
+            })
+
+          if (existingSettings) {
+            // Merge with existing permissions if they exist
+
+            await tx
+              .update(appFolderSettingsTable)
+              .set({
+                ...('enabled' in updatedSettings
+                  ? { enabled: updatedSettings.enabled }
+                  : {}),
+                ...('permissions' in updatedSettings
+                  ? { permissions: updatedSettings.permissions }
+                  : {}),
+                updatedAt: now,
+              })
+              .where(where)
+          } else {
+            await tx.insert(appFolderSettingsTable).values({
+              folderId: folder.id,
+              appIdentifier,
+              enabled:
+                'enabled' in updatedSettings ? updatedSettings.enabled : null,
+              permissions:
+                'permissions' in updatedSettings
+                  ? updatedSettings.permissions
+                  : null,
+              createdAt: now,
+              updatedAt: now,
+            })
+          }
+        }
+      }
+      await tx
+        .delete(appFolderSettingsTable)
+        .where(
+          and(
+            eq(appFolderSettingsTable.folderId, folder.id),
+            inArray(
+              appFolderSettingsTable.appIdentifier,
+              deletedAppIdentifiers,
+            ),
+          ),
+        )
+    })
+
+    // Return updated settings
+    return this.getFolderAppSettingsAsUser(actor, folderId)
   }
 }

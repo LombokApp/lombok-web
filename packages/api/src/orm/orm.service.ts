@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
@@ -6,6 +6,14 @@ import * as path from 'path'
 import { Client, Pool, type PoolClient, QueryResult, QueryResultRow } from 'pg'
 
 import { appsTable } from '../app/entities/app.entity'
+import {
+  appFolderSettingsRelations,
+  appFolderSettingsTable,
+} from '../app/entities/app-folder-settings.entity'
+import {
+  appUserSettingsRelations,
+  appUserSettingsTable,
+} from '../app/entities/app-user-settings.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
 import { eventsRelations, eventsTable } from '../event/entities/event.entity'
@@ -27,6 +35,7 @@ import { storageLocationsTable } from '../storage/entities/storage-location.enti
 import { tasksRelations, tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
+import { SHARED_ACL_FOLDER_VIEW, SHARED_ACL_SCHEMA } from './constants'
 
 export const dbSchema = {
   usersTable,
@@ -39,6 +48,10 @@ export const dbSchema = {
   folderSharesRelations,
   folderObjectsTable,
   appsTable,
+  appFolderSettingsTable,
+  appFolderSettingsRelations,
+  appUserSettingsTable,
+  appUserSettingsRelations,
   eventsTable,
   eventsRelations,
   logEntriesTable,
@@ -54,6 +67,7 @@ export const TEST_DB_PREFIX = 'lombok_test__'
 export class OrmService {
   private _db?: NodePgDatabase<typeof dbSchema>
   private _client?: Pool
+  private readonly logger = new Logger(OrmService.name)
 
   constructor(
     @Inject(ormConfig.KEY)
@@ -71,6 +85,90 @@ export class OrmService {
       })
     }
     return this._client
+  }
+
+  private getAppSchemaName(appIdentifier: string): string {
+    return `app_${appIdentifier}`
+  }
+
+  private getAppRoleName(appIdentifier: string): string {
+    return `app_role_${appIdentifier}`
+  }
+
+  private async ensureAppRole(appIdentifier: string): Promise<void> {
+    const client = this.client
+    const schemaName = this.getAppSchemaName(appIdentifier)
+    const roleName = this.getAppRoleName(appIdentifier)
+    const platformRole = this._ormConfig.dbUser
+
+    const roleExists = await client.query<{ exists: number }>(
+      'SELECT 1 as exists FROM pg_roles WHERE rolname = $1',
+      [roleName],
+    )
+
+    if (roleExists.rows.length === 0) {
+      try {
+        await client.query(`CREATE ROLE ${roleName} NOLOGIN`)
+        this.logger.log(`Created role ${roleName} for app ${appIdentifier}`)
+      } catch (error) {
+        this.logger.error(
+          `Failed to create role ${roleName} for app ${appIdentifier}`,
+          error as Error,
+        )
+        throw error
+      }
+    }
+
+    try {
+      await client.query(`GRANT ${roleName} TO ${platformRole}`)
+      await client.query(
+        `GRANT USAGE, CREATE ON SCHEMA ${schemaName} TO ${roleName}`,
+      )
+      await client.query(
+        `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${schemaName} TO ${roleName}`,
+      )
+      await client.query(
+        `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${schemaName} TO ${roleName}`,
+      )
+      await client.query(
+        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${schemaName} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${roleName}`,
+      )
+      await client.query(
+        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${schemaName} GRANT USAGE, SELECT ON SEQUENCES TO ${roleName}`,
+      )
+    } catch (error) {
+      this.logger.error(
+        `Failed to grant privileges for role ${roleName} and schema ${schemaName}`,
+        error as Error,
+      )
+      throw error
+    }
+  }
+
+  private async configureAppSession(
+    client: PoolClient,
+    appIdentifier: string,
+    options: { includePgCatalog?: boolean } = {},
+  ): Promise<void> {
+    const roleName = this.getAppRoleName(appIdentifier)
+    const schemaName = this.getAppSchemaName(appIdentifier)
+    const includePgCatalog = options.includePgCatalog ?? true
+
+    try {
+      await client.query(`SET LOCAL ROLE ${roleName}`)
+    } catch (error) {
+      this.logger.error(
+        `Failed to set local role ${roleName} for app ${appIdentifier}`,
+        error as Error,
+      )
+      throw error
+    }
+
+    const searchPath = includePgCatalog
+      ? `${schemaName}, pg_catalog`
+      : `${schemaName}`
+
+    await client.query(`SET LOCAL search_path TO ${searchPath}`)
   }
 
   async runWithTestClient(func: (client: Client) => Promise<void>) {
@@ -122,6 +220,8 @@ export class OrmService {
     if (this._ormConfig.runMigrations) {
       await this.migrate()
     }
+
+    await this.ensureSharedAclSchema()
 
     this.initialized = true
   }
@@ -222,6 +322,26 @@ export class OrmService {
     })
   }
 
+  async ensureSharedAclSchema(): Promise<void> {
+    await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${SHARED_ACL_SCHEMA}`)
+    await this.client.query(`
+      CREATE OR REPLACE VIEW ${SHARED_ACL_SCHEMA}.${SHARED_ACL_FOLDER_VIEW} AS
+      SELECT
+        f."id" AS "folderId",
+        f."ownerId" AS "userId",
+        ARRAY['owner']::text[] AS "permissions",
+        TRUE AS "isOwner"
+      FROM public."folders" f
+      UNION ALL
+      SELECT
+        fs."folderId" AS "folderId",
+        fs."userId" AS "userId",
+        fs."permissions" AS "permissions",
+        FALSE AS "isOwner"
+      FROM public."folder_shares" fs;
+    `)
+  }
+
   /**
    * Execute a query for a specific app using its schema
    * Uses transaction-scoped search path to avoid affecting other queries
@@ -237,13 +357,10 @@ export class OrmService {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
     }
 
-    const schemaName = `app_${appIdentifier}`
-
-    // Use transaction to scope the search path change
     const client: PoolClient = await this.client.connect()
     try {
       await client.query('BEGIN')
-      await client.query(`SET LOCAL search_path TO ${schemaName}, pg_catalog`)
+      await this.configureAppSession(client, appIdentifier)
 
       // Handle rowMode parameter
       const queryConfig: { text: string; values: unknown[]; rowMode?: string } =
@@ -280,13 +397,10 @@ export class OrmService {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
     }
 
-    const schemaName = `app_${appIdentifier}`
-
-    // Use transaction to scope the search path change
     const client: PoolClient = await this.client.connect()
     try {
       await client.query('BEGIN')
-      await client.query(`SET LOCAL search_path TO ${schemaName}, pg_catalog`)
+      await this.configureAppSession(client, appIdentifier)
       const result = await client.query(sql, params)
       await client.query('COMMIT')
       return { rowCount: result.rowCount ?? 0 }
@@ -317,13 +431,13 @@ export class OrmService {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
     }
 
-    const schemaName = `app_${appIdentifier}`
-
     if (atomic) {
       const client: PoolClient = await this.client.connect()
       try {
         await client.query('BEGIN')
-        await client.query(`SET LOCAL search_path TO ${schemaName}`)
+        await this.configureAppSession(client, appIdentifier, {
+          includePgCatalog: false,
+        })
         const results: unknown[] = []
         for (const step of steps) {
           // Handle rowMode parameter
@@ -359,7 +473,9 @@ export class OrmService {
         const client: PoolClient = await this.client.connect()
         try {
           await client.query('BEGIN')
-          await client.query(`SET LOCAL search_path TO ${schemaName}`)
+          await this.configureAppSession(client, appIdentifier, {
+            includePgCatalog: false,
+          })
 
           // Handle rowMode parameter
           const queryConfig: {
@@ -394,7 +510,7 @@ export class OrmService {
    * Ensure app schema exists
    */
   async ensureAppSchema(appIdentifier: string): Promise<void> {
-    const schemaName = `app_${appIdentifier}`
+    const schemaName = this.getAppSchemaName(appIdentifier)
 
     // Check if schema exists
     const schemaExists = await this.client.query<{ exists: number }>(
@@ -406,13 +522,15 @@ export class OrmService {
       // Create the schema
       await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`)
     }
+
+    await this.ensureAppRole(appIdentifier)
   }
 
   /**
    * Drop app schema (for cleanup/testing)
    */
   async dropAppSchema(appIdentifier: string): Promise<void> {
-    const schemaName = `app_${appIdentifier}`
+    const schemaName = this.getAppSchemaName(appIdentifier)
     await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
@@ -428,7 +546,7 @@ export class OrmService {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
     }
 
-    const schemaName = `app_${appIdentifier}`
+    const schemaName = this.getAppSchemaName(appIdentifier)
 
     // Ensure schema exists
     await this.ensureAppSchema(appIdentifier)
@@ -536,7 +654,7 @@ export class OrmService {
     appIdentifier: string,
     migrationFile: { filename: string; content: string },
   ): Promise<void> {
-    const schemaName = `app_${appIdentifier}`
+    const schemaName = this.getAppSchemaName(appIdentifier)
 
     try {
       const migrationFileContent = this.removeSchemaReferencesFromMigration(
@@ -546,9 +664,11 @@ export class OrmService {
       const checksum = this.calculateChecksum(migrationFile.content)
 
       const client: PoolClient = await this.client.connect()
+      const roleName = this.getAppRoleName(appIdentifier)
       try {
         await client.query('BEGIN')
-        await client.query(`SET LOCAL search_path TO ${schemaName}, pg_catalog`)
+        await client.query(`SET LOCAL ROLE ${roleName}`)
+        await this.configureAppSession(client, appIdentifier)
         await client.query(migrationFileContent)
         await client.query(
           `INSERT INTO ${schemaName}.__migrations__ (filename, version, checksum) VALUES ($1, $2, $3)`,
@@ -606,7 +726,7 @@ export class OrmService {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
     }
 
-    const schemaName = `app_${appIdentifier}`
+    const schemaName = this.getAppSchemaName(appIdentifier)
 
     try {
       // Get executed migrations

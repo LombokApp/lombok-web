@@ -147,9 +147,48 @@ export const appContributionsSchema = z
   })
   .strict()
 
+// Permissions that can be granted to an app for the platform
+export const platformScopeAppPermissionsSchema = z.enum(
+  ['READ_ACL'], // Read the user <-> folder ACL context
+)
+
+// Permissions that can be granted to an app for a specific user
+export const userScopeAppPermissionsSchema = z.enum([
+  'CREATE_FOLDERS', // create a new folder
+  'READ_FOLDERS', // get/list folders
+  'UPDATE_FOLDERS', // update a folder (name)
+  'DELETE_FOLDERS', // delete a folder
+  'READ_USER', // get user details
+])
+
+// Permissions that can be granted to an app for a specific folder
+export const folderScopeAppPermissionsSchema = z.enum([
+  'READ_OBJECTS', // get/list objects and their metadata
+  'WRITE_OBJECTS', // create/update/delete objects
+  'WRITE_OBJECTS_METADATA', // create/update/delete object metadata
+  'WRITE_FOLDER_METADATA', // create/update/delete folder metadata
+  'REINDEX_FOLDER',
+])
+
+export type PlatformScopeAppPermissions = z.infer<
+  typeof platformScopeAppPermissionsSchema
+>
+export type UserScopeAppPermissions = z.infer<
+  typeof userScopeAppPermissionsSchema
+>
+export type FolderScopeAppPermissions = z.infer<
+  typeof folderScopeAppPermissionsSchema
+>
 export const appConfigSchema = z
   .object({
     requiresStorage: z.boolean().optional(),
+    permissions: z
+      .object({
+        platform: z.array(platformScopeAppPermissionsSchema).optional(),
+        user: z.array(userScopeAppPermissionsSchema).optional(),
+        folder: z.array(folderScopeAppPermissionsSchema).optional(),
+      })
+      .optional(),
     identifier: appIdentifierSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),

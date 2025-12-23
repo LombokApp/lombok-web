@@ -131,7 +131,6 @@ export async function handleAppSocketMessage(
         }
       }
     case 'DB_QUERY': {
-      await ormService.ensureAppSchema(requestingAppIdentifier)
       const result = await ormService.executeQueryForApp(
         requestingAppIdentifier,
         requestData.sql,
@@ -149,7 +148,6 @@ export async function handleAppSocketMessage(
       }
     }
     case 'DB_EXEC':
-      await ormService.ensureAppSchema(requestingAppIdentifier)
       return {
         result: await ormService.executeExecForApp(
           requestingAppIdentifier,
@@ -158,7 +156,6 @@ export async function handleAppSocketMessage(
         ),
       }
     case 'DB_BATCH':
-      await ormService.ensureAppSchema(requestingAppIdentifier)
       return {
         result: await ormService.executeBatchForApp(
           requestingAppIdentifier,

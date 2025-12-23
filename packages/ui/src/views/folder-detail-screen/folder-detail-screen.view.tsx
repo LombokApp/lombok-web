@@ -23,6 +23,7 @@ import {
   Ellipsis,
   Folder,
   FolderSync,
+  Settings,
   Share2,
   Trash,
 } from 'lucide-react'
@@ -51,6 +52,8 @@ import {
 } from '@/src/utils/tables'
 
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
+import { FolderAppSettingsForm } from './folder-app-settings-form/folder-app-settings-form'
+import { FolderSettingsModal } from './folder-settings-modal/folder-settings-modal'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
 import { JustifiedObjectsGrid } from './justified-objects-grid/justified-objects-grid'
 
@@ -321,6 +324,13 @@ export const FolderDetailScreen = () => {
     isOpen: false,
   })
 
+  const [folderAppSettingsModalData, setFolderAppSettingsModalData] =
+    React.useState<{
+      isOpen: boolean
+    }>({
+      isOpen: false,
+    })
+
   // Add this after other API hooks
   const listFolderSharesQuery = $api.useQuery(
     'get',
@@ -464,6 +474,29 @@ export const FolderDetailScreen = () => {
         onSubmit={handleUpsertManyShares}
         folderId={folderContext.folderId}
       />
+      <FolderSettingsModal
+        modalData={folderAppSettingsModalData}
+        setModalData={setFolderAppSettingsModalData}
+        title="Settings"
+        description="Configure which apps have access to this folder."
+        ariaDescription="Configure app access for this folder"
+      >
+        <FolderAppSettingsForm
+          folderId={folderContext.folderId}
+          onCancel={() =>
+            setFolderAppSettingsModalData({
+              ...folderAppSettingsModalData,
+              isOpen: false,
+            })
+          }
+          onSuccess={() =>
+            setFolderAppSettingsModalData({
+              ...folderAppSettingsModalData,
+              isOpen: false,
+            })
+          }
+        />
+      </FolderSettingsModal>
       <div className="flex flex-1 justify-around">
         <div
           className={cn(
@@ -549,6 +582,18 @@ export const FolderDetailScreen = () => {
                         >
                           <Share2 className="size-5" />
                           Share
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setFolderAppSettingsModalData({
+                              ...folderAppSettingsModalData,
+                              isOpen: true,
+                            })
+                          }
+                          className="gap-2"
+                        >
+                          <Settings className="size-5" />
+                          Settings
                         </DropdownMenuItem>
                         {folderContext.folderPermissions?.includes(
                           FolderPermissionEnum.FOLDER_FORGET,
