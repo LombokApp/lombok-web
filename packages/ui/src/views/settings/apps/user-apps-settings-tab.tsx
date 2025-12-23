@@ -5,7 +5,6 @@ import {
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import React from 'react'
 import { Link } from 'react-router'
 
 import { $api } from '@/src/services/api'
