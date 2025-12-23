@@ -1,8 +1,13 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
 import type { SerializeableError } from '@lombokapp/core-worker-utils'
 import { serializeWorkerError } from '@lombokapp/core-worker-utils'
-import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
+import type {
+  AppLogEntry,
+  EventDTO,
+  TaskDTO,
+  WorkerErrorDetails,
+} from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
@@ -20,7 +25,10 @@ export const connectAndPerformWork = (
   appToken: string,
   taskHandlers: Record<
     string,
-    (task: AppTask, serverClient: IAppPlatformService) => Promise<void>
+    (
+      task: TaskDTO & { event: EventDTO },
+      serverClient: IAppPlatformService,
+    ) => Promise<void>
   >,
   onConnect: () => Promise<void>,
 ): ConnectAndPerformWorkResult => {
@@ -78,10 +86,10 @@ export const connectAndPerformWork = (
         try {
           concurrentTasks++
           const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleAnyAvailableTask(
+            await serverClient.attemptStartHandleAnyAvailableTask({
               taskIdentifiers,
-            )
-          const task = attemptStartHandleResponse.result
+            })
+          const { task, event } = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
             await log({
@@ -89,19 +97,25 @@ export const connectAndPerformWork = (
               level: 'ERROR',
             })
           } else {
-            await taskHandlers[task.taskIdentifier](task, serverClient)
-              .then(() => serverClient.completeHandleTask(task.id))
+            await taskHandlers[task.taskIdentifier](
+              { ...task, event },
+              serverClient,
+            )
+              .then(() => serverClient.completeHandleTask({ taskId: task.id }))
               .catch((e: unknown) => {
-                return serverClient.failHandleTask(task.id, {
-                  code: String(
-                    e instanceof AppAPIError
-                      ? e.errorCode
-                      : 'APP_TASK_EXECUTION_ERROR',
-                  ),
-                  message: serializeError(e),
-                  details: JSON.parse(
-                    serializeWorkerError(e),
-                  ) as WorkerErrorDetails,
+                return serverClient.failHandleTask({
+                  taskId: task.id,
+                  error: {
+                    code: String(
+                      e instanceof AppAPIError
+                        ? e.errorCode
+                        : 'APP_TASK_EXECUTION_ERROR',
+                    ),
+                    message: serializeError(e),
+                    details: JSON.parse(
+                      serializeWorkerError(e),
+                    ) as WorkerErrorDetails,
+                  },
                 })
               })
           }

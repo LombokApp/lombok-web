@@ -8,7 +8,7 @@ import { platformConfig } from 'src/platform/config'
 import { WorkerJobsController } from './controllers/worker-jobs.controller'
 import { WorkerJobGuard } from './guards/worker-job.guard'
 import { RunDockerJobProcessor } from './processors/run-docker-job.task-processor'
-import { DockerOrchestrationService } from './services/docker-orchestration.service'
+import { DockerJobsService } from './services/docker-jobs.service'
 import { WorkerJobService } from './services/worker-job.service'
 
 @Module({
@@ -20,16 +20,12 @@ import { WorkerJobService } from './services/worker-job.service'
   ],
   controllers: [WorkerJobsController],
   providers: [
-    DockerOrchestrationService,
+    DockerJobsService,
     RunDockerJobProcessor,
     WorkerJobService,
     WorkerJobGuard,
   ],
-  exports: [
-    DockerOrchestrationService,
-    RunDockerJobProcessor,
-    WorkerJobService,
-  ],
+  exports: [DockerJobsService, RunDockerJobProcessor, WorkerJobService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class DockerModule {}

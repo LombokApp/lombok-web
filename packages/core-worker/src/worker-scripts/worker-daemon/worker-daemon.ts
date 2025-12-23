@@ -1,5 +1,4 @@
 import type {
-  AppTask,
   CreateDbFn,
   RequestHandler,
   SerializeableRequest,
@@ -22,7 +21,7 @@ import {
   WorkerInvalidError,
   WorkerRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { paths } from '@lombokapp/types'
+import type { EventDTO, paths, TaskDTO } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
 import createFetchClient from 'openapi-fetch'
@@ -319,10 +318,10 @@ void (async () => {
             ) {
               const token = authHeader.slice('Bearer '.length)
 
-              const authResult = await serverClient.authenticateUser(
+              const authResult = await serverClient.authenticateUser({
                 token,
-                pipeRequest.appIdentifier,
-              )
+                appIdentifier: pipeRequest.appIdentifier,
+              })
 
               if (authResult.error || !authResult.result.success) {
                 logTiming('authentication_failed', authStartTime, {
@@ -379,8 +378,9 @@ void (async () => {
             serverClient,
             dbClient,
             createDb,
-            user: userId // Pass the authenticated user to the handler
+            actor: userId // Pass the authenticated user to the handler
               ? {
+                  actorType: 'user',
                   userId,
                   userApiClient: createFetchClient<paths>({
                     baseUrl: workerModuleStartContext.serverBaseUrl,
@@ -411,11 +411,14 @@ void (async () => {
             )
           }
 
-          await userModule.handleTask(pipeRequest.data as AppTask, {
-            serverClient,
-            dbClient,
-            createDb,
-          })
+          await userModule.handleTask(
+            pipeRequest.data as { task: TaskDTO; event: EventDTO },
+            {
+              serverClient,
+              dbClient,
+              createDb,
+            },
+          )
           // Tasks don't return responses
           response = undefined
         }

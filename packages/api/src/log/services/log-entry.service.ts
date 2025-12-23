@@ -1,3 +1,4 @@
+import { LogEntryLevel } from '@lombokapp/types'
 import {
   Injectable,
   Logger,
@@ -12,7 +13,7 @@ import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { LogEntry, NewLogEntry } from '../entities/log-entry.entity'
-import { logEntriesTable, LogEntryLevel } from '../entities/log-entry.entity'
+import { logEntriesTable } from '../entities/log-entry.entity'
 
 export enum LogSort {
   CreatedAtAsc = 'createdAt-asc',

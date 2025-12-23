@@ -5,6 +5,7 @@ import type {
   AppManifest,
   AppMetrics,
   AppWorkersMap,
+  ExecuteAppDockerJobOptions,
   ExternalAppWorker,
   FolderScopeAppPermissions,
   UserScopeAppPermissions,
@@ -13,6 +14,7 @@ import {
   appConfigWithManifestSchema,
   CORE_APP_IDENTIFIER,
   FolderPermissionEnum,
+  LogEntryLevel,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { mimeFromExtension } from '@lombokapp/utils'
@@ -20,6 +22,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
@@ -43,10 +46,8 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
-import {
-  DockerOrchestrationService,
-  type SyncDockerJobResult,
-} from 'src/docker/services/docker-orchestration.service'
+import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
+import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
@@ -55,10 +56,7 @@ import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderOperationForbiddenException } from 'src/folders/exceptions/folder-operation-forbidden.exception'
 import { FolderService } from 'src/folders/services/folder.service'
-import {
-  logEntriesTable,
-  LogEntryLevel,
-} from 'src/log/entities/log-entry.entity'
+import { logEntriesTable } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
 import { readDirRecursive } from 'src/platform/utils/fs.util'
@@ -133,7 +131,8 @@ export class AppService {
   eventService: EventService
   coreAppService: CoreAppService
   private readonly appSocketService: AppSocketService
-  private readonly dockerOrchestrationService: DockerOrchestrationService
+  private readonly dockerJobsService: DockerJobsService
+  private readonly logger = new Logger(AppService.name)
   constructor(
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
@@ -148,15 +147,14 @@ export class AppService {
     @Inject(forwardRef(() => FolderService)) _folderService,
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
     private readonly s3Service: S3Service,
-    @Inject(forwardRef(() => DockerOrchestrationService))
+    @Inject(forwardRef(() => DockerJobsService))
     _dockerOrchestrationService,
   ) {
     this.coreAppService = _coreAppService as CoreAppService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
     this.appSocketService = _appSocketService as AppSocketService
-    this.dockerOrchestrationService =
-      _dockerOrchestrationService as DockerOrchestrationService
+    this.dockerJobsService = _dockerOrchestrationService as DockerJobsService
   }
 
   public async setAppEnabledAsAdmin(
@@ -286,34 +284,31 @@ export class AppService {
     })
   }
 
-  async createSignedContentUrls(payload: {
+  async createSignedContentUrls(
     requests: {
       folderId: string
       objectKey: string
       method: SignedURLsRequestMethod
-    }[]
-  }) {
+    }[],
+  ) {
     // get presigned upload URLs for content objects
-    const urls = await this._createSignedUrls(payload.requests)
-    return {
-      urls,
-    }
+    return this._createSignedUrls(requests)
   }
 
-  async createSignedMetadataUrls(payload: {
+  async createSignedMetadataUrls(
     requests: {
       folderId: string
       objectKey: string
       contentHash: string
       method: SignedURLsRequestMethod
       metadataHash: string
-    }[]
-  }) {
+    }[],
+  ) {
     const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
       await Promise.all(
-        payload.requests.map(async (request) => {
+        requests.map(async (request) => {
           const folder =
             folders[request.folderId] ??
             (await this.ormService.db.query.foldersTable.findFirst({
@@ -354,8 +349,8 @@ export class AppService {
       ),
     ).map((_url, i) => {
       return {
-        folderId: payload.requests[i].folderId,
-        objectKey: payload.requests[i].objectKey,
+        folderId: requests[i].folderId,
+        objectKey: requests[i].objectKey,
         url: _url,
       }
     })
@@ -739,8 +734,7 @@ export class AppService {
           .filter(Boolean)
           .join('/')
 
-        // eslint-disable-next-line no-console
-        console.log('Uploading app asset zip:', {
+        this.logger.log('Uploading app asset zip:', {
           objectKey,
           zipPath,
         })
@@ -797,21 +791,18 @@ export class AppService {
     // Run migrations if the app has any
     if (app.migrationFiles.length > 0) {
       try {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.log(
           `Running ${app.migrationFiles.length} migrations for app ${app.identifier}`,
         )
         await this.ormService.runAppMigrations(
           app.identifier,
           app.migrationFiles,
         )
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.log(
           `Successfully completed migrations for app ${app.identifier}`,
         )
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error(
+        this.logger.error(
           `Failed to run migrations for app ${app.identifier}:`,
           error,
         )
@@ -841,37 +832,34 @@ export class AppService {
       if (app.validation.value && app.definition) {
         await this.installApp(app.definition, update)
       } else {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP PARSE ERROR - (dir: '${directoryName}'): App config is invalid`,
           app.validation.error?.errors,
         )
       }
     } catch (error) {
       if (error instanceof AppAlreadyInstalledException) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `APP INSTALL ERROR (dir: '${directoryName}'): App is already installed.`,
+        this.logger.log(
+          `APP INSTALL SKIPPED (dir: '${directoryName}'): App is already installed.`,
         )
       } else if (error instanceof AppNotParsableException) {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP INSTALL ERROR (dir: '${directoryName}'): App is not parsable.`,
         )
       } else if (error instanceof AppRequirementsNotSatisfiedException) {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP INSTALL ERROR (dir: '${directoryName}'): App requirements are not met.`,
         )
       } else if (error instanceof AppInvalidException) {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP INSTALL ERROR (dir: '${directoryName}'): App is invalid.`,
           error.message,
         )
       } else {
-        // eslint-disable-next-line no-console
-        console.log(`APP INSTALL ERROR - (dir: '${directoryName}'):`, error)
+        this.logger.warn(
+          `APP INSTALL ERROR - (dir: '${directoryName}'):`,
+          error,
+        )
       }
     }
   }
@@ -905,8 +893,7 @@ export class AppService {
         })
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn(
+      this.logger.warn(
         `Failed to read migration files from ${migrationsDir}:`,
         error,
       )
@@ -917,8 +904,7 @@ export class AppService {
 
   public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
     if (!fs.existsSync(appsDirectoryPath)) {
-      // eslint-disable-next-line no-console
-      console.log('Apps directory "%s" not found.', appsDirectoryPath)
+      this.logger.warn('Apps directory "%s" not found.', appsDirectoryPath)
       return []
     }
     return fs
@@ -960,7 +946,6 @@ export class AppService {
 
     const appIdentifier = config.identifier
 
-    // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
     const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
     const manifest = (
       await Promise.all(
@@ -1054,7 +1039,7 @@ export class AppService {
             },
             subscribedEvents:
               config.tasks?.reduce<string[]>(
-                (acc, task) => acc.concat(task.triggers),
+                (acc, task) => acc.concat(task.triggers ?? []),
                 [],
               ) ?? [],
             implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
@@ -1544,56 +1529,66 @@ export class AppService {
   }
 
   /**
-   * Trigger a synchronous docker job for the specified app.
+   * Execute a docker job for the specified app.
    *
    * This method validates that the app has the specified profile and job class,
    * then delegates to the DockerOrchestrationService to execute the job.
    *
+   * @param params.waitForCompletion - Whether or not to execute the job synchronously and wait for the result.
    * @param params.appIdentifier - The app's identifier
    * @param params.profileName - The container profile to use
-   * @param params.jobClass - The job class within the profile
+   * @param params.jobName - The job class within the profile
    * @param params.eventContext - Event-based context for the job
    * @returns The result of the docker job execution
    */
-  async triggerSyncDockerJob(params: {
-    appIdentifier: string
-    profileName: string
-    jobClass: string
-    eventContext: { eventId: string; data: unknown }
-  }): Promise<SyncDockerJobResult> {
-    const { appIdentifier, profileName, jobClass, eventContext } = params
-
-    // Validate the app exists and is enabled
-    const app = await this.getAppAsAdmin(appIdentifier, { enabled: true })
-    if (!app) {
-      throw new NotFoundException(
-        `App not found or not enabled: ${appIdentifier}`,
-      )
-    }
-
-    // Validate the profile exists
-    if (!(profileName in app.containerProfiles)) {
-      const availableProfiles = Object.keys(app.containerProfiles)
-      throw new NotFoundException(
-        `Container profile "${profileName}" not found for app "${appIdentifier}". Available: ${availableProfiles.join(', ') || '(none)'}`,
-      )
-    }
-    const profile = app.containerProfiles[profileName]
-
-    // Validate the job class exists
-    if (!(jobClass in profile.jobClasses)) {
-      const availableJobClasses = Object.keys(profile.jobClasses)
-      throw new NotFoundException(
-        `Job class "${jobClass}" not found in profile "${profileName}". Available: ${availableJobClasses.join(', ') || '(none)'}`,
-      )
-    }
-
-    // Execute the docker job
-    return this.dockerOrchestrationService.executeSyncDockerJob({
+  async executeAppDockerJob(
+    params: ExecuteAppDockerJobOptions,
+  ): Promise<DockerExecResult<typeof params.waitForCompletion>> {
+    this.logger.debug('executeAppDockerJob params:', params)
+    const {
+      waitForCompletion,
       appIdentifier,
       profileName,
-      jobClass,
-      eventContext,
+      jobName,
+      jobInputData,
+    } = params
+
+    const profileSpec = await this.dockerJobsService.getProfileSpec(
+      appIdentifier,
+      profileName,
+    )
+
+    // TODO: validate folder access for the requesting app
+
+    // Execute the docker job
+    return this.dockerJobsService.executeDockerJob({
+      waitForCompletion,
+      profileSpec,
+      hostConfigId: `${appIdentifier}:${profileName}`,
+      jobName,
+      jobInputData,
+      taskId: params.taskContext?.taskId,
+      storageAccess: params.taskContext?.storageAccess,
     })
+  }
+
+  async getSearchResultsFromAppAsUser(
+    actor: User,
+    {
+      appIdentifier,
+      workerIdentifier,
+      query,
+    }: { appIdentifier: string; workerIdentifier: string; query: string },
+  ): Promise<{ vector: number[] }> {
+    await this.appSocketService.executeSynchronousAppRequest(appIdentifier, {
+      url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
+      body: {
+        userId: actor.id,
+        query,
+        // space: 'text-v1',
+      },
+    })
+
+    return { vector: [] }
   }
 }

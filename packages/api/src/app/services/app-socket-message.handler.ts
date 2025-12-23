@@ -1,13 +1,19 @@
+import type {
+  AppSocketMessage,
+  AppSocketMessageDataMap,
+} from '@lombokapp/types'
 import {
-  type AppSocketMessage,
   appSocketMessageSchema,
+  AppSocketMessageSchemaMap,
   CORE_APP_IDENTIFIER,
+  PLATFORM_IDENTIFIER,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
-import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, not, or } from 'drizzle-orm'
 import type { JWTService } from 'src/auth/services/jwt.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import type { EventService } from 'src/event/services/event.service'
+import { transformEventToDTO } from 'src/event/transforms/event.transforms'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
@@ -15,12 +21,11 @@ import type { ServerConfigurationService } from 'src/server/services/server-conf
 import type { S3Service } from 'src/storage/s3.service'
 import type { Task } from 'src/task/entities/task.entity'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import type { z, ZodTypeAny } from 'zod'
 
 import { appsTable } from '../entities/app.entity'
 import type { AppService } from './app.service'
-import type { AppSocketMessageDataMap } from './app-socket-message-schemas'
-import { AppSocketMessageSchemaMap } from './app-socket-message-schemas'
 
 export type AppSocketMessageName = z.infer<typeof AppSocketMessage>
 
@@ -188,16 +193,23 @@ export async function handleAppSocketMessage(
           eq(tasksTable.id, requestData.taskId),
           isNull(tasksTable.completedAt),
           isNull(tasksTable.errorAt),
-          eq(tasksTable.handlerId, `${requestingAppIdentifier}:${handlerId}`),
+          or(
+            eq(
+              tasksTable.handlerIdentifier,
+              `${requestingAppIdentifier}:${handlerId}`,
+            ),
+            not(eq(tasksTable.handlerType, 'external')),
+          ),
           ...(isCoreApp
             ? [
                 or(
-                  eq(tasksTable.handlerIdentifier, 'worker'),
+                  eq(tasksTable.handlerType, 'worker'),
+                  eq(tasksTable.handlerType, 'platform'),
                   eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
                 ),
               ]
             : [
-                eq(tasksTable.handlerIdentifier, 'external'),
+                eq(tasksTable.handlerType, 'external'),
                 eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
               ]),
         ),
@@ -229,7 +241,7 @@ export async function handleAppSocketMessage(
             isNull(tasksTable.startedAt),
           ),
         })
-        if (!task || task.completedAt || task.handlerId || task.startedAt) {
+        if (!task || task.completedAt || task.startedAt) {
           break
         }
         const now = new Date()
@@ -238,7 +250,9 @@ export async function handleAppSocketMessage(
           .set({
             startedAt: now,
             updatedAt: now,
-            handlerId: `${requestingAppIdentifier}:${handlerId}`,
+            ...(task.handlerType === 'external'
+              ? { handlerIdentifier: `${requestingAppIdentifier}:${handlerId}` }
+              : {}),
           })
           .where(and(eq(tasksTable.id, task.id), isNull(tasksTable.startedAt)))
           .returning()
@@ -261,7 +275,16 @@ export async function handleAppSocketMessage(
       const event = await ormService.db.query.eventsTable.findFirst({
         where: eq(eventsTable.id, securedTask.triggeringEventId),
       })
-      return { result: { ...securedTask, event } }
+
+      const result = {
+        task: transformTaskToDTO(securedTask),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        event: transformEventToDTO(event!),
+      }
+
+      return {
+        result,
+      }
     }
     case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
       if (!isCoreApp) {
@@ -292,7 +315,7 @@ export async function handleAppSocketMessage(
         }
       }
       const { task } = rows[0]
-      if (task.startedAt || task.completedAt || task.handlerId) {
+      if (task.startedAt || task.completedAt) {
         return {
           result: undefined,
           error: { code: 400, message: 'Task already started.' },
@@ -305,7 +328,9 @@ export async function handleAppSocketMessage(
           .set({
             startedAt: now,
             updatedAt: now,
-            handlerId: `${requestingAppIdentifier}:${handlerId}`,
+            ...(task.handlerType === 'external'
+              ? { handlerIdentifier: `${requestingAppIdentifier}:${handlerId}` }
+              : {}),
           })
           .where(eq(tasksTable.id, task.id))
           .returning()
@@ -313,7 +338,13 @@ export async function handleAppSocketMessage(
       const event = await ormService.db.query.eventsTable.findFirst({
         where: eq(eventsTable.id, updatedTask.triggeringEventId),
       })
-      return { result: { ...updatedTask, event } }
+      return {
+        result: {
+          task: transformTaskToDTO(updatedTask),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          event: transformEventToDTO(event!),
+        },
+      }
     }
     case 'FAIL_HANDLE_TASK': {
       const taskWithApp = await ormService.db
@@ -329,7 +360,13 @@ export async function handleAppSocketMessage(
             isNotNull(tasksTable.startedAt),
             isNull(tasksTable.completedAt),
             isNull(tasksTable.errorAt),
-            eq(tasksTable.handlerId, `${requestingAppIdentifier}:${handlerId}`),
+            or(
+              eq(
+                tasksTable.handlerIdentifier,
+                `${requestingAppIdentifier}:${handlerId}`,
+              ),
+              not(eq(tasksTable.handlerType, 'external')),
+            ),
             ...(isCoreApp
               ? [
                   or(
@@ -490,6 +527,29 @@ export async function handleAppSocketMessage(
           },
         }
       }
+    }
+    case 'EXECUTE_DOCKER_JOB': {
+      return {
+        result: await appService.executeAppDockerJob({
+          appIdentifier: requestingAppIdentifier,
+          ...requestData,
+        }),
+      }
+    }
+    case 'QUEUE_APP_TASK': {
+      // TODO: validate the app is enabled for this user and this folder (if they are defined)
+      await eventService.emitEvent({
+        emitterIdentifier: PLATFORM_IDENTIFIER,
+        eventIdentifier: `${PLATFORM_IDENTIFIER}:app_action:queue_app_task`,
+        data: {
+          appIdentifier: requestingAppIdentifier,
+          taskIdentifier: requestData.taskIdentifier,
+          inputData: requestData.inputData,
+        },
+        subjectContext: requestData.subjectContext,
+        userId: requestData.userId,
+      })
+      return { result: undefined }
     }
   }
   return {

@@ -1,6 +1,7 @@
 import {
   DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
   FolderPushMessage,
+  JsonSerializableValue,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
   WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
@@ -66,21 +67,22 @@ export class EventService {
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
 
-  async emitEvent({
-    emitterIdentifier,
-    eventIdentifier,
-    data = {},
-    subjectContext,
-    userId,
-    _db,
-  }: {
-    emitterIdentifier: string
-    eventIdentifier: PlatformEvent | string
-    data?: unknown
-    subjectContext?: { folderId: string; objectKey?: string }
-    userId?: string
-    _db?: OrmService['db']
-  }) {
+  async emitEvent(
+    {
+      emitterIdentifier,
+      eventIdentifier,
+      data,
+      subjectContext,
+      userId,
+    }: {
+      emitterIdentifier: string
+      eventIdentifier: PlatformEvent | string
+      data: JsonSerializableValue
+      subjectContext?: { folderId: string; objectKey?: string }
+      userId?: string
+    },
+    _db?: OrmService['db'],
+  ) {
     const db = _db ?? this.ormService.db
     const now = new Date()
 
@@ -156,7 +158,7 @@ export class EventService {
           return Promise.all(
             (subscribedApp.config.tasks ?? []).map(async (taskDefinition) => {
               if (
-                taskDefinition.triggers.find(
+                taskDefinition.triggers?.find(
                   (trigger) => trigger === eventIdentifier,
                 )
               ) {
@@ -169,7 +171,7 @@ export class EventService {
                     : taskDefinition.handler.type === 'docker'
                       ? {
                           handlerType: 'docker',
-                          handlerIdentifier: `${taskDefinition.handler.profile}:${taskDefinition.handler.jobClass}`,
+                          handlerIdentifier: taskDefinition.handler.identifier,
                         }
                       : {
                           handlerType: 'external',
@@ -177,7 +179,7 @@ export class EventService {
                         }
                 const newTaskId = uuidV4()
                 // Build the base task object
-                tasks.push({
+                const baseTask = {
                   id: newTaskId,
                   triggeringEventId: event.id,
                   subjectFolderId: subjectContext?.folderId,
@@ -190,32 +192,11 @@ export class EventService {
                   updatedAt: now,
                   handlerType,
                   handlerIdentifier,
-                })
-                if (handlerType === 'worker') {
-                  // Emit the run_worker_script event if the task is worker based
-                  await this.emitEvent({
-                    emitterIdentifier: PLATFORM_IDENTIFIER,
-                    eventIdentifier: WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
-                    data: {
-                      taskId: newTaskId,
-                      appIdentifier: subscribedApp.identifier,
-                      workerIdentifier: handlerIdentifier,
-                    },
-                    _db: tx,
-                  })
-                } else if (handlerType === 'docker') {
-                  // Emit the docker_task_enqueued event if the task is docker based
-                  await this.emitEvent({
-                    emitterIdentifier: PLATFORM_IDENTIFIER,
-                    eventIdentifier: DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
-                    data: {
-                      taskId: newTaskId,
-                      appIdentifier: subscribedApp.identifier,
-                      jobClass: handlerIdentifier?.split(':')[1],
-                      profile: handlerIdentifier?.split(':')[0],
-                    },
-                    _db: tx,
-                  })
+                }
+                tasks.push(baseTask)
+                if (handlerType === 'worker' || handlerType === 'docker') {
+                  // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
+                  await this.emitRunnableTaskEnqueuedEvent(baseTask, tx)
                 }
                 return Promise.resolve()
               }
@@ -260,13 +241,23 @@ export class EventService {
             taskIdentifier: PlatformTaskName.ReindexFolder,
             taskDescription: 'Reindex folder on user request',
             shouldKeepEventSubjectContext: true,
+            shouldKeepEventDataContext: false,
           },
         ],
-      [`${PLATFORM_IDENTIFIER}:docker_task_enqueued`]: [
+      [DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER]: [
         {
           taskIdentifier: PlatformTaskName.RunDockerJob,
           taskDescription: 'Run a docker job',
           shouldKeepEventSubjectContext: true,
+          shouldKeepEventDataContext: true,
+        },
+      ],
+      [`${PLATFORM_IDENTIFIER}:app_action:queue_app_task`]: [
+        {
+          taskIdentifier: PlatformTaskName.QueueAppTask,
+          taskDescription: 'Queue an app task',
+          shouldKeepEventSubjectContext: true,
+          shouldKeepEventDataContext: false,
         },
       ],
     }
@@ -287,7 +278,9 @@ export class EventService {
               : {}),
             taskDescription: taskDefinition.taskDescription,
             taskIdentifier: taskDefinition.taskIdentifier,
-            inputData: {},
+            inputData: taskDefinition.shouldKeepEventDataContext
+              ? event.data
+              : {},
             ownerIdentifier: PLATFORM_IDENTIFIER,
             createdAt: timestamp,
             updatedAt: timestamp,
@@ -296,6 +289,46 @@ export class EventService {
         : []
 
     return platformTasks
+  }
+
+  /**
+   * Emits a task enqueued event for a worker or docker job, which
+   * will trigger the creation of a docker or worker runner task.
+   *
+   * @param task - The runnable task (via worker or docker).
+   * @param tx - The transaction to use.
+   */
+  async emitRunnableTaskEnqueuedEvent(task: NewTask, tx: OrmService['db']) {
+    if (task.handlerType === 'worker' || task.handlerType === 'docker') {
+      const event = {
+        emitterIdentifier: PLATFORM_IDENTIFIER,
+        eventIdentifier:
+          task.handlerType === 'worker'
+            ? WORKER_TASK_ENQUEUED_EVENT_IDENTIFIER
+            : DOCKER_TASK_ENQUEUED_EVENT_IDENTIFIER,
+        subjectContext: task.subjectFolderId
+          ? {
+              folderId: task.subjectFolderId,
+              objectKey: task.subjectObjectKey ?? undefined,
+            }
+          : undefined,
+        data: {
+          taskId: task.id,
+          appIdentifier: task.ownerIdentifier,
+          ...(task.handlerType === 'worker'
+            ? {
+                workerIdentifier: task.handlerIdentifier ?? null,
+              }
+            : {
+                profileIdentifier:
+                  task.handlerIdentifier?.split(':')[0] ?? null,
+                jobClassIdentifier:
+                  task.handlerIdentifier?.split(':')[1] ?? null,
+              }),
+        },
+      }
+      await this.emitEvent(event, tx)
+    }
   }
 
   async getFolderEventAsUser(

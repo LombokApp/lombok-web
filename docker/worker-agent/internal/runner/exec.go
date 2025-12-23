@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/logs"
 	"lombok-worker-agent/internal/platform"
 	"lombok-worker-agent/internal/state"
 	"lombok-worker-agent/internal/types"
@@ -25,7 +26,7 @@ import (
 //
 // The worker should output its result as JSON on the last line of stdout.
 // This will be captured and included in the agent's output.
-func RunExecPerJob(payload *types.JobPayload) error {
+func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
 		return fmt.Errorf("failed to ensure directories: %w", err)
@@ -93,6 +94,9 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
 	cmd.Stderr = stderrFile
 
+	// Track worker startup time
+	workerStartTime := time.Now()
+
 	// Start the worker process
 	if err := cmd.Start(); err != nil {
 		jobState.Status = "failed"
@@ -106,9 +110,20 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	jobState.WorkerPID = cmd.Process.Pid
 	state.WriteJobState(jobState)
 
+	// Log worker startup time (should be very fast, but log it anyway)
+	workerStartupDuration := time.Since(workerStartTime)
+	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs", payload.JobID, workerStartupDuration.Seconds())
+
+	// Track job execution time (from worker start to completion)
+	jobExecutionStartTime := time.Now()
+
 	// Wait for the process to complete
 	err = cmd.Wait()
 	completedAt := time.Now().UTC().Format(time.RFC3339)
+
+	// Calculate job execution time
+	jobExecutionDuration := time.Since(jobExecutionStartTime)
+	totalJobDuration := time.Since(jobStartTime)
 
 	// Determine exit code
 	exitCode := 0
@@ -132,15 +147,18 @@ func RunExecPerJob(payload *types.JobPayload) error {
 	}
 
 	if err := state.WriteJobState(jobState); err != nil {
-		fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to write final job state: %v\n", err)
+		logs.WriteAgentLog("warning: failed to write final job state: %v", err)
 	}
 
-	// Extract the worker's result from the last line of stdout
-	// Convention: worker outputs JSON result on the last non-empty line
-	workerResult := extractLastLineJSON(stdoutBuf.String())
+	// Log timing information
+	logs.WriteAgentLog("job_id=%s job_execution_time=%.3fs total_time=%.3fs",
+		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds())
 
-	// Convert worker result to json.RawMessage for platform completion
+	// Extract the worker's result from the last line of stdout if flag is set
+	// Convention: worker outputs JSON result on the last non-empty line
+	var workerResult interface{}
 	var workerResultRaw json.RawMessage
+	workerResult = extractLastLineJSON(stdoutBuf.String())
 	if workerResult != nil {
 		workerResultRaw, _ = json.Marshal(workerResult)
 	}
@@ -153,14 +171,14 @@ func RunExecPerJob(payload *types.JobPayload) error {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to read manifest: %v\n", err)
+			logs.WriteAgentLog("warning: failed to read manifest: %v", err)
 		} else if manifest != nil && len(manifest.Files) > 0 {
 			uploader := upload.NewUploader(platformClient)
 			ctx := context.Background()
 
 			uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to upload files: %v\n", err)
+				logs.WriteAgentLog("warning: failed to upload files: %v", err)
 			} else {
 				uploadedFiles = uploaded
 			}
@@ -181,8 +199,15 @@ func RunExecPerJob(payload *types.JobPayload) error {
 		}
 
 		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to signal completion: %v\n", err)
+			logs.WriteAgentLog("warning: failed to signal completion: %v", err)
 		}
+	}
+
+	// Build timing information
+	timing := map[string]interface{}{
+		"job_execution_time_seconds":  jobExecutionDuration.Seconds(),
+		"total_time_seconds":          totalJobDuration.Seconds(),
+		"worker_startup_time_seconds": workerStartupDuration.Seconds(),
 	}
 
 	// Output result to stdout for the platform to capture
@@ -191,6 +216,7 @@ func RunExecPerJob(payload *types.JobPayload) error {
 		"exit_code": exitCode,
 		"job_id":    payload.JobID,
 		"job_class": payload.JobClass,
+		"timing":    timing,
 	}
 
 	// Include the worker's result if we found valid JSON
@@ -212,6 +238,28 @@ func RunExecPerJob(payload *types.JobPayload) error {
 
 	resultJSON, _ := json.Marshal(result)
 	fmt.Println(string(resultJSON))
+
+	// Save result to file
+	jobResult := &types.JobResult{
+		Success:       exitCode == 0,
+		JobID:         payload.JobID,
+		JobClass:      payload.JobClass,
+		Timing:        timing,
+		UploadedFiles: uploadedFiles,
+	}
+	if workerResult != nil {
+		jobResult.Result = workerResult
+	}
+	if exitCode != 0 {
+		jobResult.Error = &types.JobError{
+			Code:    "WORKER_EXIT_ERROR",
+			Message: fmt.Sprintf("worker exited with code %d", exitCode),
+		}
+		jobResult.ExitCode = &exitCode
+	}
+	if err := state.WriteJobResult(jobResult); err != nil {
+		logs.WriteAgentLog("warning: failed to write job result: %v", err)
+	}
 
 	// Exit with the worker's exit code
 	if exitCode != 0 {

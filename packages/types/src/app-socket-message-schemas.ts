@@ -1,12 +1,12 @@
-import type { AppSocketMessage } from '@lombokapp/types'
-import {
-  metadataEntrySchema,
-  SignedURLsRequestMethod,
-  workerErrorDetailsSchema,
-} from '@lombokapp/types'
-import { LogEntryLevel } from 'src/log/entities/log-entry.entity'
 import type { ZodTypeAny } from 'zod'
 import { z } from 'zod'
+
+import type { AppSocketMessage } from './apps.types'
+import { jsonSerializableValueSchema } from './apps.types'
+import { metadataEntrySchema } from './content.types'
+import { LogEntryLevel } from './platform.types'
+import { SignedURLsRequestMethod } from './storage.types'
+import { workerErrorDetailsSchema } from './task.types'
 
 export const logEntrySchema = z.object({
   message: z.string(),
@@ -42,27 +42,23 @@ export const getAppUserAccessTokenSchema = z.object({
   userId: z.string().uuid(),
 })
 
-export const getContentSignedUrlsSchema = z.object({
-  requests: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-    }),
-  ),
-})
+export const getContentSignedUrlsSchema = z.array(
+  z.object({
+    folderId: z.string(),
+    objectKey: z.string(),
+    method: z.nativeEnum(SignedURLsRequestMethod),
+  }),
+)
 
-export const getMetadataSignedUrlsSchema = z.object({
-  requests: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      contentHash: z.string(),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-      metadataHash: z.string(),
-    }),
-  ),
-})
+export const getMetadataSignedUrlsSchema = z.array(
+  z.object({
+    folderId: z.string(),
+    objectKey: z.string(),
+    contentHash: z.string(),
+    method: z.nativeEnum(SignedURLsRequestMethod),
+    metadataHash: z.string(),
+  }),
+)
 
 export const updateMetadataSchema = z.object({
   updates: z.array(
@@ -105,7 +101,7 @@ export const dbQuerySchema = z.object({
 
 export const emitEventSchema = z.object({
   eventIdentifier: z.string(),
-  data: z.unknown(),
+  data: jsonSerializableValueSchema,
 })
 
 export const dbExecSchema = z.object({
@@ -130,6 +126,24 @@ export const authenticateUserSchema = z.object({
   appIdentifier: z.string(),
 })
 
+export const executeDockerJobSchema = z.object({
+  profileName: z.string(),
+  jobName: z.string(),
+  jobInputData: jsonSerializableValueSchema,
+  waitForCompletion: z.boolean(),
+})
+
+export const queueAppTaskSchema = z.object({
+  taskIdentifier: z.string(),
+  inputData: jsonSerializableValueSchema,
+  subjectContext: z
+    .object({
+      folderId: z.string(),
+      objectKey: z.string().optional(),
+    })
+    .optional(),
+  userId: z.string().uuid().optional(),
+})
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   DB_QUERY: dbQuerySchema,
@@ -148,6 +162,8 @@ export const AppSocketMessageSchemaMap = {
   GET_WORKER_EXECUTION_DETAILS: getWorkerExecutionDetailsSchema,
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
   AUTHENTICATE_USER: authenticateUserSchema,
+  EXECUTE_DOCKER_JOB: executeDockerJobSchema,
+  QUEUE_APP_TASK: queueAppTaskSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 
 export type AppSocketMessageDataMap = {

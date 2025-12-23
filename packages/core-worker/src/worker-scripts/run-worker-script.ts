@@ -1,5 +1,4 @@
 import type {
-  AppTask,
   IAppPlatformService,
   SerializeableRequest,
 } from '@lombokapp/app-worker-sdk'
@@ -14,6 +13,7 @@ import {
   ScriptExecutionError,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
+import type { EventDTO, TaskDTO } from '@lombokapp/types'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -1068,7 +1068,10 @@ async function createWorkerProcess(
   await createWorkerPipes(requestPipePath, responsePipePath)
 
   const { result: workerExecutionDetails } =
-    await server.getWorkerExecutionDetails(appIdentifier, workerIdentifier)
+    await server.getWorkerExecutionDetails({
+      appIdentifier,
+      workerIdentifier,
+    })
 
   const workerEnvVars = Object.keys(
     workerExecutionDetails.environmentVariables,
@@ -1273,7 +1276,7 @@ export const runWorkerScript = async ({
   onStdoutChunk,
 }: {
   server: IAppPlatformService
-  requestOrTask: Request | AppTask
+  requestOrTask: Request | { task: TaskDTO; event: EventDTO }
   appIdentifier: string
   workerIdentifier: string
   workerExecutionId: string
@@ -1304,7 +1307,9 @@ export const runWorkerScript = async ({
     const requestId = `${workerExecutionId}__${Date.now()}_${crypto.randomUUID()}`
 
     // Serialize the request or task for the pipe
-    let serializedRequestOrTask: SerializeableRequest | AppTask
+    let serializedRequestOrTask:
+      | SerializeableRequest
+      | { task: TaskDTO; event: EventDTO }
 
     if (isRequest) {
       const request = requestOrTask

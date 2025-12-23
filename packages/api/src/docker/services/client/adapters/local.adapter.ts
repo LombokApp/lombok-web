@@ -1,25 +1,27 @@
-import * as fs from 'node:fs'
-
+import { Logger } from '@nestjs/common'
 import Docker from 'dockerode'
+import * as fs from 'fs'
 
+import type { DockerExecuteJobOptions } from '../docker.schema'
 import type {
+  ConnectionTestResult,
   ContainerInfo,
   CreateContainerOptions,
   DockerAdapter,
-  DockerRunConfig,
-  ExecOptions,
-  ExecResult,
-  PingResult,
-} from '../docker-manager.types'
+  DockerExecResult,
+} from '../docker-client.types'
 import {
   type DockerEndpointAuth,
   DockerEndpointAuthType,
-} from '../schemas/docker-endpoint-authentication.schema'
+} from './docker-endpoint-authentication.schema'
 
 export class LocalDockerAdapter implements DockerAdapter {
   private readonly docker: Docker
-
+  private readonly host: string
+  private readonly logger = new Logger(LocalDockerAdapter.name)
   constructor(dockerHost: string, dockerEndpointAuth?: DockerEndpointAuth) {
+    this.host = dockerHost
+
     const isHttpEndpoint = /^https?:\/\//i.test(dockerHost)
 
     if (isHttpEndpoint) {
@@ -59,6 +61,10 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
+  getDescription(): string {
+    return `[DOCKERODE]: ${this.host}`
+  }
+
   /**
    * Check if the Docker socket exists and is accessible.
    * Logs detailed error messages if there are permission issues.
@@ -73,8 +79,7 @@ export class LocalDockerAdapter implements DockerAdapter {
     try {
       // Check if socket exists
       if (!fs.existsSync(socketPath)) {
-        // eslint-disable-next-line no-console
-        console.error(
+        this.logger.error(
           `[Docker] Socket not found at ${socketPath}. ` +
             `Make sure the Docker socket is mounted in the container. ` +
             `Example: -v /var/run/docker.sock:/var/run/docker.sock`,
@@ -87,8 +92,7 @@ export class LocalDockerAdapter implements DockerAdapter {
 
       // Check if it's actually a socket
       if (!stats.isSocket()) {
-        // eslint-disable-next-line no-console
-        console.error(
+        this.logger.error(
           `[Docker] ${socketPath} exists but is not a socket. ` +
             `Found: ${stats.isFile() ? 'file' : stats.isDirectory() ? 'directory' : 'unknown'}`,
         )
@@ -98,8 +102,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       // Try to access the socket (via the proxy) for read/write
       fs.accessSync(proxySocketPath, fs.constants.R_OK | fs.constants.W_OK)
 
-      // eslint-disable-next-line no-console
-      console.log(
+      this.logger.log(
         `[Docker] Socket at ${socketPath} is accessible, via proxy at ${proxySocketPath}`,
       )
     } catch (error) {
@@ -107,26 +110,22 @@ export class LocalDockerAdapter implements DockerAdapter {
         const nodeError = error as NodeJS.ErrnoException
 
         if (nodeError.code === 'EACCES') {
-          // eslint-disable-next-line no-console
-          console.error(
+          this.logger.error(
             `[Docker] Permission denied accessing socket at ${socketPath} (via proxy at ${proxySocketPath}). ` +
               `The container user does not have permission to access the Docker socket. `,
           )
         } else if (nodeError.code === 'ENOENT') {
-          // eslint-disable-next-line no-console
-          console.error(
+          this.logger.error(
             `[Docker] Socket not found at ${socketPath}. ` +
               `Make sure the Docker socket is mounted: -v /var/run/docker.sock:/var/run/docker.sock`,
           )
         } else {
-          // eslint-disable-next-line no-console
-          console.error(
+          this.logger.error(
             `[Docker] Error accessing socket at ${socketPath}: ${nodeError.code} - ${nodeError.message}`,
           )
         }
       } else {
-        // eslint-disable-next-line no-console
-        console.error(
+        this.logger.error(
           `[Docker] Unknown error checking socket permissions: ${error instanceof Error ? error.message : String(error)}`,
         )
       }
@@ -151,7 +150,7 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
-  async ping(): Promise<PingResult> {
+  async testConnection(): Promise<ConnectionTestResult> {
     try {
       const versionInfo = await this.docker.version()
 
@@ -172,8 +171,7 @@ export class LocalDockerAdapter implements DockerAdapter {
   }
 
   async pullImage(image: string): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.log(`[Docker] Pulling image: ${image}`)
+    this.logger.log(`[Docker] Pulling image: ${image}`)
 
     const stream = await this.docker.pull(image)
 
@@ -185,36 +183,20 @@ export class LocalDockerAdapter implements DockerAdapter {
           if (err) {
             reject(err)
           } else {
-            // eslint-disable-next-line no-console
-            console.log(`[Docker] Successfully pulled image: ${image}`)
+            this.logger.log(`[Docker] Successfully pulled image: ${image}`)
             resolve()
           }
         },
         (event: { status?: string; progress?: string }) => {
           // Optional: log progress updates
           if (event.status) {
-            // eslint-disable-next-line no-console
-            console.log(
+            this.logger.log(
               `[Docker] ${event.status}${event.progress ? `: ${event.progress}` : ''}`,
             )
           }
         },
       )
     })
-  }
-
-  async run(runConfig: DockerRunConfig): Promise<void> {
-    const container = await this.docker.createContainer({
-      Image: runConfig.image,
-      Cmd: runConfig.command,
-      Env: runConfig.environmentVariables
-        ? Object.entries(runConfig.environmentVariables).map(
-            ([key, value]) => `${key}=${value}`,
-          )
-        : undefined,
-    })
-
-    await container.start()
   }
 
   async listContainersByLabels(
@@ -256,13 +238,27 @@ export class LocalDockerAdapter implements DockerAdapter {
 
     const container = await this.docker.createContainer({
       Image: options.image,
-      Cmd: options.command,
       Env: options.environmentVariables
         ? Object.entries(options.environmentVariables).map(
             ([key, value]) => `${key}=${value}`,
           )
         : undefined,
       Labels: options.labels,
+      Volumes: options.volumes,
+      ...(options.gpus
+        ? {
+            HostConfig: {
+              DeviceRequests: [
+                {
+                  Driver: options.gpus.driver,
+                  DeviceIDs: options.gpus.deviceIds,
+                  Options: {},
+                  Capabilities: [['gpu']],
+                },
+              ],
+            },
+          }
+        : {}),
     })
 
     await container.start()
@@ -276,27 +272,24 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
-  async exec(containerId: string, options: ExecOptions): Promise<ExecResult> {
+  async exec<T extends boolean>(
+    containerId: string,
+    options: DockerExecuteJobOptions & { waitForCompletion: T },
+  ): Promise<DockerExecResult<T>> {
     try {
       const container = this.docker.getContainer(containerId)
 
       // Build the payload for the lombok-worker-agent
       const payload: Record<string, unknown> = {
-        job_id: crypto.randomUUID(),
-        job_class: options.jobClass,
-        worker_command: ['/app/worker'], // Default worker path, can be customized per job class
+        job_id: options.jobId,
+        job_class: options.jobName,
+        job_input: options.jobInputData,
+        job_token: options.jobToken,
+        worker_command: options.jobCommand, // Default worker path, can be customized per job class
         interface: {
-          kind: options.mode === 'sync' ? 'exec_per_job' : 'persistent_http',
+          kind: options.jobInterface.kind,
+          listener: options.jobInterface.listener,
         },
-        job_input: options.payload,
-      }
-
-      // Include platform integration fields if provided
-      if (options.platformUrl) {
-        payload.platform_url = options.platformUrl
-      }
-      if (options.jobToken) {
-        payload.job_token = options.jobToken
       }
 
       // Base64 encode the payload
@@ -317,54 +310,93 @@ export class LocalDockerAdapter implements DockerAdapter {
         AttachStderr: true,
       })
 
-      const stream = await exec.start({ Detach: false, Tty: false })
-
-      // Collect output from the stream
-      const output = await new Promise<string>((resolve, reject) => {
-        let data = ''
-        stream.on('data', (chunk: Buffer) => {
-          // Docker multiplexes stdout/stderr, skip the 8-byte header
-          // Each frame: [STREAM_TYPE(1), 0, 0, 0, SIZE(4), PAYLOAD]
-          let offset = 0
-          while (offset < chunk.length) {
-            if (offset + 8 > chunk.length) {
-              break
-            }
-            const size = chunk.readUInt32BE(offset + 4)
-            if (offset + 8 + size > chunk.length) {
-              break
-            }
-            data += chunk.subarray(offset + 8, offset + 8 + size).toString()
-            offset += 8 + size
-          }
-        })
-        stream.on('end', () => resolve(data))
-        stream.on('error', reject)
+      const stream = await exec.start({
+        Detach: !options.waitForCompletion,
+        Tty: false,
       })
 
-      // Try to parse output as JSON result from the agent
+      if (!options.waitForCompletion) {
+        const asyncResponse: DockerExecResult<false> = {
+          jobId: options.jobId,
+        }
+        return asyncResponse as DockerExecResult<
+          typeof options.waitForCompletion
+        >
+      }
+
       try {
-        const result = JSON.parse(output) as {
-          success: boolean
-          result?: unknown
-          error?: { code: string; message: string }
+        // Collect output from the stream
+        const output = await new Promise<string>((resolve, reject) => {
+          let data = ''
+          stream.on('data', (chunk: Buffer) => {
+            // Docker multiplexes stdout/stderr, skip the 8-byte header
+            // Each frame: [STREAM_TYPE(1), 0, 0, 0, SIZE(4), PAYLOAD]
+            let offset = 0
+            while (offset < chunk.length) {
+              if (offset + 8 > chunk.length) {
+                break
+              }
+              const size = chunk.readUInt32BE(offset + 4)
+              if (offset + 8 + size > chunk.length) {
+                break
+              }
+              data += chunk.subarray(offset + 8, offset + 8 + size).toString()
+              offset += 8 + size
+            }
+          })
+          stream.on('end', () => resolve(data))
+          stream.on('error', reject)
+        })
+
+        // Try to parse output as JSON result from the agent
+        try {
+          const lastLineParsedOutout = JSON.parse(
+            output.trim().split('\n').pop() ?? output,
+          ) as {
+            success: boolean
+            result?: unknown
+            job_class: string
+            job_id: string
+            error?: { code: string; message: string }
+          }
+          const resultParsed: DockerExecResult<true> = {
+            success: lastLineParsedOutout.success,
+            result: lastLineParsedOutout.result,
+            jobId: options.jobId,
+            jobError: lastLineParsedOutout.error,
+          }
+          return resultParsed as DockerExecResult<
+            typeof options.waitForCompletion
+          >
+        } catch {
+          // If output is not valid JSON, treat it as a raw result
+          const resultRaw: DockerExecResult<true> = {
+            success: false,
+            result: undefined,
+            jobId: options.jobId,
+            jobError: {
+              code: 'OUTPUT_PARSE_FAILED',
+              message: [
+                `\nRAW DOCKER EXEC OUTPUT`,
+                `====================================================================`,
+                output,
+                `====================================================================\n`,
+              ].join('\n'),
+            },
+          }
+          return resultRaw as DockerExecResult<typeof options.waitForCompletion>
         }
-        return result
-      } catch {
-        // If output is not valid JSON, treat it as a raw result
-        return {
-          success: true,
-          result: output,
-        }
+      } catch (error) {
+        throw new Error(
+          `OUTPUT_CAPTURE_FAILED: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
+          { cause: error },
+        )
       }
     } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: 'EXEC_FAILED',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      }
+      throw new Error(
+        `EXEC_FAILED: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
+        { cause: error },
+      )
     }
   }
 
@@ -393,5 +425,109 @@ export class LocalDockerAdapter implements DockerAdapter {
     } catch {
       return false
     }
+  }
+
+  /**
+   * Helper method to execute a command in a container and return the output as a string
+   */
+  private async executeCommand(
+    containerId: string,
+    command: string[],
+  ): Promise<string> {
+    const container = this.docker.getContainer(containerId)
+
+    const exec = await container.exec({
+      Cmd: command,
+      AttachStdout: true,
+      AttachStderr: true,
+    })
+
+    const stream = await exec.start({ Detach: false, Tty: false })
+
+    // Collect output from the stream
+    const output = await new Promise<string>((resolve, reject) => {
+      let data = ''
+      stream.on('data', (chunk: Buffer) => {
+        // Docker multiplexes stdout/stderr, skip the 8-byte header
+        // Each frame: [STREAM_TYPE(1), 0, 0, 0, SIZE(4), PAYLOAD]
+        let offset = 0
+        while (offset < chunk.length) {
+          if (offset + 8 > chunk.length) {
+            break
+          }
+          const size = chunk.readUInt32BE(offset + 4)
+          if (offset + 8 + size > chunk.length) {
+            break
+          }
+          data += chunk.subarray(offset + 8, offset + 8 + size).toString()
+          offset += 8 + size
+        }
+      })
+      stream.on('end', () => resolve(data))
+      stream.on('error', reject)
+    })
+
+    return output
+  }
+
+  async getAgentLogs(
+    containerId: string,
+    options?: { tail?: number; grep?: string },
+  ): Promise<string> {
+    const command = ['lombok-worker-agent', 'agent-log']
+
+    if (options?.grep) {
+      command.push('--grep', options.grep)
+    }
+
+    if (options?.tail) {
+      command.push('--tail', options.tail.toString())
+    }
+
+    return this.executeCommand(containerId, command)
+  }
+
+  async getWorkerLogs(
+    containerId: string,
+    options: { jobClass: string; tail?: number; err?: boolean },
+  ): Promise<string> {
+    const command = [
+      'lombok-worker-agent',
+      'worker-log',
+      '--job-class',
+      options.jobClass,
+    ]
+
+    if (options.err) {
+      command.push('--err')
+    }
+
+    if (options.tail) {
+      command.push('--tail', options.tail.toString())
+    }
+
+    return this.executeCommand(containerId, command)
+  }
+
+  async getJobLogs(
+    containerId: string,
+    options: { jobId: string; tail?: number; err?: boolean },
+  ): Promise<string> {
+    const command = [
+      'lombok-worker-agent',
+      'job-log',
+      '--job-id',
+      options.jobId,
+    ]
+
+    if (options.err) {
+      command.push('--err')
+    }
+
+    if (options.tail) {
+      command.push('--tail', options.tail.toString())
+    }
+
+    return this.executeCommand(containerId, command)
   }
 }

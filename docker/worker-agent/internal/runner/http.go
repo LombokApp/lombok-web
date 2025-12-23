@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/logs"
 	"lombok-worker-agent/internal/platform"
 	"lombok-worker-agent/internal/state"
 	"lombok-worker-agent/internal/types"
@@ -21,7 +22,7 @@ import (
 
 const (
 	// Readiness polling settings
-	readinessTimeout  = 30 * time.Second
+	readinessTimeout  = 60 * time.Second
 	readinessPollWait = 500 * time.Millisecond
 
 	// Job submission timeout (short - just for the POST)
@@ -35,7 +36,7 @@ const (
 
 // RunPersistentHTTP runs a job using the persistent_http interface
 // It ensures a persistent worker is running, submits the job, then polls for completion.
-func RunPersistentHTTP(payload *types.JobPayload) error {
+func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
 		return fmt.Errorf("failed to ensure directories: %w", err)
@@ -59,13 +60,20 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		return fmt.Errorf("failed to write initial job state: %w", err)
 	}
 
+	// Track worker startup time
+	workerStartupStartTime := time.Now()
+
 	// Ensure worker is running and ready
-	workerState, err := ensureWorkerReady(payload)
+	workerState, workerStartupDuration, err := ensureWorkerReady(payload)
 	if err != nil {
 		jobState.Status = "failed"
 		jobState.Error = err.Error()
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
+
+		// Calculate timing even on error
+		workerStartupDurationActual := time.Since(workerStartupStartTime)
+		totalJobDuration := time.Since(jobStartTime)
 
 		result := map[string]interface{}{
 			"success": false,
@@ -73,6 +81,10 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 			"error": map[string]interface{}{
 				"code":    "WORKER_NOT_READY",
 				"message": err.Error(),
+			},
+			"timing": map[string]interface{}{
+				"total_time_seconds":          totalJobDuration.Seconds(),
+				"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
 			},
 		}
 		resultJSON, _ := json.Marshal(result)
@@ -82,6 +94,11 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 
 	jobState.WorkerStatePID = workerState.PID
 	state.WriteJobState(jobState)
+
+	// Log worker startup time
+	workerStartupDurationActual := time.Since(workerStartupStartTime)
+	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs (to_ready=%.3fs)",
+		payload.JobID, workerStartupDurationActual.Seconds(), workerStartupDuration.Seconds())
 
 	// Build the HTTP client for job submission (short timeout)
 	client := &http.Client{Timeout: jobSubmitTimeout}
@@ -105,7 +122,7 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	httpReq := types.HTTPJobRequest{
 		JobID:        payload.JobID,
 		JobClass:     payload.JobClass,
-		Input:        payload.JobInput,
+		JobInput:     payload.JobInput,
 		JobLogOut:    jobOutPath,
 		JobLogErr:    jobErrPath,
 		JobOutputDir: jobOutputDir,
@@ -130,6 +147,10 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
+	// Track job execution time (from job submission to completion)
+	// Set this right before submitting the job, after worker is ready
+	jobExecutionStartTime := time.Now()
+
 	resp, err := client.Do(req)
 	if err != nil {
 		jobState.Status = "failed"
@@ -137,12 +158,20 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
+		// Calculate timing even on error
+		workerStartupDurationActual := time.Since(workerStartupStartTime)
+		totalJobDuration := time.Since(jobStartTime)
+
 		result := map[string]interface{}{
 			"success": false,
 			"job_id":  payload.JobID,
 			"error": map[string]interface{}{
 				"code":    "JOB_SUBMIT_FAILED",
 				"message": err.Error(),
+			},
+			"timing": map[string]interface{}{
+				"total_time_seconds":          totalJobDuration.Seconds(),
+				"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
 			},
 		}
 		resultJSON, _ := json.Marshal(result)
@@ -172,12 +201,20 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
+		// Calculate timing even on error
+		workerStartupDurationActual := time.Since(workerStartupStartTime)
+		totalJobDuration := time.Since(jobStartTime)
+
 		result := map[string]interface{}{
 			"success": false,
 			"job_id":  payload.JobID,
 			"error": map[string]interface{}{
 				"code":    "JOB_NOT_ACCEPTED",
 				"message": errMsg,
+			},
+			"timing": map[string]interface{}{
+				"total_time_seconds":          totalJobDuration.Seconds(),
+				"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
 			},
 		}
 		resultJSON, _ := json.Marshal(result)
@@ -200,7 +237,7 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		status, err := pollJobStatus(pollClient, statusURL)
 		if err != nil {
 			// Log the error but keep polling
-			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] poll error: %v\n", err)
+			logs.WriteAgentLog("poll error: %v", err)
 			time.Sleep(jobPollInterval)
 			continue
 		}
@@ -221,6 +258,11 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
+		// Calculate timing even on timeout
+		jobExecutionDuration := time.Since(jobExecutionStartTime)
+		workerStartupDurationActual := time.Since(workerStartupStartTime)
+		totalJobDuration := time.Since(jobStartTime)
+
 		result := map[string]interface{}{
 			"success": false,
 			"job_id":  payload.JobID,
@@ -228,12 +270,24 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 				"code":    "JOB_POLL_TIMEOUT",
 				"message": jobState.Error,
 			},
+			"timing": map[string]interface{}{
+				"job_execution_time_seconds":  jobExecutionDuration.Seconds(),
+				"total_time_seconds":          totalJobDuration.Seconds(),
+				"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
+			},
 		}
 		resultJSON, _ := json.Marshal(result)
 		fmt.Println(string(resultJSON))
 		os.Exit(1)
 		return fmt.Errorf("job polling timed out")
 	}
+
+	// Calculate job execution time
+	jobExecutionDuration := time.Since(jobExecutionStartTime)
+	totalJobDuration := time.Since(jobStartTime)
+
+	logs.WriteAgentLog("job_id=%s job_execution_time=%.3fs total_time=%.3fs",
+		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds())
 
 	// Update job state with final status
 	jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
@@ -257,14 +311,14 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to read manifest: %v\n", err)
+			logs.WriteAgentLog("warning: failed to read manifest: %v", err)
 		} else if manifest != nil && len(manifest.Files) > 0 {
 			uploader := upload.NewUploader(platformClient)
 			ctx := context.Background()
 
 			uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to upload files: %v\n", err)
+				logs.WriteAgentLog("warning: failed to upload files: %v", err)
 			} else {
 				uploadedFiles = uploaded
 			}
@@ -282,8 +336,16 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		}
 
 		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-			fmt.Fprintf(os.Stderr, "[lombok-worker-agent] warning: failed to signal completion: %v\n", err)
+			logs.WriteAgentLog("warning: failed to signal completion: %v", err)
 		}
+	}
+
+	// Build timing information
+	timing := map[string]interface{}{
+		"job_execution_time_seconds":  jobExecutionDuration.Seconds(),
+		"total_time_seconds":          totalJobDuration.Seconds(),
+		"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
+		"worker_ready_time_seconds":   workerStartupDuration.Seconds(),
 	}
 
 	// Output the final result to stdout for the platform
@@ -291,9 +353,17 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 		"success":   finalStatus.Status == "completed",
 		"job_id":    payload.JobID,
 		"job_class": payload.JobClass,
+		"timing":    timing,
 	}
 	if finalStatus.Result != nil {
-		result["result"] = json.RawMessage(finalStatus.Result)
+		// Parse the result from the HTTP response and include it as a parsed object
+		var parsedResult interface{}
+		if err := json.Unmarshal(finalStatus.Result, &parsedResult); err != nil {
+			// If parsing fails, fall back to raw message
+			result["result"] = json.RawMessage(finalStatus.Result)
+		} else {
+			result["result"] = parsedResult
+		}
 	}
 	if len(uploadedFiles) > 0 {
 		result["uploaded_files"] = uploadedFiles
@@ -304,6 +374,27 @@ func RunPersistentHTTP(payload *types.JobPayload) error {
 
 	resultJSON, _ := json.Marshal(result)
 	fmt.Println(string(resultJSON))
+
+	// Save result to file
+	jobResult := &types.JobResult{
+		Success:       finalStatus.Status == "completed",
+		JobID:         payload.JobID,
+		JobClass:      payload.JobClass,
+		Timing:        timing,
+		UploadedFiles: uploadedFiles,
+	}
+	if finalStatus.Result != nil {
+		var parsedResult interface{}
+		if err := json.Unmarshal(finalStatus.Result, &parsedResult); err == nil {
+			jobResult.Result = parsedResult
+		}
+	}
+	if finalStatus.Error != nil {
+		jobResult.Error = finalStatus.Error
+	}
+	if err := state.WriteJobResult(jobResult); err != nil {
+		logs.WriteAgentLog("warning: failed to write job result: %v", err)
+	}
 
 	if jobState.Status == "failed" {
 		os.Exit(1)
@@ -346,19 +437,21 @@ func pollJobStatus(client *http.Client, statusURL string) (*types.HTTPJobStatusR
 }
 
 // ensureWorkerReady makes sure a worker is running and ready to accept jobs
-func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, error) {
+// Returns the worker state, the time taken for the worker to become ready, and any error
+func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Duration, error) {
 	jobClass := payload.JobClass
 
 	// Check if worker is already running
 	alive, workerState, err := state.IsWorkerAlive(jobClass)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check worker state: %w", err)
+		return nil, 0, fmt.Errorf("failed to check worker state: %w", err)
 	}
 
 	if alive && workerState != nil && workerState.State == "ready" {
 		// Verify the worker is actually responding
 		if checkWorkerReady(payload.Interface.Listener) {
-			return workerState, nil
+			// Worker was already ready, so ready time is 0
+			return workerState, 0, nil
 		}
 		// Worker is not responding, mark as unhealthy and restart
 		workerState.State = "unhealthy"
@@ -366,24 +459,32 @@ func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, error) {
 	}
 
 	// Need to start (or restart) the worker
+	workerStartTime := time.Now()
 	workerState, err = startWorker(payload)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	// Poll for readiness
 	if err := waitForWorkerReady(payload.Interface.Listener, readinessTimeout); err != nil {
 		workerState.State = "unhealthy"
 		state.WriteWorkerState(workerState)
-		return nil, err
+		return nil, 0, err
 	}
+
+	// Calculate time taken for worker to become ready
+	readyDuration := time.Since(workerStartTime)
+
+	// Log worker startup timing
+	logs.WriteAgentLog("job_class=%s worker_became_ready_time=%.3fs",
+		payload.JobClass, readyDuration.Seconds())
 
 	// Mark as ready
 	workerState.State = "ready"
 	workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
 	state.WriteWorkerState(workerState)
 
-	return workerState, nil
+	return workerState, readyDuration, nil
 }
 
 // startWorker starts a new worker process
@@ -401,8 +502,9 @@ func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
 	}
 
 	// Open log files for the worker
-	stdoutPath := config.WorkerOutLogPath(payload.JobClass)
-	stderrPath := config.WorkerErrLogPath(payload.JobClass)
+	logIdentifier := config.WorkerLogIdentifier(payload.WorkerCommand, &payload.Interface)
+	stdoutPath := config.WorkerOutLogPath(logIdentifier)
+	stderrPath := config.WorkerErrLogPath(logIdentifier)
 
 	stdoutFile, err := os.OpenFile(stdoutPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
@@ -438,6 +540,7 @@ func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
 	workerState := &types.WorkerState{
 		JobClass:      payload.JobClass,
 		Kind:          "persistent_http",
+		WorkerCommand: payload.WorkerCommand,
 		PID:           cmd.Process.Pid,
 		State:         "starting",
 		Listener:      payload.Interface.Listener,
@@ -522,9 +625,4 @@ func buildBaseURL(listener *types.ListenerConfig) string {
 	}
 
 	return fmt.Sprintf("http://127.0.0.1:%d", listener.Port)
-}
-
-// Deprecated: buildEndpointURL is kept for backwards compatibility
-func buildEndpointURL(listener *types.ListenerConfig) string {
-	return buildBaseURL(listener) + "/job"
 }

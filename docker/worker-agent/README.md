@@ -214,7 +214,7 @@ Content-Type: application/json
 {
   "job_id": "uuid-string",
   "job_class": "string",
-  "input": { ...job_input... },
+  "job_input": { ...job_input... },
   "job_log_out": "/var/log/lombok-worker-agent/jobs/<job_id>.out.log",
   "job_log_err": "/var/log/lombok-worker-agent/jobs/<job_id>.err.log"
 }
@@ -435,7 +435,7 @@ type ListenerConfig struct {
 type HTTPJobRequest struct {
     JobID        string          `json:"job_id"`
     JobClass     string          `json:"job_class"`
-    Input        json.RawMessage `json:"input"`
+    JobInput     json.RawMessage `json:"job_input"`
     JobLogOut    string          `json:"job_log_out,omitempty"`
     JobLogErr    string          `json:"job_log_err,omitempty"`
     JobOutputDir string          `json:"job_output_dir,omitempty"`
@@ -750,3 +750,142 @@ The test suite includes:
 - Error handling scenarios
 - Output directory creation and JOB_OUTPUT_DIR env var
 - file_output job class with manifest generation
+
+---
+
+## 14. Implementers
+
+This section describes what a Docker image must implement to integrate with the agent as an HTTP-based worker. It focuses on the **local HTTP jobs interface** (`persistent_http`) and the **file output contract**.
+
+### 14.1 Local HTTP jobs interface (`persistent_http`)
+
+To use the `persistent_http` interface, your image must:
+
+- Start an HTTP server when the worker process is launched using `worker_command` (for example, `["bun", "run", "worker.ts"]`).
+- Bind to the listener described in the job payload:
+  - If `listener.type` is `"tcp"`, listen on `0.0.0.0:<listener.port>`.
+  - If `listener.type` is `"unix"`, listen on the Unix socket at `listener.path`.
+- Remain running and serve multiple jobs over its lifetime (the agent reuses the same worker for many jobs of the same `job_class`).
+
+Your HTTP server **must** implement the following endpoints:
+
+- **`GET /health/ready`**
+  - Return HTTP 200 when the worker is ready to accept jobs.
+  - You may include a JSON body for debugging, but the agent only relies on the status code.
+- **`POST /job`**
+  - Request body is `HTTPJobRequest` as defined above:
+    - `job_id`: string (unique per job).
+    - `job_class`: string.
+    - `job_input`: JSON payload (input for the job).
+    - `job_log_out`: absolute path to a log file for stdout-like job logs.
+    - `job_log_err`: absolute path to a log file for stderr-like job logs.
+    - `job_output_dir`: absolute path where output files should be written (see below).
+  - Your worker should:
+    - Validate the request.
+    - Start processing the job asynchronously.
+  - Response body is `HTTPJobSubmitResponse`:
+    - On success:
+      ```json
+      {
+        "accepted": true,
+        "job_id": "uuid-string"
+      }
+      ```
+    - On immediate validation failure:
+      ```json
+      {
+        "accepted": false,
+        "job_id": "uuid-string",
+        "error": {
+          "code": "INVALID_INPUT",
+          "message": "description"
+        }
+      }
+      ```
+- **`GET /job/{job_id}`**
+  - Return `HTTPJobStatusResponse`:
+    - While queued or running:
+      ```json
+      {
+        "job_id": "uuid-string",
+        "job_class": "string",
+        "status": "pending"
+      }
+      ```
+      or
+      ```json
+      {
+        "job_id": "uuid-string",
+        "job_class": "string",
+        "status": "running"
+      }
+      ```
+    - On success:
+      ```json
+      {
+        "job_id": "uuid-string",
+        "job_class": "string",
+        "status": "completed",
+        "result": { "any": "json" }
+      }
+      ```
+    - On failure:
+      ```json
+      {
+        "job_id": "uuid-string",
+        "job_class": "string",
+        "status": "failed",
+        "error": {
+          "code": "JOB_EXECUTION_ERROR",
+          "message": "description"
+        }
+      }
+      ```
+
+Your implementation is free to choose any internal concurrency, queuing, and resource management strategy, as long as:
+
+- `POST /job` returns quickly (no long-running HTTP requests).
+- `GET /job/{job_id}` eventually transitions to `status` `"completed"` or `"failed"`.
+- Job IDs are unique per worker instance, or safely de-duplicated.
+
+### 14.2 Managing output files
+
+The agent supports automatic upload of worker-generated files to the platform. To participate in this, your worker must follow the output directory and manifest conventions:
+
+- **Output directory**
+  - For HTTP workers, the agent passes the per-job output directory in `job_output_dir` (inside `HTTPJobRequest`).
+  - Your worker must:
+    - Create any necessary subdirectories under `job_output_dir`.
+    - Write all files you want uploaded under this directory.
+- **Manifest file**
+  - When the job finishes (success or failure), your worker should write:
+    - Path: `{job_output_dir}/__manifest__.json`.
+    - Format:
+      ```json
+      {
+        "files": [
+          {
+            "local_path": "relative/path/from_output_dir.ext",
+            "folder_id": "folder-uuid-1",
+            "object_key": "outputs/path.ext",
+            "content_type": "mime/type"
+          }
+        ]
+      }
+      ```
+  - `local_path`:
+    - Relative to `job_output_dir`.
+    - Must point to an existing file by the time the agent checks for uploads.
+  - `folder_id` and `object_key`:
+    - Provided by the platform via job configuration (your worker can treat them as opaque strings).
+  - `content_type`:
+    - Standard MIME type, used when uploading to S3.
+
+The agent will:
+
+- Read `__manifest__.json` after the job reaches `completed` or `failed`.
+- Request presigned URLs from the platform for each file entry.
+- Upload the files to S3.
+- Include the final `uploaded_files` list in the job completion payload back to the platform.
+
+If your worker does not create a manifest, the job will still run correctly; it will simply produce no uploaded files.

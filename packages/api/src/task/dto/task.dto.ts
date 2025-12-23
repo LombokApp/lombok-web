@@ -13,7 +13,7 @@ export const taskSchema = z.object({
   triggeringEventId: z.string().uuid(),
   subjectFolderId: z.string().uuid().optional(),
   subjectObjectKey: z.string().optional(),
-  handlerId: z.string().optional(),
+  handlerIdentifier: z.string().optional(),
   inputData: taskInputDataSchema,
   errorAt: z.date().optional(),
   errorCode: z.string().optional(),

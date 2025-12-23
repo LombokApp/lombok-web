@@ -1,15 +1,8 @@
+import type { LogEntryLevel } from '@lombokapp/types'
 import { relations } from 'drizzle-orm'
 import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import { foldersTable } from '../../folders/entities/folder.entity'
-
-export enum LogEntryLevel {
-  TRACE = 'TRACE',
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-}
 
 export const logEntriesTable = pgTable('log_entries', {
   id: uuid('id').primaryKey(),

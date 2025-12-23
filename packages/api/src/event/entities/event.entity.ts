@@ -1,3 +1,4 @@
+import type { JsonSerializableValue } from '@lombokapp/types'
 import { relations } from 'drizzle-orm'
 import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -9,7 +10,7 @@ export const eventsTable = pgTable('events', {
   userId: text('userId'),
   subjectFolderId: uuid('subjectFolderId').references(() => foldersTable.id),
   subjectObjectKey: text('subjectObjectKey'),
-  data: jsonb('data').$type<unknown>(),
+  data: jsonb('data').$type<JsonSerializableValue>(),
   createdAt: timestamp('createdAt').notNull(),
 })
 

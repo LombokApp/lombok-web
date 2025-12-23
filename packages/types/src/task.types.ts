@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-export interface TaskInputData {
-  [key: string]: string | number | TaskInputData | undefined
-}
+import type { JsonSerializableValue } from './apps.types'
+
+export type TaskInputData = JsonSerializableValue
 
 export interface WorkerErrorDetails {
   [key: string]: string | number | WorkerErrorDetails

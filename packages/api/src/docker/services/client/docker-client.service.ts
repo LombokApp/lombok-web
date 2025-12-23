@@ -1,13 +1,16 @@
+import { Logger } from '@nestjs/common'
+
+import type { DockerExecuteJobOptions } from './docker.schema'
 import type {
+  ConnectionTestResult,
   ContainerInfo,
   CreateContainerOptions,
   DockerAdapter,
-  ExecOptions,
-  ExecResult,
-  PingResult,
-} from './docker-manager.types'
+  DockerExecResult,
+} from './docker-client.types'
 
-export class DockerManager {
+export class DockerClient {
+  private readonly logger = new Logger(DockerClient.name)
   constructor(
     private readonly dockerHostAdapters: Record<string, DockerAdapter>,
   ) {}
@@ -23,32 +26,29 @@ export class DockerManager {
   }
 
   /**
-   * Test connectivity to a Docker host by calling the version endpoint
+   * Test connectivity to a Docker host
    */
-  async ping(hostId: string): Promise<PingResult> {
-    return this.getAdapter(hostId).ping()
+  async testHostConnection(hostId: string): Promise<ConnectionTestResult> {
+    return this.getAdapter(hostId).testConnection()
   }
 
   /**
-   * Run a docker image on the specified host
+   * Test connectivity to a Docker host
    */
-  async runImage(
-    hostId: string,
-    {
-      image,
-      command,
-      environmentVariables = {},
-    }: {
-      image: string
-      command?: string[]
-      environmentVariables?: Record<string, string>
-    },
-  ): Promise<void> {
-    return this.getAdapter(hostId).run({
-      image,
-      command,
-      environmentVariables,
-    })
+  async testAllHostConnections(): Promise<
+    Record<string, { result: ConnectionTestResult; id: string }>
+  > {
+    const results: Record<
+      string,
+      { result: ConnectionTestResult; id: string }
+    > = {}
+    for (const hostId of Object.keys(this.dockerHostAdapters)) {
+      results[hostId] = {
+        id: this.getAdapter(hostId).getDescription(),
+        result: await this.getAdapter(hostId).testConnection(),
+      }
+    }
+    return results
   }
 
   /**
@@ -69,6 +69,7 @@ export class DockerManager {
     hostId: string,
     options: CreateContainerOptions,
   ): Promise<ContainerInfo | null> {
+    // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
     const adapter = this.getAdapter(hostId)
 
     // Look for existing containers with matching labels
@@ -104,8 +105,7 @@ export class DockerManager {
     try {
       return await adapter.createContainer(options)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to create container:', error)
+      this.logger.error('Failed to create container:', error)
       return null
     }
   }
@@ -113,25 +113,40 @@ export class DockerManager {
   /**
    * Execute a command in a running container
    */
-  async execInContainer(
+  async execInContainer<T extends boolean>(
     hostId: string,
     containerId: string,
-    options: ExecOptions,
-  ): Promise<ExecResult> {
+    options: DockerExecuteJobOptions & { waitForCompletion: T },
+  ): Promise<DockerExecResult<T>> {
     const adapter = this.getAdapter(hostId)
 
     // Ensure container is running
     const isRunning = await adapter.isContainerRunning(containerId)
     if (!isRunning) {
-      return {
-        success: false,
-        error: {
-          code: 'CONTAINER_NOT_RUNNING',
-          message: `Container ${containerId} is not running`,
-        },
-      }
+      throw new Error('CONTAINER_NOT_RUNNING')
     }
 
-    return adapter.exec(containerId, options)
+    const result = await adapter.exec(containerId, options)
+    if (options.waitForCompletion) {
+      const [agentLogs, jobLogs, workerLogs] = await Promise.all([
+        adapter.getAgentLogs(containerId),
+        adapter.getJobLogs(containerId, { jobId: options.jobId }),
+        options.jobInterface.kind !== 'exec_per_job'
+          ? adapter.getWorkerLogs(containerId, {
+              jobClass: options.jobName,
+            })
+          : Promise.resolve(''),
+      ])
+      this.logger.debug('\nresult:\n%s\n', JSON.stringify(result, null, 2))
+      this.logger.debug('\nagentLogs:\n%s\n', agentLogs)
+      this.logger.debug('\njobLogs:\n%s\n', jobLogs)
+      if (options.jobInterface.kind !== 'exec_per_job') {
+        this.logger.debug('\nworkerLogs:\n%s\n', workerLogs)
+      }
+      return result as DockerExecResult<T>
+    }
+    return {
+      jobId: options.jobId,
+    } as DockerExecResult<T>
   }
 }

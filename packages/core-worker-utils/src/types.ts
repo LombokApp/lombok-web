@@ -1,4 +1,5 @@
-import type { AppTask, SerializeableRequest } from '@lombokapp/app-worker-sdk'
+import type { SerializeableRequest } from '@lombokapp/app-worker-sdk'
+import type { EventDTO, TaskDTO } from '@lombokapp/types'
 import { z } from 'zod'
 
 export interface WorkerModuleStartContext {
@@ -37,7 +38,7 @@ export interface WorkerPipeRequest {
   id: string
   type: 'request' | 'task'
   timestamp: number
-  data: SerializeableRequest | AppTask
+  data: SerializeableRequest | { task: TaskDTO; event: EventDTO }
   // For authentication context
   authToken?: string
   appIdentifier?: string

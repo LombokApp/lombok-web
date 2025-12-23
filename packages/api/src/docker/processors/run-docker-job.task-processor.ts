@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
-import { DockerOrchestrationService } from 'src/docker/services/docker-orchestration.service'
+import { AppService } from 'src/app/services/app.service'
 import { Event } from 'src/event/entities/event.entity'
 import { BaseProcessor } from 'src/task/base.processor'
 import { Task } from 'src/task/entities/task.entity'
@@ -7,21 +7,32 @@ import { PlatformTaskName } from 'src/task/task.constants'
 
 @Injectable()
 export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDockerJob> {
-  private readonly dockerOrchestrationService: DockerOrchestrationService
+  private readonly appService: AppService
   constructor(
-    @Inject(forwardRef(() => DockerOrchestrationService))
-    _dockerOrchestrationService,
+    @Inject(forwardRef(() => AppService))
+    _appService,
   ) {
     super(PlatformTaskName.RunDockerJob)
-    this.dockerOrchestrationService =
-      _dockerOrchestrationService as DockerOrchestrationService
+    this.appService = _appService as AppService
   }
   async run(task: Task, event: Event) {
-    await this.dockerOrchestrationService.executeDockerJobAsync(
-      task,
-      event as Event & {
-        data: { appIdentifier: string; profile: string; jobClass: string }
+    const eventData = event.data as {
+      profileIdentifier: string
+      jobClassIdentifier: string
+      appIdentifier: string
+    }
+    await this.appService.executeAppDockerJob({
+      waitForCompletion: false,
+      appIdentifier: eventData.appIdentifier,
+      jobInputData: {
+        folderId: event.subjectFolderId,
+        objectKey: event.subjectObjectKey,
       },
-    )
+      profileName: eventData.profileIdentifier,
+      jobName: eventData.jobClassIdentifier,
+      taskContext: {
+        taskId: task.id,
+      },
+    })
   }
 }

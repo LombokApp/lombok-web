@@ -25,7 +25,7 @@ const jobStates = new Map<string, JobState>()
 interface AgentJobRequest {
   job_id: string
   job_class: string
-  input: unknown
+  job_input: unknown
   job_log_out?: string
   job_log_err?: string
   job_output_dir?: string
@@ -515,8 +515,14 @@ const handleFileOutput: JobHandler = async (input, ctx) => {
   }
 }
 
-// Job class registry
+const handleDummyEcho: JobHandler = (input, ctx) => {
+  return input
+}
+
+// Job name registry
 const jobHandlers: Record<string, JobHandler> = {
+  dummy_echo: handleDummyEcho,
+
   // Math operations
   math_add: handleMathAdd,
   math_multiply: handleMathMultiply,
@@ -688,7 +694,7 @@ const server = Bun.serve({
       ctx.logger.log(`Job accepted: job_id=${jobId} job_class=${jobClass}`)
 
       // Execute job asynchronously (don't await - return immediately)
-      executeJobAsync(jobId, jobClass, body.input, ctx)
+      executeJobAsync(jobId, jobClass, body.job_input, ctx)
 
       // Return immediate acknowledgment
       return jsonResponse({

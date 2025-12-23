@@ -4,7 +4,11 @@ import {
   coreWorkerProcessDataPayloadSchema,
   uniqueExecutionKey,
 } from '@lombokapp/core-worker-utils'
-import type { AppManifest } from '@lombokapp/types'
+import {
+  type AppManifest,
+  EXECUTE_SYSTEM_REQUEST_MESSAGE,
+  type JsonSerializableValue,
+} from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
 import os from 'os'
@@ -12,7 +16,7 @@ import path from 'path'
 
 import { connectAndPerformWork } from './src/connect-app-worker'
 import { analyzeObjectTaskHandler } from './src/handlers/analyze-object-task-handler'
-import { bulidRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
+import { bulidRunWorkerScriptTaskHandler as buildRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
 import {
   runWorkerScript,
   shutdownAllWorkerSandboxes,
@@ -55,7 +59,7 @@ process.stdin.once('data', (data) => {
       workerData.appToken,
       {
         ['analyze_object']: analyzeObjectTaskHandler,
-        ['run_worker_script']: bulidRunWorkerScriptTaskHandler(
+        ['run_worker_script']: buildRunWorkerScriptTaskHandler(
           workerData.executionOptions,
         ),
       },
@@ -130,6 +134,59 @@ process.stdin.once('data', (data) => {
       fs.rmdirSync(uiBundleCacheRoot, { recursive: true })
     }
     fs.mkdirSync(uiBundleCacheWorkerRoot, { recursive: true })
+
+    // Handle synchronous requests from the core platform
+    socket.on(
+      EXECUTE_SYSTEM_REQUEST_MESSAGE,
+      async (systemRequestData: {
+        appIdentifier: string
+        request: { url: string; body: JsonSerializableValue }
+      }) => {
+        const { appIdentifier, request: systemRequest } = systemRequestData
+        const url = new URL(systemRequest.url)
+        const pathname = url.pathname
+        const workerIdentifierMatch = pathname.match(/^\/worker-api\/([^/]+)/)
+
+        if (!workerIdentifierMatch) {
+          return new Response('Invalid worker API path', { status: 400 })
+        }
+
+        const workerIdentifier = workerIdentifierMatch[1]
+
+        try {
+          return await runWorkerScript({
+            requestOrTask: new Request(systemRequest.url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(systemRequest.body),
+            }),
+            server: serverClient,
+            appIdentifier,
+            workerIdentifier,
+            workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
+            options: workerData.executionOptions,
+            onStdoutChunk: (text) => {
+              // eslint-disable-next-line no-console
+              console.log(
+                `[${appIdentifier}/${workerIdentifier}] ${text.trimEnd()}`,
+              )
+            },
+          })
+        } catch (error: unknown) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error)
+          return new Response(
+            JSON.stringify({
+              error: 'Worker execution failed',
+              message: errorMessage,
+            }),
+            { status: 500 },
+          )
+        }
+      },
+    )
 
     try {
       server = Bun.serve({
@@ -247,8 +304,9 @@ process.stdin.once('data', (data) => {
             }
           } else {
             try {
-              const bundleResponse =
-                await serverClient.getAppUIbundle(appIdentifier)
+              const bundleResponse = await serverClient.getAppUIbundle({
+                appIdentifier,
+              })
 
               if (bundleResponse.error) {
                 return new Response(`Error: ${bundleResponse.error.message}`, {

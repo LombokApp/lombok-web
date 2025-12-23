@@ -811,23 +811,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Handle app task trigger */
-        post: operations["handleAppTaskTrigger"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/folders/{folderId}/shares/{userId}": {
         parameters: {
             query?: never;
@@ -1500,7 +1483,7 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
+                        triggers?: string[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1509,8 +1492,7 @@ export interface components {
                         } | {
                             /** @enum {string} */
                             type: "docker";
-                            profile: string;
-                            jobClass: string;
+                            identifier: string;
                         } | {
                             /** @enum {string} */
                             type: "external";
@@ -1519,22 +1501,33 @@ export interface components {
                     containerProfiles?: {
                         [key: string]: {
                             image: string;
-                            command?: string[];
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
                             resources?: {
                                 gpu?: boolean;
                                 memoryMB?: number;
                                 cpuCores?: number;
                             };
-                            desiredContainers?: number;
-                            desiredMaxJobsPerContainer?: number;
-                            jobClasses: {
-                                [key: string]: {
-                                    maxPerContainer: number;
-                                    countTowardsGlobalCap: boolean;
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobName: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    jobName: string;
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
                                     priority?: number;
-                                };
-                            };
+                                }[];
+                            })[];
                         };
                     };
                     workers?: {
@@ -1688,7 +1681,7 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
+                        triggers?: string[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1697,8 +1690,7 @@ export interface components {
                         } | {
                             /** @enum {string} */
                             type: "docker";
-                            profile: string;
-                            jobClass: string;
+                            identifier: string;
                         } | {
                             /** @enum {string} */
                             type: "external";
@@ -1707,22 +1699,33 @@ export interface components {
                     containerProfiles?: {
                         [key: string]: {
                             image: string;
-                            command?: string[];
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
                             resources?: {
                                 gpu?: boolean;
                                 memoryMB?: number;
                                 cpuCores?: number;
                             };
-                            desiredContainers?: number;
-                            desiredMaxJobsPerContainer?: number;
-                            jobClasses: {
-                                [key: string]: {
-                                    maxPerContainer: number;
-                                    countTowardsGlobalCap: boolean;
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobName: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    jobName: string;
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
                                     priority?: number;
-                                };
-                            };
+                                }[];
+                            })[];
                         };
                     };
                     workers?: {
@@ -1885,7 +1888,7 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
+                        triggers?: string[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -1894,8 +1897,7 @@ export interface components {
                         } | {
                             /** @enum {string} */
                             type: "docker";
-                            profile: string;
-                            jobClass: string;
+                            identifier: string;
                         } | {
                             /** @enum {string} */
                             type: "external";
@@ -1904,22 +1906,33 @@ export interface components {
                     containerProfiles?: {
                         [key: string]: {
                             image: string;
-                            command?: string[];
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
                             resources?: {
                                 gpu?: boolean;
                                 memoryMB?: number;
                                 cpuCores?: number;
                             };
-                            desiredContainers?: number;
-                            desiredMaxJobsPerContainer?: number;
-                            jobClasses: {
-                                [key: string]: {
-                                    maxPerContainer: number;
-                                    countTowardsGlobalCap: boolean;
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobName: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    jobName: string;
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
                                     priority?: number;
-                                };
-                            };
+                                }[];
+                            })[];
                         };
                     };
                     workers?: {
@@ -2047,7 +2060,7 @@ export interface components {
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
+                        triggers?: string[];
                         description: string;
                         handler: {
                             /** @enum {string} */
@@ -2056,8 +2069,7 @@ export interface components {
                         } | {
                             /** @enum {string} */
                             type: "docker";
-                            profile: string;
-                            jobClass: string;
+                            identifier: string;
                         } | {
                             /** @enum {string} */
                             type: "external";
@@ -2066,22 +2078,33 @@ export interface components {
                     containerProfiles?: {
                         [key: string]: {
                             image: string;
-                            command?: string[];
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
                             resources?: {
                                 gpu?: boolean;
                                 memoryMB?: number;
                                 cpuCores?: number;
                             };
-                            desiredContainers?: number;
-                            desiredMaxJobsPerContainer?: number;
-                            jobClasses: {
-                                [key: string]: {
-                                    maxPerContainer: number;
-                                    countTowardsGlobalCap: boolean;
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobName: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    jobName: string;
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
                                     priority?: number;
-                                };
-                            };
+                                }[];
+                            })[];
                         };
                     };
                     workers?: {
@@ -2587,10 +2610,6 @@ export interface components {
         FolderCreateSignedUrlsResponse: {
             urls: string[];
         };
-        TriggerAppTaskInputDTO: {
-            objectKey?: string;
-            inputParams?: unknown;
-        };
         FolderShareGetResponse: {
             share: {
                 /** Format: uuid */
@@ -2753,7 +2772,7 @@ export interface components {
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
-                handlerId?: string;
+                handlerIdentifier?: string;
                 inputData: unknown;
                 /** Format: date-time */
                 errorAt?: string;
@@ -2794,7 +2813,7 @@ export interface components {
                 /** Format: uuid */
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
-                handlerId?: string;
+                handlerIdentifier?: string;
                 inputData: unknown;
                 /** Format: date-time */
                 errorAt?: string;
@@ -5327,49 +5346,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FolderObjectGetResponse"];
                 };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    handleAppTaskTrigger: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                appIdentifier: string;
-                taskIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TriggerAppTaskInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Server Error */
             "5XX": {

@@ -3,12 +3,20 @@ import type { RequestHandler } from '@lombokapp/app-worker-sdk'
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  { serverClient, dbClient },
+  { serverClient, dbClient, actor },
 ) {
   console.log(
     'DEMO API REQUEST WORKER REQUEST HANDLER:',
     new URL(request.url).pathname,
   )
+
+  if (actor?.actorType === 'system') {
+    console.log('System request')
+  } else if (actor?.actorType === 'user') {
+    console.log('User request:', actor.userId)
+  } else {
+    console.log('Unauthenticated request')
+  }
 
   // Log detailed request information
   const headersObj: Record<string, string> = {}

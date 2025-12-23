@@ -1177,6 +1177,7 @@ export class FolderService {
       subjectContext: {
         folderId,
       },
+      data: {},
       userId,
     })
   }
@@ -1296,39 +1297,6 @@ export class FolderService {
     }
     return this.updateFolderObjectInDB(folderId, objectKey, {
       ...headResponse,
-    })
-  }
-
-  async handleAppTaskTrigger(
-    actor: User,
-    {
-      folderId,
-      appIdentifier,
-      taskIdentifier,
-      inputParams,
-      objectKey,
-    }: {
-      folderId: string
-      appIdentifier: string
-      taskIdentifier: string
-      inputParams: unknown // TODO: improve
-      objectKey?: string
-    },
-  ): Promise<void> {
-    const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
-    // console.log('Handling Action:', {
-    //   taskIdentifier,
-    //   folderId,
-    //   appIdentifier,
-    //   actionParams,
-    //   objectKey,
-    // })
-    await this.eventService.emitEvent({
-      emitterIdentifier: appIdentifier,
-      subjectContext: folderId ? { folderId, objectKey } : undefined,
-      userId: actor.id,
-      data: { inputParams },
-      eventIdentifier: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskIdentifier}!!FIX!!`,
     })
   }
 

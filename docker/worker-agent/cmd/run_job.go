@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"os"
-
+	"lombok-worker-agent/internal/logs"
 	"lombok-worker-agent/internal/runner"
 	"lombok-worker-agent/internal/types"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -31,6 +31,9 @@ func init() {
 }
 
 func runJob(cmd *cobra.Command, args []string) error {
+	// Track overall job execution time
+	jobStartTime := time.Now()
+
 	// Decode the base64 payload
 	payloadBytes, err := base64.StdEncoding.DecodeString(payloadBase64)
 	if err != nil {
@@ -44,16 +47,19 @@ func runJob(cmd *cobra.Command, args []string) error {
 	}
 
 	// Log basic info
-	fmt.Fprintf(os.Stderr, "[lombok-worker-agent] job_id=%s job_class=%s interface=%s\n",
+	logs.WriteAgentLog("job_id=%s job_class=%s interface=%s",
 		payload.JobID, payload.JobClass, payload.Interface.Kind)
 
 	// Dispatch based on interface kind
+	var runErr error
 	switch payload.Interface.Kind {
 	case "exec_per_job":
-		return runner.RunExecPerJob(&payload)
+		runErr = runner.RunExecPerJob(&payload, jobStartTime)
 	case "persistent_http":
-		return runner.RunPersistentHTTP(&payload)
+		runErr = runner.RunPersistentHTTP(&payload, jobStartTime)
 	default:
 		return fmt.Errorf("unknown interface kind: %s", payload.Interface.Kind)
 	}
+
+	return runErr
 }

@@ -9,7 +9,7 @@ export function transformTaskToDTO(
     ownerIdentifier: task.ownerIdentifier,
     triggeringEventId: task.triggeringEventId,
     updates: task.updates,
-    handlerId: task.handlerId ?? undefined,
+    handlerIdentifier: task.handlerIdentifier ?? undefined,
     inputData: task.inputData,
     subjectFolderId: task.subjectFolderId ?? undefined,
     subjectObjectKey: task.subjectObjectKey ?? undefined,

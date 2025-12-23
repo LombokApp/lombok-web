@@ -21,7 +21,6 @@ export const tasksTable = pgTable('tasks', {
   triggeringEventId: uuid('triggeringEventId')
     .references(() => eventsTable.id)
     .notNull(),
-  handlerId: text('handlerId'),
   subjectFolderId: uuid('subjectFolderId').references(() => foldersTable.id),
   subjectObjectKey: text('subjectObjectKey'),
   startedAt: timestamp('startedAt'),

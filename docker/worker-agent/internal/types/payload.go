@@ -32,6 +32,7 @@ type ListenerConfig struct {
 type WorkerState struct {
 	JobClass      string          `json:"job_class"`
 	Kind          string          `json:"kind"`
+	WorkerCommand []string        `json:"worker_command,omitempty"`
 	PID           int             `json:"pid"`
 	State         string          `json:"state"` // "starting", "ready", "unhealthy", "stopped"
 	Listener      *ListenerConfig `json:"listener,omitempty"`
@@ -60,11 +61,23 @@ type JobMeta struct {
 	HTTPStatus int `json:"http_status,omitempty"`
 }
 
+// JobResult represents the final result of a job execution
+type JobResult struct {
+	Success       bool                   `json:"success"`
+	JobID         string                 `json:"job_id"`
+	JobClass      string                 `json:"job_class"`
+	Result        interface{}            `json:"result,omitempty"`
+	Error         *JobError              `json:"error,omitempty"`
+	UploadedFiles []UploadedFile         `json:"uploaded_files,omitempty"`
+	Timing        map[string]interface{} `json:"timing,omitempty"`
+	ExitCode      *int                   `json:"exit_code,omitempty"`
+}
+
 // HTTPJobRequest is the payload sent to persistent HTTP workers
 type HTTPJobRequest struct {
 	JobID        string          `json:"job_id"`
 	JobClass     string          `json:"job_class"`
-	Input        json.RawMessage `json:"input"`
+	JobInput     json.RawMessage `json:"job_input"`
 	JobLogOut    string          `json:"job_log_out,omitempty"`
 	JobLogErr    string          `json:"job_log_err,omitempty"`
 	JobOutputDir string          `json:"job_output_dir,omitempty"` // Directory for output files

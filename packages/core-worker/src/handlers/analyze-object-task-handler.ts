@@ -1,4 +1,4 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
 import {
   downloadFileToDisk,
@@ -6,6 +6,7 @@ import {
   readFileMetadata,
   uploadFile,
 } from '@lombokapp/core-worker-utils'
+import type { EventDTO, TaskDTO } from '@lombokapp/types'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
@@ -16,25 +17,25 @@ import { v4 as uuidV4 } from 'uuid'
 import { analyzeContent } from '../analyze/analyze-content'
 
 export const analyzeObjectTaskHandler = async (
-  task: AppTask,
+  task: TaskDTO & { event: EventDTO },
   server: IAppPlatformService,
 ) => {
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
 
-  if (!task.subjectFolderId) {
+  if (!task.event.subjectContext?.folderId) {
     throw new AppAPIError('INVALID_TASK', 'Missing folderId.')
   }
 
-  if (!task.subjectObjectKey) {
+  if (!task.event.subjectContext.objectKey) {
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
   const response = await server.getContentSignedUrls([
     {
-      folderId: task.subjectFolderId,
-      objectKey: task.subjectObjectKey,
+      folderId: task.event.subjectContext.folderId,
+      objectKey: task.event.subjectContext.objectKey,
       method: SignedURLsRequestMethod.GET,
     },
   ])
@@ -56,7 +57,7 @@ export const analyzeObjectTaskHandler = async (
   let mimeType = ''
   try {
     const downloadResult = await downloadFileToDisk(
-      response.result.urls[0].url,
+      response.result[0].url,
       inFilePath,
     )
     mimeType = downloadResult.mimeType
@@ -155,14 +156,16 @@ export const analyzeObjectTaskHandler = async (
   }
 
   if (Object.keys(metadataDescription).length > 0) {
-    const metadataUpdateResponse = await server.updateContentMetadata([
-      {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
-        hash: originalContentHash,
-        metadata: metadataDescription,
-      },
-    ])
+    const metadataUpdateResponse = await server.updateContentMetadata({
+      updates: [
+        {
+          folderId: task.event.subjectContext.folderId,
+          objectKey: task.event.subjectContext.objectKey,
+          hash: originalContentHash,
+          metadata: metadataDescription,
+        },
+      ],
+    })
 
     if (metadataUpdateResponse.error) {
       throw new AppAPIError(

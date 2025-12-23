@@ -256,42 +256,4 @@ export class TaskService {
       }
     }
   }
-
-  /**
-   * Trigger a task for a given app, using the platform event system.
-   * This should be only be called by the respective app.
-   *
-   * @param appIdentifier - The identifier of the app to trigger the task for
-   * @param taskIdentifier - The identifier of the task to trigger
-   * @param inputParams - The input parameters for the task
-   * @param subjectContext - The subject context for the task
-   */
-  async triggerAppTask(
-    appIdentifier: string,
-    taskIdentifier: string,
-    data: unknown,
-    actor: 'user' | 'app',
-    subjectContext?: { folderId: string; objectKey?: string },
-  ) {
-    // TODO: validate the task exists for the app
-    const app = await this.appService.getAppAsAdmin(appIdentifier, {
-      enabled: true,
-    })
-    if (
-      !app?.config.tasks?.find(
-        (task) =>
-          task.identifier === taskIdentifier && task.triggers.includes(actor),
-      )
-    ) {
-      throw new NotFoundException(
-        `Task "${taskIdentifier}" not found for app "${appIdentifier}".`,
-      )
-    }
-    await this.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
-      eventIdentifier: `${PLATFORM_IDENTIFIER}:${actor}_trigger_task_action:${appIdentifier}:${taskIdentifier}`,
-      data,
-      subjectContext,
-    })
-  }
 }

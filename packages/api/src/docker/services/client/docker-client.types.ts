@@ -1,9 +1,9 @@
 import type { z } from 'zod'
 
 import type {
+  DockerExecuteJobOptions,
   dockerExecutionOptionsSchema,
-  dockerManagerRunConfigSchema,
-} from './schemas/docker-manager-run-config.schema'
+} from './docker.schema'
 
 export interface ContainerInfo {
   id: string
@@ -15,31 +15,14 @@ export interface ContainerInfo {
 
 export interface CreateContainerOptions {
   image: string
-  command?: string[]
   environmentVariables?: Record<string, string>
   labels: Record<string, string>
-  profileName: string
-  appIdentifier: string
+  containerProfileIdentifier: string
+  volumes?: Record<string, string>
+  gpus?: { driver: string; deviceIds: string[] }
 }
 
-export interface ExecOptions {
-  mode: 'sync' | 'async'
-  jobClass: string
-  payload: unknown
-  platformUrl?: string
-  jobToken?: string
-}
-
-export interface ExecResult {
-  success: boolean
-  result?: unknown
-  error?: {
-    code: string
-    message: string
-  }
-}
-
-export interface PingResult {
+export interface ConnectionTestResult {
   success: boolean
   version?: string
   apiVersion?: string
@@ -48,10 +31,14 @@ export interface PingResult {
 
 export interface DockerAdapter {
   /**
+   * Get the description of the underlying docker resource
+   */
+  getDescription: () => string
+
+  /**
    * Test connectivity to the Docker host
    */
-  ping: () => Promise<PingResult>
-  run: (runConfig: DockerRunConfig) => Promise<void>
+  testConnection: () => Promise<ConnectionTestResult>
 
   /**
    * Pull an image from a registry
@@ -73,7 +60,10 @@ export interface DockerAdapter {
   /**
    * Execute a command in a running container
    */
-  exec: (containerId: string, options: ExecOptions) => Promise<ExecResult>
+  exec: (
+    containerId: string,
+    options: DockerExecuteJobOptions,
+  ) => Promise<DockerExecResult<typeof options.waitForCompletion>>
 
   /**
    * Start a stopped container
@@ -84,9 +74,47 @@ export interface DockerAdapter {
    * Check if a container is running
    */
   isContainerRunning: (containerId: string) => Promise<boolean>
+
+  /**
+   * Get agent logs from a container
+   */
+  getAgentLogs: (
+    containerId: string,
+    options?: { tail?: number; grep?: string },
+  ) => Promise<string>
+
+  /**
+   * Get worker logs from a container
+   */
+  getWorkerLogs: (
+    containerId: string,
+    options: { jobClass: string; tail?: number; err?: boolean },
+  ) => Promise<string>
+
+  /**
+   * Get job logs from a container
+   */
+  getJobLogs: (
+    containerId: string,
+    options: { jobId: string; tail?: number; err?: boolean },
+  ) => Promise<string>
 }
 
-export type DockerRunConfig = z.infer<typeof dockerManagerRunConfigSchema>
 export type DockerExecutionOptions = z.infer<
   typeof dockerExecutionOptionsSchema
 >
+
+export interface DockerSynchronousExecResult {
+  jobId: string
+  success: boolean
+  result: unknown
+  jobError?: {
+    code: string
+    message: string
+  }
+}
+export type DockerExecResult<T extends boolean> = T extends true
+  ? DockerSynchronousExecResult
+  : {
+      jobId: string
+    }

@@ -22,7 +22,7 @@ import { tasksTable } from 'src/task/entities/task.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 const ALGORITHM = 'HS256'
-const WORKER_JOB_JWT_SUB_PREFIX = 'worker_job:'
+const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
 
 // JWT expiry for worker job tokens (30 minutes)
 const WORKER_JOB_TOKEN_EXPIRY_SECONDS = 30 * 60
@@ -81,7 +81,7 @@ export class WorkerJobService {
    * This method checks that the app has WRITE_OBJECTS permission for each folder.
    * Returns only the folder/prefix combinations that are actually allowed.
    */
-  async validateAllowedUploads(
+  async validateStorageAccess(
     appIdentifier: string,
     requestedUploads: Record<string, string[]>,
   ): Promise<Record<string, string[]>> {
@@ -178,47 +178,20 @@ export class WorkerJobService {
   }
 
   /**
-   * Create a JWT token for a worker job with validated allowed uploads.
-   * This is an async method that validates permissions before creating the token.
-   */
-  async createValidatedWorkerJobToken(params: {
-    jobId: string
-    taskId: string
-    appIdentifier: string
-    allowedUploads: Record<string, string[]>
-  }): Promise<string> {
-    // Validate and filter allowed uploads based on app permissions
-    const validatedUploads = await this.validateAllowedUploads(
-      params.appIdentifier,
-      params.allowedUploads,
-    )
-
-    // Create the token with validated uploads
-    return this.createWorkerJobToken({
-      ...params,
-      allowedUploads: validatedUploads,
-    })
-  }
-
-  /**
    * Create a JWT token for a worker job with specific allowed uploads.
-   * NOTE: This method does NOT validate permissions - use createValidatedWorkerJobToken instead.
-   * This is kept for backward compatibility and internal use.
    */
   createWorkerJobToken(params: {
     jobId: string
-    taskId: string
-    appIdentifier: string
-    allowedUploads: Record<string, string[]>
+    taskId?: string
+    storageAccess: Record<string, string[]>
   }): string {
     const payload = {
       aud: this._platformConfig.platformHost,
       jti: uuidV4(),
-      sub: `${WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`,
+      sub: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`,
       job_id: params.jobId,
       task_id: params.taskId,
-      app_identifier: params.appIdentifier,
-      allowed_uploads: params.allowedUploads,
+      storage_access: params.storageAccess,
     }
 
     return jwt.sign(payload, this._authConfig.authJwtSecret, {
@@ -238,7 +211,7 @@ export class WorkerJobService {
       const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
         audience: this._platformConfig.platformHost,
-        subject: `${WORKER_JOB_JWT_SUB_PREFIX}${expectedJobId}`,
+        subject: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${expectedJobId}`,
       }) as JwtPayload & {
         job_id: string
         task_id: string

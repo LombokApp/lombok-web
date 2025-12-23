@@ -1,5 +1,5 @@
 {
-  "id": "77c445c1-104c-43f4-b754-8dc81f4177ba",
+  "id": "8948e9aa-bfa0-4e03-bd16-170dc86a13fa",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1230,12 +1230,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "handlerId": {
-          "name": "handlerId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "subjectFolderId": {
           "name": "subjectFolderId",

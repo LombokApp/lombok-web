@@ -3,6 +3,8 @@ package cmd
 import (
 	"lombok-worker-agent/internal/config"
 	"lombok-worker-agent/internal/logs"
+	"lombok-worker-agent/internal/state"
+	"lombok-worker-agent/internal/types"
 
 	"github.com/spf13/cobra"
 )
@@ -28,14 +30,40 @@ func init() {
 }
 
 func readWorkerLog(cmd *cobra.Command, args []string) error {
+	identifier, err := workerLogIdentifierFromState(workerLogJobClass)
+	if err != nil {
+		return err
+	}
+	if identifier == "" {
+		identifier = workerLogJobClass
+	}
+
 	var logPath string
 	if workerLogErr {
-		logPath = config.WorkerErrLogPath(workerLogJobClass)
+		logPath = config.WorkerErrLogPath(identifier)
 	} else {
-		logPath = config.WorkerOutLogPath(workerLogJobClass)
+		logPath = config.WorkerOutLogPath(identifier)
 	}
 
 	return logs.ReadLogFile(logPath, logs.ReadOptions{
 		Tail: workerLogTail,
 	})
+}
+
+func workerLogIdentifierFromState(jobClass string) (string, error) {
+	workerState, err := state.ReadWorkerState(jobClass)
+	if err != nil || workerState == nil {
+		return "", err
+	}
+
+	if len(workerState.WorkerCommand) == 0 {
+		return "", nil
+	}
+
+	iface := &types.InterfaceConfig{
+		Kind:     workerState.Kind,
+		Listener: workerState.Listener,
+	}
+
+	return config.WorkerLogIdentifier(workerState.WorkerCommand, iface), nil
 }

@@ -153,7 +153,6 @@ CREATE TABLE "tasks" (
 	"inputData" jsonb NOT NULL,
 	"updates" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"triggeringEventId" uuid NOT NULL,
-	"handlerId" text,
 	"subjectFolderId" uuid,
 	"subjectObjectKey" text,
 	"startedAt" timestamp,

@@ -1,8 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { subjectContextSchema } from '@lombokapp/types'
+import { LogEntryLevel, subjectContextSchema } from '@lombokapp/types'
 import { z } from 'zod'
-
-import { LogEntryLevel } from '../entities/log-entry.entity'
 
 export const logEntrySchema = z.object({
   id: z.string().uuid(),

@@ -1,9 +1,13 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"lombok-worker-agent/internal/types"
 )
 
 const (
@@ -22,11 +26,6 @@ func AgentLogPath() string {
 	return filepath.Join(LogBaseDir, "agent.log")
 }
 
-// AgentErrLogPath returns the path to the agent's error log file
-func AgentErrLogPath() string {
-	return filepath.Join(LogBaseDir, "agent.err.log")
-}
-
 // JobOutLogPath returns the stdout log path for a specific job
 func JobOutLogPath(jobID string) string {
 	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.out.log", jobID))
@@ -37,14 +36,30 @@ func JobErrLogPath(jobID string) string {
 	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.err.log", jobID))
 }
 
-// WorkerOutLogPath returns the stdout log path for a worker by job class
-func WorkerOutLogPath(jobClass string) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", jobClass))
+// WorkerOutLogPath returns the stdout log path for a worker identified by a unique key
+func WorkerOutLogPath(identifier string) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", identifier))
 }
 
-// WorkerErrLogPath returns the stderr log path for a worker by job class
-func WorkerErrLogPath(jobClass string) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", jobClass))
+// WorkerErrLogPath returns the stderr log path for a worker identified by a unique key
+func WorkerErrLogPath(identifier string) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", identifier))
+}
+
+// WorkerLogIdentifier returns a stable hash for a worker based on its command and interface configuration.
+// This keeps persistent HTTP worker logs unique per listener/command combination.
+func WorkerLogIdentifier(workerCommand []string, iface *types.InterfaceConfig) string {
+	identity := struct {
+		WorkerCommand []string               `json:"worker_command"`
+		Interface     *types.InterfaceConfig `json:"interface"`
+	}{
+		WorkerCommand: workerCommand,
+		Interface:     iface,
+	}
+
+	data, _ := json.Marshal(identity)
+	sum := sha256.Sum256(data)
+	return fmt.Sprintf("%x", sum[:])
 }
 
 // State file paths
@@ -57,6 +72,11 @@ func WorkerStatePath(jobClass string) string {
 // JobStatePath returns the state file path for a specific job
 func JobStatePath(jobID string) string {
 	return filepath.Join(StateBaseDir, "jobs", fmt.Sprintf("%s.json", jobID))
+}
+
+// JobResultPath returns the result file path for a specific job
+func JobResultPath(jobID string) string {
+	return filepath.Join(StateBaseDir, "jobs", fmt.Sprintf("%s.result.json", jobID))
 }
 
 // JobOutputDir returns the output directory for a specific job

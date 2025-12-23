@@ -21,30 +21,6 @@
       "handler": {
         "type": "external"
       }
-    },
-    {
-      "identifier": "extract_semantic_metadata",
-      "label": "Extract Semantic Metadata",
-      "description": "Extract semantic metadata from an object.",
-      "triggers": ["platform:object_added"],
-      "handler": {
-        "type": "docker",
-        "profile": "content_analysis",
-        "jobClass": "extract_content_metadata"
-      }
     }
-  ],
-  "containerProfiles": {
-    "content_analysis": {
-      "image": "lombok-mock-runner",
-      "jobClasses": {
-        "extract_content_metadata": {
-          "maxPerContainer": 1,
-          "countTowardsGlobalCap": true,
-          "priority": 1
-        }
-      }
-    }
-  },
-  "emittableEvents": ["trigger_content_analysis"]
+  ]
 }

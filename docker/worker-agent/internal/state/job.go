@@ -64,3 +64,36 @@ func UpdateJobStatus(jobID string, status string, completedAt string, errMsg str
 
 	return WriteJobState(state)
 }
+
+// WriteJobResult writes the result file for a job
+func WriteJobResult(result *types.JobResult) error {
+	if err := config.EnsureStateDirs(); err != nil {
+		return err
+	}
+
+	path := config.JobResultPath(result.JobID)
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0644)
+}
+
+// ReadJobResult reads the result file for a job
+func ReadJobResult(jobID string) (*types.JobResult, error) {
+	path := config.JobResultPath(jobID)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var result types.JobResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

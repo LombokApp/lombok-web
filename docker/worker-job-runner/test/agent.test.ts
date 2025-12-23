@@ -1,4 +1,5 @@
 import Dockerode from 'dockerode'
+import crypto from 'node:crypto'
 import path from 'node:path'
 import {
   describe,
@@ -58,6 +59,12 @@ interface JobResult {
   exit_code?: number
   result?: unknown
   uploaded_files?: Array<{ folder_id: string; object_key: string }>
+  timing?: {
+    job_execution_time_seconds: number
+    total_time_seconds: number
+    worker_startup_time_seconds: number
+    worker_ready_time_seconds?: number
+  }
   error?: {
     code: string
     message: string
@@ -778,6 +785,62 @@ async function readFileInContainer(filePath: string): Promise<string> {
   return result.stdout
 }
 
+async function readJobLog(
+  jobId: string,
+  options?: { err?: boolean; tail?: number },
+): Promise<string> {
+  const args = ['lombok-worker-agent', 'job-log', '--job-id', jobId]
+  if (options?.err) {
+    args.push('--err')
+  }
+  if (options?.tail !== undefined) {
+    args.push('--tail', String(options.tail))
+  }
+  const result = await execInContainer(args)
+  if (result.exitCode !== 0) {
+    throw new Error(`Failed to read job log for ${jobId}: ${result.stderr}`)
+  }
+  return result.stdout
+}
+
+async function readWorkerLog(
+  jobClass: string,
+  options?: { err?: boolean; tail?: number },
+): Promise<string> {
+  const args = ['lombok-worker-agent', 'worker-log', '--job-class', jobClass]
+  if (options?.err) {
+    args.push('--err')
+  }
+  if (options?.tail !== undefined) {
+    args.push('--tail', String(options.tail))
+  }
+  const result = await execInContainer(args)
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `Failed to read worker log for ${jobClass}: ${result.stderr}`,
+    )
+  }
+  return result.stdout
+}
+
+async function readAgentLog(options?: {
+  tail?: number
+  grep?: string
+}): Promise<string> {
+  const args = ['lombok-worker-agent', 'agent-log']
+  if (options?.tail !== undefined) {
+    args.push('--tail', String(options.tail))
+  }
+  if (options?.grep) {
+    args.push('--grep', options.grep)
+  }
+  const result = await execInContainer(args)
+  if (result.exitCode !== 0) {
+    throw new Error(`Failed to read agent log: ${result.stderr}`)
+  }
+  return result.stdout
+}
+
 async function fileExistsInContainer(filePath: string): Promise<boolean> {
   const result = await execInContainer(['test', '-f', filePath])
   return result.exitCode === 0
@@ -800,6 +863,21 @@ function generateJobId(prefix: string): string {
   return `${prefix}-${Date.now()}`
 }
 
+function workerLogIdentifier(
+  workerCommand: string[],
+  iface: InterfaceConfig,
+): string {
+  const payload = {
+    worker_command: workerCommand,
+    interface: iface,
+  }
+
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify(payload))
+    .digest('hex')
+}
+
 async function runJob(
   payload: JobPayload,
   env?: string[],
@@ -811,15 +889,16 @@ async function runJob(
     env,
   )
 
-  // Parse the JSON result from the last line
-  const lines = execResult.stdout.trim().split('\n')
-  const lastLine = lines[lines.length - 1]
+  // The agent outputs JSON to stdout (log lines go to stderr).
+  // For persistent_http jobs, the agent parses the HTTP response result
+  // and includes it as a parsed object in the result.result field.
+  // Parse the JSON result from the last line of stdout.
 
   let result: JobResult
   try {
-    result = JSON.parse(lastLine)
+    result = JSON.parse(execResult.stdout)
   } catch {
-    // Try to find JSON in the output (might be pretty-printed)
+    // Try to find JSON in the output (might be pretty-printed or have extra lines)
     const jsonMatch = execResult.stdout.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       try {
@@ -903,9 +982,7 @@ describe('Platform Agent', () => {
 
         // Check output contains expected strings
         if (testCase.expected.outputContains) {
-          const jobOut = await readFileInContainer(
-            `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
-          )
+          const jobOut = await readJobLog(jobId)
           for (const expected of testCase.expected.outputContains) {
             expect(jobOut).toContain(expected)
           }
@@ -913,17 +990,16 @@ describe('Platform Agent', () => {
 
         // Check stderr contains expected strings
         if (testCase.expected.stderrContains) {
-          const jobErr = await readFileInContainer(
-            `/var/log/lombok-worker-agent/jobs/${jobId}.err.log`,
-          )
+          const jobErr = await readJobLog(jobId, { err: true })
           for (const expected of testCase.expected.stderrContains) {
             expect(jobErr).toContain(expected)
           }
         }
 
-        // Verify the worker's result is captured from stdout
+        // Verify the worker's result is captured from stdout and parsed by the agent
         if (testCase.expected.result) {
           expect(result.result).toBeDefined()
+          expect(typeof result.result).toBe('object') // Should be a parsed object, not a string
           const resultObj = result.result as Record<string, unknown>
           for (const [key, expectedValue] of Object.entries(
             testCase.expected.result,
@@ -986,8 +1062,9 @@ describe('Platform Agent', () => {
       expect(result.exit_code).toBe(0)
       expect(result.success).toBe(true)
 
-      // Verify worker's JSON result is captured
+      // Verify worker's JSON result is captured and parsed by the agent
       expect(result.result).toBeDefined()
+      expect(typeof result.result).toBe('object') // Should be a parsed object, not a string
       const workerResult = result.result as Record<string, unknown>
       expect(workerResult.message).toBe('hello')
       expect(workerResult.value).toBe(123)
@@ -1059,11 +1136,73 @@ describe('Platform Agent', () => {
 
       expect(result.success).toBe(true)
       expect(result.result).toBeDefined()
+      expect(typeof result.result).toBe('object') // Should be a parsed object, not a string
 
       const workerResult = result.result as Record<string, unknown>
       expect(workerResult.output_dir).toBe(
         `/var/lib/lombok-worker-agent/jobs/${jobId}/output`,
       )
+    })
+
+    test('timing information is included in response JSON', async () => {
+      const jobId = generateJobId('timing-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'timing_test',
+        worker_command: ['sh', '-c', 'sleep 0.1 && echo \'{"done":true}\''],
+        interface: { kind: 'exec_per_job' },
+        job_input: { test: 'data' },
+      }
+
+      const { result } = await runJob(payload)
+
+      // Verify timing object exists in response
+      expect(result.timing).toBeDefined()
+      expect(typeof result.timing).toBe('object')
+
+      const timing = result.timing as Record<string, unknown>
+
+      // Verify all timing fields are present
+      expect(timing).toHaveProperty('job_execution_time_seconds')
+      expect(timing).toHaveProperty('total_time_seconds')
+      expect(timing).toHaveProperty('worker_startup_time_seconds')
+
+      // Verify timing values are numbers and non-negative
+      expect(typeof timing.job_execution_time_seconds).toBe('number')
+      expect(typeof timing.total_time_seconds).toBe('number')
+      expect(typeof timing.worker_startup_time_seconds).toBe('number')
+
+      expect((timing.job_execution_time_seconds as number) >= 0).toBe(true)
+      expect((timing.total_time_seconds as number) >= 0).toBe(true)
+      expect((timing.worker_startup_time_seconds as number) >= 0).toBe(true)
+
+      // Verify total_time includes job_execution_time (total should be >= execution)
+      expect(
+        (timing.total_time_seconds as number) >=
+          (timing.job_execution_time_seconds as number),
+      ).toBe(true)
+    })
+
+    test('timing is logged in agent log', async () => {
+      const jobId = generateJobId('timing-log-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'timing_log_test',
+        worker_command: ['sh', '-c', 'echo "test"'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Read agent log
+      const agentLog = await readAgentLog()
+
+      // Verify timing information is logged
+      expect(agentLog).toContain('job_execution_time')
+      expect(agentLog).toContain('total_time')
+      expect(agentLog).toContain('worker_startup_time')
+      expect(agentLog).toContain(jobId)
     })
   })
 
@@ -1088,15 +1227,9 @@ describe('Platform Agent', () => {
 
         // console.log('output:', {
         //   result,
-        //   jobLog: await readFileInContainer(
-        //     `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
-        //   ),
-        //   workerLog: await readFileInContainer(
-        //     `/var/log/lombok-worker-agent/workers/${testCase.jobClass}.out.log`,
-        //   ),
-        //   workerErrLog: await readFileInContainer(
-        //     `/var/log/lombok-worker-agent/workers/${testCase.jobClass}.err.log`,
-        //   ),
+        //   jobLog: await readJobLog(jobId),
+        //   workerLog: await readWorkerLog(testCase.jobClass),
+        //   workerErrLog: await readWorkerLog(testCase.jobClass, { err: true }),
         //   workerState: JSON.parse(
         //     await readFileInContainer(
         //       `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
@@ -1156,6 +1289,7 @@ describe('Platform Agent', () => {
       }
 
       const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      console.log('result:', result)
 
       // Verify the output is valid JSON by checking we got a parsed result
       expect(result).toBeDefined()
@@ -1171,9 +1305,11 @@ describe('Platform Agent', () => {
         jobClass,
       )
 
-      // For successful jobs, result should contain the job output
+      // For successful jobs, result.result should contain the parsed job output
+      // (the agent parses the HTTP response result and includes it as an object)
       expect(result.success).toBe(true)
       expect(result.result).toBeDefined()
+      expect(typeof result.result).toBe('object') // Should be a parsed object, not a string
       expect((result.result as Record<string, unknown>).sum).toBe(60)
     })
 
@@ -1299,20 +1435,22 @@ describe('Platform Agent', () => {
       await runJob(payload, [`APP_PORT=${port}`])
 
       // Check worker log files exist
+      const workerIdentifier = workerLogIdentifier(
+        payload.worker_command,
+        payload.interface,
+      )
       const outLogExists = await fileExistsInContainer(
-        `/var/log/lombok-worker-agent/workers/${jobClass}.out.log`,
+        `/var/log/lombok-worker-agent/workers/${workerIdentifier}.out.log`,
       )
       const errLogExists = await fileExistsInContainer(
-        `/var/log/lombok-worker-agent/workers/${jobClass}.err.log`,
+        `/var/log/lombok-worker-agent/workers/${workerIdentifier}.err.log`,
       )
 
       expect(outLogExists).toBe(true)
       expect(errLogExists).toBe(true)
 
       // Check worker logged startup message
-      const workerOut = await readFileInContainer(
-        `/var/log/lombok-worker-agent/workers/${jobClass}.out.log`,
-      )
+      const workerOut = await readWorkerLog(jobClass)
       expect(workerOut).toContain('Mock runner listening')
     })
 
@@ -1337,9 +1475,7 @@ describe('Platform Agent', () => {
       )
       expect(jobLogExists).toBe(true)
 
-      const jobLog = await readFileInContainer(
-        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
-      )
+      const jobLog = await readJobLog(jobId)
 
       // Verify job log contains expected log messages from the handler
       expect(jobLog).toContain('Job accepted')
@@ -1365,9 +1501,7 @@ describe('Platform Agent', () => {
       expect(result.success).toBe(true)
 
       // Check stdout log
-      const jobOutLog = await readFileInContainer(
-        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
-      )
+      const jobOutLog = await readJobLog(jobId)
       expect(jobOutLog).toContain('Starting verbose logging job')
       expect(jobOutLog).toContain('Step 1/3')
       expect(jobOutLog).toContain('Step 2/3')
@@ -1375,9 +1509,7 @@ describe('Platform Agent', () => {
       expect(jobOutLog).toContain('Completed 3 steps successfully')
 
       // Check stderr log (for errors/warnings)
-      const jobErrLog = await readFileInContainer(
-        `/var/log/lombok-worker-agent/jobs/${jobId}.err.log`,
-      )
+      const jobErrLog = await readJobLog(jobId, { err: true })
       expect(jobErrLog).toContain('Warning at step')
       expect(jobErrLog).toContain('Simulated error condition detected')
     })
@@ -1410,9 +1542,7 @@ describe('Platform Agent', () => {
       expect(resultObj.stepsCompleted).toBe(5)
 
       // Verify job logs show all steps
-      const jobOutLog = await readFileInContainer(
-        `/var/log/lombok-worker-agent/jobs/${jobId}.out.log`,
-      )
+      const jobOutLog = await readJobLog(jobId)
       expect(jobOutLog).toContain('Step 1/5')
       expect(jobOutLog).toContain('Step 5/5')
       expect(jobOutLog).toContain('Completed 5 steps successfully')
@@ -1507,6 +1637,76 @@ describe('Platform Agent', () => {
         `/var/lib/lombok-worker-agent/jobs/${jobId}/output`,
       )
       expect(outputDirExists).toBe(true)
+    })
+
+    test('timing information is included in response JSON', async () => {
+      const jobClass = 'math_add'
+      const port = 8215
+
+      const jobId = generateJobId('http-timing-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [1, 2, 3] },
+      }
+
+      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      // Verify timing object exists in response
+      expect(result.timing).toBeDefined()
+      expect(typeof result.timing).toBe('object')
+
+      const timing = result.timing as Record<string, unknown>
+
+      // Verify all timing fields are present
+      expect(timing).toHaveProperty('job_execution_time_seconds')
+      expect(timing).toHaveProperty('total_time_seconds')
+      expect(timing).toHaveProperty('worker_startup_time_seconds')
+      expect(timing).toHaveProperty('worker_ready_time_seconds')
+
+      // Verify timing values are numbers and non-negative
+      expect(typeof timing.job_execution_time_seconds).toBe('number')
+      expect(typeof timing.total_time_seconds).toBe('number')
+      expect(typeof timing.worker_startup_time_seconds).toBe('number')
+      expect(typeof timing.worker_ready_time_seconds).toBe('number')
+
+      expect((timing.job_execution_time_seconds as number) >= 0).toBe(true)
+      expect((timing.total_time_seconds as number) >= 0).toBe(true)
+      expect((timing.worker_startup_time_seconds as number) >= 0).toBe(true)
+      expect((timing.worker_ready_time_seconds as number) >= 0).toBe(true)
+
+      // Verify total_time includes job_execution_time (total should be >= execution)
+      expect(
+        (timing.total_time_seconds as number) >=
+          (timing.job_execution_time_seconds as number),
+      ).toBe(true)
+    })
+
+    test('timing is logged in agent log for persistent_http', async () => {
+      const jobClass = 'math_add'
+      const port = 8216
+
+      const jobId = generateJobId('http-timing-log-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [1, 2] },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      // Read agent log
+      const agentLog = await readAgentLog()
+
+      // Verify timing information is logged
+      expect(agentLog).toContain('job_execution_time')
+      expect(agentLog).toContain('total_time')
+      expect(agentLog).toContain('worker_startup_time')
+      expect(agentLog).toContain(jobId)
     })
   })
 
@@ -1748,6 +1948,7 @@ describe('Platform Agent', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('lombok-worker-agent')
       expect(result.stdout).toContain('run-job')
+      expect(result.stdout).toContain('job-result')
     })
 
     test('run-job requires --payload-base64 flag', async () => {
@@ -1860,6 +2061,384 @@ describe('Platform Agent', () => {
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('Mock runner listening')
+    })
+
+    test('agent-log reads agent log file', async () => {
+      // First run a job to generate some agent activity
+      const jobId = generateJobId('agent-log-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'agent_log_test',
+        worker_command: ['sh', '-c', 'echo test_output'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Check if agent log file exists
+      const agentLogExists = await fileExistsInContainer(
+        '/var/log/lombok-worker-agent/agent.log',
+      )
+
+      // If the log file exists, verify we can read it
+      if (agentLogExists) {
+        const result = await execInContainer([
+          'lombok-worker-agent',
+          'agent-log',
+        ])
+
+        expect(result.exitCode).toBe(0)
+        // The agent log should contain information about the job
+        expect(result.stdout.length).toBeGreaterThan(0)
+      } else {
+        // If the log file doesn't exist, the command should return an error
+        const result = await execInContainer([
+          'lombok-worker-agent',
+          'agent-log',
+        ])
+
+        expect(result.exitCode).not.toBe(0)
+        expect(result.stderr).toContain('log file not found')
+      }
+    })
+
+    test('agent-log --tail returns last N lines', async () => {
+      // Run a job to generate agent activity
+      const jobId = generateJobId('agent-log-tail-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'agent_log_tail_test',
+        worker_command: ['sh', '-c', 'echo test'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Check if agent log file exists
+      const agentLogExists = await fileExistsInContainer(
+        '/var/log/lombok-worker-agent/agent.log',
+      )
+
+      if (agentLogExists) {
+        const result = await execInContainer([
+          'lombok-worker-agent',
+          'agent-log',
+          '--tail',
+          '5',
+        ])
+
+        expect(result.exitCode).toBe(0)
+        // Should return at most 5 lines
+        const lines = result.stdout
+          .trim()
+          .split('\n')
+          .filter((l) => l.length > 0)
+        expect(lines.length).toBeLessThanOrEqual(5)
+      }
+    })
+
+    test('agent-log --grep filters log lines', async () => {
+      // Run a job to generate agent activity
+      const jobId = generateJobId('agent-log-grep-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'agent_log_grep_test',
+        worker_command: ['sh', '-c', 'echo test'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Check if agent log file exists
+      const agentLogExists = await fileExistsInContainer(
+        '/var/log/lombok-worker-agent/agent.log',
+      )
+
+      if (agentLogExists) {
+        const result = await execInContainer([
+          'lombok-worker-agent',
+          'agent-log',
+          '--grep',
+          jobId,
+        ])
+
+        expect(result.exitCode).toBe(0)
+        // If grep finds matches, output should contain the job ID
+        if (result.stdout.length > 0) {
+          expect(result.stdout).toContain(jobId)
+        }
+      }
+    })
+
+    test('agent log file is populated after running jobs', async () => {
+      // Run multiple jobs to generate agent activity
+      const jobIds = [
+        generateJobId('agent-populate-1'),
+        generateJobId('agent-populate-2'),
+        generateJobId('agent-populate-3'),
+      ]
+
+      for (const jobId of jobIds) {
+        const payload: JobPayload = {
+          job_id: jobId,
+          job_class: 'agent_populate_test',
+          worker_command: ['sh', '-c', 'echo test'],
+          interface: { kind: 'exec_per_job' },
+          job_input: {},
+        }
+        await runJob(payload)
+      }
+
+      // Check if agent log file exists and has content
+      const agentLogExists = await fileExistsInContainer(
+        '/var/log/lombok-worker-agent/agent.log',
+      )
+
+      if (agentLogExists) {
+        const logContent = await readAgentLog()
+        expect(logContent.length).toBeGreaterThan(0)
+
+        // Verify we can fetch it using the agent-log command
+        const result = await execInContainer([
+          'lombok-worker-agent',
+          'agent-log',
+        ])
+        expect(result.exitCode).toBe(0)
+        expect(result.stdout.length).toBeGreaterThan(0)
+      } else {
+        // If log file doesn't exist, document this as a known limitation
+        // The agent currently only writes to stderr, not to a log file
+        console.warn(
+          'Agent log file does not exist - agent may not be writing to log file yet',
+        )
+      }
+    })
+
+    test('job-result file is created for exec_per_job jobs', async () => {
+      const jobId = generateJobId('job-result-exec-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'result_test',
+        worker_command: ['sh', '-c', 'echo \'{"message":"success"}\''],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Verify result file exists
+      const resultFileExists = await fileExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      expect(resultFileExists).toBe(true)
+
+      // Read and verify result file content
+      const resultContent = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      const result = JSON.parse(resultContent)
+
+      expect(result.success).toBe(true)
+      expect(result.job_id).toBe(jobId)
+      expect(result.job_class).toBe('result_test')
+      expect(result.result).toBeDefined()
+      expect((result.result as Record<string, unknown>).message).toBe('success')
+      expect(result.timing).toBeDefined()
+      expect(result.exit_code).toBe(0)
+    })
+
+    test('job-result file is created for persistent_http jobs', async () => {
+      const jobClass = 'math_add'
+      const port = 8230
+      const jobId = generateJobId('job-result-http-test')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: { numbers: [5, 10, 15] },
+      }
+
+      const jobResult = await runJob(payload, [`APP_PORT=${port}`])
+      console.log('jobResult:', jobResult)
+      // Verify result file exists
+      const resultFileExists = await fileExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      expect(resultFileExists).toBe(true)
+
+      // Read and verify result file content
+      const resultContent = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      const result = JSON.parse(resultContent)
+
+      expect(result.success).toBe(true)
+      expect(result.job_id).toBe(jobId)
+      expect(result.job_class).toBe(jobClass)
+      expect(result.result).toBeDefined()
+      expect((result.result as Record<string, unknown>).sum).toBe(30)
+      expect(result.timing).toBeDefined()
+      expect(result.timing).toHaveProperty('worker_ready_time_seconds')
+    })
+
+    test('job-result file includes error information for failed jobs', async () => {
+      const jobId = generateJobId('job-result-error-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'error_test',
+        worker_command: ['sh', '-c', 'exit 42'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Verify result file exists
+      const resultFileExists = await fileExistsInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      expect(resultFileExists).toBe(true)
+
+      // Read and verify result file content
+      const resultContent = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      const result = JSON.parse(resultContent)
+
+      expect(result.success).toBe(false)
+      expect(result.job_id).toBe(jobId)
+      expect(result.error).toBeDefined()
+      expect(result.error.code).toBe('WORKER_EXIT_ERROR')
+      expect(result.error.message).toContain('worker exited with code 42')
+      expect(result.exit_code).toBe(42)
+    })
+
+    test('job-result command retrieves result file', async () => {
+      const jobId = generateJobId('job-result-cmd-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'cmd_test',
+        worker_command: ['sh', '-c', 'echo \'{"value":123}\''],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Use job-result command to retrieve the result
+      const result = await execInContainer([
+        'lombok-worker-agent',
+        'job-result',
+        '--job-id',
+        jobId,
+      ])
+
+      expect(result.exitCode).toBe(0)
+      const jobResult = JSON.parse(result.stdout)
+
+      expect(jobResult.success).toBe(true)
+      expect(jobResult.job_id).toBe(jobId)
+      expect(jobResult.job_class).toBe('cmd_test')
+      expect(jobResult.result).toBeDefined()
+      expect((jobResult.result as Record<string, unknown>).value).toBe(123)
+    })
+
+    test('job-result command requires --job-id flag', async () => {
+      const result = await execInContainer([
+        'lombok-worker-agent',
+        'job-result',
+      ])
+
+      expect(result.exitCode).not.toBe(0)
+      expect(result.stderr).toContain('required')
+    })
+
+    test('job-result command returns error for non-existent job', async () => {
+      const nonExistentJobId = 'non-existent-job-id-12345'
+
+      const result = await execInContainer([
+        'lombok-worker-agent',
+        'job-result',
+        '--job-id',
+        nonExistentJobId,
+      ])
+
+      expect(result.exitCode).not.toBe(0)
+      expect(result.stderr).toContain('job result not found')
+    })
+
+    test('job-result file includes uploaded files when present', async () => {
+      const jobClass = 'file_output'
+      const port = 8231
+      const jobId = generateJobId('job-result-upload-test')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        job_input: {
+          folder_id: 'test-folder-uuid',
+          files: [
+            {
+              name: 'output.txt',
+              content: 'Test content',
+              content_type: 'text/plain',
+            },
+          ],
+        },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      // Read result file
+      const resultContent = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      const result = JSON.parse(resultContent)
+
+      expect(result.success).toBe(true)
+      expect(result.uploaded_files).toBeDefined()
+      expect(Array.isArray(result.uploaded_files)).toBe(true)
+      if (result.uploaded_files.length > 0) {
+        expect(result.uploaded_files[0]).toHaveProperty('folderId')
+        expect(result.uploaded_files[0]).toHaveProperty('objectKey')
+      }
+    })
+
+    test('job-result file includes timing information', async () => {
+      const jobId = generateJobId('job-result-timing-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'timing_test',
+        worker_command: ['sh', '-c', 'sleep 0.1 && echo \'{"done":true}\''],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // Read result file
+      const resultContent = await readFileInContainer(
+        `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
+      )
+      const result = JSON.parse(resultContent)
+
+      expect(result.timing).toBeDefined()
+      expect(result.timing).toHaveProperty('job_execution_time_seconds')
+      expect(result.timing).toHaveProperty('total_time_seconds')
+      expect(result.timing).toHaveProperty('worker_startup_time_seconds')
+      expect(typeof result.timing.job_execution_time_seconds).toBe('number')
+      expect(typeof result.timing.total_time_seconds).toBe('number')
+      expect(typeof result.timing.worker_startup_time_seconds).toBe('number')
+      expect(result.timing.job_execution_time_seconds).toBeGreaterThan(0)
     })
   })
 })

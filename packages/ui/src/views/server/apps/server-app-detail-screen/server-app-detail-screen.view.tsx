@@ -301,7 +301,7 @@ export function ServerAppDetailScreen({
               <DataTable
                 fixedLayout
                 className="bg-background/50"
-                bodyCellClassName="w-1/3"
+                bodyCellClassName="w-1/3 truncate"
                 headerCellClassName={cn(
                   'w-1/3',
                   'bg-foreground/[0.02] text-foreground/50',
@@ -311,8 +311,13 @@ export function ServerAppDetailScreen({
                     identifier: task.identifier,
                     label: task.label,
                     description: task.description,
-                    triggers: task.triggers.join(', '),
-                    worker: task.worker || 'None',
+                    triggers: task.triggers?.join(', ') ?? 'None',
+                    handler:
+                      task.handler.type === 'worker'
+                        ? `[worker]:${task.handler.identifier}`
+                        : task.handler.type === 'docker'
+                          ? `[docker]:${task.handler.profile}:${task.handler.jobName}`
+                          : 'external',
                   })) ?? []
                 }
                 columns={[
@@ -333,8 +338,8 @@ export function ServerAppDetailScreen({
                     header: 'Triggers',
                   },
                   {
-                    accessorKey: 'worker',
-                    header: 'Worker',
+                    accessorKey: 'handler',
+                    header: 'Handler',
                   },
                 ]}
               />

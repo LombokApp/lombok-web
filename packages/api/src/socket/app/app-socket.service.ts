@@ -1,4 +1,9 @@
-import { ExternalAppWorker } from '@lombokapp/types'
+import {
+  CORE_APP_IDENTIFIER,
+  EXECUTE_SYSTEM_REQUEST_MESSAGE,
+  ExternalAppWorker,
+  JsonSerializableValue,
+} from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
 import {
   Injectable,
@@ -260,5 +265,53 @@ export class AppSocketService {
         'Namespace not yet set when emitting PENDING_TASKS_NOTIFICATION.',
       )
     }
+  }
+
+  async executeSynchronousAppRequest(
+    appIdentifier: string,
+    request: {
+      url: string
+      body: JsonSerializableValue
+    },
+    timeoutMs = 10000, // 10 second default timeout
+  ): Promise<unknown> {
+    this.logger.log('Executing synchronous request for app:', {
+      appIdentifier,
+      request,
+    })
+
+    // The core app is the only app that can execute synchronous requests of other apps
+    const clientIds = this.appIdentifierToClientIds.get(CORE_APP_IDENTIFIER)
+    if (!clientIds || clientIds.size === 0) {
+      throw new Error(`No connected core app clients`)
+    }
+
+    // Get the first connected client for the core app
+    const clientId = Array.from(clientIds)[0]
+    const socket = this.connectedAppWorkers.get(clientId)
+    if (!socket) {
+      throw new Error(`Socket not found for client "${clientId}"`)
+    }
+
+    // Send message and wait for response using emitWithAck
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(
+          new Error(`Timeout waiting for response from app "${appIdentifier}"`),
+        )
+      }, timeoutMs)
+      socket.emit(
+        EXECUTE_SYSTEM_REQUEST_MESSAGE,
+        { appIdentifier, request },
+        (response: unknown) => {
+          clearTimeout(timeout)
+          resolve(
+            response && typeof response === 'object' && 'result' in response
+              ? response.result
+              : response,
+          )
+        },
+      )
+    })
   }
 }
