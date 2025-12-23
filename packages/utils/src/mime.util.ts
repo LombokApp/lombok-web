@@ -31,36 +31,36 @@ import {
 
 export const mediaTypeFromMimeType = (mimeType: string) => {
   if (IMAGE_MEDIA_MIME_TYPES.includes(mimeType as ImageMediaMimeTypes)) {
-    return MediaType.Image
+    return MediaType.IMAGE
   } else if (VIDEO_MEDIA_MIME_TYPES.includes(mimeType as VideoMediaMimeTypes)) {
-    return MediaType.Video
+    return MediaType.VIDEO
   } else if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
-    return MediaType.Audio
+    return MediaType.AUDIO
   } else if (
     DOCUMENT_MEDIA_MIME_TYPES.includes(mimeType as DocumentMediaMimeTypes)
   ) {
-    return MediaType.Document
+    return MediaType.DOCUMENT
   }
-  return MediaType.Unknown
+  return MediaType.UNKNOWN
 }
 
 export const mediaTypeFromExtension = (extension: string) => {
   const mimeType = EXTENSION_TO_MIME_TYPE_MAP[extension.toLowerCase()]
   if (!mimeType) {
-    return MediaType.Unknown
+    return MediaType.UNKNOWN
   }
   if (IMAGE_MEDIA_MIME_TYPES.includes(mimeType as ImageMediaMimeTypes)) {
-    return MediaType.Image
+    return MediaType.IMAGE
   } else if (VIDEO_MEDIA_MIME_TYPES.includes(mimeType as VideoMediaMimeTypes)) {
-    return MediaType.Video
+    return MediaType.VIDEO
   } else if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
-    return MediaType.Audio
+    return MediaType.AUDIO
   } else if (
     DOCUMENT_MEDIA_MIME_TYPES.includes(mimeType as DocumentMediaMimeTypes)
   ) {
-    return MediaType.Document
+    return MediaType.DOCUMENT
   }
-  return MediaType.Unknown
+  return MediaType.UNKNOWN
 }
 
 export const isRenderableTextMimeType = (mimeType: string) => {

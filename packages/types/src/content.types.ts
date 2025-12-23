@@ -1,12 +1,14 @@
 import { z } from 'zod'
 
 export enum MediaType {
-  Image = 'IMAGE',
-  Video = 'VIDEO',
-  Audio = 'AUDIO',
-  Document = 'DOCUMENT',
-  Unknown = 'UNKNOWN',
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  AUDIO = 'AUDIO',
+  DOCUMENT = 'DOCUMENT',
+  UNKNOWN = 'UNKNOWN',
 }
+
+export const mediaTypeSchema = z.nativeEnum(MediaType)
 
 export enum ThumbnailSize {
   Medium = 'medium',
@@ -73,6 +75,7 @@ export type ContentMetadataByHash = z.infer<typeof contentMetadataByHashSchema>
 
 export const folderObjectSchema = z.object({
   id: z.string().uuid(),
+  filename: z.string(),
   objectKey: z.string(),
   folderId: z.string().uuid(),
   hash: z.string().optional(),
@@ -80,6 +83,6 @@ export const folderObjectSchema = z.object({
   eTag: z.string(),
   sizeBytes: z.number(),
   mimeType: z.string(),
-  mediaType: z.nativeEnum(MediaType),
+  mediaType: mediaTypeSchema,
   contentMetadata: z.record(z.string(), contentMetadataSchema.optional()),
 })

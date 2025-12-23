@@ -31,20 +31,10 @@ export const buildSystemRequestWorker = ({
   }) => Promise<ServerlessWorkerExecConfig>
 }) => {
   return async ({
+    workerIdentifier,
     appIdentifier,
     request,
   }: SystemRequestPayload): Promise<SystemRequestResult | null> => {
-    const url = new URL(request.url)
-    const pathname = url.pathname
-    const workerIdentifierMatch = pathname.match(/^\/worker-api\/([^/]+)/)
-
-    if (!workerIdentifierMatch) {
-      throw new Error('Invalid worker API path')
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const workerIdentifier = workerIdentifierMatch[1]!
-
     const serverlessWorkerDetails = await getWorkerExecConfig({
       appIdentifier,
       workerIdentifier,
@@ -66,14 +56,14 @@ export const buildSystemRequestWorker = ({
     }
 
     const headers = new Headers(request.headers)
+    headers.set('Content-Type', 'application/json')
     const body = request.body
       ? typeof request.body === 'string'
         ? request.body
         : JSON.stringify(request.body)
       : undefined
-
     const systemRequestMessageResponse = await runWorker({
-      requestOrTask: new Request(request.url, {
+      requestOrTask: new Request(`http://__SYSTEM__${request.url}`, {
         method: request.method,
         headers,
         body,

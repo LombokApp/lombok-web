@@ -11,7 +11,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { eq, inArray } from 'drizzle-orm'
+import { appsTable } from 'src/app/entities/app.entity'
 import { OrmService } from 'src/orm/orm.service'
+import { SearchAppDisabledException } from 'src/search/exceptions/search-app-disabled.exception'
+import { SearchAppNotFoundException } from 'src/search/exceptions/search-app-not-found.exception'
+import { SearchWorkerNotFoundException } from 'src/search/exceptions/search-worker-not-found.exception'
+import { SearchWorkerUnauthorizedException } from 'src/search/exceptions/search-worker-unauthorized.exception'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
@@ -22,12 +27,14 @@ import {
   CONFIGURATION_KEYS_MAP,
   GOOGLE_OAUTH_CONFIG,
   googleOAuthConfigSchema,
+  SEARCH_CONFIG,
   SERVER_STORAGE_CONFIG,
   type ServerConfig,
   SIGNUP_ENABLED_CONFIG,
   STORAGE_PROVISIONS_CONFIG,
 } from '../constants/server.constants'
 import { PublicSettingsDTO } from '../dto/public-settings.dto'
+import { SearchConfigDTO, searchConfigSchema } from '../dto/search-config.dto'
 import { ServerStorageInputDTO } from '../dto/server-storage-input.dto'
 import { SettingsDTO } from '../dto/settings.dto'
 import {
@@ -107,6 +114,57 @@ export class ServerConfigurationService {
     })
   }
 
+  private async validateSearchConfig(
+    searchConfig: z.infer<typeof searchConfigSchema>,
+  ): Promise<void> {
+    if (!searchConfig.app) {
+      return // null config is valid (means use core search)
+    }
+
+    const { identifier, workerIdentifier } = searchConfig.app
+
+    // 1. Check app exists
+    const app = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, identifier),
+    })
+    if (!app) {
+      throw new SearchAppNotFoundException(identifier)
+    }
+
+    // 2. Check app is enabled
+    if (!app.enabled) {
+      throw new SearchAppDisabledException(identifier)
+    }
+
+    // 3. Check worker exists in runtimeWorkers
+    if (!app.config.runtimeWorkers?.[workerIdentifier]) {
+      throw new SearchWorkerNotFoundException(workerIdentifier, identifier)
+    }
+
+    // 4. Check worker is in performSearch array
+    const performSearchWorkers =
+      app.config.systemRequestRuntimeWorkers?.performSearch ?? []
+    if (!performSearchWorkers.includes(workerIdentifier)) {
+      throw new SearchWorkerUnauthorizedException(workerIdentifier, identifier)
+    }
+  }
+
+  private async validateSettingValue(
+    settingKey: string,
+    settingValue: unknown,
+  ): Promise<void> {
+    // Validate the value against the associated schema
+    const config = CONFIGURATION_KEYS_MAP[settingKey]
+    if (!config?.schema.safeParse(settingValue).success) {
+      throw new ServerConfigurationInvalidException()
+    }
+
+    // Additional validation for SEARCH_CONFIG
+    if (settingKey === SEARCH_CONFIG.key) {
+      await this.validateSearchConfig(settingValue as SearchConfigDTO)
+    }
+  }
+
   async setServerSettingAsAdmin(
     actor: User,
     settingKey: string,
@@ -116,15 +174,15 @@ export class ServerConfigurationService {
       throw new UnauthorizedException()
     }
 
+    return this.setServerSetting(settingKey, settingValue)
+  }
+
+  async setServerSetting(settingKey: string, settingValue: unknown) {
     if (!(settingKey in CONFIGURATION_KEYS_MAP)) {
       throw new ServerConfigurationNotFoundException()
     }
 
-    // Validate the value against the associated schema
-    const config = CONFIGURATION_KEYS_MAP[settingKey]
-    if (!config?.schema.safeParse(settingValue).success) {
-      throw new ServerConfigurationInvalidException()
-    }
+    await this.validateSettingValue(settingKey, settingValue)
 
     const existingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
@@ -247,6 +305,12 @@ export class ServerConfigurationService {
     }
 
     return locationWithId
+  }
+
+  async getSearchConfig(): Promise<SearchConfigDTO> {
+    return this.getServerConfig(SEARCH_CONFIG).then(
+      (config) => config ?? { app: null },
+    )
   }
 
   async updateStorageProvisionAsAdmin(

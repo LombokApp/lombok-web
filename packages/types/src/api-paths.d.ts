@@ -62,7 +62,7 @@ export interface paths {
         get: operations["getApp"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["uninstallApp"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1591,6 +1591,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Perform a search query. */
+        get: operations["search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1698,10 +1715,14 @@ export interface components {
                     };
                     runtimeWorkers?: {
                         [key: string]: {
-                            entrypoint: string;
+                            label?: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
                         };
+                    };
+                    systemRequestRuntimeWorkers?: {
+                        performSearch?: string[];
                     };
                     ui?: {
                         /** @enum {boolean} */
@@ -1751,6 +1772,9 @@ export interface components {
                         mimeType: string;
                     };
                 };
+                systemRequestRuntimeWorkers: {
+                    performSearch: string[];
+                };
                 connectedRuntimeWorkers: {
                     appIdentifier: string;
                     workerId: string;
@@ -1769,6 +1793,7 @@ export interface components {
                     };
                     definitions: {
                         [key: string]: {
+                            label: string;
                             description: string;
                             environmentVariables: components["schemas"]["StringMapDTO"];
                             entrypoint: string;
@@ -1936,10 +1961,14 @@ export interface components {
                     };
                     runtimeWorkers?: {
                         [key: string]: {
-                            entrypoint: string;
+                            label?: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
                         };
+                    };
+                    systemRequestRuntimeWorkers?: {
+                        performSearch?: string[];
                     };
                     ui?: {
                         /** @enum {boolean} */
@@ -1989,6 +2018,9 @@ export interface components {
                         mimeType: string;
                     };
                 };
+                systemRequestRuntimeWorkers: {
+                    performSearch: string[];
+                };
                 connectedRuntimeWorkers: {
                     appIdentifier: string;
                     workerId: string;
@@ -2007,6 +2039,7 @@ export interface components {
                     };
                     definitions: {
                         [key: string]: {
+                            label: string;
                             description: string;
                             environmentVariables: components["schemas"]["StringMapDTO"];
                             entrypoint: string;
@@ -2174,10 +2207,14 @@ export interface components {
                     };
                     runtimeWorkers?: {
                         [key: string]: {
-                            entrypoint: string;
+                            label?: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
                         };
+                    };
+                    systemRequestRuntimeWorkers?: {
+                        performSearch?: string[];
                     };
                     ui?: {
                         /** @enum {boolean} */
@@ -2227,6 +2264,9 @@ export interface components {
                         mimeType: string;
                     };
                 };
+                systemRequestRuntimeWorkers: {
+                    performSearch: string[];
+                };
                 connectedRuntimeWorkers: {
                     appIdentifier: string;
                     workerId: string;
@@ -2245,6 +2285,7 @@ export interface components {
                     };
                     definitions: {
                         [key: string]: {
+                            label: string;
                             description: string;
                             environmentVariables: components["schemas"]["StringMapDTO"];
                             entrypoint: string;
@@ -2420,10 +2461,14 @@ export interface components {
                     };
                     runtimeWorkers?: {
                         [key: string]: {
-                            entrypoint: string;
+                            label?: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
                         };
+                    };
+                    systemRequestRuntimeWorkers?: {
+                        performSearch?: string[];
                     };
                     ui?: {
                         /** @enum {boolean} */
@@ -2484,6 +2529,7 @@ export interface components {
                     };
                     definitions: {
                         [key: string]: {
+                            label: string;
                             description: string;
                             environmentVariables: components["schemas"]["StringMapDTO"];
                             entrypoint: string;
@@ -2632,10 +2678,14 @@ export interface components {
                     };
                     runtimeWorkers?: {
                         [key: string]: {
-                            entrypoint: string;
+                            label?: string;
                             description: string;
                             environmentVariables?: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
                         };
+                    };
+                    systemRequestRuntimeWorkers?: {
+                        performSearch?: string[];
                     };
                     ui?: {
                         /** @enum {boolean} */
@@ -2696,6 +2746,7 @@ export interface components {
                     };
                     definitions: {
                         [key: string]: {
+                            label: string;
                             description: string;
                             environmentVariables: components["schemas"]["StringMapDTO"];
                             entrypoint: string;
@@ -2842,6 +2893,12 @@ export interface components {
                     };
                     from: string;
                 }) | null;
+                SEARCH_CONFIG?: {
+                    app: {
+                        identifier: string;
+                        workerIdentifier: string;
+                    } | null;
+                };
             };
         };
         SetSettingInputDTO: {
@@ -3390,6 +3447,7 @@ export interface components {
             result: {
                 /** Format: uuid */
                 id: string;
+                filename: string;
                 objectKey: string;
                 /** Format: uuid */
                 folderId: string;
@@ -3411,6 +3469,7 @@ export interface components {
             folderObject: {
                 /** Format: uuid */
                 id: string;
+                filename: string;
                 objectKey: string;
                 /** Format: uuid */
                 folderId: string;
@@ -4404,6 +4463,39 @@ export interface components {
         AddReactionDTO: {
             emoji: string;
         };
+        SearchResultsDTO: {
+            result: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+                similarity: number;
+                score?: number;
+                folderObject: {
+                    /** Format: uuid */
+                    id: string;
+                    filename: string;
+                    objectKey: string;
+                    /** Format: uuid */
+                    folderId: string;
+                    hash?: string;
+                    lastModified: number;
+                    eTag: string;
+                    sizeBytes: number;
+                    mimeType: string;
+                    /** @enum {string} */
+                    mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
+                    contentMetadata: {
+                        [key: string]: {
+                            [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
+                        };
+                    };
+                };
+                folderName: string;
+            }[];
+            meta: {
+                totalCount: number;
+            };
+        };
     };
     responses: never;
     parameters: never;
@@ -4554,6 +4646,43 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AppGetResponse"];
                 };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    uninstallApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
@@ -8964,6 +9093,49 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query: {
+                q: string;
+                offset?: number;
+                limit?: number;
+                sort?: ("relevance-desc" | "name-asc" | "name-desc" | "sizeBytes-asc" | "sizeBytes-desc" | "lastModified-asc" | "lastModified-desc")[] | ("relevance-desc" | "name-asc" | "name-desc" | "sizeBytes-asc" | "sizeBytes-desc" | "lastModified-asc" | "lastModified-desc");
+                mediaType?: ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN")[] | ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN");
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResultsDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {

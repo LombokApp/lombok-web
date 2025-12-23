@@ -132,6 +132,7 @@ CREATE TABLE "folder_objects" (
 	"folder_id" uuid NOT NULL,
 	"mime_type" text NOT NULL,
 	"media_type" text NOT NULL,
+	"search_vector" "tsvector" GENERATED ALWAYS AS (setweight(to_tsvector('english', coalesce("folder_objects"."filename", '')), 'A') || setweight(to_tsvector('english', coalesce("folder_objects"."object_key", '')), 'B')) STORED,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL
 );
@@ -330,6 +331,8 @@ CREATE INDEX "events_aggregation_key_idx" ON "events" USING btree ("aggregation_
 CREATE INDEX "events_aggregation_handled_at_idx" ON "events" USING btree ("aggregation_handled_at");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_size_bytes_idx" ON "folder_objects" USING btree ("folder_id","size_bytes","media_type");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_idx" ON "folder_objects" USING btree ("folder_id","media_type");--> statement-breakpoint
+CREATE INDEX "folder_objects_search_vector_idx" ON "folder_objects" USING gin ("search_vector");--> statement-breakpoint
+CREATE INDEX "folder_objects_object_key_trgm_idx" ON "folder_objects" USING gin ("filename" gin_trgm_ops);--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_objects_folder_id_object_key_unique" ON "folder_objects" USING btree ("folder_id","object_key");--> statement-breakpoint
 CREATE INDEX "folder_shares_user_id_idx" ON "folder_shares" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_shares_folder_user_unique" ON "folder_shares" USING btree ("folder_id","user_id");--> statement-breakpoint

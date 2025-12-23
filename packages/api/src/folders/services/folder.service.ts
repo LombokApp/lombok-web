@@ -844,19 +844,19 @@ export class FolderService {
     // Add mediaType filters
     const mediaTypeFilters: MediaType[] = []
     if (includeImage) {
-      mediaTypeFilters.push(MediaType.Image)
+      mediaTypeFilters.push(MediaType.IMAGE)
     }
     if (includeVideo) {
-      mediaTypeFilters.push(MediaType.Video)
+      mediaTypeFilters.push(MediaType.VIDEO)
     }
     if (includeAudio) {
-      mediaTypeFilters.push(MediaType.Audio)
+      mediaTypeFilters.push(MediaType.AUDIO)
     }
     if (includeDocument) {
-      mediaTypeFilters.push(MediaType.Document)
+      mediaTypeFilters.push(MediaType.DOCUMENT)
     }
     if (includeUnknown) {
-      mediaTypeFilters.push(MediaType.Unknown)
+      mediaTypeFilters.push(MediaType.UNKNOWN)
     }
 
     if (mediaTypeFilters.length > 0) {
@@ -1367,7 +1367,7 @@ export class FolderService {
       ? mediaTypeFromMimeType(updateRecord.mimeType)
       : extension
         ? mediaTypeFromMimeType(mimeTypeFromExtension)
-        : MediaType.Unknown
+        : MediaType.UNKNOWN
 
     const insertValues = {
       id: uuidV4(),

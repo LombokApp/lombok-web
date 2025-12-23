@@ -221,7 +221,7 @@ export class OrmService {
             `GRANT USAGE, CREATE ON SCHEMA ${appSchemaName} TO ${appRoleName}`,
           )
           await client.query(
-            `GRANT USAGE ON SCHEMA extensions TO ${appRoleName}`,
+            `GRANT USAGE ON SCHEMA ${EXTENSIONS_SCHEMA} TO ${appRoleName}`,
           )
           await client.query(
             `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
@@ -237,7 +237,7 @@ export class OrmService {
           )
         } catch (error) {
           this.logger.error(
-            `Failed to grant privileges for role ${appRoleName} and schema ${appSchemaName}, extensions`,
+            `Failed to grant privileges for role ${appRoleName} and schema ${appSchemaName}, ${EXTENSIONS_SCHEMA}`,
             error as Error,
           )
           throw error
@@ -298,12 +298,15 @@ export class OrmService {
       })
     }
 
+    // Ensure extensions and schemas exist BEFORE running migrations
+    await this.ensureExtensionsSchema()
+    await this.ensureVectorExtension()
+
     if (this._ormConfig.runMigrations) {
       await this.migrate()
     }
 
     await this.ensureSharedAclSchema()
-    await this.ensureExtensionsSchema()
 
     this.initialized = true
   }
@@ -451,12 +454,22 @@ export class OrmService {
     `)
   }
 
+  async ensureVectorExtension(): Promise<void> {
+    await this.client.query(
+      `CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA ${EXTENSIONS_SCHEMA};`,
+    )
+    await this.client.query(
+      `CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA ${EXTENSIONS_SCHEMA};`,
+    )
+  }
+
   async ensureExtensionsSchema(): Promise<void> {
     // Create extensions schema if it doesn't exist
     await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${EXTENSIONS_SCHEMA};`)
     await this.client.query(
-      `GRANT USAGE ON SCHEMA extensions TO ${this._ormConfig.dbUser};`,
+      `GRANT USAGE ON SCHEMA ${EXTENSIONS_SCHEMA} TO ${this._ormConfig.dbUser};`,
     )
+    await this.client.query(`SET search_path TO public, ${EXTENSIONS_SCHEMA};`)
   }
 
   /**

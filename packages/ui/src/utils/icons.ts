@@ -23,13 +23,13 @@ export const iconForMimeType = (mimeType: string) => {
 }
 
 export const iconForMediaType = (mediaType: MediaType) => {
-  if (mediaType === MediaType.Audio) {
+  if (mediaType === MediaType.AUDIO) {
     return Music
-  } else if (mediaType === MediaType.Image) {
+  } else if (mediaType === MediaType.IMAGE) {
     return Image
-  } else if (mediaType === MediaType.Video) {
+  } else if (mediaType === MediaType.VIDEO) {
     return Film
-  } else if (mediaType === MediaType.Document) {
+  } else if (mediaType === MediaType.DOCUMENT) {
     return FileTextIcon
   }
   return FileIcon

@@ -9,6 +9,7 @@ import {
   appContributionsSchema,
   appManifestSchema,
   appMetricsSchema,
+  appRuntimeWorkerConfigSchema,
   appRuntimeWorkersBundleSchema,
   appRuntimeWorkerSchema,
   appRuntimeWorkerScriptIdentifierSchema,
@@ -18,7 +19,6 @@ import {
   appUiBundleSchema,
   appUIConfigSchema,
   appUILinkSchema,
-  appWorkerConfigSchema,
   ConfigParamType,
   containerProfileConfigSchema,
   containerProfileResourceHintsSchema,
@@ -855,7 +855,7 @@ describe('apps.types', () => {
           API_URL: 'https://api.example.com',
         },
       }
-      const result = appWorkerConfigSchema.safeParse(validScriptConfig)
+      const result = appRuntimeWorkerConfigSchema.safeParse(validScriptConfig)
       expectZodSuccess(result)
     })
 
@@ -864,7 +864,30 @@ describe('apps.types', () => {
         entrypoint: 'worker.js',
         description: 'Test script',
       }
-      const result = appWorkerConfigSchema.safeParse(validScriptConfig)
+      const result = appRuntimeWorkerConfigSchema.safeParse(validScriptConfig)
+      expectZodSuccess(result)
+    })
+
+    it('should validate worker script config with label', () => {
+      const validScriptConfig = {
+        entrypoint: 'worker.js',
+        description: 'Test script',
+        label: 'My Worker',
+      }
+      const result = appRuntimeWorkerConfigSchema.safeParse(validScriptConfig)
+      expectZodSuccess(result)
+    })
+
+    it('should validate worker script config with label and env vars', () => {
+      const validScriptConfig = {
+        entrypoint: 'worker.js',
+        description: 'Test script',
+        label: 'My Worker',
+        environmentVariables: {
+          SOME_ENV_VAR: 'production',
+        },
+      }
+      const result = appRuntimeWorkerConfigSchema.safeParse(validScriptConfig)
       expectZodSuccess(result)
     })
   })
@@ -1048,6 +1071,227 @@ describe('apps.types', () => {
         ],
       })
       expectZodSuccess(result)
+    })
+  })
+
+  describe('appConfigSchema systemRequestRuntimeWorkers validation', () => {
+    it('should validate when performSearch references an existing runtime worker', () => {
+      const validApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          performSearch: ['search_worker'],
+        },
+      }
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should reject when performSearch references a non-existent runtime worker', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          other_worker: {
+            entrypoint: 'other.js',
+            description: 'Other worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          performSearch: ['missing_worker'],
+        },
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toContain(
+          'Unknown worker "missing_worker"',
+        )
+        expect(result.error.issues[0]?.message).toContain(
+          'systemRequestRuntimeWorkers.performSearch',
+        )
+        expect(result.error.issues[0]?.path).toEqual([
+          'systemRequestRuntimeWorkers',
+          'performSearch',
+          0,
+        ])
+      }
+    })
+
+    it('should reject when performSearch references a worker but runtimeWorkers is empty', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        systemRequestRuntimeWorkers: {
+          performSearch: ['any_worker'],
+        },
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toContain('(none)')
+      }
+    })
+
+    it('should validate when systemRequestRuntimeWorkers is undefined', () => {
+      const validApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+      }
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should validate when performSearch is undefined within systemRequestRuntimeWorkers', () => {
+      const validApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {},
+      }
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should reject when systemRequestRuntimeWorkers.performSearch is null', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          performSearch: null,
+        },
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject when systemRequestRuntimeWorkers contains an invalid key', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          invalidKey: 'search_worker',
+        },
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        const invalidKeyIssue = result.error.issues.find(
+          (issue) =>
+            issue.path.includes('systemRequestRuntimeWorkers') ||
+            issue.message.toLowerCase().includes('invalidkey') ||
+            issue.message.toLowerCase().includes('unrecognized'),
+        )
+        expect(invalidKeyIssue).toBeDefined()
+        if (invalidKeyIssue) {
+          expect(invalidKeyIssue.path).toContain('systemRequestRuntimeWorkers')
+        }
+      }
+    })
+
+    it('should reject when systemRequestRuntimeWorkers contains multiple invalid keys', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          performIndex: ['search_worker'],
+          performUpdate: ['search_worker'],
+        },
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        // Should have an issue for the invalid keys (Zod strict mode may report one issue for the object)
+        const invalidKeyIssues = result.error.issues.filter(
+          (issue) =>
+            issue.path.includes('systemRequestRuntimeWorkers') ||
+            issue.message.toLowerCase().includes('unrecognized'),
+        )
+        expect(invalidKeyIssues.length).toBeGreaterThanOrEqual(1)
+        // Check that the error message or path indicates the problem is with systemRequestRuntimeWorkers
+        const hasSystemRequestIssue = invalidKeyIssues.some(
+          (issue) =>
+            issue.path.includes('systemRequestRuntimeWorkers') ||
+            issue.message.toLowerCase().includes('systemrequestruntimeworkers'),
+        )
+        expect(hasSystemRequestIssue).toBe(true)
+      }
+    })
+
+    it('should reject when systemRequestRuntimeWorkers contains both valid and invalid keys', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.js',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          performSearch: ['search_worker'],
+          invalidKey: 'search_worker',
+        },
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        // Should have an issue for the invalid key (Zod strict mode rejects the object)
+        const invalidKeyIssue = result.error.issues.find(
+          (issue) =>
+            issue.path.includes('systemRequestRuntimeWorkers') ||
+            issue.message.toLowerCase().includes('invalidkey') ||
+            issue.message.toLowerCase().includes('unrecognized'),
+        )
+        expect(invalidKeyIssue).toBeDefined()
+        if (invalidKeyIssue) {
+          expect(invalidKeyIssue.path).toContain('systemRequestRuntimeWorkers')
+        }
+      }
     })
   })
 
@@ -1299,6 +1543,7 @@ describe('apps.types', () => {
   describe('appWorkerSchema and related schemas', () => {
     it('should validate app worker definition', () => {
       const result = appRuntimeWorkerSchema.safeParse({
+        label: 'Test Worker',
         description: 'Test worker',
         environmentVariables: {
           SOME_ENV_VAR: 'value',
@@ -1329,6 +1574,7 @@ describe('apps.types', () => {
         },
         definitions: {
           worker: {
+            label: 'Test Worker',
             description: 'Test worker',
             environmentVariables: {
               SOME_ENV_VAR: 'value',
@@ -1359,6 +1605,7 @@ describe('apps.types', () => {
     it('should validate app workers map schema', () => {
       const result = appRuntimeWorkersMapSchema.safeParse({
         worker: {
+          label: 'Test Worker',
           description: 'Test worker',
           environmentVariables: {
             SOME_ENV_VAR: 'value',

@@ -22,3 +22,9 @@ export const appIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z0-9_]+$/)
+
+export const workerIdentifierSchema = z
+  .string()
+  .nonempty()
+  .regex(/^[a-z0-9_]+$/)
+  .refine((v) => v.toLowerCase() === v)

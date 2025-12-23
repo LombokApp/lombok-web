@@ -5,6 +5,7 @@ import type {
   AppMetrics,
   AppRuntimeWorkersMap,
   AppRuntimeWorkerSocketConnection,
+  AppSearchResults,
   ExecuteAppDockerJobOptions,
   FolderScopeAppPermissions,
   JsonSerializableObject,
@@ -13,6 +14,7 @@ import type {
 } from '@lombokapp/types'
 import {
   appConfigWithManifestSchema,
+  appSearchResultsSchema,
   FolderPermissionEnum,
   LogEntryLevel,
   SignedURLsRequestMethod,
@@ -24,6 +26,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   NotImplementedException,
@@ -55,6 +58,7 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { logEntriesTable } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
+import { SEARCH_CONFIG } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
 import {
@@ -152,6 +156,25 @@ export class AppService {
     this.dockerJobsService = _dockerJobsService as DockerJobsService
   }
 
+  private async clearSearchConfigIfNecessary(
+    appIdentifier: string,
+  ): Promise<void> {
+    const searchConfig = await this.serverConfigurationService.getSearchConfig()
+
+    if (searchConfig.app?.identifier === appIdentifier) {
+      this.logger.warn(
+        `App '${appIdentifier}' is configured as search provider but is being disabled/uninstalled. ` +
+          `Clearing search configuration and reverting to core search.`,
+      )
+
+      // Clear the config by setting it to default
+      await this.serverConfigurationService.setServerSetting(
+        SEARCH_CONFIG.key,
+        { app: null },
+      )
+    }
+  }
+
   public async setAppEnabledAsAdmin(
     user: User,
     appIdentifier: string,
@@ -173,6 +196,7 @@ export class AppService {
       .where(eq(appsTable.identifier, appIdentifier))
       .returning()
     if (!enabled) {
+      await this.clearSearchConfigIfNecessary(appIdentifier)
       this.appSocketService.disconnectAllClientsByAppIdentifier(appIdentifier)
     }
     if (!updated) {
@@ -746,6 +770,9 @@ export class AppService {
       })
     }
 
+    // Clear search config if this app is the search provider
+    await this.clearSearchConfigIfNecessary(app.identifier)
+
     // remove app db record
     await this.ormService.db
       .delete(appsTable)
@@ -1181,6 +1208,7 @@ export class AppService {
         ...acc,
         [workerIdentifier]: {
           ...value,
+          label: value.label ?? `Worker: ${workerIdentifier}`,
           environmentVariables: value.environmentVariables ?? {},
         },
       }
@@ -2162,22 +2190,37 @@ export class AppService {
       workerIdentifier,
       query,
     }: { appIdentifier: string; workerIdentifier: string; query: string },
-  ): Promise<{ vector: number[] }> {
-    await this.coreWorkerService.executeServerlessRequest({
+  ): Promise<AppSearchResults> {
+    const response = await this.coreWorkerService.executeServerlessRequest({
       appIdentifier,
       workerIdentifier,
       request: {
-        url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        url: `/search`,
+        method: 'POST',
+        headers: {},
         body: JSON.stringify({
-          userId: actor.id,
           query,
-          // space: 'text-v1',
+          userId: actor.id,
+          rerankMode: 'bi-encoder',
         }),
       },
     })
+    if ('result' in response) {
+      const parsedJsonBody: unknown = response.result.body
+        ? JSON.parse(response.result.body)
+        : {}
 
-    return { vector: [] }
+      const parsedSearchResults =
+        appSearchResultsSchema.safeParse(parsedJsonBody)
+      if (parsedSearchResults.success) {
+        return parsedSearchResults.data
+      } else {
+        this.logger.error('Failed to parse search results from app:', {
+          errors: parsedSearchResults.error.flatten().fieldErrors,
+          data: parsedJsonBody,
+        })
+      }
+    }
+    throw new InternalServerErrorException('Invalid search results')
   }
 }

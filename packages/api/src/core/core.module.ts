@@ -5,6 +5,7 @@ import { CacheModule } from 'src/cache/cache.module'
 import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { LogModule } from 'src/log/log.module'
+import { SearchModule } from 'src/search/search.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
@@ -39,6 +40,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     LogModule,
     DockerModule,
     CommentsModule,
+    SearchModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })

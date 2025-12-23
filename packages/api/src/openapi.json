@@ -282,6 +282,52 @@
         "tags": [
           "Apps"
         ]
+      },
+      "delete": {
+        "operationId": "uninstallApp",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
       }
     },
     "/api/v1/server/apps/{appIdentifier}/access-settings": {
@@ -7632,6 +7678,147 @@
           "Comments"
         ]
       }
+    },
+    "/api/v1/search": {
+      "get": {
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "relevance-desc",
+                      "name-asc",
+                      "name-desc",
+                      "sizeBytes-asc",
+                      "sizeBytes-desc",
+                      "lastModified-asc",
+                      "lastModified-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "relevance-desc",
+                    "name-asc",
+                    "name-desc",
+                    "sizeBytes-asc",
+                    "sizeBytes-desc",
+                    "lastModified-asc",
+                    "lastModified-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "mediaType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "IMAGE",
+                      "VIDEO",
+                      "AUDIO",
+                      "DOCUMENT",
+                      "UNKNOWN"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "IMAGE",
+                    "VIDEO",
+                    "AUDIO",
+                    "DOCUMENT",
+                    "UNKNOWN"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultsDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Perform a search query.",
+        "tags": [
+          "Search"
+        ]
+      }
     }
   },
   "info": {
@@ -8121,23 +8308,40 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
-                        "entrypoint": {
-                          "type": "string",
-                          "minLength": 1
+                        "label": {
+                          "type": "string"
                         },
                         "description": {
                           "type": "string"
                         },
                         "environmentVariables": {
                           "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
                         }
                       },
                       "required": [
-                        "entrypoint",
-                        "description"
+                        "description",
+                        "entrypoint"
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "systemRequestRuntimeWorkers": {
+                    "type": "object",
+                    "properties": {
+                      "performSearch": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z0-9_]+$"
+                        }
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "ui": {
                     "type": "object",
@@ -8347,6 +8551,23 @@
                   ]
                 }
               },
+              "systemRequestRuntimeWorkers": {
+                "type": "object",
+                "properties": {
+                  "performSearch": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9_]+$"
+                    }
+                  }
+                },
+                "required": [
+                  "performSearch"
+                ],
+                "additionalProperties": false
+              },
               "connectedRuntimeWorkers": {
                 "type": "array",
                 "items": {
@@ -8411,6 +8632,9 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
+                        "label": {
+                          "type": "string"
+                        },
                         "description": {
                           "type": "string"
                         },
@@ -8423,10 +8647,12 @@
                         }
                       },
                       "required": [
+                        "label",
                         "description",
                         "environmentVariables",
                         "entrypoint"
-                      ]
+                      ],
+                      "additionalProperties": false
                     }
                   }
                 },
@@ -8688,6 +8914,7 @@
               "userScopeEnabledDefault",
               "folderScopeEnabledDefault",
               "manifest",
+              "systemRequestRuntimeWorkers",
               "connectedRuntimeWorkers",
               "runtimeWorkers",
               "ui",
@@ -9170,23 +9397,40 @@
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "entrypoint": {
-                            "type": "string",
-                            "minLength": 1
+                          "label": {
+                            "type": "string"
                           },
                           "description": {
                             "type": "string"
                           },
                           "environmentVariables": {
                             "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "entrypoint": {
+                            "type": "string",
+                            "minLength": 1
                           }
                         },
                         "required": [
-                          "entrypoint",
-                          "description"
+                          "description",
+                          "entrypoint"
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "systemRequestRuntimeWorkers": {
+                      "type": "object",
+                      "properties": {
+                        "performSearch": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z0-9_]+$"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "ui": {
                       "type": "object",
@@ -9396,6 +9640,23 @@
                     ]
                   }
                 },
+                "systemRequestRuntimeWorkers": {
+                  "type": "object",
+                  "properties": {
+                    "performSearch": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
+                      }
+                    }
+                  },
+                  "required": [
+                    "performSearch"
+                  ],
+                  "additionalProperties": false
+                },
                 "connectedRuntimeWorkers": {
                   "type": "array",
                   "items": {
@@ -9460,6 +9721,9 @@
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
+                          "label": {
+                            "type": "string"
+                          },
                           "description": {
                             "type": "string"
                           },
@@ -9472,10 +9736,12 @@
                           }
                         },
                         "required": [
+                          "label",
                           "description",
                           "environmentVariables",
                           "entrypoint"
-                        ]
+                        ],
+                        "additionalProperties": false
                       }
                     }
                   },
@@ -9737,6 +10003,7 @@
                 "userScopeEnabledDefault",
                 "folderScopeEnabledDefault",
                 "manifest",
+                "systemRequestRuntimeWorkers",
                 "connectedRuntimeWorkers",
                 "runtimeWorkers",
                 "ui",
@@ -10219,23 +10486,40 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
-                        "entrypoint": {
-                          "type": "string",
-                          "minLength": 1
+                        "label": {
+                          "type": "string"
                         },
                         "description": {
                           "type": "string"
                         },
                         "environmentVariables": {
                           "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
                         }
                       },
                       "required": [
-                        "entrypoint",
-                        "description"
+                        "description",
+                        "entrypoint"
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "systemRequestRuntimeWorkers": {
+                    "type": "object",
+                    "properties": {
+                      "performSearch": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z0-9_]+$"
+                        }
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "ui": {
                     "type": "object",
@@ -10445,6 +10729,23 @@
                   ]
                 }
               },
+              "systemRequestRuntimeWorkers": {
+                "type": "object",
+                "properties": {
+                  "performSearch": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9_]+$"
+                    }
+                  }
+                },
+                "required": [
+                  "performSearch"
+                ],
+                "additionalProperties": false
+              },
               "connectedRuntimeWorkers": {
                 "type": "array",
                 "items": {
@@ -10509,6 +10810,9 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
+                        "label": {
+                          "type": "string"
+                        },
                         "description": {
                           "type": "string"
                         },
@@ -10521,10 +10825,12 @@
                         }
                       },
                       "required": [
+                        "label",
                         "description",
                         "environmentVariables",
                         "entrypoint"
-                      ]
+                      ],
+                      "additionalProperties": false
                     }
                   }
                 },
@@ -10786,6 +11092,7 @@
               "userScopeEnabledDefault",
               "folderScopeEnabledDefault",
               "manifest",
+              "systemRequestRuntimeWorkers",
               "connectedRuntimeWorkers",
               "runtimeWorkers",
               "ui",
@@ -11294,23 +11601,40 @@
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "entrypoint": {
-                            "type": "string",
-                            "minLength": 1
+                          "label": {
+                            "type": "string"
                           },
                           "description": {
                             "type": "string"
                           },
                           "environmentVariables": {
                             "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "entrypoint": {
+                            "type": "string",
+                            "minLength": 1
                           }
                         },
                         "required": [
-                          "entrypoint",
-                          "description"
+                          "description",
+                          "entrypoint"
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "systemRequestRuntimeWorkers": {
+                      "type": "object",
+                      "properties": {
+                        "performSearch": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z0-9_]+$"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "ui": {
                       "type": "object",
@@ -11553,6 +11877,9 @@
                       "additionalProperties": {
                         "type": "object",
                         "properties": {
+                          "label": {
+                            "type": "string"
+                          },
                           "description": {
                             "type": "string"
                           },
@@ -11565,10 +11892,12 @@
                           }
                         },
                         "required": [
+                          "label",
                           "description",
                           "environmentVariables",
                           "entrypoint"
-                        ]
+                        ],
+                        "additionalProperties": false
                       }
                     }
                   },
@@ -12234,23 +12563,40 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
-                        "entrypoint": {
-                          "type": "string",
-                          "minLength": 1
+                        "label": {
+                          "type": "string"
                         },
                         "description": {
                           "type": "string"
                         },
                         "environmentVariables": {
                           "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
                         }
                       },
                       "required": [
-                        "entrypoint",
-                        "description"
+                        "description",
+                        "entrypoint"
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "systemRequestRuntimeWorkers": {
+                    "type": "object",
+                    "properties": {
+                      "performSearch": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z0-9_]+$"
+                        }
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "ui": {
                     "type": "object",
@@ -12493,6 +12839,9 @@
                     "additionalProperties": {
                       "type": "object",
                       "properties": {
+                        "label": {
+                          "type": "string"
+                        },
                         "description": {
                           "type": "string"
                         },
@@ -12505,10 +12854,12 @@
                         }
                       },
                       "required": [
+                        "label",
                         "description",
                         "environmentVariables",
                         "entrypoint"
-                      ]
+                      ],
+                      "additionalProperties": false
                     }
                   }
                 },
@@ -13180,6 +13531,34 @@
                   }
                 ],
                 "nullable": true
+              },
+              "SEARCH_CONFIG": {
+                "type": "object",
+                "properties": {
+                  "app": {
+                    "type": "object",
+                    "properties": {
+                      "identifier": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
+                      },
+                      "workerIdentifier": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
+                      }
+                    },
+                    "required": [
+                      "identifier",
+                      "workerIdentifier"
+                    ],
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "app"
+                ]
               }
             },
             "required": [
@@ -15185,6 +15564,9 @@
                   "type": "string",
                   "format": "uuid"
                 },
+                "filename": {
+                  "type": "string"
+                },
                 "objectKey": {
                   "type": "string"
                 },
@@ -15239,6 +15621,7 @@
               },
               "required": [
                 "id",
+                "filename",
                 "objectKey",
                 "folderId",
                 "lastModified",
@@ -15265,6 +15648,9 @@
               "id": {
                 "type": "string",
                 "format": "uuid"
+              },
+              "filename": {
+                "type": "string"
               },
               "objectKey": {
                 "type": "string"
@@ -15320,6 +15706,7 @@
             },
             "required": [
               "id",
+              "filename",
               "objectKey",
               "folderId",
               "lastModified",
@@ -19158,6 +19545,135 @@
         },
         "required": [
           "emoji"
+        ]
+      },
+      "SearchResultsDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "folderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "objectKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "similarity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "score": {
+                  "type": "number"
+                },
+                "folderObject": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "filename": {
+                      "type": "string"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    },
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "hash": {
+                      "type": "string"
+                    },
+                    "lastModified": {
+                      "type": "number"
+                    },
+                    "eTag": {
+                      "type": "string"
+                    },
+                    "sizeBytes": {
+                      "type": "number"
+                    },
+                    "mimeType": {
+                      "type": "string"
+                    },
+                    "mediaType": {
+                      "type": "string",
+                      "enum": [
+                        "IMAGE",
+                        "VIDEO",
+                        "AUDIO",
+                        "DOCUMENT",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "contentMetadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "discriminator": {
+                            "propertyName": "type"
+                          },
+                          "oneOf": [
+                            {
+                              "$ref": "#/components/schemas/InlineMetadataEntryDTO"
+                            },
+                            {
+                              "$ref": "#/components/schemas/ExternalMetadataEntryDTO"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "filename",
+                    "objectKey",
+                    "folderId",
+                    "lastModified",
+                    "eTag",
+                    "sizeBytes",
+                    "mimeType",
+                    "mediaType",
+                    "contentMetadata"
+                  ]
+                },
+                "folderName": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "folderId",
+                "objectKey",
+                "similarity",
+                "folderObject",
+                "folderName"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "meta"
         ]
       }
     }

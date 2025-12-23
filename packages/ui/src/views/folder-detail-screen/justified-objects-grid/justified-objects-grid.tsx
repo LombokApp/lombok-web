@@ -620,14 +620,14 @@ function JustifiedGridItem({
   const getGridItemStyle = React.useCallback(() => {
     const previewDims = getPreviewDimensions()
 
-    if (mediaType === MediaType.Image && previewDims) {
+    if (mediaType === MediaType.IMAGE && previewDims) {
       return {
         aspectRatio: previewDims.aspectRatio.toString(),
         minHeight: '150px',
       }
     }
 
-    if (mediaType === MediaType.Video && previewDims) {
+    if (mediaType === MediaType.VIDEO && previewDims) {
       return {
         aspectRatio: previewDims.aspectRatio.toString(),
         minHeight: '150px',
@@ -635,7 +635,7 @@ function JustifiedGridItem({
     }
 
     // Audio: compact fixed aspect ratio
-    if (mediaType === MediaType.Audio) {
+    if (mediaType === MediaType.AUDIO) {
       return {
         aspectRatio: '16 / 9',
         minHeight: '120px',
@@ -643,7 +643,7 @@ function JustifiedGridItem({
     }
 
     // Documents: medium fixed aspect ratio
-    if (mediaType === MediaType.Document) {
+    if (mediaType === MediaType.DOCUMENT) {
       return {
         aspectRatio: '3 / 4',
         minHeight: '180px',

@@ -129,7 +129,7 @@ export const coreWorkerMessagePayloadSchemas = {
       appIdentifier: z.string(),
       workerIdentifier: z.string(),
       request: z.object({
-        url: z.string(),
+        url: z.string().startsWith('/'),
         method: z.string(),
         headers: z.record(z.string(), z.string()),
         body: z.string(),

@@ -256,19 +256,19 @@ export const FolderObjectSidebar = ({
                                       <FileJson className="size-5" />
                                     ) : mediaTypeFromMimeType(
                                         metadataEntry?.mimeType ?? '',
-                                      ) === MediaType.Image ? (
+                                      ) === MediaType.IMAGE ? (
                                       <Image className="size-5" />
                                     ) : mediaTypeFromMimeType(
                                         metadataEntry?.mimeType ?? '',
-                                      ) === MediaType.Audio ? (
+                                      ) === MediaType.AUDIO ? (
                                       <MusicIcon className="size-5" />
                                     ) : mediaTypeFromMimeType(
                                         metadataEntry?.mimeType ?? '',
-                                      ) === MediaType.Video ? (
+                                      ) === MediaType.VIDEO ? (
                                       <VideoIcon className="size-5" />
                                     ) : mediaTypeFromMimeType(
                                         metadataEntry?.mimeType ?? '',
-                                      ) === MediaType.Document ? (
+                                      ) === MediaType.DOCUMENT ? (
                                       <FileTextIcon className="size-5" />
                                     ) : (
                                       <File className="size-5" />

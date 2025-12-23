@@ -1,15 +1,37 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import {
+  buildAppZip,
+  createTestAppConfig,
+} from 'src/app/tests/app-zip-builder.util'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import request from 'supertest'
+import type { App } from 'supertest/types'
 
 const TEST_MODULE_KEY = 'server'
+
+const installApp = async (
+  testModule: TestModule,
+  accessToken: string,
+  zipBuffer: Buffer,
+) => {
+  const installResponse = await request(testModule.app.getHttpServer() as App)
+    .post('/api/v1/server/apps/install')
+    .set('Authorization', `Bearer ${accessToken}`)
+    .attach('file', zipBuffer, 'app.zip')
+    .expect(201)
+  return (installResponse.body as { app: { identifier: string } }).app
+}
 
 describe('Server - Settings', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
 
   beforeAll(async () => {
-    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+      // debug: true,
+    })
     apiClient = testModule.apiClient
   })
 
@@ -39,6 +61,7 @@ describe('Server - Settings', () => {
           clientSecret: '',
         },
         SERVER_HOSTNAME: null,
+        SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
       },
@@ -77,6 +100,7 @@ describe('Server - Settings', () => {
         },
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
+        SEARCH_CONFIG: { app: null },
         SIGNUP_PERMISSIONS: [],
       },
     })
@@ -114,8 +138,105 @@ describe('Server - Settings', () => {
         },
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
         SERVER_HOSTNAME: null,
+        SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
       },
+    })
+  })
+
+  it(`should set and reset the SEARCH_CONFIG server setting`, async () => {
+    await testModule?.setServerStorageLocation()
+
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'mekpans',
+      password: '123',
+      admin: true,
+    })
+
+    const initialSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    const initialSearchConfig =
+      initialSettingsResponse.data?.settings.SEARCH_CONFIG
+
+    // Install a valid search app
+    const appSlug = `searchapp${Date.now()}`
+    const zipBuffer = await buildAppZip({
+      slug: appSlug,
+      label: 'Search App',
+      config: createTestAppConfig(appSlug, 'Search App', {
+        runtimeWorkers: {
+          search_worker: {
+            entrypoint: 'search.ts',
+            description: 'Search worker',
+          },
+        },
+        systemRequestRuntimeWorkers: {
+          performSearch: ['search_worker'],
+        },
+      }),
+      files: [
+        {
+          path: 'workers/search.ts',
+          content: 'export default function() {}',
+        },
+      ],
+    })
+
+    const { identifier: appIdentifier } = await installApp(
+      testModule!,
+      accessToken,
+      zipBuffer,
+    )
+
+    const searchConfig = {
+      app: {
+        identifier: appIdentifier,
+        workerIdentifier: 'search_worker',
+      },
+    }
+
+    const setSettingsResponse = await apiClient(accessToken).PUT(
+      '/api/v1/server/settings/{settingKey}',
+      {
+        params: { path: { settingKey: 'SEARCH_CONFIG' } },
+        body: { value: searchConfig },
+      },
+    )
+    expect(setSettingsResponse.response.status).toEqual(200)
+    expect(setSettingsResponse.data?.settingKey).toEqual('SEARCH_CONFIG')
+
+    const updatedSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(updatedSettingsResponse.data?.settings.SEARCH_CONFIG).toEqual(
+      searchConfig,
+    )
+
+    await apiClient(accessToken).DELETE(
+      '/api/v1/server/settings/{settingKey}',
+      { params: { path: { settingKey: 'SEARCH_CONFIG' } } },
+    )
+
+    const resetSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(resetSettingsResponse.data?.settings.SEARCH_CONFIG).toEqual(
+      initialSearchConfig,
+    )
+
+    await apiClient(accessToken).PUT('/api/v1/server/settings/{settingKey}', {
+      params: { path: { settingKey: 'SEARCH_CONFIG' } },
+      body: { value: { app: null } },
+    })
+
+    const setNullSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(setNullSettingsResponse.data?.settings.SEARCH_CONFIG).toEqual({
+      app: null,
     })
   })
 
@@ -150,6 +271,7 @@ describe('Server - Settings', () => {
           clientSecret: '',
         },
         SIGNUP_ENABLED: true,
+        SEARCH_CONFIG: { app: null },
         SERVER_HOSTNAME: null,
         SIGNUP_PERMISSIONS: [],
       },
@@ -172,6 +294,7 @@ describe('Server - Settings', () => {
           clientSecret: '',
         },
         SERVER_HOSTNAME: null,
+        SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
       },
@@ -210,6 +333,7 @@ describe('Server - Settings', () => {
           clientSecret: '',
         },
         SERVER_HOSTNAME: null,
+        SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
       },
@@ -494,6 +618,468 @@ describe('Server - Settings', () => {
       },
     )
     expect(setResponse.response.status).toEqual(400)
+  })
+
+  describe('SEARCH_CONFIG validation', () => {
+    it('should reject setting SEARCH_CONFIG with non-existent app', async () => {
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      const response = await apiClient(accessToken).PUT(
+        '/api/v1/server/settings/{settingKey}',
+        {
+          params: { path: { settingKey: 'SEARCH_CONFIG' } },
+          body: {
+            value: {
+              app: {
+                identifier: 'non_existent_app_12345',
+                workerIdentifier: 'search_worker',
+              },
+            },
+          },
+        },
+      )
+
+      expect(response.response.status).toEqual(404)
+      expect(response.error?.message).toContain('not found')
+    })
+
+    it('should reject setting SEARCH_CONFIG with disabled app', async () => {
+      await testModule?.setServerStorageLocation()
+
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      // Create and install a test app with search capability
+      const appSlug = `searchapp${Date.now()}`
+      const zipBuffer = await buildAppZip({
+        slug: appSlug,
+        label: 'Search App',
+        config: createTestAppConfig(appSlug, 'Search App', {
+          runtimeWorkers: {
+            search_worker: {
+              entrypoint: 'search.ts',
+              description: 'Search worker',
+            },
+          },
+          systemRequestRuntimeWorkers: {
+            performSearch: ['search_worker'],
+          },
+        }),
+        files: [
+          {
+            path: 'workers/search.ts',
+            content: 'export default function() {}',
+          },
+        ],
+      })
+
+      // Install the app
+      const { identifier: appIdentifier } = await installApp(
+        testModule!,
+        accessToken,
+        zipBuffer,
+      )
+
+      // Disable the app
+      await apiClient(accessToken).PUT(
+        '/api/v1/server/apps/{appIdentifier}/enabled',
+        {
+          params: { path: { appIdentifier } },
+          body: { enabled: false },
+        },
+      )
+
+      // Try to set it as search provider
+      const response = await apiClient(accessToken).PUT(
+        '/api/v1/server/settings/{settingKey}',
+        {
+          params: { path: { settingKey: 'SEARCH_CONFIG' } },
+          body: {
+            value: {
+              app: {
+                identifier: appIdentifier,
+                workerIdentifier: 'search_worker',
+              },
+            },
+          },
+        },
+      )
+
+      expect(response.response.status).toEqual(503)
+      expect(response.error?.message).toContain('disabled')
+    })
+
+    it('should reject setting SEARCH_CONFIG with non-existent worker', async () => {
+      await testModule?.setServerStorageLocation()
+
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      // Create and install a test app
+      const appSlug = `searchapp${Date.now()}`
+      const zipBuffer = await buildAppZip({
+        slug: appSlug,
+        label: 'Search App',
+        config: createTestAppConfig(appSlug, 'Search App', {
+          runtimeWorkers: {
+            other_worker: {
+              entrypoint: 'other.ts',
+              description: 'Other worker',
+            },
+          },
+          systemRequestRuntimeWorkers: {
+            performSearch: ['other_worker'],
+          },
+        }),
+        files: [
+          {
+            path: 'workers/other.ts',
+            content: 'export default function() {}',
+          },
+        ],
+      })
+
+      // Install the app
+      const { identifier: appIdentifier } = await installApp(
+        testModule!,
+        accessToken,
+        zipBuffer,
+      )
+
+      // Try to set it with a non-existent worker
+      const response = await apiClient(accessToken).PUT(
+        '/api/v1/server/settings/{settingKey}',
+        {
+          params: { path: { settingKey: 'SEARCH_CONFIG' } },
+          body: {
+            value: {
+              app: {
+                identifier: appIdentifier,
+                workerIdentifier: 'non_existent_worker',
+              },
+            },
+          },
+        },
+      )
+
+      expect(response.response.status).toEqual(404)
+      expect(response.error?.message).toContain('not found')
+    })
+
+    it('should reject setting SEARCH_CONFIG with unauthorized worker', async () => {
+      await testModule?.setServerStorageLocation()
+
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      // Create and install a test app with a worker that's NOT in performSearch
+      const appSlug = `searchapp${Date.now()}`
+      const zipBuffer = await buildAppZip({
+        slug: appSlug,
+        label: 'Search App',
+        config: createTestAppConfig(appSlug, 'Search App', {
+          runtimeWorkers: {
+            authorized_worker: {
+              entrypoint: 'authorized.ts',
+              description: 'Authorized worker',
+            },
+            unauthorized_worker: {
+              entrypoint: 'unauthorized.ts',
+              description: 'Unauthorized worker',
+            },
+          },
+          systemRequestRuntimeWorkers: {
+            performSearch: ['authorized_worker'], // Only this one is authorized
+          },
+        }),
+        files: [
+          {
+            path: 'workers/authorized.ts',
+            content: 'export default function() {}',
+          },
+          {
+            path: 'workers/unauthorized.ts',
+            content: 'export default function() {}',
+          },
+        ],
+      })
+
+      const { identifier: appIdentifier } = await installApp(
+        testModule!,
+        accessToken,
+        zipBuffer,
+      )
+
+      // Try to set it with the unauthorized worker
+      const response = await apiClient(accessToken).PUT(
+        '/api/v1/server/settings/{settingKey}',
+        {
+          params: { path: { settingKey: 'SEARCH_CONFIG' } },
+          body: {
+            value: {
+              app: {
+                identifier: appIdentifier,
+                workerIdentifier: 'unauthorized_worker',
+              },
+            },
+          },
+        },
+      )
+
+      expect(response.response.status).toEqual(403)
+      expect(response.error?.message).toContain('not authorized')
+    })
+
+    it('should successfully set SEARCH_CONFIG with valid app and worker', async () => {
+      await testModule?.setServerStorageLocation()
+
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      // Create and install a valid search app
+      const appSlug = `searchapp${Date.now()}`
+      const zipBuffer = await buildAppZip({
+        slug: appSlug,
+        label: 'Search App',
+        config: createTestAppConfig(appSlug, 'Search App', {
+          runtimeWorkers: {
+            search_worker: {
+              entrypoint: 'search.ts',
+              description: 'Search worker',
+            },
+          },
+          systemRequestRuntimeWorkers: {
+            performSearch: ['search_worker'],
+          },
+        }),
+        files: [
+          {
+            path: 'workers/search.ts',
+            content: 'export default function() {}',
+          },
+        ],
+      })
+
+      // Install the app
+      const { identifier: appIdentifier } = await installApp(
+        testModule!,
+        accessToken,
+        zipBuffer,
+      )
+
+      // Set it as search provider
+      const response = await apiClient(accessToken).PUT(
+        '/api/v1/server/settings/{settingKey}',
+        {
+          params: { path: { settingKey: 'SEARCH_CONFIG' } },
+          body: {
+            value: {
+              app: {
+                identifier: appIdentifier,
+                workerIdentifier: 'search_worker',
+              },
+            },
+          },
+        },
+      )
+
+      expect(response.response.status).toEqual(200)
+      expect(response.data?.settingKey).toEqual('SEARCH_CONFIG')
+
+      // Verify it was set correctly
+      const getResponse = await apiClient(accessToken).GET(
+        '/api/v1/server/settings',
+      )
+      expect(getResponse.data?.settings.SEARCH_CONFIG).toEqual({
+        app: {
+          identifier: appIdentifier,
+          workerIdentifier: 'search_worker',
+        },
+      })
+    })
+
+    it('should clear SEARCH_CONFIG when app is disabled', async () => {
+      await testModule?.setServerStorageLocation()
+
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      // Create and install a search app
+      const appSlug = `searchapp${Date.now()}`
+      const zipBuffer = await buildAppZip({
+        slug: appSlug,
+        label: 'Search App',
+        config: createTestAppConfig(appSlug, 'Search App', {
+          runtimeWorkers: {
+            search_worker: {
+              entrypoint: 'search.ts',
+              description: 'Search worker',
+            },
+          },
+          systemRequestRuntimeWorkers: {
+            performSearch: ['search_worker'],
+          },
+        }),
+        files: [
+          {
+            path: 'workers/search.ts',
+            content: 'export default function() {}',
+          },
+        ],
+      })
+
+      // Install the app
+      const { identifier: appIdentifier } = await installApp(
+        testModule!,
+        accessToken,
+        zipBuffer,
+      )
+
+      // Set it as search provider
+      await apiClient(accessToken).PUT('/api/v1/server/settings/{settingKey}', {
+        params: { path: { settingKey: 'SEARCH_CONFIG' } },
+        body: {
+          value: {
+            app: {
+              identifier: appIdentifier,
+              workerIdentifier: 'search_worker',
+            },
+          },
+        },
+      })
+
+      // Verify it was set
+      const getResponse1 = await apiClient(accessToken).GET(
+        '/api/v1/server/settings',
+      )
+      expect(getResponse1.data?.settings.SEARCH_CONFIG?.app).not.toBeNull()
+
+      // Disable the app
+      await apiClient(accessToken).PUT(
+        '/api/v1/server/apps/{appIdentifier}/enabled',
+        {
+          params: { path: { appIdentifier } },
+          body: { enabled: false },
+        },
+      )
+
+      // Verify SEARCH_CONFIG was cleared
+      const getResponse2 = await apiClient(accessToken).GET(
+        '/api/v1/server/settings',
+      )
+      expect(getResponse2.data?.settings.SEARCH_CONFIG).toEqual({
+        app: null,
+      })
+    })
+
+    it('should clear SEARCH_CONFIG when app is uninstalled', async () => {
+      await testModule?.setServerStorageLocation()
+
+      const {
+        session: { accessToken },
+      } = await createTestUser(testModule!, {
+        username: 'admin',
+        password: '123',
+        admin: true,
+      })
+
+      // Create and install a search app
+      const appSlug = `searchapp${Date.now()}`
+      const zipBuffer = await buildAppZip({
+        slug: appSlug,
+        label: 'Search App',
+        config: createTestAppConfig(appSlug, 'Search App', {
+          runtimeWorkers: {
+            search_worker: {
+              entrypoint: 'search.ts',
+              description: 'Search worker',
+            },
+          },
+          systemRequestRuntimeWorkers: {
+            performSearch: ['search_worker'],
+          },
+        }),
+        files: [
+          {
+            path: 'workers/search.ts',
+            content: 'export default function() {}',
+          },
+        ],
+      })
+
+      // Install the app
+      const { identifier: appIdentifier } = await installApp(
+        testModule!,
+        accessToken,
+        zipBuffer,
+      )
+
+      // Set it as search provider
+      await apiClient(accessToken).PUT('/api/v1/server/settings/{settingKey}', {
+        params: { path: { settingKey: 'SEARCH_CONFIG' } },
+        body: {
+          value: {
+            app: {
+              identifier: appIdentifier,
+              workerIdentifier: 'search_worker',
+            },
+          },
+        },
+      })
+
+      // Verify it was set
+      const getResponse1 = await apiClient(accessToken).GET(
+        '/api/v1/server/settings',
+      )
+      expect(getResponse1.data?.settings.SEARCH_CONFIG?.app).not.toBeNull()
+
+      // Uninstall the app
+      await apiClient(accessToken).DELETE(
+        '/api/v1/server/apps/{appIdentifier}',
+        {
+          params: { path: { appIdentifier } },
+        },
+      )
+
+      // Verify SEARCH_CONFIG was cleared
+      const getResponse2 = await apiClient(accessToken).GET(
+        '/api/v1/server/settings',
+      )
+      expect(getResponse2.data?.settings.SEARCH_CONFIG).toEqual({
+        app: null,
+      })
+    })
   })
 
   afterAll(async () => {
