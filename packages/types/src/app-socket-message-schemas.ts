@@ -1,4 +1,5 @@
-import { z, type ZodType, type ZodTypeAny } from 'zod'
+import type { ZodSchema, ZodType, ZodTypeAny } from 'zod'
+import { z } from 'zod'
 
 import type { AppSocketMessage } from './apps.types'
 import { appManifestSchema, appMessageErrorSchema } from './apps.types'
@@ -206,7 +207,53 @@ export const createResponseSchema = <T extends ZodTypeAny>(resultSchema: T) =>
     }),
   ])
 
-// const taskDTOSchema: ZodType<TaskDTO> = z.custom<TaskDTO>()
+export const executeAppDockerJobResponseSchema = createResponseSchema(
+  z.discriminatedUnion('jobSuccess', [
+    z.object({
+      jobId: z.string(),
+      jobSuccess: z.literal(true),
+      jobResult: jsonSerializableObjectDTOSchema,
+    }),
+    z.object({
+      jobId: z.string(),
+      jobSuccess: z.literal(false),
+      jobResult: z.union([
+        z.object({
+          submitError: appMessageErrorSchema,
+        }),
+        z.object({
+          jobError: appMessageErrorSchema,
+        }),
+      ]),
+    }),
+  ]),
+)
+
+export const buildExecuteAppDockerJobResponseSchema = <T extends ZodSchema>(
+  resultSchema: T,
+) => {
+  return createResponseSchema(
+    z.discriminatedUnion('jobSuccess', [
+      z.object({
+        jobId: z.string(),
+        jobSuccess: z.literal(true),
+        jobResult: resultSchema,
+      }),
+      z.object({
+        jobId: z.string(),
+        jobSuccess: z.literal(false),
+        jobResult: z.union([
+          z.object({
+            submitError: appMessageErrorSchema,
+          }),
+          z.object({
+            jobError: appMessageErrorSchema,
+          }),
+        ]),
+      }),
+    ]),
+  )
+}
 
 const signedUrlSchema = z.object({
   url: z.string(),
@@ -285,30 +332,8 @@ export const AppSocketMessageResponseSchemaMap = {
       success: z.boolean(),
     }),
   ),
-  EXECUTE_APP_DOCKER_JOB: createResponseSchema(
-    z.union([
-      z.object({
-        jobId: z.string(),
-        success: z.boolean(),
-        result: z.unknown(),
-        jobError: z
-          .object({
-            code: z.string(),
-            message: z.string(),
-          })
-          .optional(),
-      }),
-      z.object({
-        jobId: z.string(),
-        submitError: z
-          .object({
-            code: z.string(),
-            message: z.string(),
-          })
-          .optional(),
-      }),
-    ]),
-  ),
+
+  EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   TRIGGER_APP_TASK: createResponseSchema(z.null()),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 

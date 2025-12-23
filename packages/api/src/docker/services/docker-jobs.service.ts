@@ -31,7 +31,7 @@ const DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS = {
 }
 
 const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
-  maxRetries: 10,
+  maxRetries: 100,
   retryPeriod: 250,
 }
 
@@ -186,7 +186,7 @@ export class DockerJobsService {
       jobIdentifier,
     )
 
-    const containerProfileIdentifier = `lombok:profile_hash_${profileHash}`
+    const containerProfileIdentifier = `lombok:profile_${profileKey}`
     // Build labels for container discovery
 
     const labels = this.buildContainerLabels(
@@ -220,10 +220,7 @@ export class DockerJobsService {
           jobDefinition.kind === 'http'
             ? {
                 kind: 'persistent_http',
-                listener: {
-                  type: 'tcp',
-                  port: jobDefinition.port,
-                },
+                port: jobDefinition.port,
               }
             : {
                 kind: 'exec_per_job',
@@ -282,6 +279,11 @@ export class DockerJobsService {
         throw error
       }
 
+      this.logger.debug('Job submission output:', {
+        output: await output(),
+        state: await state(),
+      })
+
       if (waitForCompletion) {
         const completionResult = await this.waitForCompletion(
           hostId,
@@ -332,7 +334,6 @@ export class DockerJobsService {
       await waitForTrue(
         async () => {
           currentState = await state()
-          console.log('currentState:', currentState)
           if (
             !currentState.running &&
             typeof currentState.exitCode !== 'number'
@@ -392,11 +393,13 @@ export class DockerJobsService {
       },
       { maxRetries, retryPeriod },
     )
-
-    if (currentJobState.status === 'success') {
-      return {
-        jobId,
-        result: await this.getJobResult(hostId, containerId, jobId),
+    if (hasCompleted()) {
+      const jobResult = await this.getJobResult(hostId, containerId, jobId)
+      if (currentJobState.status === 'success') {
+        return jobResult
+      } else if (currentJobState.status === 'failed') {
+        const jobError = await this.getJobResult(hostId, containerId, jobId)
+        return jobError
       }
     }
     throw new DockerJobCompletionError(
@@ -447,7 +450,7 @@ export class DockerJobsService {
     hostId: string,
     containerId: string,
     jobId: string,
-  ): Promise<JsonSerializableObject> {
+  ): Promise<DockerJobResult> {
     const command = ['lombok-worker-agent', 'job-result', '--job-id', jobId]
 
     const rawOutput =
@@ -457,9 +460,25 @@ export class DockerJobsService {
         command,
       )
 
-    console.log('job-result rawOutput:', rawOutput)
+    const agentResponse =
+      rawOutput.length > 0
+        ? (JSON.parse(rawOutput) as DockerJobResultAgent)
+        : undefined
 
-    return JSON.parse(rawOutput) as JsonSerializableObject
+    return agentResponse
+      ? {
+          ...agentResponse,
+          jobId: agentResponse.job_id,
+        }
+      : {
+          success: false,
+          jobId,
+          error: {
+            code: 'JOB_RESULT_NOT_FOUND',
+            message: 'Job result not found',
+          },
+          timing: {},
+        }
   }
 
   async getWorkerLogs(
@@ -519,12 +538,16 @@ export class DockerJobsService {
 
 type DockerJobResult =
   | {
+      success: true
       jobId: string
       result: JsonSerializableObject
+      timing: Record<string, number>
     }
   | {
+      success: false
       jobId: string
       error: { code: string; message: string }
+      timing: Record<string, number>
     }
 
 type DockerSubmitResult =
@@ -536,10 +559,6 @@ type DockerSubmitResult =
       submitError: { code: string; message: string }
     }
 
-type DockerExecResult<T extends boolean> = T extends true
-  ? DockerJobResult
-  : DockerSubmitResult
-
 interface DockerJobState {
   job_id: string
   job_class: string
@@ -549,3 +568,20 @@ interface DockerJobState {
   worker_kind: string
   worker_state_pid: number
 }
+type DockerJobResultAgent =
+  | {
+      success: true
+      job_id: string
+      result: JsonSerializableObject
+      timing: Record<string, number>
+    }
+  | {
+      success: false
+      job_id: string
+      error: { code: string; message: string }
+      timing: Record<string, number>
+    }
+
+type DockerExecResult<T extends boolean> = T extends true
+  ? DockerJobResult
+  : DockerSubmitResult

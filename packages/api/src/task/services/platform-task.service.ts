@@ -40,19 +40,19 @@ export class PlatformTaskService {
   async drainPlatformTasks(waitForCompletion = false) {
     const runId = crypto.randomUUID()
     if (this.draining) {
-      this.logger.debug('Platform task draining already running')
+      this.logger.verbose('Platform task draining already running')
       if (waitForCompletion) {
         await this.draining
       }
       return
     }
-    this.logger.debug('Draining platform tasks started:', runId)
+    this.logger.verbose('Draining platform tasks started:', runId)
     let unstartedPlatformTasksCount = 0
 
     try {
       this.draining = this._drainPlatformTasks()
       const { completed, pending } = await this.draining
-      this.logger.debug('Draining platform task run complete:', {
+      this.logger.verbose('Draining platform task run complete:', {
         runId,
         completed,
         pending,

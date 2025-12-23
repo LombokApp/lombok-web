@@ -14,9 +14,11 @@ export async function buildApp() {
     timestamp: true,
     // json: true,
     logLevels:
-      process.env.LOG_LEVEL === 'DEBUG'
+      process.env.LOG_LEVEL === 'ALL'
         ? ['log', 'error', 'warn', 'debug', 'verbose']
-        : ['log', 'error', 'warn'],
+        : process.env.LOG_LEVEL === 'DEBUG'
+          ? ['log', 'error', 'warn', 'debug']
+          : ['log', 'error', 'warn'],
   })
   const creationPromise = NestFactory.create(PlatformModule, {
     logger,

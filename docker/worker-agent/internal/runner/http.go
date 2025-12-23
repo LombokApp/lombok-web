@@ -3,10 +3,10 @@ package runner
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -22,7 +22,7 @@ import (
 
 const (
 	// Readiness polling settings
-	readinessTimeout  = 60 * time.Second
+	readinessTimeout  = 180 * time.Second
 	readinessPollWait = 500 * time.Millisecond
 
 	// Job submission timeout (short - just for the POST)
@@ -37,21 +37,23 @@ const (
 // RunPersistentHTTP runs a job using the persistent_http interface
 // It ensures a persistent worker is running, submits the job, then polls for completion.
 func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error {
+
+	port := payload.Interface.Port
+	if port == nil {
+		return fmt.Errorf("port is required")
+	}
+
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
 		return fmt.Errorf("failed to ensure directories: %w", err)
 	}
 
-	waitForCompletion := payload.WaitForCompletion == nil || *payload.WaitForCompletion
+	waitForCompletion := payload.WaitForCompletion != nil && *payload.WaitForCompletion
 
-	var platformClient *platform.Client
-	if payload.PlatformURL != "" && payload.JobToken != "" {
-		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
-	}
-
-	// Create job output directory (worker can write files here)
-	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
-		return fmt.Errorf("failed to create job output directory: %w", err)
+	// Prepare log/output locations up front so the worker can write immediately.
+	httpReq, err := prepareHTTPJobRequest(payload)
+	if err != nil {
+		return err
 	}
 
 	// Create initial job state
@@ -65,6 +67,16 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	}
 	if err := state.WriteJobState(jobState); err != nil {
 		return fmt.Errorf("failed to write initial job state: %w", err)
+	}
+
+	// Fast path: fire-and-forget when caller does not need completion.
+	if !waitForCompletion {
+		return startAsyncDispatch(payload, jobState, jobStartTime)
+	}
+
+	var platformClient *platform.Client
+	if payload.PlatformURL != "" && payload.JobToken != "" {
+		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
 	}
 
 	// Track worker startup time
@@ -109,40 +121,6 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	// Build the HTTP client for job submission (short timeout)
 	client := &http.Client{Timeout: jobSubmitTimeout}
-	if payload.Interface.Listener != nil && payload.Interface.Listener.Type == "unix" {
-		client.Transport = &http.Transport{
-			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-				return (&net.Dialer{}).DialContext(ctx, "unix", payload.Interface.Listener.Path)
-			},
-		}
-	}
-
-	// Build the job request payload
-	jobOutPath := config.JobOutLogPath(payload.JobID)
-	jobErrPath := config.JobErrLogPath(payload.JobID)
-	jobOutputDir := config.JobOutputDir(payload.JobID)
-
-	// Create job log files (empty initially, worker may write to them)
-	jobOutFile, err := os.Create(jobOutPath)
-	if err != nil {
-		return fmt.Errorf("failed to create stdout log: %w", err)
-	}
-	jobOutFile.Close()
-
-	jobErrFile, err := os.Create(jobErrPath)
-	if err != nil {
-		return fmt.Errorf("failed to create stderr log: %w", err)
-	}
-	jobErrFile.Close()
-
-	httpReq := types.HTTPJobRequest{
-		JobID:        payload.JobID,
-		JobClass:     payload.JobClass,
-		JobInput:     payload.JobInput,
-		JobLogOut:    jobOutPath,
-		JobLogErr:    jobErrPath,
-		JobOutputDir: jobOutputDir,
-	}
 
 	reqBody, err := json.Marshal(httpReq)
 	if err != nil {
@@ -150,7 +128,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	}
 
 	// Build the endpoint URL
-	baseURL := buildBaseURL(payload.Interface.Listener)
+	baseURL := buildBaseURL(*payload.Interface.Port)
 
 	if platformClient != nil {
 		ctx := context.Background()
@@ -249,34 +227,9 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	jobState.Status = "running"
 	state.WriteJobState(jobState)
 
-	if !waitForCompletion {
-		totalJobDuration := time.Since(jobStartTime)
-		timing := map[string]interface{}{
-			"total_time_seconds":          totalJobDuration.Seconds(),
-			"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
-			"worker_ready_time_seconds":   workerStartupDuration.Seconds(),
-		}
-
-		result := map[string]interface{}{
-			"success":   true,
-			"job_id":    payload.JobID,
-			"job_class": payload.JobClass,
-			"status":    "running",
-			"timing":    timing,
-		}
-
-		if workerState != nil {
-			result["worker_pid"] = workerState.PID
-		}
-
-		resultJSON, _ := json.Marshal(result)
-		fmt.Println(string(resultJSON))
-		return nil
-	}
-
 	// Step 2: Poll for job completion
 	statusURL := fmt.Sprintf("%s/job/%s", baseURL, payload.JobID)
-	pollClient := buildHTTPClient(payload.Interface.Listener)
+	pollClient := &http.Client{Timeout: jobStatusTimeout}
 
 	deadline := time.Now().Add(jobPollTimeout)
 	var finalStatus *types.HTTPJobStatusResponse
@@ -291,7 +244,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		}
 
 		// Check if job is complete
-		if status.Status == "completed" || status.Status == "failed" {
+		if status.Status == "success" || status.Status == "failed" {
 			finalStatus = status
 			break
 		}
@@ -334,22 +287,20 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	jobExecutionDuration := time.Since(jobExecutionStartTime)
 	totalJobDuration := time.Since(jobStartTime)
 
-	logs.WriteAgentLog("job_id=%s job_execution_time=%.3fs total_time=%.3fs",
-		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds())
+	logs.WriteAgentLog("Job finished: job_id=%s job_execution_time=%.3fs total_time=%.3fs status=%s",
+		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds(), finalStatus.Status)
 
 	// Update job state with final status
 	jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 
-	if finalStatus.Status == "completed" {
-		jobState.Status = "success"
-	} else {
-		jobState.Status = "failed"
+	jobState.Status = finalStatus.Status
+	success := finalStatus.Status == "success"
+
+	if !success {
 		if finalStatus.Error != nil {
 			jobState.Error = finalStatus.Error.Message
 		}
 	}
-
-	state.WriteJobState(jobState)
 
 	// Handle file uploads and platform completion if configured
 	var outputFiles []types.OutputFileRef
@@ -377,7 +328,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		// Signal completion to platform
 		ctx := context.Background()
 		completionReq := &types.CompletionRequest{
-			Success:     finalStatus.Status == "completed",
+			Success:     success,
 			Result:      finalStatus.Result,
 			OutputFiles: outputFiles,
 		}
@@ -398,53 +349,45 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		"worker_ready_time_seconds":   workerStartupDuration.Seconds(),
 	}
 
-	// Output the final result to stdout for the platform
-	result := map[string]interface{}{
-		"success":   finalStatus.Status == "completed",
+	// Output the final resultLog to stdout for the platform
+	resultLog := map[string]interface{}{
+		"success":   success,
 		"job_id":    payload.JobID,
 		"job_class": payload.JobClass,
 		"timing":    timing,
 	}
-	if finalStatus.Result != nil {
-		// Parse the result from the HTTP response and include it as a parsed object
-		var parsedResult interface{}
-		if err := json.Unmarshal(finalStatus.Result, &parsedResult); err != nil {
-			// If parsing fails, fall back to raw message
-			result["result"] = json.RawMessage(finalStatus.Result)
-		} else {
-			result["result"] = parsedResult
-		}
-	}
-	if len(outputFiles) > 0 {
-		result["output_files"] = outputFiles
-	}
-	if finalStatus.Error != nil {
-		result["error"] = finalStatus.Error
-	}
 
-	resultJSON, _ := json.Marshal(result)
-	fmt.Println(string(resultJSON))
+	resultLogJSON, _ := json.Marshal(resultLog)
+	fmt.Println(string(resultLogJSON))
 
 	// Save result to file
 	jobResult := &types.JobResult{
-		Success:     finalStatus.Status == "completed",
+		Success:     success,
 		JobID:       payload.JobID,
 		JobClass:    payload.JobClass,
 		Timing:      timing,
 		OutputFiles: outputFiles,
 	}
 	if finalStatus.Result != nil {
-		var parsedResult interface{}
+		var parsedResult any
 		if err := json.Unmarshal(finalStatus.Result, &parsedResult); err == nil {
 			jobResult.Result = parsedResult
 		}
 	}
+
 	if finalStatus.Error != nil {
 		jobResult.Error = finalStatus.Error
 	}
+
+	if len(outputFiles) > 0 {
+		jobResult.OutputFiles = outputFiles
+	}
+
 	if err := state.WriteJobResult(jobResult); err != nil {
 		logs.WriteAgentLog("warning: failed to write job result: %v", err)
 	}
+
+	state.WriteJobState(jobState)
 
 	if jobState.Status == "failed" {
 		os.Exit(1)
@@ -489,23 +432,38 @@ func pollJobStatus(client *http.Client, statusURL string) (*types.HTTPJobStatusR
 // ensureWorkerReady makes sure a worker is running and ready to accept jobs
 // Returns the worker state, the time taken for the worker to become ready, and any error
 func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Duration, error) {
-	jobClass := payload.JobClass
 
 	// Check if worker is already running
-	alive, workerState, err := state.IsWorkerAlive(jobClass)
+	alive, workerState, err := state.IsWorkerAlive(payload.WorkerCommand, payload.Interface)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to check worker state: %w", err)
 	}
 
-	if alive && workerState != nil && workerState.State == "ready" {
+	if alive {
 		// Verify the worker is actually responding
-		if checkWorkerReady(payload.Interface.Listener) {
+		if checkWorkerReady(*payload.Interface.Port) {
 			// Worker was already ready, so ready time is 0
 			return workerState, 0, nil
 		}
-		// Worker is not responding, mark as unhealthy and restart
-		workerState.State = "unhealthy"
+		// Worker is running but not yet ready; wait for it to become ready
+		waitStart := time.Now()
+		if err := waitForWorkerReady(*payload.Interface.Port, readinessTimeout); err != nil {
+			workerState.State = "unhealthy"
+			state.WriteWorkerState(workerState)
+			return nil, 0, err
+		}
+
+		readyDuration := time.Since(waitStart)
+
+		// Log worker startup timing
+		logs.WriteAgentLog("job_class=%s worker_became_ready_time=%.3fs",
+			payload.JobClass, readyDuration.Seconds())
+
+		// Mark as ready
+		workerState.State = "ready"
+		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteWorkerState(workerState)
+		return workerState, readyDuration, nil
 	}
 
 	// Need to start (or restart) the worker
@@ -516,7 +474,7 @@ func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Dura
 	}
 
 	// Poll for readiness
-	if err := waitForWorkerReady(payload.Interface.Listener, readinessTimeout); err != nil {
+	if err := waitForWorkerReady(*payload.Interface.Port, readinessTimeout); err != nil {
 		workerState.State = "unhealthy"
 		state.WriteWorkerState(workerState)
 		return nil, 0, err
@@ -552,9 +510,8 @@ func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
 	}
 
 	// Open log files for the worker
-	logIdentifier := config.WorkerLogIdentifier(payload.WorkerCommand, &payload.Interface)
-	stdoutPath := config.WorkerOutLogPath(logIdentifier)
-	stderrPath := config.WorkerErrLogPath(logIdentifier)
+	stdoutPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
+	stderrPath := config.WorkerErrLogPath(payload.WorkerCommand, payload.Interface)
 
 	stdoutFile, err := os.OpenFile(stdoutPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
@@ -593,7 +550,7 @@ func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
 		WorkerCommand: payload.WorkerCommand,
 		PID:           cmd.Process.Pid,
 		State:         "starting",
-		Listener:      payload.Interface.Listener,
+		Port:          payload.Interface.Port,
 		StartedAt:     now,
 		LastCheckedAt: now,
 		AgentVersion:  config.AgentVersion,
@@ -607,11 +564,11 @@ func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
 }
 
 // waitForWorkerReady polls the worker endpoint until it responds or times out
-func waitForWorkerReady(listener *types.ListenerConfig, timeout time.Duration) error {
+func waitForWorkerReady(port int, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 
 	for time.Now().Before(deadline) {
-		if checkWorkerReady(listener) {
+		if checkWorkerReady(port) {
 			return nil
 		}
 		time.Sleep(readinessPollWait)
@@ -621,9 +578,9 @@ func waitForWorkerReady(listener *types.ListenerConfig, timeout time.Duration) e
 }
 
 // checkWorkerReady checks if the worker is responding to HTTP requests
-func checkWorkerReady(listener *types.ListenerConfig) bool {
-	client := buildHTTPClient(listener)
-	endpoint := buildBaseURL(listener) + "/health/ready"
+func checkWorkerReady(port int) bool {
+	client := &http.Client{Timeout: jobStatusTimeout}
+	endpoint := buildBaseURL(port) + "/health/ready"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -643,36 +600,121 @@ func checkWorkerReady(listener *types.ListenerConfig) bool {
 	return resp.StatusCode == 200
 }
 
-// buildHTTPClient creates an HTTP client configured for the listener type
-func buildHTTPClient(listener *types.ListenerConfig) *http.Client {
-	if listener == nil {
-		return &http.Client{Timeout: jobStatusTimeout}
-	}
-
-	if listener.Type == "unix" {
-		return &http.Client{
-			Timeout: jobStatusTimeout,
-			Transport: &http.Transport{
-				DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-					return (&net.Dialer{}).DialContext(ctx, "unix", listener.Path)
-				},
-			},
-		}
-	}
-
-	return &http.Client{Timeout: jobStatusTimeout}
+// buildBaseURL builds the base URL based on the listener configuration
+func buildBaseURL(port int) string {
+	return fmt.Sprintf("http://127.0.0.1:%d", port)
 }
 
-// buildBaseURL builds the base URL based on the listener configuration
-func buildBaseURL(listener *types.ListenerConfig) string {
-	if listener == nil {
-		return "http://127.0.0.1:9000"
+// startAsyncDispatch persists the job and hands off submission to a background agent process.
+func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time) error {
+	alive, workerState, err := state.IsWorkerAlive(payload.WorkerCommand, payload.Interface)
+	if err != nil {
+		return fmt.Errorf("failed to check worker state: %w", err)
+	}
+	if alive && workerState != nil {
+		jobState.WorkerStatePID = workerState.PID
+		state.WriteJobState(jobState)
 	}
 
-	if listener.Type == "unix" {
-		// For unix sockets, the host doesn't matter but we need a valid URL
-		return "http://localhost"
+	// Always dispatch in the background so this call returns immediately.
+	if alive && workerState != nil && workerState.State == "ready" {
+		logs.WriteAgentLog("job_id=%s using ready worker; scheduling async dispatch", payload.JobID)
+	} else {
+		logs.WriteAgentLog("job_id=%s scheduling async dispatch; worker not ready yet", payload.JobID)
 	}
 
-	return fmt.Sprintf("http://127.0.0.1:%d", listener.Port)
+	if err := launchAsyncDispatch(payload); err != nil {
+		jobState.Status = "failed"
+		jobState.Error = err.Error()
+		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+		state.WriteJobState(jobState)
+		return err
+	}
+
+	totalJobDuration := time.Since(jobStartTime)
+	timing := map[string]interface{}{
+		"total_time_seconds": totalJobDuration.Seconds(),
+	}
+
+	result := map[string]interface{}{
+		"job_id":    payload.JobID,
+		"job_class": payload.JobClass,
+		"status":    "pending",
+		"timing":    timing,
+	}
+
+	if jobState.WorkerStatePID != 0 {
+		result["worker_pid"] = jobState.WorkerStatePID
+	}
+
+	resultJSON, _ := json.Marshal(result)
+	fmt.Println(string(resultJSON))
+	return nil
+}
+
+// prepareHTTPJobRequest creates log/output files and returns the request payload.
+func prepareHTTPJobRequest(payload *types.JobPayload) (types.HTTPJobRequest, error) {
+	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
+		return types.HTTPJobRequest{}, fmt.Errorf("failed to create job output directory: %w", err)
+	}
+
+	jobOutPath := config.JobOutLogPath(payload.JobID)
+	jobErrPath := config.JobErrLogPath(payload.JobID)
+	jobOutputDir := config.JobOutputDir(payload.JobID)
+
+	if err := touchFile(jobOutPath); err != nil {
+		return types.HTTPJobRequest{}, fmt.Errorf("failed to create stdout log: %w", err)
+	}
+	if err := touchFile(jobErrPath); err != nil {
+		return types.HTTPJobRequest{}, fmt.Errorf("failed to create stderr log: %w", err)
+	}
+
+	return types.HTTPJobRequest{
+		JobID:        payload.JobID,
+		JobClass:     payload.JobClass,
+		JobInput:     payload.JobInput,
+		JobLogOut:    jobOutPath,
+		JobLogErr:    jobErrPath,
+		JobOutputDir: jobOutputDir,
+	}, nil
+}
+
+// touchFile truncates/creates a file and closes it immediately.
+func touchFile(path string) error {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	return f.Close()
+}
+
+// launchAsyncDispatch spins up a background agent process to handle readiness and submission.
+func launchAsyncDispatch(payload *types.JobPayload) error {
+	waitForCompletion := true
+	payload.WaitForCompletion = &waitForCompletion
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload for async dispatch: %w", err)
+	}
+
+	payloadB64 := base64.StdEncoding.EncodeToString(payloadJSON)
+
+	cmd := exec.Command(os.Args[0], "run-job", "--payload-base64", payloadB64)
+
+	logPath := config.AgentLogPath()
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open agent log for async dispatch: %w", err)
+	}
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+
+	if err := cmd.Start(); err != nil {
+		logFile.Close()
+		return fmt.Errorf("failed to start async dispatch process: %w", err)
+	}
+	logFile.Close()
+
+	logs.WriteAgentLog("job_id=%s scheduled async dispatch pid=%d", payload.JobID, cmd.Process.Pid)
+	return nil
 }

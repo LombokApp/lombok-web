@@ -41,30 +41,6 @@ func WriteJobState(state *types.JobState) error {
 	return os.WriteFile(path, data, 0644)
 }
 
-// UpdateJobStatus is a helper to update just the status of a job
-func UpdateJobStatus(jobID string, status string, completedAt string, errMsg string, meta *types.JobMeta) error {
-	state, err := ReadJobState(jobID)
-	if err != nil {
-		return err
-	}
-	if state == nil {
-		return nil // Job state not found, nothing to update
-	}
-
-	state.Status = status
-	if completedAt != "" {
-		state.CompletedAt = completedAt
-	}
-	if errMsg != "" {
-		state.Error = errMsg
-	}
-	if meta != nil {
-		state.Meta = meta
-	}
-
-	return WriteJobState(state)
-}
-
 // WriteJobResult writes the result file for a job
 func WriteJobResult(result *types.JobResult) error {
 	if err := config.EnsureStateDirs(); err != nil {

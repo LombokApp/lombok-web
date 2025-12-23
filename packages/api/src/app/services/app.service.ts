@@ -960,7 +960,6 @@ export class AppService {
     }
 
     if (app.config.database?.enabled) {
-      await this.ormService.ensureAppSchema(app.identifier)
       if (app.migrationFiles.length > 0) {
         await this.ormService.runAppMigrations(
           app.identifier,
@@ -1003,6 +1002,13 @@ export class AppService {
         )
         throw error
       }
+    }
+
+    if (app.permissions?.platform.includes('READ_ACL')) {
+      this.logger.log(
+        `Granting "shared_acl" schema usage to app ${app.identifier}`,
+      )
+      await this.ormService.grantAclSchemaUsageToApp(app.identifier)
     }
   }
 
@@ -2013,12 +2019,12 @@ export class AppService {
     }: { appIdentifier: string; workerIdentifier: string; query: string },
   ): Promise<{ vector: number[] }> {
     await this.appSocketService.executeSynchronousAppRequest(appIdentifier, {
-      url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
-      body: {
+        url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
+        body: {
         userId: actor.id,
-        query,
-        // space: 'text-v1',
-      },
+          query,
+          // space: 'text-v1',
+        },
     })
 
     return { vector: [] }

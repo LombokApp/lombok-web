@@ -70,22 +70,17 @@ func TestRunExecPerJob_Timing(t *testing.T) {
 		t.Error("Agent log should contain worker_startup_time")
 	}
 
-	// Verify timing was logged in worker log
-	jobErrLogPath := config.JobErrLogPath(payload.JobID)
-	jobErrLogContent, err := os.ReadFile(jobErrLogPath)
+	// Verify worker output was written to worker log (not job log)
+	workerOutLogPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
+	workerOutLogContent, err := os.ReadFile(workerOutLogPath)
 	if err != nil {
-		t.Fatalf("Failed to read worker err log: %v", err)
+		t.Fatalf("Failed to read worker stdout log: %v", err)
 	}
 
-	workerLogStr := string(jobErrLogContent)
-	if !strings.Contains(workerLogStr, "job_execution_time") {
-		t.Error("Worker log should contain job_execution_time")
-	}
-	if !strings.Contains(workerLogStr, "total_time") {
-		t.Error("Worker log should contain total_time")
-	}
-	if !strings.Contains(workerLogStr, "worker_startup_time") {
-		t.Error("Worker log should contain worker_startup_time")
+	workerLogStr := string(workerOutLogContent)
+	// Verify the worker's actual output is in the log (the base64 encoded input)
+	if !strings.Contains(workerLogStr, jobInputB64) {
+		t.Error("Worker log should contain worker output")
 	}
 }
 
@@ -206,15 +201,16 @@ func TestRunExecPerJob_WorkerStartupTiming(t *testing.T) {
 		t.Error("Agent log should contain worker_startup_time")
 	}
 
-	// Verify worker startup time is in worker log
-	jobErrLogPath := config.JobErrLogPath(payload.JobID)
-	jobErrLogContent, err := os.ReadFile(jobErrLogPath)
+	// Verify worker output was written to worker log (not job log)
+	workerOutLogPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
+	workerOutLogContent, err := os.ReadFile(workerOutLogPath)
 	if err != nil {
-		t.Fatalf("Failed to read worker err log: %v", err)
+		t.Fatalf("Failed to read worker stdout log: %v", err)
 	}
 
-	workerLogStr := string(jobErrLogContent)
-	if !strings.Contains(workerLogStr, "worker_startup_time") {
-		t.Error("Worker log should contain worker_startup_time")
+	workerLogStr := string(workerOutLogContent)
+	// Verify the worker's actual output is in the log (the base64 encoded input)
+	if !strings.Contains(workerLogStr, jobInputB64) {
+		t.Error("Worker log should contain worker output")
 	}
 }

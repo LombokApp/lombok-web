@@ -74,25 +74,40 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		return fmt.Errorf("worker_command is empty")
 	}
 
+	// Create job log files (for job-specific output that workers write explicitly)
+	// These are separate from worker stdout/stderr logs
+	jobOutPath := config.JobOutLogPath(payload.JobID)
+	jobErrPath := config.JobErrLogPath(payload.JobID)
+	if err := touchFile(jobOutPath); err != nil {
+		return fmt.Errorf("failed to create job stdout log: %w", err)
+	}
+	if err := touchFile(jobErrPath); err != nil {
+		return fmt.Errorf("failed to create job stderr log: %w", err)
+	}
+
 	// Set environment variables for the worker
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("JOB_OUTPUT_DIR=%s", config.JobOutputDir(payload.JobID)),
 		fmt.Sprintf("JOB_ID=%s", payload.JobID),
+		fmt.Sprintf("JOB_LOG_OUT=%s", jobOutPath),
+		fmt.Sprintf("JOB_LOG_ERR=%s", jobErrPath),
 	)
 
-	// Open log files for stdout and stderr
-	stdoutPath := config.JobOutLogPath(payload.JobID)
-	stderrPath := config.JobErrLogPath(payload.JobID)
+	// Open worker log files for stdout and stderr (same as persistent_http)
+	// Worker stdout/stderr goes here, not to job logs
+	// This allows worker-logs to tail all worker output, regardless of interface type
+	stdoutPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
+	stderrPath := config.WorkerErrLogPath(payload.WorkerCommand, payload.Interface)
 
-	stdoutFile, err := os.Create(stdoutPath)
+	stdoutFile, err := os.OpenFile(stdoutPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to create stdout log: %w", err)
+		return fmt.Errorf("failed to open worker stdout log: %w", err)
 	}
 	defer stdoutFile.Close()
 
-	stderrFile, err := os.Create(stderrPath)
+	stderrFile, err := os.OpenFile(stderrPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to create stderr log: %w", err)
+		return fmt.Errorf("failed to open worker stderr log: %w", err)
 	}
 	defer stderrFile.Close()
 
@@ -104,6 +119,24 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		cmd.Stdout = stdoutFile
 	}
 	cmd.Stderr = stderrFile
+
+	// Create a worker state file so worker-log --job-class works for exec_per_job
+	// This allows the agent to resolve the worker log identifier from job class
+	// We create this BEFORE starting the command so it exists even if startup fails
+	workerState := &types.WorkerState{
+		JobClass:      payload.JobClass,
+		Kind:          "exec_per_job",
+		WorkerCommand: payload.WorkerCommand,
+		PID:           0, // Will be updated if command starts successfully
+		State:         "starting",
+		Port:          payload.Interface.Port,
+		StartedAt:     now,
+		LastCheckedAt: now,
+		AgentVersion:  config.AgentVersion,
+	}
+	if err := state.WriteWorkerState(workerState); err != nil {
+		logs.WriteAgentLog("warning: failed to write worker state: %v", err)
+	}
 
 	// Track worker startup time
 	workerStartTime := time.Now()
@@ -117,10 +150,77 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Start the worker process
 	if err := cmd.Start(); err != nil {
+		// Write error to worker log files so they're not empty
+		fmt.Fprintf(stderrFile, "Failed to start worker: %s\n", err.Error())
+
+		// Update worker state to reflect failure
+		workerState.State = "stopped"
+		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
+		state.WriteWorkerState(workerState)
+
+		completedAt := time.Now().UTC().Format(time.RFC3339)
 		jobState.Status = "failed"
 		jobState.Error = fmt.Sprintf("failed to start worker: %s", err.Error())
-		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+		jobState.CompletedAt = completedAt
 		state.WriteJobState(jobState)
+
+		// Calculate timing (worker never started, so execution time is 0)
+		workerStartupDuration := time.Since(workerStartTime)
+		totalJobDuration := time.Since(jobStartTime)
+		timing := map[string]interface{}{
+			"job_execution_time_seconds":  0.0,
+			"total_time_seconds":          totalJobDuration.Seconds(),
+			"worker_startup_time_seconds": workerStartupDuration.Seconds(),
+		}
+
+		// Signal completion to platform if available
+		if platformClient != nil {
+			ctx := context.Background()
+			completionReq := &types.CompletionRequest{
+				Success: false,
+				Error: &types.JobError{
+					Code:    "WORKER_START_ERROR",
+					Message: fmt.Sprintf("failed to start worker: %s", err.Error()),
+				},
+			}
+			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
+				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			}
+		}
+
+		// Output result to stdout for the platform to capture
+		result := map[string]interface{}{
+			"success":   false,
+			"exit_code": 1,
+			"job_id":    payload.JobID,
+			"job_class": payload.JobClass,
+			"timing":    timing,
+			"error": map[string]interface{}{
+				"code":    "WORKER_START_ERROR",
+				"message": fmt.Sprintf("failed to start worker: %s", err.Error()),
+			},
+		}
+
+		resultJSON, _ := json.Marshal(result)
+		fmt.Println(string(resultJSON))
+
+		// Save result to file (even though command failed to start)
+		jobResult := &types.JobResult{
+			Success:  false,
+			JobID:    payload.JobID,
+			JobClass: payload.JobClass,
+			Timing:   timing,
+			ExitCode: func() *int { v := 1; return &v }(),
+			Error: &types.JobError{
+				Code:    "WORKER_START_ERROR",
+				Message: fmt.Sprintf("failed to start worker: %s", err.Error()),
+			},
+		}
+		if err := state.WriteJobResult(jobResult); err != nil {
+			logs.WriteAgentLog("warning: failed to write job result: %v", err)
+		}
+
+		os.Exit(1)
 		return fmt.Errorf("failed to start worker: %w", err)
 	}
 
@@ -128,12 +228,27 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	jobState.WorkerPID = cmd.Process.Pid
 	state.WriteJobState(jobState)
 
+	// Update worker state with PID and running status
+	workerState.PID = cmd.Process.Pid
+	workerState.State = "running"
+	workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
+	if err := state.WriteWorkerState(workerState); err != nil {
+		logs.WriteAgentLog("warning: failed to update worker state: %v", err)
+	}
+
 	// Log worker startup time (should be very fast, but log it anyway)
 	workerStartupDuration := time.Since(workerStartTime)
 	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs", payload.JobID, workerStartupDuration.Seconds())
 
 	if !waitForCompletion {
 		// In async mode, return as soon as the worker starts successfully.
+		// Update worker state to reflect that it's running
+		workerState.State = "running"
+		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
+		if err := state.WriteWorkerState(workerState); err != nil {
+			logs.WriteAgentLog("warning: failed to update worker state: %v", err)
+		}
+
 		totalJobDuration := time.Since(jobStartTime)
 		timing := map[string]interface{}{
 			"total_time_seconds":          totalJobDuration.Seconds(),
@@ -175,19 +290,14 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		}
 	}
 
-	// Update job state
-	jobState.CompletedAt = completedAt
-	jobState.Meta = &types.JobMeta{ExitCode: exitCode}
-
-	if exitCode == 0 {
-		jobState.Status = "success"
-	} else {
-		jobState.Status = "failed"
-		jobState.Error = fmt.Sprintf("worker exited with code %d", exitCode)
-	}
-
-	if err := state.WriteJobState(jobState); err != nil {
-		logs.WriteAgentLog("warning: failed to write final job state: %v", err)
+	// Update worker state to reflect completion (for exec_per_job, worker is done)
+	completedWorkerState, readErr := state.ReadWorkerState(payload.WorkerCommand, payload.Interface)
+	if readErr == nil && completedWorkerState != nil && completedWorkerState.Kind == "exec_per_job" {
+		completedWorkerState.State = "stopped"
+		completedWorkerState.LastCheckedAt = completedAt
+		if err := state.WriteWorkerState(completedWorkerState); err != nil {
+			logs.WriteAgentLog("warning: failed to update worker state: %v", err)
+		}
 	}
 
 	// Log timing information
@@ -301,6 +411,22 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {
 		logs.WriteAgentLog("warning: failed to write job result: %v", err)
+	}
+
+	// Update job state after result is persisted so that a successful status
+	// implies the result file is already available.
+	jobState.CompletedAt = completedAt
+	jobState.Meta = &types.JobMeta{ExitCode: exitCode}
+
+	if exitCode == 0 {
+		jobState.Status = "success"
+	} else {
+		jobState.Status = "failed"
+		jobState.Error = fmt.Sprintf("worker exited with code %d", exitCode)
+	}
+
+	if err := state.WriteJobState(jobState); err != nil {
+		logs.WriteAgentLog("warning: failed to write final job state: %v", err)
 	}
 
 	// Exit with the worker's exit code

@@ -1026,7 +1026,7 @@ async function createWorkerProcess(
   const workerId = `${appIdentifier}--${workerIdentifier}`
 
   // Create new worker process
-  const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}}`
+  const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}`
   const workerRootPath = path.join(os.tmpdir(), executionId)
   const workerTmpDir = path.join(workerRootPath, '/worker-tmp')
   const logsDir = path.join(workerTmpDir, 'logs')

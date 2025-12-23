@@ -405,25 +405,30 @@ export async function handleAppSocketMessage(
       )
       if ('submitError' in execResult) {
         return {
-          error: {
-            code: 500,
-            message: execResult.submitError?.message ?? 'Unknown error',
+          result: {
+            jobId: execResult.jobId,
+            jobSuccess: false,
+            jobResult: {
+              submitError: execResult.submitError,
+            },
           },
         }
       } else if ('error' in execResult) {
         return {
           result: {
             jobId: execResult.jobId,
-            jobError: execResult.error,
-            success: false,
+            jobSuccess: false,
+            jobResult: {
+              jobError: execResult.error,
+            },
           },
         }
       } else if ('result' in execResult) {
         return {
           result: {
             jobId: execResult.jobId,
-            result: execResult.result,
-            success: true,
+            jobSuccess: true,
+            jobResult: execResult.result,
           },
         }
       }

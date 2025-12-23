@@ -154,12 +154,17 @@ process.stdin.once('data', (data) => {
     // Handle synchronous requests from the core platform
     socket.on(
       EXECUTE_SYSTEM_REQUEST_MESSAGE,
-      async (systemRequestData: {
-        appIdentifier: string
-        request: { url: string; body: JsonSerializableValue }
-      }) => {
-        const { appIdentifier, request: systemRequest } = systemRequestData
-        const url = new URL(systemRequest.url)
+      async (
+        {
+          appIdentifier,
+          request,
+        }: {
+          appIdentifier: string
+          request: { url: string; body: JsonSerializableValue }
+        },
+        ack?: (response: unknown) => void,
+      ) => {
+        const url = new URL(request.url)
         const pathname = url.pathname
         const workerIdentifierMatch = pathname.match(/^\/worker-api\/([^/]+)/)
 
@@ -171,13 +176,13 @@ process.stdin.once('data', (data) => {
         const workerIdentifier = workerIdentifierMatch[1]!
 
         try {
-          return await runWorkerScript({
-            requestOrTask: new Request(systemRequest.url, {
+          const systemRequestMessageResponse = await runWorkerScript({
+            requestOrTask: new Request(request.url, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify(systemRequest.body),
+              body: JSON.stringify(request.body),
             }),
             server: serverClient,
             appIdentifier,
@@ -191,6 +196,11 @@ process.stdin.once('data', (data) => {
               )
             },
           })
+          if (systemRequestMessageResponse) {
+            ack?.(await systemRequestMessageResponse.json())
+          } else {
+            ack?.({ error: 'No response from worker' })
+          }
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : String(error)

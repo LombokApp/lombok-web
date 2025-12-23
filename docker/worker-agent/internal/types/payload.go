@@ -19,28 +19,21 @@ type JobPayload struct {
 
 // InterfaceConfig describes how the agent communicates with the worker
 type InterfaceConfig struct {
-	Kind     string          `json:"kind"` // "exec_per_job" or "persistent_http"
-	Listener *ListenerConfig `json:"listener,omitempty"`
-}
-
-// ListenerConfig describes how to connect to a persistent HTTP worker
-type ListenerConfig struct {
-	Type string `json:"type"` // "tcp" or "unix"
-	Port int    `json:"port,omitempty"`
-	Path string `json:"path,omitempty"`
+	Kind string `json:"kind"` // "exec_per_job" or "persistent_http"
+	Port *int   `json:"port,omitempty"`
 }
 
 // WorkerState represents the state of a persistent worker process
 type WorkerState struct {
-	JobClass      string          `json:"job_class"`
-	Kind          string          `json:"kind"`
-	WorkerCommand []string        `json:"worker_command,omitempty"`
-	PID           int             `json:"pid"`
-	State         string          `json:"state"` // "starting", "ready", "unhealthy", "stopped"
-	Listener      *ListenerConfig `json:"listener,omitempty"`
-	StartedAt     string          `json:"started_at"`
-	LastCheckedAt string          `json:"last_checked_at"`
-	AgentVersion  string          `json:"agent_version"`
+	JobClass      string   `json:"job_class"`
+	Kind          string   `json:"kind"`
+	WorkerCommand []string `json:"worker_command,omitempty"`
+	PID           int      `json:"pid"`
+	State         string   `json:"state"` // "starting", "ready", "unhealthy", "stopped"
+	Port          *int     `json:"port,omitempty"`
+	StartedAt     string   `json:"started_at"`
+	LastCheckedAt string   `json:"last_checked_at"`
+	AgentVersion  string   `json:"agent_version"`
 }
 
 // JobState represents the state of a job execution
@@ -96,7 +89,7 @@ type HTTPJobSubmitResponse struct {
 type HTTPJobStatusResponse struct {
 	JobID    string          `json:"job_id"`
 	JobClass string          `json:"job_class,omitempty"`
-	Status   string          `json:"status"` // "pending", "running", "completed", "failed"
+	Status   string          `json:"status"` // "pending", "running", "success", "failed"
 	Result   json.RawMessage `json:"result,omitempty"`
 	Error    *JobError       `json:"error,omitempty"`
 }
@@ -182,4 +175,9 @@ type CompletionRequest struct {
 type OutputFileRef struct {
 	FolderID  string `json:"folderId"`
 	ObjectKey string `json:"objectKey"`
+}
+
+type JobConfigPayload struct {
+	WorkerCommand []string        `json:"worker_command"`
+	Interface     InterfaceConfig `json:"interface"`
 }

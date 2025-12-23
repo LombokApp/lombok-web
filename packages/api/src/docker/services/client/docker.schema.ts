@@ -39,10 +39,7 @@ export interface JobExecuteOptions {
   interface:
     | {
         kind: 'persistent_http'
-        listener: {
-          type: 'tcp'
-          port: number
-        }
+        port: number
       }
     | {
         kind: 'exec_per_job'

@@ -100,16 +100,18 @@ export type DockerSynchronousExecResult =
     }
   | {
       jobId: string
-      submitError?: {
+      submitError: {
         code: string
         message: string
+        details?: JsonSerializableObject
       }
     }
   | {
       jobId: string
-      error?: {
+      error: {
         code: string
         message: string
+        details?: JsonSerializableObject
       }
     }
 

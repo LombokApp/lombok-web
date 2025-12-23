@@ -17,7 +17,7 @@ import {
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 
-const DEFAULT_SOCKET_RESPONSE_TIMEOUT = 5000
+const DEFAULT_SOCKET_RESPONSE_TIMEOUT = 30000
 
 export class AppAPIError extends Error {
   errorCode: string | number

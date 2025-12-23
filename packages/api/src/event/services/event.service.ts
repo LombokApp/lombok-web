@@ -283,7 +283,7 @@ export class EventService {
         }
       } catch (error) {
         if (error instanceof UnauthorizedException) {
-          this.logger.log('Unauthorized to emit event', {
+          this.logger.warn('Unauthorized to emit event', {
             eventIdentifier,
             emitterIdentifier,
             data,
@@ -298,7 +298,7 @@ export class EventService {
       }
     }
 
-    this.logger.debug('emitEvent:', {
+    this.logger.debug('EventService.emitEvent:', {
       eventIdentifier,
       emitterIdentifier,
       data,

@@ -302,7 +302,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       return {
         output: () => outputPromise,
         state: () =>
-          exec.inspect().then(async (inspect) => {
+          exec.inspect().then((inspect) => {
             return inspect.Running
               ? ({
                   running: true,
@@ -312,7 +312,6 @@ export class LocalDockerAdapter implements DockerAdapter {
                   running: false,
                   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   exitCode: inspect.ExitCode!,
-                  output: await outputPromise,
                 } as const)
           }),
       }
@@ -367,6 +366,18 @@ export class LocalDockerAdapter implements DockerAdapter {
     })
 
     const stream = await exec.start({ Detach: false, Tty: false })
-    return dockerDemuxStream(stream)
+
+    // Wait for the stream to end and collect all output
+    const output = await dockerDemuxStream(stream)
+
+    // Wait for the exec to complete to ensure all data is flushed
+    // Poll until the exec is no longer running
+    let inspect = await exec.inspect()
+    while (inspect.Running) {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      inspect = await exec.inspect()
+    }
+
+    return output
   }
 }

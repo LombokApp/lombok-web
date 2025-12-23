@@ -3,6 +3,37 @@ import fs from 'node:fs'
 
 const DEFAULT_PORT_INPUT = Number.parseInt(process.env.APP_PORT ?? '8080', 10)
 const SERVER_PORT = Number.isNaN(DEFAULT_PORT_INPUT) ? 8080 : DEFAULT_PORT_INPUT
+const READY_DELAY_MS_INPUT = Number.parseInt(
+  process.env.READY_DELAY_MS ?? '0',
+  10,
+)
+const READY_DELAY_MS = Number.isNaN(READY_DELAY_MS_INPUT)
+  ? 0
+  : READY_DELAY_MS_INPUT
+const SERVER_STARTED_AT = Date.now()
+
+const calculateIsReady = () => {
+  const elapsedMs = Date.now() - SERVER_STARTED_AT
+  const remainingMs = Math.max(READY_DELAY_MS - elapsedMs, 0)
+  return {
+    isReady: remainingMs === 0,
+    remainingMs,
+    elapsedMs,
+  }
+}
+
+let n = 0
+const CHECK_INTERVAL = 250
+const interval = setInterval(() => {
+  console.log(
+    `[${new Date().toISOString()}] ready check (+${n * CHECK_INTERVAL}ms):`,
+    calculateIsReady(),
+  )
+  if (n > READY_DELAY_MS / CHECK_INTERVAL) {
+    clearInterval(interval)
+  }
+  n++
+}, CHECK_INTERVAL)
 
 // =============================================================================
 // Job State Management (Async Protocol)
@@ -11,7 +42,7 @@ const SERVER_PORT = Number.isNaN(DEFAULT_PORT_INPUT) ? 8080 : DEFAULT_PORT_INPUT
 interface JobState {
   jobId: string
   jobClass: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
+  status: 'pending' | 'running' | 'success' | 'failed'
   result?: unknown
   error?: { code: string; message: string }
   startedAt: string
@@ -513,7 +544,12 @@ const handleFileOutput: JobHandler = async (input, ctx) => {
 }
 
 const handleDummyEcho: JobHandler = (input, ctx) => {
-  ctx.logger.log(`Echoing input: ${JSON.stringify(input)}`)
+  ctx.logger.log(
+    `[dummy_echo - job log] Echoing input: ${JSON.stringify(input)}`,
+  )
+  console.log(
+    `[dummy_echo - worker log] Echoing input: ${JSON.stringify(input)}`,
+  )
   return input
 }
 
@@ -563,7 +599,10 @@ const executeJobAsync = async (
   // Update status to running
   jobState.status = 'running'
 
-  const handler = jobHandlers[jobClass]
+  // Strip port suffix from job class (e.g., "math_add_8090" -> "math_add")
+  // This allows tests to use unique job classes per port while reusing handlers
+  const baseJobClass = jobClass.replace(/_\d+$/, '')
+  const handler = jobHandlers[baseJobClass] || jobHandlers[jobClass]
   if (!handler) {
     jobState.status = 'failed'
     jobState.error = {
@@ -579,7 +618,7 @@ const executeJobAsync = async (
 
   try {
     const result = await handler(input, ctx)
-    jobState.status = 'completed'
+    jobState.status = 'success'
     jobState.result = result
     jobState.completedAt = new Date().toISOString()
     ctx.logger.log(`Job completed successfully`)
@@ -622,6 +661,9 @@ const server = Bun.serve({
 
     // GET /job - info about job endpoint (not used for readiness)
     if (request.method === 'GET' && pathname === '/job') {
+      console.log(
+        `[${new Date().toISOString()}] GET /job - info about job endpoint`,
+      )
       return jsonResponse({
         message: 'POST to this endpoint to submit a job',
         protocol: 'async',
@@ -631,6 +673,17 @@ const server = Bun.serve({
 
     // POST /job - submit job (async protocol: returns immediately)
     if (request.method === 'POST' && pathname === '/job') {
+      const { isReady, remainingMs, elapsedMs } = calculateIsReady()
+      if (!isReady) {
+        return jsonResponse(
+          {
+            accepted: false,
+            error: { code: 'WORKER_NOT_READY', message: 'Worker not ready' },
+          },
+          { status: 503 },
+        )
+      }
+
       let body: AgentJobRequest | undefined
       try {
         body = (await request.json()) as AgentJobRequest
@@ -688,8 +741,12 @@ const server = Bun.serve({
       jobStates.set(jobId, jobState)
 
       // eslint-disable-next-line no-console
-      console.log(`[job] Accepted job_id=${jobId} job_class=${jobClass}`)
-      ctx.logger.log(`Job accepted: job_id=${jobId} job_class=${jobClass}`)
+      console.log(
+        `[${new Date().toISOString()}] [job] Accepted job_id=${jobId} job_class=${jobClass}`,
+      )
+      ctx.logger.log(
+        `[${new Date().toISOString()}] Job accepted: job_id=${jobId} job_class=${jobClass}`,
+      )
 
       // Execute job asynchronously (don't await - return immediately)
       executeJobAsync(jobId, jobClass, body.job_input, ctx)
@@ -726,7 +783,7 @@ const server = Bun.serve({
         status: jobState.status,
       }
 
-      if (jobState.status === 'completed' && jobState.result !== undefined) {
+      if (jobState.status === 'success' && jobState.result !== undefined) {
         response.result = jobState.result
       }
 
@@ -739,9 +796,24 @@ const server = Bun.serve({
 
     // GET /health/ready - readiness check (used by agent for polling)
     if (request.method === 'GET' && pathname === '/health/ready') {
-      return jsonResponse({
-        ready: true,
-      })
+      const { isReady, remainingMs, elapsedMs } = calculateIsReady()
+      console.log(
+        `[${new Date().toISOString()}] Received ready check - Current state:`,
+        {
+          isReady,
+          remainingMs,
+          elapsedMs,
+        },
+      )
+      return jsonResponse(
+        {
+          ready: isReady,
+          delayMs: READY_DELAY_MS,
+          elapsedMs,
+          remainingMs,
+        },
+        { status: isReady ? 200 : 403 },
+      )
     }
 
     // GET /health - detailed health info (for debugging)
@@ -755,7 +827,7 @@ const server = Bun.serve({
           total: states.length,
           pending: states.filter((j) => j.status === 'pending').length,
           running: states.filter((j) => j.status === 'running').length,
-          completed: states.filter((j) => j.status === 'completed').length,
+          success: states.filter((j) => j.status === 'success').length,
           failed: states.filter((j) => j.status === 'failed').length,
         },
         uptimeSeconds: Math.round(process.uptime()),

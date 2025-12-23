@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var jobStateJobID string
+var workerStateJobID string
 
 var jobStateCmd = &cobra.Command{
 	Use:   "job-state",
@@ -18,18 +18,18 @@ var jobStateCmd = &cobra.Command{
 }
 
 func init() {
-	jobStateCmd.Flags().StringVar(&jobStateJobID, "job-id", "", "Job ID (required)")
+	jobStateCmd.Flags().StringVar(&workerStateJobID, "job-id", "", "Job ID (required)")
 	jobStateCmd.MarkFlagRequired("job-id")
 }
 
 func readJobState(cmd *cobra.Command, args []string) error {
-	jobState, err := state.ReadJobState(jobStateJobID)
+	jobState, err := state.ReadJobState(workerStateJobID)
 	if err != nil {
 		return fmt.Errorf("failed to read job state: %w", err)
 	}
 
 	if jobState == nil {
-		return fmt.Errorf("job state not found for job_id: %s", jobStateJobID)
+		return fmt.Errorf("job state not found for job_id: %s", workerStateJobID)
 	}
 
 	// Output as JSON

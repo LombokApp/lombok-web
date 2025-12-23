@@ -2,10 +2,12 @@ package config
 
 import (
 	"crypto/sha256"
-	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"unicode"
 
 	"lombok-worker-agent/internal/types"
 )
@@ -37,36 +39,78 @@ func JobErrLogPath(jobID string) string {
 }
 
 // WorkerOutLogPath returns the stdout log path for a worker identified by a unique key
-func WorkerOutLogPath(identifier string) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", identifier))
+func WorkerOutLogPath(workerCommand []string, iface types.InterfaceConfig) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", WorkerLogIdentifier(workerCommand, iface)))
 }
 
 // WorkerErrLogPath returns the stderr log path for a worker identified by a unique key
-func WorkerErrLogPath(identifier string) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", identifier))
+func WorkerErrLogPath(workerCommand []string, iface types.InterfaceConfig) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", WorkerLogIdentifier(workerCommand, iface)))
 }
 
-// WorkerLogIdentifier returns a stable hash for a worker based on its command and interface configuration.
-// This keeps persistent HTTP worker logs unique per listener/command combination.
-func WorkerLogIdentifier(workerCommand []string, iface *types.InterfaceConfig) string {
-	identity := struct {
-		WorkerCommand []string               `json:"worker_command"`
-		Interface     *types.InterfaceConfig `json:"interface"`
-	}{
-		WorkerCommand: workerCommand,
-		Interface:     iface,
+// sanitizeFilepathComponent encodes a string to make it safe for use in filepaths while preserving uniqueness.
+// Safe characters (alphanumeric, dots, underscores, hyphens) are kept as-is.
+// Unsafe characters are encoded as their hex representation prefixed with an underscore (e.g., '/' becomes '_2F_', space becomes '_20_').
+// This ensures different inputs produce different outputs, avoiding collisions.
+func sanitizeFilepathComponent(s string) string {
+	if s == "" {
+		return ""
 	}
 
-	data, _ := json.Marshal(identity)
-	sum := sha256.Sum256(data)
-	return fmt.Sprintf("%x", sum[:])
+	var builder strings.Builder
+	for _, r := range s {
+		// Keep safe characters as-is
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '.' || r == '_' || r == '-' {
+			builder.WriteRune(r)
+		} else {
+			// Encode unsafe characters as hex (e.g., '/' -> '_2F_', ' ' -> '_20_')
+			encoded := hex.EncodeToString([]byte(string(r)))
+			builder.WriteString("_")
+			builder.WriteString(encoded)
+			builder.WriteString("_")
+		}
+	}
+
+	return builder.String()
+}
+
+// WorkerLogIdentifier returns a stable identifier for a worker based on its command and interface configuration.
+// This keeps persistent HTTP worker logs unique per listener/command combination.
+// For long commands, it uses a hash to avoid filesystem filename length limits.
+func WorkerLogIdentifier(workerCommand []string, iface types.InterfaceConfig) string {
+	commandPart := strings.Join(workerCommand, " ")
+
+	// If the command is too long (after sanitization it could exceed filesystem limits),
+	// use a hash instead. Most filesystems have a 255-byte limit for filenames.
+	// We'll use a threshold of 200 characters to leave room for the interface part and extensions.
+	const maxCommandLength = 200
+
+	sanitizedCommand := sanitizeFilepathComponent(commandPart)
+	if len(sanitizedCommand) > maxCommandLength {
+		// Hash the command for uniqueness while keeping it short
+		hash := sha256.Sum256([]byte(commandPart))
+		commandPart = hex.EncodeToString(hash[:])[:16] // Use first 16 chars of hash (32 hex chars would be 64 bytes)
+	} else {
+		commandPart = sanitizedCommand
+	}
+
+	interfacePart := iface.Kind
+	if iface.Port != nil {
+		interfacePart = fmt.Sprintf("%s %d", iface.Kind, *iface.Port)
+	}
+	interfacePart = sanitizeFilepathComponent(interfacePart)
+
+	parts := []string{commandPart, interfacePart}
+
+	return strings.Join(parts, "__")
 }
 
 // State file paths
 
 // WorkerStatePath returns the state file path for a worker by job class
-func WorkerStatePath(jobClass string) string {
-	return filepath.Join(StateBaseDir, "workers", fmt.Sprintf("%s.json", jobClass))
+func WorkerStatePath(workerCommand []string, iface types.InterfaceConfig) string {
+	workerIdentifier := WorkerLogIdentifier(workerCommand, iface)
+	return filepath.Join(StateBaseDir, "workers", fmt.Sprintf("%s.json", workerIdentifier))
 }
 
 // JobStatePath returns the state file path for a specific job

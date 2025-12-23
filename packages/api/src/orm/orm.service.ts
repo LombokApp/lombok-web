@@ -118,6 +118,7 @@ export class OrmService {
       await client.query(
         `GRANT USAGE, CREATE ON SCHEMA ${schemaName} TO ${roleName}`,
       )
+      await client.query(`GRANT USAGE ON SCHEMA extensions TO ${roleName}`)
       await client.query(
         `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${schemaName} TO ${roleName}`,
       )
@@ -132,7 +133,7 @@ export class OrmService {
       )
     } catch (error) {
       this.logger.error(
-        `Failed to grant privileges for role ${roleName} and schema ${schemaName}`,
+        `Failed to grant privileges for role ${roleName} and schema ${schemaName}, extensions`,
         error as Error,
       )
       throw error
@@ -162,7 +163,7 @@ export class OrmService {
       ? `${schemaName}, pg_catalog`
       : `${schemaName}`
 
-    await client.query(`SET LOCAL search_path TO ${searchPath}`)
+    await client.query(`SET LOCAL search_path TO ${searchPath}, extensions`)
   }
 
   async runWithTestClient(func: (client: Client) => Promise<void>) {
@@ -216,6 +217,7 @@ export class OrmService {
     }
 
     await this.ensureSharedAclSchema()
+    await this.ensureVectorExtension()
 
     this.initialized = true
   }
@@ -315,6 +317,17 @@ export class OrmService {
         throw error
       }
     })
+  }
+
+  async ensureVectorExtension(): Promise<void> {
+    // Create extensions schema if it doesn't exist
+    await this.client.query(`CREATE SCHEMA IF NOT EXISTS extensions;`)
+    await this.client.query(
+      `GRANT USAGE ON SCHEMA extensions TO ${this._ormConfig.dbUser};`,
+    )
+    await this.client.query(
+      `CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;`,
+    )
   }
 
   async ensureSharedAclSchema(): Promise<void> {
@@ -529,6 +542,20 @@ export class OrmService {
     await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
+  async grantAclSchemaUsageToApp(appIdentifier: string): Promise<void> {
+    const roleName = this.getAppRoleName(appIdentifier)
+
+    await this.client.query(
+      `GRANT USAGE ON SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+    )
+    await this.client.query(
+      `GRANT SELECT ON ALL TABLES IN SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+    )
+    await this.client.query(
+      `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+    )
+  }
+
   /**
    * Run migrations for a specific app
    */
@@ -536,6 +563,8 @@ export class OrmService {
     appIdentifier: string,
     migrationFiles: { filename: string; content: string }[],
   ): Promise<void> {
+    await this.ensureAppSchema(appIdentifier)
+
     // Validate app identifier to prevent SQL injection
     if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)

@@ -63,7 +63,7 @@ func CloseAgentLog() error {
 
 // WriteAgentLog writes a message to both stderr and the agent log file.
 // The message is prefixed with a timestamp and the agent identifier.
-func WriteAgentLog(format string, args ...interface{}) {
+func WriteAgentLog(format string, args ...any) {
 	logMutex.Lock()
 	defer logMutex.Unlock()
 
@@ -74,9 +74,6 @@ func WriteAgentLog(format string, args ...interface{}) {
 	timestamp := time.Now().UTC().Format(time.RFC3339)
 	logLine := fmt.Sprintf("[%s] [lombok-worker-agent] %s\n", timestamp, message)
 
-	// Write to stderr (for immediate visibility)
-	fmt.Fprint(os.Stderr, logLine)
-
 	// Write to log file (if initialized)
 	if agentLogFile != nil {
 		// Write to file (ignore errors to avoid breaking execution)
@@ -86,26 +83,9 @@ func WriteAgentLog(format string, args ...interface{}) {
 	}
 }
 
-// WriteAgentLogRaw writes a raw message (without timestamp/prefix) to both stderr and log file.
-// Useful for writing pre-formatted log lines.
-func WriteAgentLogRaw(message string) {
-	logMutex.Lock()
-	defer logMutex.Unlock()
-
-	// Write to stderr
-	fmt.Fprint(os.Stderr, message)
-
-	// Write to log file (if initialized)
-	if agentLogFile != nil {
-		_, _ = io.WriteString(agentLogFile, message)
-		// Flush to ensure data is written immediately
-		_ = agentLogFile.Sync()
-	}
-}
-
 // WriteWorkerLog writes a timing message to a worker log file (stdout or stderr).
 // The message is prefixed with a timestamp and the agent identifier.
-func WriteWorkerLog(logFile *os.File, format string, args ...interface{}) {
+func WriteWorkerLog(logFile *os.File, format string, args ...any) {
 	if logFile == nil {
 		return
 	}

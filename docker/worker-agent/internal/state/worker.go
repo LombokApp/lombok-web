@@ -10,8 +10,8 @@ import (
 )
 
 // ReadWorkerState reads the state file for a worker by job class
-func ReadWorkerState(jobClass string) (*types.WorkerState, error) {
-	path := config.WorkerStatePath(jobClass)
+func ReadWorkerState(workerCommand []string, iface types.InterfaceConfig) (*types.WorkerState, error) {
+	path := config.WorkerStatePath(workerCommand, iface)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -33,7 +33,10 @@ func WriteWorkerState(state *types.WorkerState) error {
 		return err
 	}
 
-	path := config.WorkerStatePath(state.JobClass)
+	path := config.WorkerStatePath(state.WorkerCommand, types.InterfaceConfig{
+		Kind: state.Kind,
+		Port: state.Port,
+	})
 	data, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return err
@@ -59,8 +62,8 @@ func IsProcessAlive(pid int) bool {
 }
 
 // IsWorkerAlive checks if the worker for a job class is still running
-func IsWorkerAlive(jobClass string) (bool, *types.WorkerState, error) {
-	state, err := ReadWorkerState(jobClass)
+func IsWorkerAlive(workerCommand []string, iface types.InterfaceConfig) (bool, *types.WorkerState, error) {
+	state, err := ReadWorkerState(workerCommand, iface)
 	if err != nil {
 		return false, nil, err
 	}

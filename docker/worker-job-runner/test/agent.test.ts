@@ -1,5 +1,4 @@
 import Dockerode from 'dockerode'
-import crypto from 'node:crypto'
 import path from 'node:path'
 import {
   describe,
@@ -17,6 +16,14 @@ import {
 const DOCKER_SOCKET = process.env.DOCKER_HOST ?? '/var/run/docker.sock'
 const IMAGE_NAME = 'lombok-worker-agent-test'
 const CONTAINER_NAME = 'lombok-worker-agent-test-runner'
+const PRINT_CONTAINER_LOGS =
+  process.env.PRINT_CONTAINER_LOGS === '1' ||
+  process.env.PRINT_CONTAINER_LOGS === 'true' ||
+  process.argv.includes('--print-container-logs')
+const DEBUG =
+  process.env.DEBUG === '1' ||
+  process.env.DEBUG === 'true' ||
+  process.argv.includes('--debug')
 const FORCE_REBUILD =
   process.env.REBUILD === '1' ||
   process.env.REBUILD === 'true' ||
@@ -31,15 +38,9 @@ const REPO_ROOT = path.resolve(import.meta.dir, '..', '..', '..')
 
 type InterfaceKind = 'exec_per_job' | 'persistent_http'
 
-interface ListenerConfig {
-  type: 'tcp' | 'unix'
-  port?: number
-  path?: string
-}
-
 interface InterfaceConfig {
   kind: InterfaceKind
-  listener?: ListenerConfig
+  port?: number
 }
 
 interface JobPayload {
@@ -55,6 +56,15 @@ interface JobPayload {
     folder_id: string
     prefix?: string
   }
+}
+
+interface JobState {
+  job_id: string
+  job_class: string
+  status: string
+  started_at: string
+  completed_at?: string
+  worker_pid?: number
 }
 
 interface JobResult {
@@ -142,7 +152,7 @@ interface HttpTestCase {
   jobClass: string
   port: number
   jobInput: unknown
-  expected: {
+  expectedResult: {
     success: boolean
     result?: Record<string, unknown>
     errorCode?: string
@@ -223,13 +233,13 @@ const execTestCases: ExecTestCase[] = [
     workerCommand: [
       'sh',
       '-c',
-      'echo "Processing..."; echo "Done"; echo \'{"sum":42,"status":"completed"}\'',
+      'echo "Processing..."; echo "Done"; echo \'{"sum":42,"status":"success"}\'',
     ],
     jobInput: { numbers: [1, 2, 3] },
     expected: {
       success: true,
       exitCode: 0,
-      result: { sum: 42, status: 'completed' },
+      result: { sum: 42, status: 'success' },
     },
   },
   {
@@ -259,60 +269,60 @@ const httpTestCases: HttpTestCase[] = [
   // Math operations
   {
     name: 'math_add: sums numbers correctly',
-    jobClass: 'math_add',
+    jobClass: 'math_add_8090',
     port: 8090,
     jobInput: { numbers: [1, 2, 3, 4, 5] },
-    expected: {
+    expectedResult: {
       success: true,
       result: { sum: 15, operands: [1, 2, 3, 4, 5] },
     },
   },
   {
     name: 'math_multiply: multiplies numbers correctly',
-    jobClass: 'math_multiply',
+    jobClass: 'math_multiply_8091',
     port: 8091,
     jobInput: { numbers: [2, 3, 4] },
-    expected: {
+    expectedResult: {
       success: true,
       result: { product: 24, operands: [2, 3, 4] },
     },
   },
   {
     name: 'math_factorial: calculates factorial of 10',
-    jobClass: 'math_factorial',
+    jobClass: 'math_factorial_8092',
     port: 8092,
     jobInput: { n: 10 },
-    expected: {
+    expectedResult: {
       success: true,
       result: { factorial: 3628800, n: 10 },
     },
   },
   {
     name: 'math_fibonacci: calculates 20th fibonacci number',
-    jobClass: 'math_fibonacci',
+    jobClass: 'math_fibonacci_8093',
     port: 8093,
     jobInput: { n: 20 },
-    expected: {
+    expectedResult: {
       success: true,
       result: { fibonacci: 6765, n: 20 },
     },
   },
   {
     name: 'math_prime_check: identifies 97 as prime',
-    jobClass: 'math_prime_check',
+    jobClass: 'math_prime_check_8094',
     port: 8094,
     jobInput: { n: 97 },
-    expected: {
+    expectedResult: {
       success: true,
       result: { isPrime: true, n: 97 },
     },
   },
   {
     name: 'math_prime_check: identifies 100 as not prime',
-    jobClass: 'math_prime_check',
+    jobClass: 'math_prime_check_8095',
     port: 8095,
     jobInput: { n: 100 },
-    expected: {
+    expectedResult: {
       success: true,
       result: { isPrime: false, n: 100, factor: 2 },
     },
@@ -320,10 +330,10 @@ const httpTestCases: HttpTestCase[] = [
   // String operations
   {
     name: 'string_hash: hashes string with sha256',
-    jobClass: 'string_hash',
+    jobClass: 'string_hash_8096',
     port: 8096,
     jobInput: { text: 'hello world', algorithm: 'sha256' },
-    expected: {
+    expectedResult: {
       success: true,
       result: {
         hash: 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9',
@@ -334,10 +344,10 @@ const httpTestCases: HttpTestCase[] = [
   },
   {
     name: 'string_hash: hashes string with md5',
-    jobClass: 'string_hash',
+    jobClass: 'string_hash_8097',
     port: 8097,
     jobInput: { text: 'test', algorithm: 'md5' },
-    expected: {
+    expectedResult: {
       success: true,
       result: {
         // hash: '098f6bcd4621d373cade4e832627b4f6',
@@ -348,10 +358,10 @@ const httpTestCases: HttpTestCase[] = [
   },
   {
     name: 'string_reverse: reverses string correctly',
-    jobClass: 'string_reverse',
+    jobClass: 'string_reverse_8098',
     port: 8098,
     jobInput: { text: 'Hello, World!' },
-    expected: {
+    expectedResult: {
       success: true,
       result: {
         reversed: '!dlroW ,olleH',
@@ -362,10 +372,10 @@ const httpTestCases: HttpTestCase[] = [
   },
   {
     name: 'string_base64: encodes to base64',
-    jobClass: 'string_base64',
+    jobClass: 'string_base64_8099',
     port: 8099,
     jobInput: { text: 'Hello, World!', operation: 'encode' },
-    expected: {
+    expectedResult: {
       success: true,
       result: {
         result: 'SGVsbG8sIFdvcmxkIQ==',
@@ -376,20 +386,20 @@ const httpTestCases: HttpTestCase[] = [
   },
   {
     name: 'string_base64: decodes from base64',
-    jobClass: 'string_base64',
+    jobClass: 'string_base64_8100',
     port: 8100,
     jobInput: { text: 'SGVsbG8sIFdvcmxkIQ==', operation: 'decode' },
-    expected: {
+    expectedResult: {
       success: true,
       result: { result: 'Hello, World!', operation: 'decode', inputLength: 20 },
     },
   },
   {
     name: 'string_count: counts substring occurrences',
-    jobClass: 'string_count',
+    jobClass: 'string_count_8101',
     port: 8101,
     jobInput: { text: 'banana', substring: 'an' },
-    expected: {
+    expectedResult: {
       success: true,
       result: { count: 2, substring: 'an', textLength: 6 },
     },
@@ -400,27 +410,27 @@ const httpTestCases: HttpTestCase[] = [
     jobClass: 'array_sort',
     port: 8102,
     jobInput: { items: [5, 2, 8, 1, 9], order: 'asc' },
-    expected: {
+    expectedResult: {
       success: true,
       result: { sorted: [1, 2, 5, 8, 9], order: 'asc', itemCount: 5 },
     },
   },
   {
     name: 'array_sort: sorts numbers descending',
-    jobClass: 'array_sort',
+    jobClass: 'array_sort_8103',
     port: 8103,
     jobInput: { items: [5, 2, 8, 1, 9], order: 'desc' },
-    expected: {
+    expectedResult: {
       success: true,
       result: { sorted: [9, 8, 5, 2, 1], order: 'desc', itemCount: 5 },
     },
   },
   {
     name: 'array_stats: calculates statistics correctly',
-    jobClass: 'array_stats',
+    jobClass: 'array_stats_8104',
     port: 8104,
     jobInput: { numbers: [1, 2, 3, 4, 5] },
-    expected: {
+    expectedResult: {
       success: true,
       result: { sum: 15, min: 1, max: 5, mean: 3, median: 3, count: 5 },
     },
@@ -428,20 +438,20 @@ const httpTestCases: HttpTestCase[] = [
   // Error handling
   {
     name: 'unknown job class returns error',
-    jobClass: 'nonexistent_job_class',
+    jobClass: 'nonexistent_job_class_8105',
     port: 8105,
     jobInput: {},
-    expected: {
+    expectedResult: {
       success: false,
       errorCode: 'UNKNOWN_JOB_CLASS',
     },
   },
   {
     name: 'invalid input returns error',
-    jobClass: 'math_add',
+    jobClass: 'math_add_8106',
     port: 8106,
     jobInput: { numbers: 'not an array' },
-    expected: {
+    expectedResult: {
       success: false,
       errorCode: 'JOB_EXECUTION_ERROR',
     },
@@ -449,10 +459,10 @@ const httpTestCases: HttpTestCase[] = [
   // Verbose logging tests
   {
     name: 'verbose_log: runs through multiple steps',
-    jobClass: 'verbose_log',
+    jobClass: 'verbose_log_8107',
     port: 8107,
     jobInput: { steps: 5 },
-    expected: {
+    expectedResult: {
       success: true,
       result: {
         stepsCompleted: 5,
@@ -463,10 +473,10 @@ const httpTestCases: HttpTestCase[] = [
   },
   {
     name: 'verbose_log: with simulated warning and error',
-    jobClass: 'verbose_log',
+    jobClass: 'verbose_log_8108',
     port: 8108,
     jobInput: { steps: 4, simulateWarning: true, simulateError: true },
-    expected: {
+    expectedResult: {
       success: true,
       result: {
         stepsCompleted: 4,
@@ -718,12 +728,26 @@ async function startContainer(): Promise<void> {
   container = await docker.createContainer({
     Image: IMAGE_NAME,
     name: CONTAINER_NAME,
-    Cmd: ['sleep', 'infinity'],
     Tty: false,
+    Cmd: ['lombok-worker-agent', 'worker-logs', '--include-agent'],
   })
 
   await container.start()
   console.log(`Container started: ${container.id.slice(0, 12)}`)
+  if (PRINT_CONTAINER_LOGS) {
+    container.logs(
+      { follow: true, stdout: true, stderr: true },
+      (err, stream) => {
+        if (err) {
+          console.error('Error following container logs:', err)
+        } else {
+          stream?.on('data', (data) => {
+            console.log(data.toString())
+          })
+        }
+      },
+    )
+  }
 }
 
 async function stopContainer(): Promise<void> {
@@ -744,16 +768,6 @@ async function execInContainer(
   if (!container) {
     throw new Error('Container not started')
   }
-  // if (
-  //   command[0] === 'lombok-worker-agent' &&
-  //   command[1] === 'run-job' &&
-  //   command.length === 4
-  // ) {
-  //   console.log(
-  //     'execInContainer:',
-  //     JSON.stringify(JSON.parse(atob(command[3])), null, 2),
-  //   )
-  // }
 
   const exec = await container.exec({
     Cmd: command,
@@ -838,10 +852,20 @@ async function readJobLog(
 }
 
 async function readWorkerLog(
-  jobClass: string,
+  jobConfig: { workerCommand: string[]; interface: InterfaceConfig },
   options?: { err?: boolean; tail?: number },
 ): Promise<string> {
-  const args = ['lombok-worker-agent', 'worker-log', '--job-class', jobClass]
+  const args = [
+    'lombok-worker-agent',
+    'worker-log',
+    '--job-config',
+    Buffer.from(
+      JSON.stringify({
+        worker_command: jobConfig.workerCommand,
+        interface: jobConfig.interface,
+      }),
+    ).toString('base64'),
+  ]
   if (options?.err) {
     args.push('--err')
   }
@@ -851,7 +875,35 @@ async function readWorkerLog(
   const result = await execInContainer(args)
   if (result.exitCode !== 0) {
     throw new Error(
-      `Failed to read worker log for ${jobClass}: ${result.stderr}`,
+      `Failed to read worker log for ${JSON.stringify(jobConfig)}: ${
+        result.stderr
+      }`,
+    )
+  }
+  return result.stdout
+}
+
+async function readWorkerState(jobConfig: {
+  workerCommand: string[]
+  interface?: InterfaceConfig
+}): Promise<string> {
+  const args = [
+    'lombok-worker-agent',
+    'worker-state',
+    '--job-config',
+    Buffer.from(
+      JSON.stringify({
+        worker_command: jobConfig.workerCommand,
+        interface: jobConfig.interface,
+      }),
+    ).toString('base64'),
+  ]
+  const result = await execInContainer(args)
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `Failed to read worker state for ${JSON.stringify(jobConfig)}: ${
+        result.stderr
+      }`,
     )
   }
   return result.stdout
@@ -873,6 +925,104 @@ async function readAgentLog(options?: {
     throw new Error(`Failed to read agent log: ${result.stderr}`)
   }
   return result.stdout
+}
+
+async function readContainerLogs(options?: {
+  tail?: number
+  since?: number
+}): Promise<string> {
+  if (!container) {
+    throw new Error('Container not started')
+  }
+
+  const logOptions: Dockerode.ContainerLogsOptions & { follow: false } = {
+    stdout: true,
+    stderr: true, // Need both to get the multiplexed stream, then we demux
+    follow: false, // Don't follow, just read existing logs
+  }
+
+  if (options?.tail !== undefined) {
+    logOptions.tail = options.tail
+  }
+
+  if (options?.since !== undefined) {
+    logOptions.since = options.since
+  }
+
+  return new Promise((resolve, reject) => {
+    container!.logs(
+      logOptions,
+      (
+        err: Error | null,
+        stream: NodeJS.ReadableStream | Buffer | undefined,
+      ) => {
+        if (err) {
+          return reject(err)
+        }
+
+        if (!stream) {
+          return reject(new Error('No stream returned from container.logs'))
+        }
+
+        // If it's a Buffer, we need to demux it manually
+        if (Buffer.isBuffer(stream)) {
+          const stdout: Buffer[] = []
+          // Manually demux the buffer (Docker format: 1 byte stream type, 3 bytes padding, 4 bytes size, then payload)
+          let offset = 0
+          while (offset < stream.length) {
+            if (offset + 8 > stream.length) {
+              break
+            }
+            const streamType = stream[offset]
+            const size = stream.readUInt32BE(offset + 4)
+            offset += 8
+
+            if (offset + size > stream.length) {
+              break
+            }
+
+            if (streamType === 1) {
+              // stdout
+              stdout.push(stream.subarray(offset, offset + size))
+            }
+            // streamType === 2 is stderr, which we ignore
+
+            offset += size
+          }
+          return resolve(Buffer.concat(stdout).toString('utf-8'))
+        }
+
+        // Otherwise it's a stream - demux it using docker.modem.demuxStream
+        const stdout: Buffer[] = []
+        const stdoutStream = {
+          write: (chunk: Buffer) => {
+            stdout.push(chunk)
+            return true
+          },
+          end: () => {},
+        }
+        const stderrStream = {
+          write: () => {
+            // Ignore stderr
+            return true
+          },
+          end: () => {},
+        }
+
+        // Demux the stream (Docker multiplexes stdout/stderr with headers)
+        docker.modem.demuxStream(
+          stream,
+          stdoutStream as any,
+          stderrStream as any,
+        )
+
+        stream.on('end', () => {
+          resolve(Buffer.concat(stdout).toString('utf-8'))
+        })
+        stream.on('error', reject)
+      },
+    )
+  })
 }
 
 async function fileExistsInContainer(filePath: string): Promise<boolean> {
@@ -901,25 +1051,15 @@ function generateJobId(prefix: string): string {
   return `${prefix}-${Date.now()}`
 }
 
-function workerLogIdentifier(
-  workerCommand: string[],
-  iface: InterfaceConfig,
-): string {
-  const payload = {
-    worker_command: workerCommand,
-    interface: iface,
-  }
-
-  return crypto
-    .createHash('sha256')
-    .update(JSON.stringify(payload))
-    .digest('hex')
-}
-
 async function runJob(
   payload: JobPayload,
   env?: string[],
-): Promise<{ result: JobResult; exitCode: number; rawOutput: string }> {
+): Promise<{
+  jobResult: JobResult | Partial<JobResult>
+  jobState: JobState | Partial<JobState>
+  exitCode: number
+  rawOutput: string
+}> {
   const payloadWithDefaults: JobPayload = {
     wait_for_completion: true,
     ...payload,
@@ -931,45 +1071,40 @@ async function runJob(
     env,
   )
 
-  // The agent outputs JSON to stdout (log lines go to stderr).
-  // For persistent_http jobs, the agent parses the HTTP response result
-  // and includes it as a parsed object in the result.result field.
-  // Parse the JSON result from the last line of stdout.
+  const jobId = payloadWithDefaults.job_id
 
-  let result: JobResult
-  try {
-    result = JSON.parse(execResult.stdout)
-  } catch {
-    // Try to find JSON in the output (might be pretty-printed or have extra lines)
-    const jsonMatch = execResult.stdout.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      try {
-        result = JSON.parse(jsonMatch[0])
-      } catch {
-        result = {
-          success: false,
-          error: {
-            code: 'PARSE_ERROR',
-            message: `Could not parse output: ${execResult.stdout}`,
-          },
-        }
-      }
-    } else {
-      result = {
-        success: false,
-        error: {
-          code: 'PARSE_ERROR',
-          message: `Could not parse output: ${execResult.stdout}`,
-        },
-      }
-    }
+  const jobState = (await readJobStateViaCLI(jobId).then(({ stdout }) =>
+    stdout ? JSON.parse(stdout) : undefined,
+  )) as Partial<JobState>
+
+  const jobResult = (await readJobResultViaCLI(jobId).then(({ stdout }) =>
+    stdout ? JSON.parse(stdout) : {},
+  )) as Partial<JobResult>
+
+  if (DEBUG) {
+    console.log('jobResult', jobResult)
+    console.log('jobState', jobState)
+    console.log('execResult', execResult)
   }
-
   return {
-    result,
+    jobResult,
+    jobState,
     exitCode: execResult.exitCode,
     rawOutput: execResult.stdout + execResult.stderr,
   }
+}
+
+async function readJobResultViaCLI(
+  jobId: string,
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  const result = await execInContainer([
+    'lombok-worker-agent',
+    'job-result',
+    '--job-id',
+    jobId,
+  ])
+
+  return result
 }
 
 async function readJobStateViaCLI(
@@ -1023,8 +1158,15 @@ describe('Platform Agent', () => {
           job_input: testCase.jobInput,
         }
 
-        const { result, exitCode, rawOutput } = await runJob(payload)
-
+        const {
+          jobState: state,
+          jobResult: result,
+          exitCode,
+          rawOutput,
+        } = await runJob(payload)
+        expect(state.status).toEqual(
+          testCase.expected.success ? 'success' : 'failed',
+        )
         expect(result.success).toBe(testCase.expected.success)
 
         // Check success/failure
@@ -1037,7 +1179,10 @@ describe('Platform Agent', () => {
 
         // Check output contains expected strings
         if (testCase.expected.outputContains) {
-          const jobOut = await readJobLog(jobId)
+          const jobOut = await readWorkerLog({
+            workerCommand: testCase.workerCommand,
+            interface: { kind: 'exec_per_job' },
+          })
           for (const expected of testCase.expected.outputContains) {
             expect(jobOut).toContain(expected)
           }
@@ -1045,7 +1190,13 @@ describe('Platform Agent', () => {
 
         // Check stderr contains expected strings
         if (testCase.expected.stderrContains) {
-          const jobErr = await readJobLog(jobId, { err: true })
+          const jobErr = await readWorkerLog(
+            {
+              workerCommand: testCase.workerCommand,
+              interface: { kind: 'exec_per_job' },
+            },
+            { err: true },
+          )
           for (const expected of testCase.expected.stderrContains) {
             expect(jobErr).toContain(expected)
           }
@@ -1097,7 +1248,7 @@ describe('Platform Agent', () => {
         job_input: { test: true },
       }
 
-      const { result } = await runJob(payload)
+      const { jobResult: result } = await runJob(payload)
 
       // Verify the output is valid JSON by checking we got a parsed result
       expect(result).toBeDefined()
@@ -1136,7 +1287,7 @@ describe('Platform Agent', () => {
         job_input: {},
       }
 
-      const { result } = await runJob(payload)
+      const { jobResult: result } = await runJob(payload)
 
       // Verify the result has expected structure
       expect(result).toBeDefined()
@@ -1187,7 +1338,7 @@ describe('Platform Agent', () => {
         job_input: {},
       }
 
-      const { result } = await runJob(payload)
+      const { jobResult: result } = await runJob(payload)
 
       expect(result.success).toBe(true)
       expect(result.result).toBeDefined()
@@ -1209,7 +1360,7 @@ describe('Platform Agent', () => {
         job_input: { test: 'data' },
       }
 
-      const { result } = await runJob(payload)
+      const { jobResult: result } = await runJob(payload)
 
       // Verify timing object exists in response
       expect(result.timing).toBeDefined()
@@ -1262,37 +1413,45 @@ describe('Platform Agent', () => {
 
     test('returns immediately when wait_for_completion is false for exec_per_job', async () => {
       const jobId = generateJobId('exec-async-test')
-      const payload: JobPayload = {
+
+      const start = Date.now()
+      const { exitCode } = await runJob({
         job_id: jobId,
         job_class: 'async_exec',
-        worker_command: ['sh', '-c', 'sleep 5 && echo done'],
+        worker_command: ['sh', '-c', 'sleep 2 && echo done'],
         interface: { kind: 'exec_per_job' },
         job_input: {},
         wait_for_completion: false,
-      }
-
-      const start = Date.now()
-      const { result, exitCode } = await runJob(payload)
+      })
       const elapsed = Date.now() - start
+      const jobState = JSON.parse(
+        await readJobStateViaCLI(jobId).then(({ stdout }) => stdout),
+      )
 
       expect(exitCode).toBe(0)
       expect(elapsed).toBeLessThan(2000)
-      expect(result.success).toBe(true)
-      expect(result.status).toBe('running')
-      expect(result.worker_pid).toBeDefined()
+      expect(jobState.status).toEqual('running')
+      expect(jobState.worker_pid).toBeDefined()
+      expect(jobState.status).toBe(jobState.status)
 
       const stateExists = await fileExistsInContainer(jobStateFilePath(jobId))
       expect(stateExists).toBe(true)
-
-      const jobState = JSON.parse(
-        await readFileInContainer(jobStateFilePath(jobId)),
-      )
-      expect(jobState.status).toBe('running')
 
       const resultFileExists = await fileExistsInContainer(
         `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
       )
       expect(resultFileExists).toBe(false)
+
+      expect(
+        readJobStateViaCLI(jobId).then(({ stdout }) => JSON.parse(stdout)),
+      ).resolves.toEqual({
+        job_id: jobId,
+        job_class: 'async_exec',
+        status: 'running',
+        started_at: expect.any(String),
+        worker_kind: 'exec_per_job',
+        worker_pid: expect.any(Number),
+      })
     })
   })
 
@@ -1307,66 +1466,45 @@ describe('Platform Agent', () => {
           worker_command: ['bun', 'run', 'src/mock-worker.ts'],
           interface: {
             kind: 'persistent_http',
-            listener: { type: 'tcp', port: testCase.port },
+            port: testCase.port,
           },
           job_input: testCase.jobInput,
         }
 
         // Set APP_PORT env for the mock worker
-        const { result } = await runJob(payload, [`APP_PORT=${testCase.port}`])
+        const { jobResult: result } = await runJob(payload, [
+          `APP_PORT=${testCase.port}`,
+        ])
 
-        // console.log('output:', {
-        //   result,
-        //   jobLog: await readJobLog(jobId),
-        //   workerLog: await readWorkerLog(testCase.jobClass),
-        //   workerErrLog: await readWorkerLog(testCase.jobClass, { err: true }),
-        //   workerState: JSON.parse(
-        //     await readFileInContainer(
-        //       `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
-        //     ),
-        //   ),
-        //   jobState: JSON.parse(
-        //     await readFileInContainer(
-        //       `/var/lib/lombok-worker-agent/jobs/${jobId}.json`,
-        //     ),
-        //   ),
-        // })
-
-        expect(result.success).toBe(testCase.expected.success)
+        expect(result.success).toBe(testCase.expectedResult.success)
 
         // Verify the exact result matches expected values
-        if (testCase.expected.result && result.success) {
+        if (testCase.expectedResult.result && result.success) {
           const resultObj = result.result as Record<string, unknown>
           for (const [key, expectedValue] of Object.entries(
-            testCase.expected.result,
+            testCase.expectedResult.result,
           )) {
             expect(resultObj[key]).toEqual(expectedValue)
           }
         }
 
         // Verify error code for failure cases
-        if (testCase.expected.errorCode && !result.success) {
-          expect(result.error?.code).toBe(testCase.expected.errorCode)
+        if (testCase.expectedResult.errorCode && !result.success) {
+          expect(result.error?.code).toBe(testCase.expectedResult.errorCode)
         }
 
-        // Verify worker state file
-        const workerStateExists = await fileExistsInContainer(
-          `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
-        )
-        expect(workerStateExists).toBe(true)
+        const workerState = await readWorkerState({
+          workerCommand: payload.worker_command,
+          interface: payload.interface,
+        }).then((stdout) => JSON.parse(stdout))
 
-        const workerState = JSON.parse(
-          await readFileInContainer(
-            `/var/lib/lombok-worker-agent/workers/${testCase.jobClass}.json`,
-          ),
-        )
         expect(workerState.state).toBe('ready')
         expect(workerState.kind).toBe('persistent_http')
       })
     }
 
     test('returns parseable JSON result with expected structure', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8210'
       const port = 8210
 
       const jobId = generateJobId('http-json-structure-test')
@@ -1374,11 +1512,11 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [10, 20, 30] },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       // Verify the output is valid JSON by checking we got a parsed result
       expect(result).toBeDefined()
@@ -1400,10 +1538,24 @@ describe('Platform Agent', () => {
       expect(result.result).toBeDefined()
       expect(typeof result.result).toBe('object') // Should be a parsed object, not a string
       expect((result.result as Record<string, unknown>).sum).toBe(60)
+
+      const secondPayload: JobPayload = {
+        job_id: generateJobId('http-json-structure-test-2'),
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [10, 20, 30] },
+      }
+
+      const { jobResult: secondResult } = await runJob(secondPayload, [
+        `APP_PORT=${port}`,
+      ])
+
+      expect(secondResult).toBeDefined()
     })
 
     test('failed job returns parseable JSON with error structure', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8211'
       const port = 8211
 
       const jobId = generateJobId('http-json-error-test')
@@ -1411,12 +1563,12 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         // Invalid input - math_add expects { numbers: number[] }
         job_input: { invalid: 'input' },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       // Verify result has expected structure
       expect(result).toBeDefined()
@@ -1436,9 +1588,9 @@ describe('Platform Agent', () => {
       const jobId = generateJobId('readiness-test')
       const payload: JobPayload = {
         job_id: jobId,
-        job_class: 'math_add',
+        job_class: 'math_add_8212',
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [1, 2] },
       }
 
@@ -1469,18 +1621,18 @@ describe('Platform Agent', () => {
         job_id: jobId1,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [1, 2, 3] },
       }
 
       // Use math_add as the actual job class sent to worker
       await runJob({ ...payload1, job_class: 'math_add' }, [`APP_PORT=${port}`])
 
-      const workerState1 = JSON.parse(
-        await readFileInContainer(
-          `/var/lib/lombok-worker-agent/workers/math_add.json`,
-        ),
-      )
+      const workerState1 = await readWorkerState({
+        workerCommand: payload1.worker_command,
+        interface: payload1.interface,
+      }).then((stdout) => JSON.parse(stdout) as { pid: number })
+
       const pid1 = workerState1.pid
 
       // Second job - should reuse same worker
@@ -1491,17 +1643,17 @@ describe('Platform Agent', () => {
         job_id: jobId2,
         job_class: 'math_add',
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [4, 5, 6] },
       }
 
       await runJob(payload2, [`APP_PORT=${port}`])
 
-      const workerState2 = JSON.parse(
-        await readFileInContainer(
-          `/var/lib/lombok-worker-agent/workers/math_add.json`,
-        ),
-      )
+      const workerState2 = await readWorkerState({
+        workerCommand: payload2.worker_command,
+        interface: payload2.interface,
+      }).then((stdout) => JSON.parse(stdout) as { pid: number })
+
       const pid2 = workerState2.pid
 
       // Same PID means worker was reused
@@ -1517,34 +1669,31 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [1, 2] },
       }
 
       await runJob(payload, [`APP_PORT=${port}`])
 
-      // Check worker log files exist
-      const workerIdentifier = workerLogIdentifier(
-        payload.worker_command,
-        payload.interface,
-      )
-      const outLogExists = await fileExistsInContainer(
-        `/var/log/lombok-worker-agent/workers/${workerIdentifier}.out.log`,
-      )
-      const errLogExists = await fileExistsInContainer(
-        `/var/log/lombok-worker-agent/workers/${workerIdentifier}.err.log`,
-      )
+      const jobConfig = {
+        workerCommand: payload.worker_command,
+        interface: payload.interface,
+      }
+      const workerOutLog = await readWorkerLog(jobConfig)
+      const workerErrLog = await readWorkerLog(jobConfig, { err: true })
 
-      expect(outLogExists).toBe(true)
-      expect(errLogExists).toBe(true)
+      expect(workerOutLog.length).toBeGreaterThan(0)
+      expect(workerErrLog.length).toBe(0)
+      expect(workerOutLog.length).toBeDefined()
+      expect(workerErrLog).toBeDefined()
 
       // Check worker logged startup message
-      const workerOut = await readWorkerLog(jobClass)
+      const workerOut = await readWorkerLog(jobConfig)
       expect(workerOut).toContain('Mock runner listening')
     })
 
     test('job logs contain handler output', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8203'
       const port = 8203
 
       const jobId = generateJobId('job-log-content-test')
@@ -1552,7 +1701,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [10, 20, 30] },
       }
 
@@ -1574,7 +1723,7 @@ describe('Platform Agent', () => {
     })
 
     test('verbose_log job writes to both stdout and stderr logs', async () => {
-      const jobClass = 'verbose_log'
+      const jobClass = 'verbose_log_8204'
       const port = 8204
 
       const jobId = generateJobId('verbose-log-test')
@@ -1582,11 +1731,11 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { steps: 3, simulateWarning: true, simulateError: true },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
       expect(result.success).toBe(true)
 
       // Check stdout log
@@ -1604,7 +1753,7 @@ describe('Platform Agent', () => {
     })
 
     test('async protocol handles delayed jobs via polling', async () => {
-      const jobClass = 'verbose_log'
+      const jobClass = 'verbose_log_8205'
       const port = 8205
 
       const jobId = generateJobId('async-delay-test')
@@ -1612,13 +1761,13 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         // Job with 5 steps, each delayed by 500ms = 2.5 seconds total
         job_input: { steps: 5, delayMs: 500 },
       }
 
       const startTime = Date.now()
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
       const elapsed = Date.now() - startTime
 
       expect(result.success).toBe(true)
@@ -1638,7 +1787,7 @@ describe('Platform Agent', () => {
     })
 
     test('file_output job writes files and manifest to output directory', async () => {
-      const jobClass = 'file_output'
+      const jobClass = 'file_output_8213'
       const port = 8213
 
       const jobId = generateJobId('file-output-test')
@@ -1646,7 +1795,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           folder_id: 'test-folder-uuid',
           files: [
@@ -1664,7 +1813,7 @@ describe('Platform Agent', () => {
         },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       expect(result.success).toBe(true)
 
@@ -1708,7 +1857,7 @@ describe('Platform Agent', () => {
     })
 
     test('job output directory is created and available to workers', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8214'
       const port = 8214
 
       const jobId = generateJobId('output-dir-test')
@@ -1716,7 +1865,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [1, 2, 3] },
       }
 
@@ -1730,7 +1879,7 @@ describe('Platform Agent', () => {
     })
 
     test('timing information is included in response JSON', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8215'
       const port = 8215
 
       const jobId = generateJobId('http-timing-test')
@@ -1738,11 +1887,11 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [1, 2, 3] },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       // Verify timing object exists in response
       expect(result.timing).toBeDefined()
@@ -1775,7 +1924,7 @@ describe('Platform Agent', () => {
     })
 
     test('timing is logged in agent log for persistent_http', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8216'
       const port = 8216
 
       const jobId = generateJobId('http-timing-log-test')
@@ -1783,7 +1932,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [1, 2] },
       }
 
@@ -1800,7 +1949,7 @@ describe('Platform Agent', () => {
     })
 
     test('returns immediately when wait_for_completion is false for persistent_http', async () => {
-      const jobClass = 'verbose_log'
+      const jobClass = 'verbose_log_8300'
       const port = 8300
       const jobId = generateJobId('http-async-test')
 
@@ -1808,33 +1957,114 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { steps: 4, delayMs: 500 },
         wait_for_completion: false,
       }
 
       const start = Date.now()
-      const { result, exitCode } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult, jobState, exitCode } = await runJob(payload, [
+        `APP_PORT=${port}`,
+      ])
+
       const elapsed = Date.now() - start
 
       expect(exitCode).toBe(0)
       expect(elapsed).toBeLessThan(2000)
-      expect(result.success).toBe(true)
-      expect(result.status).toBe('running')
-      expect(result.worker_pid).toBeDefined()
+      expect(jobState.status).toEqual('pending')
+
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      const jobStateAfterWait = JSON.parse(
+        await readJobStateViaCLI(jobId).then(({ stdout }) => stdout),
+      )
 
       const stateExists = await fileExistsInContainer(jobStateFilePath(jobId))
       expect(stateExists).toBe(true)
 
-      const jobState = JSON.parse(
-        await readFileInContainer(jobStateFilePath(jobId)),
-      )
-      expect(jobState.status).toBe('running')
+      expect(jobStateAfterWait.status).toBe('running')
 
       const resultFileExists = await fileExistsInContainer(
         `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`,
       )
       expect(resultFileExists).toBe(false)
+    })
+
+    test('http worker enqueues job before readiness flips true when startup is slow', async () => {
+      const jobClass = 'verbose_log_8400'
+      const port = 8400
+      const readyDelayMs = 1000
+      const jobId = generateJobId('http-slow-startup')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: { steps: 2, delayMs: 250 },
+        wait_for_completion: false,
+      }
+
+      const startTime = Date.now()
+      const { jobState, exitCode, rawOutput } = await runJob(payload, [
+        `APP_PORT=${port}`,
+        `READY_DELAY_MS=${readyDelayMs}`,
+      ])
+      const elapsed = Date.now() - startTime
+
+      expect(exitCode).toBe(0)
+      expect(jobState.status).toEqual('pending')
+      expect(elapsed).toBeLessThan(readyDelayMs)
+
+      // Wait a bit for the worker process to start and bind to the port
+      // before checking readiness
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const readinessAfter = await execInContainer([
+        'wget',
+        '-q',
+        '-O',
+        '-',
+        `http://127.0.0.1:${port}/health/ready`,
+      ])
+      expect(readinessAfter.stderr).toInclude('403 Forbidden')
+
+      // await new Promise((resolve) => setTimeout(resolve, 1000))
+      expect(
+        readJobStateViaCLI(jobId).then(({ stdout }) => JSON.parse(stdout)),
+      ).resolves.toEqual({
+        job_id: jobId,
+        job_class: 'verbose_log_8400',
+        status: 'pending',
+        started_at: expect.any(String),
+        worker_kind: 'persistent_http',
+      })
+      await new Promise((resolve) => setTimeout(resolve, 1300))
+
+      expect(
+        readJobStateViaCLI(jobId).then(({ stdout }) => JSON.parse(stdout)),
+      ).resolves.toEqual({
+        job_id: jobId,
+        job_class: 'verbose_log_8400',
+        status: 'running',
+        started_at: expect.any(String),
+        worker_kind: 'persistent_http',
+        worker_state_pid: expect.any(Number),
+      })
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const jobStateAfterWait = await readJobStateViaCLI(jobId).then(
+        ({ stdout }) => JSON.parse(stdout),
+      )
+
+      expect(jobStateAfterWait).toEqual({
+        job_id: jobId,
+        job_class: 'verbose_log_8400',
+        status: 'success',
+        started_at: expect.any(String),
+        completed_at: expect.any(String),
+        worker_kind: 'persistent_http',
+        worker_state_pid: expect.any(Number),
+      })
     })
   })
 
@@ -1851,7 +2081,7 @@ describe('Platform Agent', () => {
         platform_url: getMockPlatformUrl(),
       }
 
-      const { result } = await runJob(payload)
+      const { jobResult: result } = await runJob(payload)
 
       expect(result.success).toBe(true)
 
@@ -1880,7 +2110,7 @@ describe('Platform Agent', () => {
         platform_url: getMockPlatformUrl(),
       }
 
-      const { result, exitCode } = await runJob(payload)
+      const { jobResult: result, exitCode } = await runJob(payload)
 
       expect(result.success).toBe(false)
       expect(exitCode).toBe(1)
@@ -1900,7 +2130,7 @@ describe('Platform Agent', () => {
     })
 
     test('persistent_http signals completion to platform', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8220'
       const port = 8220
 
       const jobId = generateJobId('platform-http-success')
@@ -1908,13 +2138,13 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [10, 20, 30] },
         job_token: MOCK_JOB_TOKEN,
         platform_url: getMockPlatformUrl(),
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       expect(result.success).toBe(true)
 
@@ -1927,7 +2157,7 @@ describe('Platform Agent', () => {
     })
 
     test('file_output job uploads files via presigned URLs and signals completion', async () => {
-      const jobClass = 'file_output'
+      const jobClass = 'file_output_8221'
       const port = 8221
 
       const jobId = generateJobId('platform-upload-test')
@@ -1935,7 +2165,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           files: [
             {
@@ -1958,7 +2188,7 @@ describe('Platform Agent', () => {
         },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       expect(result.success).toBe(true)
 
@@ -2008,14 +2238,14 @@ describe('Platform Agent', () => {
     })
 
     test('file_output uses manifest content_type when provided', async () => {
-      const jobClass = 'file_output'
+      const jobClass = 'file_output_8240'
       const port = 8240
       const jobId = generateJobId('platform-upload-content-type-manifest')
       const payload: JobPayload = {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           files: [
             {
@@ -2048,14 +2278,14 @@ describe('Platform Agent', () => {
     })
 
     test('file_output falls back to detecting content type when manifest omits it', async () => {
-      const jobClass = 'file_output'
+      const jobClass = 'file_output_8241'
       const port = 8241
       const jobId = generateJobId('platform-upload-content-type-detect')
       const payload: JobPayload = {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           files: [
             { name: 'data.json', content: '{"key":"value"}' }, // no content_type
@@ -2079,13 +2309,12 @@ describe('Platform Agent', () => {
       const txtUpload = mockPlatformState.outputFiles.find((f) =>
         f.url.includes('readme.txt'),
       )
-      console.log('jsonUpload?.contentType:', jsonUpload?.contentType)
       expect(jsonUpload?.contentType.startsWith('application/json')).toBe(true)
       expect(txtUpload?.contentType.startsWith('text/plain')).toBe(true)
     })
 
     test('file_output job with empty prefix keeps object keys unchanged', async () => {
-      const jobClass = 'file_output'
+      const jobClass = 'file_output_8222'
       const port = 8222
 
       const jobId = generateJobId('platform-upload-empty-prefix')
@@ -2093,7 +2322,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           files: [
             { name: 'output.txt', content: 'Test content for upload' },
@@ -2108,7 +2337,7 @@ describe('Platform Agent', () => {
         },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       expect(result.success).toBe(true)
 
@@ -2126,15 +2355,15 @@ describe('Platform Agent', () => {
     })
 
     test('file_output job with missing prefix keeps object keys unchanged', async () => {
-      const jobClass = 'file_output'
-      const port = 8222
+      const jobClass = 'file_output_8223'
+      const port = 8223
 
       const jobId = generateJobId('platform-upload-missing-prefix')
       const payload: JobPayload = {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           files: [
             { name: 'output.txt', content: 'Test content for upload' },
@@ -2148,7 +2377,7 @@ describe('Platform Agent', () => {
         },
       }
 
-      const { result } = await runJob(payload, [`APP_PORT=${port}`])
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
 
       expect(result.success).toBe(true)
 
@@ -2194,12 +2423,13 @@ describe('Platform Agent', () => {
         worker_command: ['echo', 'test'],
         interface: { kind: 'invalid_kind' as InterfaceKind },
         job_input: {},
+        wait_for_completion: false,
       }
 
-      const { result, exitCode } = await runJob(payload)
+      const { jobState, exitCode, rawOutput } = await runJob(payload)
 
       expect(exitCode).not.toBe(0)
-      expect(result.success).toBe(false)
+      expect(rawOutput).toContain('interface kind: invalid_kind')
     })
 
     test('invalid base64 payload returns error', async () => {
@@ -2276,16 +2506,24 @@ describe('Platform Agent', () => {
 
       await runJob(payload)
 
-      // Read the log using job-log command
-      const result = await execInContainer([
+      // For exec_per_job, worker output goes to worker logs, not job logs
+      // job-log will return empty since there are no job logs
+      const jobLogResult = await execInContainer([
         'lombok-worker-agent',
         'job-log',
         '--job-id',
         jobId,
       ])
 
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('test_log_content')
+      expect(jobLogResult.exitCode).toBe(0)
+      expect(jobLogResult.stdout).toBe('') // Job logs are empty for exec_per_job
+
+      // Verify the content is in worker logs instead
+      const workerLog = await readWorkerLog({
+        workerCommand: payload.worker_command,
+        interface: { kind: 'exec_per_job' },
+      })
+      expect(workerLog).toContain('test_log_content')
     })
 
     test('job-log --err reads job stderr', async () => {
@@ -2300,7 +2538,9 @@ describe('Platform Agent', () => {
 
       await runJob(payload)
 
-      const result = await execInContainer([
+      // For exec_per_job, worker output goes to worker logs, not job logs
+      // job-log will return empty since there are no job logs
+      const jobLogResult = await execInContainer([
         'lombok-worker-agent',
         'job-log',
         '--job-id',
@@ -2308,8 +2548,20 @@ describe('Platform Agent', () => {
         '--err',
       ])
 
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('stderr_content')
+      expect(jobLogResult.exitCode).toBe(0)
+      expect(jobLogResult.stdout).toBe('') // Job logs are empty for exec_per_job
+
+      // Verify the content is in worker logs instead
+      const workerLog = await readWorkerLog(
+        {
+          workerCommand: payload.worker_command,
+          interface: {
+            kind: 'exec_per_job',
+          },
+        },
+        { err: true },
+      )
+      expect(workerLog).toContain('stderr_content')
     })
 
     test('job-log --tail returns last N lines', async () => {
@@ -2328,18 +2580,22 @@ describe('Platform Agent', () => {
 
       await runJob(payload)
 
-      const result = await execInContainer([
-        'lombok-worker-agent',
-        'job-log',
-        '--job-id',
-        jobId,
-        '--tail',
-        '2',
-      ])
+      // For exec_per_job, worker output goes to worker logs, not job logs
+      // job-log will return empty since there are no job logs
+      const jobLogResult = await readJobLog(jobId)
 
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('line4')
-      expect(result.stdout).toContain('line5')
+      expect(jobLogResult).toEqual('') // Job logs are empty for exec_per_job
+
+      // Verify the content is in worker logs instead
+      const workerLog = await readWorkerLog(
+        {
+          workerCommand: payload.worker_command,
+          interface: { kind: 'exec_per_job' },
+        },
+        { tail: 2 },
+      )
+      expect(workerLog).toContain('line4')
+      expect(workerLog).toContain('line5')
     })
 
     test('worker-log reads worker stdout', async () => {
@@ -2351,21 +2607,52 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [10, 20] },
       }
 
       await runJob(payload, [`APP_PORT=${port}`])
 
-      const result = await execInContainer([
-        'lombok-worker-agent',
-        'worker-log',
-        '--job-class',
-        jobClass,
-      ])
+      const result = await readWorkerLog({
+        workerCommand: payload.worker_command,
+        interface: { kind: 'persistent_http', port },
+      })
 
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('Mock runner listening')
+      expect(result).toContain('Mock runner listening')
+    })
+
+    test('worker-log --tail returns last N lines', async () => {
+      const jobId = generateJobId('worker-log-tail-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'worker_log_tail_test',
+        worker_command: [
+          'sh',
+          '-c',
+          'echo line1; echo line2; echo line3; echo line4; echo line5',
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      // For exec_per_job, worker output goes to worker logs, not job logs
+      // job-log will return empty since there are no job logs
+      const jobLogResult = await readJobLog(jobId)
+
+      expect(jobLogResult).toEqual('') // Job logs are empty for exec_per_job
+
+      // Verify the content is in worker logs instead
+      const workerLog = await readWorkerLog(
+        {
+          workerCommand: payload.worker_command,
+          interface: { kind: 'exec_per_job' },
+        },
+        { tail: 2 },
+      )
+      expect(workerLog).toContain('line4')
+      expect(workerLog).toContain('line5')
     })
 
     test('agent-log reads agent log file', async () => {
@@ -2585,7 +2872,7 @@ describe('Platform Agent', () => {
     })
 
     test('job-result file is created for persistent_http jobs', async () => {
-      const jobClass = 'math_add'
+      const jobClass = 'math_add_8230'
       const port = 8230
       const jobId = generateJobId('job-result-http-test')
 
@@ -2593,7 +2880,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: { numbers: [5, 10, 15] },
       }
 
@@ -2707,7 +2994,7 @@ describe('Platform Agent', () => {
     })
 
     test('job-result file includes uploaded output files when present', async () => {
-      const jobClass = 'file_output'
+      const jobClass = 'file_output_8231'
       const port = 8231
       const jobId = generateJobId('job-result-output-files-test')
 
@@ -2715,7 +3002,7 @@ describe('Platform Agent', () => {
         job_id: jobId,
         job_class: jobClass,
         worker_command: ['bun', 'run', 'src/mock-worker.ts'],
-        interface: { kind: 'persistent_http', listener: { type: 'tcp', port } },
+        interface: { kind: 'persistent_http', port },
         job_input: {
           folder_id: 'test-folder-uuid',
           files: [
@@ -2778,6 +3065,80 @@ describe('Platform Agent', () => {
       expect(typeof result.timing.total_time_seconds).toBe('number')
       expect(typeof result.timing.worker_startup_time_seconds).toBe('number')
       expect(result.timing.job_execution_time_seconds).toBeGreaterThan(0)
+    })
+
+    test('container stdout contains worker output for exec_per_job', async () => {
+      const jobId = generateJobId('container-stdout-exec-test')
+      const uniqueOutput = `container-stdout-test-${Date.now()}`
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'container_stdout_test',
+        worker_command: ['sh', '-c', `echo "${uniqueOutput}" && sleep 2`],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      // Get container logs before running the job
+      const logsBefore = await readContainerLogs({ tail: 100 })
+
+      await runJob(payload)
+      await new Promise((r) => setTimeout(r, 2000))
+
+      // Get container logs after running the job
+      const logsAfter = await readContainerLogs({ tail: 200 })
+
+      // For exec_per_job, worker stdout now goes to worker log files (same as persistent_http)
+      // The worker-logs command tails /workers/ directory, so exec_per_job worker output
+      // should now appear in container stdout
+      expect(logsAfter).toContain(uniqueOutput)
+      // Verify it's new output (wasn't there before)
+      if (logsBefore.length > 0) {
+        expect(logsBefore).not.toContain(uniqueOutput)
+      }
+    })
+
+    test('container stdout contains worker output for persistent_http', async () => {
+      const jobClass = 'dummy_echo_8250'
+      const port = 8250
+      const jobId = generateJobId('container-stdout-http-test')
+      // Use a unique message that can only come from worker stdout
+      const uniqueMessage = `CONTAINER_STDOUT_TEST_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(7)}`
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        // dummy_echo logs the input to stdout via ctx.logger.log()
+        job_input: { testMessage: uniqueMessage },
+      }
+
+      // Get container logs before running the job
+      const logsBefore = await readContainerLogs({ tail: 100 })
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      await new Promise((r) => setTimeout(r, 1000))
+
+      // Get container logs after running the job
+      const logsAfter = await readContainerLogs({ tail: 400 })
+
+      // Verify the unique message appears in container stdout
+      // This message can only come from the worker's stdout
+      expect(logsAfter).toContain(
+        `[dummy_echo - worker log] Echoing input: ${JSON.stringify({
+          testMessage: uniqueMessage,
+        })}`,
+      )
+      // Verify it's new output (wasn't there before)
+      if (logsBefore.length > 0) {
+        expect(logsBefore).not.toContain(
+          `[dummy_echo - worker log] Echoing input: ${JSON.stringify({
+            testMessage: uniqueMessage,
+          })}`,
+        )
+      }
     })
   })
 })

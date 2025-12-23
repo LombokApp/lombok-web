@@ -91,7 +91,7 @@ export class AppSocketService {
       url: string
       body: JsonSerializableValue
     },
-    timeoutMs = 10000, // 10 second default timeout
+    timeoutMs = 60000, // 60 second default timeout
   ): Promise<unknown> {
     this.logger.log('Executing synchronous request for app:', {
       appIdentifier,
@@ -119,18 +119,21 @@ export class AppSocketService {
           new Error(`Timeout waiting for response from app "${appIdentifier}"`),
         )
       }, timeoutMs)
-      socket.emit(
-        EXECUTE_SYSTEM_REQUEST_MESSAGE,
-        { appIdentifier, request },
-        (response: unknown) => {
+
+      void socket
+        .emitWithAck(EXECUTE_SYSTEM_REQUEST_MESSAGE, { appIdentifier, request })
+        .then((response: unknown) => {
           clearTimeout(timeout)
-          resolve(
-            response && typeof response === 'object' && 'result' in response
-              ? response.result
-              : response,
-          )
-        },
-      )
+          resolve(response)
+        })
+        .catch((error: unknown) => {
+          clearTimeout(timeout)
+          if (error instanceof Error) {
+            reject(error)
+          } else {
+            reject(new Error(String(error)))
+          }
+        })
     })
   }
 }

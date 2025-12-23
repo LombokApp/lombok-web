@@ -48,10 +48,7 @@ For `persistent_http` interface:
   "worker_command": ["bun", "run", "worker.ts"],
   "interface": {
     "kind": "persistent_http",
-    "listener": {
-      "type": "tcp",
-      "port": 9000
-    }
+    "port": 9000
   },
   "job_input": { "any": "json" },
   "job_token": "jwt-token-for-platform-auth",
@@ -77,16 +74,6 @@ The `job_token` contains claims restricting which folders can be uploaded to:
   ]
 }
 ```
-
-Listener can also be a Unix socket:
-
-```json
-"listener": {
-  "type": "unix",
-  "path": "/tmp/worker.sock"
-}
-```
-
 ---
 
 ## 3. Agent Output Format
@@ -162,7 +149,7 @@ The worker should output its result as **valid JSON on the last non-empty line o
 echo "Processing..."
 echo "Step 1 complete"
 echo "Step 2 complete"
-echo '{"sum": 42, "status": "completed"}'  # <- This line is captured as result
+echo '{"sum": 42}'  # <- This line is captured as result
 ```
 
 The agent:
@@ -194,11 +181,13 @@ This decouples job execution time from HTTP connection lifetime, allowing long-r
 1. Check if worker is already running (via state file + process check)
 2. If not running or unhealthy:
    - Start worker using `worker_command` (without payload argument)
-   - Connect stdout/stderr to per-job-class logs:
+   - Connect stdout/stderr to per-worker logs:
      ```
-     /var/log/lombok-worker-agent/workers/<job_class>.out.log
-     /var/log/lombok-worker-agent/workers/<job_class>.err.log
+     /var/log/lombok-worker-agent/workers/<worker_id>.out.log
+     /var/log/lombok-worker-agent/workers/<worker_id>.err.log
      ```
+     `worker_id` is derived from the worker command, interface kind, and listener (for example:
+     `bun%20run%20src/mock-worker.ts__persistent_http_9000` or `bun%20run%20src/exec_job.ts__exec_per_job`).
    - Update worker state file to "starting"
 3. Poll for readiness via `GET /health/ready` until worker responds with 200 OK
 4. Mark worker as "ready" in state file
@@ -323,8 +312,8 @@ Optional endpoints:
   agent.log                    # Agent logs
   agent.err.log                # Agent error logs
   workers/
-    <job_class>.out.log        # Worker stdout (persistent_http)
-    <job_class>.err.log        # Worker stderr (persistent_http)
+    <worker_id>.out.log        # Worker stdout (persistent_http)
+    <worker_id>.err.log        # Worker stderr (persistent_http)
   jobs/
     <job_id>.out.log           # Job stdout
     <job_id>.err.log           # Job stderr
@@ -338,12 +327,9 @@ Optional endpoints:
 {
   "job_class": "image.resize.v1",
   "kind": "persistent_http",
+  "port": 9000,
   "pid": 1234,
   "state": "starting" | "ready" | "unhealthy" | "stopped",
-  "listener": {
-    "type": "tcp",
-    "port": 9000
-  },
   "started_at": "2025-11-27T10:10:00Z",
   "last_checked_at": "2025-11-27T10:11:00Z",
   "agent_version": "1.0.0"
@@ -392,6 +378,14 @@ docker exec <c> lombok-worker-agent worker-log --job-class <job_class> --tail 20
 docker exec <c> lombok-worker-agent worker-log --job-class <job_class> --err --tail 200
 ```
 
+### Combined Worker Logs (Tail)
+
+```bash
+docker exec <c> lombok-worker-agent worker-logs
+docker exec <c> lombok-worker-agent worker-logs --job-class <job_class>
+docker exec <c> lombok-worker-agent worker-logs --include-agent
+```
+
 ### Job Logs
 
 ```bash
@@ -418,14 +412,9 @@ type JobPayload struct {
 
 type InterfaceConfig struct {
     Kind     string          `json:"kind"` // "exec_per_job" or "persistent_http"
-    Listener *ListenerConfig `json:"listener,omitempty"`
+    Port     *int            `json:"port,omitempty"` // empty for exec_per_job
 }
 
-type ListenerConfig struct {
-    Type string `json:"type"` // "tcp" or "unix"
-    Port int    `json:"port,omitempty"`
-    Path string `json:"path,omitempty"`
-}
 ```
 
 ### HTTP Protocol Types
@@ -452,7 +441,7 @@ type HTTPJobSubmitResponse struct {
 type HTTPJobStatusResponse struct {
     JobID    string          `json:"job_id"`
     JobClass string          `json:"job_class,omitempty"`
-    Status   string          `json:"status"` // "pending", "running", "completed", "failed"
+    Status   string          `json:"status"` // "pending", "running", "success", "failed"
     Result   json.RawMessage `json:"result,omitempty"`
     Error    *JobError       `json:"error,omitempty"`
 }
@@ -717,7 +706,7 @@ Platform                    Agent                      Worker
    |                          |<-- {status: running} ----|
    |                          |                          |
    |                          |-- GET /job/{id} -------->|
-   |                          |<-- {status: completed} --|
+   |                          |<-- {status: success/failed} --|
    |                          |                          |
    |                          | (check for manifest, upload files)
    |                          | (signal completion to platform)
@@ -783,9 +772,7 @@ This section describes what a Docker image must implement to integrate with the 
 To use the `persistent_http` interface, your image must:
 
 - Start an HTTP server when the worker process is launched using `worker_command` (for example, `["bun", "run", "worker.ts"]`).
-- Bind to the listener described in the job payload:
-  - If `listener.type` is `"tcp"`, listen on `0.0.0.0:<listener.port>`.
-  - If `listener.type` is `"unix"`, listen on the Unix socket at `listener.path`.
+- Bind to the listener described in the job payload (or bind to the port you want and assume the config knows which port that is).
 - Remain running and serve multiple jobs over its lifetime (the agent reuses the same worker for many jobs of the same `job_class`).
 
 Your HTTP server **must** implement the following endpoints:
@@ -846,7 +833,7 @@ Your HTTP server **must** implement the following endpoints:
       {
         "job_id": "uuid-string",
         "job_class": "string",
-        "status": "completed",
+        "status": "success",
         "result": { "any": "json" }
       }
       ```
@@ -866,7 +853,7 @@ Your HTTP server **must** implement the following endpoints:
 Your implementation is free to choose any internal concurrency, queuing, and resource management strategy, as long as:
 
 - `POST /job` returns quickly (no long-running HTTP requests).
-- `GET /job/{job_id}` eventually transitions to `status` `"completed"` or `"failed"`.
+- `GET /job/{job_id}` eventually transitions to `status` `"success"` or `"failed"`.
 - Job IDs are unique per worker instance, or safely de-duplicated.
 
 ### 14.2 Managing output files
@@ -900,7 +887,7 @@ The agent supports automatic upload of worker-generated files to the platform. T
 
 The agent will:
 
-- Read `__manifest__.json` after the job reaches `completed` or `failed`.
+- Read `__manifest__.json` after the job reaches `success` or `failed`.
 - Request presigned URLs from the platform for each file entry (using `output_location.folder_id` and prefixed object keys).
 - Upload the files to S3.
 - Include the final `output_files` list in the job completion payload back to the platform.
