@@ -146,7 +146,12 @@ export class UsersController {
     const user = await this.userService.getUserByIdAsAdmin(req.user, userId)
     const sessions = await this.sessionService.listActiveUserSessions(user)
     return {
-      result: sessions,
+      result: sessions.map((session) => ({
+        ...session,
+        createdAt: session.createdAt.toISOString(),
+        updatedAt: session.updatedAt.toISOString(),
+        expiresAt: session.expiresAt.toISOString(),
+      })),
       meta: { totalCount: sessions.length },
     }
   }

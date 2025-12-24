@@ -1,21 +1,21 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { storageLocationSchema } from 'src/storage/dto/storage-location.dto'
+import { storageLocationDTOSchema } from 'src/storage/dto/storage-location.dto'
 import { z } from 'zod'
 
-export const folderSchema = z.object({
+export const folderDTOSchema = z.object({
   id: z.string().uuid(),
   ownerId: z.string().uuid(),
   name: z.string(),
-  metadataLocation: storageLocationSchema,
-  contentLocation: storageLocationSchema,
+  metadataLocation: storageLocationDTOSchema,
+  contentLocation: storageLocationDTOSchema,
   accessError: z
     .object({
       message: z.string(),
       code: z.string(),
     })
     .nullish(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 })
 
-export class FolderDTO extends createZodDto(folderSchema) {}
+export class FolderDTO extends createZodDto(folderDTOSchema) {}

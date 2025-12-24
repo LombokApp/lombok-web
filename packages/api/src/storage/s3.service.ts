@@ -151,7 +151,8 @@ export class S3Service {
       },
     ])
 
-    const headObjectResponse = await fetch(url, {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const headObjectResponse = await fetch(url!, {
       method: 'GET',
       headers: { Range: 'bytes=0-0' },
     })
@@ -228,7 +229,8 @@ export class S3Service {
       },
     ])[0]
 
-    const getObjectResponse = await fetch(url).catch((e) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const getObjectResponse = await fetch(url!).catch((e) => {
       // eslint-disable-next-line no-console
       console.log('Error getting object:', e)
       throw e
@@ -269,7 +271,8 @@ export class S3Service {
       },
     ])[0]
 
-    const deleteObjectResponse = await fetch(url, { method: 'DELETE' }).catch(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const deleteObjectResponse = await fetch(url!, { method: 'DELETE' }).catch(
       (e) => {
         // eslint-disable-next-line no-console
         console.log('Error deleting object:', e)

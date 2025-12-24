@@ -11,7 +11,7 @@ export function transformFolderToDTO(folder: Folder): FolderDTO {
     contentLocation: transformStorageLocationToDTO(folder.contentLocation),
     metadataLocation: transformStorageLocationToDTO(folder.metadataLocation),
     accessError: folder.accessError,
-    createdAt: folder.createdAt,
-    updatedAt: folder.updatedAt,
+    createdAt: folder.createdAt.toISOString(),
+    updatedAt: folder.updatedAt.toISOString(),
   }
 }

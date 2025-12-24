@@ -107,7 +107,7 @@ export class UserAppsController {
       session: {
         accessToken: session.accessToken,
         refreshToken: session.refreshToken,
-        expiresAt: session.session.expiresAt,
+        expiresAt: session.session.expiresAt.toISOString(),
       },
     }
   }

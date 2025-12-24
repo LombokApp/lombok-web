@@ -1,11 +1,11 @@
-FROM oven/bun:1.3.2-alpine AS base
+FROM oven/bun:1.3.3-alpine AS base
 
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
   echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-  apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail
+  apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail socat
 
 FROM base AS local
 

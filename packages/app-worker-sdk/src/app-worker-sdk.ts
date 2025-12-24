@@ -1,12 +1,13 @@
-import type {
-  AppLogEntry,
-  AppManifest,
-  AppSocketMessage,
-  ContentMetadataType,
-  EventDTO,
-  LombokApiClient,
-  SignedURLsRequestMethod,
-  WorkerErrorDetails,
+import {
+  appMessageErrorSchema,
+  type AppSocketMessage,
+  type AppSocketMessageDataMap,
+  AppSocketMessageResponseSchemaMap,
+  type AppSocketMessageResultMap,
+  type AppSocketResponseError,
+  type JsonSerializableObject,
+  type TaskDTO,
+  type WorkerApiActor,
 } from '@lombokapp/types'
 import {
   drizzle,
@@ -16,250 +17,229 @@ import {
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 
-const SOCKET_RESPONSE_TIMEOUT = 2000
+const DEFAULT_SOCKET_RESPONSE_TIMEOUT = 30000
 
 export class AppAPIError extends Error {
-  errorCode: string
-  constructor(errorCode: string, errorMessage = '') {
+  errorCode: string | number
+  details?: JsonSerializableObject
+  constructor(
+    errorCode: string | number,
+    errorMessage = '',
+    details?: JsonSerializableObject,
+  ) {
     super()
     this.errorCode = errorCode
     this.message = errorMessage
+    this.details = details
   }
 }
 
-interface AppAPIResponse<T> {
-  result: T
-  error?: { code: string; message: string }
-}
-export interface AppTask {
-  id: string
-  taskIdentifier: string
-  inputData: unknown
-  event: EventDTO
-  subjectFolderId?: string
-  subjectObjectKey?: string
-}
+type SocketResponse<K extends z.infer<typeof AppSocketMessage>> =
+  AppSocketMessageResultMap[K]
 
 export interface IAppPlatformService {
   getServerBaseUrl: () => string
   emitEvent: (
-    eventIdentifier: string,
-    data: unknown,
-  ) => Promise<AppAPIResponse<void>>
+    params: AppSocketMessageDataMap['EMIT_EVENT'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'EMIT_EVENT'>>
   getWorkerExecutionDetails: (
-    appIdentifier: string,
-    workerIdentifier: string,
-  ) => Promise<
-    AppAPIResponse<{
-      payloadUrl: string
-      workerToken: string
-      environmentVariables: Record<string, string>
-      entrypoint: string
-      hash: string
-    }>
-  >
+    params: AppSocketMessageDataMap['GET_WORKER_EXECUTION_DETAILS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_WORKER_EXECUTION_DETAILS'>>
   getAppUIbundle: (
-    appIdentifier: string,
-  ) => Promise<
-    AppAPIResponse<{ manifest: AppManifest; bundleUrl: string; csp?: string }>
-  >
-  saveLogEntry: (entry: AppLogEntry) => Promise<AppAPIResponse<boolean>>
+    params: AppSocketMessageDataMap['GET_APP_UI_BUNDLE'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_APP_UI_BUNDLE'>>
+  saveLogEntry: (
+    entry: AppSocketMessageDataMap['SAVE_LOG_ENTRY'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'SAVE_LOG_ENTRY'>>
   attemptStartHandleTaskById: (
-    taskId: string,
-    taskHandlerId?: string,
-  ) => Promise<AppAPIResponse<AppTask>>
+    params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID'>>
   attemptStartHandleAnyAvailableTask: (
-    taskIdentifiers: string[],
-  ) => Promise<AppAPIResponse<AppTask>>
-  failHandleTask: (
-    taskId: string,
-    error: {
-      code: string
-      message: string
-      details?: WorkerErrorDetails
-    },
-  ) => Promise<AppAPIResponse<void>>
-  completeHandleTask: (taskId: string) => Promise<AppAPIResponse<void>>
+    params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'>>
+  completeHandleTask: (
+    params: AppSocketMessageDataMap['COMPLETE_HANDLE_TASK'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'COMPLETE_HANDLE_TASK'>>
   authenticateUser: (
-    token: string,
-    appIdentifier: string,
-  ) => Promise<AppAPIResponse<{ userId: string; success: boolean }>>
+    params: AppSocketMessageDataMap['AUTHENTICATE_USER'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'AUTHENTICATE_USER'>>
   getMetadataSignedUrls: (
-    objects: {
-      folderId: string
-      objectKey: string
-      contentHash: string
-      metadataHash: string
-      method: SignedURLsRequestMethod
-    }[],
-  ) => Promise<
-    AppAPIResponse<{
-      urls: { url: string; folderId: string; objectKey: string }[]
-    }>
-  >
+    params: AppSocketMessageDataMap['GET_METADATA_SIGNED_URLS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_METADATA_SIGNED_URLS'>>
   getContentSignedUrls: (
-    objects: {
-      folderId: string
-      objectKey: string
-      method: SignedURLsRequestMethod
-    }[],
-  ) => Promise<
-    AppAPIResponse<{
-      urls: { url: string; folderId: string; objectKey: string }[]
-    }>
-  >
+    params: AppSocketMessageDataMap['GET_CONTENT_SIGNED_URLS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_CONTENT_SIGNED_URLS'>>
   getAppStorageSignedUrls: (
-    requests: {
-      objectKey: string
-      method: SignedURLsRequestMethod
-    }[],
-  ) => Promise<AppAPIResponse<{ urls: string[] }>>
+    params: AppSocketMessageDataMap['GET_APP_STORAGE_SIGNED_URLS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_APP_STORAGE_SIGNED_URLS'>>
   getAppUserAccessToken: (
-    userId: string,
-  ) => Promise<AppAPIResponse<{ accessToken: string; refreshToken: string }>>
+    params: AppSocketMessageDataMap['GET_APP_USER_ACCESS_TOKEN'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_APP_USER_ACCESS_TOKEN'>>
   updateContentMetadata: (
-    updates: {
-      folderId: string
-      objectKey: string
-      hash: string
-      metadata: ContentMetadataType
-    }[],
-  ) => Promise<AppAPIResponse<void>>
+    params: AppSocketMessageDataMap['UPDATE_CONTENT_METADATA'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'UPDATE_CONTENT_METADATA'>>
   // Database methods
   query: (
-    sql: string,
-    params?: unknown[],
-    rowMode?: string,
-  ) => Promise<AppAPIResponse<{ rows: unknown[]; fields: unknown[] }>>
+    params: AppSocketMessageDataMap['DB_QUERY'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'DB_QUERY'>>
   exec: (
-    sql: string,
-    params?: unknown[],
-  ) => Promise<AppAPIResponse<{ rowCount: number }>>
+    params: AppSocketMessageDataMap['DB_EXEC'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'DB_EXEC'>>
   batch: (
-    steps: {
-      sql: string
-      params?: unknown[]
-      kind: 'query' | 'exec'
-      rowMode?: string
-    }[],
-    atomic?: boolean,
-  ) => Promise<AppAPIResponse<{ results: unknown[] }>>
+    params: AppSocketMessageDataMap['DB_BATCH'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'DB_BATCH'>>
+  executeAppDockerJob: (
+    params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'EXECUTE_APP_DOCKER_JOB'>>
+  triggerAppTask: (
+    params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'TRIGGER_APP_TASK'>>
+}
+
+interface PlatformApiExecuteOptions {
+  timeoutMs?: number
 }
 
 export const buildAppClient = (
   socket: Socket,
   serverBaseUrl: string,
+  defaultTimeoutMs = DEFAULT_SOCKET_RESPONSE_TIMEOUT,
 ): IAppPlatformService => {
-  const emitWithAck = async (
-    name: z.infer<typeof AppSocketMessage>,
-    data: unknown,
-  ) => {
-    const response = (await socket
-      .timeout(SOCKET_RESPONSE_TIMEOUT)
-      .emitWithAck('APP_API', {
-        name,
-        data,
-      })) as AppAPIResponse<unknown>
-    if (response.error) {
-      throw new AppAPIError(response.error.code, response.error.message)
+  const emitWithAck = async <K extends z.infer<typeof AppSocketMessage>>(
+    name: K,
+    data: AppSocketMessageDataMap[K],
+    options: PlatformApiExecuteOptions = {},
+  ): Promise<SocketResponse<K>> => {
+    const timeoutMs =
+      typeof options.timeoutMs === 'undefined'
+        ? defaultTimeoutMs
+        : options.timeoutMs
+    const response = (await socket.timeout(timeoutMs).emitWithAck('APP_API', {
+      name,
+      data,
+    })) as SocketResponse<K> | { error: AppSocketResponseError }
+
+    if ('error' in response) {
+      const parsedError = appMessageErrorSchema.safeParse(response.error)
+      if (parsedError.success) {
+        return {
+          error: response.error,
+        }
+      }
+      return {
+        error: {
+          code: 'APP_API_ERROR',
+          message: 'Failed to parse response',
+          details: {
+            fieldErrors: parsedError.error.flatten().fieldErrors,
+            formErrors: parsedError.error.flatten().formErrors,
+          },
+        },
+      }
     }
-    return response
+
+    const parsedResponse =
+      AppSocketMessageResponseSchemaMap[name].safeParse(response)
+
+    if (!parsedResponse.success) {
+      return {
+        error: {
+          code: 'APP_API_ERROR',
+          message: 'Failed to parse response',
+          details: {
+            fieldErrors: parsedResponse.error.flatten().fieldErrors,
+            formErrors: parsedResponse.error.flatten().formErrors,
+          },
+        },
+      }
+    }
+
+    return parsedResponse.data as SocketResponse<K>
   }
 
   return {
     getServerBaseUrl() {
       return serverBaseUrl
     },
-    emitEvent(eventIdentifier, data) {
-      return emitWithAck('EMIT_EVENT', { eventIdentifier, data }) as ReturnType<
-        IAppPlatformService['emitEvent']
-      >
+    emitEvent(params, options) {
+      return emitWithAck('EMIT_EVENT', params, options)
     },
-    getWorkerExecutionDetails(appIdentifier, workerIdentifier) {
-      return emitWithAck('GET_WORKER_EXECUTION_DETAILS', {
-        appIdentifier,
-        workerIdentifier,
-      }) as ReturnType<IAppPlatformService['getWorkerExecutionDetails']>
+    getWorkerExecutionDetails(params, options) {
+      return emitWithAck('GET_WORKER_EXECUTION_DETAILS', params, options)
     },
-    getAppUIbundle(appIdentifier) {
-      return emitWithAck('GET_APP_UI_BUNDLE', {
-        appIdentifier,
-      }) as ReturnType<IAppPlatformService['getAppUIbundle']>
+    getAppUIbundle(params, options) {
+      return emitWithAck('GET_APP_UI_BUNDLE', params, options)
     },
-    saveLogEntry(entry) {
-      return emitWithAck('SAVE_LOG_ENTRY', entry) as ReturnType<
-        IAppPlatformService['saveLogEntry']
-      >
+    saveLogEntry(params, options) {
+      return emitWithAck('SAVE_LOG_ENTRY', params, options)
     },
-    getContentSignedUrls(requests) {
-      return emitWithAck('GET_CONTENT_SIGNED_URLS', { requests }) as ReturnType<
-        IAppPlatformService['getContentSignedUrls']
-      >
+    getContentSignedUrls(params, options) {
+      return emitWithAck('GET_CONTENT_SIGNED_URLS', params, options)
     },
-    getMetadataSignedUrls(requests) {
-      return emitWithAck('GET_METADATA_SIGNED_URLS', {
-        requests,
-      }) as ReturnType<IAppPlatformService['getMetadataSignedUrls']>
+    getMetadataSignedUrls(requests, options) {
+      return emitWithAck('GET_METADATA_SIGNED_URLS', requests, options)
     },
-    getAppStorageSignedUrls(requests) {
-      return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', {
-        requests,
-      }) as ReturnType<IAppPlatformService['getAppStorageSignedUrls']>
+    getAppStorageSignedUrls(params, options) {
+      return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', params, options)
     },
-    getAppUserAccessToken(userId) {
-      return emitWithAck('GET_APP_USER_ACCESS_TOKEN', {
-        userId,
-      }) as ReturnType<IAppPlatformService['getAppUserAccessToken']>
+    getAppUserAccessToken(params, options) {
+      return emitWithAck('GET_APP_USER_ACCESS_TOKEN', params, options)
     },
-    updateContentMetadata(updates) {
-      return emitWithAck('UPDATE_CONTENT_METADATA', {
-        updates,
-      }) as ReturnType<IAppPlatformService['updateContentMetadata']>
+    updateContentMetadata(params, options) {
+      return emitWithAck('UPDATE_CONTENT_METADATA', params, options)
     },
-    completeHandleTask(taskId) {
-      return emitWithAck('COMPLETE_HANDLE_TASK', { taskId }) as ReturnType<
-        IAppPlatformService['completeHandleTask']
-      >
+    completeHandleTask(params, options) {
+      return emitWithAck('COMPLETE_HANDLE_TASK', params, options)
     },
-    authenticateUser(token, appIdentifier) {
-      return emitWithAck('AUTHENTICATE_USER', {
-        token,
-        appIdentifier,
-      }) as ReturnType<IAppPlatformService['authenticateUser']>
+    authenticateUser(params, options) {
+      return emitWithAck('AUTHENTICATE_USER', params, options)
     },
-    attemptStartHandleTaskById(taskId: string, taskHandlerId?: string) {
-      return emitWithAck('ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID', {
-        taskId,
-        taskHandlerId,
-      }) as ReturnType<IAppPlatformService['attemptStartHandleTaskById']>
+    attemptStartHandleTaskById(params, options) {
+      return emitWithAck(
+        'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
+        params,
+        options,
+      )
     },
-    attemptStartHandleAnyAvailableTask(taskIdentifiers: string[]) {
-      return emitWithAck('ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK', {
-        taskIdentifiers,
-      }) as ReturnType<
-        IAppPlatformService['attemptStartHandleAnyAvailableTask']
-      >
+    attemptStartHandleAnyAvailableTask(params, options) {
+      return emitWithAck(
+        'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
+        params,
+        options,
+      )
     },
-    failHandleTask(taskId, error) {
-      return emitWithAck('FAIL_HANDLE_TASK', { taskId, error }) as ReturnType<
-        IAppPlatformService['failHandleTask']
-      >
+    executeAppDockerJob(params, options) {
+      return emitWithAck('EXECUTE_APP_DOCKER_JOB', params, options)
     },
-    // Database methods
-    query(sql, params, rowMode) {
-      return emitWithAck('DB_QUERY', { sql, params, rowMode }) as ReturnType<
-        IAppPlatformService['query']
-      >
+    triggerAppTask(params, options) {
+      return emitWithAck('TRIGGER_APP_TASK', params, options)
     },
-    exec(sql, params = []) {
-      return emitWithAck('DB_EXEC', { sql, params }) as ReturnType<
-        IAppPlatformService['exec']
-      >
+    query(params, options) {
+      return emitWithAck('DB_QUERY', params, options)
     },
-    batch(steps, atomic = false) {
-      return emitWithAck('DB_BATCH', { steps, atomic }) as ReturnType<
-        IAppPlatformService['batch']
-      >
+    exec(params, options) {
+      return emitWithAck('DB_EXEC', params, options)
+    },
+    batch(params, options) {
+      return emitWithAck('DB_BATCH', params, options)
     },
   }
 }
@@ -274,7 +254,7 @@ export interface DatabaseClient {
   batch: (
     steps: {
       sql: string
-      params?: unknown[]
+      params: unknown[]
       kind: 'query' | 'exec'
       rowMode?: string
     }[],
@@ -286,15 +266,20 @@ export const buildDatabaseClient = (
   server: IAppPlatformService,
 ): DatabaseClient => {
   return {
-    async query(sql, params, rowMode) {
+    async query(sql, params = [], rowMode = undefined) {
       const startTime = Date.now()
       const paramsStr =
-        params && params.length > 0
-          ? ` | Params: ${JSON.stringify(params)}`
-          : ''
+        params.length > 0 ? ` | Params: ${JSON.stringify(params)}` : ''
 
       try {
-        const result = (await server.query(sql, params, rowMode)).result
+        const response = await server.query({ sql, params, rowMode })
+        if ('error' in response) {
+          throw new AppAPIError(
+            String(response.error.code),
+            response.error.message,
+          )
+        }
+        const result = response.result
         const duration = Date.now() - startTime
         console.log(`[DB Query] [${duration}ms] ${sql}${paramsStr}`)
         return result
@@ -312,7 +297,14 @@ export const buildDatabaseClient = (
         params.length > 0 ? ` | Params: ${JSON.stringify(params)}` : ''
 
       try {
-        const result = (await server.exec(sql, params)).result
+        const response = await server.exec({ sql, params })
+        if ('error' in response) {
+          throw new AppAPIError(
+            String(response.error.code),
+            response.error.message,
+          )
+        }
+        const result = response.result
         const duration = Date.now() - startTime
         console.log(`[DB Exec] [${duration}ms] ${sql}${paramsStr}`)
         return result
@@ -329,7 +321,7 @@ export const buildDatabaseClient = (
       const stepsStr = steps
         .map((step, index) => {
           const paramsStr =
-            step.params && step.params.length > 0
+            step.params.length > 0
               ? ` | Params: ${JSON.stringify(step.params)}`
               : ''
           return `Step ${index + 1}: ${step.sql}${paramsStr}`
@@ -337,7 +329,14 @@ export const buildDatabaseClient = (
         .join('; ')
 
       try {
-        const result = (await server.batch(steps, atomic)).result
+        const response = await server.batch({ steps, atomic })
+        if ('error' in response) {
+          throw new AppAPIError(
+            String(response.error.code),
+            response.error.message,
+          )
+        }
+        const result = response.result
         const duration = Date.now() - startTime
         console.log(
           `[DB Batch] [${duration}ms] ${steps.length} steps (atomic: ${atomic}) | ${stepsStr}`,
@@ -471,7 +470,7 @@ export class DrizzlePgLike implements DrizzleCompatibleClient {
   async transaction<T>(fn: (tx: DrizzlePgLike) => Promise<T>): Promise<T> {
     const steps: {
       sql: string
-      params?: unknown[]
+      params: unknown[]
       kind: 'query' | 'exec'
       rowMode?: string
     }[] = []
@@ -551,20 +550,17 @@ export type RequestHandler = (
     serverClient,
     dbClient,
     createDb,
-    user,
+    actor,
   }: {
     serverClient: IAppPlatformService
     dbClient: DatabaseClient
     createDb: CreateDbFn
-    user?: {
-      userId: string
-      userApiClient: LombokApiClient
-    }
+    actor: WorkerApiActor | undefined
   },
 ) => Promise<Response> | Response
 
 export type TaskHandler = (
-  task: AppTask,
+  task: TaskDTO,
   {
     serverClient,
     dbClient,

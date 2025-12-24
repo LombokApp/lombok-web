@@ -111,16 +111,21 @@ export type FolderPermissionName = z.infer<typeof FolderPermissionZodEnum>
 export const FolderPermissionEnum = FolderPermissionZodEnum.Enum
 
 // Base subject context schema for logs (without folder name and owner info)
-export const baseSubjectContextSchema = z.object({
+export const targetLocationContextDTOSchema = z.object({
   folderId: z.string().uuid(),
   objectKey: z.string().optional(),
 })
 
-// Full subject context schema for events and tasks (with folder name and owner info)
-export const subjectContextSchema = baseSubjectContextSchema.extend({
-  folderName: z.string(),
-  folderOwnerId: z.string().uuid(),
-})
+// Full target location context schema for events and tasks (with folder name and owner info)
+export const elaboratedTargetLocationContextDTOSchema =
+  targetLocationContextDTOSchema.extend({
+    folderName: z.string(),
+    folderOwnerId: z.string().uuid(),
+  })
 
-export type BaseSubjectContext = z.infer<typeof baseSubjectContextSchema>
-export type SubjectContext = z.infer<typeof subjectContextSchema>
+export type TargetLocationContext = z.infer<
+  typeof targetLocationContextDTOSchema
+>
+export type ElaboratedTargetLocationContext = z.infer<
+  typeof elaboratedTargetLocationContextDTOSchema
+>

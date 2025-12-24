@@ -165,7 +165,8 @@ export class StorageLocationService {
             | number
             | undefined) ?? 0,
       })),
-      meta: { totalCount: accessKeysCountResult[0].count },
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      meta: { totalCount: accessKeysCountResult[0]!.count },
     }
   }
 
@@ -325,7 +326,7 @@ export class StorageLocationService {
             eq(foldersTable.metadataLocationId, storageLocationsTable.id),
           ),
         )
-        .then(([{ folderCount }]) => folderCount),
+        .then((folderCountResult) => folderCountResult[0]?.folderCount ?? 0),
     }
   }
 
@@ -367,7 +368,7 @@ export class StorageLocationService {
             eq(foldersTable.metadataLocationId, storageLocationsTable.id),
           ),
         )
-        .then(([{ folderCount }]) => folderCount),
+        .then((folderCountResult) => folderCountResult[0]?.folderCount ?? 0),
     }
   }
 
@@ -467,7 +468,8 @@ export class StorageLocationService {
             | number
             | undefined) ?? 0,
       })),
-      meta: { totalCount: accessKeysCountResult[0].count },
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      meta: { totalCount: accessKeysCountResult[0]!.count },
     }
   }
 

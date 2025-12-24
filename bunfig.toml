@@ -1,2 +1,5 @@
+env = false
+bun = true
+
 [install]
 linker = "isolated"

@@ -47,7 +47,7 @@ describe('Server - Storage Provisions', () => {
     if (!createProvisionResponse.data) {
       throw new Error('No data')
     }
-    expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
+    expect(createProvisionResponse.data.result[0]?.accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
   })
@@ -81,11 +81,11 @@ describe('Server - Storage Provisions', () => {
     if (!createProvisionResponse.data) {
       throw new Error('No data')
     }
-    expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
+    expect(createProvisionResponse.data.result[0]?.accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
 
-    const provisionId = createProvisionResponse.data.result[0].id
+    const provisionId = createProvisionResponse.data.result[0]?.id
     if (!provisionId) {
       throw new Error('No provision id')
     }
@@ -114,20 +114,22 @@ describe('Server - Storage Provisions', () => {
     if (!updateProvisionResponse.data) {
       throw new Error('No data')
     }
-    expect(updateProvisionResponse.data.result[0].accessKeyId).toEqual(
+    expect(updateProvisionResponse.data.result[0]?.accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
-    expect(updateProvisionResponse.data.result[0].endpoint).toEqual(
+    expect(updateProvisionResponse.data.result[0]?.endpoint).toEqual(
       'http://dummyendpoint',
     )
-    expect(updateProvisionResponse.data.result[0].bucket).toEqual('dummybucket')
-    expect(updateProvisionResponse.data.result[0].region).toEqual('auto')
-    expect(updateProvisionResponse.data.result[0].prefix).toEqual('prefix')
-    expect(updateProvisionResponse.data.result[0].label).toEqual('dummylabel')
-    expect(updateProvisionResponse.data.result[0].description).toEqual(
+    expect(updateProvisionResponse.data.result[0]?.bucket).toEqual(
+      'dummybucket',
+    )
+    expect(updateProvisionResponse.data.result[0]?.region).toEqual('auto')
+    expect(updateProvisionResponse.data.result[0]?.prefix).toEqual('prefix')
+    expect(updateProvisionResponse.data.result[0]?.label).toEqual('dummylabel')
+    expect(updateProvisionResponse.data.result[0]?.description).toEqual(
       'dummydescription',
     )
-    expect(updateProvisionResponse.data.result[0].provisionTypes).toEqual([
+    expect(updateProvisionResponse.data.result[0]?.provisionTypes).toEqual([
       StorageProvisionTypeEnum.CONTENT,
       StorageProvisionTypeEnum.REDUNDANCY,
     ])
@@ -162,11 +164,11 @@ describe('Server - Storage Provisions', () => {
     if (!createProvisionResponse.data) {
       throw new Error('No data')
     }
-    expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
+    expect(createProvisionResponse.data.result[0]?.accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
 
-    const provisionId = createProvisionResponse.data.result[0].id
+    const provisionId = createProvisionResponse.data.result[0]?.id
     if (!provisionId) {
       throw new Error('No provision id')
     }

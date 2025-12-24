@@ -1,7 +1,7 @@
-import type {
-  AppTask,
-  IAppPlatformService,
-  SerializeableRequest,
+import {
+  AppAPIError,
+  type IAppPlatformService,
+  type SerializeableRequest,
 } from '@lombokapp/app-worker-sdk'
 import type {
   WorkerModuleStartContext,
@@ -14,6 +14,7 @@ import {
   ScriptExecutionError,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
+import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -728,7 +729,8 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   ): Promise<string> => {
     const isScoped = pkgName.startsWith('@')
     const linkPath = isScoped
-      ? path.join(mirrorRoot, pkgName.split('/')[0], pkgName.split('/')[1])
+      ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
       : path.join(mirrorRoot, pkgName)
 
     // Ensure scope dir exists if scoped
@@ -771,7 +773,8 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
   for (const pkgName of STATIC_NODE_MODULES_TO_LINK) {
     const isScoped = pkgName.startsWith('@')
     const candidate = isScoped
-      ? path.join(mirrorRoot, pkgName.split('/')[0], pkgName.split('/')[1])
+      ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        path.join(mirrorRoot, pkgName.split('/')[0]!, pkgName.split('/')[1]!)
       : path.join(mirrorRoot, pkgName)
     if (!desiredStatic.has(candidate)) {
       // Remove file only if present and we own the slot
@@ -1023,7 +1026,7 @@ async function createWorkerProcess(
   const workerId = `${appIdentifier}--${workerIdentifier}`
 
   // Create new worker process
-  const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}}`
+  const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}`
   const workerRootPath = path.join(os.tmpdir(), executionId)
   const workerTmpDir = path.join(workerRootPath, '/worker-tmp')
   const logsDir = path.join(workerTmpDir, 'logs')
@@ -1067,15 +1070,25 @@ async function createWorkerProcess(
   // Create bidirectional pipes
   await createWorkerPipes(requestPipePath, responsePipePath)
 
-  const { result: workerExecutionDetails } =
-    await server.getWorkerExecutionDetails(appIdentifier, workerIdentifier)
+  const getWorkerExecutionDetailsResponse =
+    await server.getWorkerExecutionDetails({
+      appIdentifier,
+      workerIdentifier,
+    })
 
+  if ('error' in getWorkerExecutionDetailsResponse) {
+    throw new AppAPIError(
+      getWorkerExecutionDetailsResponse.error.code,
+      getWorkerExecutionDetailsResponse.error.message,
+    )
+  }
+  const { result: workerExecutionDetails } = getWorkerExecutionDetailsResponse
   const workerEnvVars = Object.keys(
     workerExecutionDetails.environmentVariables,
   ).reduce<string[]>(
     (acc, next) =>
       acc.concat(
-        `WORKER_ENV_${next.trim()}=${workerExecutionDetails.environmentVariables[next].trim()}`,
+        `WORKER_ENV_${next.trim()}=${workerExecutionDetails.environmentVariables[next]?.trim()}`,
       ),
     [],
   )
@@ -1129,6 +1142,7 @@ async function createWorkerProcess(
       ...environmentVariables.map((v) => `-E${v}`),
       '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',
       '-Mo',
+      '--iface_no_lo',
       ...(options.printNsjailVerboseOutput ? ['-v'] : ['--quiet']),
       '--log_fd=1',
       '--',
@@ -1258,21 +1272,8 @@ async function getOrCreateWorkerProcess(
   }
 }
 
-export const runWorkerScript = async ({
-  requestOrTask,
-  server,
-  appIdentifier,
-  workerIdentifier,
-  workerExecutionId,
-  options = {
-    printWorkerOutput: true,
-    removeWorkerDirectory: true,
-    printNsjailVerboseOutput: false,
-  },
-  onStdoutChunk,
-}: {
+interface RunWorkerScriptBaseArgs {
   server: IAppPlatformService
-  requestOrTask: Request | AppTask
   appIdentifier: string
   workerIdentifier: string
   workerExecutionId: string
@@ -1282,9 +1283,40 @@ export const runWorkerScript = async ({
     printNsjailVerboseOutput?: boolean
   }
   onStdoutChunk?: (text: string) => void
-}): Promise<Response | undefined> => {
+}
+
+interface RunWorkerScriptRequestArgs extends RunWorkerScriptBaseArgs {
+  requestOrTask: Request
+}
+
+interface RunWorkerScriptTaskArgs extends RunWorkerScriptBaseArgs {
+  requestOrTask: TaskDTO
+}
+
+export async function runWorkerScript(
+  args: RunWorkerScriptRequestArgs,
+): Promise<Response | undefined>
+export async function runWorkerScript(
+  args: RunWorkerScriptTaskArgs,
+): Promise<JsonSerializableObject | undefined>
+export async function runWorkerScript(
+  args: RunWorkerScriptRequestArgs | RunWorkerScriptTaskArgs,
+): Promise<Response | JsonSerializableObject | undefined> {
+  const {
+    requestOrTask,
+    server,
+    appIdentifier,
+    workerIdentifier,
+    workerExecutionId,
+    options = {
+      printWorkerOutput: true,
+      removeWorkerDirectory: true,
+      printNsjailVerboseOutput: false,
+    },
+    onStdoutChunk,
+  } = args
+
   const overallStartTime = performance.now()
-  const isRequest = requestOrTask instanceof Request
 
   try {
     // Get or create long-running worker process
@@ -1303,9 +1335,9 @@ export const runWorkerScript = async ({
     const requestId = `${workerExecutionId}__${Date.now()}_${crypto.randomUUID()}`
 
     // Serialize the request or task for the pipe
-    let serializedRequestOrTask: SerializeableRequest | AppTask
+    let serializedRequestOrTask: SerializeableRequest | TaskDTO
 
-    if (isRequest) {
+    if (requestOrTask instanceof Request) {
       const request = requestOrTask
       const parsedBody = await parseRequestBody(request)
       const bodyString =
@@ -1343,13 +1375,13 @@ export const runWorkerScript = async ({
     // Create pipe request
     const pipeRequest: WorkerPipeRequest = {
       id: requestId,
-      type: isRequest ? 'request' : 'task',
+      type: requestOrTask instanceof Request ? 'request' : 'task',
       timestamp: Date.now(),
       data: serializedRequestOrTask,
       outputLogFilepath: jailOutLogPath,
       errorLogFilepath: jailErrLogPath,
       // Extract app identifier and auth token from request
-      ...(isRequest &&
+      ...(requestOrTask instanceof Request &&
         (() => {
           const request = requestOrTask
           return {
@@ -1439,7 +1471,7 @@ export const runWorkerScript = async ({
       }
     }
 
-    if (!isRequest) {
+    if (!(requestOrTask instanceof Request)) {
       // Task execution completed
       console.log(
         `[TIMING] Task execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,

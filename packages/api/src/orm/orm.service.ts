@@ -16,7 +16,7 @@ import {
 } from '../app/entities/app-user-settings.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
-import { eventsRelations, eventsTable } from '../event/entities/event.entity'
+import { eventsTable } from '../event/entities/event.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -26,13 +26,10 @@ import {
   folderSharesRelations,
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
-import {
-  logEntriesRelations,
-  logEntriesTable,
-} from '../log/entities/log-entry.entity'
+import { logEntriesTable } from '../log/entities/log-entry.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
-import { tasksRelations, tasksTable } from '../task/entities/task.entity'
+import { tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
 import { SHARED_ACL_FOLDER_VIEW, SHARED_ACL_SCHEMA } from './constants'
@@ -53,11 +50,8 @@ export const dbSchema = {
   appUserSettingsTable,
   appUserSettingsRelations,
   eventsTable,
-  eventsRelations,
   logEntriesTable,
-  logEntriesRelations,
   tasksTable,
-  tasksRelations,
   folderSharesTable,
 }
 
@@ -124,6 +118,7 @@ export class OrmService {
       await client.query(
         `GRANT USAGE, CREATE ON SCHEMA ${schemaName} TO ${roleName}`,
       )
+      await client.query(`GRANT USAGE ON SCHEMA extensions TO ${roleName}`)
       await client.query(
         `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${schemaName} TO ${roleName}`,
       )
@@ -138,7 +133,7 @@ export class OrmService {
       )
     } catch (error) {
       this.logger.error(
-        `Failed to grant privileges for role ${roleName} and schema ${schemaName}`,
+        `Failed to grant privileges for role ${roleName} and schema ${schemaName}, extensions`,
         error as Error,
       )
       throw error
@@ -168,7 +163,7 @@ export class OrmService {
       ? `${schemaName}, pg_catalog`
       : `${schemaName}`
 
-    await client.query(`SET LOCAL search_path TO ${searchPath}`)
+    await client.query(`SET LOCAL search_path TO ${searchPath}, extensions`)
   }
 
   async runWithTestClient(func: (client: Client) => Promise<void>) {
@@ -293,9 +288,10 @@ export class OrmService {
           )
 
           for (const schema of Object.keys(schemaToTableMapping)) {
-            const tableNames = schemaToTableMapping[schema]
-              .map((t) => `"${t}"`)
-              .join(', ')
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const tableNames = schemaToTableMapping[schema]!.map(
+              (t) => `"${t}"`,
+            ).join(', ')
             const client = await this.client.connect()
             try {
               await client.query('BEGIN')
@@ -534,6 +530,20 @@ export class OrmService {
     await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
+  async grantAclSchemaUsageToApp(appIdentifier: string): Promise<void> {
+    const roleName = this.getAppRoleName(appIdentifier)
+
+    await this.client.query(
+      `GRANT USAGE ON SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+    )
+    await this.client.query(
+      `GRANT SELECT ON ALL TABLES IN SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+    )
+    await this.client.query(
+      `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+    )
+  }
+
   /**
    * Run migrations for a specific app
    */
@@ -541,6 +551,8 @@ export class OrmService {
     appIdentifier: string,
     migrationFiles: { filename: string; content: string }[],
   ): Promise<void> {
+    await this.ensureAppSchema(appIdentifier)
+
     // Validate app identifier to prevent SQL injection
     if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
       throw new Error(`Invalid app identifier: ${appIdentifier}`)
@@ -686,13 +698,11 @@ export class OrmService {
         client.release()
       }
 
-      // eslint-disable-next-line no-console
-      console.log(
+      this.logger.log(
         `Executed migration ${migrationFile.filename} for app ${appIdentifier}`,
       )
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(
+      this.logger.error(
         `Failed to execute migration ${migrationFile.filename} for app ${appIdentifier}:`,
         error,
       )

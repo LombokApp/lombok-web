@@ -16,6 +16,7 @@ services:
       - /usr/src/app/packages/sdk/node_modules
       - /usr/src/app/packages/types/node_modules
       - /usr/src/app/packages/utils/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file: packages/api/.env
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}

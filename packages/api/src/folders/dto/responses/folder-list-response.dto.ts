@@ -2,7 +2,7 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { FolderPermissionZodEnum } from '@lombokapp/types'
 import { z } from 'zod'
 
-import { folderSchema } from '../folder.dto'
+import { folderDTOSchema } from '../folder.dto'
 
 export const folderListResponseSchema = z.object({
   meta: z.object({
@@ -11,7 +11,7 @@ export const folderListResponseSchema = z.object({
   result: z.array(
     z.object({
       permissions: z.array(FolderPermissionZodEnum),
-      folder: folderSchema,
+      folder: folderDTOSchema,
     }),
   ),
 })

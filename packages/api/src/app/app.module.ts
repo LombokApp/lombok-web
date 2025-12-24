@@ -1,6 +1,7 @@
 import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Inject, Module } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
+import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
@@ -26,6 +27,7 @@ import { AppService } from './services/app.service'
     StorageModule,
     forwardRef(() => SocketModule),
     forwardRef(() => FoldersModule),
+    forwardRef(() => DockerModule),
   ],
   controllers: [AppsController, UserAppsController],
   providers: [

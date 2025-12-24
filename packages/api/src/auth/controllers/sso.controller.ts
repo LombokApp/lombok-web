@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
+import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 
 import { CompleteSSOSignupDTO } from '../dto/sso/complete-sso-signup.dto'
 import { LinkSSOProviderDTO } from '../dto/sso/link-sso-provider.dto'
@@ -45,7 +46,12 @@ export class SSOController {
   async completeSignup(
     @Body() body: CompleteSSOSignupDTO,
   ): Promise<CompleteSSOSignupResponse> {
-    return this.authService.completeSSOSignup(body)
+    return this.authService.completeSSOSignup(body).then((result) => ({
+      user: transformUserToDTO(result.user),
+      expiresAt: result.expiresAt.toISOString(),
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    }))
   }
 
   /**

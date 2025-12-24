@@ -811,23 +811,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Handle app task trigger */
-        post: operations["handleAppTaskTrigger"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/folders/{folderId}/shares/{userId}": {
         parameters: {
             query?: never;
@@ -1103,6 +1086,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request presigned URLs for file operations
+         * @description Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.
+         */
+        post: operations["requestPresignedStorageUrls"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/jobs/{jobId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signal job start
+         * @description Marks the associated task as started. The job token must be valid.
+         */
+        post: operations["startJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/jobs/{jobId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signal job completion
+         * @description Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.
+         */
+        post: operations["completeJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1338,6 +1381,7 @@ export interface components {
              */
             message: string;
             /**
+             * Format: date-time
              * @description Timestamp when the installation was completed
              * @example 2024-01-01T00:00:00.000Z
              */
@@ -1449,21 +1493,97 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobIdentifier: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
+                                    priority?: number;
+                                    identifier: string;
+                                }[];
+                            })[];
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -1604,21 +1724,97 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobIdentifier: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
+                                    priority?: number;
+                                    identifier: string;
+                                }[];
+                            })[];
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -1768,21 +1964,97 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobIdentifier: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
+                                    priority?: number;
+                                    identifier: string;
+                                }[];
+                            })[];
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -1897,21 +2169,97 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: "READ_ACL"[];
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     identifier: string;
                     label: string;
                     description: string;
-                    emittableEvents: string[];
+                    subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
                     tasks?: {
                         identifier: string;
                         label: string;
-                        triggers: string[];
                         description: string;
-                        worker?: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
                     }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobIdentifier: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
+                                    priority?: number;
+                                    identifier: string;
+                                }[];
+                            })[];
+                        };
+                    };
                     workers?: {
                         [key: string]: {
                             entrypoint: string;
@@ -2071,7 +2419,7 @@ export interface components {
                 id: string;
                 eventIdentifier: string;
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2079,7 +2427,14 @@ export interface components {
                     /** Format: uuid */
                     folderOwnerId: string;
                 };
-                data?: unknown;
+                data: {
+                    [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
                 /** Format: date-time */
                 createdAt: string;
             };
@@ -2093,7 +2448,7 @@ export interface components {
                 id: string;
                 eventIdentifier: string;
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2101,7 +2456,14 @@ export interface components {
                     /** Format: uuid */
                     folderOwnerId: string;
                 };
-                data?: unknown;
+                data: {
+                    [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
                 /** Format: date-time */
                 createdAt: string;
             }[];
@@ -2114,7 +2476,12 @@ export interface components {
                 /** @enum {string} */
                 level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2135,7 +2502,12 @@ export interface components {
                 /** @enum {string} */
                 level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
-                subjectContext?: {
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2415,10 +2787,6 @@ export interface components {
         FolderCreateSignedUrlsResponse: {
             urls: string[];
         };
-        TriggerAppTaskInputDTO: {
-            objectKey?: string;
-            inputParams?: unknown;
-        };
         FolderShareGetResponse: {
             share: {
                 /** Format: uuid */
@@ -2576,20 +2944,129 @@ export interface components {
                 id: string;
                 taskIdentifier: string;
                 ownerIdentifier: string;
-                /** Format: uuid */
-                triggeringEventId: string;
-                /** Format: uuid */
-                subjectFolderId?: string;
-                subjectObjectKey?: string;
-                handlerId?: string;
-                inputData: unknown;
-                /** Format: date-time */
-                errorAt?: string;
-                errorCode?: string;
-                errorDetails?: unknown;
-                errorMessage?: string;
+                trigger: {
+                    /** @enum {string} */
+                    kind: "event";
+                    eventIdentifier: string;
+                    dataTemplate?: {
+                        [key: string]: unknown;
+                    };
+                    onComplete?: unknown[];
+                    invokeContext: {
+                        /** Format: uuid */
+                        eventId: string;
+                        emitterIdentifier: string;
+                        /** Format: uuid */
+                        targetUserId?: string;
+                        targetLocation?: {
+                            /** Format: uuid */
+                            folderId: string;
+                            objectKey?: string;
+                        };
+                        eventData: {
+                            [key: string]: unknown;
+                        };
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "schedule";
+                    config: {
+                        interval: number;
+                        /** @enum {string} */
+                        unit: "minutes" | "hours" | "days";
+                    };
+                    onComplete?: unknown[];
+                    invokeContext: {
+                        [key: string]: unknown;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "user_action";
+                    scope?: {
+                        user?: {
+                            permissions: string;
+                        };
+                        folder?: {
+                            /** Format: uuid */
+                            folderId: string;
+                        };
+                    };
+                    onComplete?: unknown[];
+                    invokeContext: {
+                        /** Format: uuid */
+                        userId: string;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "app_action";
+                    onComplete?: unknown[];
+                } | {
+                    /** @enum {string} */
+                    kind: "task_child";
+                    invokeContext: {
+                        parentTask: {
+                            /** @enum {boolean} */
+                            success: true;
+                            result: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        } | {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        };
+                    };
+                    onComplete?: unknown[];
+                };
+                success?: boolean;
+                handlerIdentifier?: string;
+                data: {
+                    [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                error?: {
+                    code: string;
+                    message: string;
+                    details?: {
+                        [key: string]: unknown;
+                    };
+                };
                 taskDescription: string;
-                updates: unknown[];
+                systemLog: {
+                    /** Format: date-time */
+                    at: string;
+                    payload: {
+                        /** @enum {string} */
+                        logType: "started" | "error" | "requeue" | "success";
+                        data?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                }[];
+                taskLog: {
+                    /** Format: date-time */
+                    at: string;
+                    message: string;
+                    payload?: {
+                        [key: string]: unknown;
+                    };
+                }[];
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
@@ -2598,7 +3075,7 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                subjectContext?: {
+                targetLocationContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -2617,20 +3094,129 @@ export interface components {
                 id: string;
                 taskIdentifier: string;
                 ownerIdentifier: string;
-                /** Format: uuid */
-                triggeringEventId: string;
-                /** Format: uuid */
-                subjectFolderId?: string;
-                subjectObjectKey?: string;
-                handlerId?: string;
-                inputData: unknown;
-                /** Format: date-time */
-                errorAt?: string;
-                errorCode?: string;
-                errorDetails?: unknown;
-                errorMessage?: string;
+                trigger: {
+                    /** @enum {string} */
+                    kind: "event";
+                    eventIdentifier: string;
+                    dataTemplate?: {
+                        [key: string]: unknown;
+                    };
+                    onComplete?: unknown[];
+                    invokeContext: {
+                        /** Format: uuid */
+                        eventId: string;
+                        emitterIdentifier: string;
+                        /** Format: uuid */
+                        targetUserId?: string;
+                        targetLocation?: {
+                            /** Format: uuid */
+                            folderId: string;
+                            objectKey?: string;
+                        };
+                        eventData: {
+                            [key: string]: unknown;
+                        };
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "schedule";
+                    config: {
+                        interval: number;
+                        /** @enum {string} */
+                        unit: "minutes" | "hours" | "days";
+                    };
+                    onComplete?: unknown[];
+                    invokeContext: {
+                        [key: string]: unknown;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "user_action";
+                    scope?: {
+                        user?: {
+                            permissions: string;
+                        };
+                        folder?: {
+                            /** Format: uuid */
+                            folderId: string;
+                        };
+                    };
+                    onComplete?: unknown[];
+                    invokeContext: {
+                        /** Format: uuid */
+                        userId: string;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "app_action";
+                    onComplete?: unknown[];
+                } | {
+                    /** @enum {string} */
+                    kind: "task_child";
+                    invokeContext: {
+                        parentTask: {
+                            /** @enum {boolean} */
+                            success: true;
+                            result: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        } | {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                code: string;
+                                message: string;
+                                details: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                        };
+                    };
+                    onComplete?: unknown[];
+                };
+                success?: boolean;
+                handlerIdentifier?: string;
+                data: {
+                    [key: string]: unknown;
+                };
+                targetLocation?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                error?: {
+                    code: string;
+                    message: string;
+                    details?: {
+                        [key: string]: unknown;
+                    };
+                };
                 taskDescription: string;
-                updates: unknown[];
+                systemLog: {
+                    /** Format: date-time */
+                    at: string;
+                    payload: {
+                        /** @enum {string} */
+                        logType: "started" | "error" | "requeue" | "success";
+                        data?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                }[];
+                taskLog: {
+                    /** Format: date-time */
+                    at: string;
+                    message: string;
+                    payload?: {
+                        [key: string]: unknown;
+                    };
+                }[];
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
@@ -2639,15 +3225,52 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                subjectContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
             }[];
+        };
+        WorkerJobUploadUrlsRequestDTO: {
+            /** Format: uuid */
+            folderId: string;
+            objectKey: string;
+            /** @enum {string} */
+            method: "PUT" | "DELETE" | "GET" | "HEAD";
+        }[];
+        WorkerJobPresignedUrlsResponseDTO: {
+            urls: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+                /** @enum {string} */
+                method: "PUT" | "DELETE" | "GET" | "HEAD";
+                /** Format: uri */
+                url: string;
+            }[];
+        };
+        WorkerJobStartedResponseDTO: {
+            ok: boolean;
+        };
+        WorkerJobCompleteRequestDTO: {
+            /** @enum {boolean} */
+            success: true;
+            result: {
+                [key: string]: unknown;
+            };
+            outputFiles?: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+            }[];
+        } | {
+            /** @enum {boolean} */
+            success: false;
+            error: components["schemas"]["ApiErrorResponseDTO"];
+            outputFiles?: {
+                /** Format: uuid */
+                folderId: string;
+                objectKey: string;
+            }[];
+        };
+        WorkerJobCompleteResponseDTO: {
+            ok: boolean;
         };
     };
     responses: never;
@@ -5146,49 +5769,6 @@ export interface operations {
             };
         };
     };
-    handleAppTaskTrigger: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                appIdentifier: string;
-                taskIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TriggerAppTaskInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
     getFolderShares: {
         parameters: {
             query?: never;
@@ -5842,7 +6422,7 @@ export interface operations {
         parameters: {
             query?: {
                 objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
                 includeWaiting?: "true";
                 includeRunning?: "true";
@@ -5930,7 +6510,7 @@ export interface operations {
         parameters: {
             query?: {
                 objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
                 includeWaiting?: "true";
                 includeRunning?: "true";
@@ -5953,6 +6533,131 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    requestPresignedStorageUrls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkerJobUploadUrlsRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerJobPresignedUrlsResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    startJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerJobStartedResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    completeJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkerJobCompleteRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkerJobCompleteResponseDTO"];
                 };
             };
             /** @description Server Error */

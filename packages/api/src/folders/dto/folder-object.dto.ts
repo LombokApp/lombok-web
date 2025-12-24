@@ -9,7 +9,7 @@ export const contentMetadataSchema = z.record(
   mappingExtendedMetadataEntrySchema.optional(),
 )
 
-export const folderObjectSchema = z.object({
+export const folderObjectDTOSchema = z.object({
   id: z.string().uuid(),
   objectKey: z.string(),
   folderId: z.string().uuid(),
@@ -22,4 +22,4 @@ export const folderObjectSchema = z.object({
   contentMetadata: z.record(z.string(), contentMetadataSchema.optional()),
 })
 
-export class FolderObjectDTO extends createZodDto(folderObjectSchema) {}
+export class FolderObjectDTO extends createZodDto(folderObjectDTOSchema) {}

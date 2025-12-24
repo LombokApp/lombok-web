@@ -5,6 +5,9 @@ import { v4 as uuidV4 } from 'uuid'
 const appIdentifier = process.argv[2]
 const privateKey = process.argv[3]
 
+if (!privateKey) {
+  throw new Error('Missing privateKey arg.')
+}
 const ALGORITHM = 'RS512'
 
 if (!appIdentifier) {

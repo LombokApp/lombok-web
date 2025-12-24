@@ -6,6 +6,7 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
+    "noUncheckedIndexedAccess": true,
     "paths": {
       "@lombokapp/types": ["../../types/src"],
       "@lombokapp/types/*": ["../../types/src/*"],

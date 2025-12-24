@@ -1,26 +1,24 @@
-import {
-  type AppSocketMessage,
-  appSocketMessageSchema,
-  CORE_APP_IDENTIFIER,
-  SignedURLsRequestMethod,
+import type {
+  AppSocketMessage,
+  AppSocketMessageDataMap,
+  AppSocketMessageResponseMap,
+  JsonSerializableObject,
 } from '@lombokapp/types'
-import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
+import {
+  appSocketMessageSchema,
+  AppSocketMessageSchemaMap,
+} from '@lombokapp/types'
+import { HttpException } from '@nestjs/common'
 import type { JWTService } from 'src/auth/services/jwt.service'
-import { eventsTable } from 'src/event/entities/event.entity'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
-import type { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import type { S3Service } from 'src/storage/s3.service'
-import type { Task } from 'src/task/entities/task.entity'
-import { tasksTable } from 'src/task/entities/task.entity'
+import type { TaskService } from 'src/task/services/task.service'
+import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import type { z, ZodTypeAny } from 'zod'
 
-import { appsTable } from '../entities/app.entity'
 import type { AppService } from './app.service'
-import type { AppSocketMessageDataMap } from './app-socket-message-schemas'
-import { AppSocketMessageSchemaMap } from './app-socket-message-schemas'
 
 export type AppSocketMessageName = z.infer<typeof AppSocketMessage>
 
@@ -34,16 +32,22 @@ export type ParsedRequest = {
 }[AppSocketMessageName]
 
 export interface ParseError {
-  error: true
-  details?: unknown
+  error: JsonSerializableObject
 }
+
+type AppSocketResponse<K extends AppSocketMessageName> =
+  AppSocketMessageResponseMap[K]
 
 export function parseAppSocketRequest(
   message: unknown,
 ): ParsedRequest | ParseError {
   const parsedMessage = appSocketMessageSchema.safeParse(message)
   if (!parsedMessage.success) {
-    return { error: true, details: parsedMessage.error }
+    return {
+      error: {
+        fieldErrors: parsedMessage.error.flatten().fieldErrors,
+      },
+    }
   }
   const schema: ZodTypeAny | undefined =
     AppSocketMessageSchemaMap[parsedMessage.data.name]
@@ -53,57 +57,61 @@ export function parseAppSocketRequest(
     return parsedMessage.data as ParsedRequest
   }
 
-  return { error: true, details: parsed.error }
+  return {
+    error: {
+      issues: parsed.error.issues.map((issue) => ({
+        code: issue.code,
+        path: issue.path,
+        message: issue.message,
+      })),
+    },
+  }
 }
 
 export async function handleAppSocketMessage(
-  handlerId: string,
+  handlerInstanceId: string,
   requestingAppIdentifier: string,
   message: unknown,
   {
     eventService,
     ormService,
     logEntryService,
+    taskService,
     folderService,
     appService,
     jwtService,
-    serverConfigurationService,
-    s3Service,
   }: {
     eventService: EventService
     ormService: OrmService
     logEntryService: LogEntryService
     folderService: FolderService
+    taskService: TaskService
     jwtService: JWTService
     appService: AppService
-    serverConfigurationService: ServerConfigurationService
-    s3Service: S3Service
   },
-) {
-  const parsed = parseAppSocketRequest(message)
-  if ('error' in parsed) {
+): Promise<AppSocketResponse<AppSocketMessageName>> {
+  const parsedRequest = parseAppSocketRequest(message)
+  if ('error' in parsedRequest) {
     return {
-      result: undefined,
       error: {
         code: 400,
         message: 'Invalid request.',
-        details: parsed.details,
+        details: parsedRequest.error,
       },
     }
   }
-  const { name: messageName, data: requestData } = parsed
-  const isCoreApp = requestingAppIdentifier === CORE_APP_IDENTIFIER
-  switch (messageName) {
+
+  switch (parsedRequest.name) {
     case 'GET_APP_USER_ACCESS_TOKEN':
       return {
         result: await appService.createAppUserAccessTokenAsApp({
           actor: { appIdentifier: requestingAppIdentifier },
-          userId: requestData.userId,
+          userId: parsedRequest.data.userId,
         }),
       }
     case 'EMIT_EVENT':
       try {
-        const app = await appService.getAppAsAdmin(requestingAppIdentifier, {
+        const app = await appService.getApp(requestingAppIdentifier, {
           enabled: true,
         })
         if (!app) {
@@ -112,16 +120,10 @@ export async function handleAppSocketMessage(
             error: { code: 404, message: 'App not found.' },
           }
         }
-        if (!app.config.emittableEvents.includes(requestData.eventIdentifier)) {
-          return {
-            result: { success: false },
-            error: { code: 403, message: 'Event not emittable.' },
-          }
-        }
         await eventService.emitEvent({
           emitterIdentifier: requestingAppIdentifier,
-          eventIdentifier: requestData.eventIdentifier,
-          data: requestData.data,
+          eventIdentifier: parsedRequest.data.eventIdentifier,
+          data: parsedRequest.data.data,
         })
         return { result: { success: true } }
       } catch {
@@ -131,11 +133,27 @@ export async function handleAppSocketMessage(
         }
       }
     case 'DB_QUERY': {
+      const app = await appService.getApp(requestingAppIdentifier, {
+        enabled: true,
+      })
+      if (!app) {
+        return {
+          error: { code: 404, message: 'App not found.' },
+        }
+      }
+      if (!app.database) {
+        return {
+          error: {
+            code: 409,
+            message: 'Database is not enabled for this app.',
+          },
+        }
+      }
       const result = await ormService.executeQueryForApp(
         requestingAppIdentifier,
-        requestData.sql,
-        requestData.params,
-        requestData.rowMode,
+        parsedRequest.data.sql,
+        parsedRequest.data.params,
+        parsedRequest.data.rowMode,
       )
       return {
         result: {
@@ -147,342 +165,228 @@ export async function handleAppSocketMessage(
         },
       }
     }
-    case 'DB_EXEC':
-      return {
-        result: await ormService.executeExecForApp(
-          requestingAppIdentifier,
-          requestData.sql,
-          requestData.params,
-        ),
+    case 'DB_EXEC': {
+      const app = await appService.getApp(requestingAppIdentifier, {
+        enabled: true,
+      })
+      if (!app) {
+        return {
+          error: { code: 404, message: 'App not found.' },
+        }
       }
-    case 'DB_BATCH':
-      return {
-        result: await ormService.executeBatchForApp(
-          requestingAppIdentifier,
-          requestData.steps,
-          requestData.atomic,
-        ),
+      if (!app.database) {
+        return {
+          error: {
+            code: 409,
+            message: 'Database is not enabled for this app.',
+          },
+        }
       }
+      const result = await ormService.executeExecForApp(
+        requestingAppIdentifier,
+        parsedRequest.data.sql,
+        parsedRequest.data.params,
+      )
+      return { result: { rowCount: result.rowCount } }
+    }
+    case 'DB_BATCH': {
+      const app = await appService.getApp(requestingAppIdentifier, {
+        enabled: true,
+      })
+      if (!app) {
+        return {
+          error: { code: 404, message: 'App not found.' },
+        }
+      }
+      if (!app.database) {
+        return {
+          error: {
+            code: 409,
+            message: 'Database is not enabled for this app.',
+          },
+        }
+      }
+      const result = await ormService.executeBatchForApp(
+        requestingAppIdentifier,
+        parsedRequest.data.steps,
+        parsedRequest.data.atomic,
+      )
+      return { result: { results: result.results } }
+    }
     case 'SAVE_LOG_ENTRY':
       await logEntryService.emitLog({
         emitterIdentifier: requestingAppIdentifier,
-        logMessage: requestData.message,
-        data: requestData.data,
-        level: requestData.level,
-        subjectContext: requestData.subjectContext,
+        logMessage: parsedRequest.data.message,
+        data: parsedRequest.data.data,
+        level: parsedRequest.data.level,
+        targetLocation: parsedRequest.data.targetLocation,
       })
-      return { result: undefined }
+      return { result: null }
     case 'GET_CONTENT_SIGNED_URLS':
-      return { result: await appService.createSignedContentUrls(requestData) }
+      return {
+        result: await appService.createSignedContentUrlsAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        ),
+      }
     case 'GET_METADATA_SIGNED_URLS':
-      return { result: await appService.createSignedMetadataUrls(requestData) }
+      return {
+        result: await appService.createSignedMetadataUrlsAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        ),
+      }
     case 'UPDATE_CONTENT_METADATA':
       await folderService.updateFolderObjectMetadata(
         requestingAppIdentifier,
-        requestData.updates,
+        parsedRequest.data,
       )
-      return { result: undefined }
+      return { result: null }
     case 'COMPLETE_HANDLE_TASK': {
-      const task = await ormService.db.query.tasksTable.findFirst({
-        where: and(
-          eq(tasksTable.id, requestData.taskId),
-          isNull(tasksTable.completedAt),
-          isNull(tasksTable.errorAt),
-          eq(tasksTable.handlerId, `${requestingAppIdentifier}:${handlerId}`),
-          ...(isCoreApp
-            ? [
-                or(
-                  isNotNull(tasksTable.workerIdentifier),
-                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                ),
-              ]
-            : [
-                isNull(tasksTable.workerIdentifier),
-                eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-              ]),
-        ),
-      })
-      if (!task) {
+      try {
+        await appService.registerTaskCompletedAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+      } catch (error) {
         return {
-          error: {
-            code: 400,
-            message: 'Invalid request.',
-            details: 'No task found.',
-          },
+          error:
+            error instanceof HttpException
+              ? { code: error.getStatus(), message: error.message }
+              : {
+                  code: 500,
+                  message:
+                    error instanceof Error
+                      ? `Unexpected server error: ${error.message}`
+                      : `Unexpected server error: ${String(error)}`,
+                },
         }
       }
-      const now = new Date()
-      return {
-        result: await ormService.db
-          .update(tasksTable)
-          .set({ completedAt: now, updatedAt: now })
-          .where(eq(tasksTable.id, task.id)),
-      }
+
+      return { result: null }
     }
     case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
-      let securedTask: Task | undefined = undefined
-      for (let attempt = 0; attempt < 5; attempt++) {
-        const task = await ormService.db.query.tasksTable.findFirst({
-          where: and(
-            eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-            inArray(tasksTable.taskIdentifier, requestData.taskIdentifiers),
-            isNull(tasksTable.startedAt),
-          ),
-        })
-        if (!task || task.completedAt || task.handlerId || task.startedAt) {
-          break
-        }
-        const now = new Date()
-        const securedTasks = await ormService.db
-          .update(tasksTable)
-          .set({
-            startedAt: now,
-            updatedAt: now,
-            handlerId: `${requestingAppIdentifier}:${handlerId}`,
-          })
-          .where(and(eq(tasksTable.id, task.id), isNull(tasksTable.startedAt)))
-          .returning()
-
-        if (securedTasks.length > 0) {
-          securedTask = securedTasks[0]
-          break
-        }
-      }
-      if (!securedTask) {
-        return {
-          result: undefined,
-          error: {
-            code: 409,
-            message:
-              'Task already started by another handler after 5 attempts.',
-          },
-        }
-      }
-      const event = await ormService.db.query.eventsTable.findFirst({
-        where: eq(eventsTable.id, securedTask.triggeringEventId),
-      })
-      return { result: { ...securedTask, event } }
-    }
-    case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
-      if (!isCoreApp) {
-        return {
-          result: undefined,
-          error: {
-            code: 403,
-            message: 'Unauthorized to handle worker tasks.',
-          },
-        }
-      }
-      const rows = await ormService.db
-        .select({ task: tasksTable, app: appsTable })
-        .from(tasksTable)
-        .innerJoin(
-          appsTable,
-          eq(tasksTable.ownerIdentifier, appsTable.identifier),
-        )
-        .where(eq(tasksTable.id, requestData.taskId))
-        .limit(1)
-      if (rows.length === 0) {
-        return {
-          result: undefined,
-          error: {
-            code: 400,
-            message: 'Invalid request (no task found by id).',
-          },
-        }
-      }
-      const { task } = rows[0]
-      if (task.startedAt || task.completedAt || task.handlerId) {
-        return {
-          result: undefined,
-          error: { code: 400, message: 'Task already started.' },
-        }
-      }
-      const now = new Date()
-      const updatedTask = (
-        await ormService.db
-          .update(tasksTable)
-          .set({
-            startedAt: now,
-            updatedAt: now,
-            handlerId: `${requestingAppIdentifier}:${handlerId}`,
-          })
-          .where(eq(tasksTable.id, task.id))
-          .returning()
-      )[0]
-      const event = await ormService.db.query.eventsTable.findFirst({
-        where: eq(eventsTable.id, updatedTask.triggeringEventId),
-      })
-      return { result: { ...updatedTask, event } }
-    }
-    case 'FAIL_HANDLE_TASK': {
-      const taskWithApp = await ormService.db
-        .select({ task: tasksTable, app: appsTable })
-        .from(tasksTable)
-        .innerJoin(
-          appsTable,
-          eq(tasksTable.ownerIdentifier, appsTable.identifier),
-        )
-        .where(
-          and(
-            eq(tasksTable.id, requestData.taskId),
-            isNotNull(tasksTable.startedAt),
-            isNull(tasksTable.completedAt),
-            isNull(tasksTable.errorAt),
-            eq(tasksTable.handlerId, `${requestingAppIdentifier}:${handlerId}`),
-            ...(!isCoreApp
-              ? [
-                  isNull(tasksTable.workerIdentifier),
-                  eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-                ]
-              : [
-                  or(
-                    isNotNull(tasksTable.workerIdentifier),
-                    eq(tasksTable.ownerIdentifier, CORE_APP_IDENTIFIER),
-                  ),
-                ]),
-          ),
-        )
-        .limit(1)
-      const task = taskWithApp[0]?.task as Task | undefined
-      if (!task) {
-        return {
-          result: undefined,
-          error: { code: 400, message: 'Invalid request.' },
-        }
-      }
-      const now = new Date()
-      return {
-        result: await ormService.db
-          .update(tasksTable)
-          .set({
-            errorCode: requestData.error.code,
-            errorMessage: requestData.error.message,
-            errorDetails: requestData.error.details,
-            errorAt: now,
-            updatedAt: now,
-          })
-          .where(eq(tasksTable.id, task.id)),
-      }
-    }
-    case 'GET_APP_UI_BUNDLE':
-      return {
-        result: await appService.getAppUIbundle(
-          requestingAppIdentifier,
-          requestData,
-        ),
-      }
-    case 'GET_WORKER_EXECUTION_DETAILS': {
-      if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
-        return {
-          result: undefined,
-          error: { code: 403, message: 'Unauthorized.' },
-        }
-      }
-      const workerApp = await appService.getAppAsAdmin(
-        requestData.appIdentifier,
-        {
-          enabled: true,
+      const startContext = {
+        ...(parsedRequest.data.startContext ?? {}),
+        __executor: {
+          appIdentifier: requestingAppIdentifier,
+          handlerInstanceId,
         },
-      )
-      if (!workerApp) {
-        return {
-          result: undefined,
-          error: { code: 404, message: 'Worker app not found.' },
-        }
       }
-      if (!(requestData.workerIdentifier in workerApp.workers.definitions)) {
-        return {
-          result: undefined,
-          error: { code: 404, message: 'Worker not found.' },
+      try {
+        const { task: securedTask } = await taskService.startAnyAvailableTask({
+          appIdentifier: requestingAppIdentifier,
+          taskIdentifiers: parsedRequest.data.taskIdentifiers,
+          startContext,
+        })
+        return { result: { task: transformTaskToDTO(securedTask) } }
+      } catch (error) {
+        if (error instanceof HttpException) {
+          return {
+            error: { code: error.getStatus(), message: error.message },
+          }
         }
-      }
-      const serverStorageLocation =
-        await serverConfigurationService.getServerStorage()
-      if (!serverStorageLocation) {
         return {
-          result: undefined,
           error: {
             code: 500,
-            message: 'Server storage location not available.',
+            message:
+              error instanceof Error
+                ? `Unexpected server error: ${error.message}`
+                : 'Unexpected server error',
           },
         }
       }
-      const presignedGetURL = s3Service.createS3PresignedUrls([
-        {
-          method: SignedURLsRequestMethod.GET,
-          objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
-          accessKeyId: serverStorageLocation.accessKeyId,
-          secretAccessKey: serverStorageLocation.secretAccessKey,
-          bucket: serverStorageLocation.bucket,
-          endpoint: serverStorageLocation.endpoint,
-          expirySeconds: 3600,
-          region: serverStorageLocation.region,
+    }
+    case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
+      const startContext = {
+        __executor: {
+          appIdentifier: requestingAppIdentifier,
+          handlerId: handlerInstanceId,
         },
-      ])
-      return {
-        result: {
-          payloadUrl: presignedGetURL[0],
-          entrypoint:
-            workerApp.workers.definitions[requestData.workerIdentifier]
-              .entrypoint,
-          environmentVariables:
-            workerApp.workers.definitions[requestData.workerIdentifier]
-              .environmentVariables,
-          workerToken: await jwtService.createAppWorkerToken(
-            requestData.appIdentifier,
-          ),
-          hash: workerApp.workers.hash,
-        },
+        ...(parsedRequest.data.startContext ?? {}),
       }
+      try {
+        const startedTask = await appService.startWorkerTaskByIdAsApp(
+          requestingAppIdentifier,
+          {
+            taskId: parsedRequest.data.taskId,
+            startContext,
+          },
+        )
+        return { result: { task: transformTaskToDTO(startedTask) } }
+      } catch (error) {
+        if (error instanceof HttpException) {
+          return {
+            error: { code: error.getStatus(), message: error.message },
+          }
+        }
+        return {
+          error: {
+            code: 500,
+            message:
+              error instanceof Error
+                ? `Unexpected server error: ${error.message}`
+                : 'Unexpected server error',
+          },
+        }
+      }
+    }
+
+    case 'GET_APP_UI_BUNDLE':
+      return appService.getAppUIbundleAsAppServer(
+        requestingAppIdentifier,
+        parsedRequest.data,
+      )
+    case 'GET_WORKER_EXECUTION_DETAILS': {
+      return appService.getWorkerExecutionDetailsAsAppServer(
+        requestingAppIdentifier,
+        parsedRequest.data,
+      )
     }
     case 'GET_APP_STORAGE_SIGNED_URLS':
       return {
         result: await appService.createSignedAppStorageUrls(
           requestingAppIdentifier,
-          requestData,
+          parsedRequest.data,
         ),
       }
     case 'AUTHENTICATE_USER': {
       try {
-        const decodedJWT = jwtService.decodeJWT(requestData.token)
+        const decodedJWT = jwtService.decodeJWT(parsedRequest.data.token)
         if (!decodedJWT.payload || typeof decodedJWT.payload === 'string') {
           return {
-            result: { userId: '', success: false },
             error: { code: 401, message: 'Invalid token payload' },
           }
         }
         const subject = decodedJWT.payload.sub
         if (!subject || typeof subject !== 'string') {
           return {
-            result: { userId: '', success: false },
             error: { code: 401, message: 'Invalid token subject' },
           }
         }
         const subjectParts = subject.split(':')
         if (subjectParts.length !== 3 || subjectParts[0] !== 'app_user') {
           return {
-            result: { userId: '', success: false },
             error: { code: 401, message: 'Invalid token format' },
           }
         }
-        const userId = subjectParts[1]
-        const tokenAppIdentifier = subjectParts[2]
-        if (tokenAppIdentifier !== requestData.appIdentifier) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const userId = subjectParts[1]!
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const tokenAppIdentifier = subjectParts[2]!
+        if (tokenAppIdentifier !== parsedRequest.data.appIdentifier) {
           return {
-            result: { userId: '', success: false },
             error: { code: 401, message: 'Token app identifier mismatch' },
           }
         }
         jwtService.verifyAppUserJWT({
-          token: requestData.token,
+          token: parsedRequest.data.token,
           userId,
-          appIdentifier: requestData.appIdentifier,
+          appIdentifier: parsedRequest.data.appIdentifier,
         })
         return { result: { userId, success: true } }
       } catch (error) {
         return {
-          result: { userId: '', success: false },
           error: {
             code: 401,
             message:
@@ -491,9 +395,67 @@ export async function handleAppSocketMessage(
         }
       }
     }
-  }
-  return {
-    result: undefined,
-    error: { code: 400, message: 'Request unrecognized or malformed.' },
+    case 'EXECUTE_APP_DOCKER_JOB': {
+      const execResult = await appService.executeAppDockerJob(
+        {
+          appIdentifier: requestingAppIdentifier,
+          ...parsedRequest.data,
+        },
+        true,
+      )
+      if ('submitError' in execResult) {
+        return {
+          result: {
+            jobId: execResult.jobId,
+            jobSuccess: false,
+            jobResult: {
+              submitError: execResult.submitError,
+            },
+          },
+        }
+      } else if ('error' in execResult) {
+        return {
+          result: {
+            jobId: execResult.jobId,
+            jobSuccess: false,
+            jobResult: {
+              jobError: execResult.error,
+            },
+          },
+        }
+      } else if ('result' in execResult) {
+        return {
+          result: {
+            jobId: execResult.jobId,
+            jobSuccess: true,
+            jobResult: execResult.result,
+          },
+        }
+      }
+      throw new Error('Invalid execution result')
+    }
+    case 'TRIGGER_APP_TASK': {
+      await taskService.triggerAppActionTask({
+        targetUserId: parsedRequest.data.targetUserId,
+        targetLocation: parsedRequest.data.targetLocation,
+        storageAccessPolicy: parsedRequest.data.storageAccessPolicy,
+        appIdentifier: requestingAppIdentifier,
+        taskIdentifier: parsedRequest.data.taskIdentifier,
+        taskData: parsedRequest.data.inputData,
+        dontStartBefore: parsedRequest.data.dontStartBefore
+          ? 'timestamp' in parsedRequest.data.dontStartBefore
+            ? {
+                timestamp: new Date(
+                  parsedRequest.data.dontStartBefore.timestamp,
+                ),
+              }
+            : {
+                delayMs: parsedRequest.data.dontStartBefore.delayMs,
+              }
+          : undefined,
+      })
+
+      return { result: null }
+    }
   }
 }

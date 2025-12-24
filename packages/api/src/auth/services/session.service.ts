@@ -34,10 +34,13 @@ export class SessionService {
       createdAt: now,
       updatedAt: now,
     }
-    const [session] = await this.ormService.db
-      .insert(sessionsTable)
-      .values(newSession)
-      .returning()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const session = (
+      await this.ormService.db
+        .insert(sessionsTable)
+        .values(newSession)
+        .returning()
+    )[0]!
 
     const accessToken = await this.jwtService.createSessionAccessToken(session)
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
@@ -65,10 +68,13 @@ export class SessionService {
       createdAt: now,
       updatedAt: now,
     }
-    const [session] = await this.ormService.db
-      .insert(sessionsTable)
-      .values(newSession)
-      .returning()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const session = (
+      await this.ormService.db
+        .insert(sessionsTable)
+        .values(newSession)
+        .returning()
+    )[0]!
 
     const accessToken = await this.jwtService.createAppUserAccessToken(
       session,
@@ -143,14 +149,17 @@ export class SessionService {
     // Create a new secret
     const secret = hashedTokenHelper.createSecretKey()
 
-    const [updatedSession] = await this.ormService.db
-      .update(sessionsTable)
-      .set({
-        expiresAt: sessionExpiresAt(new Date(session.createdAt)),
-        hash: hashedTokenHelper.createHash(secret),
-      })
-      .where(eq(sessionsTable.id, session.id))
-      .returning()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const updatedSession = (
+      await this.ormService.db
+        .update(sessionsTable)
+        .set({
+          expiresAt: sessionExpiresAt(new Date(session.createdAt)),
+          hash: hashedTokenHelper.createHash(secret),
+        })
+        .where(eq(sessionsTable.id, session.id))
+        .returning()
+    )[0]!
 
     // Create new access and refresh tokens
     const accessToken =
@@ -168,13 +177,15 @@ export class SessionService {
     const returnedSessions = await this.ormService.db
       .select()
       .from(sessionsTable)
-      .where(eq(sessionsTable.id, accessToken.jti.split(':')[0]))
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .where(eq(sessionsTable.id, accessToken.jti.split(':')[0]!))
 
     if (returnedSessions.length === 0) {
       throw new SessionInvalidException()
     }
 
-    const session = returnedSessions[0]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const session = returnedSessions[0]!
 
     if (Date.now() > new Date(session.expiresAt).getTime()) {
       throw new SessionExpiredException()

@@ -5,37 +5,32 @@ import type {
   AppManifest,
   AppMetrics,
   AppWorkersMap,
+  ExecuteAppDockerJobOptions,
   ExternalAppWorker,
   FolderScopeAppPermissions,
+  JsonSerializableObject,
+  StorageAccessPolicy,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import {
   appConfigWithManifestSchema,
-  CORE_APP_IDENTIFIER,
   FolderPermissionEnum,
+  LogEntryLevel,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { mimeFromExtension } from '@lombokapp/utils'
 import {
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { spawn } from 'bun'
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  or,
-  SQL,
-  sql,
-} from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
 import os from 'os'
@@ -43,6 +38,8 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
+import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
@@ -51,10 +48,7 @@ import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderOperationForbiddenException } from 'src/folders/exceptions/folder-operation-forbidden.exception'
 import { FolderService } from 'src/folders/services/folder.service'
-import {
-  logEntriesTable,
-  LogEntryLevel,
-} from 'src/log/entities/log-entry.entity'
+import { logEntriesTable } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
 import { readDirRecursive } from 'src/platform/utils/fs.util'
@@ -69,6 +63,8 @@ import { storageLocationsTable } from 'src/storage/entities/storage-location.ent
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { TaskService } from 'src/task/services/task.service'
 import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
@@ -96,7 +92,10 @@ import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
 } from '../utils/resolve-app-settings.utils'
-import { handleAppSocketMessage } from './app-socket-message.handler'
+import {
+  AppRequestByName,
+  handleAppSocketMessage,
+} from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -128,26 +127,36 @@ export class AppService {
   folderService: FolderService
   eventService: EventService
   coreAppService: CoreAppService
+  taskService: TaskService
+  platformTaskService: PlatformTaskService
   private readonly appSocketService: AppSocketService
+  private readonly dockerJobsService: DockerJobsService
+  private readonly logger = new Logger(AppService.name)
   constructor(
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
     private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
-    @Inject(forwardRef(() => CoreAppService)) _coreAppService,
-    @Inject(forwardRef(() => EventService)) _eventService,
     private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
+    private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => CoreAppService)) _coreAppService,
+    @Inject(forwardRef(() => PlatformTaskService)) _platformTaskService,
+    @Inject(forwardRef(() => TaskService)) _taskService,
+    @Inject(forwardRef(() => EventService)) _eventService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
-    private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => DockerJobsService)) _dockerJobsService,
   ) {
+    this.platformTaskService = _platformTaskService as PlatformTaskService
     this.coreAppService = _coreAppService as CoreAppService
+    this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
     this.appSocketService = _appSocketService as AppSocketService
+    this.dockerJobsService = _dockerJobsService as DockerJobsService
   }
 
   public async setAppEnabledAsAdmin(
@@ -159,7 +168,7 @@ export class AppService {
       throw new UnauthorizedException()
     }
 
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -175,6 +184,9 @@ export class AppService {
     } else {
       void this.coreAppService.startCoreAppThread()
     }
+    if (!updated) {
+      throw new NotFoundException('Failed to update app enabled status.')
+    }
     return updated
   }
 
@@ -187,7 +199,7 @@ export class AppService {
       throw new UnauthorizedException()
     }
 
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -201,10 +213,13 @@ export class AppService {
       })
       .where(eq(appsTable.identifier, appIdentifier))
       .returning()
+    if (!updated) {
+      throw new NotFoundException('Failed to update app enabled status.')
+    }
     return updated
   }
 
-  getAppAsAdmin(
+  getApp(
     appIdentifier: string,
     {
       enabled,
@@ -237,7 +252,7 @@ export class AppService {
     actor: { appIdentifier: string }
     userId: string
   }) {
-    const app = await this.getAppAsAdmin(actor.appIdentifier, { enabled: true })
+    const app = await this.getApp(actor.appIdentifier, { enabled: true })
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.id, userId),
     })
@@ -252,7 +267,7 @@ export class AppService {
   }
 
   async createAppUserSession(user: User, appIdentifier: string) {
-    const app = await this.getAppAsAdmin(appIdentifier, { enabled: true })
+    const app = await this.getApp(appIdentifier, { enabled: true })
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -261,50 +276,65 @@ export class AppService {
   }
 
   async handleAppRequest(
-    handlerId: string,
+    handlerInstanceId: string,
     requestingAppIdentifier: string,
     message: unknown,
   ) {
-    return handleAppSocketMessage(handlerId, requestingAppIdentifier, message, {
-      eventService: this.eventService,
-      ormService: this.ormService,
-      logEntryService: this.logEntryService,
-      folderService: this.folderService,
-      appService: this,
-      jwtService: this.jwtService,
-      serverConfigurationService: this.serverConfigurationService,
-      s3Service: this.s3Service,
-    })
+    return handleAppSocketMessage(
+      handlerInstanceId,
+      requestingAppIdentifier,
+      message,
+      {
+        eventService: this.eventService,
+        ormService: this.ormService,
+        logEntryService: this.logEntryService,
+        folderService: this.folderService,
+        taskService: this.taskService,
+        appService: this,
+        jwtService: this.jwtService,
+      },
+    )
   }
 
-  async createSignedContentUrls(payload: {
+  async createSignedContentUrlsAsApp(
+    requestingAppIdentifier: string,
     requests: {
       folderId: string
       objectKey: string
       method: SignedURLsRequestMethod
-    }[]
-  }) {
-    // get presigned upload URLs for content objects
-    const urls = await this._createSignedUrls(payload.requests)
-    return {
-      urls,
+    }[],
+  ) {
+    for (const request of requests) {
+      await this.validateAppFolderAccess({
+        appIdentifier: requestingAppIdentifier,
+        folderId: request.folderId,
+      })
     }
+    // get presigned upload URLs for content objects
+    return this._createSignedUrls(requests)
   }
 
-  async createSignedMetadataUrls(payload: {
+  async createSignedMetadataUrlsAsApp(
+    requestingAppIdentifier: string,
     requests: {
       folderId: string
       objectKey: string
       contentHash: string
       method: SignedURLsRequestMethod
       metadataHash: string
-    }[]
-  }) {
+    }[],
+  ) {
+    for (const request of requests) {
+      await this.validateAppFolderAccess({
+        appIdentifier: requestingAppIdentifier,
+        folderId: request.folderId,
+      })
+    }
     const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
       await Promise.all(
-        payload.requests.map(async (request) => {
+        requests.map(async (request) => {
           const folder =
             folders[request.folderId] ??
             (await this.ormService.db.query.foldersTable.findFirst({
@@ -344,26 +374,24 @@ export class AppService {
         }),
       ),
     ).map((_url, i) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const request = requests[i]!
       return {
-        folderId: payload.requests[i].folderId,
-        objectKey: payload.requests[i].objectKey,
+        folderId: request.folderId,
+        objectKey: request.objectKey,
         url: _url,
       }
     })
 
-    return {
-      urls,
-    }
+    return urls
   }
 
   async createSignedAppStorageUrls(
     requestingAppIdentifier: string,
     payload: {
-      requests: {
-        objectKey: string
-        method: SignedURLsRequestMethod
-      }[]
-    },
+      objectKey: string
+      method: SignedURLsRequestMethod
+    }[],
   ) {
     const serverStorage =
       await this.serverConfigurationService.getServerStorage()
@@ -371,7 +399,7 @@ export class AppService {
       throw new Error('Server storage not found')
     }
     const urls = this.s3Service.createS3PresignedUrls(
-      payload.requests.map(({ method, objectKey }) => ({
+      payload.map(({ method, objectKey }) => ({
         method,
         objectKey: `${serverStorage.prefix}${!serverStorage.prefix || serverStorage.prefix.endsWith('/') ? '' : '/'}app-runtime-storage/${requestingAppIdentifier}${objectKey.startsWith('/') ? '' : '/'}${objectKey}`,
         accessKeyId: serverStorage.accessKeyId,
@@ -382,9 +410,7 @@ export class AppService {
         region: serverStorage.region,
       })),
     )
-    return {
-      urls,
-    }
+    return urls
   }
 
   async _createSignedUrls(
@@ -457,7 +483,8 @@ export class AppService {
           .map((url, i) => ({
             url,
             folderId,
-            ...folderRequests[i],
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            ...folderRequests[i]!,
           })),
       )
     }
@@ -470,29 +497,188 @@ export class AppService {
     }))
   }
 
-  async getAppUIbundle(
+  async ensureAppHasServerAppPermission(appIdentifier: string) {
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(`App not found: ${appIdentifier}`)
+    }
+    if (!app.permissions.platform.includes('SERVE_APPS')) {
+      throw new ForbiddenException(
+        'Forbidden without the SERVE_APPS permission.',
+      )
+    }
+  }
+
+  async getWorkerExecutionDetailsAsAppServer(
     requestingAppIdentifier: string,
-    requestData: { appIdentifier: string },
+    requestData: { appIdentifier: string; workerIdentifier: string },
   ) {
-    // verify the app is the installed "core" app
-    if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
-      // must be "core" app to access app UI bundles
+    try {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        return {
+          result: null,
+          error: {
+            code: 403,
+            message: 'Unauthorized.',
+          },
+        }
+      }
+      throw error
+    }
+
+    const workerApp = await this.ormService.db.query.appsTable.findFirst({
+      where: and(
+        eq(appsTable.identifier, requestData.appIdentifier),
+        eq(appsTable.enabled, true),
+      ),
+    })
+
+    if (!workerApp) {
       return {
-        result: undefined,
+        error: { code: 404, message: 'Worker app not found.' },
+      }
+    }
+
+    if (!(requestData.workerIdentifier in workerApp.workers.definitions)) {
+      return {
         error: {
-          code: 403,
-          message: 'Unauthorized.',
+          code: 404,
+          message: `App worker "${requestData.workerIdentifier}" not found.`,
         },
       }
     }
 
-    const workerApp = await this.getAppAsAdmin(requestData.appIdentifier, {
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorage()
+    if (!serverStorageLocation) {
+      return {
+        error: {
+          code: 409,
+          message: 'Server storage location not available.',
+        },
+      }
+    }
+    const presignedGetURL = this.s3Service.createS3PresignedUrls([
+      {
+        method: SignedURLsRequestMethod.GET,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
+        accessKeyId: serverStorageLocation.accessKeyId,
+        secretAccessKey: serverStorageLocation.secretAccessKey,
+        bucket: serverStorageLocation.bucket,
+        endpoint: serverStorageLocation.endpoint,
+        expirySeconds: 3600,
+        region: serverStorageLocation.region,
+      },
+    ])
+    return {
+      result: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        payloadUrl: presignedGetURL[0]!,
+        entrypoint:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          workerApp.workers.definitions[requestData.workerIdentifier]!
+            .entrypoint,
+        environmentVariables:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          workerApp.workers.definitions[requestData.workerIdentifier]!
+            .environmentVariables,
+        workerToken: await this.jwtService.createAppWorkerToken(
+          requestData.appIdentifier,
+        ),
+        hash: workerApp.workers.hash,
+      },
+    }
+  }
+
+  async registerTaskCompletedAsApp(
+    requestingAppIdentifier: string,
+    data: AppRequestByName<'COMPLETE_HANDLE_TASK'>['data'],
+  ) {
+    const taskToComplete = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, data.taskId),
+    })
+
+    if (!taskToComplete) {
+      throw new NotFoundException(`Worker task not found: ${data.taskId}`)
+    }
+
+    if (taskToComplete.ownerIdentifier !== requestingAppIdentifier) {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+      if (taskToComplete.handlerType !== 'worker') {
+        throw new NotFoundException(`Worker task not found: ${data.taskId}`)
+      }
+    }
+
+    await this.taskService.registerTaskCompleted(
+      data.taskId,
+      data.success
+        ? { success: true, result: data.result }
+        : { success: false, error: data.error },
+    )
+  }
+
+  async startWorkerTaskByIdAsApp(
+    requestingAppIdentifier: string,
+    {
+      taskId,
+      startContext,
+    }: {
+      taskId: string
+      startContext: {
+        __executor: JsonSerializableObject
+      } & JsonSerializableObject
+    },
+  ) {
+    const taskToStart = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+
+    if (!taskToStart) {
+      throw new NotFoundException(`Worker task not found: ${taskId}`)
+    }
+
+    if (taskToStart.ownerIdentifier !== requestingAppIdentifier) {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+      if (taskToStart.handlerType !== 'worker') {
+        throw new NotFoundException(`Worker task not found: ${taskId}`)
+      }
+    }
+
+    const { task } = await this.taskService.registerTaskStarted({
+      taskId,
+      startContext,
+    })
+    return task
+  }
+
+  async getAppUIbundleAsAppServer(
+    requestingAppIdentifier: string,
+    requestData: { appIdentifier: string },
+  ) {
+    try {
+      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        return {
+          result: null,
+          error: {
+            code: 403,
+            message: 'Unauthorized.',
+          },
+        }
+      }
+      throw error
+    }
+
+    const workerApp = await this.getApp(requestData.appIdentifier, {
       enabled: true,
     })
     if (!workerApp) {
       // app by appIdentifier not found
       return {
-        result: undefined,
+        result: null,
         error: {
           code: 404,
           message: 'App not found.',
@@ -503,7 +689,7 @@ export class AppService {
     if (Object.keys(workerApp.ui.manifest).length === 0) {
       // No UI bundle exists for this app
       return {
-        result: undefined,
+        result: null,
         error: {
           code: 404,
           message: 'UI bundle not found.',
@@ -516,9 +702,8 @@ export class AppService {
 
     if (!serverStorageLocation) {
       return {
-        result: undefined,
         error: {
-          code: 500,
+          code: 409,
           message: 'Server storage location not available.',
         },
       }
@@ -538,9 +723,12 @@ export class AppService {
     ])
 
     return {
-      manifest: workerApp.ui.manifest,
-      bundleUrl: presignedGetURL[0],
-      csp: workerApp.ui.csp,
+      result: {
+        manifest: workerApp.ui.manifest,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        bundleUrl: presignedGetURL[0]!,
+        csp: workerApp.ui.csp,
+      },
     }
   }
 
@@ -649,7 +837,7 @@ export class AppService {
 
   public async installApp(app: AppWithMigrations, update = false) {
     const now = new Date()
-    const installedApp = await this.getAppAsAdmin(app.identifier)
+    const installedApp = await this.getApp(app.identifier)
     if (installedApp && !update) {
       throw new AppAlreadyInstalledException()
     }
@@ -730,8 +918,7 @@ export class AppService {
           .filter(Boolean)
           .join('/')
 
-        // eslint-disable-next-line no-console
-        console.log('Uploading app asset zip:', {
+        this.logger.log('Uploading app asset zip:', {
           objectKey,
           zipPath,
         })
@@ -745,7 +932,8 @@ export class AppService {
         ])
 
         // Upload the zip file
-        await uploadFile(zipPath, url, 'application/zip')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await uploadFile(zipPath, url!, 'application/zip')
 
         const zipSize = fs.statSync(zipPath).size
         // Clean up temp dir
@@ -771,6 +959,15 @@ export class AppService {
       }
     }
 
+    if (app.config.database?.enabled) {
+      if (app.migrationFiles.length > 0) {
+        await this.ormService.runAppMigrations(
+          app.identifier,
+          app.migrationFiles,
+        )
+      }
+    }
+
     // update app db record to match new app
     if (installedApp) {
       await this.ormService.db
@@ -788,31 +985,36 @@ export class AppService {
     // Run migrations if the app has any
     if (app.migrationFiles.length > 0) {
       try {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.log(
           `Running ${app.migrationFiles.length} migrations for app ${app.identifier}`,
         )
         await this.ormService.runAppMigrations(
           app.identifier,
           app.migrationFiles,
         )
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.log(
           `Successfully completed migrations for app ${app.identifier}`,
         )
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error(
+        this.logger.error(
           `Failed to run migrations for app ${app.identifier}:`,
           error,
         )
         throw error
       }
     }
+
+    if (app.permissions?.platform.includes('READ_ACL')) {
+      this.logger.log(
+        `Granting "shared_acl" schema usage to app ${app.identifier}`,
+      )
+      await this.ormService.grantAclSchemaUsageToApp(app.identifier)
+    }
   }
 
   public async installAllAppsFromDisk() {
     // get potential app identifier from the directory structure
+
     const allPotentialAppDirectoriesEntries =
       this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
 
@@ -832,37 +1034,34 @@ export class AppService {
       if (app.validation.value && app.definition) {
         await this.installApp(app.definition, update)
       } else {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP PARSE ERROR - (dir: '${directoryName}'): App config is invalid`,
-          app.validation.error?.errors,
+          JSON.stringify(app.validation.error?.errors, null, 2),
         )
       }
     } catch (error) {
       if (error instanceof AppAlreadyInstalledException) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `APP INSTALL ERROR (dir: '${directoryName}'): App is already installed.`,
+        this.logger.log(
+          `APP INSTALL SKIPPED (dir: '${directoryName}'): App is already installed.`,
         )
       } else if (error instanceof AppNotParsableException) {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP INSTALL ERROR (dir: '${directoryName}'): App is not parsable.`,
         )
       } else if (error instanceof AppRequirementsNotSatisfiedException) {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP INSTALL ERROR (dir: '${directoryName}'): App requirements are not met.`,
         )
       } else if (error instanceof AppInvalidException) {
-        // eslint-disable-next-line no-console
-        console.log(
+        this.logger.warn(
           `APP INSTALL ERROR (dir: '${directoryName}'): App is invalid.`,
           error.message,
         )
       } else {
-        // eslint-disable-next-line no-console
-        console.log(`APP INSTALL ERROR - (dir: '${directoryName}'):`, error)
+        this.logger.warn(
+          `APP INSTALL ERROR - (dir: '${directoryName}'):`,
+          error,
+        )
       }
     }
   }
@@ -896,8 +1095,7 @@ export class AppService {
         })
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn(
+      this.logger.warn(
         `Failed to read migration files from ${migrationsDir}:`,
         error,
       )
@@ -908,8 +1106,7 @@ export class AppService {
 
   public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
     if (!fs.existsSync(appsDirectoryPath)) {
-      // eslint-disable-next-line no-console
-      console.log('Apps directory "%s" not found.', appsDirectoryPath)
+      this.logger.warn('Apps directory "%s" not found.', appsDirectoryPath)
       return []
     }
     return fs
@@ -951,7 +1148,6 @@ export class AppService {
 
     const appIdentifier = config.identifier
 
-    // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
     const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
     const manifest = (
       await Promise.all(
@@ -1008,7 +1204,8 @@ export class AppService {
         .reduce<AppManifest>((acc, filePath) => {
           return {
             ...acc,
-            [filePath.slice(`/ui/`.length)]: manifest[filePath],
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            [filePath.slice(`/ui/`.length)]: manifest[filePath]!,
           }
         }, {}),
     }
@@ -1022,7 +1219,8 @@ export class AppService {
       .reduce<AppManifest>((acc, filePath) => {
         return {
           ...acc,
-          [filePath.slice(`/workers/`.length)]: manifest[filePath],
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          [filePath.slice(`/workers/`.length)]: manifest[filePath]!,
         }
       }, {})
 
@@ -1043,17 +1241,19 @@ export class AppService {
               hash: '',
               size: 0,
             },
-            subscribedEvents:
-              config.tasks?.reduce<string[]>(
-                (acc, task) => acc.concat(task.triggers),
-                [],
-              ) ?? [],
+            permissions: {
+              platform: config.permissions?.platform ?? [],
+              user: config.permissions?.user ?? [],
+              folder: config.permissions?.folder ?? [],
+            },
+            subscribedPlatformEvents: config.subscribedPlatformEvents ?? [],
             implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||
               Object.keys(workerScriptDefinitions).length > 0,
             ui: uiDefinition,
             config,
+            containerProfiles: config.containerProfiles ?? {},
             database: !!config.database?.enabled,
             createdAt: now,
             updatedAt: now,
@@ -1085,11 +1285,11 @@ export class AppService {
     environmentVariables: Record<string, string>
   }): Promise<Record<string, string>> {
     // Fetch the app
-    const app = await this.getAppAsAdmin(appIdentifier)
+    const app = await this.getApp(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     if (!app.workers.definitions[workerIdentifier]) {
       throw new NotFoundException(
         `Worker script not found: ${workerIdentifier}`,
@@ -1140,7 +1340,8 @@ export class AppService {
               return {
                 ...acc,
                 [parsed.appIdentifier]: (parsed.appIdentifier in acc
-                  ? acc[parsed.appIdentifier]
+                  ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    acc[parsed.appIdentifier]!
                   : []
                 ).concat([parsed]),
               }
@@ -1193,22 +1394,13 @@ export class AppService {
     const tasksLast24Hours = await this.ormService.db
       .select({
         completed: count(tasksTable.id),
-        failed: count(tasksTable.errorAt),
+        failed: count(tasksTable.error),
       })
       .from(tasksTable)
       .where(
         and(
           eq(tasksTable.ownerIdentifier, appIdentifier),
-          or(
-            and(
-              isNotNull(tasksTable.completedAt),
-              sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-            ),
-            and(
-              isNotNull(tasksTable.errorAt),
-              sql`${tasksTable.errorAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-            ),
-          ),
+          sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
         ),
       )
 
@@ -1479,6 +1671,8 @@ export class AppService {
           // Delete settings (fallback to default)
           await tx.delete(appFolderSettingsTable).where(where)
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const notNullUpdatedSettings = updatedSettings!
           // Upsert/merge settings
           const existingSettings =
             await tx.query.appFolderSettingsTable.findFirst({
@@ -1491,11 +1685,11 @@ export class AppService {
             await tx
               .update(appFolderSettingsTable)
               .set({
-                ...('enabled' in updatedSettings
-                  ? { enabled: updatedSettings.enabled }
+                ...('enabled' in notNullUpdatedSettings
+                  ? { enabled: notNullUpdatedSettings.enabled }
                   : {}),
-                ...('permissions' in updatedSettings
-                  ? { permissions: updatedSettings.permissions }
+                ...('permissions' in notNullUpdatedSettings
+                  ? { permissions: notNullUpdatedSettings.permissions }
                   : {}),
                 updatedAt: now,
               })
@@ -1505,10 +1699,12 @@ export class AppService {
               folderId: folder.id,
               appIdentifier,
               enabled:
-                'enabled' in updatedSettings ? updatedSettings.enabled : null,
+                'enabled' in notNullUpdatedSettings
+                  ? notNullUpdatedSettings.enabled
+                  : null,
               permissions:
-                'permissions' in updatedSettings
-                  ? updatedSettings.permissions
+                'permissions' in notNullUpdatedSettings
+                  ? notNullUpdatedSettings.permissions
                   : null,
               createdAt: now,
               updatedAt: now,
@@ -1531,5 +1727,306 @@ export class AppService {
 
     // Return updated settings
     return this.getFolderAppSettingsAsUser(actor, folderId)
+  }
+
+  private getRequiredPermissionsForFolderFromPolicy(
+    storageAccessPolicy: StorageAccessPolicy | undefined,
+    folderId: string,
+  ): FolderScopeAppPermissions[] {
+    const folderPolicies =
+      storageAccessPolicy?.filter((entry) => entry.folderId === folderId) ?? []
+    if (folderPolicies.length === 0) {
+      return []
+    }
+
+    const methods = folderPolicies.flatMap((entry) => entry.methods)
+    const requiredPermissions = new Set<FolderScopeAppPermissions>()
+
+    if (
+      methods.some((method) =>
+        [SignedURLsRequestMethod.GET, SignedURLsRequestMethod.HEAD].includes(
+          method,
+        ),
+      )
+    ) {
+      requiredPermissions.add('READ_OBJECTS')
+    }
+    if (
+      methods.some((method) =>
+        [SignedURLsRequestMethod.PUT, SignedURLsRequestMethod.DELETE].includes(
+          method,
+        ),
+      )
+    ) {
+      requiredPermissions.add('WRITE_OBJECTS')
+    }
+
+    return Array.from(requiredPermissions)
+  }
+
+  async validateAppUserAccess({
+    appIdentifier,
+    userId,
+  }: {
+    appIdentifier: string
+    userId: string
+  }): Promise<void> {
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
+      )
+    }
+
+    const appUserSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where: and(
+          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+          eq(appUserSettingsTable.userId, userId),
+        ),
+      })
+
+    const resolvedUserSettings = resolveUserAppSettings(app, appUserSettings)
+
+    if (!resolvedUserSettings.enabled) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled for user "${userId}".`,
+      )
+    }
+  }
+
+  async validateAppFolderAccess({
+    appIdentifier,
+    folderId,
+  }: {
+    appIdentifier: string
+    folderId: string
+  }): Promise<void> {
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
+      )
+    }
+
+    const folder = await this.ormService.db.query.foldersTable.findFirst({
+      where: eq(foldersTable.id, folderId),
+    })
+
+    if (!folder) {
+      throw new NotFoundException(`Folder not found: ${folderId}`)
+    }
+
+    const appUserSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where: and(
+          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+          eq(appUserSettingsTable.userId, folder.ownerId),
+        ),
+      })
+
+    const appFolderSettings =
+      await this.ormService.db.query.appFolderSettingsTable.findFirst({
+        where: and(
+          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          eq(appFolderSettingsTable.folderId, folderId),
+        ),
+      })
+
+    const resolvedFolderSettings = resolveFolderAppSettings(
+      app,
+      appUserSettings,
+      appFolderSettings,
+    )
+    const enabled =
+      resolvedFolderSettings.enabled === null
+        ? resolvedFolderSettings.enabledFallback.value
+        : resolvedFolderSettings.enabled
+
+    if (!enabled) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled for folder "${folder.id}".`,
+      )
+    }
+  }
+
+  async validateAppStorageAccessPolicy({
+    appIdentifier,
+    storageAccessPolicy,
+  }: {
+    appIdentifier: string
+    storageAccessPolicy?: StorageAccessPolicy
+  }): Promise<void> {
+    const uniqueFolderIds = Array.from(
+      new Set(storageAccessPolicy?.map((entry) => entry.folderId)),
+    )
+    if (uniqueFolderIds.length === 0) {
+      return
+    }
+
+    const app = await this.getApp(appIdentifier, { enabled: true })
+    if (!app) {
+      throw new UnauthorizedException(
+        `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
+      )
+    }
+
+    const folders = await this.ormService.db.query.foldersTable.findMany({
+      where: inArray(foldersTable.id, uniqueFolderIds),
+    })
+
+    if (folders.length !== uniqueFolderIds.length) {
+      const foundIds = new Set(folders.map((folder) => folder.id))
+      const missingIds = uniqueFolderIds.filter((id) => !foundIds.has(id))
+      throw new NotFoundException(
+        `Folder${missingIds.length > 1 ? 's' : ''} not found: ${missingIds.join(', ')}`,
+      )
+    }
+
+    const relevantUserIds = folders.reduce<Set<string>>((acc, folder) => {
+      return acc.add(folder.ownerId)
+    }, new Set<string>())
+
+    const appUserSettings = relevantUserIds.size
+      ? await this.ormService.db.query.appUserSettingsTable.findMany({
+          where: and(
+            eq(appUserSettingsTable.appIdentifier, appIdentifier),
+            inArray(
+              appUserSettingsTable.userId,
+              Array.from(relevantUserIds.values()),
+            ),
+          ),
+        })
+      : []
+
+    const appUserSettingsMap = new Map(
+      appUserSettings.map((setting) => [setting.userId, setting]),
+    )
+
+    const folderSettings =
+      await this.ormService.db.query.appFolderSettingsTable.findMany({
+        where: and(
+          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          inArray(appFolderSettingsTable.folderId, uniqueFolderIds),
+        ),
+      })
+    const folderSettingsMap = new Map(
+      folderSettings.map((setting) => [setting.folderId, setting]),
+    )
+
+    for (const folder of folders) {
+      const userSetting = appUserSettingsMap.get(folder.ownerId) ?? undefined
+      const folderSetting = folderSettingsMap.get(folder.id)
+
+      const resolvedFolderSettings = resolveFolderAppSettings(
+        app,
+        userSetting,
+        folderSetting,
+      )
+
+      const enabled =
+        resolvedFolderSettings.enabled === null
+          ? resolvedFolderSettings.enabledFallback.value
+          : resolvedFolderSettings.enabled
+
+      if (!enabled) {
+        throw new UnauthorizedException(
+          `Unauthorized: app "${appIdentifier}" is not enabled for folder "${folder.id}".`,
+        )
+      }
+
+      const requiredPermissions =
+        this.getRequiredPermissionsForFolderFromPolicy(
+          storageAccessPolicy,
+          folder.id,
+        )
+      for (const permission of requiredPermissions) {
+        const permissions =
+          resolvedFolderSettings.permissions === null
+            ? resolvedFolderSettings.permissionsFallback.value
+            : resolvedFolderSettings.permissions
+        if (!permissions.includes(permission)) {
+          throw new UnauthorizedException(
+            `Unauthorized: app "${appIdentifier}" is missing "${permission}" permission for folder "${folder.id}".`,
+          )
+        }
+      }
+    }
+  }
+
+  /**
+   * Executes a docker job of the specified app.
+   *
+   * This method is called either synchronously, at the request of the app,
+   * or as a result of a task which is handled the docker job being queued.
+   *
+   * This method validates that the app has the specified profile and job class,
+   * then delegates to the DockerJobsService to execute the job.
+   *
+   * @param params.asyncId - If provided...
+   * @param params.appIdentifier - The app's identifier
+   * @param params.profileIdentifier - The container profile to use
+   * @param params.jobIdentifier - The job class within the profile
+   * @returns The result of the docker job execution
+   */
+  async executeAppDockerJob<T extends boolean>(
+    params: ExecuteAppDockerJobOptions,
+    waitForCompletion: T = false as T,
+  ): Promise<DockerExecResult<T>> {
+    this.logger.debug('executeAppDockerJob params:', params)
+    const {
+      appIdentifier,
+      profileIdentifier,
+      jobIdentifier,
+      jobData,
+      storageAccessPolicy = [],
+      asyncTaskId,
+    } = params
+
+    const profileSpec = await this.dockerJobsService.getProfileSpec(
+      appIdentifier,
+      profileIdentifier,
+    )
+
+    // validate the storage access policy rules if any are provided
+    if (storageAccessPolicy.length) {
+      await this.validateAppStorageAccessPolicy({
+        appIdentifier,
+        storageAccessPolicy,
+      })
+    }
+
+    // Execute the docker job
+    return this.dockerJobsService.executeDockerJob<T>(
+      {
+        profileSpec,
+        profileKey: `${appIdentifier}:${profileIdentifier}`,
+        jobIdentifier,
+        jobData,
+        asyncTaskId,
+        storageAccessPolicy,
+      },
+      waitForCompletion,
+    ) as Promise<DockerExecResult<T>>
+  }
+
+  async getSearchResultsFromAppAsUser(
+    actor: User,
+    {
+      appIdentifier,
+      workerIdentifier,
+      query,
+    }: { appIdentifier: string; workerIdentifier: string; query: string },
+  ): Promise<{ vector: number[] }> {
+    await this.appSocketService.executeSynchronousAppRequest(appIdentifier, {
+      url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
+      body: {
+        userId: actor.id,
+        query,
+        // space: 'text-v1',
+      },
+    })
+
+    return { vector: [] }
   }
 }

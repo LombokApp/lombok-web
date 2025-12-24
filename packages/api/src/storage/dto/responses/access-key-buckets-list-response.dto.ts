@@ -5,7 +5,7 @@ export const accessKeyBucketsListResponseSchema = z.object({
   result: z.array(
     z.object({
       name: z.string(),
-      createdDate: z.date().optional(),
+      createdDate: z.string().datetime().optional(),
     }),
   ),
 })

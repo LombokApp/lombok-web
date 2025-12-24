@@ -3,6 +3,7 @@ import type {
   AppManifest,
   AppUiBundle,
   AppWorkersBundle,
+  ContainerProfileConfig,
   FolderScopeAppPermissions,
   PlatformScopeAppPermissions,
   UserScopeAppPermissions,
@@ -15,7 +16,7 @@ export const appsTable = pgTable('apps', {
   label: text('label').notNull(),
   publicKey: text('publicKey').notNull(),
   requiresStorage: boolean('requiresStorage').notNull(),
-  subscribedEvents: text('subscribedEvents')
+  subscribedPlatformEvents: text('subscribedPlatformEvents')
     .array()
     .notNull()
     .default(sql`ARRAY[]::text[]`),
@@ -43,6 +44,10 @@ export const appsTable = pgTable('apps', {
   ui: jsonb('ui').$type<AppUiBundle>().notNull(),
   database: boolean('database').notNull().default(false),
   manifest: jsonb('manifest').$type<AppManifest>().notNull(),
+  containerProfiles: jsonb('containerProfiles')
+    .$type<Record<string, ContainerProfileConfig>>()
+    .notNull()
+    .default({}),
   enabled: boolean('enabled').notNull().default(false),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),

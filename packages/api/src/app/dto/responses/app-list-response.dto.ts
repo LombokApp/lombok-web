@@ -1,13 +1,13 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { adminAppSchema } from '../admin-app.dto'
+import { adminAppDTOSchema } from '../admin-app.dto'
 
 export const appListResponseSchema = z.object({
   meta: z.object({
     totalCount: z.number(),
   }),
-  result: z.array(adminAppSchema),
+  result: z.array(adminAppDTOSchema),
 })
 
 export class AppListResponse extends createZodDto(appListResponseSchema) {}

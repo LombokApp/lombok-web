@@ -100,8 +100,12 @@ export function EventDetailUI({
   // Check if the current user owns the folder
   const isFolderOwner =
     currentUserId &&
-    eventData.subjectContext?.folderOwnerId &&
-    currentUserId === eventData.subjectContext.folderOwnerId
+    eventData.targetLocationContext?.folderOwnerId &&
+    currentUserId === eventData.targetLocationContext.folderOwnerId
+
+  const folderLabel =
+    eventData.targetLocationContext?.folderName ??
+    eventData.targetLocation?.folderId
 
   return (
     <div className={cn('flex size-full flex-1 flex-col items-center')}>
@@ -166,52 +170,41 @@ export function EventDetailUI({
                       {eventData.emitterIdentifier}
                     </p>
                   </div>
-                  {eventData.subjectContext && (
+                  {eventData.targetLocation && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Folder / Object
                       </label>
                       <div className="mt-1 space-y-1">
-                        {eventData.subjectContext.folderName &&
-                          eventData.subjectContext.folderId && (
-                            <p className="text-sm font-medium">
-                              Folder:{' '}
-                              {isFolderOwner ? (
-                                <Link
-                                  to={`/folders/${eventData.subjectContext.folderId}`}
-                                  className="text-primary hover:underline"
-                                >
-                                  {eventData.subjectContext.folderName}
-                                </Link>
-                              ) : (
-                                <span>
-                                  {eventData.subjectContext.folderName}
-                                </span>
-                              )}
-                            </p>
+                        <p className="text-sm font-medium">
+                          Folder:{' '}
+                          {isFolderOwner ? (
+                            <Link
+                              to={`/folders/${eventData.targetLocation.folderId}`}
+                              className="text-primary hover:underline"
+                            >
+                              {folderLabel}
+                            </Link>
+                          ) : (
+                            <span>{folderLabel}</span>
                           )}
-                        {eventData.subjectContext.objectKey &&
-                          eventData.subjectContext.folderId && (
+                        </p>
+                        {eventData.targetLocation.objectKey &&
+                          eventData.targetLocation.folderId && (
                             <p className="text-sm text-muted-foreground">
                               Object:{' '}
                               {isFolderOwner ? (
                                 <Link
-                                  to={`/folders/${eventData.subjectContext.folderId}/objects/${eventData.subjectContext.objectKey}`}
+                                  to={`/folders/${eventData.targetLocation.folderId}/objects/${eventData.targetLocation.objectKey}`}
                                   className="text-primary hover:underline"
                                 >
-                                  {eventData.subjectContext.objectKey}
+                                  {eventData.targetLocation.objectKey}
                                 </Link>
                               ) : (
                                 <span>
-                                  {eventData.subjectContext.objectKey}
+                                  {eventData.targetLocation.objectKey}
                                 </span>
                               )}
-                            </p>
-                          )}
-                        {!eventData.subjectContext.folderName &&
-                          eventData.subjectContext.folderId && (
-                            <p className="font-mono text-sm text-muted-foreground">
-                              Folder ID: {eventData.subjectContext.folderId}
                             </p>
                           )}
                       </div>

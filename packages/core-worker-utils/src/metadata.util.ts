@@ -41,15 +41,33 @@ export async function readFileMetadata(
     stderr: 'pipe',
   })
 
-  const stdoutText = await readStreamToString(child.stdout)
-  const stderrText = await readStreamToString(child.stderr)
+  // Start reading streams immediately (before process exits)
+  const stdoutPromise = readStreamToString(child.stdout)
+  const stderrPromise = readStreamToString(child.stderr)
 
-  const exitCode = await child.exited
+  // Wait for process to exit and streams to finish reading
+  const [stdoutText, stderrText, exitCode] = await Promise.all([
+    stdoutPromise,
+    stderrPromise,
+    child.exited,
+  ])
 
+  // If exiv2 exits with non-zero code but produces no output, it's likely
+  // an unsupported file type (e.g., PDF). Return empty metadata instead of throwing.
   if (exitCode !== 0) {
-    const errorMessage =
-      stderrText.trim() || 'Failed to read metadata with exif2'
-    throw new Error(errorMessage)
+    const errorMessage = stderrText.trim()
+    // Only throw if there's an actual error message. Empty stderr with non-zero
+    // exit code typically means unsupported file type, which we handle gracefully.
+    if (errorMessage) {
+      throw new Error(`exiv2 error: ${errorMessage}`)
+    }
+    // Unsupported file type - return empty metadata
+    await fs.promises.writeFile(
+      metadataFilePath,
+      JSON.stringify({}, null, 2),
+      'utf-8',
+    )
+    return {}
   }
 
   try {
@@ -63,10 +81,11 @@ export async function readFileMetadata(
         const match = line.match(/^([^\s]+)\s+(\w+)\s+(\d+)\s+(.*)$/)
         if (match) {
           const [, tagName, type, count, value] = match
-          metadata[tagName] = {
-            type,
-            count: parseInt(count, 10),
-            value: value.trim(),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          metadata[tagName!] = {
+            type: type ?? '',
+            count: parseInt(count ?? '0', 10),
+            value: value?.trim() ?? '',
           }
         }
       }
@@ -107,7 +126,7 @@ export function parseOrientationToNumeric(orientation: string): number {
   // Check if it's an Exif orientation description
   const normalizedOrientation = orientation.toLowerCase().trim()
   if (normalizedOrientation in exifOrientationMap) {
-    return exifOrientationMap[normalizedOrientation]
+    return exifOrientationMap[normalizedOrientation] ?? 0
   }
 
   // Fallback: Extract the rotation value from the orientation string (legacy format)
@@ -116,7 +135,7 @@ export function parseOrientationToNumeric(orientation: string): number {
     return 0
   }
 
-  const degrees = parseInt(rotationMatch[1], 10)
+  const degrees = parseInt(rotationMatch[1] ?? '0', 10)
   const direction = rotationMatch[2]
 
   // Convert to position number (0-359)

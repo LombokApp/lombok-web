@@ -8,7 +8,7 @@ import {
 } from '@lombokapp/types'
 import { z } from 'zod'
 
-export const userAppSchema = z.object({
+export const userAppDTOSchema = z.object({
   identifier: z.string(),
   label: z.string(),
   config: appConfigSchema,
@@ -19,8 +19,8 @@ export const userAppSchema = z.object({
   workers: appWorkersBundleSchema,
   ui: appUiBundleSchema.nullable(),
   contributions: appContributionsSchema,
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 })
 
-export class UserAppDTO extends createZodDto(userAppSchema) {}
+export class UserAppDTO extends createZodDto(userAppDTOSchema) {}

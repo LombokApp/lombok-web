@@ -30,7 +30,8 @@
       "@lombokapp/types/*": ["../types/src/*"],
       "@lombokapp/utils": ["../utils/src"],
       "@lombokapp/utils/*": ["../utils/src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": true
   },
   "include": [
     "src/**/*.ts",

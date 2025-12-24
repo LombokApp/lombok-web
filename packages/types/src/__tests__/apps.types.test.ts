@@ -1,19 +1,40 @@
 import { describe, expect, it } from 'bun:test'
+import { PlatformObjectAddedEventTriggerIdentifier } from 'src/events.types'
 import type { SafeParseReturnType } from 'zod'
 
+import type { AppConfig } from '../apps.types'
 import {
   appConfigSchema,
   appConfigWithManifestSchema,
   appContributionsSchema,
   appManifestSchema,
+  appMetricsSchema,
+  appSocketMessageSchema,
+  appUiBundleSchema,
   appUIConfigSchema,
   appUILinkSchema,
   appWorkerConfigSchema,
+  appWorkersBundleSchema,
+  appWorkerSchema,
+  appWorkerScriptIdentifierSchema,
+  appWorkersMapSchema,
   ConfigParamType,
+  containerProfileConfigSchema,
+  containerProfileResourceHintsSchema,
+  dockerWorkerConfigSchema,
+  execJobDefinitionSchema,
   externalAppWorkerSchema,
+  folderScopeAppPermissionsSchema,
+  httpJobDefinitionSchema,
   paramConfigSchema,
-  taskConfigSchema,
+  platformScopeAppPermissionsSchema,
+  userScopeAppPermissionsSchema,
+  workerEntrypointSchema,
 } from '../apps.types'
+import {
+  taskOnCompleteConfigSchema,
+  taskTriggerConfigSchema,
+} from '../task.types'
 
 // Helper assertions that print zod errors only if the expectation fails
 const expectZodSuccess = (result: SafeParseReturnType<unknown, unknown>) => {
@@ -100,99 +121,30 @@ describe('apps.types', () => {
     })
   })
 
-  describe('taskConfigSchema', () => {
-    it('should validate complete task config', () => {
-      const validTask = {
-        identifier: 'test_task',
-        label: 'Test Task',
-        description: 'A test task',
-        triggers: ['test.event'],
-        worker: 'test-worker',
-      }
-      const result = taskConfigSchema.safeParse(validTask)
-      expectZodSuccess(result)
-    })
-
-    it('should validate minimal task config', () => {
-      const validTask = {
-        identifier: 'test_task',
-        label: 'Test Task',
-        description: 'A test task',
-        triggers: ['test.event'],
-      }
-      const result = taskConfigSchema.safeParse(validTask)
-      expectZodSuccess(result)
-    })
-
-    it('should reject task without required fields', () => {
-      const invalidTask = {
-        identifier: 'test_task',
-        // missing label and description and triggers
-      }
-      const result = taskConfigSchema.safeParse(invalidTask)
-      expectZodFailure(result)
-    })
-  })
-
   describe('appConfigSchema', () => {
-    it('should validate complete app config', () => {
-      const validApp = {
-        identifier: 'testapp',
-        label: 'Test App',
-        description: 'A test application',
-        emittableEvents: ['event1', 'event2'],
-        tasks: [
-          {
-            identifier: 'task',
-            label: 'Task 1',
-            description: 'First task',
-            triggers: ['test.event'],
-            worker: 'script1',
-          },
-        ],
-        workers: {
-          script1: {
-            entrypoint: 'worker1.js',
-            description: 'Test script',
-            environmentVariables: { VAR1: 'value1' },
-          },
-        },
-      }
-      const result = appConfigSchema.safeParse(validApp)
-      expectZodSuccess(result)
-    })
-
     it('should validate minimal app config', () => {
       const validApp = {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
-        tasks: [
-          {
-            identifier: 'task',
-            label: 'Task 1',
-            description: 'First task',
-            triggers: ['test.event'],
-          },
-        ],
       }
       const result = appConfigSchema.safeParse(validApp)
       expectZodSuccess(result)
     })
-    it('should validate when task.worker exists in workers', () => {
+    it('should validate when worker handler identifier exists in workers', () => {
       const validApp = {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         tasks: [
           {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
-            worker: 'script1',
+            handler: {
+              type: 'worker',
+              identifier: 'script1',
+            },
           },
         ],
         workers: {
@@ -207,19 +159,20 @@ describe('apps.types', () => {
       expectZodSuccess(result)
     })
 
-    it('should reject when task.worker does not exist in workers', () => {
+    it('should reject when worker handler identifier does not exist in workers', () => {
       const invalidApp = {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event'],
         tasks: [
           {
             identifier: 'task',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
-            worker: 'missing_worker',
+            handler: {
+              type: 'worker',
+              identifier: 'missing_worker',
+            },
           },
         ],
         workers: {
@@ -239,7 +192,6 @@ describe('apps.types', () => {
         identifier: 'TEST_APP', // uppercase not allowed
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -257,7 +209,6 @@ describe('apps.types', () => {
         identifier: 'platform',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -275,7 +226,6 @@ describe('apps.types', () => {
         identifier: '',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
@@ -286,6 +236,279 @@ describe('apps.types', () => {
       }
       const result = appConfigSchema.safeParse(invalidApp)
       expectZodFailure(result)
+    })
+
+    it('should validate top-level event trigger data templating', () => {
+      const appWithTemplatedTrigger: AppConfig = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        subscribedPlatformEvents: ['platform:worker_task_enqueued'],
+        workers: {
+          worker1: {
+            entrypoint: 'worker.js',
+            description: 'Test worker',
+          },
+        },
+        tasks: [
+          {
+            identifier: 'templated_task',
+            label: 'Templated Task',
+            description: 'Uses event data interpolation',
+            handler: {
+              type: 'worker',
+              identifier: 'worker1',
+            },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:worker_task_enqueued',
+            taskIdentifier: 'templated_task',
+            dataTemplate: {
+              innerTaskId: '{{event.data.innerTaskId}}',
+              appIdentifier: '{{event.data.appIdentifier}}',
+              workerIdentifier: '{{event.data.workerIdentifier}}',
+            },
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(appWithTemplatedTrigger)
+      expectZodSuccess(result)
+    })
+
+    it('should validate app config with top-level triggers handled by tasks', () => {
+      const validApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        subscribedPlatformEvents: ['platform:object_added'],
+        tasks: [
+          {
+            identifier: 'demo_worker_task_on_complete',
+            label: 'On Complete Handler',
+            description: 'Is run as a completion handler for another task.',
+            handler: {
+              type: 'worker',
+              identifier: 'demo_on_complete_worker',
+            },
+          },
+          {
+            identifier: 'demo_object_added_worker_task',
+            label: 'Demo Object Added Worker',
+            description: 'A task that runs for every newly added object.',
+            handler: {
+              type: 'worker',
+              identifier: 'demo_object_added_worker',
+            },
+          },
+          {
+            identifier: 'demo_scheduled_worker_task',
+            label: 'Demo Scheduled Worker',
+            description: 'A task that runs in response to a schedule event.',
+            handler: {
+              type: 'worker',
+              identifier: 'demo_scheduled_worker',
+            },
+          },
+        ],
+        workers: {
+          demo_object_added_worker: {
+            entrypoint: 'demo_object_added_worker/index.ts',
+            description: 'Runs for every newly added object.',
+          },
+          demo_scheduled_worker: {
+            entrypoint: 'demo_scheduled_worker/index.ts',
+            description: 'Runs in response to a schedule event.',
+          },
+          demo_on_complete_worker: {
+            entrypoint: 'demo_on_complete_worker/index.ts',
+            description: 'Runs as a completion handler for another task.',
+          },
+        },
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:object_added',
+            taskIdentifier: 'demo_object_added_worker_task',
+            onComplete: [
+              {
+                taskIdentifier: 'demo_worker_task_on_complete',
+                dataTemplate: {
+                  success: {
+                    taskError: '{{task.error}}',
+                  },
+                },
+              },
+            ],
+          },
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+            taskIdentifier: 'demo_scheduled_worker_task',
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should reject app config when top-level trigger handler references unknown task', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:object_added',
+            taskIdentifier: 'missing_task',
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config when onComplete handler references unknown task', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        tasks: [
+          {
+            identifier: 'root_task',
+            label: 'Root task',
+            description: 'First task',
+            handler: {
+              type: 'external',
+            },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'schedule',
+            config: {
+              interval: 1,
+              unit: 'hours',
+            },
+            taskIdentifier: 'root_task',
+            onComplete: [
+              {
+                taskIdentifier: 'missing_task',
+              },
+            ],
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config when nested onComplete handler references unknown task', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'demo',
+        label: 'Demo App',
+        description: 'A demo application',
+        tasks: [
+          {
+            identifier: 'root_task',
+            label: 'Root task',
+            description: 'First task',
+            handler: {
+              type: 'external',
+            },
+          },
+          {
+            identifier: 'first_on_complete',
+            label: 'First onComplete',
+            description: 'First onComplete task',
+            handler: {
+              type: 'external',
+            },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: 'platform:object_added',
+            taskIdentifier: 'root_task',
+            onComplete: [
+              {
+                taskIdentifier: 'first_on_complete',
+                onComplete: [
+                  {
+                    taskIdentifier: 'deep_missing_task',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+  })
+
+  describe('taskTriggerConfigSchema', () => {
+    it('should validate trigger with onComplete task chain', () => {
+      const result = taskTriggerConfigSchema.safeParse({
+        kind: 'event',
+        eventIdentifier: 'platform:object_added',
+        taskIdentifier: 'demo_worker',
+        onComplete: [
+          {
+            taskIdentifier: 'on_complete_task',
+            condition: 'task.success',
+            dataTemplate: {
+              someKey: '{{task.result.someKey}}',
+            },
+            onComplete: [
+              {
+                taskIdentifier: 'final_task',
+              },
+            ],
+          },
+        ],
+      })
+
+      expectZodSuccess(result)
+    })
+
+    it('should reject trigger without a task identifier', () => {
+      const result = taskTriggerConfigSchema.safeParse({
+        kind: 'event',
+        eventIdentifier: 'platform:object_added',
+      } as unknown)
+
+      expectZodFailure(result)
+    })
+  })
+
+  describe('taskOnCompleteConfigSchema', () => {
+    it('should validate a standalone onComplete config', () => {
+      const result = taskOnCompleteConfigSchema.safeParse({
+        taskIdentifier: 'test_task',
+        dataTemplate: {
+          someKey: '{{result.someKey}}',
+        },
+        onComplete: [
+          {
+            taskIdentifier: 'nested_task',
+          },
+        ],
+      })
+      expectZodSuccess(result)
     })
   })
 
@@ -308,14 +531,15 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
-            worker: 'script1',
+            handler: {
+              type: 'worker',
+              identifier: 'script1',
+            },
           },
         ],
         workers: {
@@ -343,16 +567,6 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
-        tasks: [
-          {
-            identifier: 'task_one',
-            label: 'Task 1',
-            description: 'First task',
-            triggers: ['test.event'],
-            worker: 'script1',
-          },
-        ],
         workers: {
           script1: {
             entrypoint: 'nonexistent.js',
@@ -363,7 +577,8 @@ describe('apps.types', () => {
 
       const result = appConfigWithManifestSchema(manifest).safeParse(invalidApp)
       expectZodFailure(result)
-      expect(result.error?.issues[0].message).toContain(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      expect(result.error?.issues[0]!.message).toContain(
         'does not exist in manifest',
       )
     })
@@ -381,13 +596,14 @@ describe('apps.types', () => {
         identifier: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        emittableEvents: ['event1'],
         tasks: [
           {
             identifier: 'task_one',
             label: 'Task 1',
             description: 'First task',
-            triggers: ['test.event'],
+            handler: {
+              type: 'external',
+            },
           },
         ],
       }
@@ -505,6 +721,43 @@ describe('apps.types', () => {
     })
   })
 
+  describe('workerEntrypointSchema', () => {
+    it('should validate a simple relative entrypoint', () => {
+      const result = workerEntrypointSchema.safeParse('workers/worker.js')
+      expectZodSuccess(result)
+    })
+
+    it('should reject entrypoints starting with "/"', () => {
+      const result = workerEntrypointSchema.safeParse('/workers/worker.js')
+      expectZodFailure(result)
+    })
+
+    it('should reject entrypoints starting with "./"', () => {
+      const result = workerEntrypointSchema.safeParse('./worker.js')
+      expectZodFailure(result)
+    })
+
+    it('should reject entrypoints containing ".."', () => {
+      const result = workerEntrypointSchema.safeParse('workers/../worker.js')
+      expectZodFailure(result)
+    })
+
+    it('should reject entrypoints with backslashes', () => {
+      const result = workerEntrypointSchema.safeParse('workers\\worker.js')
+      expectZodFailure(result)
+    })
+
+    it('should reject entrypoints with leading or trailing whitespace', () => {
+      const result = workerEntrypointSchema.safeParse(' worker.js ')
+      expectZodFailure(result)
+    })
+
+    it('should reject entrypoints with consecutive slashes', () => {
+      const result = workerEntrypointSchema.safeParse('workers//worker.js')
+      expectZodFailure(result)
+    })
+  })
+
   describe('appContributionsSchema', () => {
     it('should validate complete contributions object', () => {
       const validContributions = {
@@ -572,6 +825,514 @@ describe('apps.types', () => {
         invalidContributions as unknown,
       )
       expectZodFailure(result)
+    })
+  })
+
+  describe('containerProfileResourceHintsSchema', () => {
+    it('should validate resource hints with positive numbers', () => {
+      const result = containerProfileResourceHintsSchema.safeParse({
+        gpu: true,
+        memoryMB: 1024,
+        cpuCores: 2,
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should reject negative numeric resource hints', () => {
+      const result = containerProfileResourceHintsSchema.safeParse({
+        memoryMB: -1,
+        cpuCores: -2,
+      })
+      expectZodFailure(result)
+    })
+  })
+
+  describe('dockerWorkerConfigSchema', () => {
+    it('should validate an exec docker worker config', () => {
+      const result = dockerWorkerConfigSchema.safeParse({
+        kind: 'exec',
+        command: ['run'],
+        jobIdentifier: 'job',
+        maxPerContainer: 1,
+        countTowardsGlobalCap: false,
+        priority: 10,
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should validate an http docker worker config', () => {
+      const result = dockerWorkerConfigSchema.safeParse({
+        kind: 'http',
+        command: ['serve'],
+        port: 8080,
+        jobs: [
+          {
+            identifier: 'job',
+          },
+        ],
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('containerProfileConfigSchema', () => {
+    it('should validate a container profile with workers', () => {
+      const result = containerProfileConfigSchema.safeParse({
+        image: 'example-image',
+        resources: {
+          memoryMB: 512,
+        },
+        workers: [
+          {
+            kind: 'exec',
+            command: ['run'],
+            jobIdentifier: 'job',
+          },
+        ],
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('appConfigSchema container profile and docker handlers', () => {
+    it('should validate when docker handler references existing container job', () => {
+      const validApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        containerProfiles: {
+          default: {
+            image: 'example-image',
+            workers: [
+              {
+                kind: 'exec',
+                command: ['run'],
+                jobIdentifier: 'job',
+              },
+            ],
+          },
+        },
+        tasks: [
+          {
+            identifier: 'task',
+            label: 'Task 1',
+            description: 'First task',
+            handler: {
+              type: 'docker',
+              identifier: 'default:job',
+            },
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('should reject when docker handler profile does not exist', () => {
+      const invalidApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        tasks: [
+          {
+            identifier: 'task',
+            label: 'Task 1',
+            description: 'First task',
+            handler: {
+              type: 'docker',
+              identifier: 'missing:job',
+            },
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expect(result.error?.issues).toEqual([
+        {
+          code: 'custom',
+          message:
+            'Unknown container profile "missing". Must be one of: (none)',
+          path: ['tasks', 0, 'worker'],
+        },
+      ])
+      expectZodFailure(result)
+    })
+
+    it('should reject when docker handler job name does not exist in profile', () => {
+      const invalidApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        containerProfiles: {
+          default: {
+            image: 'example-image',
+            workers: {
+              worker: [
+                {
+                  kind: 'exec',
+                  command: ['run'],
+                  jobIdentifier: 'existing',
+                },
+              ],
+            },
+          },
+        },
+        tasks: [
+          {
+            identifier: 'task',
+            label: 'Task 1',
+            description: 'First task',
+            triggers: ['test.event'],
+            handler: {
+              type: 'docker',
+              identifier: 'default:missing',
+            },
+          },
+        ],
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+  })
+
+  describe('appConfigSchema permissions and options', () => {
+    it('should validate app config with permissions, storage, ui and database', () => {
+      const validApp = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        requiresStorage: true,
+        permissions: {
+          platform: ['READ_ACL'],
+          user: ['CREATE_FOLDERS', 'READ_USER'],
+          folder: ['READ_OBJECTS', 'REINDEX_FOLDER'],
+        },
+        ui: {
+          enabled: true,
+          csp: "default-src 'self'",
+        },
+        database: {
+          enabled: true,
+        },
+      }
+
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('appConfigSchema duplicate container job detection', () => {
+    it('should reject duplicate job names within a single container profile', () => {
+      const invalidApp: AppConfig = {
+        identifier: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        containerProfiles: {
+          default: {
+            image: 'example-image',
+            workers: [
+              {
+                kind: 'exec',
+                command: ['run'],
+                jobIdentifier: 'job',
+              },
+              {
+                kind: 'exec',
+                command: ['run'],
+                jobIdentifier: 'job',
+              },
+            ],
+          },
+        },
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+  })
+
+  describe('platform, user and folder scope permissions schemas', () => {
+    it('should validate platform scope permissions', () => {
+      const result = platformScopeAppPermissionsSchema.safeParse('READ_ACL')
+      expectZodSuccess(result)
+    })
+
+    it('should validate user scope permissions', () => {
+      const result = userScopeAppPermissionsSchema.safeParse('CREATE_FOLDERS')
+      expectZodSuccess(result)
+    })
+
+    it('should validate folder scope permissions', () => {
+      const result = folderScopeAppPermissionsSchema.safeParse('READ_OBJECTS')
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('appWorkerSchema and related schemas', () => {
+    it('should validate app worker definition', () => {
+      const result = appWorkerSchema.safeParse({
+        description: 'Test worker',
+        environmentVariables: {
+          SOME_ENV_VAR: 'value',
+        },
+        entrypoint: 'worker.js',
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should reject app worker definition with missing env vars', () => {
+      const result = appWorkerSchema.safeParse({
+        description: 'Test worker',
+        entrypoint: 'worker.js',
+      })
+      expectZodFailure(result)
+    })
+
+    it('should validate app workers bundle schema', () => {
+      const result = appWorkersBundleSchema.safeParse({
+        hash: 'bundlehash',
+        size: 1234,
+        manifest: {
+          'worker.js': {
+            hash: 'hash',
+            size: 10,
+            mimeType: 'application/javascript',
+          },
+        },
+        definitions: {
+          worker: {
+            description: 'Test worker',
+            environmentVariables: {
+              SOME_ENV_VAR: 'value',
+            },
+            entrypoint: 'worker.js',
+          },
+        },
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should validate app UI bundle schema', () => {
+      const result = appUiBundleSchema.safeParse({
+        hash: 'uibundle',
+        size: 1234,
+        csp: "default-src 'self'",
+        manifest: {
+          'index.js': {
+            hash: 'hash',
+            size: 10,
+            mimeType: 'application/javascript',
+          },
+        },
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should validate app workers map schema', () => {
+      const result = appWorkersMapSchema.safeParse({
+        worker: {
+          description: 'Test worker',
+          environmentVariables: {
+            SOME_ENV_VAR: 'value',
+          },
+          entrypoint: 'worker.js',
+        },
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should validate app worker script identifier schema', () => {
+      const result = appWorkerScriptIdentifierSchema.safeParse('worker_id')
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('appMetricsSchema', () => {
+    it('should validate app metrics', () => {
+      const result = appMetricsSchema.safeParse({
+        tasksExecutedLast24Hours: {
+          completed: 10,
+          failed: 2,
+        },
+        errorsLast24Hours: {
+          total: 3,
+          last10Minutes: 1,
+        },
+        eventsEmittedLast24Hours: {
+          total: 20,
+          last10Minutes: 5,
+        },
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('httpJobDefinitionSchema', () => {
+    it('should validate job definition', () => {
+      const result = httpJobDefinitionSchema.safeParse({
+        identifier: 'job',
+        maxPerContainer: 1,
+        countTowardsGlobalCap: false,
+        priority: 5,
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('execJobDefinitionSchema', () => {
+    it('should validate job definition', () => {
+      const result = execJobDefinitionSchema.safeParse({
+        kind: 'exec',
+        command: ['run'],
+        jobIdentifier: 'job',
+        maxPerContainer: 1,
+        countTowardsGlobalCap: false,
+        priority: 5,
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('appSocketMessageSchema', () => {
+    it('should validate a socket message with optional data', () => {
+      const result = appSocketMessageSchema.safeParse({
+        name: 'AUTHENTICATE_USER',
+        data: {
+          token: 'token',
+        },
+      })
+      expectZodSuccess(result)
+    })
+
+    it('should reject a socket message with invalid name', () => {
+      const result = appSocketMessageSchema.safeParse({
+        name: 'INVALID',
+      })
+      expectZodFailure(result)
+    })
+  })
+
+  describe('should validate app config (complex)', () => {
+    it('should validate an exec docker worker config', () => {
+      const result = appConfigSchema.safeParse({
+        description: 'The official Lombok AI app',
+        identifier: 'ai',
+        label: 'Lombok AI',
+        requiresStorage: true,
+        subscribedPlatformEvents: ['platform:object_added'],
+        workers: {
+          api_worker: {
+            entrypoint: 'api-worker-entrypoint.js',
+            description: 'The API worker.',
+            environmentVariables: {
+              LLAMACPP_BASE_URL: 'https://llamacpp.phonk.tv/v1',
+              LLAMACPP_API_KEY: '8b90bf27-5fb4-44c6-ad1f-5ca8401a0cc3',
+            },
+          },
+          search_worker: {
+            entrypoint: 'handle-search/index.js',
+            description: 'The search request worker.',
+          },
+          trigger_extract_content_metadata_worker: {
+            entrypoint: 'extract-content-metadata/index.js',
+            description:
+              'The worker that triggers the extract content metadata job.',
+          },
+        },
+        tasks: [
+          {
+            identifier: 'trigger_extract_content_metadata',
+            label: 'Trigger Extract Content Metadata',
+            description:
+              'A task that runs for every newly added object and triggers the job to extract metadata and generate embeddings.',
+            handler: {
+              type: 'worker',
+              identifier: 'trigger_extract_content_metadata_worker',
+            },
+          },
+          {
+            identifier: 'extract_content_metadata',
+            label: 'Extract Content Metadata',
+            description:
+              'A docker based task that does deep metadata extraction and generation of embeddings on content.',
+            handler: {
+              type: 'docker',
+              identifier: 'content_indexing:generate_content_embeddings',
+            },
+          },
+        ],
+        triggers: [
+          {
+            kind: 'event',
+            eventIdentifier: PlatformObjectAddedEventTriggerIdentifier,
+            taskIdentifier: 'trigger_extract_content_metadata',
+          },
+        ],
+        ui: {
+          enabled: true,
+        },
+        contributions: {
+          sidebarMenuLinks: [
+            {
+              label: 'Chat',
+              iconPath: '/assets/logo.png',
+              path: '/chat/new',
+            },
+          ],
+          folderSidebarViews: [],
+          objectSidebarViews: [],
+          objectDetailViews: [],
+        },
+        permissions: {
+          platform: ['READ_ACL'],
+          folder: [
+            'READ_OBJECTS',
+            'WRITE_OBJECTS',
+            'WRITE_OBJECTS_METADATA',
+            'WRITE_FOLDER_METADATA',
+          ],
+          user: ['READ_USER'],
+        },
+        containerProfiles: {
+          content_indexing: {
+            image: 'docker.phonk.tv/lombok-ai-search-worker',
+            workers: [
+              {
+                kind: 'exec',
+                jobIdentifier: 'hello_world',
+                command: ['echo', '{ "message": "Hello, world!" }'],
+              },
+              {
+                kind: 'http',
+                command: ['./start_worker.sh', '8080'],
+                port: 8080,
+                jobs: [
+                  {
+                    identifier: 'generate_content_embeddings',
+                    maxPerContainer: 2,
+                  },
+                  {
+                    identifier: 'generate_text_embedding',
+                    maxPerContainer: 2,
+                    countTowardsGlobalCap: false,
+                  },
+                  {
+                    identifier: 'rerank_search_results',
+                    maxPerContainer: 2,
+                    countTowardsGlobalCap: false,
+                  },
+                ],
+              },
+            ],
+            resources: {
+              gpu: true,
+            },
+          },
+        },
+      })
+      expectZodSuccess(result)
     })
   })
 })

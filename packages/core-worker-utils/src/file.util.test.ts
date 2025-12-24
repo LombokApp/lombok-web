@@ -109,7 +109,7 @@ describe('file.util', () => {
       })
     }, 10000)
 
-    it('should throw error when upload fails', async () => {
+    it('should throw error when upload fails', () => {
       const uploadUrl = 'https://example.com/upload'
 
       mockFetch.mockResolvedValueOnce({
@@ -123,18 +123,16 @@ describe('file.util', () => {
         },
       })
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(uploadFile(testFilePath, uploadUrl)).rejects.toThrow(
+      expect(uploadFile(testFilePath, uploadUrl)).rejects.toThrow(
         'Upload failed with status 500',
       )
     })
 
-    it('should throw error when file does not exist', async () => {
+    it('should throw error when file does not exist', () => {
       const nonExistentFile = path.join(tempDir, 'nonexistent.txt')
       const uploadUrl = 'https://example.com/upload'
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(uploadFile(nonExistentFile, uploadUrl)).rejects.toThrow()
+      expect(uploadFile(nonExistentFile, uploadUrl)).rejects.toThrow()
     })
 
     it('should handle large files correctly', async () => {
@@ -200,14 +198,13 @@ describe('file.util', () => {
       expect(hash).toMatch(/^[a-f0-9]{40}$/)
     }, 10000)
 
-    it('should reject on stream error', async () => {
+    it('should reject on stream error', () => {
       const nonExistentFile = path.join(tempDir, 'nonexistent-file.txt')
       const readStream = fs.createReadStream(nonExistentFile)
 
       // The stream will emit an error when we try to read from it
       // We need to wait for the error to be emitted
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(hashFileStream(readStream)).rejects.toThrow()
+      expect(hashFileStream(readStream)).rejects.toThrow()
     }, 10000)
   })
 
@@ -239,11 +236,10 @@ describe('file.util', () => {
       expect(hash).toMatch(/^[a-f0-9]{40}$/)
     }, 10000)
 
-    it('should throw error for non-existent file', async () => {
+    it('should throw error for non-existent file', () => {
       const nonExistentFile = path.join(tempDir, 'nonexistent.txt')
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(hashLocalFile(nonExistentFile)).rejects.toThrow()
+      expect(hashLocalFile(nonExistentFile)).rejects.toThrow()
     }, 10000)
 
     it('should produce consistent hashes for same content', async () => {
@@ -303,7 +299,7 @@ describe('file.util', () => {
       expect(fs.readFileSync(outputPath, 'utf8')).toBe(responseContent)
     }, 10000)
 
-    it('should handle download failure', async () => {
+    it('should handle download failure', () => {
       const downloadUrl = 'https://example.com/file.txt'
       const outputPath = path.join(tempDir, 'downloaded.txt')
 
@@ -318,13 +314,12 @@ describe('file.util', () => {
         },
       })
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
+      expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
         'Download failed with status 404',
       )
     }, 10000)
 
-    it('should throw error when content-type header is missing', async () => {
+    it('should throw error when content-type header is missing', () => {
       const downloadUrl = 'https://example.com/file.txt'
       const outputPath = path.join(tempDir, 'downloaded.txt')
 
@@ -339,13 +334,12 @@ describe('file.util', () => {
         },
       })
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
+      expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
         'Cannot resolve mimeType for https://example.com/file.txt',
       )
     }, 10000)
 
-    it('should throw error when response body is not available', async () => {
+    it('should throw error when response body is not available', () => {
       const downloadUrl = 'https://example.com/file.txt'
       const outputPath = path.join(tempDir, 'downloaded.txt')
 
@@ -359,8 +353,7 @@ describe('file.util', () => {
         body: null,
       })
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-confusing-void-expression
-      await expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
+      expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
         'No response body available',
       )
     }, 10000)

@@ -1,6 +1,6 @@
 import type { UserPushMessage } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import type { Namespace, Socket } from 'socket.io'
 import { z } from 'zod'
 
@@ -16,6 +16,7 @@ const UserAuthPayload = z.object({
 
 @Injectable()
 export class UserSocketService {
+  private readonly logger = new Logger(UserSocketService.name)
   private readonly connectedClients = new Map<string, Socket>()
 
   private namespace: Namespace | undefined
@@ -26,7 +27,7 @@ export class UserSocketService {
   constructor(private readonly jwtService: JWTService) {}
 
   async handleConnection(socket: Socket): Promise<void> {
-    // console.log('UserSocketService handleConnection:', socket.nsp.name)
+    this.logger.debug('UserSocketService handleConnection:', socket.nsp.name)
 
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)
@@ -51,14 +52,12 @@ export class UserSocketService {
           throw new UnauthorizedException()
         }
       } catch (error: unknown) {
-        // eslint-disable-next-line no-console
-        console.log('SOCKET ERROR:', error)
+        this.logger.error('Socket error:', error)
         socket.conn.close()
       }
     } else {
       // auth payload does not match expected
-      // eslint-disable-next-line no-console
-      console.log('Bad auth payload.', auth)
+      this.logger.error('Bad auth payload:', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
     }
@@ -68,8 +67,7 @@ export class UserSocketService {
     if (this.namespace) {
       this.namespace.to(`user:${userId}`).emit(name, msg)
     } else {
-      // eslint-disable-next-line no-console
-      console.log('Namespace not yet set when sending user room message.')
+      this.logger.warn('Namespace not yet set when sending user room message.')
     }
   }
 }

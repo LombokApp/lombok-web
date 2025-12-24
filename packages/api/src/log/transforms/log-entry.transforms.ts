@@ -1,24 +1,43 @@
-import type { LogEntryDTO } from '../dto/log-entry.dto'
+import type {
+  LogEntryDTO,
+  LogEntryWithTargetLocationContextDTO,
+} from '../dto/log-entry.dto'
 import type { LogEntry } from '../entities/log-entry.entity'
+
+// Overload for when folder is present
+export function transformLogEntryToDTO(
+  logEntry: LogEntry & { folder: { name: string; ownerId: string } },
+): LogEntryWithTargetLocationContextDTO
+
+// Overload for when folder is not present
+export function transformLogEntryToDTO(logEntry: LogEntry): LogEntryDTO
 
 export function transformLogEntryToDTO(
   logEntry: LogEntry & { folder?: { name: string; ownerId: string } },
-): LogEntryDTO {
-  return {
+): LogEntryDTO | LogEntryWithTargetLocationContextDTO {
+  const baseDTO: LogEntryDTO = {
     id: logEntry.id,
     emitterIdentifier: logEntry.emitterIdentifier,
     message: logEntry.message,
     level: logEntry.level,
-    subjectContext:
-      logEntry.subjectFolderId && logEntry.folder
-        ? {
-            folderId: logEntry.subjectFolderId,
-            objectKey: logEntry.subjectObjectKey ?? undefined,
-            folderName: logEntry.folder.name,
-            folderOwnerId: logEntry.folder.ownerId,
-          }
-        : undefined,
+    targetLocation: logEntry.targetLocation ?? undefined,
     data: logEntry.data,
-    createdAt: logEntry.createdAt,
+    createdAt: logEntry.createdAt.toISOString(),
   }
+
+  // If folder is present, add subjectContext and return LogEntryWithFolderSubjectContextDTO
+  if (logEntry.targetLocation?.folderId && logEntry.folder) {
+    return {
+      ...baseDTO,
+      targetLocationContext: {
+        folderId: logEntry.targetLocation.folderId,
+        objectKey: logEntry.targetLocation.objectKey ?? undefined,
+        folderName: logEntry.folder.name,
+        folderOwnerId: logEntry.folder.ownerId,
+      },
+    }
+  }
+
+  // Otherwise return base LogEntryDTO
+  return baseDTO
 }

@@ -117,7 +117,7 @@ export class AccessKeysController {
       result:
         result.Buckets?.map((bucket) => ({
           name: bucket.Name ?? '',
-          createdDate: bucket.CreationDate,
+          createdDate: bucket.CreationDate?.toISOString(),
         })) ?? [],
     }
   }

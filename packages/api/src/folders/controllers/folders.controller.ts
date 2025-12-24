@@ -54,7 +54,6 @@ import { FolderShareUserListResponse } from '../dto/responses/folder-share-user-
 import type { FolderUpdateResponseDTO } from '../dto/responses/folder-update-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
-import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
 import { FolderOperationForbiddenException } from '../exceptions/folder-operation-forbidden.exception'
 import { FolderService } from '../services/folder.service'
 
@@ -221,7 +220,10 @@ export class FoldersController {
     const result = await this.folderService.getFolderAsUser(req.user, folderId)
 
     if (result.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      await this.folderService.queueReindexFolder(result.folder.id, req.user.id)
+      await this.folderService.queueReindexFolderAsUser(
+        req.user,
+        result.folder.id,
+      )
     } else {
       throw new FolderOperationForbiddenException()
     }
@@ -347,28 +349,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Handle app task trigger
-   */
-  @Post('/:folderId/apps/:appIdentifier/trigger/:taskIdentifier')
-  async handleAppTaskTrigger(
-    @Req() req: express.Request,
-    @Param('folderId', ParseUUIDPipe) folderId: string,
-    @Param('appIdentifier') appIdentifier: string,
-    @Param('taskIdentifier') taskIdentifier: string,
-    @Body() body: TriggerAppTaskInputDTO,
-  ): Promise<void> {
-    if (!req.user) {
-      throw new UnauthorizedException()
-    }
-    await this.folderService.handleAppTaskTrigger(req.user, {
-      folderId,
-      taskIdentifier,
-      inputParams: body.inputParams,
-      appIdentifier,
-      objectKey: body.objectKey,
-    })
-  }
   /**
    * Get folder share for a user
    */

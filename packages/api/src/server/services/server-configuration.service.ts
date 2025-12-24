@@ -122,7 +122,7 @@ export class ServerConfigurationService {
 
     // Validate the value against the associated schema
     const config = CONFIGURATION_KEYS_MAP[settingKey]
-    if (!config.schema.safeParse(settingValue).success) {
+    if (!config?.schema.safeParse(settingValue).success) {
       throw new ServerConfigurationInvalidException()
     }
 

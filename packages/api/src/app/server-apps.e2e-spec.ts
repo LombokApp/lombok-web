@@ -8,10 +8,16 @@ const TEST_MODULE_KEY = 'server_apps'
 describe('Server Apps', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
+  let appsCount = 0
 
   beforeAll(async () => {
-    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+    })
     apiClient = testModule.apiClient
+    const apps =
+      await testModule.services.ormService.db.query.appsTable.findMany()
+    appsCount = apps.length
   })
 
   afterEach(async () => {
@@ -36,7 +42,7 @@ describe('Server Apps', () => {
     if (!listAppsResponse.data) {
       throw new Error('No response data received')
     }
-    expect(listAppsResponse.data.result.length).toEqual(1)
+    expect(listAppsResponse.data.result.length).toEqual(appsCount)
     expect(listAppsResponse.data.result.length).toEqual(
       listAppsResponse.data.meta.totalCount,
     )

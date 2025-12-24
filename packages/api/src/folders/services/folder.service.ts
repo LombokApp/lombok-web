@@ -2,6 +2,8 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   InlineMetadataEntry,
+  JsonSerializableObject,
+  JsonSerializableValue,
   PreviewMetadata,
   S3ObjectInternal,
   StorageProvisionType,
@@ -11,6 +13,7 @@ import {
   FolderPushMessage,
   MediaType,
   PLATFORM_IDENTIFIER,
+  PlatformEvent,
   previewMetadataSchema,
   SignedURLsRequestMethod,
   StorageProvisionTypeEnum,
@@ -26,6 +29,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
@@ -33,6 +37,7 @@ import { ModuleRef } from '@nestjs/core'
 import {
   aliasedTable,
   and,
+  count,
   eq,
   gt,
   ilike,
@@ -62,6 +67,7 @@ import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
@@ -162,6 +168,7 @@ const serverProvisionPayloadSchema = z.object({
 
 @Injectable()
 export class FolderService {
+  private readonly logger = new Logger(FolderService.name)
   eventService: EventService
   appService: AppService
   get folderSocketService(): FolderSocketService {
@@ -183,6 +190,7 @@ export class FolderService {
     private readonly _platformTaskService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly taskService: TaskService,
     private readonly userService: UserService,
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
@@ -332,7 +340,8 @@ export class FolderService {
         throw new BadRequestException()
       }
 
-      return location
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return location!
     }
 
     const contentLocation = await buildLocation(
@@ -345,6 +354,7 @@ export class FolderService {
       body.metadataLocation,
     )
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const folder = (
       await this.ormService.db
         .insert(foldersTable)
@@ -358,7 +368,7 @@ export class FolderService {
           updatedAt: now,
         })
         .returning()
-    )[0]
+    )[0]!
 
     await this.checkAndUpdateFolderAccessError(folder.id)
 
@@ -369,14 +379,35 @@ export class FolderService {
     }
   }
 
-  async getFolder({ folderId }: { folderId: string }) {
+  async getFolder<
+    C extends boolean,
+    M extends boolean,
+    T = [C, M] extends [true, false]
+      ? Folder & { contentLocation: StorageLocation }
+      : [C, M] extends [false, true]
+        ? Folder & { metadataLocation: StorageLocation }
+        : [C, M] extends [true, true]
+          ? Folder & {
+              contentLocation: StorageLocation
+              metadataLocation: StorageLocation
+            }
+          : Folder,
+  >({
+    folderId,
+    includeContentLocation,
+  }: {
+    folderId: string
+    includeContentLocation?: C
+    includeMetadataLocation?: M
+  }): Promise<T> {
     const folder = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
+      with: includeContentLocation ? { contentLocation: true } : undefined,
     })
     if (!folder) {
       throw new FolderNotFoundException()
     }
-    return folder
+    return folder as T
   }
 
   async checkAndUpdateFolderAccessError(folderId: string): Promise<void> {
@@ -519,7 +550,7 @@ export class FolderService {
         contentLocation: contentLocationTable,
         metadataLocation: metadataLocationTable,
         folderShares: folderSharesTable,
-        totalCount: sql<string>`count(*) over()`,
+        totalCount: sql<number>`coalesce(count(*) over(), 0)::int`,
       })
       .from(foldersTable)
       .leftJoin(
@@ -568,7 +599,7 @@ export class FolderService {
             ? OWNER_PERMISSIONS
             : (folder.folderShares?.permissions ?? []),
       })),
-      meta: { totalCount: parseInt(folders[0]?.totalCount ?? '0', 10) },
+      meta: { totalCount: folders[0]?.totalCount ?? 0 },
     }
   }
 
@@ -580,12 +611,23 @@ export class FolderService {
     }
 
     await this.ormService.db.transaction(async (tx) => {
+      // Delete all folder tasks and events
       await tx
         .delete(tasksTable)
-        .where(eq(tasksTable.subjectFolderId, folderId))
+        .where(
+          eq(
+            sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`,
+            folderId,
+          ),
+        )
       await tx
         .delete(eventsTable)
-        .where(eq(eventsTable.subjectFolderId, folderId))
+        .where(
+          eq(
+            sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`,
+            folderId,
+          ),
+        )
       await tx.delete(foldersTable).where(eq(foldersTable.id, folderId))
     })
 
@@ -604,6 +646,7 @@ export class FolderService {
     }
 
     const now = new Date()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const updatedFolder = (
       await this.ormService.db
         .update(foldersTable)
@@ -613,7 +656,7 @@ export class FolderService {
         })
         .where(eq(foldersTable.id, folderId))
         .returning()
-    )[0]
+    )[0]!
 
     return {
       ...updatedFolder,
@@ -677,17 +720,17 @@ export class FolderService {
 
     const folderMetadata = await this.ormService.db
       .select({
-        totalCount: sql<string | undefined>`count(*)`,
-        totalSizeBytes: sql<
-          string | undefined
-        >`sum(${folderObjectsTable.sizeBytes})`,
+        totalCount: count(sql`*`),
+        totalSizeBytes: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
       })
       .from(folderObjectsTable)
       .where(eq(folderObjectsTable.folderId, folder.id))
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { totalCount, totalSizeBytes } = folderMetadata[0]!
     return {
-      totalCount: parseInt(folderMetadata[0].totalCount ?? '0', 10),
-      totalSizeBytes: parseInt(folderMetadata[0].totalSizeBytes ?? '0', 10),
+      totalCount,
+      totalSizeBytes,
     }
   }
 
@@ -862,7 +905,8 @@ export class FolderService {
             string,
             'asc' | 'desc',
           ]
-          const column = colMap[colName]
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const column = colMap[colName]!
           const rawValue = decoded.keys?.[colName]
           if (!(colName in colMap) || rawValue === undefined) {
             continue
@@ -932,8 +976,8 @@ export class FolderService {
         limit: limit + 1,
         orderBy,
       })
-    const [folderObjectsCount] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
+    const folderObjectsCountResult = await this.ormService.db
+      .select({ count: count(sql`*`) })
       .from(folderObjectsTable)
       .where(where)
 
@@ -947,11 +991,13 @@ export class FolderService {
     // Slice to page size; if we got more than limit, there is a next page
     const page = normalized.slice(0, limit)
     if (folderObjects.length > limit) {
-      const last = page[page.length - 1]
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const last = page[page.length - 1]!
       const keys: Record<string, unknown> = {}
       const lastAny = last as Record<string, unknown>
       for (const s of orderSorts) {
-        const [colName] = String(s).split('-')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const colName = String(s).split('-')[0]!
         if (colName === 'id') {
           continue
         }
@@ -969,11 +1015,13 @@ export class FolderService {
 
     // Check if there's a previous page by looking for items before the first item
     if (page.length > 0) {
-      const first = page[0]
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const first = page[0]!
       const firstKeys: Record<string, unknown> = {}
       const firstAny = first as Record<string, unknown>
       for (const s of orderSorts) {
-        const [colName] = String(s).split('-')
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const colName = String(s).split('-')[0]!
         if (colName === 'id') {
           continue
         }
@@ -987,7 +1035,7 @@ export class FolderService {
 
       // Count items that would come before this page
       const previousCount = await this.ormService.db
-        .select({ count: sql<string>`count(*)` })
+        .select({ count: count(sql`*`) })
         .from(folderObjectsTable)
         .where(
           and(
@@ -1026,7 +1074,8 @@ export class FolderService {
                     const prevConditions = orderSorts
                       .slice(0, i)
                       .map((prevS) => {
-                        const [prevColName] = String(prevS).split('-')
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        const prevColName = String(prevS).split('-')[0]!
                         const prevColumn = {
                           sizeBytes: folderObjectsTable.sizeBytes,
                           filename: folderObjectsTable.filename,
@@ -1051,7 +1100,8 @@ export class FolderService {
                 ...orderSorts
                   .filter((s) => !String(s).startsWith('id-'))
                   .map((s) => {
-                    const [colName] = String(s).split('-')
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    const colName = String(s).split('-')[0]!
                     const column = {
                       sizeBytes: folderObjectsTable.sizeBytes,
                       filename: folderObjectsTable.filename,
@@ -1072,7 +1122,8 @@ export class FolderService {
           ),
         )
 
-      if (parseInt(previousCount[0]?.count ?? '0', 10) > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (previousCount[0]!.count > 0) {
         previousCursor = Buffer.from(
           JSON.stringify({
             lastId: first.id,
@@ -1086,7 +1137,8 @@ export class FolderService {
     return {
       result: page,
       meta: {
-        totalCount: parseInt(folderObjectsCount.count ?? '0', 10),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        totalCount: folderObjectsCountResult[0]!.count,
         nextCursor,
         previousCursor,
       },
@@ -1170,26 +1222,23 @@ export class FolderService {
     )
   }
 
-  async queueReindexFolder(folderId: string, userId: string) {
-    await this.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
-      eventIdentifier: `${PLATFORM_IDENTIFIER}:user_action:${PlatformTaskName.ReindexFolder}`,
-      subjectContext: {
-        folderId,
-      },
-      userId,
-    })
+  async queueReindexFolderAsUser(actor: User, folderId: string) {
+    const folder = await this.getFolderAsUser(actor, folderId)
+    if (folder.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
+      await this.taskService.triggerPlatformUserActionTask({
+        taskIdentifier: PlatformTaskName.ReindexFolder,
+        taskData: { folderId },
+        targetLocation: { folderId },
+        userId: actor.id,
+      })
+    }
   }
 
-  async reindexFolder({
-    folderId,
-    userId,
-  }: {
-    folderId: string
-    userId: string
-  }) {
-    const actor = await this.userService.getUserById({ id: userId })
-    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
+  async reindexFolder({ folderId }: { folderId: string }) {
+    const folder = await this.getFolder({
+      folderId,
+      includeContentLocation: true,
+    })
     const contentStorageLocation = folder.contentLocation
 
     const s3Client = configureS3Client({
@@ -1198,9 +1247,6 @@ export class FolderService {
       endpoint: contentStorageLocation.endpoint,
       region: contentStorageLocation.region,
     })
-    if (!permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      throw new FolderOperationForbiddenException()
-    }
 
     // delete all objects related to this folder
     await this.ormService.db
@@ -1225,6 +1271,9 @@ export class FolderService {
         prefix: contentStorageLocation.prefix,
       })
       for (const obj of response.result) {
+        this.logger.debug(
+          `Found new object: ${obj.key} in folder "${folder.name}" (ID: ${folder.id})`,
+        )
         const objectKey = folder.contentLocation.prefix.length
           ? obj.key.slice(
               folder.contentLocation.prefix.length +
@@ -1299,39 +1348,6 @@ export class FolderService {
     })
   }
 
-  async handleAppTaskTrigger(
-    actor: User,
-    {
-      folderId,
-      appIdentifier,
-      taskIdentifier,
-      inputParams,
-      objectKey,
-    }: {
-      folderId: string
-      appIdentifier: string
-      taskIdentifier: string
-      inputParams: unknown // TODO: improve
-      objectKey?: string
-    },
-  ): Promise<void> {
-    const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
-    // console.log('Handling Action:', {
-    //   taskIdentifier,
-    //   folderId,
-    //   appIdentifier,
-    //   actionParams,
-    //   objectKey,
-    // })
-    await this.eventService.emitEvent({
-      emitterIdentifier: appIdentifier,
-      subjectContext: folderId ? { folderId, objectKey } : undefined,
-      userId: actor.id,
-      data: { inputParams },
-      eventIdentifier: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskIdentifier}!!FIX!!`,
-    })
-  }
-
   async updateFolderObjectInDB(
     folderId: string,
     objectKey: string,
@@ -1382,6 +1398,7 @@ export class FolderService {
       })
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const record = (
       await this.ormService.db
         .insert(folderObjectsTable)
@@ -1391,7 +1408,7 @@ export class FolderService {
           set: updateSet,
         })
         .returning()
-    )[0]
+    )[0]!
 
     // Decide event type based on createdAt vs updatedAt: insert sets both to now, update changes only updatedAt
     const wasAdded = record.createdAt.getTime() === record.updatedAt.getTime()
@@ -1407,13 +1424,18 @@ export class FolderService {
     await this.eventService.emitEvent({
       emitterIdentifier: PLATFORM_IDENTIFIER,
       eventIdentifier: wasAdded
-        ? `${PLATFORM_IDENTIFIER}:object_added`
-        : `${PLATFORM_IDENTIFIER}:object_updated`,
-      subjectContext: {
+        ? PlatformEvent.object_added
+        : PlatformEvent.object_updated,
+      targetLocation: {
         folderId: record.folderId,
         objectKey: record.objectKey,
       },
-      data: record,
+      data: {
+        ...record,
+        contentMetadata: record.contentMetadata as JsonSerializableObject,
+        createdAt: record.createdAt.toISOString(),
+        updatedAt: record.updatedAt.toISOString(),
+      },
     })
 
     return record
@@ -1555,14 +1577,17 @@ export class FolderService {
       offset: offset ?? 0,
       limit: limit ?? 25,
     })
-    const [usersCount] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
-      .from(usersTable)
-      .where(where)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const usersCountResult = (
+      await this.ormService.db
+        .select({ count: count(sql`*`) })
+        .from(usersTable)
+        .where(where)
+    )[0]!
 
     return {
       result: users.map((user) => ({ id: user.id, username: user.username })),
-      meta: { totalCount: parseInt(usersCount.count ?? '0', 10) },
+      meta: { totalCount: usersCountResult.count },
     }
   }
 
@@ -1629,5 +1654,48 @@ export class FolderService {
           eq(folderSharesTable.userId, userId),
         ),
       )
+  }
+
+  dataTemplateFunctions = {
+    buildCreatePresignedUrlFunction:
+      (appIdentifier: string) =>
+      async (
+        folderId?: JsonSerializableValue,
+        objectKey?: JsonSerializableValue,
+        method?: JsonSerializableValue,
+      ) => {
+        ;[folderId, objectKey, method].forEach((arg, i) => {
+          if (typeof arg !== 'string') {
+            throw new Error(
+              // eslint-disable-next-line @typescript-eslint/no-base-to-string
+              `Invalid argument (position ${i}) in createPresignedUrl. Value: "${String(arg)}", Type: "${typeof arg}".`,
+            )
+          }
+        })
+
+        const methodEnum =
+          SignedURLsRequestMethod[
+            method as keyof typeof SignedURLsRequestMethod
+          ]
+
+        if (typeof methodEnum !== 'string') {
+          throw new Error(
+            `Invalid method in createPresignedUrl. Value: "${String(methodEnum)}", Type: "${typeof methodEnum}".`,
+          )
+        }
+
+        const urls = await this.appService.createSignedContentUrlsAsApp(
+          appIdentifier,
+          [
+            {
+              folderId: folderId as string,
+              objectKey: objectKey as string,
+              method: methodEnum,
+            },
+          ],
+        )
+
+        return urls[0]?.url ?? ''
+      },
   }
 }

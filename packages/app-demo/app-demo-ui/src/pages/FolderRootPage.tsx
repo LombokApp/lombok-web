@@ -5,7 +5,7 @@ export const FolderRootPage = () => {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const pathParts = params['*']?.split('/') ?? []
-  const folderViewType = pathParts[0]
+  const folderViewType = pathParts[0] ?? ''
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -13,7 +13,7 @@ export const FolderRootPage = () => {
         <h1 className="mb-2 text-3xl font-bold">
           {folderViewType
             .split('-')
-            .map((part) => `${part[0].toUpperCase()}${part.slice(1)}`)
+            .map((part) => `${part[0]?.toUpperCase()}${part.slice(1)}`)
             .join(' ')}
         </h1>
         <p className="text-white/70">

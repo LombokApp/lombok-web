@@ -1,5 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import type { TaskDTO } from '@lombokapp/types'
+import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import {
   CardContent,
@@ -33,9 +33,9 @@ export function TaskDetailUI({
       return 'bg-gray-600'
     }
 
-    if (task.completedAt) {
+    if (task.completedAt && task.success) {
       return 'bg-green-600'
-    } else if (task.errorAt) {
+    } else if (task.completedAt && !task.success) {
       return 'bg-red-600'
     } else if (!task.startedAt) {
       return 'bg-gray-600'
@@ -50,9 +50,9 @@ export function TaskDetailUI({
       return { text: 'Unknown', variant: 'secondary' as const }
     }
 
-    if (task.completedAt) {
+    if (task.completedAt && task.success) {
       return { text: 'Complete', variant: 'default' as const }
-    } else if (task.errorAt) {
+    } else if (task.completedAt && !task.success) {
       return { text: 'Failed', variant: 'destructive' as const }
     } else if (!task.startedAt) {
       return { text: 'Pending', variant: 'secondary' as const }
@@ -135,31 +135,40 @@ export function TaskDetailUI({
   // Check if the current user owns the folder
   const isFolderOwner =
     currentUserId &&
-    taskData.subjectContext?.folderOwnerId &&
-    currentUserId === taskData.subjectContext.folderOwnerId
+    taskData.targetLocationContext?.folderOwnerId &&
+    currentUserId === taskData.targetLocationContext.folderOwnerId
+
+  const folderLabel =
+    taskData.targetLocationContext?.folderName ??
+    taskData.targetLocation?.folderId
 
   const statusInfo = getStatusInfo(taskData)
-  const errorDetails = taskData.errorDetails
-    ? (taskData.errorDetails as Record<string, string | number>)
+  const errorDetails = taskData.error
+    ? (taskData.error.details as JsonSerializableObject)
     : {}
-  const errorToDisplay = taskData.errorAt
-    ? {
-        stacktrace:
-          (taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-            errorDetails.stack) ??
-          '',
-        message:
-          taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-          errorDetails.message
-            ? errorDetails.errorMessage
-            : taskData.errorMessage,
-        code:
-          taskData.errorCode === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-          errorDetails.name
-            ? errorDetails.name
-            : taskData.errorCode,
-      }
-    : {}
+  const errorToDisplay =
+    taskData.success === false
+      ? {
+          stacktrace:
+            (taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+              errorDetails.stack &&
+              typeof errorDetails.stack === 'string' &&
+              errorDetails.stack) ??
+            '',
+          message:
+            taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+            errorDetails.message &&
+            typeof errorDetails.message === 'string'
+              ? errorDetails.message
+              : taskData.error?.message,
+          code:
+            taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
+            errorDetails.name &&
+            typeof errorDetails.name === 'string'
+              ? errorDetails.name
+              : taskData.error?.code,
+        }
+      : {}
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -230,7 +239,7 @@ export function TaskDetailUI({
                         Handler
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {taskData.handlerId}
+                        {taskData.handlerIdentifier}
                       </p>
                     </div>
                     <div>
@@ -264,84 +273,74 @@ export function TaskDetailUI({
                       </div>
                     </div>
                   </div>
-                  {taskData.subjectContext && (
+                  {taskData.targetLocation && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Folder / Object
                       </label>
                       <div className="mt-1 space-y-1">
-                        {taskData.subjectContext.folderName &&
-                          taskData.subjectContext.folderId && (
-                            <p className="text-sm font-medium">
-                              Folder:{' '}
-                              {isFolderOwner ? (
-                                <Link
-                                  to={`/folders/${taskData.subjectContext.folderId}`}
-                                  className="text-primary hover:underline"
-                                >
-                                  {taskData.subjectContext.folderName}
-                                </Link>
-                              ) : (
-                                <span>
-                                  {taskData.subjectContext.folderName}
-                                </span>
-                              )}
-                            </p>
+                        <p className="text-sm font-medium">
+                          Folder:{' '}
+                          {isFolderOwner ? (
+                            <Link
+                              to={`/folders/${taskData.targetLocation.folderId}`}
+                              className="text-primary hover:underline"
+                            >
+                              {folderLabel}
+                            </Link>
+                          ) : (
+                            <span>{folderLabel}</span>
                           )}
-                        {taskData.subjectContext.objectKey &&
-                          taskData.subjectContext.folderId && (
-                            <p className="text-sm text-muted-foreground">
-                              Object:{' '}
-                              {isFolderOwner ? (
-                                <Link
-                                  to={`/folders/${taskData.subjectContext.folderId}/objects/${taskData.subjectContext.objectKey}`}
-                                  className="text-primary hover:underline"
-                                >
-                                  {taskData.subjectContext.objectKey}
-                                </Link>
-                              ) : (
-                                <span>{taskData.subjectContext.objectKey}</span>
-                              )}
-                            </p>
-                          )}
-                        {!taskData.subjectContext.folderName &&
-                          taskData.subjectContext.folderId && (
-                            <p className="font-mono text-sm text-muted-foreground">
-                              Folder ID: {taskData.subjectContext.folderId}
-                            </p>
-                          )}
+                        </p>
+                        {taskData.targetLocation.objectKey && (
+                          <p className="text-sm text-muted-foreground">
+                            Object:{' '}
+                            {isFolderOwner ? (
+                              <Link
+                                to={`/folders/${taskData.targetLocation.folderId}/objects/${taskData.targetLocation.objectKey}`}
+                                className="text-primary hover:underline"
+                              >
+                                {taskData.targetLocation.objectKey}
+                              </Link>
+                            ) : (
+                              <span>{taskData.targetLocation.objectKey}</span>
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
-                  {taskData.subjectObjectKey && !taskData.subjectContext && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Object Key
-                      </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.subjectObjectKey}
-                      </p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        From Event
-                      </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.triggeringEventId}
-                      </p>
-                    </div>
-                    {taskData.subjectFolderId && !taskData.subjectContext && (
+                  {taskData.targetLocation?.objectKey &&
+                    !taskData.targetLocationContext && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
-                          Subject Folder ID
+                          Object Key
                         </label>
                         <p className="mt-1 break-all font-mono text-sm">
-                          {taskData.subjectFolderId}
+                          {taskData.targetLocation.objectKey}
                         </p>
                       </div>
                     )}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Trigger
+                      </label>
+                      <p className="mt-1 break-all font-mono text-sm">
+                        {taskData.trigger.kind}
+                      </p>
+                    </div>
+                    {taskData.targetLocation?.folderId &&
+                      !taskData.targetLocationContext && (
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Subject Folder ID
+                          </label>
+                          <p className="mt-1 break-all font-mono text-sm">
+                            {taskData.targetLocation.folderId}
+                          </p>
+                        </div>
+                      )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
@@ -349,7 +348,7 @@ export function TaskDetailUI({
                     </label>
                     <div className="mt-1 rounded-md bg-muted/50 p-3">
                       <pre className="overflow-x-auto font-mono text-sm">
-                        {JSON.stringify(taskData.inputData, null, 2)}
+                        {JSON.stringify(taskData.data, null, 2)}
                       </pre>
                     </div>
                   </div>
@@ -469,7 +468,7 @@ export function TaskDetailUI({
                     </>
                   )}
 
-                  {taskData.errorAt && (
+                  {taskData.completedAt && !taskData.success && (
                     <>
                       <div className="flex items-center gap-4">
                         <div className="flex size-8 items-center justify-center rounded-full bg-red-100 text-red-600">
@@ -491,7 +490,7 @@ export function TaskDetailUI({
                           <p className="text-sm font-medium">Task Failed</p>
                           <div className="text-sm text-muted-foreground">
                             <DateDisplay
-                              date={taskData.errorAt}
+                              date={taskData.completedAt}
                               showTimeSince={false}
                             />
                           </div>
@@ -505,7 +504,7 @@ export function TaskDetailUI({
           </div>
 
           {/* Error Information Card */}
-          {taskData.errorAt && (
+          {taskData.success === false && (
             <Card className="border-destructive/20 bg-destructive/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-destructive">
@@ -535,7 +534,11 @@ export function TaskDetailUI({
                       Error Code
                     </label>
                     <p className="mt-1 font-mono text-sm text-destructive">
-                      {errorToDisplay.code ?? errorDetails.code ?? 'Unknown'}
+                      {errorToDisplay.code ??
+                        (errorDetails.code &&
+                          typeof errorDetails.code === 'string' &&
+                          errorDetails.code) ??
+                        'Unknown'}
                     </p>
                   </div>
                   <div>
@@ -543,9 +546,9 @@ export function TaskDetailUI({
                       Error Time
                     </label>
                     <div className="mt-1 font-mono text-sm">
-                      {taskData.errorAt && (
+                      {taskData.completedAt && (
                         <DateDisplay
-                          date={taskData.errorAt}
+                          date={taskData.completedAt}
                           showTimeSince={false}
                         />
                       )}

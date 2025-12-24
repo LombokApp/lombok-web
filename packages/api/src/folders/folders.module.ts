@@ -5,6 +5,7 @@ import { appConfig } from 'src/app/config'
 import { CoreAppService } from 'src/app/core-app.service'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
+import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { LogEntryService } from 'src/log/services/log-entry.service'
@@ -30,6 +31,7 @@ import { FolderService } from './services/folder.service'
     forwardRef(() => EventModule),
     forwardRef(() => SocketModule),
     forwardRef(() => AppModule),
+    forwardRef(() => DockerModule),
   ],
   providers: [
     EventService,

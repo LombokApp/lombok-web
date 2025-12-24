@@ -1,5 +1,11 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type { AppLogEntry, SignedURLsRequestMethod } from '@lombokapp/types'
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type {
+  JsonSerializableObject,
+  LogEntryLevel,
+  SignedURLsRequestMethod,
+} from '@lombokapp/types'
+import { PLATFORM_IDENTIFIER, PlatformEvent } from '@lombokapp/types'
 import {
   afterAll,
   beforeAll,
@@ -84,7 +90,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         ) => {
           try {
             if (!currentServerClient) {
-              ack({ result: undefined })
+              ack({ result: null })
               return
             }
             switch (payload.name) {
@@ -103,14 +109,20 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
                 return
               }
               case 'SAVE_LOG_ENTRY': {
-                const res = await currentServerClient.saveLogEntry(
-                  payload.data as AppLogEntry,
-                )
+                const data = payload.data as {
+                  message: string
+                  level: LogEntryLevel
+                  data: JsonSerializableObject
+                  targetLocation:
+                    | { folderId: string; objectKey?: string | undefined }
+                    | undefined
+                }
+                const res = await currentServerClient.saveLogEntry(data)
                 ack(res)
                 return
               }
               default: {
-                ack({ result: undefined })
+                ack({ result: null })
               }
             }
           } catch (err) {
@@ -172,54 +184,100 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
   })
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => {
-      if (ioServer) {
-        void ioServer.close(() => resolve())
-      } else {
-        resolve()
+    // Force close socket.io server with timeout
+    if (ioServer) {
+      // Disconnect all sockets in all namespaces immediately
+      for (const [_namespaceName, namespace] of ioServer._nsps) {
+        namespace.disconnectSockets(true)
       }
-    })
-    await new Promise<void>((resolve) => {
-      if (httpServer) {
-        httpServer.close(() => resolve())
-      } else {
-        resolve()
-      }
-    })
+      // Also disconnect from default namespace
+      ioServer.disconnectSockets(true)
+
+      // Close with timeout
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          void ioServer!.close(() => resolve())
+        }),
+        new Promise<void>((resolve) => {
+          setTimeout(() => {
+            // Force close if timeout
+            resolve()
+          }, 1000)
+        }),
+      ])
+    }
+
+    // Force close HTTP server with timeout
+    if (httpServer) {
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          httpServer!.close(() => resolve())
+        }),
+        new Promise<void>((resolve) => {
+          setTimeout(() => {
+            // Force destroy if timeout
+            if ('closeAllConnections' in httpServer!) {
+              ;(
+                httpServer as { closeAllConnections: () => void }
+              ).closeAllConnections()
+            }
+            resolve()
+          }, 1000)
+        }),
+      ])
+    }
   })
 
   it('completes run-worker-script task successfully', async () => {
     // Mock run_worker_script task and the underlying worker script task
-    const workerScriptTask: AppTask = {
+    const workerScriptTask = {
       id: uuidV4(),
-      taskIdentifier: 'object_added',
-      inputData: {},
-      event: {
-        id: uuidV4(),
-        emitterIdentifier: 'test-emitter',
-        eventIdentifier: 'OBJECT_ADDED',
-        data: {},
-        createdAt: new Date().toISOString(),
+      ownerIdentifier: 'core-worker',
+      trigger: {
+        kind: 'event' as const,
+        eventIdentifier: PlatformEvent.object_added,
+        invokeContext: {
+          eventId: uuidV4(),
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {} as JsonSerializableObject,
+        },
       },
-      subjectFolderId: uuidV4(),
-      subjectObjectKey: 'test-object-key',
+      taskDescription: 'object_added',
+      systemLog: [],
+      taskLog: [],
+      taskIdentifier: 'object_added_task',
+      data: {} as JsonSerializableObject,
+      targetLocation: {
+        folderId: uuidV4(),
+        objectKey: 'test-object-key',
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
-    const runWorkerScriptEnvelopeTask: AppTask = {
+    const runWorkerScriptEnvelopeTask = {
       id: uuidV4(),
-      taskIdentifier: 'run_worker_script',
-      inputData: {},
-      event: {
-        id: uuidV4(),
-        emitterIdentifier: 'core-worker',
-        eventIdentifier: 'RUN_WORKER_SCRIPT',
-        data: {
-          taskId: workerScriptTask.id,
-          appIdentifier: 'demo',
-          workerIdentifier: 'demo_object_added_worker',
+      ownerIdentifier: 'core-worker',
+      trigger: {
+        kind: 'event' as const,
+        eventIdentifier: PlatformEvent.object_added,
+        invokeContext: {
+          eventId: uuidV4(),
+          emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventData: {} as JsonSerializableObject,
         },
-        createdAt: new Date().toISOString(),
       },
+      systemLog: [],
+      taskLog: [],
+      taskDescription: 'run_worker_script',
+      taskIdentifier: 'run_worker_script',
+      data: {
+        innerTaskId: workerScriptTask.id,
+        appIdentifier: 'core-worker',
+        workerIdentifier: 'test-worker',
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
     let completed = false
@@ -240,29 +298,42 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           },
         }),
       attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: workerScriptTask }),
+        Promise.resolve({
+          result: {
+            task: workerScriptTask,
+          },
+        }),
       attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: workerScriptTask }),
-      failHandleTask: () => {
-        failed = true
-        return Promise.resolve({ result: undefined })
-      },
-      completeHandleTask: () => {
-        completed = true
-        return Promise.resolve({ result: undefined })
+        Promise.resolve({
+          result: {
+            task: workerScriptTask,
+          },
+        }),
+      completeHandleTask: ({
+        success,
+      }: {
+        success: boolean
+        taskId: string
+        error?: {
+          code: string
+          message: string
+          details?: JsonSerializableObject
+        }
+      }) => {
+        completed = !!success
+        failed = !success
+        return Promise.resolve({ result: null })
       },
       getContentSignedUrls: () => {
         getContentSignedUrlsCalled = true
         return Promise.resolve({
-          result: {
-            urls: [
-              {
-                url: 'https://example.com/test-image.png',
-                folderId: String(workerScriptTask.subjectFolderId),
-                objectKey: String(workerScriptTask.subjectObjectKey),
-              },
-            ],
-          },
+          result: [
+            {
+              url: 'https://example.com/test-image.png',
+              folderId: String(workerScriptTask.targetLocation.folderId),
+              objectKey: String(workerScriptTask.targetLocation.objectKey),
+            },
+          ],
         })
       },
     })
@@ -282,3 +353,4 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     expect(getContentSignedUrlsCalled).toBe(true)
   })
 })
+/* eslint-enable @typescript-eslint/no-non-null-assertion */

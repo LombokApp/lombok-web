@@ -64,7 +64,8 @@ export class FolderSocketService implements OnModuleInit {
 
         if (verifiedToken.sub.startsWith(USER_JWT_SUB_PREFIX)) {
           // folder event subscribe
-          const userId = verifiedToken.sub.split(':')[1]
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = verifiedToken.sub.split(':')[1]!
           const user = await this.userService.getUserById({ id: userId })
           const roomId = `folder:${folderId}`
 

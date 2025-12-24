@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
+import { DockerModule } from 'src/docker/docker.module'
 import { LogModule } from 'src/log/log.module'
+import { PlatformModule } from 'src/platform/platform.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
@@ -27,6 +29,8 @@ import { UsersModule } from '../users/users.module'
     CacheModule,
     SocketModule,
     StorageModule,
+    DockerModule,
+    PlatformModule,
     TaskModule,
     LogModule,
     AuthModule,

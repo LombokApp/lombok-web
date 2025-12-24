@@ -1,8 +1,12 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError, buildAppClient } from '@lombokapp/app-worker-sdk'
-import type { SerializeableError } from '@lombokapp/core-worker-utils'
 import { serializeWorkerError } from '@lombokapp/core-worker-utils'
-import type { AppLogEntry, WorkerErrorDetails } from '@lombokapp/types'
+import {
+  type AppLogEntry,
+  type JsonSerializableObject,
+  LogEntryLevel,
+  type TaskDTO,
+} from '@lombokapp/types'
 import { serializeError } from '@lombokapp/utils'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
@@ -16,11 +20,11 @@ interface ConnectAndPerformWorkResult {
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,
-  appWorkerId: string,
+  instanceId: string,
   appToken: string,
   taskHandlers: Record<
     string,
-    (task: AppTask, serverClient: IAppPlatformService) => Promise<void>
+    (task: TaskDTO, serverClient: IAppPlatformService) => Promise<void>
   >,
   onConnect: () => Promise<void>,
 ): ConnectAndPerformWorkResult => {
@@ -29,7 +33,7 @@ export const connectAndPerformWork = (
   // log({ message: 'Connecting...', data: { connectURL, taskIdentifiers } })
   const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
-      appWorkerId,
+      instanceId,
       token: appToken,
       handledTaskIdentifiers: taskIdentifiers,
     },
@@ -39,7 +43,7 @@ export const connectAndPerformWork = (
   const log = async (logEntryProperties: Partial<AppLogEntry>) => {
     const logEntry: AppLogEntry = {
       data: logEntryProperties.data ?? {},
-      level: logEntryProperties.level ?? 'INFO',
+      level: logEntryProperties.level ?? LogEntryLevel.INFO,
       message: logEntryProperties.message ?? '',
     }
     await serverClient.saveLogEntry(logEntry)
@@ -54,10 +58,10 @@ export const connectAndPerformWork = (
   const wait = new Promise<void>((resolve, reject) => {
     socket.on('disconnect', (reason) => {
       void log({
-        level: 'DEBUG',
+        level: LogEntryLevel.DEBUG,
         message: `Worker disconnected - Reason: ${reason}`,
         data: {
-          appWorkerId,
+          instanceId,
         },
       })
       resolve()
@@ -67,9 +71,11 @@ export const connectAndPerformWork = (
       // eslint-disable-next-line no-console
       void ((socket.disconnected ? console.log : log) as typeof log)({
         message: 'Got event in worker thread',
-        level: 'DEBUG',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: _data,
+        level: LogEntryLevel.DEBUG,
+        data: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          event: _data,
+        },
       })
     })
 
@@ -78,41 +84,63 @@ export const connectAndPerformWork = (
         try {
           concurrentTasks++
           const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleAnyAvailableTask(
+            await serverClient.attemptStartHandleAnyAvailableTask({
               taskIdentifiers,
-            )
-          const task = attemptStartHandleResponse.result
-          if (attemptStartHandleResponse.error) {
+            })
+
+          if ('error' in attemptStartHandleResponse) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
             await log({
               message: `Error attempting to start handle task: ${errorMessage}`,
-              level: 'ERROR',
+              level: LogEntryLevel.ERROR,
             })
+            reject(new Error(errorMessage))
           } else {
-            await taskHandlers[task.taskIdentifier](task, serverClient)
-              .then(() => serverClient.completeHandleTask(task.id))
+            const { task } = attemptStartHandleResponse.result
+            const taskHandler = taskHandlers[task.taskIdentifier]
+            if (!taskHandler) {
+              await log({
+                message: `Unknown task identifier: ${task.taskIdentifier}`,
+                level: LogEntryLevel.ERROR,
+              })
+              reject(
+                new Error(`Unknown task identifier: ${task.taskIdentifier}`),
+              )
+              return
+            }
+            await taskHandler(task as TaskDTO, serverClient)
+              .then(() =>
+                serverClient.completeHandleTask({
+                  success: true,
+                  taskId: task.id,
+                }),
+              )
               .catch((e: unknown) => {
-                return serverClient.failHandleTask(task.id, {
-                  code: String(
-                    e instanceof AppAPIError
-                      ? e.errorCode
-                      : 'APP_TASK_EXECUTION_ERROR',
-                  ),
-                  message: serializeError(e),
-                  details: JSON.parse(
-                    serializeWorkerError(e),
-                  ) as WorkerErrorDetails,
+                return serverClient.completeHandleTask({
+                  success: false,
+                  taskId: task.id,
+                  error: {
+                    code: String(
+                      e instanceof AppAPIError
+                        ? e.errorCode
+                        : 'APP_TASK_EXECUTION_ERROR',
+                    ),
+                    message: serializeError(e),
+                    details: JSON.parse(
+                      serializeWorkerError(e),
+                    ) as JsonSerializableObject,
+                  },
                 })
               })
           }
         } catch (error: unknown) {
           void ((socket.disconnected ? console.log : log) as typeof log)({
-            level: 'ERROR',
+            level: LogEntryLevel.ERROR,
             message: 'Unexpected error during app worker execution',
             data: {
               errorObj: JSON.parse(
                 serializeWorkerError(error),
-              ) as SerializeableError,
+              ) as JsonSerializableObject,
               errorStr: serializeError(error),
             },
           })
@@ -125,12 +153,12 @@ export const connectAndPerformWork = (
     socket.on('error', (error) => {
       void ((socket.disconnected ? console.log : log) as typeof log)({
         message: 'Core app worker websocket error',
-        level: 'ERROR',
+        level: LogEntryLevel.ERROR,
         data: {
-          appWorkerId,
+          instanceId,
           errorObj: JSON.parse(
             serializeWorkerError(error),
-          ) as SerializeableError,
+          ) as JsonSerializableObject,
           errorStr: serializeError(error),
         },
       })

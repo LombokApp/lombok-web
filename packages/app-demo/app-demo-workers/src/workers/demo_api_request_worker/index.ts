@@ -3,12 +3,20 @@ import type { RequestHandler } from '@lombokapp/app-worker-sdk'
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  { serverClient, dbClient },
+  { serverClient, dbClient, actor },
 ) {
   console.log(
     'DEMO API REQUEST WORKER REQUEST HANDLER:',
     new URL(request.url).pathname,
   )
+
+  if (actor?.actorType === 'system') {
+    console.log('System request')
+  } else if (actor?.actorType === 'user') {
+    console.log('User request:', actor.userId)
+  } else {
+    console.log('Unauthenticated request')
+  }
 
   // Log detailed request information
   const headersObj: Record<string, string> = {}
@@ -51,12 +59,12 @@ export const handleRequest: RequestHandler = async function handleRequest(
 
     // Try to query the demo tables if they exist
     try {
-      const usersResult = await dbClient.query(
-        'SELECT COUNT(*) as user_count FROM users',
+      const demoEntitiesResult = await dbClient.query(
+        'SELECT COUNT(*) as demo_entity_count FROM demo_entities',
       )
-      console.log('Users table query result:', usersResult)
+      console.log('Demo entities table query result:', demoEntitiesResult)
     } catch (error) {
-      console.log('Users table not found or not accessible:', error)
+      console.log('Demo entities table not found or not accessible:', error)
     }
   } catch (error) {
     console.log('Database query failed:', error)

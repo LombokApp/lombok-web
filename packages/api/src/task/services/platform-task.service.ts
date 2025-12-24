@@ -1,43 +1,70 @@
-import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@lombokapp/types'
-import { Maybe } from '@lombokapp/utils'
-import { forwardRef, Inject, Injectable } from '@nestjs/common'
-import { and, count, eq, isNull } from 'drizzle-orm'
-import { eventsTable } from 'src/event/entities/event.entity'
+import {
+  FolderPushMessage,
+  PLATFORM_IDENTIFIER,
+  SystemLogEntry,
+} from '@lombokapp/types'
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
+import { and, count, eq, isNull, sql } from 'drizzle-orm'
+import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 
-import { BaseProcessor, ProcessorError } from '../base.processor'
+import { BaseProcessor, TaskProcessorError } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'
+import { TaskService } from './task.service'
 
 const MAX_CONCURRENT_PLATFORM_TASKS = 10
 @Injectable()
 export class PlatformTaskService {
+  private readonly logger = new Logger(PlatformTaskService.name)
   processors: Record<string, BaseProcessor<PlatformTaskName>> = {}
   runningTasksCount = 0
-  draining = false
+  draining: Promise<{ completed: number; pending: number }> | undefined
 
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
+  get appService(): AppService {
+    return this._appService as AppService
+  }
   constructor(
+    @Inject(forwardRef(() => AppService))
+    private readonly _appService,
+    private readonly taskService: TaskService,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
   ) {}
 
-  async drainPlatformTasks() {
-    try {
-      if (this.draining) {
-        return
+  async drainPlatformTasks(waitForCompletion = false) {
+    const runId = crypto.randomUUID()
+    if (this.draining) {
+      this.logger.verbose('Platform task draining already running')
+      if (waitForCompletion) {
+        await this.draining
       }
-      this.draining = true
-      await this._drainPlatformTasks()
+      return
+    }
+    this.logger.verbose('Draining platform tasks started:', runId)
+    let unstartedPlatformTasksCount = 0
+
+    try {
+      this.draining = this._drainPlatformTasks()
+      const { completed, pending } = await this.draining
+      this.logger.verbose('Draining platform task run complete:', {
+        runId,
+        completed,
+        pending,
+      })
+      unstartedPlatformTasksCount = pending
     } catch (error: unknown) {
-      // eslint-disable-next-line no-console
-      console.log('Error draining platform tasks. Error', error)
+      this.logger.error('Error draining platform tasks', { error })
     } finally {
-      this.draining = false
+      this.draining = undefined
+      if (unstartedPlatformTasksCount > 0) {
+        await this.drainPlatformTasks()
+      }
     }
   }
 
@@ -46,6 +73,7 @@ export class PlatformTaskService {
       MAX_CONCURRENT_PLATFORM_TASKS - this.runningTasksCount,
       0,
     )
+    let completed = 0
     if (taskExecutionLimit) {
       const platformTasksToExecute = await this.ormService.db
         .select({ taskId: tasksTable.id })
@@ -57,19 +85,19 @@ export class PlatformTaskService {
           ),
         )
         .limit(taskExecutionLimit)
-
       for (const { taskId } of platformTasksToExecute) {
         await this.executePlatformTask(taskId)
+        completed++
       }
     }
-    const unstartedPlatformTasksCount = await this.unstartedPlatformTaskCount()
-    if (unstartedPlatformTasksCount) {
-      void this.drainPlatformTasks()
+    return {
+      completed,
+      pending: await this.unstartedPlatformTaskCount(),
     }
   }
 
   async unstartedPlatformTaskCount() {
-    const [{ count: platformTaskCount }] = await this.ormService.db
+    const [unstartedPlatformTaskCountResult] = await this.ormService.db
       .select({
         count: count(),
       })
@@ -80,99 +108,119 @@ export class PlatformTaskService {
           eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
         ),
       )
-    return platformTaskCount
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return unstartedPlatformTaskCountResult!.count
   }
 
   async executePlatformTask(taskId: string) {
-    const rows = await this.ormService.db
-      .select({ task: tasksTable, event: eventsTable })
-      .from(tasksTable)
-      .innerJoin(eventsTable, eq(tasksTable.triggeringEventId, eventsTable.id))
-      .where(eq(tasksTable.id, taskId))
-      .limit(1)
-    const row = rows[0] as Maybe<(typeof rows)[number]>
-    if (!row) {
+    const task = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+    if (!task) {
       throw new Error(`Task not found by ID "${taskId}".`)
     }
-    const { task, event } = row
     if (task.startedAt) {
-      // console.log('Task already started.')
-    } else if (task.ownerIdentifier === PLATFORM_IDENTIFIER) {
-      const startedTimestamp = new Date()
-      const updateResult = await this.ormService.db
-        .update(tasksTable)
-        .set({ startedAt: startedTimestamp, updatedAt: startedTimestamp })
-        .where(eq(tasksTable.id, taskId))
-        .returning()
-
-      if (updateResult.length) {
-        if (updateResult[0].subjectFolderId) {
-          // notify folder rooms of updated task
-          this.folderSocketService.sendToFolderRoom(
-            updateResult[0].subjectFolderId,
-            FolderPushMessage.TASK_UPDATED,
-            { task },
-          )
-        }
-        // we have secured the task, so perform execution
-        const processorName = task.taskIdentifier
-
-        const processor = this.processors[processorName]
-        this.runningTasksCount++
-        await processor
-          ._run(event)
-          .then(() => {
-            // handle successful completion
-            const completedTimestamp = new Date()
-            return this.ormService.db
-              .update(tasksTable)
-              .set({
-                completedAt: completedTimestamp,
-                updatedAt: completedTimestamp,
-              })
-              .where(eq(tasksTable.id, taskId))
-          })
-          .catch((error: Error | ProcessorError) => {
-            // handle failure
-            const errorTimestamp = new Date()
-            const isCaughtError = error instanceof ProcessorError
-            return this.ormService.db
-              .update(tasksTable)
-              .set({
-                errorAt: errorTimestamp,
-                updatedAt: errorTimestamp,
-                errorCode: isCaughtError ? error.code : error.name,
-                errorMessage: error.message,
-              })
-              .where(eq(tasksTable.id, taskId))
-          })
-          .finally(() => {
-            // send a folder socket message to the frontend that the task status was updated
-            if (updateResult[0].subjectFolderId) {
-              void this.ormService.db.query.tasksTable
-                .findFirst({
-                  where: eq(tasksTable.id, taskId),
-                })
-                .then((_task) => {
-                  if (updateResult[0].subjectFolderId) {
-                    // notify folder rooms of updated task
-                    this.folderSocketService.sendToFolderRoom(
-                      updateResult[0].subjectFolderId,
-                      FolderPushMessage.TASK_UPDATED,
-                      {
-                        task: _task,
-                      },
-                    )
-                  }
-                })
-            }
-          })
-          .finally(() => {
-            this.runningTasksCount--
-          })
-      }
+      this.logger.warn(
+        'Platform task already started during drain (should not happen)',
+      )
+    } else if (task.ownerIdentifier !== PLATFORM_IDENTIFIER) {
+      this.logger.warn(
+        'Platform task execution run for non-plaform task (should not happen)',
+      )
     } else {
-      throw new Error(`Task not found by ID "${taskId}".`)
+      const startedTimestamp = new Date()
+      const startedTask = await this.ormService.db.transaction(async (tx) => {
+        const updatedTaskResult = await tx
+          .update(tasksTable)
+          .set({ startedAt: startedTimestamp, updatedAt: startedTimestamp })
+          .where(eq(tasksTable.id, taskId))
+          .returning()
+
+        const platformTaskStartLog: SystemLogEntry = {
+          at: startedTimestamp,
+          payload: {
+            logType: 'started',
+          },
+        }
+
+        await tx
+          .update(tasksTable)
+          .set({
+            systemLog: sql<
+              SystemLogEntry[]
+            >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify([platformTaskStartLog])}::jsonb`,
+          })
+          .where(eq(tasksTable.id, taskId))
+
+        return updatedTaskResult[0]
+      })
+
+      if (!startedTask) {
+        throw new Error(
+          `Task by ID "${taskId}" not found when attempting to start.`,
+        )
+      }
+
+      if (startedTask.targetLocation?.folderId) {
+        // notify folder rooms of updated task
+        this.folderSocketService.sendToFolderRoom(
+          startedTask.targetLocation.folderId,
+          FolderPushMessage.TASK_UPDATED,
+          { task: startedTask },
+        )
+      }
+      // we have secured the task, so perform execution
+      const processorName = startedTask.taskIdentifier
+
+      const processor = this.processors[processorName]
+      if (!processor) {
+        throw new Error(`Processor not found by name "${processorName}".`)
+      }
+      const shouldRegisterComplete = processor.shouldRegisterComplete()
+      this.runningTasksCount++
+      await processor
+        ._run(startedTask)
+        .then((processorResult) => {
+          if (shouldRegisterComplete) {
+            return this.taskService.registerTaskCompleted(taskId, {
+              success: true,
+              result: processorResult?.result,
+            })
+          }
+          return startedTask
+        })
+        .catch((error: Error | TaskProcessorError) => {
+          // handle failure
+          const isCaughtError = error instanceof TaskProcessorError
+
+          return this.taskService.registerTaskCompleted(taskId, {
+            success: false,
+            error: {
+              code: isCaughtError ? error.code : error.name,
+              message: error.message,
+              details: isCaughtError ? error.details : undefined,
+            },
+          })
+        })
+        .then((updatedTask) => {
+          if (updatedTask.completedAt && !updatedTask.success) {
+            this.logger.warn('Platform task error:', { updatedTask })
+          }
+          // send a folder socket message to the frontend that the task status was updated
+          if (startedTask.targetLocation?.folderId) {
+            // notify folder rooms of updated task
+            this.folderSocketService.sendToFolderRoom(
+              startedTask.targetLocation.folderId,
+              FolderPushMessage.TASK_UPDATED,
+              {
+                updatedTask,
+              },
+            )
+          }
+        })
+        .finally(() => {
+          this.runningTasksCount--
+        })
     }
   }
 

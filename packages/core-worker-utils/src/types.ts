@@ -1,4 +1,5 @@
-import type { AppTask, SerializeableRequest } from '@lombokapp/app-worker-sdk'
+import type { SerializeableRequest } from '@lombokapp/app-worker-sdk'
+import type { TaskDTO } from '@lombokapp/types'
 import { z } from 'zod'
 
 export interface WorkerModuleStartContext {
@@ -16,7 +17,7 @@ export interface WorkerModuleStartContext {
 }
 
 export const coreWorkerProcessDataPayloadSchema = z.object({
-  appWorkerId: z.string(),
+  instanceId: z.string(),
   appToken: z.string(),
   socketBaseUrl: z.string(),
   platformHost: z.string(),
@@ -37,7 +38,7 @@ export interface WorkerPipeRequest {
   id: string
   type: 'request' | 'task'
   timestamp: number
-  data: SerializeableRequest | AppTask
+  data: SerializeableRequest | TaskDTO
   // For authentication context
   authToken?: string
   appIdentifier?: string

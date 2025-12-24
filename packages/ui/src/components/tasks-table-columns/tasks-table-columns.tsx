@@ -54,7 +54,7 @@ export function configureTasksTableColumns(
       enableHiding: false,
     },
     {
-      accessorKey: 'subjectContext',
+      accessorKey: 'targetLocation',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}
@@ -63,9 +63,8 @@ export function configureTasksTableColumns(
         />
       ),
       cell: ({ row: { original: task } }) => {
-        const hasFolder =
-          task.subjectContext?.folderName || task.subjectContext?.folderId
-        const hasObject = task.subjectContext?.objectKey
+        const hasFolder = !!task.targetLocation
+        const hasObject = task.targetLocation?.objectKey
 
         if (!hasFolder && !hasObject) {
           return (
@@ -79,13 +78,13 @@ export function configureTasksTableColumns(
           <div className="flex max-w-80 flex-col gap-1">
             {config.showFolderInFolderObjectColumn && hasFolder && (
               <div className="truncate font-medium">
-                {task.subjectContext?.folderName ||
-                  task.subjectContext?.folderId}
+                {task.targetLocationContext?.folderName ||
+                  task.targetLocation?.folderId}
               </div>
             )}
             {hasObject && (
               <div className="max-w-80 truncate text-sm text-muted-foreground">
-                {task.subjectContext?.objectKey}
+                {task.targetLocation?.objectKey}
               </div>
             )}
           </div>
@@ -111,9 +110,9 @@ export function configureTasksTableColumns(
               <div
                 className={cn(
                   'size-2 rounded-full',
-                  task.completedAt
+                  task.success === true
                     ? 'bg-green-600'
-                    : task.errorAt
+                    : task.success === false
                       ? 'bg-red-600'
                       : !task.startedAt
                         ? 'bg-gray-600'
@@ -123,9 +122,9 @@ export function configureTasksTableColumns(
             </div>
 
             <div className="flex items-center gap-2 truncate text-xs font-normal text-muted-foreground">
-              {task.completedAt
+              {task.success === true
                 ? 'Complete'
-                : task.errorAt
+                : task.success === false
                   ? 'Failed'
                   : !task.startedAt
                     ? 'Pending'
@@ -173,11 +172,6 @@ export function configureTasksTableColumns(
     },
     {
       accessorKey: 'completedAt',
-      enableSorting: true,
-      forceHiding: true,
-    },
-    {
-      accessorKey: 'errorAt',
       enableSorting: true,
       forceHiding: true,
     },

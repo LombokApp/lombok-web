@@ -28,9 +28,9 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
               <div
                 className={cn(
                   'size-2.5 rounded-full',
-                  task.completedAt
+                  task.completedAt && task.success
                     ? 'bg-green-500'
-                    : task.errorAt
+                    : task.completedAt && !task.success
                       ? 'bg-red-500'
                       : !task.startedAt
                         ? 'bg-gray-500'
@@ -68,10 +68,12 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
               )}
             </div>
           </div>
-          {task.subjectObjectKey && (
+          {task.targetLocation?.objectKey && (
             <div className="mt-1 flex gap-1 text-xs text-muted-foreground">
               <div>Object:</div>
-              <div className="truncate font-mono">{task.subjectObjectKey}</div>
+              <div className="truncate font-mono">
+                {task.targetLocation.objectKey}
+              </div>
             </div>
           )}
         </div>

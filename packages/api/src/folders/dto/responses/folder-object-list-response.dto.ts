@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { folderObjectSchema } from '../folder-object.dto'
+import { folderObjectDTOSchema } from '../folder-object.dto'
 
 export const folderObjectListResponseSchema = z.object({
   meta: z.object({
@@ -9,7 +9,7 @@ export const folderObjectListResponseSchema = z.object({
     nextCursor: z.string().optional(),
     previousCursor: z.string().optional(),
   }),
-  result: z.array(folderObjectSchema),
+  result: z.array(folderObjectDTOSchema),
 })
 
 export class FolderObjectListResponse extends createZodDto(

@@ -1,4 +1,4 @@
-import type { AppTask, IAppPlatformService } from '@lombokapp/app-worker-sdk'
+import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
 import {
   downloadFileToDisk,
@@ -6,6 +6,7 @@ import {
   readFileMetadata,
   uploadFile,
 } from '@lombokapp/core-worker-utils'
+import type { TaskDTO } from '@lombokapp/types'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
@@ -16,31 +17,32 @@ import { v4 as uuidV4 } from 'uuid'
 import { analyzeContent } from '../analyze/analyze-content'
 
 export const analyzeObjectTaskHandler = async (
-  task: AppTask,
+  task: TaskDTO,
   server: IAppPlatformService,
 ) => {
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
-
-  if (!task.subjectFolderId) {
+  if (!task.targetLocation?.folderId) {
     throw new AppAPIError('INVALID_TASK', 'Missing folderId.')
   }
 
-  if (!task.subjectObjectKey) {
+  if (!task.targetLocation.objectKey) {
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
-  const response = await server.getContentSignedUrls([
+  const contentDownloadUrlResponse = await server.getContentSignedUrls([
     {
-      folderId: task.subjectFolderId,
-      objectKey: task.subjectObjectKey,
+      folderId: task.targetLocation.folderId,
+      objectKey: task.targetLocation.objectKey,
       method: SignedURLsRequestMethod.GET,
     },
   ])
-
-  if (response.error) {
-    throw new AppAPIError(response.error.code, response.error.message)
+  if ('error' in contentDownloadUrlResponse) {
+    throw new AppAPIError(
+      contentDownloadUrlResponse.error.code,
+      contentDownloadUrlResponse.error.message,
+    )
   }
 
   const tempDir = await fs.promises.mkdtemp(
@@ -55,23 +57,22 @@ export const analyzeObjectTaskHandler = async (
 
   let mimeType = ''
   try {
-    const downloadResult = await downloadFileToDisk(
-      response.result.urls[0].url,
-      inFilePath,
-    )
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const urlResult = contentDownloadUrlResponse.result[0]!
+    const downloadResult = await downloadFileToDisk(urlResult.url, inFilePath)
     mimeType = downloadResult.mimeType
     if (!mimeType) {
       throw new AppAPIError(
         'UNRECOGNIZED_MIME_TYPE',
-        `Cannot resolve mimeType for objectKey ${task.subjectObjectKey}`,
+        `Cannot resolve mimeType for objectKey ${task.targetLocation.objectKey}`,
       )
     }
   } catch (e: unknown) {
     throw new AppAPIError(
       'STORAGE_ACCESS_FAILURE',
       `Failure accessing underlying storage: ${JSON.stringify({
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
+        folderId: task.targetLocation.folderId,
+        objectKey: task.targetLocation.objectKey,
       })}.\nError: ${e instanceof Error ? e.name : String(e)}`,
     )
   }
@@ -103,40 +104,47 @@ export const analyzeObjectTaskHandler = async (
     mimeType: 'application/json',
   }
 
-  const metadataHash = await hashLocalFile(metadataFilePath)
-  const metadataSize = (await fs.promises.stat(metadataFilePath)).size
-  fs.renameSync(
-    metadataFilePath,
-    path.join(metadataOutFileDirectory, metadataHash),
-  )
+  if (fs.existsSync(metadataFilePath)) {
+    const metadataHash = await hashLocalFile(metadataFilePath)
+    const metadataSize = (await fs.promises.stat(metadataFilePath)).size
+    fs.renameSync(
+      metadataFilePath,
+      path.join(metadataOutFileDirectory, metadataHash),
+    )
 
-  metadataDescription.embeddedMetadata = {
-    type: 'external',
-    sizeBytes: metadataSize,
-    storageKey: metadataHash,
-    hash: metadataHash,
-    mimeType: 'application/json',
+    metadataDescription.embeddedMetadata = {
+      type: 'external',
+      sizeBytes: metadataSize,
+      storageKey: metadataHash,
+      hash: metadataHash,
+      mimeType: 'application/json',
+    }
   }
 
   await server
     .getMetadataSignedUrls(
       Object.values(previews).map((preview) => ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        folderId: task.subjectFolderId!,
+        folderId: task.targetLocation!.folderId,
         contentHash: originalContentHash,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        objectKey: task.subjectObjectKey!,
+        objectKey: task.targetLocation!.objectKey!,
         method: SignedURLsRequestMethod.PUT,
         metadataHash: preview.hash,
       })),
     )
-    .then(({ result, error }) => {
-      if (error) {
-        throw new AppAPIError(error.code, error.message)
+    .then((metadataUploadResponse) => {
+      if ('error' in metadataUploadResponse) {
+        throw new AppAPIError(
+          metadataUploadResponse.error.code,
+          metadataUploadResponse.error.message,
+        )
       }
+      const { result } = metadataUploadResponse
       return Promise.all(
-        result.urls.map(({ url }, i) => {
-          const preview = previews[Object.keys(previews)[i]]
+        result.map(({ url }, i) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const preview = previews[Object.keys(previews)[i]!]!
           return uploadFile(
             path.join(metadataOutFileDirectory, preview.hash),
             url,
@@ -155,21 +163,14 @@ export const analyzeObjectTaskHandler = async (
   }
 
   if (Object.keys(metadataDescription).length > 0) {
-    const metadataUpdateResponse = await server.updateContentMetadata([
+    await server.updateContentMetadata([
       {
-        folderId: task.subjectFolderId,
-        objectKey: task.subjectObjectKey,
+        folderId: task.targetLocation.folderId,
+        objectKey: task.targetLocation.objectKey,
         hash: originalContentHash,
         metadata: metadataDescription,
       },
     ])
-
-    if (metadataUpdateResponse.error) {
-      throw new AppAPIError(
-        metadataUpdateResponse.error.code,
-        metadataUpdateResponse.error.message,
-      )
-    }
   }
 
   // remove the temporary directory

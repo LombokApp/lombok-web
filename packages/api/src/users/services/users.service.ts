@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { and, eq, ilike, or, SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { OrmService } from 'src/orm/orm.service'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
@@ -40,7 +40,8 @@ export class UserService {
       .where(eq(usersTable.id, actor.id))
       .returning()
 
-    return updatedUser
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return updatedUser!
   }
 
   async getUserByEmail({ email }: { email: string }) {
@@ -103,13 +104,14 @@ export class UserService {
     })
 
     const [userCountResult] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
+      .select({ count: count(sql`*`) })
       .from(usersTable)
       .where(where)
 
     return {
       results: users,
-      totalCount: parseInt(userCountResult.count ?? '0', 10),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      totalCount: userCountResult!.count,
     }
   }
 
@@ -172,7 +174,8 @@ export class UserService {
         .values(newUser)
         .returning()
 
-      return createdUser
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return createdUser!
     } catch (error: unknown) {
       if (
         error &&
@@ -265,7 +268,8 @@ export class UserService {
         .returning()
     )[0]
 
-    return updatedUser
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return updatedUser!
   }
 
   async deleteUserAsAdmin(actor: User, userId: string) {

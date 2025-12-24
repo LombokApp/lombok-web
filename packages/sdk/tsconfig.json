@@ -19,7 +19,8 @@
       "@lombokapp/types/*": ["../types/src/*"],
       "@lombokapp/auth-utils": ["../auth-utils/src"],
       "@lombokapp/auth-utils/*": ["../auth-utils/src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": true
   },
   "include": [".", "src", "index.ts", "index.d.ts", "eslint.config.ts"],
   "exclude": ["dist"]

@@ -1,12 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
   createTestUser,
   reindexTestFolder,
-  waitForTrue,
 } from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'folder_objects'
@@ -274,8 +272,6 @@ describe('Folder Objects', () => {
     })
 
     expect(testFolder.folder.id).toBeTruthy()
-    const platformTaskService =
-      await testModule?.app.resolve(PlatformTaskService)
 
     await reindexTestFolder({
       accessToken,
@@ -283,10 +279,7 @@ describe('Folder Objects', () => {
       folderId: testFolder.folder.id,
     })
 
-    await waitForTrue(() => platformTaskService?.runningTasksCount === 0, {
-      retryPeriod: 100,
-      maxRetries: 10,
-    })
+    await testModule?.services.platformTaskService.drainPlatformTasks(true)
 
     // Check initial state
     const initialListObjectsResponse = await apiClient(accessToken).GET(
@@ -307,7 +300,8 @@ describe('Folder Objects', () => {
         params: {
           path: {
             folderId: testFolder.folder.id,
-            objectKey: initialListObjectsResponse.data.result[0].objectKey,
+            objectKey:
+              initialListObjectsResponse.data.result[0]?.objectKey ?? '',
           },
         },
       },

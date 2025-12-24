@@ -18,6 +18,7 @@
       ],
       "@lombokapp/utils": ["./node_modules/@lombokapp/utils/src"],
       "@lombokapp/utils/*": ["./node_modules/@lombokapp/utils/src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": true
   }
 }

@@ -1,5 +1,4 @@
 import type {
-  AppTask,
   CreateDbFn,
   RequestHandler,
   SerializeableRequest,
@@ -22,7 +21,7 @@ import {
   WorkerInvalidError,
   WorkerRuntimeError,
 } from '@lombokapp/core-worker-utils'
-import type { paths } from '@lombokapp/types'
+import type { paths, TaskDTO } from '@lombokapp/types'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
 import createFetchClient from 'openapi-fetch'
@@ -88,7 +87,8 @@ void (async () => {
   const originalConsoleLog = console.log
 
   const workerModuleStartContext = JSON.parse(
-    process.argv[2],
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    process.argv[2]!,
   ) as WorkerModuleStartContext
 
   const writeOutput = async (output: string) => {
@@ -319,20 +319,21 @@ void (async () => {
             ) {
               const token = authHeader.slice('Bearer '.length)
 
-              const authResult = await serverClient.authenticateUser(
+              const authResult = await serverClient.authenticateUser({
                 token,
-                pipeRequest.appIdentifier,
-              )
+                appIdentifier: pipeRequest.appIdentifier,
+              })
 
-              if (authResult.error || !authResult.result.success) {
+              if ('error' in authResult) {
+                const errorMessage = authResult.error.message
                 logTiming('authentication_failed', authStartTime, {
                   requestId: pipeRequest.id,
-                  error: authResult.error?.message || 'Invalid token',
+                  error: errorMessage,
                   appIdentifier: pipeRequest.appIdentifier,
                 })
                 throw new WorkerRuntimeError(
                   'Authentication failed',
-                  new Error(authResult.error?.message || 'Invalid token'),
+                  new Error(errorMessage),
                 )
               }
 
@@ -379,8 +380,9 @@ void (async () => {
             serverClient,
             dbClient,
             createDb,
-            user: userId // Pass the authenticated user to the handler
+            actor: userId // Pass the authenticated user to the handler
               ? {
+                  actorType: 'user',
                   userId,
                   userApiClient: createFetchClient<paths>({
                     baseUrl: workerModuleStartContext.serverBaseUrl,
@@ -393,11 +395,6 @@ void (async () => {
                 }
               : undefined,
           })
-          console.log(
-            'response outside handleRequest:',
-            response,
-            typeof response,
-          )
         } else {
           // Handle task
           logTiming('execution_start', executionStartTime, {
@@ -411,7 +408,7 @@ void (async () => {
             )
           }
 
-          await userModule.handleTask(pipeRequest.data as AppTask, {
+          await userModule.handleTask(pipeRequest.data as TaskDTO, {
             serverClient,
             dbClient,
             createDb,
@@ -508,7 +505,7 @@ void (async () => {
     logTiming('socket_connection_start', socketStartTime)
     const socket = io(`${workerModuleStartContext.serverBaseUrl}/apps`, {
       auth: {
-        appWorkerId: `worker-daemon--${workerModuleStartContext.workerIdentifier}--${workerModuleStartContext.executionId}`,
+        instanceId: `worker-daemon--${workerModuleStartContext.workerIdentifier}--${workerModuleStartContext.executionId}`,
         token: workerModuleStartContext.workerToken,
       },
       reconnection: false,

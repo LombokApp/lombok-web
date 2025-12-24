@@ -27,7 +27,8 @@
       "@lombokapp/auth-utils/*": ["../auth-utils/src/*"],
       "@lombokapp/sdk": ["../sdk/src"],
       "@lombokapp/sdk/*": ["../sdk/src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": true
   },
   "include": ["index.ts", "src/**/*", "eslint.config.ts"],
   "exclude": ["node_modules", "dist"]

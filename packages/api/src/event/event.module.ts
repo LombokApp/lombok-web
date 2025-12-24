@@ -1,4 +1,3 @@
-import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
 import {
   forwardRef,
   Module,
@@ -49,59 +48,13 @@ export class EventModule implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleInit() {
-    // Periodic platform schedule events for apps to subscribe to
+    const scheduleJob = new CronJob('* * * * *', async () => {
+      await this.eventService.processScheduledTaskTriggers()
+    })
+    scheduleJob.start()
     this.jobs = [
-      // every minute
-      new CronJob(
-        '* * * * *',
-        () =>
-          void this.eventService.emitEvent({
-            emitterIdentifier: PLATFORM_IDENTIFIER,
-            eventIdentifier: 'platform:schedule:every_minute',
-            data: {},
-          }),
-        null,
-        true,
-      ),
-
-      // every 5 minutes
-      new CronJob(
-        '*/5 * * * *',
-        () =>
-          void this.eventService.emitEvent({
-            emitterIdentifier: PLATFORM_IDENTIFIER,
-            eventIdentifier: 'platform:schedule:every_5_minutes',
-            data: {},
-          }),
-        null,
-        true,
-      ),
-
-      // hourly
-      new CronJob(
-        '0 * * * *',
-        () =>
-          void this.eventService.emitEvent({
-            emitterIdentifier: PLATFORM_IDENTIFIER,
-            eventIdentifier: 'platform:schedule:hourly',
-            data: {},
-          }),
-        null,
-        true,
-      ),
-
-      // daily at midnight
-      new CronJob(
-        '0 0 * * *',
-        () =>
-          void this.eventService.emitEvent({
-            emitterIdentifier: PLATFORM_IDENTIFIER,
-            eventIdentifier: 'platform:schedule:daily',
-            data: {},
-          }),
-        null,
-        true,
-      ),
+      // evaluate schedule triggers every minute
+      scheduleJob,
     ]
   }
 }

@@ -1,10 +1,10 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
-import { taskSchema } from '../task.dto'
+import { taskSchemaWithTargetLocationContext } from '../task.dto'
 
 export const taskGetResponseSchema = z.object({
-  task: taskSchema,
+  task: taskSchemaWithTargetLocationContext,
 })
 
 export class TaskGetResponse extends createZodDto(taskGetResponseSchema) {}

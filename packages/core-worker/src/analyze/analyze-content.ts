@@ -46,7 +46,8 @@ async function analyzeImage(
     }),
   )
 
-  const scaleResult = outputs[0].result
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const scaleResult = outputs[0]!.result
   const previewOutputs = outputs.reduce(
     (acc, { result, label, profile, purpose, outFilePath }) => {
       const sizeBytes = fs.statSync(outFilePath).size

@@ -4,7 +4,12 @@ import {
   coreWorkerProcessDataPayloadSchema,
   uniqueExecutionKey,
 } from '@lombokapp/core-worker-utils'
-import type { AppManifest } from '@lombokapp/types'
+import {
+  type AppManifest,
+  EXECUTE_SYSTEM_REQUEST_MESSAGE,
+  type JsonSerializableValue,
+  LogEntryLevel,
+} from '@lombokapp/types'
 import { spawn } from 'bun'
 import fs from 'fs'
 import os from 'os'
@@ -12,7 +17,7 @@ import path from 'path'
 
 import { connectAndPerformWork } from './src/connect-app-worker'
 import { analyzeObjectTaskHandler } from './src/handlers/analyze-object-task-handler'
-import { bulidRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
+import { bulidRunWorkerScriptTaskHandler as buildRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
 import {
   runWorkerScript,
   shutdownAllWorkerSandboxes,
@@ -51,24 +56,39 @@ process.stdin.once('data', (data) => {
     initialized = true
     const { wait, log, socket } = connectAndPerformWork(
       workerData.socketBaseUrl,
-      workerData.appWorkerId,
+      workerData.instanceId,
       workerData.appToken,
       {
         ['analyze_object']: analyzeObjectTaskHandler,
-        ['run_worker_script']: bulidRunWorkerScriptTaskHandler(
+        ['run_worker_script']: buildRunWorkerScriptTaskHandler(
           workerData.executionOptions,
         ),
       },
       async () => {
         await log({
           message: 'Core app external worker thread started',
-          level: 'DEBUG',
+          level: LogEntryLevel.DEBUG,
           data: {
             workerData: {
               socketBaseUrl: workerData.socketBaseUrl,
               host: workerData.platformHost,
-              executionOptions: workerData.executionOptions,
-              appWorkerId: workerData.appWorkerId,
+              executionOptions: workerData.executionOptions
+                ? {
+                    ...(workerData.executionOptions.printWorkerOutput
+                      ? {
+                          printWorkerOutput:
+                            workerData.executionOptions.printWorkerOutput,
+                        }
+                      : { printWorkerOutput: null }),
+                    ...(workerData.executionOptions.removeWorkerDirectory
+                      ? {
+                          removeWorkerDirectory:
+                            workerData.executionOptions.removeWorkerDirectory,
+                        }
+                      : { removeWorkerDirectory: null }),
+                  }
+                : { printWorkerOutput: null, removeWorkerDirectory: null },
+              instanceId: workerData.instanceId,
               appToken: '[REDACTED]',
             },
           },
@@ -80,12 +100,12 @@ process.stdin.once('data', (data) => {
       .then(() => {
         return log({
           message: 'Core app external worker ending work',
-          level: 'INFO',
+          level: LogEntryLevel.INFO,
         })
       })
       .catch((e: unknown) => {
         void log({
-          level: 'ERROR',
+          level: LogEntryLevel.ERROR,
           message: e instanceof Error ? e.message : '',
         })
         if (
@@ -97,19 +117,19 @@ process.stdin.once('data', (data) => {
         ) {
           void log({
             message: 'Core app external worker thread error',
-            level: 'ERROR',
+            level: LogEntryLevel.ERROR,
             data: {
-              name: e.name,
-              message: e.message,
-              stack: e.stack,
-              appWorkerId: workerData.appWorkerId,
+              name: e.name as string,
+              message: e.message as string,
+              stack: e.stack as string,
+              instanceId: workerData.instanceId,
             },
           })
         }
         throw e
       })
       .finally(() => {
-        void log({ level: 'INFO', message: 'Shutting down.' })
+        void log({ level: LogEntryLevel.INFO, message: 'Shutting down.' })
         cleanup()
       })
 
@@ -118,7 +138,7 @@ process.stdin.once('data', (data) => {
     const uiBundleCacheRoot = path.join(os.tmpdir(), 'lombok-ui-bundle-cache')
     const uiBundleCacheWorkerRoot = path.join(
       uiBundleCacheRoot,
-      workerData.appWorkerId,
+      workerData.instanceId,
     )
 
     console.log(
@@ -130,6 +150,70 @@ process.stdin.once('data', (data) => {
       fs.rmdirSync(uiBundleCacheRoot, { recursive: true })
     }
     fs.mkdirSync(uiBundleCacheWorkerRoot, { recursive: true })
+
+    // Handle synchronous requests from the core platform
+    socket.on(
+      EXECUTE_SYSTEM_REQUEST_MESSAGE,
+      async (
+        {
+          appIdentifier,
+          request,
+        }: {
+          appIdentifier: string
+          request: { url: string; body: JsonSerializableValue }
+        },
+        ack?: (response: unknown) => void,
+      ) => {
+        const url = new URL(request.url)
+        const pathname = url.pathname
+        const workerIdentifierMatch = pathname.match(/^\/worker-api\/([^/]+)/)
+
+        if (!workerIdentifierMatch) {
+          return new Response('Invalid worker API path', { status: 400 })
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const workerIdentifier = workerIdentifierMatch[1]!
+
+        try {
+          const systemRequestMessageResponse = await runWorkerScript({
+            requestOrTask: new Request(request.url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(request.body),
+            }),
+            server: serverClient,
+            appIdentifier,
+            workerIdentifier,
+            workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
+            options: workerData.executionOptions,
+            onStdoutChunk: (text) => {
+              // eslint-disable-next-line no-console
+              console.log(
+                `[${appIdentifier}/${workerIdentifier}] ${text.trimEnd()}`,
+              )
+            },
+          })
+          if (systemRequestMessageResponse) {
+            ack?.(await systemRequestMessageResponse.json())
+          } else {
+            ack?.({ error: 'No response from worker' })
+          }
+        } catch (error: unknown) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error)
+          return new Response(
+            JSON.stringify({
+              error: 'Worker execution failed',
+              message: errorMessage,
+            }),
+            { status: 500 },
+          )
+        }
+      },
+    )
 
     try {
       server = Bun.serve({
@@ -148,7 +232,8 @@ process.stdin.once('data', (data) => {
               return new Response('Invalid worker API path', { status: 400 })
             }
 
-            const workerIdentifier = workerIdentifierMatch[1]
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const workerIdentifier = workerIdentifierMatch[1]!
 
             const host = req.headers.get('host') || ''
             const hostParts = host.split('.')
@@ -200,7 +285,7 @@ process.stdin.once('data', (data) => {
               JSON.stringify({
                 status: 'ok',
                 timestamp: new Date().toISOString(),
-                workerId: workerData.appWorkerId,
+                workerId: workerData.instanceId,
                 message: 'Core app worker is running',
               }),
               { headers: { 'Content-Type': 'application/json' } },
@@ -242,15 +327,16 @@ process.stdin.once('data', (data) => {
             } catch (error) {
               void log({
                 message: `Error loading manifest: ${error instanceof Error ? error.message : String(error)}`,
-                level: 'ERROR',
+                level: LogEntryLevel.ERROR,
               })
             }
           } else {
             try {
-              const bundleResponse =
-                await serverClient.getAppUIbundle(appIdentifier)
+              const bundleResponse = await serverClient.getAppUIbundle({
+                appIdentifier,
+              })
 
-              if (bundleResponse.error) {
+              if ('error' in bundleResponse) {
                 return new Response(`Error: ${bundleResponse.error.message}`, {
                   status:
                     typeof bundleResponse.error.code === 'number'
@@ -302,7 +388,7 @@ process.stdin.once('data', (data) => {
             } catch (error) {
               void log({
                 message: `Error downloading/extracting bundle: ${error instanceof Error ? error.message : String(error)}`,
-                level: 'ERROR',
+                level: LogEntryLevel.ERROR,
               })
               return new Response('Internal server error', { status: 500 })
             }
@@ -333,7 +419,7 @@ process.stdin.once('data', (data) => {
             } catch (error) {
               void log({
                 message: `Error reading file: ${error instanceof Error ? error.message : String(error)}`,
-                level: 'ERROR',
+                level: LogEntryLevel.ERROR,
               })
               return new Response('Internal server error', { status: 500 })
             }
@@ -345,7 +431,7 @@ process.stdin.once('data', (data) => {
 
       void log({
         message: `HTTP server started on port ${server.port}`,
-        level: 'DEBUG',
+        level: LogEntryLevel.DEBUG,
       })
       try {
         process.stdout.write(
@@ -353,7 +439,7 @@ process.stdin.once('data', (data) => {
             type: 'core_worker_status',
             status: 'ready',
             port: server.port,
-            appWorkerId: workerData.appWorkerId,
+            instanceId: workerData.instanceId,
           })}\n`,
         )
       } catch {
@@ -363,7 +449,7 @@ process.stdin.once('data', (data) => {
       const message = error instanceof Error ? error.message : String(error)
       void log({
         message: `HTTP server failed to start: ${message}`,
-        level: 'ERROR',
+        level: LogEntryLevel.ERROR,
       })
       try {
         process.stdout.write(
@@ -371,7 +457,7 @@ process.stdin.once('data', (data) => {
             type: 'core_worker_status',
             status: 'error',
             error: message,
-            appWorkerId: workerData.appWorkerId,
+            instanceId: workerData.instanceId,
           })}\n`,
         )
       } catch {

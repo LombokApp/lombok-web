@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Query,
   Req,
   UnauthorizedException,
@@ -36,19 +37,19 @@ export class TasksController {
   @Get('/:folderId/tasks/:taskId')
   async getFolderTask(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
-    @Param('taskId') taskId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
   ): Promise<TaskGetResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
+    const task = await this.taskService.getFolderTaskAsUser(req.user, {
+      folderId,
+      taskId,
+    })
+    const transformedTask = transformTaskToDTO(task)
     return {
-      task: transformTaskToDTO(
-        await this.taskService.getFolderTaskAsUser(req.user, {
-          folderId,
-          taskId,
-        }),
-      ),
+      task: transformedTask,
     }
   }
 
@@ -59,7 +60,7 @@ export class TasksController {
   async listFolderTasks(
     @Req() req: express.Request,
     @Query() queryParams: FolderTasksListQueryParamsDTO,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
   ): Promise<TaskListResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
