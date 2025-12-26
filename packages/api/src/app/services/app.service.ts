@@ -88,6 +88,7 @@ import { AppAlreadyInstalledException } from '../exceptions/app-already-installe
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import { generateAppIdentifierSuffix } from '../utils/app-id.util'
 import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
@@ -118,7 +119,8 @@ export interface AppDefinition {
   >
 }
 
-export interface AppWithMigrations extends NewApp {
+export interface AppInstallBundle
+  extends Omit<NewApp, 'identifier' | 'installId' | 'createdAt' | 'updatedAt'> {
   migrationFiles: { filename: string; content: string }[]
 }
 
@@ -181,12 +183,14 @@ export class AppService {
       .returning()
     if (!enabled) {
       this.appSocketService.disconnectAllClientsByAppIdentifier(appIdentifier)
-    } else {
-      void this.coreAppService.startCoreAppThread()
     }
     if (!updated) {
       throw new NotFoundException('Failed to update app enabled status.')
     }
+
+    // update the app install ID mapping in the core app worker
+    void this.coreAppService.updateAppInstallIdMapping()
+
     return updated
   }
 
@@ -217,6 +221,18 @@ export class AppService {
       throw new NotFoundException('Failed to update app enabled status.')
     }
     return updated
+  }
+
+  getAppWithPublicKeyAndSlug({
+    publicKey,
+    slug,
+  }: {
+    publicKey: string
+    slug: string
+  }): Promise<App | undefined> {
+    return this.ormService.db.query.appsTable.findFirst({
+      where: and(eq(appsTable.publicKey, publicKey), eq(appsTable.slug, slug)),
+    })
   }
 
   getApp(
@@ -563,7 +579,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/workers/${workerApp.workers.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -576,6 +592,7 @@ export class AppService {
       result: {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         payloadUrl: presignedGetURL[0]!,
+        installId: workerApp.installId,
         entrypoint:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           workerApp.workers.definitions[requestData.workerIdentifier]!
@@ -712,7 +729,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/ui/${workerApp.ui.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/ui/${workerApp.ui.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -724,6 +741,7 @@ export class AppService {
 
     return {
       result: {
+        installId: workerApp.installId,
         manifest: workerApp.ui.manifest,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         bundleUrl: presignedGetURL[0]!,
@@ -835,12 +853,47 @@ export class AppService {
       .where(eq(appsTable.identifier, app.identifier))
   }
 
-  public async installApp(app: AppWithMigrations, update = false) {
+  private async generateUniqueAppIdentifierSuffix(
+    appSlug: string,
+  ): Promise<string> {
+    const MAX_ATTEMPTS = 10
+    let suffix = generateAppIdentifierSuffix()
+    const checkExists = async () => {
+      const found = await this.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.identifier, `${appSlug}_${suffix}`),
+      })
+      return !!found
+    }
+    let attempts = 1
+    while (attempts < MAX_ATTEMPTS && (await checkExists())) {
+      attempts++
+      suffix = generateAppIdentifierSuffix()
+    }
+    if (attempts >= MAX_ATTEMPTS) {
+      throw new Error(
+        `Failed to generate a unique app identifier suffix for app ${appSlug}`,
+      )
+    }
+    return suffix
+  }
+
+  public async installApp(
+    app: AppInstallBundle,
+    localPath: string,
+    allowUpdate = false,
+  ) {
     const now = new Date()
-    const installedApp = await this.getApp(app.identifier)
-    if (installedApp && !update) {
+    const installedApp = await this.getAppWithPublicKeyAndSlug({
+      publicKey: app.publicKey,
+      slug: app.slug,
+    })
+    if (installedApp && !allowUpdate) {
       throw new AppAlreadyInstalledException()
     }
+    const installId = crypto.randomUUID()
+    const appIdentifier =
+      installedApp?.identifier ??
+      `${app.slug}_${await this.generateUniqueAppIdentifierSuffix(app.slug)}`
     const assetManifestEntryPaths = Object.keys(app.manifest).filter(
       (manifestItemPath) =>
         manifestItemPath.startsWith('/ui') ||
@@ -855,11 +908,6 @@ export class AppService {
       throw new AppRequirementsNotSatisfiedException()
     }
 
-    if (installedApp) {
-      // uninstall currently installed app instance
-      await this.uninstallApp(installedApp)
-    }
-
     if (serverStorageLocation) {
       // Helper function to create, zip, hash, and upload a bundle
       const createAndUploadBundle = async (
@@ -868,7 +916,7 @@ export class AppService {
         const pathPrefix = `/${bundleName}/`
         // Create a temp dir for this bundle
         const bundleDir = await fsPromises.mkdtemp(
-          path.join(os.tmpdir(), `appzip-${bundleName}-`),
+          path.join(os.tmpdir(), `appzip-${installId}-${bundleName}-`),
         )
         const filePaths = assetManifestEntryPaths.filter((filePath) =>
           filePath.startsWith(pathPrefix),
@@ -882,11 +930,7 @@ export class AppService {
           const relPath = entryPath.slice(pathPrefix.length)
           const destPath = path.join(bundleDir, relPath)
           await fsPromises.mkdir(path.dirname(destPath), { recursive: true })
-          const srcPath = path.join(
-            this._appConfig.appsLocalPath,
-            app.identifier,
-            entryPath,
-          )
+          const srcPath = path.join(localPath, entryPath)
           await fsPromises.copyFile(srcPath, destPath)
         }
 
@@ -911,7 +955,8 @@ export class AppService {
         const objectKey = [
           serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '',
           'app-bundle-storage',
-          app.identifier,
+          appIdentifier,
+          installId,
           bundleName,
           `${zipHash}.zip`,
         ]
@@ -959,56 +1004,52 @@ export class AppService {
       }
     }
 
-    if (app.config.database?.enabled) {
-      if (app.migrationFiles.length > 0) {
-        await this.ormService.runAppMigrations(
-          app.identifier,
-          app.migrationFiles,
-        )
-      }
-    }
-
     // update app db record to match new app
     if (installedApp) {
       await this.ormService.db
         .update(appsTable)
-        .set({ ...app, createdAt: installedApp.createdAt, updatedAt: now })
+        .set({ ...app, installId, updatedAt: now })
         .where(eq(appsTable.identifier, installedApp.identifier))
     } else {
       await this.ormService.db.insert(appsTable).values({
         ...app,
+        identifier: appIdentifier,
+        installId,
         createdAt: now,
         updatedAt: now,
       })
     }
 
     // Run migrations if the app has any
-    if (app.migrationFiles.length > 0) {
+    if (app.config.database?.enabled && app.migrationFiles.length > 0) {
       try {
         this.logger.log(
-          `Running ${app.migrationFiles.length} migrations for app ${app.identifier}`,
+          `Running ${app.migrationFiles.length} migrations for app ${appIdentifier}`,
         )
         await this.ormService.runAppMigrations(
-          app.identifier,
+          appIdentifier,
           app.migrationFiles,
         )
         this.logger.log(
-          `Successfully completed migrations for app ${app.identifier}`,
+          `Successfully completed migrations for app ${appIdentifier}`,
         )
       } catch (error) {
         this.logger.error(
-          `Failed to run migrations for app ${app.identifier}:`,
+          `Failed to run migrations for app ${appIdentifier}:`,
           error,
         )
         throw error
       }
     }
 
+    // update the app install ID mapping in the core app worker
+    void this.coreAppService.updateAppInstallIdMapping()
+
     if (app.permissions?.platform.includes('READ_ACL')) {
       this.logger.log(
-        `Granting "shared_acl" schema usage to app ${app.identifier}`,
+        `Granting "shared_acl" schema usage to app ${appIdentifier}`,
       )
-      await this.ormService.grantAclSchemaUsageToApp(app.identifier)
+      await this.ormService.grantAclSchemaUsageToApp(appIdentifier)
     }
   }
 
@@ -1018,9 +1059,25 @@ export class AppService {
     const allPotentialAppDirectoriesEntries =
       this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
 
-    // for each potential app, attempt to install it (without updating if its already installed)
-    for (const appIdentifier of allPotentialAppDirectoriesEntries) {
-      await this.attemptParseAndInstallAppFromDisk(appIdentifier, false)
+    // for each potential app, attempt to install it (or update it if it's already installed)
+    for (const appInstallDirectoryName of allPotentialAppDirectoriesEntries) {
+      const publicKeyPath = path.join(
+        this._appConfig.appsLocalPath,
+        appInstallDirectoryName,
+        '.publicKey',
+      )
+      const publicKey =
+        fs.existsSync(publicKeyPath) && fs.readFileSync(publicKeyPath, 'utf-8')
+      const exists =
+        !!publicKey &&
+        !!(await this.getAppWithPublicKeyAndSlug({
+          publicKey,
+          slug: appInstallDirectoryName,
+        }))
+      await this.attemptParseAndInstallAppFromDisk(
+        appInstallDirectoryName,
+        exists,
+      )
     }
   }
 
@@ -1032,7 +1089,11 @@ export class AppService {
       const app = await this.parseAppFromDisk(directoryName)
 
       if (app.validation.value && app.definition) {
-        await this.installApp(app.definition, update)
+        await this.installApp(
+          app.definition,
+          path.join(this._appConfig.appsLocalPath, app.definition.slug),
+          update,
+        )
       } else {
         this.logger.warn(
           `APP PARSE ERROR - (dir: '${directoryName}'): App config is invalid`,
@@ -1117,7 +1178,7 @@ export class AppService {
   }
 
   public async parseAppFromDisk(appDirectoryName: string): Promise<{
-    definition?: AppWithMigrations
+    definition?: AppInstallBundle
     validation: { value: boolean; error?: z.ZodError }
   }> {
     const now = new Date()
@@ -1145,8 +1206,6 @@ export class AppService {
     if (!config) {
       throw new AppNotParsableException(`Config file not found`)
     }
-
-    const appIdentifier = config.identifier
 
     const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
     const manifest = (
@@ -1231,8 +1290,9 @@ export class AppService {
       },
       definition: parseResult.success
         ? {
-            identifier: appIdentifier,
+            slug: config.slug,
             label: config.label,
+
             manifest,
             publicKey,
             workers: {

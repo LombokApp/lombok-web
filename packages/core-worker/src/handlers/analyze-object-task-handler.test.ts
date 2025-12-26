@@ -118,6 +118,7 @@ describe('Analyze Object Task Handler', () => {
       getWorkerExecutionDetails: () =>
         Promise.resolve({
           result: {
+            installId: crypto.randomUUID(),
             entrypoint: 'test-entrypoint',
             workerToken: 'test-token',
             environmentVariables: {},
@@ -128,6 +129,7 @@ describe('Analyze Object Task Handler', () => {
       getAppUIbundle: () =>
         Promise.resolve({
           result: {
+            installId: crypto.randomUUID(),
             manifest: {},
             bundleUrl: 'https://example.com/bundle',
           },

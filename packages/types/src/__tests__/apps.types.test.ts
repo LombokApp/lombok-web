@@ -124,7 +124,7 @@ describe('apps.types', () => {
   describe('appConfigSchema', () => {
     it('should validate minimal app config', () => {
       const validApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
       }
@@ -133,7 +133,7 @@ describe('apps.types', () => {
     })
     it('should validate when worker handler identifier exists in workers', () => {
       const validApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -161,7 +161,7 @@ describe('apps.types', () => {
 
     it('should reject when worker handler identifier does not exist in workers', () => {
       const invalidApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -189,7 +189,7 @@ describe('apps.types', () => {
 
     it('should reject app with invalid identifier', () => {
       const invalidApp = {
-        identifier: 'TEST_APP', // uppercase not allowed
+        slug: 'TEST_APP', // uppercase not allowed
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -206,7 +206,7 @@ describe('apps.types', () => {
 
     it("should reject app with 'platform' identifier", () => {
       const invalidApp = {
-        identifier: 'platform',
+        slug: 'platform',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -223,7 +223,7 @@ describe('apps.types', () => {
 
     it('should reject app with empty identifier', () => {
       const invalidApp = {
-        identifier: '',
+        slug: '',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -240,7 +240,7 @@ describe('apps.types', () => {
 
     it('should validate top-level event trigger data templating', () => {
       const appWithTemplatedTrigger: AppConfig = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         subscribedPlatformEvents: ['platform:worker_task_enqueued'],
@@ -281,7 +281,7 @@ describe('apps.types', () => {
 
     it('should validate app config with top-level triggers handled by tasks', () => {
       const validApp: AppConfig = {
-        identifier: 'demo',
+        slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
         subscribedPlatformEvents: ['platform:object_added'],
@@ -361,7 +361,7 @@ describe('apps.types', () => {
 
     it('should reject app config when top-level trigger handler references unknown task', () => {
       const invalidApp: AppConfig = {
-        identifier: 'demo',
+        slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
         triggers: [
@@ -379,7 +379,7 @@ describe('apps.types', () => {
 
     it('should reject app config when onComplete handler references unknown task', () => {
       const invalidApp: AppConfig = {
-        identifier: 'demo',
+        slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
         tasks: [
@@ -415,7 +415,7 @@ describe('apps.types', () => {
 
     it('should reject app config when nested onComplete handler references unknown task', () => {
       const invalidApp: AppConfig = {
-        identifier: 'demo',
+        slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
         tasks: [
@@ -493,6 +493,67 @@ describe('apps.types', () => {
 
       expectZodFailure(result)
     })
+
+    describe('condition validation', () => {
+      it('should accept valid condition expressions', () => {
+        const result = taskTriggerConfigSchema.safeParse({
+          kind: 'event',
+          eventIdentifier: 'platform:object_added',
+          taskIdentifier: 'demo_worker',
+          condition: "event.data.mediaType === 'IMAGE'",
+        })
+
+        expectZodSuccess(result)
+      })
+
+      it('should accept condition with logical operators', () => {
+        const result = taskTriggerConfigSchema.safeParse({
+          kind: 'event',
+          eventIdentifier: 'platform:object_added',
+          taskIdentifier: 'demo_worker',
+          condition:
+            "event.data.mediaType === 'IMAGE' || event.data.mediaType === 'VIDEO'",
+        })
+
+        expectZodSuccess(result)
+      })
+
+      it('should reject condition with constructor access', () => {
+        const result = taskTriggerConfigSchema.safeParse({
+          kind: 'event',
+          eventIdentifier: 'platform:object_added',
+          taskIdentifier: 'demo_worker',
+          condition: 'event.data.constructor.constructor',
+        })
+
+        expectZodFailure(result)
+        if (!result.success) {
+          expect(result.error.issues[0]?.message).toContain('constructor')
+        }
+      })
+
+      it('should reject condition with nested constructor access', () => {
+        const result = taskTriggerConfigSchema.safeParse({
+          kind: 'event',
+          eventIdentifier: 'platform:object_added',
+          taskIdentifier: 'demo_worker',
+          condition: 'event.data.someProperty.constructor',
+        })
+
+        expectZodFailure(result)
+      })
+
+      it('should accept condition without constructor access', () => {
+        const result = taskTriggerConfigSchema.safeParse({
+          kind: 'event',
+          eventIdentifier: 'platform:object_added',
+          taskIdentifier: 'demo_worker',
+          condition: 'event.data.mediaType',
+        })
+
+        expectZodSuccess(result)
+      })
+    })
   })
 
   describe('taskOnCompleteConfigSchema', () => {
@@ -509,6 +570,74 @@ describe('apps.types', () => {
         ],
       })
       expectZodSuccess(result)
+    })
+
+    describe('condition validation', () => {
+      it('should accept valid condition expressions', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: 'task.success',
+        })
+
+        expectZodSuccess(result)
+      })
+
+      it('should accept condition with comparisons', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: 'task.success === true',
+        })
+
+        expectZodSuccess(result)
+      })
+
+      it('should accept condition with logical operators', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: 'task.success && task.result.value !== null',
+        })
+
+        expectZodSuccess(result)
+      })
+
+      it('should reject condition with constructor access', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: 'task.constructor.constructor',
+        })
+
+        expectZodFailure(result)
+        if (!result.success) {
+          expect(result.error.issues[0]?.message).toContain('constructor')
+        }
+      })
+
+      it('should reject condition with nested constructor access', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: 'task.result.constructor',
+        })
+
+        expectZodFailure(result)
+      })
+
+      it('should accept condition without constructor access', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: 'task.result.value',
+        })
+
+        expectZodSuccess(result)
+      })
+
+      it('should accept negated conditions', () => {
+        const result = taskOnCompleteConfigSchema.safeParse({
+          taskIdentifier: 'test_task',
+          condition: '!task.success',
+        })
+
+        expectZodSuccess(result)
+      })
     })
   })
 
@@ -528,7 +657,7 @@ describe('apps.types', () => {
       }
 
       const validApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -564,7 +693,7 @@ describe('apps.types', () => {
       }
 
       const invalidApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         workers: {
@@ -593,7 +722,7 @@ describe('apps.types', () => {
       }
 
       const validApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -897,7 +1026,7 @@ describe('apps.types', () => {
   describe('appConfigSchema container profile and docker handlers', () => {
     it('should validate when docker handler references existing container job', () => {
       const validApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         containerProfiles: {
@@ -931,7 +1060,7 @@ describe('apps.types', () => {
 
     it('should reject when docker handler profile does not exist', () => {
       const invalidApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -961,7 +1090,7 @@ describe('apps.types', () => {
 
     it('should reject when docker handler job name does not exist in profile', () => {
       const invalidApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         containerProfiles: {
@@ -1000,7 +1129,7 @@ describe('apps.types', () => {
   describe('appConfigSchema permissions and options', () => {
     it('should validate app config with permissions, storage, ui and database', () => {
       const validApp = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         requiresStorage: true,
@@ -1026,7 +1155,7 @@ describe('apps.types', () => {
   describe('appConfigSchema duplicate container job detection', () => {
     it('should reject duplicate job names within a single container profile', () => {
       const invalidApp: AppConfig = {
-        identifier: 'testapp',
+        slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
         containerProfiles: {
@@ -1218,7 +1347,7 @@ describe('apps.types', () => {
     it('should validate an exec docker worker config', () => {
       const result = appConfigSchema.safeParse({
         description: 'The official Lombok AI app',
-        identifier: 'ai',
+        slug: 'ai',
         label: 'Lombok AI',
         requiresStorage: true,
         subscribedPlatformEvents: ['platform:object_added'],

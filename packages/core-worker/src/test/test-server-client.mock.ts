@@ -36,6 +36,7 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     getWorkerExecutionDetails: async () => ({
       result: {
+        installId: crypto.randomUUID(),
         entrypoint: 'index.ts',
         workerToken: 'test-token',
         environmentVariables: {},
@@ -44,7 +45,9 @@ export function buildTestServerClient(
       },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    getAppUIbundle: async () => ({ result: { manifest: {}, bundleUrl: '' } }),
+    getAppUIbundle: async () => ({
+      result: { installId: crypto.randomUUID(), manifest: {}, bundleUrl: '' },
+    }),
     // eslint-disable-next-line @typescript-eslint/require-await
     saveLogEntry: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await, no-empty-pattern

@@ -24,7 +24,7 @@ export async function enableApps(appIds?: string[]): Promise<void> {
     const result = await db
       .update(appsTable)
       .set(updateValues)
-      .where(inArray(appsTable.identifier, appIds))
+      .where(inArray(appsTable.slug, appIds))
       .returning()
 
     console.log(

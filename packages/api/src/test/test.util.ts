@@ -25,6 +25,7 @@ import { setApp, setAppInitializing } from '../shared/app-helper'
 import { NoPrefixConsoleLogger } from '../shared/no-prefix-console-logger'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
+import { appsTable } from 'src/app/entities/app.entity'
 
 const MINIO_LOCAL_PATH = '/minio-test-data'
 const MINIO_ACCESS_KEY_ID = 'testaccesskeyid'
@@ -172,6 +173,15 @@ export async function buildTestModule({
         endpoint: MINIO_ENDPOINT,
         region: MINIO_REGION,
       }),
+    getAppIdentifierBySlug: async (slug: string) => {
+      const app = await services.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, slug),
+      })
+      if (!app) {
+        throw new Error(`App with slug ${slug} not found`)
+      }
+      return app?.identifier
+    },
     initMinioTestBucket: async (
       createFiles: { objectKey: string; content: Buffer | string }[] = [],
     ) => {

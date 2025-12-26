@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { CORE_APP_IDENTIFIER, LogEntryLevel } from '@lombokapp/types'
+import { CORE_APP_SLUG, LogEntryLevel } from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
@@ -577,7 +577,7 @@ describe('App Socket Interface', () => {
     const coreAppSocket = await connectSocket(
       'test-instance-core',
       [],
-      CORE_APP_IDENTIFIER,
+      CORE_APP_SLUG,
     )
 
     const completeResponse = await buildAppClient(
@@ -612,7 +612,7 @@ describe('App Socket Interface', () => {
     const coreAppSocket = await connectSocket(
       'test-instance-core',
       [],
-      CORE_APP_IDENTIFIER,
+      CORE_APP_SLUG,
     )
 
     const response = await buildAppClient(

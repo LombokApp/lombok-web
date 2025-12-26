@@ -1,4 +1,4 @@
-import { CORE_APP_IDENTIFIER, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_APP_SLUG, PLATFORM_IDENTIFIER } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -46,7 +46,9 @@ describe('Platform events', () => {
 
     expect(tasks.length).toBe(1)
     const task = tasks[0]
-    expect(task?.ownerIdentifier).toBe(CORE_APP_IDENTIFIER)
+    expect(task?.ownerIdentifier).toBe(
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG),
+    )
     expect(task?.data).toEqual({
       innerTaskId: 'abc-123',
       appIdentifier: 'demo-app',

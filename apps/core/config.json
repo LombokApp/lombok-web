@@ -1,6 +1,6 @@
 {
   "description": "An app implementing core functionality.",
-  "identifier": "core",
+  "slug": "core",
   "label": "Core",
   "requiresStorage": false,
   "subscribedPlatformEvents": [

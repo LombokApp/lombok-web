@@ -1218,6 +1218,7 @@ setInterval(
 // Get or create a long-running worker process
 async function getOrCreateWorkerProcess(
   appIdentifier: string,
+  appInstallId: string,
   workerIdentifier: string,
   server: IAppPlatformService,
   options: {
@@ -1232,7 +1233,7 @@ async function getOrCreateWorkerProcess(
   workerRootPath: string
   logsDir: string
 }> {
-  const workerId = `${appIdentifier}--${workerIdentifier}`
+  const workerId = `${appIdentifier}--${appInstallId}--${workerIdentifier}`
 
   // Check if we have an existing worker
   const existingWorker = workerProcesses.get(workerId)
@@ -1275,6 +1276,7 @@ async function getOrCreateWorkerProcess(
 interface RunWorkerScriptBaseArgs {
   server: IAppPlatformService
   appIdentifier: string
+  appInstallId: string
   workerIdentifier: string
   workerExecutionId: string
   options?: {
@@ -1307,6 +1309,7 @@ export async function runWorkerScript(
     server,
     appIdentifier,
     workerIdentifier,
+    appInstallId,
     workerExecutionId,
     options = {
       printWorkerOutput: true,
@@ -1326,6 +1329,7 @@ export async function runWorkerScript(
       logsDir,
     } = await getOrCreateWorkerProcess(
       appIdentifier,
+      appInstallId,
       workerIdentifier,
       server,
       options,

@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
+import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -13,7 +14,7 @@ import { usersTable } from 'src/users/entities/user.entity'
 
 const TEST_MODULE_KEY = 'task_lifecycle'
 
-const LIFECYCLE_APP_ID = 'tasklifecycle'
+const LIFECYCLE_APP_SLUG = 'tasklifecycle'
 const PARENT_TASK_ID = 'lifecycle_parent_task'
 const PARENT_TASK_SINGLE_ON_COMPLETE_ID =
   'lifecycle_parent_task_single_oncomplete'
@@ -24,7 +25,7 @@ const SCHEDULE_TASK_ID = 'lifecycle_schedule_task'
 const USER_ACTION_TASK_ID = 'lifecycle_user_action_task'
 const LIFECYCLE_EVENT_IDENTIFIER = 'dummy_event'
 const LIFECYCLE_EVENT_IDENTIFIER_OTHER = 'dummy_event_other'
-const SOCKET_DATA_APP_ID = 'sockettestappdatatemplate'
+const SOCKET_DATA_APP_SLUG = 'sockettestappdatatemplate'
 const SOCKET_DATA_TASK_IDENTIFIER = 'socket_test_task'
 
 const getTaskByIdentifier = async (
@@ -80,14 +81,16 @@ describe('Task lifecycle', () => {
       .insert(appFolderSettingsTable)
       .values({
         folderId: testFolder.folder.id,
-        appIdentifier: SOCKET_DATA_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_DATA_APP_SLUG),
         enabled: true,
         createdAt: now,
         updatedAt: now,
       })
 
     await testModule!.services.eventService.emitEvent({
-      emitterIdentifier: SOCKET_DATA_APP_ID,
+      emitterIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_DATA_APP_SLUG),
       eventIdentifier: LIFECYCLE_EVENT_IDENTIFIER,
       data: {
         folderId: testFolder.folder.id,
@@ -133,7 +136,8 @@ describe('Task lifecycle', () => {
       .insert(appFolderSettingsTable)
       .values({
         folderId: testFolder.folder.id,
-        appIdentifier: SOCKET_DATA_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_DATA_APP_SLUG),
         enabled: true,
         createdAt: now,
         updatedAt: now,
@@ -141,7 +145,8 @@ describe('Task lifecycle', () => {
 
     const parentTask =
       await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier: SOCKET_DATA_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_DATA_APP_SLUG),
         taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
         taskData: {
           testKey: 'test-value',
@@ -195,7 +200,8 @@ describe('Task lifecycle', () => {
 
   it('enqueues an onComplete task when the parent task completes successfully', async () => {
     await testModule!.services.eventService.emitEvent({
-      emitterIdentifier: LIFECYCLE_APP_ID,
+      emitterIdentifier:
+        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
       eventIdentifier: LIFECYCLE_EVENT_IDENTIFIER_OTHER,
       data: { payload: 'from-event' },
     })
@@ -264,7 +270,8 @@ describe('Task lifecycle', () => {
 
   it('skips onComplete task when the condition evaluates to false', async () => {
     await testModule!.services.eventService.emitEvent({
-      emitterIdentifier: LIFECYCLE_APP_ID,
+      emitterIdentifier:
+        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
       eventIdentifier: LIFECYCLE_EVENT_IDENTIFIER_OTHER,
       data: { payload: 'from-event' },
     })
@@ -304,7 +311,8 @@ describe('Task lifecycle', () => {
 
   it('enqueues onComplete tasks (array) and propagates through the chain', async () => {
     await testModule!.services.eventService.emitEvent({
-      emitterIdentifier: LIFECYCLE_APP_ID,
+      emitterIdentifier:
+        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
       eventIdentifier: LIFECYCLE_EVENT_IDENTIFIER,
       data: { payload: 'from-event' },
     })
@@ -469,7 +477,8 @@ describe('Task lifecycle', () => {
 
   it('creates an app_action task and tracks lifecycle fields', async () => {
     await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: LIFECYCLE_APP_ID,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
       taskIdentifier: APP_ACTION_TASK_ID,
       taskData: { foo: 'bar' },
     })
@@ -517,7 +526,8 @@ describe('Task lifecycle', () => {
   it('creates an app_action task with a single onComplete handler', async () => {
     const parentTask =
       await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier: LIFECYCLE_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
         taskData: { testData: 'value' },
         onComplete: [
@@ -584,7 +594,8 @@ describe('Task lifecycle', () => {
   it('creates an app_action task with an array of onComplete handlers and chains them', async () => {
     const parentTask =
       await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier: LIFECYCLE_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
         taskData: { chainData: 'start' },
         onComplete: [
@@ -709,7 +720,8 @@ describe('Task lifecycle', () => {
   it('enqueues onComplete task when a negated condition matches a failure', async () => {
     const parentTask =
       await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier: LIFECYCLE_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
         taskData: { shouldFail: true },
         onComplete: [
@@ -797,7 +809,8 @@ describe('Task lifecycle', () => {
     const task =
       await testModule!.services.taskService.triggerAppUserActionTask({
         userId,
-        appIdentifier: LIFECYCLE_APP_ID,
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: USER_ACTION_TASK_ID,
         taskData: { from: 'user' },
         targetUserId: userId,

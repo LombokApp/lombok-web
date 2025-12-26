@@ -11,6 +11,12 @@ import { usersTable } from 'src/users/entities/user.entity'
 
 const TEST_MODULE_KEY = 'orm_schema_isolation'
 
+const SOCKET_TEST_APP_NO_DB_SLUG = 'sockettestappnodb'
+const SOCKET_TEST_APP_SLUG = 'sockettestapp'
+
+const CONCURRENT_APP_1_IDENTIFIER = 'concurrent_app_1_s34fj'
+const CONCURRENT_APP_2_IDENTIFIER = 'concurrent_app_2_278df'
+
 describe('ORM Schema Isolation', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
@@ -168,16 +174,14 @@ describe('ORM Schema Isolation', () => {
 
   it('should handle multiple concurrent app schemas without interference', async () => {
     const ormService = testModule!.services.ormService
-    const app1Id = 'concurrent_app_1'
-    const app2Id = 'concurrent_app_2'
 
     // Ensure both app schemas exist
-    await ormService.ensureAppSchema(app1Id)
-    await ormService.ensureAppSchema(app2Id)
+    await ormService.ensureAppSchema(CONCURRENT_APP_1_IDENTIFIER)
+    await ormService.ensureAppSchema(CONCURRENT_APP_2_IDENTIFIER)
 
     // Create tables in both schemas
     await ormService.executeExecForApp(
-      app1Id,
+      CONCURRENT_APP_1_IDENTIFIER,
       `
       CREATE TABLE IF NOT EXISTS app1_table (
         id SERIAL PRIMARY KEY,
@@ -187,7 +191,7 @@ describe('ORM Schema Isolation', () => {
     )
 
     await ormService.executeExecForApp(
-      app2Id,
+      CONCURRENT_APP_2_IDENTIFIER,
       `
       CREATE TABLE IF NOT EXISTS app2_table (
         id SERIAL PRIMARY KEY,
@@ -198,25 +202,25 @@ describe('ORM Schema Isolation', () => {
 
     // Insert data into both schemas
     await ormService.executeExecForApp(
-      app1Id,
+      CONCURRENT_APP_1_IDENTIFIER,
       `INSERT INTO app1_table (value) VALUES ('app1 data')`,
     )
 
     await ormService.executeExecForApp(
-      app2Id,
+      CONCURRENT_APP_2_IDENTIFIER,
       `INSERT INTO app2_table (value) VALUES ('app2 data')`,
     )
 
     // Query both schemas
     const app1Result = await ormService.executeQueryForApp<{ value: string }>(
-      app1Id,
+      CONCURRENT_APP_1_IDENTIFIER,
       `SELECT * FROM app1_table WHERE value = 'app1 data'`,
       [],
       'object',
     )
 
     const app2Result = await ormService.executeQueryForApp<{ value: string }>(
-      app2Id,
+      CONCURRENT_APP_2_IDENTIFIER,
       `SELECT * FROM app2_table WHERE value = 'app2 data'`,
       [],
       'object',
@@ -258,8 +262,8 @@ describe('ORM Schema Isolation', () => {
     expect(foldersResponse.response.status).toEqual(200)
 
     // Clean up
-    await ormService.dropAppSchema(app1Id)
-    await ormService.dropAppSchema(app2Id)
+    await ormService.dropAppSchema(CONCURRENT_APP_1_IDENTIFIER)
+    await ormService.dropAppSchema(CONCURRENT_APP_2_IDENTIFIER)
   })
 
   it('should prevent app queries from accessing other schemas', async () => {
@@ -600,8 +604,9 @@ describe('ORM Schema Isolation', () => {
 
   describe('Database Access Restrictions', () => {
     it('should have database field set to false for app without database enabled', async () => {
-      const app =
-        await testModule!.services.appService.getApp('sockettestappnodb')
+      const app = await testModule!.services.appService.getApp(
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_NO_DB_SLUG),
+      )
 
       expect(app).toBeDefined()
       if (!app) {
@@ -612,7 +617,9 @@ describe('ORM Schema Isolation', () => {
     })
 
     it('should have database field set to true for app with database enabled', async () => {
-      const app = await testModule!.services.appService.getApp('sockettestapp')
+      const app = await testModule!.services.appService.getApp(
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+      )
 
       expect(app).toBeDefined()
       if (!app) {
@@ -678,14 +685,18 @@ describe('ORM Schema Isolation', () => {
       }
 
       // App without database enabled should be restricted
-      const checkWithoutDb = await checkDatabaseAccess('sockettestappnodb')
+      const checkWithoutDb = await checkDatabaseAccess(
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_NO_DB_SLUG),
+      )
       expect(checkWithoutDb.allowed).toBe(false)
       expect(checkWithoutDb.reason).toBe(
         'Database is not enabled for this app.',
       )
 
       // App with database enabled should be allowed
-      const checkWithDb = await checkDatabaseAccess('sockettestapp')
+      const checkWithDb = await checkDatabaseAccess(
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+      )
       expect(checkWithDb.allowed).toBe(true)
     })
   })

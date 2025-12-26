@@ -17,7 +17,10 @@ const runWorkerScriptTaskInputDataSchema = z.object({
 })
 
 export const bulidRunWorkerScriptTaskHandler =
-  (workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions']) =>
+  (
+    workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions'],
+    appInstallIdMapping: Record<string, string>,
+  ) =>
   async (runWorkerScriptTask: TaskDTO, server: IAppPlatformService) => {
     const {
       data: parsedRunWorkerTaskData,
@@ -42,6 +45,19 @@ export const bulidRunWorkerScriptTaskHandler =
       )
     }
 
+    const appInstallId =
+      appInstallIdMapping[parsedRunWorkerTaskData.appIdentifier]
+
+    if (!appInstallId) {
+      throw new AppAPIError(
+        'APP_INSTALL_ID_NOT_FOUND',
+        'App install ID not found',
+        {
+          appIdentifier: parsedRunWorkerTaskData.appIdentifier,
+        },
+      )
+    }
+
     const { task } = attemptStartHandleResponse.result
     const appIdentifier = parsedRunWorkerTaskData.appIdentifier
     const workerIdentifier = parsedRunWorkerTaskData.workerIdentifier
@@ -51,6 +67,7 @@ export const bulidRunWorkerScriptTaskHandler =
         requestOrTask: task,
         server,
         appIdentifier,
+        appInstallId,
         workerIdentifier,
         workerExecutionId,
         options: workerExecutionOptions,

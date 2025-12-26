@@ -1,10 +1,13 @@
 import {
-  CORE_APP_IDENTIFIER,
+  CORE_APP_SLUG,
   EXECUTE_SYSTEM_REQUEST_MESSAGE,
   JsonSerializableValue,
 } from '@lombokapp/types'
 import { Injectable, Logger, Scope } from '@nestjs/common'
+import { eq } from 'drizzle-orm'
 import type { Namespace, Socket } from 'socket.io'
+import { appsTable } from 'src/app/entities/app.entity'
+import { OrmService } from 'src/orm/orm.service'
 import { z } from 'zod'
 
 export const AppSocketAuthPayload = z.object({
@@ -19,6 +22,7 @@ export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 export class AppSocketService {
   public readonly connectedAppWorkers = new Map<string, Socket>()
   public readonly appIdentifierToClientIds = new Map<string, Set<string>>()
+  constructor(private readonly ormService: OrmService) {}
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -99,15 +103,23 @@ export class AppSocketService {
     })
 
     // The core app is the only app that can execute synchronous requests of other apps
-    const clientIds = this.appIdentifierToClientIds.get(CORE_APP_IDENTIFIER)
-    if (!clientIds || clientIds.size === 0) {
+    const coreApp = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.slug, CORE_APP_SLUG),
+    })
+
+    const clientIds = coreApp
+      ? this.appIdentifierToClientIds.get(coreApp.identifier)
+      : undefined
+    if (!coreApp || !clientIds || clientIds.size === 0) {
       throw new Error(`No connected core app clients`)
     }
 
     // Get the first connected client for the core app
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const clientId = Array.from(clientIds)[0]!
-    const socket = this.connectedAppWorkers.get(clientId)
+    const clientId = Array.from(clientIds)[0]
+    const socket =
+      clientId && this.connectedAppWorkers.has(clientId)
+        ? this.connectedAppWorkers.get(clientId)
+        : undefined
     if (!socket) {
       throw new Error(`Socket not found for client "${clientId}"`)
     }

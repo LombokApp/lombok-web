@@ -145,6 +145,52 @@ export class DockerClientService {
     )
   }
 
+  resolveDockerHostConfigForProfile(profileKey: string): {
+    hostId: string
+    volumes: string[] | undefined
+    gpus: { driver: string; deviceIds: string[] } | undefined
+    extraHosts: string[] | undefined
+    networkMode: 'host' | 'bridge' | `container:${string}` | undefined
+  } {
+    const profileKeyParts = profileKey.split(':')
+    const appSlugProfileKey = `${profileKeyParts[0]?.split('_')?.[0]}:${profileKeyParts[1]}`
+
+    const resolvedHostId =
+      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
+        profileKey
+      ] ??
+      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
+        appSlugProfileKey
+      ] ??
+      'local'
+
+    return {
+      hostId: resolvedHostId,
+      volumes:
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.volumes?.[profileKey] ??
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.volumes?.[appSlugProfileKey],
+      gpus:
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          profileKey
+        ] ??
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          appSlugProfileKey
+        ],
+      extraHosts:
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.extraHosts?.[profileKey] ??
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.extraHosts?.[appSlugProfileKey],
+      networkMode:
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.networkMode?.[profileKey] ??
+        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.networkMode?.[appSlugProfileKey],
+    }
+  }
+
   /**
    * Find or create a container and execute a command
    */
@@ -157,12 +203,8 @@ export class DockerClientService {
     state: DockerStateFunc
     output: () => Promise<{ stdout: string; stderr: string }>
   }> {
-    // Get the default host (local for now)
-    const hostId =
-      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
-        profileKey
-      ] ?? 'local'
-
+    const { hostId, volumes, gpus, extraHosts, networkMode } =
+      this.resolveDockerHostConfigForProfile(profileKey)
     // Check if docker host is configured
     if (!(hostId in (this._platformConfig.dockerHostConfig.hosts ?? {}))) {
       throw new DockerClientError(
@@ -171,31 +213,6 @@ export class DockerClientService {
       )
     }
     const adapter = this.getAdapter(hostId)
-
-    const {
-      gpus = undefined,
-      volumes = undefined,
-      networkMode = undefined,
-      extraHosts = undefined,
-    } = this._platformConfig.dockerHostConfig.hosts?.[hostId]
-      ? {
-          volumes:
-            this._platformConfig.dockerHostConfig.hosts[hostId].volumes?.[
-              profileKey
-            ],
-          gpus: this._platformConfig.dockerHostConfig.hosts[hostId].gpus?.[
-            profileKey
-          ],
-          extraHosts:
-            this._platformConfig.dockerHostConfig.hosts[hostId].extraHosts?.[
-              profileKey
-            ],
-          networkMode:
-            this._platformConfig.dockerHostConfig.hosts[hostId].networkMode?.[
-              profileKey
-            ],
-        }
-      : {}
 
     const container = await this.findOrCreateContainer(hostId, {
       image,

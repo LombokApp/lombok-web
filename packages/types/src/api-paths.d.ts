@@ -1488,6 +1488,8 @@ export interface components {
             };
             result: {
                 identifier: string;
+                slug: string;
+                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
@@ -1497,7 +1499,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -1722,6 +1724,8 @@ export interface components {
         AppGetResponse: {
             app: {
                 identifier: string;
+                slug: string;
+                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
@@ -1731,7 +1735,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -1974,7 +1978,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -2182,7 +2186,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];

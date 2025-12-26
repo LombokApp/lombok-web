@@ -7078,6 +7078,12 @@
                 "identifier": {
                   "type": "string"
                 },
+                "slug": {
+                  "type": "string"
+                },
+                "installId": {
+                  "type": "string"
+                },
                 "label": {
                   "type": "string"
                 },
@@ -7131,7 +7137,7 @@
                         }
                       }
                     },
-                    "identifier": {
+                    "slug": {
                       "type": "string",
                       "minLength": 1,
                       "pattern": "^[a-z]+$"
@@ -7715,7 +7721,7 @@
                     }
                   },
                   "required": [
-                    "identifier",
+                    "slug",
                     "label",
                     "description"
                   ],
@@ -7763,7 +7769,7 @@
                       "appIdentifier": {
                         "type": "string",
                         "minLength": 1,
-                        "pattern": "^[a-z]+$"
+                        "pattern": "^[a-zA-Z0-9_]+$"
                       },
                       "workerId": {
                         "type": "string"
@@ -8071,6 +8077,8 @@
               },
               "required": [
                 "identifier",
+                "slug",
+                "installId",
                 "label",
                 "publicKey",
                 "config",
@@ -8113,6 +8121,12 @@
             "type": "object",
             "properties": {
               "identifier": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "installId": {
                 "type": "string"
               },
               "label": {
@@ -8168,7 +8182,7 @@
                       }
                     }
                   },
-                  "identifier": {
+                  "slug": {
                     "type": "string",
                     "minLength": 1,
                     "pattern": "^[a-z]+$"
@@ -8752,7 +8766,7 @@
                   }
                 },
                 "required": [
-                  "identifier",
+                  "slug",
                   "label",
                   "description"
                 ],
@@ -8800,7 +8814,7 @@
                     "appIdentifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-z]+$"
+                      "pattern": "^[a-zA-Z0-9_]+$"
                     },
                     "workerId": {
                       "type": "string"
@@ -9108,6 +9122,8 @@
             },
             "required": [
               "identifier",
+              "slug",
+              "installId",
               "label",
               "publicKey",
               "config",
@@ -9234,7 +9250,7 @@
                         }
                       }
                     },
-                    "identifier": {
+                    "slug": {
                       "type": "string",
                       "minLength": 1,
                       "pattern": "^[a-z]+$"
@@ -9818,7 +9834,7 @@
                     }
                   },
                   "required": [
-                    "identifier",
+                    "slug",
                     "label",
                     "description"
                   ],
@@ -10157,7 +10173,7 @@
                       }
                     }
                   },
-                  "identifier": {
+                  "slug": {
                     "type": "string",
                     "minLength": 1,
                     "pattern": "^[a-z]+$"
@@ -10741,7 +10757,7 @@
                   }
                 },
                 "required": [
-                  "identifier",
+                  "slug",
                   "label",
                   "description"
                 ],

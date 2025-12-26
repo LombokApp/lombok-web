@@ -17,11 +17,13 @@ import { AppsController } from './controllers/apps.controller'
 import { UserAppsController } from './controllers/user-apps.controller'
 import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
+import { AuthModule } from 'src/auth/auth.module'
 
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(platformConfig),
+    forwardRef(() => AuthModule),
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,

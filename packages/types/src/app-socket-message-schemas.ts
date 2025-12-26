@@ -311,6 +311,7 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   GET_APP_UI_BUNDLE: createResponseSchema(
     z.object({
+      installId: z.string(),
       manifest: appManifestSchema,
       bundleUrl: z.string(),
       csp: z.string().optional(),
@@ -319,6 +320,7 @@ export const AppSocketMessageResponseSchemaMap = {
   GET_WORKER_EXECUTION_DETAILS: createResponseSchema(
     z.object({
       payloadUrl: z.string(),
+      installId: z.string(),
       workerToken: z.string(),
       environmentVariables: z.record(z.string(), z.string()),
       entrypoint: z.string(),

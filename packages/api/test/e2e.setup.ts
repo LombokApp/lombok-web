@@ -43,7 +43,7 @@ const testAppDefinitions: AppConfig[] = [
   {
     description:
       'An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.',
-    identifier: 'core',
+    slug: 'core',
     label: 'Core',
     requiresStorage: false,
     subscribedPlatformEvents: ['platform:worker_task_enqueued'],
@@ -87,7 +87,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'A dummy app for testing docker jobs.',
-    identifier: 'testapp',
+    slug: 'testapp',
     label: 'Test App',
     requiresStorage: false,
     subscribedPlatformEvents: [],
@@ -152,7 +152,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'Test app for task lifecycle flows.',
-    identifier: 'tasklifecycle',
+    slug: 'tasklifecycle',
     label: 'Task Lifecycle App',
     requiresStorage: false,
     subscribedPlatformEvents: [],
@@ -276,7 +276,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'Test app for app socket interface testing.',
-    identifier: 'sockettestapp',
+    slug: 'sockettestapp',
     label: 'Socket Test App',
     requiresStorage: false,
     subscribedPlatformEvents: [],
@@ -302,7 +302,7 @@ const testAppDefinitions: AppConfig[] = [
   {
     description:
       'Test app for app socket interface testing without db enabled.',
-    identifier: 'sockettestappnodb',
+    slug: 'sockettestappnodb',
     label: 'Socket Test App',
     requiresStorage: false,
     subscribedPlatformEvents: [],
@@ -324,7 +324,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'Test app for with data template.',
-    identifier: 'sockettestappdatatemplate',
+    slug: 'sockettestappdatatemplate',
     label: 'Socket Test App',
     requiresStorage: false,
     subscribedPlatformEvents: [],
@@ -360,23 +360,20 @@ const testAppDefinitions: AppConfig[] = [
 ]
 
 const addTestAppDefinition = async (appConfig: AppConfig) => {
-  if (!fs.existsSync(`${APPS_PATH}/${appConfig.identifier}`)) {
-    fs.mkdirSync(`${APPS_PATH}/${appConfig.identifier}`)
+  if (!fs.existsSync(`${APPS_PATH}/${appConfig.slug}`)) {
+    fs.mkdirSync(`${APPS_PATH}/${appConfig.slug}`)
   }
 
   fs.writeFileSync(
-    `${APPS_PATH}/${appConfig.identifier}/config.json`,
+    `${APPS_PATH}/${appConfig.slug}/config.json`,
     JSON.stringify(appConfig),
   )
 
   // Generate and store public key for sockettestapp
   const { publicKey, privateKey } = await generateKeyPair()
-  fs.writeFileSync(`${APPS_PATH}/${appConfig.identifier}/.publicKey`, publicKey)
+  fs.writeFileSync(`${APPS_PATH}/${appConfig.slug}/.publicKey`, publicKey)
   // Store private key in a file that tests can read
-  fs.writeFileSync(
-    `${APPS_PATH}/${appConfig.identifier}/.privateKey`,
-    privateKey,
-  )
+  fs.writeFileSync(`${APPS_PATH}/${appConfig.slug}/.privateKey`, privateKey)
 }
 
 await Promise.all(
