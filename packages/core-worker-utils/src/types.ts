@@ -20,6 +20,7 @@ export const coreWorkerProcessDataPayloadSchema = z.object({
   instanceId: z.string(),
   appToken: z.string(),
   socketBaseUrl: z.string(),
+  appInstallIdMapping: z.record(z.string(), z.string()),
   platformHost: z.string(),
   executionOptions: z
     .object({

@@ -1,4 +1,4 @@
-import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
+import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -52,7 +52,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -121,7 +122,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -213,7 +215,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -319,7 +322,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -441,7 +445,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -526,7 +531,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -636,7 +642,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -760,7 +767,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -857,7 +865,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -967,7 +976,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1075,7 +1085,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1185,7 +1196,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1303,7 +1315,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1374,7 +1387,8 @@ describe('Folder App Permissions', () => {
         admin: true,
       })
 
-      const appIdentifier = CORE_APP_IDENTIFIER
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {

@@ -8,10 +8,12 @@ export function transformAppToDTO(
 ): AdminAppDTO {
   return {
     identifier: app.identifier,
+    slug: app.slug,
     label: app.label,
     publicKey: app.publicKey,
     config: app.config,
     manifest: app.manifest,
+    installId: app.installId,
     externalWorkers,
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,

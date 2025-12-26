@@ -351,6 +351,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/apps/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["installAppFromZip"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/apps": {
         parameters: {
             query?: never;
@@ -1482,12 +1498,11 @@ export interface components {
             region: string;
             prefix: string | null;
         };
-        AppListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
+        AppInstallResponse: {
+            app: {
                 identifier: string;
+                slug: string;
+                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
@@ -1497,7 +1512,243 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
+                    label: string;
+                    description: string;
+                    subscribedPlatformEvents?: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        kind: "event";
+                        eventIdentifier: string;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
+                        condition?: string;
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "schedule";
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
+                        condition?: string;
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    } | {
+                        /** @enum {string} */
+                        kind: "user_action";
+                        scope?: {
+                            user?: {
+                                permissions: string;
+                            };
+                            folder?: {
+                                /** Format: uuid */
+                                folderId: string;
+                            };
+                        };
+                        condition?: string;
+                        taskIdentifier: string;
+                        onComplete?: unknown[];
+                    })[];
+                    tasks?: {
+                        identifier: string;
+                        label: string;
+                        description: string;
+                        handler: {
+                            /** @enum {string} */
+                            type: "worker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "docker";
+                            identifier: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "external";
+                        };
+                    }[];
+                    containerProfiles?: {
+                        [key: string]: {
+                            image: string;
+                            resources?: {
+                                gpu?: boolean;
+                                memoryMB?: number;
+                                cpuCores?: number;
+                            };
+                            workers: ({
+                                /** @enum {string} */
+                                kind: "exec";
+                                command: string[];
+                                jobIdentifier: string;
+                                maxPerContainer?: number;
+                                /** @enum {boolean} */
+                                countTowardsGlobalCap?: false;
+                                priority?: number;
+                            } | {
+                                /** @enum {string} */
+                                kind: "http";
+                                command: string[];
+                                port: number;
+                                jobs: {
+                                    maxPerContainer?: number;
+                                    /** @enum {boolean} */
+                                    countTowardsGlobalCap?: false;
+                                    priority?: number;
+                                    identifier: string;
+                                }[];
+                            })[];
+                        };
+                    };
+                    workers?: {
+                        [key: string]: {
+                            entrypoint: string;
+                            description: string;
+                            environmentVariables?: components["schemas"]["StringMapDTO"];
+                        };
+                    };
+                    ui?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                        csp?: string;
+                    };
+                    database?: {
+                        /** @enum {boolean} */
+                        enabled: true;
+                    };
+                    contributions?: {
+                        sidebarMenuLinks: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        folderSidebarViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        objectSidebarViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                        objectDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
+                    };
+                };
+                requiresStorage: boolean;
+                enabled: boolean;
+                userScopeEnabledDefault: boolean;
+                folderScopeEnabledDefault: boolean;
+                manifest: {
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
+                externalWorkers: {
+                    appIdentifier: string;
+                    workerId: string;
+                    handledTaskIdentifiers: string[];
+                    socketClientId: string;
+                    ip: string;
+                }[];
+                workers: {
+                    hash: string;
+                    size: number;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    definitions: {
+                        [key: string]: {
+                            description: string;
+                            environmentVariables: components["schemas"]["StringMapDTO"];
+                            entrypoint: string;
+                        };
+                    };
+                };
+                ui: {
+                    hash: string;
+                    size: number;
+                    csp?: string;
+                    manifest: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                } | null;
+                contributions: {
+                    sidebarMenuLinks: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderSidebarViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectSidebarViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                };
+                metrics: {
+                    tasksExecutedLast24Hours: {
+                        completed: number;
+                        failed: number;
+                    };
+                    errorsLast24Hours: {
+                        total: number;
+                        last10Minutes: number;
+                    };
+                    eventsEmittedLast24Hours: {
+                        total: number;
+                        last10Minutes: number;
+                    };
+                } | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        AppListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                identifier: string;
+                slug: string;
+                installId: string;
+                label: string;
+                publicKey: string;
+                config: {
+                    requiresStorage?: boolean;
+                    permissions?: {
+                        platform?: ("READ_ACL" | "SERVE_APPS")[];
+                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                    };
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -1722,6 +1973,8 @@ export interface components {
         AppGetResponse: {
             app: {
                 identifier: string;
+                slug: string;
+                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
@@ -1731,7 +1984,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -1974,7 +2227,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -2182,7 +2435,7 @@ export interface components {
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
-                    identifier: string;
+                    slug: string;
                     label: string;
                     description: string;
                     subscribedPlatformEvents?: string[];
@@ -4411,6 +4664,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    installAppFromZip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppInstallResponse"];
+                };
             };
             /** @description Server Error */
             "5XX": {

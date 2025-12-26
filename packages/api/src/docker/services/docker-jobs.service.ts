@@ -429,10 +429,10 @@ export class DockerJobsService {
         containerId,
         command,
       )
-    if (output.stdout.length === 0) {
+    if (output.stderr.length > 0) {
       throw new DockerJobCompletionError(
-        'AGENT_LOG_NOT_FOUND',
-        'Agent log not found\nError: ' + output.stderr,
+        'AGENT_LOG_ERROR',
+        'Error getting agent log: ' + output.stderr,
       )
     }
     return output.stdout

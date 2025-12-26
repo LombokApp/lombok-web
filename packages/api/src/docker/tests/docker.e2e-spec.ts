@@ -38,6 +38,7 @@ import {
 } from './docker.e2e-mocks'
 
 const TEST_MODULE_KEY = 'docker_jobs'
+const TEST_APP_SLUG = 'testapp'
 const responseStatus = (result: { response?: Response; error?: unknown }) =>
   result.response?.status ??
   (result as { error?: { status?: number } }).error?.status ??
@@ -99,14 +100,14 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
   await testModule.services.ormService.db.insert(eventsTable).values({
     id: eventId,
     eventIdentifier: 'testapp:test_job',
-    emitterIdentifier: 'testapp',
+    emitterIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
     data: {},
     createdAt: now,
   })
 
   await testModule.services.ormService.db.insert(tasksTable).values({
     id: taskId,
-    ownerIdentifier: 'testapp',
+    ownerIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
     taskDescription: 'Test task',
     createdAt: now,
     updatedAt: now,
@@ -119,7 +120,8 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
       eventIdentifier: 'testapp:test_job',
       invokeContext: {
         eventId,
-        emitterIdentifier: 'testapp',
+        emitterIdentifier:
+          await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
         eventData: {},
       },
     },
@@ -343,7 +345,7 @@ describe('Docker Jobs', () => {
     })
 
     await testModule?.services.appService.executeAppDockerJob({
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
       jobData: {},
@@ -378,13 +380,13 @@ describe('Docker Jobs', () => {
       labels: {
         'lombok.platform': 'lombok',
         'lombok.profile_hash': '59da6c5f',
-        'lombok.profile_id': 'lombok:profile_hash_59da6c5f',
+        'lombok.profile_id': `lombok:profile_${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile`,
       },
       volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
     })
 
     await testModule?.services.appService.executeAppDockerJob({
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
       profileIdentifier: 'dummy_profile_two',
       jobIdentifier: 'test_job_other',
       jobData: {},
@@ -415,7 +417,7 @@ describe('Docker Jobs', () => {
     })
 
     await testModule?.services.appService.executeAppDockerJob({
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
       jobData: { foo: 'bar' },
@@ -449,7 +451,7 @@ describe('Docker Jobs', () => {
       labels: {
         'lombok.platform': 'lombok',
         'lombok.profile_hash': '59da6c5f',
-        'lombok.profile_id': 'lombok:profile_hash_59da6c5f',
+        'lombok.profile_id': `lombok:profile_${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile`,
       },
       networkMode: undefined,
     })
@@ -478,7 +480,7 @@ describe('Docker Jobs', () => {
 
     expect(
       testModule?.services.appService.executeAppDockerJob({
-        appIdentifier: 'testapp',
+        appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
         profileIdentifier: 'dummy_profile',
         jobIdentifier: 'test_job',
         jobData: {},
@@ -488,7 +490,7 @@ describe('Docker Jobs', () => {
       submitError: {
         code: 'SUBMISSION_ERROR',
         message:
-          'Job submission failed with exit code 1. Output: unknown interface kind: invalid_kind',
+          'Job submission failed with exit code 1.\nOutput: \nError: unknown interface kind: invalid_kind',
       },
     })
   })
@@ -502,7 +504,7 @@ describe('Docker Jobs', () => {
     const { taskId } = await insertTaskWithEvent(testModule!)
 
     await testModule?.services.appService.executeAppDockerJob({
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
       jobData: {},
@@ -544,7 +546,7 @@ describe('Docker Jobs', () => {
     })
 
     const { dockerRunTask } = await triggerAppDockerHandledTask(testModule!, {
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
     })
@@ -569,14 +571,14 @@ describe('Docker Jobs', () => {
     })
 
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
     })
 
     expect(innerTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: 'testapp',
+      ownerIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
       data: { myTaskData: 'test' },
@@ -639,10 +641,15 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
-      .where(eq(appsTable.identifier, 'testapp'))
+      .where(
+        eq(
+          appsTable.identifier,
+          await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+        ),
+      )
 
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
@@ -661,7 +668,7 @@ describe('Docker Jobs', () => {
 
     expect(innerTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: 'testapp',
+      ownerIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
       data: { myTaskData: 'test' },
@@ -1160,27 +1167,23 @@ describe('Docker Jobs', () => {
     const userSettings =
       await testModule!.services.ormService.db.query.appUserSettingsTable.findFirst(
         {
-          where: eq(appUserSettingsTable.appIdentifier, 'testapp'),
+          where: eq(
+            appUserSettingsTable.appIdentifier,
+            await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+          ),
         },
       )
 
     const folderSettings =
       await testModule!.services.ormService.db.query.appFolderSettingsTable.findFirst(
         {
-          where: eq(appUserSettingsTable.appIdentifier, 'testapp'),
+          where: eq(
+            appUserSettingsTable.appIdentifier,
+            await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+          ),
         },
       )
-    // console.log(
-    //   JSON.stringify(
-    //     {
-    //       app,
-    //       userSettings: userSettings ?? {},
-    //       folderSettings: folderSettings ?? {},
-    //     },
-    //     null,
-    //     2,
-    //   ),
-    // )
+
     expect(userSettings).toBeUndefined()
     expect(folderSettings).toBeUndefined()
 
@@ -1190,10 +1193,15 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
-      .where(eq(appsTable.identifier, 'testapp'))
+      .where(
+        eq(
+          appsTable.identifier,
+          await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+        ),
+      )
 
     const firstTry = await triggerAppDockerHandledTask(testModule!, {
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
@@ -1214,7 +1222,12 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: false,
         folderScopeEnabledDefault: true,
       })
-      .where(eq(appsTable.identifier, 'testapp'))
+      .where(
+        eq(
+          appsTable.identifier,
+          await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+        ),
+      )
       .returning()
 
     await resetTestData()
@@ -1235,7 +1248,7 @@ describe('Docker Jobs', () => {
     })
 
     const triggerAppTask = triggerAppDockerHandledTask(testModule!, {
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
@@ -1248,7 +1261,7 @@ describe('Docker Jobs', () => {
       expectRecords: false,
     })
     expect(triggerAppTask).rejects.toThrow(
-      `Unauthorized: app "testapp" is not enabled for folder "${testFolder2.folder.id}".`,
+      `Unauthorized: app "${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}" is not enabled for folder "${testFolder2.folder.id}".`,
     )
   })
 
@@ -1280,10 +1293,15 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
-      .where(eq(appsTable.identifier, 'testapp'))
+      .where(
+        eq(
+          appsTable.identifier,
+          await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+        ),
+      )
 
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
-      appIdentifier: 'testapp',
+      appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [storageAccessPolicyRule],
@@ -1291,7 +1309,7 @@ describe('Docker Jobs', () => {
 
     expect(innerTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: 'testapp',
+      ownerIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
       data: { myTaskData: 'test' },
@@ -1337,7 +1355,7 @@ describe('Docker Jobs', () => {
     const { innerTask, dockerRunTask } = await triggerAppDockerHandledTask(
       testModule!,
       {
-        appIdentifier: 'testapp',
+        appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
         taskIdentifier: 'non_triggered_docker_job_task',
         taskData: { myTaskData: 'test' },
       },
@@ -1374,7 +1392,7 @@ describe('Docker Jobs', () => {
           __executor: {
             jobIdentifier: 'test_job_other',
             profileHash: '679f45ae',
-            profileKey: 'testapp:dummy_profile_two',
+            profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
           },
         },
       },
@@ -1409,7 +1427,7 @@ describe('Docker Jobs', () => {
             __executor: {
               jobIdentifier: 'test_job_other',
               profileHash: '679f45ae',
-              profileKey: 'testapp:dummy_profile_two',
+              profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
             },
           },
         },

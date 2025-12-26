@@ -1,6 +1,6 @@
 {
   "description": "The demo app.",
-  "identifier": "demo",
+  "slug": "demo",
   "label": "Demo App",
   "subscribedPlatformEvents": [
     "platform:object_added",

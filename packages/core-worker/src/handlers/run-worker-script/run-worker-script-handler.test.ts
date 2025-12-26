@@ -229,6 +229,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
   })
 
   it('completes run-worker-script task successfully', async () => {
+    const dummyInstallId = crypto.randomUUID()
     // Mock run_worker_script task and the underlying worker script task
     const workerScriptTask = {
       id: uuidV4(),
@@ -290,6 +291,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       getWorkerExecutionDetails: () =>
         Promise.resolve({
           result: {
+            installId: dummyInstallId,
             entrypoint: 'index.ts',
             workerToken: 'test-token',
             environmentVariables: {},
@@ -341,10 +343,13 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     // Make the socket server delegate API calls to this mock
     currentServerClient = mockServerClient
 
-    const handler = bulidRunWorkerScriptTaskHandler({
-      printWorkerOutput: false,
-      removeWorkerDirectory: true,
-    })
+    const handler = bulidRunWorkerScriptTaskHandler(
+      {
+        printWorkerOutput: false,
+        removeWorkerDirectory: true,
+      },
+      { 'core-worker': dummyInstallId },
+    )
 
     await handler(runWorkerScriptEnvelopeTask, mockServerClient)
 

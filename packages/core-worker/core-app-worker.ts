@@ -44,16 +44,57 @@ process.stdin.on('close', () => {
   process.exit(0)
 })
 
-process.stdin.once('data', (data) => {
+const appInstallIdMapping: Record<string, string> = {}
+// eslint-disable-next-line @typescript-eslint/require-await
+let _log: (...logArgs: unknown[]) => Promise<void> = async (...args) =>
+  console.log(...args)
+
+const updateAppInstallIdMapping = (
+  updatedInstallIds: Record<string, string>,
+) => {
+  Object.keys(updatedInstallIds).forEach((appIdentifier) => {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete appInstallIdMapping[appIdentifier]
+  })
+
+  for (const [appIdentifier, appInstallId] of Object.entries(
+    updatedInstallIds,
+  )) {
+    appInstallIdMapping[appIdentifier] = appInstallId
+  }
+}
+
+process.stdin.on('data', (data) => {
   const workerData: CoreWorkerProcessDataPayload = JSON.parse(
     data.toString(),
   ) as CoreWorkerProcessDataPayload
+
+  if (
+    initialized &&
+    Object.keys(workerData).length === 1 &&
+    'appInstallIdMapping' in workerData
+  ) {
+    // This is a subsequently updated app -> install ID mapping
+    updateAppInstallIdMapping(workerData.appInstallIdMapping)
+    void _log({
+      message: 'App install ID mapping updated',
+      level: LogEntryLevel.DEBUG,
+      data: {
+        appInstallIdMapping: workerData.appInstallIdMapping,
+      },
+    })
+    return
+  }
 
   if (
     !initialized &&
     coreWorkerProcessDataPayloadSchema.safeParse(workerData).success
   ) {
     initialized = true
+
+    // Set the initial app -> install ID mapping
+    updateAppInstallIdMapping(workerData.appInstallIdMapping)
+
     const { wait, log, socket } = connectAndPerformWork(
       workerData.socketBaseUrl,
       workerData.instanceId,
@@ -62,13 +103,16 @@ process.stdin.once('data', (data) => {
         ['analyze_object']: analyzeObjectTaskHandler,
         ['run_worker_script']: buildRunWorkerScriptTaskHandler(
           workerData.executionOptions,
+          appInstallIdMapping,
         ),
       },
       async () => {
+        _log = log as typeof _log
         await log({
           message: 'Core app external worker thread started',
           level: LogEntryLevel.DEBUG,
           data: {
+            appInstallIdMapping: workerData.appInstallIdMapping,
             workerData: {
               socketBaseUrl: workerData.socketBaseUrl,
               host: workerData.platformHost,
@@ -175,6 +219,20 @@ process.stdin.once('data', (data) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const workerIdentifier = workerIdentifierMatch[1]!
 
+        const appInstallId = appInstallIdMapping[appIdentifier]
+
+        if (!appInstallId) {
+          void log({
+            message: `App install ID not found for app: ${appIdentifier}`,
+            level: LogEntryLevel.ERROR,
+            data: {
+              appIdentifier,
+              requestUrl: request.url,
+            },
+          })
+          return new Response('Unexpected error', { status: 500 })
+        }
+
         try {
           const systemRequestMessageResponse = await runWorkerScript({
             requestOrTask: new Request(request.url, {
@@ -186,6 +244,7 @@ process.stdin.once('data', (data) => {
             }),
             server: serverClient,
             appIdentifier,
+            appInstallId,
             workerIdentifier,
             workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
             options: workerData.executionOptions,
@@ -243,12 +302,26 @@ process.stdin.once('data', (data) => {
             }
 
             const appIdentifier = hostParts[0] || ''
+            const appInstallId = appInstallIdMapping[appIdentifier]
+
+            if (!appInstallId) {
+              void log({
+                message: `App install ID not found for app: ${appIdentifier}`,
+                level: LogEntryLevel.ERROR,
+                data: {
+                  appIdentifier,
+                  requestUrl: req.url,
+                },
+              })
+              return new Response('Unexpected error', { status: 500 })
+            }
 
             try {
               const response = await runWorkerScript({
                 requestOrTask: req,
                 server: serverClient,
                 appIdentifier,
+                appInstallId,
                 workerIdentifier,
                 workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
                 options: workerData.executionOptions,
@@ -305,10 +378,16 @@ process.stdin.once('data', (data) => {
           }
 
           const appIdentifier = hostParts[0] || ''
+          const appInstallId = appInstallIdMapping[appIdentifier] ?? ''
+
+          if (!appInstallId) {
+            return new Response('App not ready', { status: 409 })
+          }
 
           const appBundleCacheDir = path.join(
             uiBundleCacheWorkerRoot,
             appIdentifier,
+            appInstallId,
           )
           const manifestFilePath = path.join(appBundleCacheDir, 'manifest.json')
           const cspFilePath = path.join(appBundleCacheDir, 'csp.txt')

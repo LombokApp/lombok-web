@@ -20,6 +20,7 @@ import {
 } from '@lombokapp/types'
 import { mimeFromExtension } from '@lombokapp/utils'
 import {
+  BadRequestException,
   ForbiddenException,
   forwardRef,
   Inject,
@@ -85,9 +86,13 @@ import {
   appUserSettingsTable,
 } from '../entities/app-user-settings.entity'
 import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
+import { AppBaseInstallException } from '../exceptions/app-install-base.exception'
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
+import { AppMaxFileSizeException } from '../exceptions/app-max-file-size.exception'
+import { AppMaxSizeException } from '../exceptions/app-max-size.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import { generateAppIdentifierSuffix } from '../utils/app-id.util'
 import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
@@ -118,7 +123,8 @@ export interface AppDefinition {
   >
 }
 
-export interface AppWithMigrations extends NewApp {
+export interface AppInstallBundle
+  extends Omit<NewApp, 'identifier' | 'installId' | 'createdAt' | 'updatedAt'> {
   migrationFiles: { filename: string; content: string }[]
 }
 
@@ -181,12 +187,14 @@ export class AppService {
       .returning()
     if (!enabled) {
       this.appSocketService.disconnectAllClientsByAppIdentifier(appIdentifier)
-    } else {
-      void this.coreAppService.startCoreAppThread()
     }
     if (!updated) {
       throw new NotFoundException('Failed to update app enabled status.')
     }
+
+    // update the app install ID mapping in the core app worker
+    void this.coreAppService.updateAppInstallIdMapping()
+
     return updated
   }
 
@@ -217,6 +225,18 @@ export class AppService {
       throw new NotFoundException('Failed to update app enabled status.')
     }
     return updated
+  }
+
+  getAppWithPublicKeyAndSlug({
+    publicKey,
+    slug,
+  }: {
+    publicKey: string
+    slug: string
+  }): Promise<App | undefined> {
+    return this.ormService.db.query.appsTable.findFirst({
+      where: and(eq(appsTable.publicKey, publicKey), eq(appsTable.slug, slug)),
+    })
   }
 
   getApp(
@@ -563,7 +583,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.workers.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/workers/${workerApp.workers.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -576,6 +596,7 @@ export class AppService {
       result: {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         payloadUrl: presignedGetURL[0]!,
+        installId: workerApp.installId,
         entrypoint:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           workerApp.workers.definitions[requestData.workerIdentifier]!
@@ -712,7 +733,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/ui/${workerApp.ui.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/ui/${workerApp.ui.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -724,6 +745,7 @@ export class AppService {
 
     return {
       result: {
+        installId: workerApp.installId,
         manifest: workerApp.ui.manifest,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         bundleUrl: presignedGetURL[0]!,
@@ -835,12 +857,47 @@ export class AppService {
       .where(eq(appsTable.identifier, app.identifier))
   }
 
-  public async installApp(app: AppWithMigrations, update = false) {
+  private async generateUniqueAppIdentifierSuffix(
+    appSlug: string,
+  ): Promise<string> {
+    const MAX_ATTEMPTS = 10
+    let suffix = generateAppIdentifierSuffix()
+    const checkExists = async () => {
+      const found = await this.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.identifier, `${appSlug}_${suffix}`),
+      })
+      return !!found
+    }
+    let attempts = 1
+    while (attempts < MAX_ATTEMPTS && (await checkExists())) {
+      attempts++
+      suffix = generateAppIdentifierSuffix()
+    }
+    if (attempts >= MAX_ATTEMPTS) {
+      throw new Error(
+        `Failed to generate a unique app identifier suffix for app ${appSlug}`,
+      )
+    }
+    return suffix
+  }
+
+  public async installApp(
+    app: AppInstallBundle,
+    localPath: string,
+    allowUpdate = false,
+  ) {
     const now = new Date()
-    const installedApp = await this.getApp(app.identifier)
-    if (installedApp && !update) {
+    const installedApp = await this.getAppWithPublicKeyAndSlug({
+      publicKey: app.publicKey,
+      slug: app.slug,
+    })
+    if (installedApp && !allowUpdate) {
       throw new AppAlreadyInstalledException()
     }
+    const installId = crypto.randomUUID()
+    const appIdentifier =
+      installedApp?.identifier ??
+      `${app.slug}_${await this.generateUniqueAppIdentifierSuffix(app.slug)}`
     const assetManifestEntryPaths = Object.keys(app.manifest).filter(
       (manifestItemPath) =>
         manifestItemPath.startsWith('/ui') ||
@@ -852,12 +909,9 @@ export class AppService {
     const appRequiresStorage = assetManifestEntryPaths.length > 0
 
     if (appRequiresStorage && !serverStorageLocation) {
-      throw new AppRequirementsNotSatisfiedException()
-    }
-
-    if (installedApp) {
-      // uninstall currently installed app instance
-      await this.uninstallApp(installedApp)
+      throw new AppRequirementsNotSatisfiedException(
+        'Server storage location not available.',
+      )
     }
 
     if (serverStorageLocation) {
@@ -868,7 +922,7 @@ export class AppService {
         const pathPrefix = `/${bundleName}/`
         // Create a temp dir for this bundle
         const bundleDir = await fsPromises.mkdtemp(
-          path.join(os.tmpdir(), `appzip-${bundleName}-`),
+          path.join(os.tmpdir(), `appzip-${installId}-${bundleName}-`),
         )
         const filePaths = assetManifestEntryPaths.filter((filePath) =>
           filePath.startsWith(pathPrefix),
@@ -882,11 +936,7 @@ export class AppService {
           const relPath = entryPath.slice(pathPrefix.length)
           const destPath = path.join(bundleDir, relPath)
           await fsPromises.mkdir(path.dirname(destPath), { recursive: true })
-          const srcPath = path.join(
-            this._appConfig.appsLocalPath,
-            app.identifier,
-            entryPath,
-          )
+          const srcPath = path.join(localPath, entryPath)
           await fsPromises.copyFile(srcPath, destPath)
         }
 
@@ -911,7 +961,8 @@ export class AppService {
         const objectKey = [
           serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '',
           'app-bundle-storage',
-          app.identifier,
+          appIdentifier,
+          installId,
           bundleName,
           `${zipHash}.zip`,
         ]
@@ -959,57 +1010,68 @@ export class AppService {
       }
     }
 
-    if (app.config.database?.enabled) {
-      if (app.migrationFiles.length > 0) {
-        await this.ormService.runAppMigrations(
-          app.identifier,
-          app.migrationFiles,
+    const updateOrInstallApp = async () => {
+      // update app db record to match new app
+      const installOrUpdateQuery = installedApp
+        ? await this.ormService.db
+            .update(appsTable)
+            .set({ ...app, installId, updatedAt: now })
+            .where(eq(appsTable.identifier, installedApp.identifier))
+            .returning()
+        : await this.ormService.db
+            .insert(appsTable)
+            .values({
+              ...app,
+              identifier: appIdentifier,
+              installId,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .returning()
+
+      if (!installOrUpdateQuery[0]) {
+        throw new Error(
+          `Failed to ${installedApp ? 'update' : 'install'} app ${appIdentifier}`,
         )
       }
+      return installOrUpdateQuery[0]
     }
 
-    // update app db record to match new app
-    if (installedApp) {
-      await this.ormService.db
-        .update(appsTable)
-        .set({ ...app, createdAt: installedApp.createdAt, updatedAt: now })
-        .where(eq(appsTable.identifier, installedApp.identifier))
-    } else {
-      await this.ormService.db.insert(appsTable).values({
-        ...app,
-        createdAt: now,
-        updatedAt: now,
-      })
-    }
+    const newlyInstalledAppInstance = await updateOrInstallApp()
 
     // Run migrations if the app has any
-    if (app.migrationFiles.length > 0) {
+    if (app.config.database?.enabled) {
       try {
         this.logger.log(
-          `Running ${app.migrationFiles.length} migrations for app ${app.identifier}`,
+          `Running ${app.migrationFiles.length} migrations for app ${appIdentifier}`,
         )
         await this.ormService.runAppMigrations(
-          app.identifier,
+          appIdentifier,
           app.migrationFiles,
         )
         this.logger.log(
-          `Successfully completed migrations for app ${app.identifier}`,
+          `Successfully completed migrations for app ${appIdentifier}`,
         )
       } catch (error) {
         this.logger.error(
-          `Failed to run migrations for app ${app.identifier}:`,
+          `Failed to run migrations for app ${appIdentifier}:`,
           error,
         )
         throw error
       }
     }
 
+    // update the app install ID mapping in the core app worker
+    void this.coreAppService.updateAppInstallIdMapping()
+
     if (app.permissions?.platform.includes('READ_ACL')) {
       this.logger.log(
-        `Granting "shared_acl" schema usage to app ${app.identifier}`,
+        `Granting "shared_acl" schema usage to app ${appIdentifier}`,
       )
-      await this.ormService.grantAclSchemaUsageToApp(app.identifier)
+      await this.ormService.grantAclSchemaUsageToApp(appIdentifier)
     }
+
+    return newlyInstalledAppInstance
   }
 
   public async installAllAppsFromDisk() {
@@ -1018,50 +1080,73 @@ export class AppService {
     const allPotentialAppDirectoriesEntries =
       this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
 
-    // for each potential app, attempt to install it (without updating if its already installed)
-    for (const appIdentifier of allPotentialAppDirectoriesEntries) {
-      await this.attemptParseAndInstallAppFromDisk(appIdentifier, false)
+    // for each potential app, attempt to install it (or update it if it's already installed)
+    for (const appInstallDirectoryName of allPotentialAppDirectoriesEntries) {
+      const appRoot = path.join(
+        this._appConfig.appsLocalPath,
+        appInstallDirectoryName,
+      )
+      await this.handleAppInstall({ appRoot })
     }
   }
 
-  public async attemptParseAndInstallAppFromDisk(
-    directoryName: string,
-    update: boolean,
+  public async handleAppInstall(
+    install:
+      | { appRoot: string }
+      | { zipFilename: string; zipFileBuffer: Buffer },
   ) {
+    let appRoot = ''
+    let appInstallIdentifier = `slug: n/a - (source: ${'appRoot' in install ? install.appRoot : install.zipFilename})`
     try {
-      const app = await this.parseAppFromDisk(directoryName)
+      appRoot =
+        'appRoot' in install
+          ? install.appRoot
+          : await this.extractAppZipForInstall(install.zipFileBuffer)
+
+      const app = await this.parseAppFromPath(appRoot)
+
+      if (app.definition?.slug) {
+        appInstallIdentifier = `slug: ${app.definition.slug} - dir: ${appRoot}`
+      }
 
       if (app.validation.value && app.definition) {
-        await this.installApp(app.definition, update)
+        return await this.installApp(app.definition, appRoot, true)
       } else {
-        this.logger.warn(
-          `APP PARSE ERROR - (dir: '${directoryName}'): App config is invalid`,
-          JSON.stringify(app.validation.error?.errors, null, 2),
+        throw new AppInvalidException(
+          `App config is invalid: ${JSON.stringify(app.validation.error?.errors, null, 2)}`,
         )
       }
     } catch (error) {
       if (error instanceof AppAlreadyInstalledException) {
         this.logger.log(
-          `APP INSTALL SKIPPED (dir: '${directoryName}'): App is already installed.`,
+          `APP INSTALL SKIPPED ('${appInstallIdentifier}'): App is already installed.`,
         )
       } else if (error instanceof AppNotParsableException) {
         this.logger.warn(
-          `APP INSTALL ERROR (dir: '${directoryName}'): App is not parsable.`,
+          `APP INSTALL ERROR ('${appInstallIdentifier}'): App is not parsable or valid.`,
         )
       } else if (error instanceof AppRequirementsNotSatisfiedException) {
         this.logger.warn(
-          `APP INSTALL ERROR (dir: '${directoryName}'): App requirements are not met.`,
+          `APP INSTALL ERROR ('${appInstallIdentifier}'): App requirements are not met.`,
         )
       } else if (error instanceof AppInvalidException) {
         this.logger.warn(
-          `APP INSTALL ERROR (dir: '${directoryName}'): App is invalid.`,
+          `APP INSTALL ERROR ('${appInstallIdentifier}'): App is invalid.`,
           error.message,
         )
       } else {
         this.logger.warn(
-          `APP INSTALL ERROR - (dir: '${directoryName}'):`,
+          `APP INSTALL ERROR - ('${appInstallIdentifier}'):`,
           error,
         )
+      }
+      if (error instanceof AppBaseInstallException) {
+        throw new BadRequestException(`${error.name}: ${error.message}`)
+      }
+      throw error
+    } finally {
+      if ('zipFileBuffer' in install) {
+        await fsPromises.rm(appRoot, { recursive: true, force: true })
       }
     }
   }
@@ -1116,23 +1201,16 @@ export class AppService {
       )
   }
 
-  public async parseAppFromDisk(appDirectoryName: string): Promise<{
-    definition?: AppWithMigrations
+  /**
+   * Parse an app from an arbitrary directory path
+   */
+  private async parseAppFromPath(appRoot: string): Promise<{
+    definition?: AppInstallBundle
     validation: { value: boolean; error?: z.ZodError }
   }> {
-    const now = new Date()
-
     let currentTotalSize = 0
-    const publicKeyPath = path.join(
-      this._appConfig.appsLocalPath,
-      appDirectoryName,
-      '.publicKey',
-    )
-    const configPath = path.join(
-      this._appConfig.appsLocalPath,
-      appDirectoryName,
-      'config.json',
-    )
+    const publicKeyPath = path.join(appRoot, '.publicKey')
+    const configPath = path.join(appRoot, 'config.json')
     const publicKey =
       fs.existsSync(publicKeyPath) && !fs.lstatSync(publicKeyPath).isDirectory()
         ? fs.readFileSync(publicKeyPath, 'utf-8')
@@ -1143,26 +1221,30 @@ export class AppService {
       : undefined
 
     if (!config) {
-      throw new AppNotParsableException(`Config file not found`)
+      throw new AppNotParsableException(
+        `Config file not found at: ${configPath}`,
+      )
     }
-
-    const appIdentifier = config.identifier
-
-    const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
     const manifest = (
       await Promise.all(
         readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
           const size = fs.statSync(absoluteAssetPath).size
           if (size > MAX_APP_FILE_SIZE) {
-            throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
+            throw new AppMaxFileSizeException(
+              `App file too large! MAX: ${MAX_APP_FILE_SIZE}`,
+            )
           }
           currentTotalSize += size
           if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
-            throw new Error(
+            throw new AppMaxSizeException(
               `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
             )
           }
-          const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+          let relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+          // Ensure path starts with /
+          if (!relativeAssetPath.startsWith('/')) {
+            relativeAssetPath = '/' + relativeAssetPath
+          }
 
           return {
             size: fs.statSync(absoluteAssetPath).size,
@@ -1231,8 +1313,9 @@ export class AppService {
       },
       definition: parseResult.success
         ? {
-            identifier: appIdentifier,
+            slug: config.slug,
             label: config.label,
+
             manifest,
             publicKey,
             workers: {
@@ -1255,8 +1338,6 @@ export class AppService {
             config,
             containerProfiles: config.containerProfiles ?? {},
             database: !!config.database?.enabled,
-            createdAt: now,
-            updatedAt: now,
             contentHash: '', // TODO: calculate the exact content hash
             userScopeEnabledDefault: false, // TODO: allow some way to enable this on install
             folderScopeEnabledDefault: false, // TODO: allow some way to enable this on install
@@ -1266,6 +1347,150 @@ export class AppService {
         : undefined,
     }
     return app
+  }
+
+  /**
+   * Install or update an app from an uploaded zip file.
+   * @param zipFileBuffer - The zip file buffer
+   * @param allowUpdate - Whether to allow updating an existing app
+   * @returns The installed/updated app
+   */
+  public async extractAppZipForInstall(zipFileBuffer: Buffer): Promise<string> {
+    const tempDir = await fsPromises.mkdtemp(
+      path.join(os.tmpdir(), 'app-install-'),
+    )
+    const zipFilePath = path.join(tempDir, 'app.zip')
+    const extractDir = path.join(tempDir, 'extracted')
+
+    // Write zip file to temp directory
+    await fsPromises.writeFile(zipFilePath, zipFileBuffer)
+
+    // Create extract directory
+    await fsPromises.mkdir(extractDir, { recursive: true })
+
+    // Helper function to calculate directory size
+    const calculateDirectorySize = (dirPath: string): number => {
+      let totalSize = 0
+      try {
+        if (!fs.existsSync(dirPath)) {
+          return 0
+        }
+        const files = readDirRecursive(dirPath)
+        for (const filePath of files) {
+          try {
+            const stats = fs.statSync(filePath)
+            if (stats.isFile()) {
+              totalSize += stats.size
+            }
+          } catch {
+            // Skip files that can't be accessed (may have been deleted)
+          }
+        }
+      } catch {
+        // Directory may not exist or be accessible
+      }
+      return totalSize
+    }
+
+    // Set a threshold slightly higher than MAX_APP_TOTAL_SIZE to account for extraction overhead
+    // but still protect against zip bombs. Using 2x to allow some overhead during extraction.
+    const EXTRACTION_SIZE_THRESHOLD = MAX_APP_TOTAL_SIZE * 2
+
+    // Unzip the file with zip bomb protection
+    const unzipProc = spawn({
+      cmd: ['unzip', '-q', zipFilePath, '-d', extractDir],
+      stdout: 'inherit',
+      stderr: 'inherit',
+    })
+
+    // Monitor directory size during extraction
+    let monitoringInterval: ReturnType<typeof setInterval> | undefined
+    let zipBombDetected = false
+    let zipBombError: AppNotParsableException | undefined
+
+    const startMonitoring = () => {
+      monitoringInterval = setInterval(() => {
+        if (zipBombDetected) {
+          return // Already detected, stop checking
+        }
+        const currentSize = calculateDirectorySize(extractDir)
+        if (currentSize > EXTRACTION_SIZE_THRESHOLD) {
+          zipBombDetected = true
+          if (monitoringInterval) {
+            clearInterval(monitoringInterval)
+            monitoringInterval = undefined
+          }
+          try {
+            unzipProc.kill()
+          } catch {
+            // Process may have already exited
+          }
+          zipBombError = new AppMaxSizeException(
+            `Extraction size exceeded threshold (${(EXTRACTION_SIZE_THRESHOLD / 1024 / 1024).toFixed(2)} MB).`,
+          )
+        }
+      }, 100) // Check every 100ms
+    }
+
+    // Start monitoring
+    startMonitoring()
+
+    // Wait for process to complete
+    const unzipCode = await unzipProc.exited
+
+    // Stop monitoring
+    if (monitoringInterval) {
+      clearInterval(monitoringInterval)
+      monitoringInterval = undefined
+    }
+
+    // Check if zip bomb was detected
+    if (zipBombError) {
+      throw zipBombError
+    }
+
+    // Check process exit code
+    if (unzipCode !== 0) {
+      throw new AppNotParsableException('Failed to unzip app file')
+    }
+
+    // Final size check after extraction completes
+    const finalSize = calculateDirectorySize(extractDir)
+    if (finalSize > MAX_APP_TOTAL_SIZE) {
+      throw new AppMaxFileSizeException(
+        `Extracted app size (${(finalSize / 1024 / 1024).toFixed(2)} MB) exceeds maximum allowed size (${(MAX_APP_TOTAL_SIZE / 1024 / 1024).toFixed(2)} MB)`,
+      )
+    }
+
+    const checkForConfigJson = (dir: string) => {
+      const configPath = path.join(dir, 'config.json')
+      const checkResult = fs.existsSync(configPath)
+      return checkResult
+    }
+
+    // Find the app directory (could be root of zip or in a subdirectory)
+    // Check if extractDir contains config.json directly
+    let appRoot: string | undefined = undefined
+
+    if (checkForConfigJson(extractDir)) {
+      appRoot = extractDir
+    } else {
+      // Look for a subdirectory with config.json
+      appRoot = fs
+        .readdirSync(extractDir)
+        .slice(0, 10)
+        .map((subDirName) => path.join(extractDir, subDirName))
+        .filter((subDirPath) => fs.statSync(subDirPath).isDirectory())
+        .find(checkForConfigJson)
+    }
+
+    if (!appRoot) {
+      throw new AppNotParsableException(
+        'Could not find app directory in zip file',
+      )
+    }
+
+    return appRoot
   }
 
   /**

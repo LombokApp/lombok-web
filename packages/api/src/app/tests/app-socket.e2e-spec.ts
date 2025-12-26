@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { CORE_APP_IDENTIFIER, LogEntryLevel } from '@lombokapp/types'
+import { CORE_APP_SLUG, LogEntryLevel } from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
@@ -13,8 +13,8 @@ import { usersTable } from 'src/users/entities/user.entity'
 import { buildAppClient } from '../../../../app-worker-sdk'
 
 const TEST_MODULE_KEY = 'app_socket'
-const SOCKET_TEST_APP_IDENTIFIER = 'sockettestapp'
-const SOCKET_TEST_APP_IDENTIFIER_NO_DB = 'sockettestappnodb'
+const SOCKET_TEST_APP_SLUG = 'sockettestapp'
+const SOCKET_TEST_APP_SLUG_NO_DB = 'sockettestappnodb'
 
 describe('App Socket Interface', () => {
   let testModule: TestModule | undefined
@@ -38,8 +38,11 @@ describe('App Socket Interface', () => {
   const connectSocket = async (
     instanceId: string,
     handledTaskIdentifiers: string[] = [],
-    appIdentifier: string = SOCKET_TEST_APP_IDENTIFIER,
+    _appIdentifier?: string,
   ): Promise<Socket> => {
+    const appIdentifier =
+      _appIdentifier ??
+      (await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG))
     const token = await createAppToken(appIdentifier)
     const socketUrl = `${serverBaseUrl}/apps`
 
@@ -75,6 +78,7 @@ describe('App Socket Interface', () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
       startServerOnPort,
+      // debug: true,
     })
 
     // Get the platform host from config
@@ -96,16 +100,13 @@ describe('App Socket Interface', () => {
     )
 
     const socketTestApp = apps.result.find(
-      (_app) => _app.identifier === SOCKET_TEST_APP_IDENTIFIER,
+      (_app) => _app.slug === SOCKET_TEST_APP_SLUG,
     )
     if (!socketTestApp) {
       throw new Error(
-        `Socket test app "${SOCKET_TEST_APP_IDENTIFIER}" not found. Make sure it's defined in e2e.setup.ts.`,
+        `Socket test app with slug "${SOCKET_TEST_APP_SLUG}" not found. Make sure it's defined in e2e.setup.ts.`,
       )
     }
-
-    // socket = await connectSocket('test-instance-1')
-    // appClient = buildAppClient(socket, serverBaseUrl)
   })
 
   afterEach(async () => {
@@ -185,7 +186,9 @@ describe('App Socket Interface', () => {
 
     expect(events.length).toBeGreaterThan(0)
     expect(events[0]?.eventIdentifier).toBe('sockettestappevent')
-    expect(events[0]?.emitterIdentifier).toBe(SOCKET_TEST_APP_IDENTIFIER)
+    expect(events[0]?.emitterIdentifier).toBe(
+      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+    )
   })
 
   it('should handle DB_QUERY message', async () => {
@@ -195,7 +198,6 @@ describe('App Socket Interface', () => {
       sql: 'SELECT 1 as test_value',
       params: [],
     })
-
     expect(response).toHaveProperty('result')
     if ('result' in response) {
       expect(response.result.rows).toBeDefined()
@@ -209,7 +211,7 @@ describe('App Socket Interface', () => {
     socket = await connectSocket(
       'test-instance-1',
       [],
-      SOCKET_TEST_APP_IDENTIFIER_NO_DB,
+      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG_NO_DB),
     )
 
     const response = await buildAppClient(socket, serverBaseUrl).query({
@@ -274,7 +276,8 @@ describe('App Socket Interface', () => {
 
     // Create a task that the app can handle
     await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -300,7 +303,8 @@ describe('App Socket Interface', () => {
 
     // Create and start a task
     await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -366,7 +370,12 @@ describe('App Socket Interface', () => {
     const tasks = await testModule!.services.ormService.db
       .select()
       .from(tasksTable)
-      .where(eq(tasksTable.ownerIdentifier, SOCKET_TEST_APP_IDENTIFIER))
+      .where(
+        eq(
+          tasksTable.ownerIdentifier,
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        ),
+      )
 
     const matchingTasks = tasks.filter(
       (task) => task.taskIdentifier === 'socket_test_task',
@@ -426,7 +435,8 @@ describe('App Socket Interface', () => {
 
     // Create a task
     await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -452,7 +462,8 @@ describe('App Socket Interface', () => {
 
     // Create and start a task owned by sockettestapp
     await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -500,7 +511,8 @@ describe('App Socket Interface', () => {
   it('should reject COMPLETE_HANDLE_TASK when non-owner app does not have SERVE_APPS permission', async () => {
     // Create a task owned by sockettestapp
     const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -509,7 +521,7 @@ describe('App Socket Interface', () => {
     const otherAppSocket = await connectSocket(
       'test-instance-2',
       [],
-      SOCKET_TEST_APP_IDENTIFIER_NO_DB,
+      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG_NO_DB),
     )
 
     const completeResponse = await buildAppClient(
@@ -535,7 +547,8 @@ describe('App Socket Interface', () => {
   it('should reject ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID when non-owner app does not have SERVE_APPS permission', async () => {
     // Create a task owned by sockettestapp
     const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -544,7 +557,7 @@ describe('App Socket Interface', () => {
     const otherAppSocket = await connectSocket(
       'test-instance-2',
       [],
-      SOCKET_TEST_APP_IDENTIFIER_NO_DB,
+      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG_NO_DB),
     )
 
     const response = await buildAppClient(
@@ -568,7 +581,8 @@ describe('App Socket Interface', () => {
   it('should reject COMPLETE_HANDLE_TASK when app with SERVE_APPS tries to complete non-worker task', async () => {
     // Create a task owned by sockettestapp with handlerType 'external' (not 'worker')
     const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -577,7 +591,7 @@ describe('App Socket Interface', () => {
     const coreAppSocket = await connectSocket(
       'test-instance-core',
       [],
-      CORE_APP_IDENTIFIER,
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG),
     )
 
     const completeResponse = await buildAppClient(
@@ -603,7 +617,8 @@ describe('App Socket Interface', () => {
   it('should reject ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID when app with SERVE_APPS tries to start non-worker task', async () => {
     // Create a task owned by sockettestapp with handlerType 'external' (not 'worker')
     const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier: SOCKET_TEST_APP_IDENTIFIER,
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       taskIdentifier: 'socket_test_task',
       taskData: { testData: 'value' },
     })
@@ -612,7 +627,7 @@ describe('App Socket Interface', () => {
     const coreAppSocket = await connectSocket(
       'test-instance-core',
       [],
-      CORE_APP_IDENTIFIER,
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG),
     )
 
     const response = await buildAppClient(

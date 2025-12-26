@@ -7,17 +7,20 @@ import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import type { Server } from 'http'
 import path from 'path'
+import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
+import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import { TaskService } from 'src/task/services/task.service'
+import type { User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 
 import { ormConfig } from '../orm/config'
@@ -112,6 +115,7 @@ export async function buildTestModule({
   const services = {
     jwtService: await app.resolve(JWTService),
     appService: await app.resolve(AppService),
+    serverConfigurationService: await app.resolve(ServerConfigurationService),
     workerJobService: await app.resolve(WorkerJobService),
     platformTaskService: await app.resolve(PlatformTaskService),
     eventService: await app.resolve(EventService),
@@ -125,6 +129,50 @@ export async function buildTestModule({
 
   // Install apps from disk for tests (since installAppsOnStart may not be set in test env)
   await services.appService.installAllAppsFromDisk()
+
+  async function initMinioTestBucket(
+    createFiles: { objectKey: string; content: Buffer | string }[] = [],
+  ) {
+    const bucketName = `test-bucket-${(Math.random() + 1).toString(36).substring(7)}`
+    const bucketPath = path.join(MINIO_LOCAL_PATH, bucketName)
+    bucketPathsToRemove.push(bucketPath)
+
+    if (fs.existsSync(bucketPath)) {
+      throw new Error('Test bucket somehow already exists.')
+    }
+
+    fs.mkdirSync(bucketPath)
+
+    const uploadUrls = createS3PresignedUrls(
+      createFiles.map(({ objectKey }) => {
+        return {
+          accessKeyId: MINIO_ACCESS_KEY_ID,
+          secretAccessKey: MINIO_SECRET_ACCESS_KEY,
+          endpoint: MINIO_ENDPOINT,
+          region: MINIO_REGION,
+          bucket: bucketName,
+          expirySeconds: 3000,
+          method: SignedURLsRequestMethod.PUT,
+          objectKey,
+        }
+      }),
+    )
+
+    await Promise.all(
+      uploadUrls.map((uploadUrl, i) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const createFile = createFiles[i]!
+        return fetch(uploadUrl, {
+          method: 'PUT',
+          body:
+            typeof createFile.content === 'string'
+              ? createFile.content
+              : new Uint8Array(createFile.content),
+        })
+      }),
+    )
+    return bucketName
+  }
 
   return {
     app,
@@ -172,49 +220,32 @@ export async function buildTestModule({
         endpoint: MINIO_ENDPOINT,
         region: MINIO_REGION,
       }),
-    initMinioTestBucket: async (
-      createFiles: { objectKey: string; content: Buffer | string }[] = [],
-    ) => {
-      const bucketName = `test-bucket-${(Math.random() + 1).toString(36).substring(7)}`
-      const bucketPath = path.join(MINIO_LOCAL_PATH, bucketName)
-      bucketPathsToRemove.push(bucketPath)
-
-      if (fs.existsSync(bucketPath)) {
-        throw new Error('Test bucket somehow already exists.')
+    getAppIdentifierBySlug: async (slug: string) => {
+      const _app = await services.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, slug),
+      })
+      if (!_app) {
+        throw new Error(`App with slug ${slug} not found`)
       }
-
-      fs.mkdirSync(bucketPath)
-
-      const uploadUrls = createS3PresignedUrls(
-        createFiles.map(({ objectKey }) => {
-          return {
-            accessKeyId: MINIO_ACCESS_KEY_ID,
-            secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-            endpoint: MINIO_ENDPOINT,
-            region: MINIO_REGION,
-            bucket: bucketName,
-            expirySeconds: 3000,
-            method: SignedURLsRequestMethod.PUT,
-            objectKey,
-          }
-        }),
-      )
-
-      await Promise.all(
-        uploadUrls.map((uploadUrl, i) => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const createFile = createFiles[i]!
-          return fetch(uploadUrl, {
-            method: 'PUT',
-            body:
-              typeof createFile.content === 'string'
-                ? createFile.content
-                : new Uint8Array(createFile.content),
-          })
-        }),
-      )
-      return bucketName
+      return _app.identifier
     },
+    setServerStorageLocation: async () => {
+      const bucketName = await initMinioTestBucket()
+      await services.serverConfigurationService.setServerStorageAsAdmin(
+        {
+          isAdmin: true,
+        } as User,
+        {
+          accessKeyId: MINIO_ACCESS_KEY_ID,
+          secretAccessKey: MINIO_SECRET_ACCESS_KEY,
+          endpoint: MINIO_ENDPOINT,
+          region: MINIO_REGION,
+          bucket: bucketName,
+          prefix: '',
+        },
+      )
+    },
+    initMinioTestBucket,
     createS3PresignedUrls: (
       presignedRequests: {
         bucket: string

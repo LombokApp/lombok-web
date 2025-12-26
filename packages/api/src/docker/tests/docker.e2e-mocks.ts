@@ -54,6 +54,12 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
       _containerId: string,
       _command: string[],
     ) => {
+      if (_command.includes('job-state')) {
+        return {
+          stdout: '{"job_id":"123","job_class":"test_job","status":"pending"}',
+          stderr: '',
+        }
+      }
       return { stdout: 'mock-output', stderr: '' }
     },
 

@@ -1,18 +1,23 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Post,
   Put,
   Query,
   Req,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -21,6 +26,7 @@ import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
+import { AppInstallResponse } from '../dto/responses/app-install-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 import { StringMapDTO } from '../dto/responses/string-map.dto'
 import { SetAppEnabledInputDTO } from '../dto/set-app-enabled-input.dto'
@@ -36,6 +42,53 @@ import { UpdateAppAccessSettingsInputDTO } from '../dto/update-app-access-settin
 @ApiStandardErrorResponses()
 export class AppsController {
   constructor(private readonly appService: AppService) {}
+
+  @Post('/apps/install')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  async installAppFromZip(
+    @Req() req: express.Request,
+    @UploadedFile()
+    file:
+      | { buffer?: Buffer; mimetype: string; originalname?: string }
+      | undefined,
+  ): Promise<AppInstallResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    if (!file) {
+      throw new BadRequestException('No file uploaded')
+    }
+
+    if (!file.buffer) {
+      throw new BadRequestException('File buffer is missing')
+    }
+
+    // Check if file is a zip file
+    if (
+      file.mimetype !== 'application/zip' &&
+      file.mimetype !== 'application/x-zip-compressed' &&
+      !file.originalname?.endsWith('.zip')
+    ) {
+      throw new BadRequestException('File must be a zip file')
+    }
+
+    // const app = await this.appService.installAppFromZip(file.buffer)
+    const app = await this.appService.handleAppInstall({
+      zipFilename: file.originalname ?? 'no filename provided',
+      zipFileBuffer: file.buffer,
+    })
+    const connectedExternalAppWorkers =
+      this.appService.getExternalWorkerConnections()
+
+    return {
+      app: transformAppToDTO(
+        app,
+        connectedExternalAppWorkers[app.identifier] ?? [],
+      ),
+    }
+  }
 
   @Get('/apps')
   async listApps(

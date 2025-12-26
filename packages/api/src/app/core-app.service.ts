@@ -1,30 +1,44 @@
 import { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker-utils'
-import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
+import { CORE_APP_SLUG } from '@lombokapp/types'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
-import jwt, { JwtPayload } from 'jsonwebtoken'
-import { APP_JWT_SUB_PREFIX } from 'src/auth/services/jwt.service'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
-import { v4 as uuidV4 } from 'uuid'
 
 import { appsTable } from './entities/app.entity'
 
 @Injectable()
 export class CoreAppService {
   private readonly logger = new Logger(CoreAppService.name)
+  private child: ReturnType<typeof spawn> | undefined
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
+    private readonly jwtService: JWTService,
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
       typeof platformConfig
     >,
     private readonly ormService: OrmService,
   ) {}
+
+  async getAppInstallIdMapping() {
+    const allApps = await this.ormService.db.query.appsTable.findMany({
+      limit: 1000,
+      columns: {
+        identifier: true,
+        installId: true,
+      },
+    })
+    return allApps.reduce<Record<string, string>>((acc, app) => {
+      acc[app.identifier] = app.installId
+      return acc
+    }, {})
+  }
 
   // Ensure spawned worker is terminated when the API process is exiting
   private setupParentShutdownHooks(child: ReturnType<typeof spawn>) {
@@ -44,7 +58,7 @@ export class CoreAppService {
   async startCoreAppThread() {
     const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
     const coreApp = await this.ormService.db.query.appsTable.findFirst({
-      where: eq(appsTable.identifier, CORE_APP_IDENTIFIER),
+      where: eq(appsTable.slug, CORE_APP_SLUG),
     })
     if (!coreApp?.enabled) {
       this.logger.warn('Core app not enabled, skipping thread start')
@@ -58,12 +72,12 @@ export class CoreAppService {
       const workerEntry = isProduction
         ? require.resolve('@lombokapp/core-worker/core-app-worker')
         : require.resolve('@lombokapp/core-worker/core-app-worker.ts')
-      const child = spawn('bun', [workerEntry], {
+      this.child = spawn('bun', [workerEntry], {
         uid: 1000,
         gid: 1000,
         stdio: ['pipe', 'pipe', 'pipe'],
       })
-      this.setupParentShutdownHooks(child)
+      this.setupParentShutdownHooks(this.child)
       // Listen for worker startup success/failure status lines
       let hasScheduledRetry = false
       interface WorkerStatusEvent {
@@ -75,6 +89,9 @@ export class CoreAppService {
       }
 
       const handleStatusLine = (line: string) => {
+        if (!this.child?.stdout || !this.child.stderr) {
+          return
+        }
         try {
           const evt = JSON.parse(line) as unknown as Partial<WorkerStatusEvent>
           if (
@@ -94,7 +111,7 @@ export class CoreAppService {
               )
               // Trigger retry by exiting this child if it's still alive
               try {
-                child.kill()
+                this.child.kill()
               } catch {
                 void 0
               }
@@ -112,7 +129,7 @@ export class CoreAppService {
         }
       }
       let stdoutBuffer = ''
-      child.stdout.on('data', (chunk: Buffer) => {
+      this.child.stdout?.on('data', (chunk: Buffer) => {
         stdoutBuffer += chunk.toString()
         let idx = stdoutBuffer.indexOf('\n')
         while (idx !== -1) {
@@ -128,7 +145,7 @@ export class CoreAppService {
 
       // Also parse error channel for JSON lines if emitted there
       let stderrBuffer = ''
-      child.stderr.on('data', (chunk: Buffer) => {
+      this.child.stderr?.on('data', (chunk: Buffer) => {
         stderrBuffer += chunk.toString()
         let idx = stderrBuffer.indexOf('\n')
         while (idx !== -1) {
@@ -143,7 +160,7 @@ export class CoreAppService {
       })
 
       // Flush any remaining buffered content on stream end
-      child.stdout.on('end', () => {
+      this.child.stdout?.on('end', () => {
         if (stdoutBuffer.length > 0) {
           if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
             this.logger.debug(`[core-worker stdout] ${stdoutBuffer}`)
@@ -151,7 +168,7 @@ export class CoreAppService {
           stdoutBuffer = ''
         }
       })
-      child.stderr.on('end', () => {
+      this.child.stderr?.on('end', () => {
         if (stderrBuffer.length > 0) {
           if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
             this.logger.error(`[core-worker stderr] ${stderrBuffer}`)
@@ -161,7 +178,7 @@ export class CoreAppService {
       })
 
       // If the child exits unexpectedly, schedule a retry
-      child.on('exit', (code) => {
+      this.child.on('exit', (code) => {
         if (code && code !== 0) {
           this.logger.warn(
             `Embedded core app worker exited with code ${String(code)}. Retrying...`,
@@ -174,12 +191,16 @@ export class CoreAppService {
           }
         }
       })
-      child.on('error', (err) => {
+      this.child.on('error', (err) => {
         this.logger.error(
           `Embedded core app worker process error: ${String(err.message)}`,
         )
       })
-      const appToken = await this.generateEmbeddedAppKeys() // TODO: Replace this work a "worker token"
+      const appToken = await this.jwtService.createAppWorkerToken(
+        coreApp.identifier,
+      )
+      const appInstallIdMapping = await this.getAppInstallIdMapping()
+
       setTimeout(() => {
         // send the config as the first message
         const executionOptions = {
@@ -193,12 +214,13 @@ export class CoreAppService {
         const workerDataPayload: CoreWorkerProcessDataPayload = {
           socketBaseUrl: `http://127.0.0.1:3000`,
           appToken,
+          appInstallIdMapping,
           instanceId,
           platformHost: this._platformConfig.platformHost,
           executionOptions,
         }
 
-        child.stdin.write(JSON.stringify(workerDataPayload))
+        this.child?.stdin?.write(JSON.stringify(workerDataPayload))
         this.logger.debug(
           'Embedded core app worker thread started with execution options:',
           workerDataPayload.executionOptions,
@@ -207,49 +229,11 @@ export class CoreAppService {
     }
   }
 
-  async generateEmbeddedAppKeys() {
-    const keys = await new Promise<{ publicKey: string; privateKey: string }>(
-      (resolve) =>
-        crypto.generateKeyPair(
-          'rsa',
-          {
-            modulusLength: 4096,
-            publicKeyEncoding: {
-              type: 'spki',
-              format: 'pem',
-            },
-            privateKeyEncoding: {
-              type: 'pkcs8',
-              format: 'pem',
-              cipher: undefined,
-              passphrase: undefined,
-            },
-          },
-          (err, publicKey, privateKey) => {
-            // Handle errors and use the generated key pair.
-            resolve({ publicKey, privateKey })
-          },
-        ),
-    )
-
-    const payload: JwtPayload = {
-      aud: this._platformConfig.platformHost,
-      jti: uuidV4(),
-      scp: [],
-      sub: `${APP_JWT_SUB_PREFIX}${CORE_APP_IDENTIFIER}`,
+  async updateAppInstallIdMapping() {
+    const appInstallIdMapping = await this.getAppInstallIdMapping()
+    const workerDataPayload = {
+      appInstallIdMapping,
     }
-
-    const token = jwt.sign(payload, keys.privateKey, {
-      algorithm: 'RS512',
-    })
-
-    jwt.verify(token, keys.publicKey)
-
-    await this.ormService.db
-      .update(appsTable)
-      .set({ publicKey: keys.publicKey })
-      .where(eq(appsTable.identifier, CORE_APP_IDENTIFIER))
-
-    return token
+    this.child?.stdin?.write(JSON.stringify(workerDataPayload))
   }
 }

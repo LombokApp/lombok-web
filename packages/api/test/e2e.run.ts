@@ -1,7 +1,8 @@
 import Bun from 'bun'
 
 async function main() {
-  const args = Bun.argv.slice(2)
+  const args =
+    Bun.argv.length > 2 ? Bun.argv.slice(2) : ['./src/**/*.e2e-spec.ts']
   const expandedArgs: string[] = []
 
   for (const arg of args) {
@@ -28,17 +29,10 @@ async function main() {
     stderr: 'inherit',
   }).exited
 
-  if (expandedArgs.length > 0) {
-    await Bun.spawn(['bun', 'test', ...expandedArgs], {
-      stdout: 'inherit',
-      stderr: 'inherit',
-    }).exited
-  } else {
-    await Bun.spawn(['sh', '-lc', 'bun test ./src/**/*.e2e-spec.ts'], {
-      stdout: 'inherit',
-      stderr: 'inherit',
-    }).exited
-  }
+  await Bun.spawn(['bun', 'test', ...expandedArgs], {
+    stdout: 'inherit',
+    stderr: 'inherit',
+  }).exited
 }
 
 void main()

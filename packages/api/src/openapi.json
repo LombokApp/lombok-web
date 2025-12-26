@@ -1596,6 +1596,52 @@
         ]
       }
     },
+    "/api/v1/server/apps/install": {
+      "post": {
+        "operationId": "installAppFromZip",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppInstallResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/api/v1/server/apps": {
       "get": {
         "operationId": "listApps",
@@ -7056,1063 +7102,19 @@
           "prefix"
         ]
       },
-      "AppListResponse": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "type": "object",
-            "properties": {
-              "totalCount": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "totalCount"
-            ]
-          },
-          "result": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "identifier": {
-                  "type": "string"
-                },
-                "label": {
-                  "type": "string"
-                },
-                "publicKey": {
-                  "type": "string"
-                },
-                "config": {
-                  "type": "object",
-                  "properties": {
-                    "requiresStorage": {
-                      "type": "boolean"
-                    },
-                    "permissions": {
-                      "type": "object",
-                      "properties": {
-                        "platform": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "enum": [
-                              "READ_ACL",
-                              "SERVE_APPS"
-                            ]
-                          }
-                        },
-                        "user": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "enum": [
-                              "CREATE_FOLDERS",
-                              "READ_FOLDERS",
-                              "UPDATE_FOLDERS",
-                              "DELETE_FOLDERS",
-                              "READ_USER"
-                            ]
-                          }
-                        },
-                        "folder": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "enum": [
-                              "READ_OBJECTS",
-                              "WRITE_OBJECTS",
-                              "WRITE_OBJECTS_METADATA",
-                              "WRITE_FOLDER_METADATA",
-                              "REINDEX_FOLDER"
-                            ]
-                          }
-                        }
-                      }
-                    },
-                    "identifier": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "^[a-z]+$"
-                    },
-                    "label": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 128
-                    },
-                    "description": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 1024
-                    },
-                    "subscribedPlatformEvents": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "pattern": "^platform:[a-z_]+$"
-                      }
-                    },
-                    "triggers": {
-                      "type": "array",
-                      "items": {
-                        "discriminator": {
-                          "propertyName": "kind"
-                        },
-                        "oneOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "kind": {
-                                "type": "string",
-                                "enum": [
-                                  "event"
-                                ]
-                              },
-                              "eventIdentifier": {
-                                "oneOf": [
-                                  {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "pattern": "^[a-z_]+$"
-                                  },
-                                  {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "pattern": "^platform:[a-z_]+$"
-                                  }
-                                ]
-                              },
-                              "dataTemplate": {
-                                "type": "object",
-                                "additionalProperties": {}
-                              },
-                              "condition": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "taskIdentifier": {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^[a-z_]+$"
-                              },
-                              "onComplete": {
-                                "type": "array",
-                                "items": {}
-                              }
-                            },
-                            "required": [
-                              "kind",
-                              "eventIdentifier",
-                              "taskIdentifier"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "kind": {
-                                "type": "string",
-                                "enum": [
-                                  "schedule"
-                                ]
-                              },
-                              "config": {
-                                "type": "object",
-                                "properties": {
-                                  "interval": {
-                                    "type": "integer",
-                                    "minimum": 0,
-                                    "exclusiveMinimum": true
-                                  },
-                                  "unit": {
-                                    "type": "string",
-                                    "enum": [
-                                      "minutes",
-                                      "hours",
-                                      "days"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "interval",
-                                  "unit"
-                                ]
-                              },
-                              "condition": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "taskIdentifier": {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^[a-z_]+$"
-                              },
-                              "onComplete": {
-                                "type": "array",
-                                "items": {}
-                              }
-                            },
-                            "required": [
-                              "kind",
-                              "config",
-                              "taskIdentifier"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "kind": {
-                                "type": "string",
-                                "enum": [
-                                  "user_action"
-                                ]
-                              },
-                              "scope": {
-                                "type": "object",
-                                "properties": {
-                                  "user": {
-                                    "type": "object",
-                                    "properties": {
-                                      "permissions": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "permissions"
-                                    ]
-                                  },
-                                  "folder": {
-                                    "type": "object",
-                                    "properties": {
-                                      "folderId": {
-                                        "type": "string",
-                                        "format": "uuid"
-                                      }
-                                    },
-                                    "required": [
-                                      "folderId"
-                                    ]
-                                  }
-                                }
-                              },
-                              "condition": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "taskIdentifier": {
-                                "type": "string",
-                                "minLength": 1,
-                                "pattern": "^[a-z_]+$"
-                              },
-                              "onComplete": {
-                                "type": "array",
-                                "items": {}
-                              }
-                            },
-                            "required": [
-                              "kind",
-                              "taskIdentifier"
-                            ]
-                          }
-                        ]
-                      }
-                    },
-                    "tasks": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "identifier": {
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "^[a-z_]+$"
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 128
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "handler": {
-                            "discriminator": {
-                              "propertyName": "type"
-                            },
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "worker"
-                                    ]
-                                  },
-                                  "identifier": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "identifier"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "docker"
-                                    ]
-                                  },
-                                  "identifier": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "identifier"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "external"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "type"
-                                ]
-                              }
-                            ]
-                          }
-                        },
-                        "required": [
-                          "identifier",
-                          "label",
-                          "description",
-                          "handler"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "containerProfiles": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "image": {
-                            "type": "string"
-                          },
-                          "resources": {
-                            "type": "object",
-                            "properties": {
-                              "gpu": {
-                                "type": "boolean"
-                              },
-                              "memoryMB": {
-                                "type": "number",
-                                "minimum": 0,
-                                "exclusiveMinimum": true
-                              },
-                              "cpuCores": {
-                                "type": "number",
-                                "minimum": 0,
-                                "exclusiveMinimum": true
-                              }
-                            },
-                            "additionalProperties": false
-                          },
-                          "workers": {
-                            "type": "array",
-                            "items": {
-                              "discriminator": {
-                                "propertyName": "kind"
-                              },
-                              "oneOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "kind": {
-                                      "type": "string",
-                                      "enum": [
-                                        "exec"
-                                      ]
-                                    },
-                                    "command": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      }
-                                    },
-                                    "jobIdentifier": {
-                                      "type": "string",
-                                      "minLength": 1,
-                                      "pattern": "^[a-z_]+$"
-                                    },
-                                    "maxPerContainer": {
-                                      "type": "number",
-                                      "minimum": 1
-                                    },
-                                    "countTowardsGlobalCap": {
-                                      "type": "boolean",
-                                      "enum": [
-                                        false
-                                      ]
-                                    },
-                                    "priority": {
-                                      "type": "number"
-                                    }
-                                  },
-                                  "required": [
-                                    "kind",
-                                    "command",
-                                    "jobIdentifier"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "kind": {
-                                      "type": "string",
-                                      "enum": [
-                                        "http"
-                                      ]
-                                    },
-                                    "command": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      }
-                                    },
-                                    "port": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "exclusiveMinimum": true,
-                                      "maximum": 65535
-                                    },
-                                    "jobs": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "maxPerContainer": {
-                                            "type": "number",
-                                            "minimum": 1
-                                          },
-                                          "countTowardsGlobalCap": {
-                                            "type": "boolean",
-                                            "enum": [
-                                              false
-                                            ]
-                                          },
-                                          "priority": {
-                                            "type": "number"
-                                          },
-                                          "identifier": {
-                                            "type": "string",
-                                            "minLength": 1,
-                                            "pattern": "^[a-z_]+$"
-                                          }
-                                        },
-                                        "required": [
-                                          "identifier"
-                                        ]
-                                      }
-                                    }
-                                  },
-                                  "required": [
-                                    "kind",
-                                    "command",
-                                    "port",
-                                    "jobs"
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        },
-                        "required": [
-                          "image",
-                          "workers"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "workers": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "entrypoint": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "environmentVariables": {
-                            "$ref": "#/components/schemas/StringMapDTO"
-                          }
-                        },
-                        "required": [
-                          "entrypoint",
-                          "description"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "ui": {
-                      "type": "object",
-                      "properties": {
-                        "enabled": {
-                          "type": "boolean",
-                          "enum": [
-                            true
-                          ]
-                        },
-                        "csp": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "enabled"
-                      ]
-                    },
-                    "database": {
-                      "type": "object",
-                      "properties": {
-                        "enabled": {
-                          "type": "boolean",
-                          "enum": [
-                            true
-                          ]
-                        }
-                      },
-                      "required": [
-                        "enabled"
-                      ]
-                    },
-                    "contributions": {
-                      "type": "object",
-                      "properties": {
-                        "sidebarMenuLinks": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "path": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "path",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "folderSidebarViews": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "path": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "path",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "objectSidebarViews": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "path": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "path",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "objectDetailViews": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "path": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "path",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          }
-                        }
-                      },
-                      "required": [
-                        "sidebarMenuLinks",
-                        "folderSidebarViews",
-                        "objectSidebarViews",
-                        "objectDetailViews"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "identifier",
-                    "label",
-                    "description"
-                  ],
-                  "additionalProperties": false
-                },
-                "requiresStorage": {
-                  "type": "boolean"
-                },
-                "enabled": {
-                  "type": "boolean"
-                },
-                "userScopeEnabledDefault": {
-                  "type": "boolean"
-                },
-                "folderScopeEnabledDefault": {
-                  "type": "boolean"
-                },
-                "manifest": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "hash": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      },
-                      "mimeType": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "hash",
-                      "size",
-                      "mimeType"
-                    ]
-                  }
-                },
-                "externalWorkers": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "appIdentifier": {
-                        "type": "string",
-                        "minLength": 1,
-                        "pattern": "^[a-z]+$"
-                      },
-                      "workerId": {
-                        "type": "string"
-                      },
-                      "handledTaskIdentifiers": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "minLength": 1,
-                          "pattern": "^[a-z_]+$"
-                        }
-                      },
-                      "socketClientId": {
-                        "type": "string"
-                      },
-                      "ip": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "appIdentifier",
-                      "workerId",
-                      "handledTaskIdentifiers",
-                      "socketClientId",
-                      "ip"
-                    ]
-                  }
-                },
-                "workers": {
-                  "type": "object",
-                  "properties": {
-                    "hash": {
-                      "type": "string"
-                    },
-                    "size": {
-                      "type": "number"
-                    },
-                    "manifest": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "hash": {
-                            "type": "string"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mimeType": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "hash",
-                          "size",
-                          "mimeType"
-                        ]
-                      }
-                    },
-                    "definitions": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "description": {
-                            "type": "string"
-                          },
-                          "environmentVariables": {
-                            "$ref": "#/components/schemas/StringMapDTO"
-                          },
-                          "entrypoint": {
-                            "type": "string",
-                            "minLength": 1
-                          }
-                        },
-                        "required": [
-                          "description",
-                          "environmentVariables",
-                          "entrypoint"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "hash",
-                    "size",
-                    "manifest",
-                    "definitions"
-                  ]
-                },
-                "ui": {
-                  "type": "object",
-                  "properties": {
-                    "hash": {
-                      "type": "string"
-                    },
-                    "size": {
-                      "type": "number"
-                    },
-                    "csp": {
-                      "type": "string"
-                    },
-                    "manifest": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "hash": {
-                            "type": "string"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mimeType": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "hash",
-                          "size",
-                          "mimeType"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "hash",
-                    "size",
-                    "manifest"
-                  ],
-                  "nullable": true
-                },
-                "contributions": {
-                  "type": "object",
-                  "properties": {
-                    "sidebarMenuLinks": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "path",
-                          "label"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "folderSidebarViews": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "path",
-                          "label"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "objectSidebarViews": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "path",
-                          "label"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "objectDetailViews": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "label": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "path",
-                          "label"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "sidebarMenuLinks",
-                    "folderSidebarViews",
-                    "objectSidebarViews",
-                    "objectDetailViews"
-                  ],
-                  "additionalProperties": false
-                },
-                "metrics": {
-                  "type": "object",
-                  "properties": {
-                    "tasksExecutedLast24Hours": {
-                      "type": "object",
-                      "properties": {
-                        "completed": {
-                          "type": "number"
-                        },
-                        "failed": {
-                          "type": "number"
-                        }
-                      },
-                      "required": [
-                        "completed",
-                        "failed"
-                      ]
-                    },
-                    "errorsLast24Hours": {
-                      "type": "object",
-                      "properties": {
-                        "total": {
-                          "type": "number"
-                        },
-                        "last10Minutes": {
-                          "type": "number"
-                        }
-                      },
-                      "required": [
-                        "total",
-                        "last10Minutes"
-                      ]
-                    },
-                    "eventsEmittedLast24Hours": {
-                      "type": "object",
-                      "properties": {
-                        "total": {
-                          "type": "number"
-                        },
-                        "last10Minutes": {
-                          "type": "number"
-                        }
-                      },
-                      "required": [
-                        "total",
-                        "last10Minutes"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "tasksExecutedLast24Hours",
-                    "errorsLast24Hours",
-                    "eventsEmittedLast24Hours"
-                  ],
-                  "nullable": true
-                },
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "updatedAt": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "identifier",
-                "label",
-                "publicKey",
-                "config",
-                "requiresStorage",
-                "enabled",
-                "userScopeEnabledDefault",
-                "folderScopeEnabledDefault",
-                "manifest",
-                "externalWorkers",
-                "workers",
-                "ui",
-                "contributions",
-                "metrics",
-                "createdAt",
-                "updatedAt"
-              ]
-            }
-          }
-        },
-        "required": [
-          "meta",
-          "result"
-        ]
-      },
-      "SetAppEnabledInputDTO": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "enabled"
-        ]
-      },
-      "AppGetResponse": {
+      "AppInstallResponse": {
         "type": "object",
         "properties": {
           "app": {
             "type": "object",
             "properties": {
               "identifier": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "installId": {
                 "type": "string"
               },
               "label": {
@@ -8168,10 +7170,10 @@
                       }
                     }
                   },
-                  "identifier": {
+                  "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "pattern": "^[a-z]+$"
+                    "pattern": "^[a-z0-9]+$"
                   },
                   "label": {
                     "type": "string",
@@ -8752,7 +7754,7 @@
                   }
                 },
                 "required": [
-                  "identifier",
+                  "slug",
                   "label",
                   "description"
                 ],
@@ -8800,7 +7802,7 @@
                     "appIdentifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-z]+$"
+                      "pattern": "^[a-zA-Z0-9_]+$"
                     },
                     "workerId": {
                       "type": "string"
@@ -9108,6 +8110,8 @@
             },
             "required": [
               "identifier",
+              "slug",
+              "installId",
               "label",
               "publicKey",
               "config",
@@ -9130,39 +8134,7 @@
           "app"
         ]
       },
-      "UpdateAppAccessSettingsInputDTO": {
-        "type": "object",
-        "properties": {
-          "userScopeEnabledDefault": {
-            "type": "boolean"
-          },
-          "folderScopeEnabledDefault": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "userScopeEnabledDefault",
-          "folderScopeEnabledDefault"
-        ]
-      },
-      "SetWorkerEnvironmentVariablesInputDTO": {
-        "type": "object",
-        "properties": {
-          "environmentVariables": {
-            "$ref": "#/components/schemas/StringMapDTO"
-          }
-        },
-        "required": [
-          "environmentVariables"
-        ]
-      },
-      "StringMapDTO": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "string"
-        }
-      },
-      "UserAppListResponse": {
+      "AppListResponse": {
         "type": "object",
         "properties": {
           "meta": {
@@ -9184,7 +8156,16 @@
                 "identifier": {
                   "type": "string"
                 },
+                "slug": {
+                  "type": "string"
+                },
+                "installId": {
+                  "type": "string"
+                },
                 "label": {
+                  "type": "string"
+                },
+                "publicKey": {
                   "type": "string"
                 },
                 "config": {
@@ -9234,10 +8215,10 @@
                         }
                       }
                     },
-                    "identifier": {
+                    "slug": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-z]+$"
+                      "pattern": "^[a-z0-9]+$"
                     },
                     "label": {
                       "type": "string",
@@ -9818,7 +8799,2120 @@
                     }
                   },
                   "required": [
-                    "identifier",
+                    "slug",
+                    "label",
+                    "description"
+                  ],
+                  "additionalProperties": false
+                },
+                "requiresStorage": {
+                  "type": "boolean"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "userScopeEnabledDefault": {
+                  "type": "boolean"
+                },
+                "folderScopeEnabledDefault": {
+                  "type": "boolean"
+                },
+                "manifest": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "hash": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      },
+                      "mimeType": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "hash",
+                      "size",
+                      "mimeType"
+                    ]
+                  }
+                },
+                "externalWorkers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "appIdentifier": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9_]+$"
+                      },
+                      "workerId": {
+                        "type": "string"
+                      },
+                      "handledTaskIdentifiers": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z_]+$"
+                        }
+                      },
+                      "socketClientId": {
+                        "type": "string"
+                      },
+                      "ip": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "appIdentifier",
+                      "workerId",
+                      "handledTaskIdentifiers",
+                      "socketClientId",
+                      "ip"
+                    ]
+                  }
+                },
+                "workers": {
+                  "type": "object",
+                  "properties": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "manifest": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
+                      }
+                    },
+                    "definitions": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "description": {
+                            "type": "string"
+                          },
+                          "environmentVariables": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "entrypoint": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "description",
+                          "environmentVariables",
+                          "entrypoint"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "hash",
+                    "size",
+                    "manifest",
+                    "definitions"
+                  ]
+                },
+                "ui": {
+                  "type": "object",
+                  "properties": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "csp": {
+                      "type": "string"
+                    },
+                    "manifest": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "hash",
+                    "size",
+                    "manifest"
+                  ],
+                  "nullable": true
+                },
+                "contributions": {
+                  "type": "object",
+                  "properties": {
+                    "sidebarMenuLinks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "folderSidebarViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "objectSidebarViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "objectDetailViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "sidebarMenuLinks",
+                    "folderSidebarViews",
+                    "objectSidebarViews",
+                    "objectDetailViews"
+                  ],
+                  "additionalProperties": false
+                },
+                "metrics": {
+                  "type": "object",
+                  "properties": {
+                    "tasksExecutedLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "number"
+                        },
+                        "failed": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "errorsLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "last10Minutes": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "last10Minutes"
+                      ]
+                    },
+                    "eventsEmittedLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "last10Minutes": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "last10Minutes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "tasksExecutedLast24Hours",
+                    "errorsLast24Hours",
+                    "eventsEmittedLast24Hours"
+                  ],
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "identifier",
+                "slug",
+                "installId",
+                "label",
+                "publicKey",
+                "config",
+                "requiresStorage",
+                "enabled",
+                "userScopeEnabledDefault",
+                "folderScopeEnabledDefault",
+                "manifest",
+                "externalWorkers",
+                "workers",
+                "ui",
+                "contributions",
+                "metrics",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
+      "SetAppEnabledInputDTO": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "AppGetResponse": {
+        "type": "object",
+        "properties": {
+          "app": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "installId": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "publicKey": {
+                "type": "string"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "requiresStorage": {
+                    "type": "boolean"
+                  },
+                  "permissions": {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "READ_ACL",
+                            "SERVE_APPS"
+                          ]
+                        }
+                      },
+                      "user": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "CREATE_FOLDERS",
+                            "READ_FOLDERS",
+                            "UPDATE_FOLDERS",
+                            "DELETE_FOLDERS",
+                            "READ_USER"
+                          ]
+                        }
+                      },
+                      "folder": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "READ_OBJECTS",
+                            "WRITE_OBJECTS",
+                            "WRITE_OBJECTS_METADATA",
+                            "WRITE_FOLDER_METADATA",
+                            "REINDEX_FOLDER"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-z0-9]+$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1024
+                  },
+                  "subscribedPlatformEvents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^platform:[a-z_]+$"
+                    }
+                  },
+                  "triggers": {
+                    "type": "array",
+                    "items": {
+                      "discriminator": {
+                        "propertyName": "kind"
+                      },
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "event"
+                              ]
+                            },
+                            "eventIdentifier": {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^platform:[a-z_]+$"
+                                }
+                              ]
+                            },
+                            "dataTemplate": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "taskIdentifier": {
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
+                            },
+                            "onComplete": {
+                              "type": "array",
+                              "items": {}
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "eventIdentifier",
+                            "taskIdentifier"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "schedule"
+                              ]
+                            },
+                            "config": {
+                              "type": "object",
+                              "properties": {
+                                "interval": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "minutes",
+                                    "hours",
+                                    "days"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "interval",
+                                "unit"
+                              ]
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "taskIdentifier": {
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
+                            },
+                            "onComplete": {
+                              "type": "array",
+                              "items": {}
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "config",
+                            "taskIdentifier"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "user_action"
+                              ]
+                            },
+                            "scope": {
+                              "type": "object",
+                              "properties": {
+                                "user": {
+                                  "type": "object",
+                                  "properties": {
+                                    "permissions": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "permissions"
+                                  ]
+                                },
+                                "folder": {
+                                  "type": "object",
+                                  "properties": {
+                                    "folderId": {
+                                      "type": "string",
+                                      "format": "uuid"
+                                    }
+                                  },
+                                  "required": [
+                                    "folderId"
+                                  ]
+                                }
+                              }
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "taskIdentifier": {
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
+                            },
+                            "onComplete": {
+                              "type": "array",
+                              "items": {}
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "taskIdentifier"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "tasks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "identifier": {
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z_]+$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "handler": {
+                          "discriminator": {
+                            "propertyName": "type"
+                          },
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "worker"
+                                  ]
+                                },
+                                "identifier": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "identifier"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "docker"
+                                  ]
+                                },
+                                "identifier": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "identifier"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "external"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "identifier",
+                        "label",
+                        "description",
+                        "handler"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "containerProfiles": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "image": {
+                          "type": "string"
+                        },
+                        "resources": {
+                          "type": "object",
+                          "properties": {
+                            "gpu": {
+                              "type": "boolean"
+                            },
+                            "memoryMB": {
+                              "type": "number",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            },
+                            "cpuCores": {
+                              "type": "number",
+                              "minimum": 0,
+                              "exclusiveMinimum": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "workers": {
+                          "type": "array",
+                          "items": {
+                            "discriminator": {
+                              "propertyName": "kind"
+                            },
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "exec"
+                                    ]
+                                  },
+                                  "command": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "jobIdentifier": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
+                                  },
+                                  "maxPerContainer": {
+                                    "type": "number",
+                                    "minimum": 1
+                                  },
+                                  "countTowardsGlobalCap": {
+                                    "type": "boolean",
+                                    "enum": [
+                                      false
+                                    ]
+                                  },
+                                  "priority": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "command",
+                                  "jobIdentifier"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "http"
+                                    ]
+                                  },
+                                  "command": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "port": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "exclusiveMinimum": true,
+                                    "maximum": 65535
+                                  },
+                                  "jobs": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "maxPerContainer": {
+                                          "type": "number",
+                                          "minimum": 1
+                                        },
+                                        "countTowardsGlobalCap": {
+                                          "type": "boolean",
+                                          "enum": [
+                                            false
+                                          ]
+                                        },
+                                        "priority": {
+                                          "type": "number"
+                                        },
+                                        "identifier": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-z_]+$"
+                                        }
+                                      },
+                                      "required": [
+                                        "identifier"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "command",
+                                  "port",
+                                  "jobs"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "image",
+                        "workers"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "workers": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "environmentVariables": {
+                          "$ref": "#/components/schemas/StringMapDTO"
+                        }
+                      },
+                      "required": [
+                        "entrypoint",
+                        "description"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "ui": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      },
+                      "csp": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "enabled"
+                    ]
+                  },
+                  "database": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      }
+                    },
+                    "required": [
+                      "enabled"
+                    ]
+                  },
+                  "contributions": {
+                    "type": "object",
+                    "properties": {
+                      "sidebarMenuLinks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "folderSidebarViews": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "objectSidebarViews": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "objectDetailViews": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "sidebarMenuLinks",
+                      "folderSidebarViews",
+                      "objectSidebarViews",
+                      "objectDetailViews"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "slug",
+                  "label",
+                  "description"
+                ],
+                "additionalProperties": false
+              },
+              "requiresStorage": {
+                "type": "boolean"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "userScopeEnabledDefault": {
+                "type": "boolean"
+              },
+              "folderScopeEnabledDefault": {
+                "type": "boolean"
+              },
+              "manifest": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "mimeType": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "hash",
+                    "size",
+                    "mimeType"
+                  ]
+                }
+              },
+              "externalWorkers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "appIdentifier": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-zA-Z0-9_]+$"
+                    },
+                    "workerId": {
+                      "type": "string"
+                    },
+                    "handledTaskIdentifiers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z_]+$"
+                      }
+                    },
+                    "socketClientId": {
+                      "type": "string"
+                    },
+                    "ip": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "appIdentifier",
+                    "workerId",
+                    "handledTaskIdentifiers",
+                    "socketClientId",
+                    "ip"
+                  ]
+                }
+              },
+              "workers": {
+                "type": "object",
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "manifest": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "hash": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
+                    }
+                  },
+                  "definitions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "environmentVariables": {
+                          "$ref": "#/components/schemas/StringMapDTO"
+                        },
+                        "entrypoint": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "environmentVariables",
+                        "entrypoint"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "hash",
+                  "size",
+                  "manifest",
+                  "definitions"
+                ]
+              },
+              "ui": {
+                "type": "object",
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "csp": {
+                    "type": "string"
+                  },
+                  "manifest": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "hash": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "hash",
+                  "size",
+                  "manifest"
+                ],
+                "nullable": true
+              },
+              "contributions": {
+                "type": "object",
+                "properties": {
+                  "sidebarMenuLinks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "folderSidebarViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "objectSidebarViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "objectDetailViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "sidebarMenuLinks",
+                  "folderSidebarViews",
+                  "objectSidebarViews",
+                  "objectDetailViews"
+                ],
+                "additionalProperties": false
+              },
+              "metrics": {
+                "type": "object",
+                "properties": {
+                  "tasksExecutedLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "completed": {
+                        "type": "number"
+                      },
+                      "failed": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "completed",
+                      "failed"
+                    ]
+                  },
+                  "errorsLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
+                  },
+                  "eventsEmittedLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
+                  }
+                },
+                "required": [
+                  "tasksExecutedLast24Hours",
+                  "errorsLast24Hours",
+                  "eventsEmittedLast24Hours"
+                ],
+                "nullable": true
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "identifier",
+              "slug",
+              "installId",
+              "label",
+              "publicKey",
+              "config",
+              "requiresStorage",
+              "enabled",
+              "userScopeEnabledDefault",
+              "folderScopeEnabledDefault",
+              "manifest",
+              "externalWorkers",
+              "workers",
+              "ui",
+              "contributions",
+              "metrics",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "app"
+        ]
+      },
+      "UpdateAppAccessSettingsInputDTO": {
+        "type": "object",
+        "properties": {
+          "userScopeEnabledDefault": {
+            "type": "boolean"
+          },
+          "folderScopeEnabledDefault": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "userScopeEnabledDefault",
+          "folderScopeEnabledDefault"
+        ]
+      },
+      "SetWorkerEnvironmentVariablesInputDTO": {
+        "type": "object",
+        "properties": {
+          "environmentVariables": {
+            "$ref": "#/components/schemas/StringMapDTO"
+          }
+        },
+        "required": [
+          "environmentVariables"
+        ]
+      },
+      "StringMapDTO": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "UserAppListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "identifier": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "config": {
+                  "type": "object",
+                  "properties": {
+                    "requiresStorage": {
+                      "type": "boolean"
+                    },
+                    "permissions": {
+                      "type": "object",
+                      "properties": {
+                        "platform": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "READ_ACL",
+                              "SERVE_APPS"
+                            ]
+                          }
+                        },
+                        "user": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "CREATE_FOLDERS",
+                              "READ_FOLDERS",
+                              "UPDATE_FOLDERS",
+                              "DELETE_FOLDERS",
+                              "READ_USER"
+                            ]
+                          }
+                        },
+                        "folder": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "READ_OBJECTS",
+                              "WRITE_OBJECTS",
+                              "WRITE_OBJECTS_METADATA",
+                              "WRITE_FOLDER_METADATA",
+                              "REINDEX_FOLDER"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "slug": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9]+$"
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1024
+                    },
+                    "subscribedPlatformEvents": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^platform:[a-z_]+$"
+                      }
+                    },
+                    "triggers": {
+                      "type": "array",
+                      "items": {
+                        "discriminator": {
+                          "propertyName": "kind"
+                        },
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "event"
+                                ]
+                              },
+                              "eventIdentifier": {
+                                "oneOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^platform:[a-z_]+$"
+                                  }
+                                ]
+                              },
+                              "dataTemplate": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "onComplete": {
+                                "type": "array",
+                                "items": {}
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "eventIdentifier",
+                              "taskIdentifier"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "schedule"
+                                ]
+                              },
+                              "config": {
+                                "type": "object",
+                                "properties": {
+                                  "interval": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "exclusiveMinimum": true
+                                  },
+                                  "unit": {
+                                    "type": "string",
+                                    "enum": [
+                                      "minutes",
+                                      "hours",
+                                      "days"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "interval",
+                                  "unit"
+                                ]
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "onComplete": {
+                                "type": "array",
+                                "items": {}
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "config",
+                              "taskIdentifier"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "user_action"
+                                ]
+                              },
+                              "scope": {
+                                "type": "object",
+                                "properties": {
+                                  "user": {
+                                    "type": "object",
+                                    "properties": {
+                                      "permissions": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "permissions"
+                                    ]
+                                  },
+                                  "folder": {
+                                    "type": "object",
+                                    "properties": {
+                                      "folderId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                      }
+                                    },
+                                    "required": [
+                                      "folderId"
+                                    ]
+                                  }
+                                }
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "onComplete": {
+                                "type": "array",
+                                "items": {}
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "taskIdentifier"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "identifier": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z_]+$"
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "handler": {
+                            "discriminator": {
+                              "propertyName": "type"
+                            },
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "worker"
+                                    ]
+                                  },
+                                  "identifier": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "identifier"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "docker"
+                                    ]
+                                  },
+                                  "identifier": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "identifier"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "external"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "identifier",
+                          "label",
+                          "description",
+                          "handler"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "containerProfiles": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "image": {
+                            "type": "string"
+                          },
+                          "resources": {
+                            "type": "object",
+                            "properties": {
+                              "gpu": {
+                                "type": "boolean"
+                              },
+                              "memoryMB": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              },
+                              "cpuCores": {
+                                "type": "number",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "workers": {
+                            "type": "array",
+                            "items": {
+                              "discriminator": {
+                                "propertyName": "kind"
+                              },
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "exec"
+                                      ]
+                                    },
+                                    "command": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "jobIdentifier": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
+                                    },
+                                    "maxPerContainer": {
+                                      "type": "number",
+                                      "minimum": 1
+                                    },
+                                    "countTowardsGlobalCap": {
+                                      "type": "boolean",
+                                      "enum": [
+                                        false
+                                      ]
+                                    },
+                                    "priority": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "command",
+                                    "jobIdentifier"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": [
+                                        "http"
+                                      ]
+                                    },
+                                    "command": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "port": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "exclusiveMinimum": true,
+                                      "maximum": 65535
+                                    },
+                                    "jobs": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "maxPerContainer": {
+                                            "type": "number",
+                                            "minimum": 1
+                                          },
+                                          "countTowardsGlobalCap": {
+                                            "type": "boolean",
+                                            "enum": [
+                                              false
+                                            ]
+                                          },
+                                          "priority": {
+                                            "type": "number"
+                                          },
+                                          "identifier": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "pattern": "^[a-z_]+$"
+                                          }
+                                        },
+                                        "required": [
+                                          "identifier"
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "command",
+                                    "port",
+                                    "jobs"
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "image",
+                          "workers"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "workers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "entrypoint": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "environmentVariables": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          }
+                        },
+                        "required": [
+                          "entrypoint",
+                          "description"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "ui": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "csp": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ]
+                    },
+                    "database": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ]
+                    },
+                    "contributions": {
+                      "type": "object",
+                      "properties": {
+                        "sidebarMenuLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "folderSidebarViews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "objectSidebarViews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "objectDetailViews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "sidebarMenuLinks",
+                        "folderSidebarViews",
+                        "objectSidebarViews",
+                        "objectDetailViews"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "slug",
                     "label",
                     "description"
                   ],
@@ -10157,10 +11251,10 @@
                       }
                     }
                   },
-                  "identifier": {
+                  "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "pattern": "^[a-z]+$"
+                    "pattern": "^[a-z0-9]+$"
                   },
                   "label": {
                     "type": "string",
@@ -10741,7 +11835,7 @@
                   }
                 },
                 "required": [
-                  "identifier",
+                  "slug",
                   "label",
                   "description"
                 ],

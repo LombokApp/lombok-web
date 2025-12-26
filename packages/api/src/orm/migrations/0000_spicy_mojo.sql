@@ -20,6 +20,8 @@ CREATE TABLE "app_user_settings" (
 --> statement-breakpoint
 CREATE TABLE "apps" (
 	"identifier" text PRIMARY KEY NOT NULL,
+	"installId" uuid NOT NULL,
+	"slug" text NOT NULL,
 	"label" text NOT NULL,
 	"publicKey" text NOT NULL,
 	"requiresStorage" boolean NOT NULL,

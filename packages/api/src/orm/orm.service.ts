@@ -572,6 +572,10 @@ export class OrmService {
     // Ensure schema exists
     await this.ensureAppSchema(appIdentifier)
 
+    if (migrationFiles.length === 0) {
+      return
+    }
+
     // Create migration tracking table if it doesn't exist
     await this.client.query(`
       CREATE TABLE IF NOT EXISTS ${schemaName}.__migrations__ (

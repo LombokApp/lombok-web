@@ -14,12 +14,12 @@ import {
 } from './resolve-app-settings.utils'
 
 const createMockApp = ({
-  appIdentifier,
+  slug,
   folderScopeEnabledDefault,
   userScopeEnabledDefault,
   permissions,
 }: {
-  appIdentifier: string
+  slug: string
   folderScopeEnabledDefault: boolean
   userScopeEnabledDefault: boolean
   permissions: {
@@ -29,7 +29,9 @@ const createMockApp = ({
   }
 }): App => {
   return {
-    identifier: appIdentifier,
+    slug,
+    identifier: slug,
+    installId: crypto.randomUUID(),
     label: 'Test App',
     publicKey: 'test_public_key',
     requiresStorage: false,
@@ -39,7 +41,7 @@ const createMockApp = ({
     implementedTasks: [],
     contentHash: 'test_content_hash',
     config: {
-      identifier: appIdentifier,
+      slug,
       label: 'Test App',
       description: 'Test App Description',
       permissions,
@@ -124,7 +126,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use user-level fallbacks when folder settings are not set', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -169,7 +171,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use system-level fallbacks when user defaults are not set', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -214,7 +216,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder settings with user-level fallbacks', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -259,7 +261,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder settings with system-level fallbacks', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -304,7 +306,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder settings with user-level fallbacks when permissions differ', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -349,7 +351,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use mixed fallbacks when only user default enabled is set', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -394,7 +396,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should handle folder disabled at the app level with no user or folder settings', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: true,
           permissions: {
@@ -423,7 +425,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use mixed fallbacks when only user default permissions are set', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -468,7 +470,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder enabled with null permissions and user-level fallbacks', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -513,7 +515,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder permissions with null enabled and system-level fallbacks', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -558,7 +560,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder enabled with null permissions and mixed fallbacks', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -603,7 +605,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should use explicit folder permissions with null enabled and mixed fallbacks', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -650,7 +652,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return explicit user settings with system fallbacks', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -686,7 +688,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return null user settings with system fallbacks', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
@@ -722,7 +724,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return explicit enabled setting with null permissions and system fallbacks', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -758,7 +760,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should still return disabled ath folder level when app.userScopeEnabledDefault is false but app.folderScopeEnabledDefault is true', () => {
       const result = resolveFolderAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           userScopeEnabledDefault: false,
           folderScopeEnabledDefault: true,
           permissions: {
@@ -787,7 +789,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return null enabled setting with explicit permissions and system fallbacks', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
@@ -823,7 +825,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return user settings with folder scope defaults configured', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -859,7 +861,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return user settings with no folder scope defaults configured', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
@@ -895,7 +897,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return enabled true with null permissions and no folder defaults', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -931,7 +933,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return enabled false with null permissions and no folder defaults', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
@@ -967,7 +969,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return null enabled with explicit permissions and folder default enabled only', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1003,7 +1005,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return null enabled with explicit permissions and folder default permissions only', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1039,7 +1041,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return explicit enabled with null permissions and folder default enabled only', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1075,7 +1077,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return explicit enabled with null permissions and folder default permissions only', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1111,7 +1113,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback as true when app folderScopeEnabledDefault is true', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
@@ -1148,7 +1150,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback as false when app folderScopeEnabledDefault is false', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1185,7 +1187,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback independent of user folderScopeEnabledDefault value', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1223,7 +1225,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback independent of user enabled value', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
@@ -1261,7 +1263,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback as true with opposite enabledFallback', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
@@ -1299,7 +1301,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback as false with opposite enabledFallback', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1337,7 +1339,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback matching app value with all user settings null', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
@@ -1375,7 +1377,7 @@ describe('resolve-app-settings.util.ts', () => {
     it('should return folderScopeEnabledDefaultFallback matching app value with all user settings explicit', () => {
       const result = resolveUserAppSettings(
         createMockApp({
-          appIdentifier: 'test_app',
+          slug: 'test_app',
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {

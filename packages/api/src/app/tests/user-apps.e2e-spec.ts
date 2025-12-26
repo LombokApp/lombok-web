@@ -1,4 +1,4 @@
-import { CORE_APP_IDENTIFIER } from '@lombokapp/types'
+import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
@@ -37,7 +37,8 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = CORE_APP_IDENTIFIER
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
     const enableResponse = await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -95,7 +96,8 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = CORE_APP_IDENTIFIER
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -116,9 +118,10 @@ describe('User Apps', () => {
     if (!listAppsResponse.data) {
       throw new Error('No response data received')
     }
+
     // Disabled apps should not appear in user list
     const coreApp = listAppsResponse.data.result.find(
-      (app) => app.identifier === CORE_APP_IDENTIFIER,
+      (app) => app.identifier === appIdentifier,
     )
     expect(coreApp).toBeUndefined()
   })
@@ -140,7 +143,8 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = CORE_APP_IDENTIFIER
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -194,7 +198,8 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = CORE_APP_IDENTIFIER
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -276,7 +281,8 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = CORE_APP_IDENTIFIER
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -351,7 +357,7 @@ describe('User Apps', () => {
       {
         params: {
           path: {
-            appIdentifier: CORE_APP_IDENTIFIER,
+            appIdentifier: CORE_APP_SLUG,
           },
         },
       },

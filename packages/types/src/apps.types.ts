@@ -2,12 +2,16 @@ import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
 import { platformPrefixedEventIdentifierSchema } from './events.types'
-import { appIdentifierSchema, taskIdentifierSchema } from './identifiers.types'
+import {
+  appIdentifierSchema,
+  slugSchema,
+  taskIdentifierSchema,
+} from './identifiers.types'
 import { jsonSerializableObjectDTOSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 
-export const CORE_APP_IDENTIFIER = 'core'
+export const CORE_APP_SLUG = 'core'
 
 export const AppSocketMessage = z.enum([
   'DB_QUERY',
@@ -246,7 +250,7 @@ export const appConfigSchema = z
         folder: z.array(folderScopeAppPermissionsSchema).optional(),
       })
       .optional(),
-    identifier: appIdentifierSchema,
+    slug: slugSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
     subscribedPlatformEvents: z
