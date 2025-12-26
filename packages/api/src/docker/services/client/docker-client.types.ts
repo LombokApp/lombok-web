@@ -65,7 +65,7 @@ export interface DockerAdapter {
   execInContainerAndReturnOutput: (
     containerId: string,
     command: string[],
-  ) => Promise<string>
+  ) => Promise<{ stdout: string; stderr: string }>
 
   /**
    * Execute a command in a running container
@@ -75,7 +75,7 @@ export interface DockerAdapter {
     options: ContainerExecuteOptions,
   ) => Promise<{
     state: DockerStateFunc
-    output: () => Promise<string>
+    output: () => Promise<{ stdout: string; stderr: string }>
   }>
 
   /**

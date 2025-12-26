@@ -356,7 +356,7 @@ export class LocalDockerAdapter implements DockerAdapter {
   async execInContainerAndReturnOutput(
     containerId: string,
     command: string[],
-  ): Promise<string> {
+  ): Promise<{ stdout: string; stderr: string }> {
     const container = this.docker.getContainer(containerId)
 
     const exec = await container.exec({

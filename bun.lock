@@ -50,6 +50,7 @@
         "drizzle-orm": "catalog:",
         "express": "4.21.2",
         "i18next": "24.2.1",
+        "jexpr": "catalog:",
         "jsonwebtoken": "9.0.2",
         "mime": "catalog:",
         "openapi-fetch": "catalog:",
@@ -353,6 +354,7 @@
     "packages/types": {
       "name": "@lombokapp/types",
       "dependencies": {
+        "jexpr": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -600,6 +602,7 @@
     "eslint-plugin-storybook": "10.0.5",
     "eslint-plugin-tailwindcss": "3.18.0",
     "globals": "15.14.0",
+    "jexpr": "1.0.0-pre.9",
     "jiti": "2.6.1",
     "lucide-react": "0.525.0",
     "mime": "4.0.7",
@@ -2480,6 +2483,8 @@
     "jackspeak": ["jackspeak@4.1.1", "", { "dependencies": { "@isaacs/cliui": "^8.0.2" } }, "sha512-zptv57P3GpL+O0I7VdMJNBZCu+BPHVQUk55Ft8/QCJjTVxrnJHuVuX/0Bl2A6/+2oyR/ZMEuFKwmzqqZ/U5nPQ=="],
 
     "jest-worker": ["jest-worker@27.5.1", "", { "dependencies": { "@types/node": "*", "merge-stream": "^2.0.0", "supports-color": "^8.0.0" } }, "sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg=="],
+
+    "jexpr": ["jexpr@1.0.0-pre.9", "", {}, "sha512-fetGBg/LTS3soyvGG2aaDVTTqoX7tq/ypJJOtJvZ96ZNGwXNRj7whVjeS5h4CCixISy0LrzHC5SIw7kS1P1+Hw=="],
 
     "jiti": ["jiti@2.6.1", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ=="],
 

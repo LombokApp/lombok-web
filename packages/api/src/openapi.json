@@ -7188,6 +7188,10 @@
                                 "type": "object",
                                 "additionalProperties": {}
                               },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
                               "taskIdentifier": {
                                 "type": "string",
                                 "minLength": 1,
@@ -7234,6 +7238,10 @@
                                   "interval",
                                   "unit"
                                 ]
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
                               },
                               "taskIdentifier": {
                                 "type": "string",
@@ -7287,6 +7295,10 @@
                                     ]
                                   }
                                 }
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
                               },
                               "taskIdentifier": {
                                 "type": "string",
@@ -8213,6 +8225,10 @@
                               "type": "object",
                               "additionalProperties": {}
                             },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
                             "taskIdentifier": {
                               "type": "string",
                               "minLength": 1,
@@ -8259,6 +8275,10 @@
                                 "interval",
                                 "unit"
                               ]
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
                             },
                             "taskIdentifier": {
                               "type": "string",
@@ -8312,6 +8332,10 @@
                                   ]
                                 }
                               }
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
                             },
                             "taskIdentifier": {
                               "type": "string",
@@ -9267,6 +9291,10 @@
                                 "type": "object",
                                 "additionalProperties": {}
                               },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
                               "taskIdentifier": {
                                 "type": "string",
                                 "minLength": 1,
@@ -9313,6 +9341,10 @@
                                   "interval",
                                   "unit"
                                 ]
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
                               },
                               "taskIdentifier": {
                                 "type": "string",
@@ -9366,6 +9398,10 @@
                                     ]
                                   }
                                 }
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
                               },
                               "taskIdentifier": {
                                 "type": "string",
@@ -10178,6 +10214,10 @@
                               "type": "object",
                               "additionalProperties": {}
                             },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
                             "taskIdentifier": {
                               "type": "string",
                               "minLength": 1,
@@ -10224,6 +10264,10 @@
                                 "interval",
                                 "unit"
                               ]
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
                             },
                             "taskIdentifier": {
                               "type": "string",
@@ -10277,6 +10321,10 @@
                                   ]
                                 }
                               }
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
                             },
                             "taskIdentifier": {
                               "type": "string",
@@ -13266,6 +13314,10 @@
                         "type": "object",
                         "additionalProperties": {}
                       },
+                      "condition": {
+                        "type": "string",
+                        "minLength": 1
+                      },
                       "onComplete": {
                         "type": "array",
                         "items": {}
@@ -13348,6 +13400,10 @@
                           "unit"
                         ]
                       },
+                      "condition": {
+                        "type": "string",
+                        "minLength": 1
+                      },
                       "onComplete": {
                         "type": "array",
                         "items": {}
@@ -13399,6 +13455,10 @@
                             ]
                           }
                         }
+                      },
+                      "condition": {
+                        "type": "string",
+                        "minLength": 1
                       },
                       "onComplete": {
                         "type": "array",
@@ -13775,6 +13835,10 @@
                           "type": "object",
                           "additionalProperties": {}
                         },
+                        "condition": {
+                          "type": "string",
+                          "minLength": 1
+                        },
                         "onComplete": {
                           "type": "array",
                           "items": {}
@@ -13857,6 +13921,10 @@
                             "unit"
                           ]
                         },
+                        "condition": {
+                          "type": "string",
+                          "minLength": 1
+                        },
                         "onComplete": {
                           "type": "array",
                           "items": {}
@@ -13908,6 +13976,10 @@
                               ]
                             }
                           }
+                        },
+                        "condition": {
+                          "type": "string",
+                          "minLength": 1
                         },
                         "onComplete": {
                           "type": "array",

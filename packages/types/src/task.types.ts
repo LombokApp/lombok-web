@@ -1,5 +1,6 @@
 import z from 'zod'
 
+import { validateConditionExpression } from './condition-validation.util'
 import { platformPrefixedEventIdentifierSchema } from './events.types'
 import { targetLocationContextDTOSchema } from './folder.types'
 import {
@@ -72,7 +73,22 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
   z.lazy(() =>
     z.object({
       taskIdentifier: taskIdentifierSchema,
-      condition: z.string().nonempty().optional(), // e.g. "task.success"
+      condition: z
+        .string()
+        .nonempty()
+        .refine(
+          (value) => {
+            const validation = validateConditionExpression(value)
+            return validation.valid
+          },
+          (value) => {
+            const validation = validateConditionExpression(value)
+            return {
+              message: validation.error ?? 'Invalid condition expression',
+            }
+          },
+        )
+        .optional(), // e.g. "task.success"
       dataTemplate: jsonSerializableObjectDTOSchema.optional(), // e.g. { someKey: "{{task.result.someKey}}" }
       onComplete: taskOnCompleteConfigSchema.array().optional(),
     }),
@@ -100,6 +116,22 @@ const taskOnCompleteConfigBaseSchema = z.object({
 
 const taskTriggerConfigBaseSchema = z
   .object({
+    condition: z
+      .string()
+      .nonempty()
+      .refine(
+        (value) => {
+          const validation = validateConditionExpression(value)
+          return validation.valid
+        },
+        (value) => {
+          const validation = validateConditionExpression(value)
+          return {
+            message: validation.error ?? 'Invalid condition expression',
+          }
+        },
+      )
+      .optional(),
     taskIdentifier: taskIdentifierSchema,
   })
   .merge(taskOnCompleteConfigBaseSchema)
