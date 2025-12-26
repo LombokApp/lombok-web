@@ -39,12 +39,12 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
       _options: { command: string[] },
     ) => {
       return {
-        output: () => Promise.resolve('mock-output'),
+        output: () => Promise.resolve({ stdout: 'mock-output', stderr: '' }),
         state: () =>
           Promise.resolve({
             running: false,
             exitCode: 0,
-            output: 'mock-output',
+            output: { stdout: 'mock-output', stderr: '' },
           }),
       }
     },
@@ -54,7 +54,7 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
       _containerId: string,
       _command: string[],
     ) => {
-      return 'mock-output'
+      return { stdout: 'mock-output', stderr: '' }
     },
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

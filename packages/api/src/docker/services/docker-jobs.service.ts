@@ -320,7 +320,7 @@ export class DockerJobsService {
 
   async waitForSubmission(
     state: DockerStateFunc,
-    output: () => Promise<string>,
+    output: () => Promise<{ stdout: string; stderr: string }>,
     {
       maxRetries = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.maxRetries,
       retryPeriod = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.retryPeriod,
@@ -366,7 +366,7 @@ export class DockerJobsService {
       const _output = await output()
       throw new DockerJobSubmissionError(
         'SUBMISSION_ERROR',
-        `Job submission failed with exit code ${currentState.exitCode}. Output: ${_output}`,
+        `Job submission failed with exit code ${currentState.exitCode}.\nOutput: ${_output.stdout}\nError: ${_output.stderr}`,
       )
     }
   }
@@ -423,11 +423,19 @@ export class DockerJobsService {
       command.push('--tail', options.tail.toString())
     }
 
-    return this.dockerClientService.execInContainerAndReturnOutput(
-      hostId,
-      containerId,
-      command,
-    )
+    const output =
+      await this.dockerClientService.execInContainerAndReturnOutput(
+        hostId,
+        containerId,
+        command,
+      )
+    if (output.stdout.length === 0) {
+      throw new DockerJobCompletionError(
+        'AGENT_LOG_NOT_FOUND',
+        'Agent log not found\nError: ' + output.stderr,
+      )
+    }
+    return output.stdout
   }
 
   async getJobState(
@@ -443,7 +451,14 @@ export class DockerJobsService {
         containerId,
         command,
       )
-    return JSON.parse(rawOutput) as DockerJobState
+
+    if (rawOutput.stdout.length === 0) {
+      throw new DockerJobCompletionError(
+        'JOB_STATE_NOT_FOUND',
+        'Job state not found\nError: ' + rawOutput.stderr,
+      )
+    }
+    return JSON.parse(rawOutput.stdout) as DockerJobState
   }
 
   async getJobResult(
@@ -453,7 +468,7 @@ export class DockerJobsService {
   ): Promise<DockerJobResult> {
     const command = ['lombok-worker-agent', 'job-result', '--job-id', jobId]
 
-    const rawOutput =
+    const output =
       await this.dockerClientService.execInContainerAndReturnOutput(
         hostId,
         containerId,
@@ -461,8 +476,8 @@ export class DockerJobsService {
       )
 
     const agentResponse =
-      rawOutput.length > 0
-        ? (JSON.parse(rawOutput) as DockerJobResultAgent)
+      output.stdout.length > 0
+        ? (JSON.parse(output.stdout) as DockerJobResultAgent)
         : undefined
 
     return agentResponse
@@ -475,7 +490,7 @@ export class DockerJobsService {
           jobId,
           error: {
             code: 'JOB_RESULT_NOT_FOUND',
-            message: 'Job result not found',
+            message: 'Job result not found\nError: ' + output.stderr,
           },
           timing: {},
         }
@@ -500,12 +515,19 @@ export class DockerJobsService {
     if (options.tail) {
       command.push('--tail', options.tail.toString())
     }
-
-    return this.dockerClientService.execInContainerAndReturnOutput(
-      hostId,
-      containerId,
-      command,
-    )
+    const output =
+      await this.dockerClientService.execInContainerAndReturnOutput(
+        hostId,
+        containerId,
+        command,
+      )
+    if (output.stdout.length === 0) {
+      throw new DockerJobCompletionError(
+        'WORKER_LOG_NOT_FOUND',
+        'Worker log not found\nError: ' + output.stderr,
+      )
+    }
+    return output.stdout
   }
 
   async getJobLogs(
@@ -528,11 +550,19 @@ export class DockerJobsService {
       command.push('--tail', options.tail.toString())
     }
 
-    return this.dockerClientService.execInContainerAndReturnOutput(
-      hostId,
-      containerId,
-      command,
-    )
+    const output =
+      await this.dockerClientService.execInContainerAndReturnOutput(
+        hostId,
+        containerId,
+        command,
+      )
+    if (output.stdout.length === 0) {
+      throw new DockerJobCompletionError(
+        'JOB_LOG_NOT_FOUND',
+        'Job log not found\nError: ' + output.stderr,
+      )
+    }
+    return output.stdout
   }
 }
 

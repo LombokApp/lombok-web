@@ -87,7 +87,8 @@
     "mime": "4.0.7",
     "utility-types": "3.11.0",
     "tsconfig-paths": "4.2.0",
-    "tsup": "8.5.0"
+    "tsup": "8.5.0",
+    "jexpr": "1.0.0-pre.9"
 	},
   "devDependencies": {
     "@types/bun": "catalog:",

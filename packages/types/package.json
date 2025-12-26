@@ -36,6 +36,7 @@
     "tsup": "catalog:"
   },
   "dependencies": {
+    "jexpr": "catalog:",
     "zod": "catalog:"
   }
 }

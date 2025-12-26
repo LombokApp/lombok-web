@@ -463,7 +463,11 @@ describe('Docker Jobs', () => {
 
     execSpy.mockImplementationOnce(() =>
       Promise.resolve({
-        output: () => Promise.resolve('unknown interface kind: invalid_kind'),
+        output: () =>
+          Promise.resolve({
+            stdout: '',
+            stderr: 'unknown interface kind: invalid_kind',
+          }),
         state: () =>
           Promise.resolve({
             running: false,

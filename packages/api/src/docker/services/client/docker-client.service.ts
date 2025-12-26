@@ -12,6 +12,18 @@ import type {
   DockerStateFunc,
 } from './docker-client.types'
 
+class DockerClientError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string,
+    cause?: Error,
+  ) {
+    super(message)
+    this.name = 'DockerClientError'
+    this.cause = cause
+  }
+}
+
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerClientService {
   private readonly logger = new Logger(DockerClientService.name)
@@ -112,9 +124,13 @@ export class DockerClientService {
     // No suitable container found, create a new one
     try {
       return await adapter.createContainer(options)
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to create container:', error)
-      return null
+      throw new DockerClientError(
+        'CREATE_CONTAINER_FAILED',
+        'Failed to create container',
+        error instanceof Error ? error : new Error(String(error)),
+      )
     }
   }
 
@@ -122,7 +138,7 @@ export class DockerClientService {
     hostId: string,
     containerId: string,
     command: string[],
-  ): Promise<string> {
+  ): Promise<{ stdout: string; stderr: string }> {
     return this.getAdapter(hostId).execInContainerAndReturnOutput(
       containerId,
       command,
@@ -139,7 +155,7 @@ export class DockerClientService {
     containerId: string
     hostId: string
     state: DockerStateFunc
-    output: () => Promise<string>
+    output: () => Promise<{ stdout: string; stderr: string }>
   }> {
     // Get the default host (local for now)
     const hostId =
@@ -149,7 +165,10 @@ export class DockerClientService {
 
     // Check if docker host is configured
     if (!(hostId in (this._platformConfig.dockerHostConfig.hosts ?? {}))) {
-      throw new Error('DOCKER_NOT_CONFIGURED')
+      throw new DockerClientError(
+        'DOCKER_NOT_CONFIGURED',
+        `Unrecognized Docker host "${hostId}" configured for profile "${profileKey}"`,
+      )
     }
     const adapter = this.getAdapter(hostId)
 
@@ -188,13 +207,19 @@ export class DockerClientService {
     })
 
     if (!container) {
-      throw new Error('CONTAINER_NOT_FOUND')
+      throw new DockerClientError(
+        'CONTAINER_NOT_FOUND',
+        'Container not found after findOrCreateContainer call',
+      )
     }
 
     // Ensure container is running
     const isRunning = await adapter.isContainerRunning(container.id)
     if (!isRunning) {
-      throw new Error('CONTAINER_NOT_RUNNING')
+      throw new DockerClientError(
+        'CONTAINER_NOT_RUNNING',
+        'Container not running after findOrCreateContainer call',
+      )
     }
     this.logger.debug('execInContainer:', {
       hostId,

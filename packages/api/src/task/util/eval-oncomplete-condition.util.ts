@@ -1,4 +1,5 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
+import { evalCondition } from 'src/util/eval-condition.util'
 
 export type OnCompleteConditionTaskContext =
   | {
@@ -16,41 +17,16 @@ export type OnCompleteConditionTaskContext =
       }
     }
 
+/**
+ * Evaluates an onComplete condition expression against a task context.
+ *
+ * @param condition - The condition expression to evaluate (e.g., "task.success")
+ * @param task - The task context to evaluate the condition against
+ * @returns true if the condition evaluates to truthy, false otherwise
+ */
 export const evalOnCompleteHandlerCondition = (
   condition: string,
   task: OnCompleteConditionTaskContext,
 ): boolean => {
-  const trimmed = condition.trim()
-  if (!trimmed) {
-    return false
-  }
-
-  const negate = trimmed.startsWith('!')
-  const expression = negate ? trimmed.slice(1).trim() : trimmed
-  if (!expression) {
-    return false
-  }
-
-  const path = expression.split('.').filter(Boolean)
-  if (path.length === 0) {
-    return false
-  }
-
-  let current: unknown = { task }
-
-  for (const segment of path) {
-    if (
-      current &&
-      typeof current === 'object' &&
-      segment in (current as Record<string, unknown>)
-    ) {
-      current = (current as Record<string, unknown>)[segment]
-    } else {
-      current = undefined
-      break
-    }
-  }
-
-  const truthy = Boolean(current)
-  return negate ? !truthy : truthy
+  return evalCondition(condition, { task })
 }

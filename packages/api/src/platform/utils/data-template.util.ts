@@ -2,10 +2,14 @@ import type {
   JsonSerializableObject,
   JsonSerializableValue,
 } from '@lombokapp/types'
+import { validateConditionExpression } from '@lombokapp/types'
+import { EvalAstFactory, parse } from 'jexpr'
 
-const TEMPLATE_EXPRESSION = /^\s*\{\{\s*(?<expression>.+?)\s*\}\}\s*$/
+const TEMPLATE_EXPRESSION = /\{\{\s*(?<expression>.+?)\s*\}\}/g
 const FUNCTION_EXPRESSION = /^(?<functionName>[a-zA-Z_][\w]*)\((?<args>.*)\)$/
 const STRING_LITERAL = /^(['"])(?<literal>.*)\1$/
+
+const astFactory = new EvalAstFactory()
 
 type AvailableFunctions = Record<
   string,
@@ -88,6 +92,7 @@ async function resolveTemplateExpression(
     validate: false,
   },
 ): Promise<JsonSerializableValue | undefined> {
+  // Check if it's a function call first
   const functionMatch = expression.match(FUNCTION_EXPRESSION)
   const functionName = functionMatch?.groups?.functionName
 
@@ -114,6 +119,24 @@ async function resolveTemplateExpression(
                 return stringMatch.groups.literal as JsonSerializableValue
               }
 
+              // For function arguments, try to evaluate as expression first, then fall back to path lookup
+              try {
+                const validation = validateConditionExpression(rawArg)
+                if (validation.valid) {
+                  const parsedExpr = parse(rawArg, astFactory)
+                  const result: unknown = parsedExpr?.evaluate(inputs.objects)
+                  if (
+                    result !== undefined &&
+                    result !== null &&
+                    isJsonValue(result)
+                  ) {
+                    return result
+                  }
+                }
+              } catch {
+                // Fall through to path lookup
+              }
+
               const { value, found } = getValueAtPath(inputs.objects, rawArg)
               if (validate && !found) {
                 throw new Error(`Template variable not found: ${rawArg}`)
@@ -128,6 +151,21 @@ async function resolveTemplateExpression(
     return fnResult
   }
 
+  // Try to evaluate as a jexpr expression first
+  const validation = validateConditionExpression(expression)
+  if (validation.valid) {
+    try {
+      const parsedExpr = parse(expression, astFactory)
+      const result: unknown = parsedExpr?.evaluate(inputs.objects)
+      if (result !== undefined && result !== null && isJsonValue(result)) {
+        return result
+      }
+    } catch {
+      // Fall through to path lookup if expression evaluation fails
+    }
+  }
+
+  // Fall back to simple path lookup for backward compatibility
   const { value, found } = getValueAtPath(inputs.objects, expression)
   if (validate && !found) {
     throw new Error(`Template variable not found: ${expression}`)
@@ -142,16 +180,50 @@ async function resolveValue(
   validate: boolean,
 ): Promise<JsonSerializableValue> {
   if (typeof value === 'string') {
-    const match = value.match(TEMPLATE_EXPRESSION)
-    if (match?.groups?.expression) {
+    // Find all template expressions in the string
+    const matches = Array.from(value.matchAll(TEMPLATE_EXPRESSION))
+
+    if (matches.length === 0) {
+      return value
+    }
+
+    // If the entire string is a single template expression, return the resolved value directly
+    const firstMatch = matches[0]
+    if (
+      matches.length === 1 &&
+      firstMatch?.[0] &&
+      firstMatch[0] === value.trim() &&
+      firstMatch.groups?.expression
+    ) {
       const resolved = await resolveTemplateExpression(
-        match.groups.expression,
+        firstMatch.groups.expression,
         inputs,
         { validate },
       )
       return resolved === undefined ? null : resolved
     }
-    return value
+
+    // Multiple template expressions - resolve each and concatenate
+    let result = value
+    for (const match of matches) {
+      const expression = match.groups?.expression
+      const matchString = match[0]
+      if (expression && matchString) {
+        const resolved = await resolveTemplateExpression(expression, inputs, {
+          validate,
+        })
+        let resolvedStr = ''
+        if (resolved !== undefined && resolved !== null) {
+          if (typeof resolved === 'object') {
+            resolvedStr = JSON.stringify(resolved)
+          } else {
+            resolvedStr = String(resolved)
+          }
+        }
+        result = result.replace(matchString, resolvedStr)
+      }
+    }
+    return result
   }
 
   if (Array.isArray(value)) {

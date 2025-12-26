@@ -68,6 +68,7 @@
     "drizzle-orm": "catalog:",
     "express": "4.21.2",
     "i18next": "24.2.1",
+    "jexpr": "catalog:",
     "jsonwebtoken": "9.0.2",
     "mime": "catalog:",
     "openapi-fetch": "catalog:",

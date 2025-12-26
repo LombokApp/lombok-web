@@ -30,6 +30,7 @@ import {
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
+import { evalTriggerHandlerCondition } from 'src/event/util/eval-trigger-condition.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -379,6 +380,17 @@ export class EventService {
                 if (!taskDefinition) {
                   this.logger.error(
                     `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
+                  )
+                  return Promise.resolve()
+                }
+
+                const triggerConditionResult = trigger.condition
+                  ? evalTriggerHandlerCondition(trigger.condition, event)
+                  : undefined
+
+                if (trigger.condition && triggerConditionResult === false) {
+                  this.logger.debug(
+                    `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
                   )
                   return Promise.resolve()
                 }

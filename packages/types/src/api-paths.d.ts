@@ -1508,6 +1508,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: unknown;
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -1518,6 +1519,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -1532,6 +1534,7 @@ export interface components {
                                 folderId: string;
                             };
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     })[];
@@ -1739,6 +1742,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: unknown;
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -1749,6 +1753,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -1763,6 +1768,7 @@ export interface components {
                                 folderId: string;
                             };
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     })[];
@@ -1979,6 +1985,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: unknown;
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -1989,6 +1996,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -2003,6 +2011,7 @@ export interface components {
                                 folderId: string;
                             };
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     })[];
@@ -2184,6 +2193,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: unknown;
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -2194,6 +2204,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     } | {
@@ -2208,6 +2219,7 @@ export interface components {
                                 folderId: string;
                             };
                         };
+                        condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
                     })[];
@@ -2951,6 +2963,7 @@ export interface components {
                     dataTemplate?: {
                         [key: string]: unknown;
                     };
+                    condition?: string;
                     onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
@@ -2975,6 +2988,7 @@ export interface components {
                         /** @enum {string} */
                         unit: "minutes" | "hours" | "days";
                     };
+                    condition?: string;
                     onComplete?: unknown[];
                     invokeContext: {
                         [key: string]: unknown;
@@ -2991,6 +3005,7 @@ export interface components {
                             folderId: string;
                         };
                     };
+                    condition?: string;
                     onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
@@ -3101,6 +3116,7 @@ export interface components {
                     dataTemplate?: {
                         [key: string]: unknown;
                     };
+                    condition?: string;
                     onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
@@ -3125,6 +3141,7 @@ export interface components {
                         /** @enum {string} */
                         unit: "minutes" | "hours" | "days";
                     };
+                    condition?: string;
                     onComplete?: unknown[];
                     invokeContext: {
                         [key: string]: unknown;
@@ -3141,6 +3158,7 @@ export interface components {
                             folderId: string;
                         };
                     };
+                    condition?: string;
                     onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */

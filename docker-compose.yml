@@ -82,4 +82,4 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     volumes:
-      - ./.docker/postgres/:/var/lib/postgresql/data
+      - ./.docker/postgres/data/:/var/lib/postgresql/data
