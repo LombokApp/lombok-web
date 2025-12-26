@@ -5,11 +5,9 @@ import nestjsConfig from '@nestjs/config'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
-import jwt, { JwtPayload } from 'jsonwebtoken'
-import { APP_JWT_SUB_PREFIX, JWTService } from 'src/auth/services/jwt.service'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
-import { v4 as uuidV4 } from 'uuid'
 
 import { appsTable } from './entities/app.entity'
 

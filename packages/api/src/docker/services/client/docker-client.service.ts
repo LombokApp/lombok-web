@@ -153,7 +153,7 @@ export class DockerClientService {
     networkMode: 'host' | 'bridge' | `container:${string}` | undefined
   } {
     const profileKeyParts = profileKey.split(':')
-    const appSlugProfileKey = `${profileKeyParts[0]?.split('_')?.[0]}:${profileKeyParts[1]}`
+    const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
 
     const resolvedHostId =
       this._platformConfig.dockerHostConfig.profileHostAssignments?.[

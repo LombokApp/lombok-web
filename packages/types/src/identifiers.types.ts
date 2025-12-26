@@ -10,7 +10,7 @@ export const taskIdentifierSchema = genericIdentifierSchema
 export const slugSchema = z
   .string()
   .nonempty()
-  .regex(/^[a-z]+$/)
+  .regex(/^[a-z0-9]+$/)
   .refine((v) => v.toLowerCase() === v, {
     message: 'App slug must be lowercase',
   })

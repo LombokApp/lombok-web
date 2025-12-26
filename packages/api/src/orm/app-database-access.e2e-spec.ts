@@ -12,6 +12,7 @@ import { usersTable } from 'src/users/entities/user.entity'
 const TEST_MODULE_KEY = 'orm_schema_isolation'
 
 const SOCKET_TEST_APP_NO_DB_SLUG = 'sockettestappnodb'
+const TEST_APP_SLUG = 'testapp'
 const SOCKET_TEST_APP_SLUG = 'sockettestapp'
 
 const CONCURRENT_APP_1_IDENTIFIER = 'concurrent_app_1_s34fj'
@@ -30,7 +31,7 @@ describe('ORM Schema Isolation', () => {
 
   it('should not interfere with main app queries after app queries', async () => {
     const ormService = testModule!.services.ormService
-    const testAppId = 'testapp'
+    const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
 
     // Ensure the test app schema exists
     await ormService.ensureAppSchema(testAppId)
@@ -630,7 +631,8 @@ describe('ORM Schema Isolation', () => {
     })
 
     it('should allow ORM service methods for app with database enabled', async () => {
-      const appIdentifier = 'sockettestapp'
+      const appIdentifier =
+        await testModule!.getAppIdentifierBySlug('sockettestapp')
       const ormService = testModule!.services.ormService
 
       // Ensure the schema exists

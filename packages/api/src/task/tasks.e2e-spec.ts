@@ -1,6 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
-import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { tasksTable } from 'src/task/entities/task.entity'

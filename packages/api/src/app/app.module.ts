@@ -1,6 +1,7 @@
 import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Inject, Module } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
+import { AuthModule } from 'src/auth/auth.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
@@ -17,7 +18,6 @@ import { AppsController } from './controllers/apps.controller'
 import { UserAppsController } from './controllers/user-apps.controller'
 import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
-import { AuthModule } from 'src/auth/auth.module'
 
 @Module({
   imports: [

@@ -45,7 +45,8 @@ process.stdin.on('close', () => {
 })
 
 const appInstallIdMapping: Record<string, string> = {}
-let _log: (...logArgs: any[]) => Promise<void> = async (...args) =>
+// eslint-disable-next-line @typescript-eslint/require-await
+let _log: (...logArgs: unknown[]) => Promise<void> = async (...args) =>
   console.log(...args)
 
 const updateAppInstallIdMapping = (
@@ -75,7 +76,7 @@ process.stdin.on('data', (data) => {
   ) {
     // This is a subsequently updated app -> install ID mapping
     updateAppInstallIdMapping(workerData.appInstallIdMapping)
-    _log({
+    void _log({
       message: 'App install ID mapping updated',
       level: LogEntryLevel.DEBUG,
       data: {
@@ -106,7 +107,7 @@ process.stdin.on('data', (data) => {
         ),
       },
       async () => {
-        _log = log
+        _log = log as typeof _log
         await log({
           message: 'Core app external worker thread started',
           level: LogEntryLevel.DEBUG,
