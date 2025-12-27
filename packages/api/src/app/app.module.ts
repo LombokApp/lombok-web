@@ -59,5 +59,8 @@ export class AppModule implements OnModuleInit {
         }
       })
       .then(() => this.coreAppService.startCoreAppThread())
+
+    // init app roles
+    await this.ormService.initAppRolesForAllApps()
   }
 }

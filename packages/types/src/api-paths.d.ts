@@ -1508,7 +1508,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_ACL" | "SERVE_APPS")[];
+                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -1744,7 +1744,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_ACL" | "SERVE_APPS")[];
+                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -1980,7 +1980,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_ACL" | "SERVE_APPS")[];
+                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -2223,7 +2223,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_ACL" | "SERVE_APPS")[];
+                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
@@ -2431,7 +2431,7 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_ACL" | "SERVE_APPS")[];
+                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };

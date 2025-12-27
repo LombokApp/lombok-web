@@ -191,17 +191,16 @@ describe('Analyze Object Task Handler', () => {
         metadataUpdateParams = params
         return Promise.resolve({ result: null })
       },
-      query: () =>
+      getLatestDbCredentials: () =>
         Promise.resolve({
-          result: { rows: [], fields: [] },
-        }),
-      exec: () =>
-        Promise.resolve({
-          result: { rowCount: 0 },
-        }),
-      batch: () =>
-        Promise.resolve({
-          result: { results: [] },
+          result: {
+            host: 'localhost',
+            user: 'test-user',
+            password: 'test-password',
+            database: 'test-database',
+            ssl: false,
+            port: 5432,
+          },
         }),
       executeAppDockerJob: () =>
         Promise.resolve({

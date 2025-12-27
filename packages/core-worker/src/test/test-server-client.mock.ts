@@ -77,11 +77,16 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     updateContentMetadata: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    query: async () => ({ result: { rows: [], fields: [] } }),
-    // eslint-disable-next-line @typescript-eslint/require-await
-    exec: async () => ({ result: { rowCount: 0 } }),
-    // eslint-disable-next-line @typescript-eslint/require-await
-    batch: async () => ({ result: { results: [] } }),
+    getLatestDbCredentials: async () => ({
+      result: {
+        host: 'localhost',
+        user: 'test-user',
+        password: 'test-password',
+        database: 'test-database',
+        ssl: false,
+        port: 5432,
+      },
+    }),
     // eslint-disable-next-line @typescript-eslint/require-await
     executeAppDockerJob: async () => ({
       result: {

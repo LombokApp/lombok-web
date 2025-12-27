@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import { KVService } from 'src/cache/kv.service'
 
 import { OrmService } from './orm.service'
 
@@ -15,9 +16,10 @@ describe('OrmService', () => {
       runMigrations: false,
       createDatabase: false,
     }
+    const mockKvService = new KVService()
 
     it('should remove CREATE SCHEMA statements', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE SCHEMA IF NOT EXISTS "public";
         CREATE TABLE users (id SERIAL PRIMARY KEY);
@@ -31,7 +33,7 @@ describe('OrmService', () => {
     })
 
     it('should remove schema prefixes from quoted identifiers', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         ALTER TABLE "app_agents"."messages" ADD CONSTRAINT "messages_threadId_threads_id_fk" 
         FOREIGN KEY ("threadId") REFERENCES "public"."threads"("id") ON DELETE cascade ON UPDATE no action;
@@ -47,7 +49,7 @@ describe('OrmService', () => {
     })
 
     it('should remove schema prefixes from unquoted identifiers', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE TABLE public.users (id SERIAL PRIMARY KEY);
         CREATE VIEW public.user_view AS SELECT * FROM public.users;
@@ -64,7 +66,7 @@ describe('OrmService', () => {
     })
 
     it('should handle mixed quoted and unquoted identifiers', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE TABLE "public"."users" (id SERIAL PRIMARY KEY);
         CREATE VIEW public.user_view AS SELECT * FROM "public"."users";
@@ -82,7 +84,7 @@ describe('OrmService', () => {
     })
 
     it('should clean up extra whitespace after removing statements', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE SCHEMA test_schema;
 
@@ -102,7 +104,7 @@ describe('OrmService', () => {
     })
 
     it('should trim the result', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE SCHEMA test_schema;
         CREATE TABLE users (id SERIAL PRIMARY KEY);
@@ -116,7 +118,7 @@ describe('OrmService', () => {
     })
 
     it('should handle empty content', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = ''
 
       const result = ormService['removeSchemaReferencesFromMigration'](content)
@@ -125,7 +127,7 @@ describe('OrmService', () => {
     })
 
     it('should handle content with only CREATE SCHEMA statements', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE SCHEMA IF NOT EXISTS "public";
         CREATE SCHEMA test_schema;
@@ -137,7 +139,7 @@ describe('OrmService', () => {
     })
 
     it('should handle complex migration with multiple schema references', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE SCHEMA IF NOT EXISTS "public";
         
@@ -167,7 +169,7 @@ describe('OrmService', () => {
     })
 
     it('should preserve non-schema related SQL statements', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE TABLE users (id SERIAL PRIMARY KEY);
         INSERT INTO users (name) VALUES ('test');
@@ -186,7 +188,7 @@ describe('OrmService', () => {
     })
 
     it('should remove SET search_path statements', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         SET search_path TO public, pg_catalog;
         CREATE TABLE users (id SERIAL PRIMARY KEY);
@@ -200,7 +202,7 @@ describe('OrmService', () => {
     })
 
     it('should remove WITH SCHEMA clauses from CREATE EXTENSION statements', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE EXTENSION IF NOT EXISTS hstore WITH SCHEMA public;
         CREATE TABLE users (id SERIAL PRIMARY KEY);
@@ -216,7 +218,7 @@ describe('OrmService', () => {
     })
 
     it('should remove IN SCHEMA clauses from ALTER DEFAULT PRIVILEGES', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO someuser;
         CREATE TABLE users (id SERIAL PRIMARY KEY);
@@ -236,7 +238,7 @@ describe('OrmService', () => {
     })
 
     it('should handle complex migration with all schema reference types', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE SCHEMA IF NOT EXISTS "public";
         SET search_path TO public, pg_catalog;
@@ -279,7 +281,7 @@ describe('OrmService', () => {
     })
 
     it('should handle DROP statements with schema references', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         DROP TABLE IF EXISTS "public"."old_table";
         DROP VIEW IF EXISTS public.old_view;
@@ -297,7 +299,7 @@ describe('OrmService', () => {
     })
 
     it('should handle GRANT and REVOKE statements with schema references', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         GRANT SELECT ON "public"."users" TO readonly_user;
         REVOKE ALL ON public.messages FROM some_user;
@@ -315,7 +317,7 @@ describe('OrmService', () => {
     })
 
     it('should handle edge cases with system schema references', () => {
-      const ormService = new OrmService(mockConfig)
+      const ormService = new OrmService(mockConfig, mockKvService)
       const content = `
         CREATE TABLE users (id SERIAL PRIMARY KEY);
         -- This should be stripped but pg_catalog functions should still work

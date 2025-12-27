@@ -31,6 +31,7 @@
   "devDependencies": {
     "@lombokapp/types": "workspace:*",
     "@types/bun": "catalog:",
+    "@types/pg": "catalog:",
     "eslint": "catalog:",
     "@eslint/js": "catalog:",
     "jiti": "catalog:",
@@ -47,6 +48,7 @@
     "tsup": "8.5.0"
   },
   "dependencies": {
+    "pg": "catalog:",
     "drizzle-orm": "catalog:",
     "socket.io-client": "catalog:",
     "zod": "catalog:"

@@ -14,6 +14,7 @@ import {
   type NodePgClient,
   type NodePgDatabase,
 } from 'drizzle-orm/node-postgres'
+import pg from 'pg'
 import type { Socket } from 'socket.io-client'
 import type { z } from 'zod'
 
@@ -92,18 +93,9 @@ export interface IAppPlatformService {
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'UPDATE_CONTENT_METADATA'>>
   // Database methods
-  query: (
-    params: AppSocketMessageDataMap['DB_QUERY'],
+  getLatestDbCredentials: (
     options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'DB_QUERY'>>
-  exec: (
-    params: AppSocketMessageDataMap['DB_EXEC'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'DB_EXEC'>>
-  batch: (
-    params: AppSocketMessageDataMap['DB_BATCH'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'DB_BATCH'>>
+  ) => Promise<SocketResponse<'GET_LATEST_DB_CREDENTIALS'>>
   executeAppDockerJob: (
     params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
     options?: PlatformApiExecuteOptions,
@@ -123,15 +115,32 @@ export const buildAppClient = (
   serverBaseUrl: string,
   defaultTimeoutMs = DEFAULT_SOCKET_RESPONSE_TIMEOUT,
 ): IAppPlatformService => {
-  const emitWithAck = async <K extends z.infer<typeof AppSocketMessage>>(
+  async function emitWithAck<K extends z.infer<typeof AppSocketMessage>>(
     name: K,
-    data: AppSocketMessageDataMap[K],
-    options: PlatformApiExecuteOptions = {},
-  ): Promise<SocketResponse<K>> => {
+    ...args: AppSocketMessageDataMap[K] extends undefined
+      ? [options?: PlatformApiExecuteOptions]
+      : [data: AppSocketMessageDataMap[K], options?: PlatformApiExecuteOptions]
+  ): Promise<SocketResponse<K>> {
+    // When AppSocketMessageDataMap[K] is undefined, args is [options?]
+    // When AppSocketMessageDataMap[K] is not undefined, args is [data, options?]
+    const [firstArg, secondArg] = args
+    // Check if firstArg is an options object (has timeoutMs property)
+    const isOptionsObject =
+      firstArg !== undefined &&
+      typeof firstArg === 'object' &&
+      'timeoutMs' in firstArg
+    const data: AppSocketMessageDataMap[K] | undefined =
+      args.length === 1 && isOptionsObject
+        ? undefined // First arg is options, so data is undefined
+        : (firstArg as AppSocketMessageDataMap[K] | undefined) // First arg is data (or undefined)
+    const actualOptions: PlatformApiExecuteOptions =
+      args.length === 1 && isOptionsObject
+        ? firstArg // First arg is options
+        : secondArg || {} // Second arg is options (or empty object)
     const timeoutMs =
-      typeof options.timeoutMs === 'undefined'
+      typeof actualOptions.timeoutMs === 'undefined'
         ? defaultTimeoutMs
-        : options.timeoutMs
+        : actualOptions.timeoutMs
     const response = (await socket.timeout(timeoutMs).emitWithAck('APP_API', {
       name,
       data,
@@ -232,309 +241,88 @@ export const buildAppClient = (
     triggerAppTask(params, options) {
       return emitWithAck('TRIGGER_APP_TASK', params, options)
     },
-    query(params, options) {
-      return emitWithAck('DB_QUERY', params, options)
-    },
-    exec(params, options) {
-      return emitWithAck('DB_EXEC', params, options)
-    },
-    batch(params, options) {
-      return emitWithAck('DB_BATCH', params, options)
+    getLatestDbCredentials(options) {
+      return emitWithAck('GET_LATEST_DB_CREDENTIALS', options)
     },
   }
 }
 
-export interface DatabaseClient {
-  query: (
-    sql: string,
-    params?: unknown[],
-    rowMode?: string,
-  ) => Promise<{ rows: unknown[]; fields: unknown[] }>
-  exec: (sql: string, params?: unknown[]) => Promise<{ rowCount: number }>
-  batch: (
-    steps: {
-      sql: string
-      params: unknown[]
-      kind: 'query' | 'exec'
-      rowMode?: string
-    }[],
-    atomic?: boolean,
-  ) => Promise<{ results: unknown[] }>
-}
+export class LombokAppPgClient {
+  private pool?: pg.Pool
+  private rotating?: Promise<void>
 
-export const buildDatabaseClient = (
-  server: IAppPlatformService,
-): DatabaseClient => {
-  return {
-    async query(sql, params = [], rowMode = undefined) {
-      const startTime = Date.now()
-      const paramsStr =
-        params.length > 0 ? ` | Params: ${JSON.stringify(params)}` : ''
+  constructor(private readonly server: IAppPlatformService) {}
 
-      try {
-        const response = await server.query({ sql, params, rowMode })
-        if ('error' in response) {
-          throw new AppAPIError(
-            String(response.error.code),
-            response.error.message,
-          )
-        }
-        const result = response.result
-        const duration = Date.now() - startTime
-        console.log(`[DB Query] [${duration}ms] ${sql}${paramsStr}`)
-        return result
-      } catch (error) {
-        const duration = Date.now() - startTime
-        console.log(
-          `[DB Query] [${duration}ms] FAILED: ${sql}${paramsStr} | Error: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
-        )
-        throw error
+  private async ensurePool(): Promise<pg.Pool> {
+    if (!this.pool) {
+      const credsResponse = await this.server.getLatestDbCredentials()
+      if ('error' in credsResponse) {
+        throw new Error('Failed to get latest db credentials')
       }
-    },
-    async exec(sql, params = []) {
-      const startTime = Date.now()
-      const paramsStr =
-        params.length > 0 ? ` | Params: ${JSON.stringify(params)}` : ''
+      const creds = credsResponse.result
 
-      try {
-        const response = await server.exec({ sql, params })
-        if ('error' in response) {
-          throw new AppAPIError(
-            String(response.error.code),
-            response.error.message,
-          )
-        }
-        const result = response.result
-        const duration = Date.now() - startTime
-        console.log(`[DB Exec] [${duration}ms] ${sql}${paramsStr}`)
-        return result
-      } catch (error) {
-        const duration = Date.now() - startTime
-        console.log(
-          `[DB Exec] [${duration}ms] FAILED: ${sql}${paramsStr} | Error: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
-        )
-        throw error
-      }
-    },
-    async batch(steps, atomic = false) {
-      const startTime = Date.now()
-      const stepsStr = steps
-        .map((step, index) => {
-          const paramsStr =
-            step.params.length > 0
-              ? ` | Params: ${JSON.stringify(step.params)}`
-              : ''
-          return `Step ${index + 1}: ${step.sql}${paramsStr}`
-        })
-        .join('; ')
-
-      try {
-        const response = await server.batch({ steps, atomic })
-        if ('error' in response) {
-          throw new AppAPIError(
-            String(response.error.code),
-            response.error.message,
-          )
-        }
-        const result = response.result
-        const duration = Date.now() - startTime
-        console.log(
-          `[DB Batch] [${duration}ms] ${steps.length} steps (atomic: ${atomic}) | ${stepsStr}`,
-        )
-        return result
-      } catch (error) {
-        const duration = Date.now() - startTime
-        console.log(
-          `[DB Batch] [${duration}ms] FAILED: ${steps.length} steps (atomic: ${atomic}) | ${stepsStr} | Error: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
-        )
-        throw error
-      }
-    },
-  }
-}
-
-/**
- * Minimal interface that documents what Drizzle ORM actually needs from a client.
- * This is the contract that Drizzle uses, even though it types it as NodePgClient
- * (which is a union of concrete pg classes).
- */
-interface DrizzleCompatibleClient {
-  query: (
-    query:
-      | string
-      | { text: string; rowMode?: string; types?: Record<string, unknown> },
-    params?: unknown[],
-  ) => Promise<{ rows: unknown[] }>
-  transaction?: <T>(
-    fn: (tx: DrizzleCompatibleClient) => Promise<T>,
-  ) => Promise<T>
-}
-
-export class DrizzlePgLike implements DrizzleCompatibleClient {
-  constructor(private readonly client: DatabaseClient) {}
-
-  // what drizzle needs for queries
-  async query<T = unknown>(
-    sql:
-      | string
-      | { text: string; rowMode?: string; types?: Record<string, unknown> },
-    params?: unknown[],
-  ): Promise<{ rows: T[] }> {
-    // Handle both string and query object formats
-    const actualParams = params || []
-    const queryText = typeof sql === 'string' ? sql : sql.text
-    const rowMode = typeof sql === 'object' ? sql.rowMode : undefined
-
-    // Treat SELECT and statements with RETURNING as row-returning
-    const returnsRows = /(^\s*select\b)|\breturning\b/i.test(queryText)
-    if (returnsRows) {
-      const res = await this.client.query(queryText, actualParams, rowMode)
-      // Parse date fields based on field metadata
-      const parsedRows = this.parseRowsWithDates(res.rows, res.fields)
-      return { rows: parsedRows as T[] }
-    } else {
-      await this.client.exec(queryText, actualParams)
-      // drizzle ignores rowCount in many cases; returning empty rows is fine
-      return { rows: [] as T[] }
-    }
-  }
-
-  /**
-   * Parse rows and convert timestamp strings to Date objects based on field metadata
-   */
-  private parseRowsWithDates(rows: unknown[], fields: unknown[]): unknown[] {
-    if (rows.length === 0) {
-      return rows
-    }
-
-    if (fields.length === 0) {
-      return rows
-    }
-
-    // Create a map of field indices to their data types
-    const fieldTypeMap = new Map<number, number>()
-    fields.forEach((field: unknown, index: number) => {
-      if (field && typeof field === 'object' && 'dataTypeID' in field) {
-        const fieldObj = field as { dataTypeID: number }
-        fieldTypeMap.set(index, fieldObj.dataTypeID)
-      }
-    })
-
-    // Parse each row
-    return rows.map((row: unknown) => {
-      if (!row || typeof row !== 'object') {
-        return row
-      }
-
-      // Handle array format (rowMode: 'array')
-      if (Array.isArray(row)) {
-        return row.map((value: unknown, index: number) => {
-          const dataTypeID = fieldTypeMap.get(index)
-          return this.parseValueByType(value, dataTypeID)
-        })
-      }
-
-      // Handle object format (rowMode: 'object')
-      const parsedRow: Record<string, unknown> = {}
-      const rowObj = row as Record<string, unknown>
-      Object.keys(rowObj).forEach((key, index) => {
-        const value = rowObj[key]
-        const dataTypeID = fieldTypeMap.get(index)
-        parsedRow[key] = this.parseValueByType(value, dataTypeID)
+      this.pool = new pg.Pool({
+        host: creds.host,
+        user: creds.user,
+        password: creds.password,
+        database: creds.database,
+        ssl: false,
       })
-      return parsedRow
-    })
+    }
+
+    return this.pool
   }
 
-  /**
-   * Parse a value based on PostgreSQL data type ID
-   */
-  private parseValueByType(value: unknown, dataTypeID?: number): unknown {
-    if (value === null || value === undefined) {
-      return value
-    }
-
-    // PostgreSQL timestamp types (1114 = timestamp, 1184 = timestamptz)
-    if (dataTypeID === 1114 || dataTypeID === 1184) {
-      if (typeof value === 'string') {
-        const date = new Date(value)
-        // Return null if the date is invalid
-        return isNaN(date.getTime()) ? null : date
-      }
-    }
-
-    return value
+  private isAuthError(err: unknown) {
+    return err instanceof Error && (err as { code?: string }).code === '28P01'
   }
 
-  // optional: a transaction hook so `db.transaction(async (tx)=>{})` works
-  async transaction<T>(fn: (tx: DrizzlePgLike) => Promise<T>): Promise<T> {
-    const steps: {
-      sql: string
-      params: unknown[]
-      kind: 'query' | 'exec'
-      rowMode?: string
-    }[] = []
-    // Provide a tx-scoped client that records steps instead of sending immediately
-    const txClient = new (class extends DrizzlePgLike {
-      query<TRow = unknown>(
-        sql: {
-          text: string
-          rowMode?: string
-          types?: Record<string, unknown>
-        },
-        params?: unknown[],
-      ): Promise<{ rows: TRow[] }> {
-        // Handle both string and query object formats
-        const actualParams = params || []
-        const rowMode = typeof sql === 'object' ? sql.rowMode : undefined
-
-        const kind = /(^\s*select\b)|\breturning\b/i.test(sql.text)
-          ? 'query'
-          : 'exec'
-        steps.push({ sql: sql.text, params: actualParams, kind, rowMode })
-        return Promise.resolve({ rows: [] as TRow[] })
-      }
-    })(this.client)
-
-    const result = await fn(txClient)
-    const batchResult = await this.client.batch(steps, /*atomic*/ true)
-
-    // Parse any returned rows from batch operations
-    if (Array.isArray(batchResult.results)) {
-      const parsedResults = batchResult.results.map((stepResult: unknown) => {
-        if (
-          stepResult &&
-          typeof stepResult === 'object' &&
-          'rows' in stepResult &&
-          'fields' in stepResult
-        ) {
-          const resultObj = stepResult as { rows: unknown[]; fields: unknown[] }
-          return {
-            ...resultObj,
-            rows: this.parseRowsWithDates(resultObj.rows, resultObj.fields),
-          }
-        }
-        return stepResult
-      })
-      batchResult.results = parsedResults
+  private async rotate() {
+    if (this.rotating) {
+      return this.rotating
     }
 
-    return result
+    this.rotating = (async () => {
+      try {
+        await this.pool?.end().catch(() => {
+          /* empty */
+        })
+        this.pool = undefined
+        await this.ensurePool()
+      } finally {
+        this.rotating = undefined
+      }
+    })()
+
+    return this.rotating
+  }
+
+  async query(text: string, params?: unknown[]): Promise<pg.QueryResult> {
+    const pool = await this.ensurePool()
+
+    try {
+      return await pool.query(text, params)
+    } catch (err: unknown) {
+      if (!this.isAuthError(err)) {
+        throw err
+      }
+
+      await this.rotate()
+      return pool.query(text, params)
+    }
+  }
+
+  async end() {
+    await this.pool?.end()
   }
 }
 
-// Accept the user's chosen drizzle factory (from any pg-compatible driver)
-// and wrap our DatabaseClient so it can be used directly.
-export const createDrizzle = <TDb extends Record<string, unknown>>(
+export const createLombokAppPgDatabase = <TDb extends Record<string, unknown>>(
   server: IAppPlatformService,
   schema: TDb,
 ): NodePgDatabase<TDb> => {
-  const client = buildDatabaseClient(server)
-  // DrizzlePgLike implements DrizzleCompatibleClient, which has all the methods
-  // that Drizzle actually uses. We still need the type assertion because
-  // NodePgClient is a union of concrete pg classes, not an interface.
-  const pgLike: DrizzleCompatibleClient = new DrizzlePgLike(client)
-  return drizzle(pgLike as unknown as NodePgClient, { schema })
+  const client = new LombokAppPgClient(server)
+  return drizzle(client as unknown as NodePgClient, { schema })
 }
 
 export interface SerializeableRequest {
@@ -553,7 +341,7 @@ export type RequestHandler = (
     actor,
   }: {
     serverClient: IAppPlatformService
-    dbClient: DatabaseClient
+    dbClient: LombokAppPgClient
     createDb: CreateDbFn
     actor: WorkerApiActor | undefined
   },
@@ -567,7 +355,7 @@ export type TaskHandler = (
     createDb,
   }: {
     serverClient: IAppPlatformService
-    dbClient: DatabaseClient
+    dbClient: LombokAppPgClient
     createDb: CreateDbFn
   },
 ) => Promise<undefined> | undefined

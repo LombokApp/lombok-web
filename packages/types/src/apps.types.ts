@@ -14,9 +14,7 @@ import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 export const CORE_APP_SLUG = 'core'
 
 export const AppSocketMessage = z.enum([
-  'DB_QUERY',
-  'DB_EXEC',
-  'DB_BATCH',
+  'GET_LATEST_DB_CREDENTIALS',
   'GET_WORKER_EXECUTION_DETAILS',
   'SAVE_LOG_ENTRY',
   'GET_APP_STORAGE_SIGNED_URLS',
@@ -142,7 +140,7 @@ export const appContributionsSchema = z
 
 // Permissions that can be granted to an app for the platform
 export const platformScopeAppPermissionsSchema = z.enum([
-  'READ_ACL', // Read the user <-> folder ACL context
+  'READ_FOLDER_ACL', // Read the user <-> folder ACL context
   'SERVE_APPS', // Serve other apps
 ])
 

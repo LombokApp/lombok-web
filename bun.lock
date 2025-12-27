@@ -54,7 +54,7 @@
         "jsonwebtoken": "9.0.2",
         "mime": "catalog:",
         "openapi-fetch": "catalog:",
-        "pg": "8.16.3",
+        "pg": "catalog:",
         "rxjs": "7.8.1",
         "socket.io": "catalog:",
         "utility-types": "catalog:",
@@ -72,7 +72,7 @@
         "@types/dockerode": "3.3.47",
         "@types/express": "5.0.0",
         "@types/jsonwebtoken": "9.0.10",
-        "@types/pg": "8.15.5",
+        "@types/pg": "catalog:",
         "@types/supertest": "6.0.2",
         "@typescript-eslint/eslint-plugin": "catalog:",
         "drizzle-kit": "catalog:",
@@ -210,6 +210,7 @@
       "version": "0.0.1-6",
       "dependencies": {
         "drizzle-orm": "catalog:",
+        "pg": "catalog:",
         "socket.io-client": "catalog:",
         "zod": "catalog:",
       },
@@ -218,6 +219,7 @@
         "@lombokapp/types": "workspace:*",
         "@stylistic/eslint-plugin": "catalog:",
         "@types/bun": "catalog:",
+        "@types/pg": "catalog:",
         "@typescript-eslint/eslint-plugin": "catalog:",
         "eslint": "catalog:",
         "eslint-plugin-eslint-comments": "catalog:",
@@ -575,8 +577,9 @@
     "@tailwindcss/container-queries": "0.1.1",
     "@tanstack/react-query": "5.83.0",
     "@tanstack/table-core": "8.21.3",
-    "@types/bun": "1.3.3",
+    "@types/bun": "1.3.5",
     "@types/eslint-plugin-tailwindcss": "3.17.0",
+    "@types/pg": "8.16.0",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.1",
     "@typescript-eslint/eslint-plugin": "8.46.3",
@@ -608,6 +611,7 @@
     "mime": "4.0.7",
     "openapi-fetch": "0.15.0",
     "openapi-react-query": "0.5.1",
+    "pg": "8.16.3",
     "postcss-import": "16.1.1",
     "prettier": "3.4.2",
     "react": "18.3.1",
@@ -1520,7 +1524,7 @@
 
     "@types/body-parser": ["@types/body-parser@1.19.6", "", { "dependencies": { "@types/connect": "*", "@types/node": "*" } }, "sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g=="],
 
-    "@types/bun": ["@types/bun@1.3.3", "", { "dependencies": { "bun-types": "1.3.3" } }, "sha512-ogrKbJ2X5N0kWLLFKeytG0eHDleBYtngtlbu9cyBKFtNL3cnpDZkNdQj8flVf6WTZUX5ulI9AY1oa7ljhSrp+g=="],
+    "@types/bun": ["@types/bun@1.3.5", "", { "dependencies": { "bun-types": "1.3.5" } }, "sha512-RnygCqNrd3srIPEWBd5LFeUYG7plCoH2Yw9WaZGyNmdTEei+gWaHqydbaIRkIkcbXwhBT94q78QljxN0Sk838w=="],
 
     "@types/connect": ["@types/connect@3.4.38", "", { "dependencies": { "@types/node": "*" } }, "sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug=="],
 
@@ -1594,7 +1598,7 @@
 
     "@types/parse-json": ["@types/parse-json@4.0.2", "", {}, "sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw=="],
 
-    "@types/pg": ["@types/pg@8.15.5", "", { "dependencies": { "@types/node": "*", "pg-protocol": "*", "pg-types": "^2.2.0" } }, "sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ=="],
+    "@types/pg": ["@types/pg@8.16.0", "", { "dependencies": { "@types/node": "*", "pg-protocol": "*", "pg-types": "^2.2.0" } }, "sha512-RmhMd/wD+CF8Dfo+cVIy3RR5cl8CyfXQ0tGgW6XBL8L4LM/UTEbNXYRbLwU6w+CgrKBNbrQWt4FUtTfaU5jSYQ=="],
 
     "@types/prop-types": ["@types/prop-types@15.7.15", "", {}, "sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw=="],
 
@@ -1828,7 +1832,7 @@
 
     "buildcheck": ["buildcheck@0.0.7", "", {}, "sha512-lHblz4ahamxpTmnsk+MNTRWsjYKv965MwOrSJyeD588rR3Jcu7swE+0wN5F+PbL5cjgu/9ObkhfzEPuofEMwLA=="],
 
-    "bun-types": ["bun-types@1.3.3", "", { "dependencies": { "@types/node": "*" } }, "sha512-z3Xwlg7j2l9JY27x5Qn3Wlyos8YAp0kKRlrePAOjgjMGS5IG6E7Jnlx736vH9UVI4wUICwwhC9anYL++XeOgTQ=="],
+    "bun-types": ["bun-types@1.3.5", "", { "dependencies": { "@types/node": "*" } }, "sha512-inmAYe2PFLs0SUbFOWSVD24sg1jFlMPxOjOSSCYqUgn4Hsc3rDc7dFvfVYjFPNHtov6kgUeulV4SxbuIV/stPw=="],
 
     "bundle-require": ["bundle-require@5.1.0", "", { "dependencies": { "load-tsconfig": "^0.2.3" }, "peerDependencies": { "esbuild": ">=0.18" } }, "sha512-3WrrOuZiyaaZPWiEt4G3+IffISVC9HYlWueJEBWED4ZH4aIAC2PnkdnuRrR94M+w6yGWn4AglWtJtBI8YqvgoA=="],
 

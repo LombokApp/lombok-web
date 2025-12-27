@@ -6,8 +6,8 @@ import type {
 } from '@lombokapp/app-worker-sdk'
 import {
   buildAppClient,
-  buildDatabaseClient,
-  createDrizzle,
+  createLombokAppPgDatabase,
+  LombokAppPgClient,
 } from '@lombokapp/app-worker-sdk'
 import type {
   WorkerModuleStartContext,
@@ -264,7 +264,7 @@ void (async () => {
   const handleRequest = async (
     pipeRequest: WorkerPipeRequest,
     serverClient: ReturnType<typeof buildAppClient>,
-    dbClient: ReturnType<typeof buildDatabaseClient>,
+    dbClient: LombokAppPgClient,
     responseWriter: PipeWriter,
   ): Promise<void> => {
     const requestStartTime = Date.now()
@@ -287,7 +287,8 @@ void (async () => {
       responseWriter,
     }
 
-    const createDb: CreateDbFn = (schema) => createDrizzle(serverClient, schema)
+    const createDb: CreateDbFn = (schema) =>
+      createLombokAppPgDatabase(serverClient, schema)
 
     // Process the request within ALS context
     await requestContext.run(ctx, async () => {
@@ -536,7 +537,7 @@ void (async () => {
       workerModuleStartContext.serverBaseUrl,
     )
 
-    const dbClient = buildDatabaseClient(serverClient)
+    const dbClient = new LombokAppPgClient(serverClient)
     logTiming('client_setup_complete', clientSetupStartTime)
 
     // Create pipe readers and writers
