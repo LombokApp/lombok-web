@@ -14607,82 +14607,23 @@
                         "type": "object",
                         "properties": {
                           "parentTask": {
-                            "discriminator": {
-                              "propertyName": "success"
-                            },
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "success": {
-                                    "type": "boolean",
-                                    "enum": [
-                                      true
-                                    ]
-                                  },
-                                  "result": {
-                                    "type": "object",
-                                    "additionalProperties": {}
-                                  },
-                                  "id": {
-                                    "type": "string",
-                                    "format": "uuid"
-                                  },
-                                  "identifier": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "success",
-                                  "result",
-                                  "id",
-                                  "identifier"
-                                ]
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
                               },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "success": {
-                                    "type": "boolean",
-                                    "enum": [
-                                      false
-                                    ]
-                                  },
-                                  "error": {
-                                    "type": "object",
-                                    "properties": {
-                                      "code": {
-                                        "type": "string"
-                                      },
-                                      "message": {
-                                        "type": "string"
-                                      },
-                                      "details": {
-                                        "type": "object",
-                                        "additionalProperties": {}
-                                      }
-                                    },
-                                    "required": [
-                                      "code",
-                                      "message",
-                                      "details"
-                                    ]
-                                  },
-                                  "id": {
-                                    "type": "string",
-                                    "format": "uuid"
-                                  },
-                                  "identifier": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "success",
-                                  "error",
-                                  "id",
-                                  "identifier"
-                                ]
+                              "identifier": {
+                                "type": "string"
+                              },
+                              "success": {
+                                "type": "boolean"
                               }
+                            },
+                            "required": [
+                              "id",
+                              "identifier",
+                              "success"
                             ]
                           }
                         },
@@ -14855,7 +14796,6 @@
               "taskIdentifier",
               "ownerIdentifier",
               "trigger",
-              "data",
               "taskDescription",
               "systemLog",
               "taskLog",
@@ -15128,82 +15068,23 @@
                           "type": "object",
                           "properties": {
                             "parentTask": {
-                              "discriminator": {
-                                "propertyName": "success"
-                              },
-                              "oneOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "success": {
-                                      "type": "boolean",
-                                      "enum": [
-                                        true
-                                      ]
-                                    },
-                                    "result": {
-                                      "type": "object",
-                                      "additionalProperties": {}
-                                    },
-                                    "id": {
-                                      "type": "string",
-                                      "format": "uuid"
-                                    },
-                                    "identifier": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "success",
-                                    "result",
-                                    "id",
-                                    "identifier"
-                                  ]
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "success": {
-                                      "type": "boolean",
-                                      "enum": [
-                                        false
-                                      ]
-                                    },
-                                    "error": {
-                                      "type": "object",
-                                      "properties": {
-                                        "code": {
-                                          "type": "string"
-                                        },
-                                        "message": {
-                                          "type": "string"
-                                        },
-                                        "details": {
-                                          "type": "object",
-                                          "additionalProperties": {}
-                                        }
-                                      },
-                                      "required": [
-                                        "code",
-                                        "message",
-                                        "details"
-                                      ]
-                                    },
-                                    "id": {
-                                      "type": "string",
-                                      "format": "uuid"
-                                    },
-                                    "identifier": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "success",
-                                    "error",
-                                    "id",
-                                    "identifier"
-                                  ]
+                                "identifier": {
+                                  "type": "string"
+                                },
+                                "success": {
+                                  "type": "boolean"
                                 }
+                              },
+                              "required": [
+                                "id",
+                                "identifier",
+                                "success"
                               ]
                             }
                           },
@@ -15229,10 +15110,6 @@
                 "handlerIdentifier": {
                   "type": "string"
                 },
-                "data": {
-                  "type": "object",
-                  "additionalProperties": {}
-                },
                 "targetLocation": {
                   "type": "object",
                   "properties": {
@@ -15249,86 +15126,10 @@
                   ]
                 },
                 "error": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "details": {
-                      "type": "object",
-                      "additionalProperties": {}
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
                 },
                 "taskDescription": {
                   "type": "string"
-                },
-                "systemLog": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "at": {
-                        "type": "string",
-                        "format": "date-time"
-                      },
-                      "payload": {
-                        "type": "object",
-                        "properties": {
-                          "logType": {
-                            "type": "string",
-                            "enum": [
-                              "started",
-                              "error",
-                              "requeue",
-                              "success"
-                            ]
-                          },
-                          "data": {
-                            "type": "object",
-                            "additionalProperties": {}
-                          }
-                        },
-                        "required": [
-                          "logType"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "at",
-                      "payload"
-                    ]
-                  }
-                },
-                "taskLog": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "at": {
-                        "type": "string",
-                        "format": "date-time"
-                      },
-                      "message": {
-                        "type": "string"
-                      },
-                      "payload": {
-                        "type": "object",
-                        "additionalProperties": {}
-                      }
-                    },
-                    "required": [
-                      "at",
-                      "message"
-                    ]
-                  }
                 },
                 "startedAt": {
                   "type": "string",
@@ -15345,6 +15146,30 @@
                 "updatedAt": {
                   "type": "string",
                   "format": "date-time"
+                },
+                "targetLocationContext": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    },
+                    "folderName": {
+                      "type": "string"
+                    },
+                    "folderOwnerId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "folderId",
+                    "folderName",
+                    "folderOwnerId"
+                  ]
                 }
               },
               "required": [
@@ -15352,10 +15177,7 @@
                 "taskIdentifier",
                 "ownerIdentifier",
                 "trigger",
-                "data",
                 "taskDescription",
-                "systemLog",
-                "taskLog",
                 "createdAt",
                 "updatedAt"
               ]

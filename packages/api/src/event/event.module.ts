@@ -43,8 +43,10 @@ export class EventModule implements OnModuleInit, OnModuleDestroy {
 
   jobs: CronJob[] | undefined = undefined
 
-  onModuleDestroy() {
-    this.jobs?.map((job) => job.stop())
+  async onModuleDestroy() {
+    return Promise.all(
+      this.jobs?.map((job) => job.stop()).filter((p) => p !== undefined) ?? [],
+    )
   }
 
   onModuleInit() {

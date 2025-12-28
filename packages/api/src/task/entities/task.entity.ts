@@ -94,3 +94,4 @@ export const tasksTable = pgTable(
 
 export type Task = typeof tasksTable.$inferSelect
 export type NewTask = typeof tasksTable.$inferInsert
+export type TaskSummary = Omit<Task, 'data' | 'systemLog' | 'taskLog'>

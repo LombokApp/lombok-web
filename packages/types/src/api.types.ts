@@ -42,6 +42,8 @@ export type FolderObjectDTO =
   paths['/api/v1/folders/{folderId}/objects/{objectKey}']['get']['responses']['200']['content']['application/json']['folderObject']
 export type TaskDTO =
   paths['/api/v1/server/tasks/{taskId}']['get']['responses']['200']['content']['application/json']['task']
+export type TaskSummaryDTO =
+  paths['/api/v1/server/tasks']['get']['responses']['200']['content']['application/json']['result'][number]
 export type EventDTO =
   paths['/api/v1/server/events/{eventId}']['get']['responses']['200']['content']['application/json']['event']
 export type AppDTOManifestInner = NonNullable<AppDTO['manifest']>

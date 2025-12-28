@@ -136,33 +136,15 @@ const taskTriggerConfigBaseSchema = z
   })
   .merge(taskOnCompleteConfigBaseSchema)
 
-const baseParentTaskSchema = z.object({
-  id: z.string().uuid(),
-  identifier: z.string(),
-})
-
 export const childTaskTriggerInvocationSchema = z
   .object({
     kind: z.literal('task_child'),
     invokeContext: z.object({
-      parentTask: z.discriminatedUnion('success', [
-        z
-          .object({
-            success: z.literal(true),
-            result: jsonSerializableObjectDTOSchema,
-          })
-          .merge(baseParentTaskSchema),
-        z
-          .object({
-            success: z.literal(false),
-            error: z.object({
-              code: z.string(),
-              message: z.string(),
-              details: jsonSerializableObjectDTOSchema,
-            }),
-          })
-          .merge(baseParentTaskSchema),
-      ]),
+      parentTask: z.object({
+        id: z.string().uuid(),
+        identifier: z.string(),
+        success: z.boolean(),
+      }),
     }),
   })
   .merge(taskOnCompleteConfigBaseSchema)
@@ -268,7 +250,7 @@ export const taskDTOSchema = z.object({
   trigger: taskInvocationSchema,
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),
-  data: taskDataSchema,
+  data: taskDataSchema.optional(),
   targetLocation: targetLocationContextDTOSchema.optional(),
   error: z
     .object({

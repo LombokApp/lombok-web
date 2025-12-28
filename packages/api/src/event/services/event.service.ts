@@ -215,7 +215,7 @@ export class EventService {
 
         for (const task of tasksToInsert) {
           if (task.handlerType === 'worker' || task.handlerType === 'docker') {
-            await this.emitRunnableTaskEnqueuedEvent(task, { tx })
+            await this.emitRunnableTaskEnqueuedEvent(task, tx)
           }
         }
       })
@@ -229,7 +229,7 @@ export class EventService {
     }
   }
 
-  async emitEvent(
+  async _emitEventInTx(
     {
       emitterIdentifier,
       eventIdentifier,
@@ -243,7 +243,7 @@ export class EventService {
       targetLocation?: { folderId: string; objectKey?: string }
       targetUserId?: string
     },
-    _db?: OrmService['db'],
+    tx: OrmService['db'],
   ) {
     if (!eventIdentifierSchema.safeParse(eventIdentifier).success) {
       throw new InternalServerErrorException(
@@ -251,7 +251,6 @@ export class EventService {
       )
     }
 
-    const db = _db ?? this.ormService.db
     const now = new Date()
 
     const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
@@ -309,179 +308,208 @@ export class EventService {
       },
     })
 
-    await db.transaction(async (tx) => {
-      const events = await tx
-        .insert(eventsTable)
-        .values([
-          {
-            id: uuidV4(),
-            eventIdentifier,
-            emitterIdentifier,
-            targetLocation,
-            targetUserId,
-            createdAt: now,
-            data,
-          },
-        ])
-        .returning()
+    const events = await tx
+      .insert(eventsTable)
+      .values([
+        {
+          id: uuidV4(),
+          eventIdentifier,
+          emitterIdentifier,
+          targetLocation,
+          targetUserId,
+          createdAt: now,
+          data,
+        },
+      ])
+      .returning()
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const event = events[0]!
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const event = events[0]!
 
-      // regular event, so we should lookup apps that have subscribed to this event
-      const eventTriggerIdentifier = isPlatformEmitter
-        ? `${PLATFORM_IDENTIFIER}:${eventIdentifier}`
-        : eventIdentifier
+    // regular event, so we should lookup apps that have subscribed to this event
+    const eventTriggerIdentifier = isPlatformEmitter
+      ? `${PLATFORM_IDENTIFIER}:${eventIdentifier}`
+      : eventIdentifier
 
-      const subscribedApps = isPlatformEmitter
-        ? await tx.query.appsTable.findMany({
-            where: and(
-              arrayContains(appsTable.subscribedPlatformEvents, [
-                eventTriggerIdentifier,
-              ]),
-              eq(appsTable.enabled, true),
-            ),
-            limit: 100, // TODO: manage this limit somehow
-          })
-        : app
-          ? [app]
-          : []
-
-      const tasks: NewTask[] = []
-      await Promise.all(
-        subscribedApps.map(async (subscribedApp) => {
-          try {
-            if (targetLocation) {
-              await this.appService.validateAppFolderAccess({
-                appIdentifier: subscribedApp.identifier,
-                folderId: targetLocation.folderId,
-              })
-            } else if (targetUserId) {
-              await this.appService.validateAppUserAccess({
-                appIdentifier: subscribedApp.identifier,
-                userId: targetUserId,
-              })
-            }
-          } catch (error) {
-            if (error instanceof UnauthorizedException) {
-              // App is not enabled for this user or folder
-              return Promise.resolve()
-            }
-          }
-          return Promise.all(
-            (subscribedApp.config.triggers ?? []).map(async (trigger) => {
-              if (
-                trigger.kind === 'event' &&
-                trigger.eventIdentifier === eventTriggerIdentifier
-              ) {
-                const taskDefinition = subscribedApp.config.tasks?.find(
-                  (task) => task.identifier === trigger.taskIdentifier,
-                )
-                if (!taskDefinition) {
-                  this.logger.error(
-                    `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
-                  )
-                  return Promise.resolve()
-                }
-
-                const triggerConditionResult = trigger.condition
-                  ? evalTriggerHandlerCondition(trigger.condition, event)
-                  : undefined
-
-                if (trigger.condition && triggerConditionResult === false) {
-                  this.logger.debug(
-                    `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
-                  )
-                  return Promise.resolve()
-                }
-
-                // Build the base task object
-                const baseTask: NewTask = {
-                  id: uuidV4(),
-                  trigger: {
-                    ...trigger,
-                    invokeContext: this.buildEventInvocation(event),
-                  },
-                  targetLocation: targetLocation?.folderId
-                    ? {
-                        folderId: targetLocation.folderId,
-                        objectKey: targetLocation.objectKey,
-                      }
-                    : undefined,
-                  taskDescription: taskDefinition.description,
-                  taskIdentifier: taskDefinition.identifier,
-                  data: trigger.dataTemplate
-                    ? await parseDataFromEventWithTrigger(
-                        trigger.dataTemplate,
-                        event,
-                        {
-                          createPresignedUrl:
-                            this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
-                              subscribedApp.identifier,
-                            ),
-                        },
-                      )
-                    : {},
-                  ownerIdentifier: subscribedApp.identifier,
-                  systemLog: [
-                    {
-                      at: new Date(),
-                      payload: { logType: 'started', data: {} },
-                    },
-                  ],
-                  createdAt: now,
-                  updatedAt: now,
-                  handlerType: taskDefinition.handler.type,
-                  handlerIdentifier: (
-                    taskDefinition.handler as { identifier: string } | undefined
-                  )?.identifier,
-                }
-                tasks.push(baseTask)
-                if (
-                  taskDefinition.handler.type === 'worker' ||
-                  taskDefinition.handler.type === 'docker'
-                ) {
-                  // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                  await this.emitRunnableTaskEnqueuedEvent(baseTask, {
-                    tx,
-                  })
-                }
-              }
-              return Promise.resolve()
-            }),
-          )
-        }),
-      )
-
-      // Insert platform tasks that are subscribed to this platform emitted event
-      if (isPlatformEmitter) {
-        // Collect platform tasks registered for the platform event that was emitted
-        tasks.push(...this.gatherPlatformTasksForEvent(event, now))
-      }
-
-      if (tasks.length) {
-        await tx.insert(tasksTable).values(tasks)
-        // notify folder rooms of new tasks
-        tasks.forEach((_task) => {
-          if (_task.targetLocation?.folderId) {
-            this.folderSocketService.sendToFolderRoom(
-              _task.targetLocation.folderId,
-              FolderPushMessage.TASK_ADDED,
-              { task: _task },
-            )
-          }
+    const subscribedApps = isPlatformEmitter
+      ? await tx.query.appsTable.findMany({
+          where: and(
+            arrayContains(appsTable.subscribedPlatformEvents, [
+              eventTriggerIdentifier,
+            ]),
+            eq(appsTable.enabled, true),
+          ),
+          limit: 100, // TODO: manage this limit somehow
         })
-      }
-      // Emit EVENT_CREATED to folder room if folderId is present
-      if (targetLocation?.folderId) {
-        this.folderSocketService.sendToFolderRoom(
-          targetLocation.folderId,
-          FolderPushMessage.EVENT_CREATED as FolderPushMessage,
-          { event },
+      : app
+        ? [app]
+        : []
+
+    const tasks: NewTask[] = []
+    await Promise.all(
+      subscribedApps.map(async (subscribedApp) => {
+        try {
+          if (targetLocation) {
+            await this.appService.validateAppFolderAccess({
+              appIdentifier: subscribedApp.identifier,
+              folderId: targetLocation.folderId,
+            })
+          } else if (targetUserId) {
+            await this.appService.validateAppUserAccess({
+              appIdentifier: subscribedApp.identifier,
+              userId: targetUserId,
+            })
+          }
+        } catch (error) {
+          if (error instanceof UnauthorizedException) {
+            // App is not enabled for this user or folder
+            return Promise.resolve()
+          }
+        }
+        return Promise.all(
+          (subscribedApp.config.triggers ?? []).map(async (trigger) => {
+            if (
+              trigger.kind === 'event' &&
+              trigger.eventIdentifier === eventTriggerIdentifier
+            ) {
+              const taskDefinition = subscribedApp.config.tasks?.find(
+                (task) => task.identifier === trigger.taskIdentifier,
+              )
+              if (!taskDefinition) {
+                this.logger.error(
+                  `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
+                )
+                return Promise.resolve()
+              }
+
+              const triggerConditionResult = trigger.condition
+                ? evalTriggerHandlerCondition(trigger.condition, event)
+                : undefined
+
+              if (trigger.condition && triggerConditionResult === false) {
+                this.logger.debug(
+                  `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
+                )
+                return Promise.resolve()
+              }
+
+              // Build the base task object
+              const baseTask: NewTask = {
+                id: uuidV4(),
+                trigger: {
+                  ...trigger,
+                  invokeContext: this.buildEventInvocation(event),
+                },
+                targetLocation: targetLocation?.folderId
+                  ? {
+                      folderId: targetLocation.folderId,
+                      objectKey: targetLocation.objectKey,
+                    }
+                  : undefined,
+                taskDescription: taskDefinition.description,
+                taskIdentifier: taskDefinition.identifier,
+                data: trigger.dataTemplate
+                  ? await parseDataFromEventWithTrigger(
+                      trigger.dataTemplate,
+                      event,
+                      {
+                        createPresignedUrl:
+                          this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
+                            subscribedApp.identifier,
+                          ),
+                      },
+                    )
+                  : {},
+                ownerIdentifier: subscribedApp.identifier,
+                systemLog: [
+                  {
+                    at: new Date(),
+                    payload: { logType: 'started', data: {} },
+                  },
+                ],
+                createdAt: now,
+                updatedAt: now,
+                handlerType: taskDefinition.handler.type,
+                handlerIdentifier: (
+                  taskDefinition.handler as { identifier: string } | undefined
+                )?.identifier,
+              }
+              tasks.push(baseTask)
+              if (
+                taskDefinition.handler.type === 'worker' ||
+                taskDefinition.handler.type === 'docker'
+              ) {
+                // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
+                await this.emitRunnableTaskEnqueuedEvent(baseTask, tx)
+              }
+            }
+            return Promise.resolve()
+          }),
         )
-      }
-    })
+      }),
+    )
+
+    // Insert platform tasks that are subscribed to this platform emitted event
+    if (isPlatformEmitter) {
+      // Collect platform tasks registered for the platform event that was emitted
+      tasks.push(...this.gatherPlatformTasksForEvent(event, now))
+    }
+
+    if (tasks.length) {
+      await tx.insert(tasksTable).values(tasks)
+      // notify folder rooms of new tasks
+      tasks.forEach((_task) => {
+        if (_task.targetLocation?.folderId) {
+          this.folderSocketService.sendToFolderRoom(
+            _task.targetLocation.folderId,
+            FolderPushMessage.TASK_ADDED,
+            { task: _task },
+          )
+        }
+      })
+    }
+    // Emit EVENT_CREATED to folder room if folderId is present
+    if (targetLocation?.folderId) {
+      this.folderSocketService.sendToFolderRoom(
+        targetLocation.folderId,
+        FolderPushMessage.EVENT_CREATED as FolderPushMessage,
+        { event },
+      )
+    }
+
     void this.platformTaskService.drainPlatformTasks()
+  }
+
+  async emitEvent(
+    {
+      emitterIdentifier,
+      eventIdentifier,
+      data,
+      targetLocation,
+      targetUserId,
+    }: {
+      emitterIdentifier: string
+      eventIdentifier: string
+      data: JsonSerializableObject
+      targetLocation?: { folderId: string; objectKey?: string }
+      targetUserId?: string
+    },
+    options: { tx?: OrmService['db'] } = {},
+  ) {
+    const args = {
+      emitterIdentifier,
+      eventIdentifier,
+      data,
+      targetLocation,
+      targetUserId,
+    }
+    if (options.tx) {
+      return this._emitEventInTx(args, options.tx)
+    } else {
+      return this.ormService.db.transaction(async (tx) => {
+        return this._emitEventInTx(args, tx)
+      })
+    }
   }
 
   private buildEventInvocation(event: Event) {
@@ -532,14 +560,7 @@ export class EventService {
    * @param task - The runnable task (via worker or docker).
    * @param tx - The transaction to use.
    */
-  async emitRunnableTaskEnqueuedEvent(
-    task: NewTask,
-    {
-      tx,
-    }: {
-      tx: OrmService['db']
-    },
-  ) {
+  async emitRunnableTaskEnqueuedEvent(task: NewTask, tx: OrmService['db']) {
     if (task.handlerType === 'worker' || task.handlerType === 'docker') {
       const event = {
         emitterIdentifier: PLATFORM_IDENTIFIER,
@@ -562,7 +583,7 @@ export class EventService {
               }),
         },
       }
-      await this.emitEvent(event, tx)
+      await this.emitEvent(event, { tx })
     }
   }
 

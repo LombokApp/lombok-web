@@ -63,7 +63,7 @@
     "@nestjs/swagger": "11.2.0",
     "@nestjs/websockets": "11.1.2",
     "aws4": "1.13.2",
-    "cron": "3.4.0",
+    "cron": "4.4.0",
     "dockerode": "4.0.9",
     "drizzle-orm": "catalog:",
     "express": "4.21.2",

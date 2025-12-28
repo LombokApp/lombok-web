@@ -20,7 +20,10 @@ import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-pa
 import type { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import type { TaskListResponse } from '../dto/responses/task-list-response.dto'
 import { TaskService } from '../services/task.service'
-import { transformTaskToDTO } from '../transforms/task.transforms'
+import {
+  transformTaskSummaryToDTO,
+  transformTaskToDTO,
+} from '../transforms/task.transforms'
 
 @Controller('/api/v1/folders')
 @ApiTags('Tasks')
@@ -74,7 +77,7 @@ export class TasksController {
       },
     )
     return {
-      result: result.map((task) => transformTaskToDTO(task)),
+      result: result.map((task) => transformTaskSummaryToDTO(task)),
       meta,
     }
   }

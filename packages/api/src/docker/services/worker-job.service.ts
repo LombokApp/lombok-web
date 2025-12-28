@@ -327,13 +327,16 @@ export class WorkerJobService {
     claims: WorkerJobTokenClaims,
     request: CompleteJobRequest,
   ): Promise<void> {
-    this.logger.log('WorkerJobService.completeJob', { claims, request })
+    this.logger.log('WorkerJobService.completeJob', {
+      claims,
+      request: { dockerRunTaskId: claims.taskId },
+    })
     const { taskId: dockerRunTaskId } = claims
     const { success, result, error } = request
 
     await this.ormService.db.transaction(async (tx) => {
       // Find the task
-      const dockerTask = await this.ormService.db.query.tasksTable.findFirst({
+      const dockerTask = await tx.query.tasksTable.findFirst({
         where: eq(tasksTable.id, dockerRunTaskId),
       })
 
@@ -397,7 +400,10 @@ export class WorkerJobService {
 
    */
   async startJob(claims: WorkerJobTokenClaims): Promise<void> {
-    this.logger.log('WorkerJobService.startJob', claims)
+    this.logger.log('WorkerJobService.startJob', {
+      claims,
+      request: { dockerRunTaskId: claims.taskId },
+    })
     const { taskId: dockerRunTaskId } = claims
 
     await this.ormService.db.transaction(async (tx) => {
@@ -422,7 +428,7 @@ export class WorkerJobService {
 
       const innerTask =
         innerTaskId &&
-        (await this.ormService.db.query.tasksTable.findFirst({
+        (await tx.query.tasksTable.findFirst({
           where: eq(tasksTable.id, innerTaskId),
         }))
 
@@ -455,7 +461,7 @@ export class WorkerJobService {
         startContext: {
           __executor: claims.executorContext,
         },
-        tx,
+        options: { tx },
       })
     })
   }

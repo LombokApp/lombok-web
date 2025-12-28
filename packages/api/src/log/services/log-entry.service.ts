@@ -51,18 +51,16 @@ export class LogEntryService {
   }) {
     const now = new Date()
 
-    await this.ormService.db.transaction(async (db) => {
-      const logEntry: NewLogEntry = {
-        id: uuidV4(),
-        emitterIdentifier,
-        level,
-        targetLocation,
-        createdAt: now,
-        message: logMessage,
-        data,
-      }
-      await db.insert(logEntriesTable).values([logEntry])
-    })
+    const logEntry: NewLogEntry = {
+      id: uuidV4(),
+      emitterIdentifier,
+      level,
+      targetLocation,
+      createdAt: now,
+      message: logMessage,
+      data,
+    }
+    await this.ormService.db.insert(logEntriesTable).values([logEntry])
   }
 
   async getFolderLogAsUser(

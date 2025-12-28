@@ -3273,34 +3273,17 @@ export interface components {
                     kind: "task_child";
                     invokeContext: {
                         parentTask: {
-                            /** @enum {boolean} */
-                            success: true;
-                            result: {
-                                [key: string]: unknown;
-                            };
                             /** Format: uuid */
                             id: string;
                             identifier: string;
-                        } | {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details: {
-                                    [key: string]: unknown;
-                                };
-                            };
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
+                            success: boolean;
                         };
                     };
                     onComplete?: unknown[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
-                data: {
+                data?: {
                     [key: string]: unknown;
                 };
                 targetLocation?: {
@@ -3426,68 +3409,23 @@ export interface components {
                     kind: "task_child";
                     invokeContext: {
                         parentTask: {
-                            /** @enum {boolean} */
-                            success: true;
-                            result: {
-                                [key: string]: unknown;
-                            };
                             /** Format: uuid */
                             id: string;
                             identifier: string;
-                        } | {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details: {
-                                    [key: string]: unknown;
-                                };
-                            };
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
+                            success: boolean;
                         };
                     };
                     onComplete?: unknown[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
-                data: {
-                    [key: string]: unknown;
-                };
                 targetLocation?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
                 };
-                error?: {
-                    code: string;
-                    message: string;
-                    details?: {
-                        [key: string]: unknown;
-                    };
-                };
+                error?: components["schemas"]["ApiErrorResponseDTO"];
                 taskDescription: string;
-                systemLog: {
-                    /** Format: date-time */
-                    at: string;
-                    payload: {
-                        /** @enum {string} */
-                        logType: "started" | "error" | "requeue" | "success";
-                        data?: {
-                            [key: string]: unknown;
-                        };
-                    };
-                }[];
-                taskLog: {
-                    /** Format: date-time */
-                    at: string;
-                    message: string;
-                    payload?: {
-                        [key: string]: unknown;
-                    };
-                }[];
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
@@ -3496,6 +3434,14 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                targetLocationContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
             }[];
         };
         WorkerJobUploadUrlsRequestDTO: {

@@ -21,22 +21,27 @@ export async function waitForTrue(
         conditionResult instanceof Promise
           ? conditionResult
           : Promise.resolve(conditionResult)
-      ).then((result) => {
-        if (result) {
+      )
+        .then((result) => {
+          if (result) {
+            clearTimeout(timeout)
+            resolve()
+          } else if (checkCount >= maxRetries) {
+            clearTimeout(timeout)
+            reject(
+              new WaitForTrueError(
+                'TIMEOUT',
+                'Timeout waiting for condition to return true.',
+              ),
+            )
+          } else {
+            timeout = setTimeout(checkerFunc, retryPeriod)
+          }
+        })
+        .catch((error) => {
           clearTimeout(timeout)
-          resolve()
-        } else if (checkCount >= maxRetries) {
-          clearTimeout(timeout)
-          reject(
-            new WaitForTrueError(
-              'TIMEOUT',
-              'Timeout waiting for condition to return true.',
-            ),
-          )
-        } else {
-          timeout = setTimeout(checkerFunc, retryPeriod)
-        }
-      })
+          reject(error instanceof Error ? error : new Error(String(error)))
+        })
       checkCount += 1
     }
     timeout = setTimeout(checkerFunc, retryPeriod)

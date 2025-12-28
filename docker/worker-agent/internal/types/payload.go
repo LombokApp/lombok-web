@@ -41,7 +41,7 @@ type JobState struct {
 	JobID          string   `json:"job_id"`
 	JobClass       string   `json:"job_class"`
 	Status         string   `json:"status"` // "pending", "running", "success", "failed"
-	StartedAt      string   `json:"started_at"`
+	StartedAt      string   `json:"started_at,omitempty"`
 	CompletedAt    string   `json:"completed_at,omitempty"`
 	WorkerKind     string   `json:"worker_kind"`
 	WorkerPID      int      `json:"worker_pid,omitempty"`

@@ -164,9 +164,7 @@ export const triggerAppTaskSchema = z.object({
     })
     .optional(),
   targetUserId: z.string().uuid().optional(),
-  onComplete: z
-    .union([taskOnCompleteConfigSchema, taskOnCompleteConfigSchema.array()])
-    .optional(),
+  onComplete: taskOnCompleteConfigSchema.array().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 

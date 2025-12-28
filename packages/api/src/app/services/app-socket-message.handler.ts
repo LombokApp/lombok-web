@@ -378,6 +378,7 @@ export async function handleAppSocketMessage(
         appIdentifier: requestingAppIdentifier,
         taskIdentifier: parsedRequest.data.taskIdentifier,
         taskData: parsedRequest.data.inputData,
+        onComplete: parsedRequest.data.onComplete,
         dontStartBefore: parsedRequest.data.dontStartBefore
           ? 'timestamp' in parsedRequest.data.dontStartBefore
             ? {

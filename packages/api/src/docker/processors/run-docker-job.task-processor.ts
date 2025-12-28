@@ -64,14 +64,15 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
       storageAccessPolicy: innerTask.storageAccessPolicy,
     })
 
+    this.logger.debug('Docker job processor exec complete:', { execResult })
+
     if ('submitError' in execResult) {
       this.logger.error('Docker job not accepted:', { execResult })
       await this.taskService.registerTaskCompleted(task.id, {
         success: false,
-        error: {
-          // TODO: Improve this context
-          code: 'DOCKER_JOB_NOT_ACCEPTED',
-          message: 'Docker job not accepted',
+        error: execResult.submitError ?? {
+          code: 'JOB_NOT_ACCEPTED',
+          message: 'Job not accepted',
         },
       })
     }

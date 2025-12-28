@@ -37,7 +37,9 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
   jobs: CronJob[] | undefined = undefined
 
   onModuleDestroy() {
-    this.jobs?.map((job) => job.stop())
+    return Promise.all(
+      this.jobs?.map((job) => job.stop()).filter((p) => p !== undefined) ?? [],
+    )
   }
 
   onModuleInit() {

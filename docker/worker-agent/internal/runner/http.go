@@ -57,12 +57,10 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	}
 
 	// Create initial job state
-	now := time.Now().UTC().Format(time.RFC3339)
 	jobState := &types.JobState{
 		JobID:      payload.JobID,
 		JobClass:   payload.JobClass,
 		Status:     "pending",
-		StartedAt:  now,
 		WorkerKind: "persistent_http",
 	}
 	if err := state.WriteJobState(jobState); err != nil {
@@ -87,12 +85,26 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	if err != nil {
 		jobState.Status = "failed"
 		jobState.Error = err.Error()
-		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
 		// Calculate timing even on error
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
+
+		// Signal completion to platform if available
+		if platformClient != nil {
+			ctx := context.Background()
+			completionReq := &types.CompletionRequest{
+				Success: false,
+				Error: &types.JobError{
+					Code:    "WORKER_NOT_READY",
+					Message: err.Error(),
+				},
+			}
+			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
+				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			}
+		}
 
 		result := map[string]interface{}{
 			"success": false,
@@ -156,7 +168,6 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	if err != nil {
 		jobState.Status = "failed"
 		jobState.Error = fmt.Sprintf("job submission failed: %s", err.Error())
-		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
 		// Calculate timing even on error
@@ -199,12 +210,26 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		}
 		jobState.Status = "failed"
 		jobState.Error = errMsg
-		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 
 		// Calculate timing even on error
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
+
+		// Signal completion to platform if available
+		if platformClient != nil {
+			ctx := context.Background()
+			completionReq := &types.CompletionRequest{
+				Success: false,
+				Error: &types.JobError{
+					Code:    "JOB_NOT_ACCEPTED",
+					Message: errMsg,
+				},
+			}
+			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
+				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			}
+		}
 
 		result := map[string]interface{}{
 			"success": false,
@@ -225,6 +250,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	// Job submitted successfully, update state to running
 	jobState.Status = "running"
+	jobState.StartedAt = time.Now().UTC().Format(time.RFC3339)
 	state.WriteJobState(jobState)
 
 	// Step 2: Poll for job completion
@@ -263,6 +289,21 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		jobExecutionDuration := time.Since(jobExecutionStartTime)
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
+
+		// Signal completion to platform if available
+		if platformClient != nil {
+			ctx := context.Background()
+			completionReq := &types.CompletionRequest{
+				Success: false,
+				Error: &types.JobError{
+					Code:    "JOB_POLL_TIMEOUT",
+					Message: jobState.Error,
+				},
+			}
+			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
+				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			}
+		}
 
 		result := map[string]interface{}{
 			"success": false,
