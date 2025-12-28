@@ -67,18 +67,6 @@ export const connectAndPerformWork = (
       resolve()
     })
 
-    socket.onAny((_data) => {
-      // eslint-disable-next-line no-console
-      void ((socket.disconnected ? console.log : log) as typeof log)({
-        message: 'Got event in worker thread',
-        level: LogEntryLevel.DEBUG,
-        data: {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          event: _data,
-        },
-      })
-    })
-
     socket.on('PENDING_TASKS_NOTIFICATION', async (_data) => {
       if (concurrentTasks < 10) {
         try {
@@ -94,7 +82,6 @@ export const connectAndPerformWork = (
               message: `Error attempting to start handle task: ${errorMessage}`,
               level: LogEntryLevel.ERROR,
             })
-            reject(new Error(errorMessage))
           } else {
             const { task } = attemptStartHandleResponse.result
             const taskHandler = taskHandlers[task.taskIdentifier]
@@ -103,9 +90,6 @@ export const connectAndPerformWork = (
                 message: `Unknown task identifier: ${task.taskIdentifier}`,
                 level: LogEntryLevel.ERROR,
               })
-              reject(
-                new Error(`Unknown task identifier: ${task.taskIdentifier}`),
-              )
               return
             }
             await taskHandler(task as TaskDTO, serverClient)

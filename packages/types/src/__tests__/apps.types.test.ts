@@ -1134,7 +1134,7 @@ describe('apps.types', () => {
         description: 'A test application',
         requiresStorage: true,
         permissions: {
-          platform: ['READ_ACL'],
+          platform: ['READ_FOLDER_ACL'],
           user: ['CREATE_FOLDERS', 'READ_USER'],
           folder: ['READ_OBJECTS', 'REINDEX_FOLDER'],
         },
@@ -1184,7 +1184,8 @@ describe('apps.types', () => {
 
   describe('platform, user and folder scope permissions schemas', () => {
     it('should validate platform scope permissions', () => {
-      const result = platformScopeAppPermissionsSchema.safeParse('READ_ACL')
+      const result =
+        platformScopeAppPermissionsSchema.safeParse('READ_FOLDER_ACL')
       expectZodSuccess(result)
     })
 
@@ -1415,7 +1416,7 @@ describe('apps.types', () => {
           objectDetailViews: [],
         },
         permissions: {
-          platform: ['READ_ACL'],
+          platform: ['READ_FOLDER_ACL'],
           folder: [
             'READ_OBJECTS',
             'WRITE_OBJECTS',

@@ -191,22 +191,6 @@ describe('App Socket Interface', () => {
     )
   })
 
-  it('should handle DB_QUERY message', async () => {
-    socket = await connectSocket('test-instance-1')
-
-    const response = await buildAppClient(socket, serverBaseUrl).query({
-      sql: 'SELECT 1 as test_value',
-      params: [],
-    })
-    expect(response).toHaveProperty('result')
-    if ('result' in response) {
-      expect(response.result.rows).toBeDefined()
-      expect(Array.isArray(response.result.rows)).toBe(true)
-    } else {
-      throw new Error('Expected result in response')
-    }
-  })
-
   it('should return 409 for a app without db enabled', async () => {
     socket = await connectSocket(
       'test-instance-1',
@@ -214,10 +198,10 @@ describe('App Socket Interface', () => {
       await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG_NO_DB),
     )
 
-    const response = await buildAppClient(socket, serverBaseUrl).query({
-      sql: 'SELECT 1 as test_value',
-      params: [],
-    })
+    const response = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).getLatestDbCredentials()
 
     if (!('error' in response)) {
       throw new Error('Expected error in response')

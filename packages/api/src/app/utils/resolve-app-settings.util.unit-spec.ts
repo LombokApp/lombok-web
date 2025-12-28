@@ -175,7 +175,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: ['READ_ACL'],
+            platform: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -265,7 +265,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: ['READ_ACL'],
+            platform: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -310,7 +310,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: ['READ_ACL'],
+            platform: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -692,7 +692,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: ['READ_ACL'],
+            platform: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS', 'DELETE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -793,7 +793,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: ['READ_ACL'],
+            platform: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -865,7 +865,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: ['READ_ACL'],
+            platform: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS', 'DELETE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },

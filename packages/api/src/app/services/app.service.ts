@@ -1039,6 +1039,7 @@ export class AppService {
 
     const newlyInstalledAppInstance = await updateOrInstallApp()
 
+    await this.ormService.ensureAppDbConfig(newlyInstalledAppInstance)
     // Run migrations if the app has any
     if (app.config.database?.enabled) {
       try {
@@ -1063,13 +1064,6 @@ export class AppService {
 
     // update the app install ID mapping in the core app worker
     void this.coreAppService.updateAppInstallIdMapping()
-
-    if (app.permissions?.platform.includes('READ_ACL')) {
-      this.logger.log(
-        `Granting "shared_acl" schema usage to app ${appIdentifier}`,
-      )
-      await this.ormService.grantAclSchemaUsageToApp(appIdentifier)
-    }
 
     return newlyInstalledAppInstance
   }
@@ -2198,7 +2192,6 @@ export class AppService {
     params: ExecuteAppDockerJobOptions,
     waitForCompletion: T = false as T,
   ): Promise<DockerExecResult<T>> {
-    this.logger.debug('executeAppDockerJob params:', params)
     const {
       appIdentifier,
       profileIdentifier,

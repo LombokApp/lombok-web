@@ -1,13 +1,21 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { randomUUID } from 'crypto'
 import { eq } from 'drizzle-orm'
+import type pg from 'pg'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderSharesTable } from 'src/folders/entities/folder-share.entity'
-import { SHARED_ACL_FOLDER_VIEW, SHARED_ACL_SCHEMA } from 'src/orm/constants'
+import {
+  SHARED_FOLDER_ACL_FOLDER_VIEW,
+  SHARED_FOLDER_ACL_SCHEMA,
+} from 'src/orm/constants'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 import { usersTable } from 'src/users/entities/user.entity'
+
+import type { IAppPlatformService } from '../../../app-worker-sdk'
+import { LombokAppPgClient } from '../../../app-worker-sdk'
+import type { OrmService } from './orm.service'
 
 const TEST_MODULE_KEY = 'orm_schema_isolation'
 
@@ -15,15 +23,216 @@ const SOCKET_TEST_APP_NO_DB_SLUG = 'sockettestappnodb'
 const TEST_APP_SLUG = 'testapp'
 const SOCKET_TEST_APP_SLUG = 'sockettestapp'
 
-const CONCURRENT_APP_1_IDENTIFIER = 'concurrent_app_1_s34fj'
-const CONCURRENT_APP_2_IDENTIFIER = 'concurrent_app_2_278df'
+// Helper to create a mock IAppPlatformService for a specific app
+function createMockAppPlatformService(
+  ormService: OrmService,
+  appIdentifier: string,
+): IAppPlatformService {
+  return {
+    getServerBaseUrl: () => 'http://localhost',
+    getLatestDbCredentials: async () => {
+      const creds = await ormService.getLatestDbCredentials(appIdentifier)
+      return { result: creds }
+    },
+    emitEvent: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    getWorkerExecutionDetails: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    getAppUIbundle: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    saveLogEntry: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    attemptStartHandleTaskById: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    attemptStartHandleAnyAvailableTask: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    completeHandleTask: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    authenticateUser: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    getMetadataSignedUrls: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    getContentSignedUrls: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    getAppStorageSignedUrls: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    getAppUserAccessToken: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    updateContentMetadata: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    executeAppDockerJob: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    triggerAppTask: () => {
+      throw new Error('Not implemented in test mock')
+    },
+  }
+}
+
+// Helper to create a LombokAppPgClient for a specific app
+function createAppPgClient(
+  ormService: OrmService,
+  appIdentifier: string,
+): LombokAppPgClient {
+  const mockServer = createMockAppPlatformService(ormService, appIdentifier)
+  return new LombokAppPgClient(mockServer)
+}
+
+// Helper to execute a query with array rowMode
+async function queryWithRowMode<T>(
+  client: LombokAppPgClient,
+  sql: string,
+  _rowMode: 'array',
+): Promise<{ rows: T[] }> {
+  // Access the pool directly to use rowMode
+  const pool = (client as unknown as { pool?: pg.Pool }).pool
+  if (!pool) {
+    // Ensure pool is initialized
+    await client.query('SELECT 1')
+    const poolAfterInit = (client as unknown as { pool?: pg.Pool }).pool
+    if (!poolAfterInit) {
+      throw new Error('Pool not initialized')
+    }
+    const client_ = await poolAfterInit.connect()
+    try {
+      const result = await client_.query({
+        text: sql,
+        rowMode: 'array',
+      })
+      return { rows: result.rows as T[] }
+    } finally {
+      client_.release()
+    }
+  } else {
+    const client_ = await pool.connect()
+    try {
+      const result = await client_.query({
+        text: sql,
+        rowMode: 'array',
+      })
+      return { rows: result.rows as T[] }
+    } finally {
+      client_.release()
+    }
+  }
+}
+
+// Helper to execute batch operations with support for rowMode
+async function executeBatchForApp(
+  client: LombokAppPgClient,
+  operations: {
+    sql: string
+    kind: 'exec' | 'query'
+    rowMode?: 'object' | 'array'
+  }[],
+  atomic: boolean,
+): Promise<{ results: unknown[] }> {
+  const pool = (client as unknown as { pool?: pg.Pool }).pool
+  if (!pool) {
+    // Ensure pool is initialized
+    await client.query('SELECT 1')
+    const poolAfterInit = (client as unknown as { pool?: pg.Pool }).pool
+    if (!poolAfterInit) {
+      throw new Error('Pool not initialized')
+    }
+    const client_ = await poolAfterInit.connect()
+    const results: unknown[] = []
+
+    try {
+      if (atomic) {
+        await client_.query('BEGIN')
+      }
+
+      for (const op of operations) {
+        if (op.kind === 'exec') {
+          const result = await client_.query(op.sql)
+          results.push({ rowCount: result.rowCount })
+        } else {
+          // query
+          const queryOptions = {
+            text: op.sql,
+            ...(op.rowMode === 'array' && { rowMode: 'array' as const }),
+          }
+          const result = await client_.query(queryOptions)
+          results.push(result.rows)
+        }
+      }
+
+      if (atomic) {
+        await client_.query('COMMIT')
+      }
+    } catch (error) {
+      if (atomic) {
+        await client_.query('ROLLBACK')
+      }
+      throw error
+    } finally {
+      client_.release()
+    }
+
+    return { results }
+  } else {
+    const client_ = await pool.connect()
+    const results: unknown[] = []
+
+    try {
+      if (atomic) {
+        await client_.query('BEGIN')
+      }
+
+      for (const op of operations) {
+        if (op.kind === 'exec') {
+          const result = await client_.query(op.sql)
+          results.push({ rowCount: result.rowCount })
+        } else {
+          // query
+          const queryOptions = {
+            text: op.sql,
+            ...(op.rowMode === 'array' && { rowMode: 'array' as const }),
+          }
+          const result = await client_.query(queryOptions)
+          results.push(result.rows)
+        }
+      }
+
+      if (atomic) {
+        await client_.query('COMMIT')
+      }
+    } catch (error) {
+      if (atomic) {
+        await client_.query('ROLLBACK')
+      }
+      throw error
+    } finally {
+      client_.release()
+    }
+
+    return { results }
+  }
+}
 
 describe('ORM Schema Isolation', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
 
   beforeAll(async () => {
-    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+      // debug: true,
+    })
     apiClient = testModule.apiClient
   })
 
@@ -33,40 +242,29 @@ describe('ORM Schema Isolation', () => {
     const ormService = testModule!.services.ormService
     const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
 
-    // Ensure the test app schema exists
-    await ormService.ensureAppSchema(testAppId)
+    // Create a LombokAppPgClient for the app
+    const appClient = createAppPgClient(ormService, testAppId)
 
     // Create a test table in the app schema
-    await ormService.executeExecForApp(
-      testAppId,
-      `
+    await appClient.query(`
       CREATE TABLE IF NOT EXISTS test_table (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255)
       )
-    `,
-    )
+    `)
 
     // Insert some data into the app's table
-    await ormService.executeExecForApp(
-      testAppId,
-      `
+    await appClient.query(`
       INSERT INTO test_table (name) VALUES ('test data')
-    `,
-    )
+    `)
 
     // Query the app's table
-    const appResult = await ormService.executeQueryForApp<{ name: string }>(
-      testAppId,
-      `
+    const appResult = await appClient.query(`
       SELECT * FROM test_table WHERE name = 'test data'
-    `,
-      [],
-      'object',
-    )
+    `)
     // Verify the app query worked
     expect(appResult.rows.length).toBe(1)
-    expect(appResult.rows[0]?.name).toBe('test data')
+    expect((appResult.rows[0] as { name: string }).name).toBe('test data')
 
     // Now try to query the main app's tables (should still work)
     // This would fail if the search path wasn't properly isolated
@@ -99,30 +297,28 @@ describe('ORM Schema Isolation', () => {
     expect(appsListResponse.data.result.length).toBeGreaterThan(0)
 
     // Clean up
+    await appClient.end()
     await ormService.dropAppSchema(testAppId)
   })
 
   it('should handle batch operations with proper isolation', async () => {
     const ormService = testModule!.services.ormService
-    const testAppId = 'testapp_batch'
+    const testAppId = 'testapp'
 
-    // Ensure the test app schema exists
-    await ormService.ensureAppSchema(testAppId)
+    // Create a LombokAppPgClient for the app
+    const appClient = createAppPgClient(ormService, testAppId)
 
     // Create a test table
-    await ormService.executeExecForApp(
-      testAppId,
-      `
+    await appClient.query(`
       CREATE TABLE IF NOT EXISTS batch_test (
         id SERIAL PRIMARY KEY,
         value INTEGER
       )
-    `,
-    )
+    `)
 
     // Execute batch operations (atomic)
-    const batchResult = await ormService.executeBatchForApp(
-      testAppId,
+    const batchResult = await executeBatchForApp(
+      appClient,
       [
         { sql: `INSERT INTO batch_test (value) VALUES (1)`, kind: 'exec' },
         { sql: `INSERT INTO batch_test (value) VALUES (2)`, kind: 'exec' },
@@ -133,16 +329,13 @@ describe('ORM Schema Isolation', () => {
     )
 
     // Check that select result is correct
-    const selectResult = await ormService.executeQueryForApp<{ value: number }>(
-      testAppId,
+    const selectResult = await appClient.query(
       `SELECT * FROM batch_test ORDER BY id`,
-      [],
-      'object',
     )
     expect(selectResult.rows.length).toBe(3)
-    expect(selectResult.rows[0]?.value).toBe(1)
-    expect(selectResult.rows[1]?.value).toBe(2)
-    expect(selectResult.rows[2]?.value).toBe(3)
+    expect((selectResult.rows[0] as { value: number }).value).toBe(1)
+    expect((selectResult.rows[1] as { value: number }).value).toBe(2)
+    expect((selectResult.rows[2] as { value: number }).value).toBe(3)
 
     // Verify batch operations worked
     expect(batchResult.results.length).toBe(4)
@@ -170,69 +363,56 @@ describe('ORM Schema Isolation', () => {
     expect(viewerResponse.data?.user.username).toBe('batchuser')
 
     // Clean up
+    await appClient.end()
     await ormService.dropAppSchema(testAppId)
   })
 
   it('should handle multiple concurrent app schemas without interference', async () => {
     const ormService = testModule!.services.ormService
 
-    // Ensure both app schemas exist
-    await ormService.ensureAppSchema(CONCURRENT_APP_1_IDENTIFIER)
-    await ormService.ensureAppSchema(CONCURRENT_APP_2_IDENTIFIER)
+    // Create LombokAppPgClient instances for both apps
+    const app1Client = createAppPgClient(ormService, TEST_APP_SLUG)
+    const app2Client = createAppPgClient(ormService, SOCKET_TEST_APP_SLUG)
 
     // Create tables in both schemas
-    await ormService.executeExecForApp(
-      CONCURRENT_APP_1_IDENTIFIER,
-      `
+    await app1Client.query(`
       CREATE TABLE IF NOT EXISTS app1_table (
         id SERIAL PRIMARY KEY,
         value VARCHAR(255)
       )
-    `,
-    )
+    `)
 
-    await ormService.executeExecForApp(
-      CONCURRENT_APP_2_IDENTIFIER,
-      `
+    await app2Client.query(`
       CREATE TABLE IF NOT EXISTS app2_table (
         id SERIAL PRIMARY KEY,
         value VARCHAR(255)
       )
-    `,
-    )
+    `)
 
     // Insert data into both schemas
-    await ormService.executeExecForApp(
-      CONCURRENT_APP_1_IDENTIFIER,
+    await app1Client.query(
       `INSERT INTO app1_table (value) VALUES ('app1 data')`,
     )
 
-    await ormService.executeExecForApp(
-      CONCURRENT_APP_2_IDENTIFIER,
+    await app2Client.query(
       `INSERT INTO app2_table (value) VALUES ('app2 data')`,
     )
 
     // Query both schemas
-    const app1Result = await ormService.executeQueryForApp<{ value: string }>(
-      CONCURRENT_APP_1_IDENTIFIER,
+    const app1Result = await app1Client.query(
       `SELECT * FROM app1_table WHERE value = 'app1 data'`,
-      [],
-      'object',
     )
 
-    const app2Result = await ormService.executeQueryForApp<{ value: string }>(
-      CONCURRENT_APP_2_IDENTIFIER,
+    const app2Result = await app2Client.query(
       `SELECT * FROM app2_table WHERE value = 'app2 data'`,
-      [],
-      'object',
     )
 
     // Verify both queries worked correctly
     expect(app1Result.rows.length).toBe(1)
-    expect(app1Result.rows[0]?.value).toBe('app1 data')
+    expect((app1Result.rows[0] as { value: string }).value).toBe('app1 data')
 
     expect(app2Result.rows.length).toBe(1)
-    expect(app2Result.rows[0]?.value).toBe('app2 data')
+    expect((app2Result.rows[0] as { value: string }).value).toBe('app2 data')
 
     // Verify main app queries still work
     const mainAppResult = await ormService.client.query<{ test_value: number }>(
@@ -263,15 +443,13 @@ describe('ORM Schema Isolation', () => {
     expect(foldersResponse.response.status).toEqual(200)
 
     // Clean up
-    await ormService.dropAppSchema(CONCURRENT_APP_1_IDENTIFIER)
-    await ormService.dropAppSchema(CONCURRENT_APP_2_IDENTIFIER)
+    await app1Client.end()
+    await app2Client.end()
   })
 
   it('should prevent app queries from accessing other schemas', async () => {
     const ormService = testModule!.services.ormService
-    const appId = 'role_isolation_test'
-
-    await ormService.ensureAppSchema(appId)
+    const appId = await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
 
     await ormService.client.query(`
       CREATE TABLE IF NOT EXISTS public.cross_schema_guard (
@@ -283,36 +461,26 @@ describe('ORM Schema Isolation', () => {
       `INSERT INTO public.cross_schema_guard (secret) VALUES ('top-secret')`,
     )
 
-    await ormService.executeExecForApp(
-      appId,
-      `
+    // Create a LombokAppPgClient for the app
+    const appClient = createAppPgClient(ormService, appId)
+
+    await appClient.query(`
       CREATE TABLE IF NOT EXISTS own_table (
         id SERIAL PRIMARY KEY,
         value TEXT
       )
-    `,
-    )
+    `)
 
-    await ormService.executeExecForApp(
-      appId,
-      `INSERT INTO own_table (value) VALUES ('allowed')`,
-    )
+    await appClient.query(`INSERT INTO own_table (value) VALUES ('allowed')`)
 
-    const ownResult = await ormService.executeQueryForApp<{ value: string }>(
-      appId,
-      `SELECT value FROM own_table`,
-      [],
-      'object',
-    )
-    expect(ownResult.rows[0]?.value).toBe('allowed')
+    const ownResult = await appClient.query(`SELECT value FROM own_table`)
+    expect((ownResult.rows[0] as { value: string }).value).toBe('allowed')
 
     expect(
-      ormService.executeQueryForApp(
-        appId,
-        `SELECT * FROM public.cross_schema_guard`,
-      ),
+      appClient.query(`SELECT * FROM public.cross_schema_guard`),
     ).rejects.toThrow(/permission denied/i)
 
+    await appClient.end()
     await ormService.dropAppSchema(appId)
     await ormService.client.query(
       `DROP TABLE IF EXISTS public.cross_schema_guard CASCADE`,
@@ -321,7 +489,6 @@ describe('ORM Schema Isolation', () => {
 
   it('should expose shared ACL view with owner and share entries', async () => {
     const ormService = testModule!.services.ormService
-    await ormService.ensureSharedAclSchema()
 
     const ownerUsername = 'acl_owner'
     const memberUsername = 'acl_member'
@@ -398,7 +565,7 @@ describe('ORM Schema Isolation', () => {
     }>(
       `
       SELECT "folderId", "userId", "permissions", "isOwner"
-      FROM ${SHARED_ACL_SCHEMA}.${SHARED_ACL_FOLDER_VIEW}
+      FROM ${SHARED_FOLDER_ACL_SCHEMA}.${SHARED_FOLDER_ACL_FOLDER_VIEW}
       WHERE "folderId" = $1
       ORDER BY "isOwner" DESC
     `,
@@ -416,10 +583,7 @@ describe('ORM Schema Isolation', () => {
 
   it('should handle app migrations with proper isolation', async () => {
     const ormService = testModule!.services.ormService
-    const testAppId = 'migration_test'
-
-    // Ensure the test app schema exists
-    await ormService.ensureAppSchema(testAppId)
+    const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
 
     // Run app migrations
     const migrationFiles = [
@@ -448,17 +612,16 @@ describe('ORM Schema Isolation', () => {
 
     await ormService.runAppMigrations(testAppId, migrationFiles)
 
+    // Create a LombokAppPgClient for the app
+    const appClient = createAppPgClient(ormService, testAppId)
+
     // Verify migrations worked
-    const usersResult = await ormService.executeQueryForApp(
-      testAppId,
+    const usersResult = await appClient.query(
       `SELECT table_name FROM information_schema.tables WHERE table_schema = 'app_${testAppId}' AND table_name = 'users'`,
-      [],
     )
 
-    const postsResult = await ormService.executeQueryForApp(
-      testAppId,
+    const postsResult = await appClient.query(
       `SELECT table_name FROM information_schema.tables WHERE table_schema = 'app_${testAppId}' AND table_name = 'posts'`,
-      [],
     )
 
     expect(usersResult.rows.length).toBe(1)
@@ -494,48 +657,38 @@ describe('ORM Schema Isolation', () => {
     expect(eventsResponse.response.status).toEqual(200)
 
     // Clean up
+    await appClient.end()
     await ormService.dropAppSchema(testAppId)
   })
 
   it('should handle rowMode array format correctly', async () => {
     const ormService = testModule!.services.ormService
-    const testAppId = 'rowmode_test'
+    const testAppId =
+      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
 
-    // Ensure the test app schema exists
-    await ormService.ensureAppSchema(testAppId)
+    // Create a LombokAppPgClient for the app
+    const appClient = createAppPgClient(ormService, testAppId)
 
     // Create a test table
-    await ormService.executeExecForApp(
-      testAppId,
-      `
+    await appClient.query(`
       CREATE TABLE IF NOT EXISTS rowmode_test (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255),
         value INTEGER
       )
-    `,
-    )
+    `)
 
     // Insert test data
-    await ormService.executeExecForApp(
-      testAppId,
+    await appClient.query(
       `INSERT INTO rowmode_test (name, value) VALUES ('test1', 100)`,
     )
-    await ormService.executeExecForApp(
-      testAppId,
+    await appClient.query(
       `INSERT INTO rowmode_test (name, value) VALUES ('test2', 200)`,
     )
 
     // Test object mode (default) - should return objects
-    const objectResult = await ormService.executeQueryForApp<{
-      id: number
-      name: string
-      value: number
-    }>(
-      testAppId,
+    const objectResult = await appClient.query(
       `SELECT id, name, value FROM rowmode_test ORDER BY id`,
-      [],
-      'object',
     )
 
     // Verify object mode results
@@ -544,12 +697,9 @@ describe('ORM Schema Isolation', () => {
     expect(objectResult.rows[1]).toEqual({ id: 2, name: 'test2', value: 200 })
 
     // Test array mode - should return arrays
-    const arrayResult = await ormService.executeQueryForApp<
-      [number, string, number]
-    >(
-      testAppId,
+    const arrayResult = await queryWithRowMode<[number, string, number]>(
+      appClient,
       `SELECT id, name, value FROM rowmode_test ORDER BY id`,
-      [],
       'array',
     )
 
@@ -559,8 +709,8 @@ describe('ORM Schema Isolation', () => {
     expect(arrayResult.rows[1]).toEqual([2, 'test2', 200])
 
     // Test batch operations with mixed rowMode
-    const batchResult = await ormService.executeBatchForApp(
-      testAppId,
+    const batchResult = await executeBatchForApp(
+      appClient,
       [
         {
           sql: `INSERT INTO rowmode_test (name, value) VALUES ('test3', 300)`,
@@ -600,6 +750,7 @@ describe('ORM Schema Isolation', () => {
     expect(mainAppResult.rows[0]?.test_value).toBe(1)
 
     // Clean up
+    await appClient.end()
     await ormService.dropAppSchema(testAppId)
   })
 
@@ -635,28 +786,22 @@ describe('ORM Schema Isolation', () => {
         await testModule!.getAppIdentifierBySlug('sockettestapp')
       const ormService = testModule!.services.ormService
 
-      // Ensure the schema exists
-      await ormService.ensureAppSchema(appIdentifier)
+      // Create a LombokAppPgClient for the app
+      const appClient = createAppPgClient(ormService, appIdentifier)
 
       // Test query
-      const queryResult = await ormService.executeQueryForApp(
-        appIdentifier,
-        'SELECT 1 as test_value',
-        [],
-      )
+      const queryResult = await appClient.query('SELECT 1 as test_value')
       expect(queryResult.rows.length).toBe(1)
 
       // Test exec
-      const execResult = await ormService.executeExecForApp(
-        appIdentifier,
+      const execResult = await appClient.query(
         'CREATE TABLE IF NOT EXISTS test_restriction_table (id SERIAL PRIMARY KEY)',
-        [],
       )
       expect(execResult.rowCount).toBeDefined()
 
       // Test batch
-      const batchResult = await ormService.executeBatchForApp(
-        appIdentifier,
+      const batchResult = await executeBatchForApp(
+        appClient,
         [
           {
             sql: 'SELECT 1 as test_value',
@@ -666,6 +811,9 @@ describe('ORM Schema Isolation', () => {
         false,
       )
       expect(batchResult.results.length).toBe(1)
+
+      // Clean up
+      await appClient.end()
     })
 
     it('should verify database restriction check logic correctly identifies restricted apps', async () => {

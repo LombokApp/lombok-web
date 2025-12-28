@@ -1,4 +1,4 @@
-import type { ZodSchema, ZodType, ZodTypeAny } from 'zod'
+import type { ZodSchema, ZodTypeAny } from 'zod'
 import { z } from 'zod'
 
 import type { AppSocketMessage } from './apps.types'
@@ -172,14 +172,12 @@ export const triggerAppTaskSchema = z.object({
 
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
-  DB_QUERY: dbQuerySchema,
-  DB_EXEC: dbExecSchema,
-  DB_BATCH: dbBatchSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
   GET_CONTENT_SIGNED_URLS: getContentSignedUrlsSchema,
   GET_APP_USER_ACCESS_TOKEN: getAppUserAccessTokenSchema,
   GET_METADATA_SIGNED_URLS: getMetadataSignedUrlsSchema,
   UPDATE_CONTENT_METADATA: updateMetadataSchema,
+  GET_LATEST_DB_CREDENTIALS: z.undefined(),
   COMPLETE_HANDLE_TASK: completeHandleTaskSchema,
   ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: attemptStartHandleTaskSchema,
   ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID: attemptStartHandleTaskByIdSchema,
@@ -261,31 +259,10 @@ const signedUrlSchema = z.object({
   objectKey: z.string(),
 })
 
-const dbFieldSchema: ZodType<unknown> = z.custom<unknown>()
-
 export const AppSocketMessageResponseSchemaMap = {
   EMIT_EVENT: createResponseSchema(
     z.object({
       success: z.boolean(),
-    }),
-  ),
-  DB_QUERY: createResponseSchema(
-    z.object({
-      command: z.string().optional(),
-      rowCount: z.number().nullable().optional(),
-      oid: z.number().nullable().optional(),
-      rows: z.array(z.unknown()),
-      fields: z.array(dbFieldSchema),
-    }),
-  ),
-  DB_EXEC: createResponseSchema(
-    z.object({
-      rowCount: z.number(),
-    }),
-  ),
-  DB_BATCH: createResponseSchema(
-    z.object({
-      results: z.array(z.unknown()),
     }),
   ),
   SAVE_LOG_ENTRY: createResponseSchema(z.null()),
@@ -334,9 +311,18 @@ export const AppSocketMessageResponseSchemaMap = {
       success: z.boolean(),
     }),
   ),
-
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   TRIGGER_APP_TASK: createResponseSchema(z.null()),
+  GET_LATEST_DB_CREDENTIALS: createResponseSchema(
+    z.object({
+      host: z.string(),
+      user: z.string(),
+      password: z.string(),
+      database: z.string(),
+      ssl: z.boolean(),
+      port: z.number(),
+    }),
+  ),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
 
 export type AppSocketResponseError = z.infer<typeof appMessageErrorSchema>

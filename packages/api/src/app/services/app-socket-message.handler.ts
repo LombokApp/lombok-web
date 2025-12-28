@@ -102,6 +102,23 @@ export async function handleAppSocketMessage(
   }
 
   switch (parsedRequest.name) {
+    case 'GET_LATEST_DB_CREDENTIALS':
+      return appService.getApp(requestingAppIdentifier).then((_app) => {
+        if (!_app?.database) {
+          return {
+            result: { success: false },
+            error: { code: 409, message: 'App does not have database access.' },
+          }
+        }
+        return (
+          ormService
+            .getLatestDbCredentials(_app.identifier)
+            // eslint-disable-next-line promise/no-nesting
+            .then((creds) => ({
+              result: creds,
+            }))
+        )
+      })
     case 'GET_APP_USER_ACCESS_TOKEN':
       return {
         result: await appService.createAppUserAccessTokenAsApp({
@@ -132,87 +149,6 @@ export async function handleAppSocketMessage(
           error: { code: 500, message: 'Internal server error.' },
         }
       }
-    case 'DB_QUERY': {
-      const app = await appService.getApp(requestingAppIdentifier, {
-        enabled: true,
-      })
-      if (!app) {
-        return {
-          error: { code: 404, message: 'App not found.' },
-        }
-      }
-      if (!app.database) {
-        return {
-          error: {
-            code: 409,
-            message: 'Database is not enabled for this app.',
-          },
-        }
-      }
-      const result = await ormService.executeQueryForApp(
-        requestingAppIdentifier,
-        parsedRequest.data.sql,
-        parsedRequest.data.params,
-        parsedRequest.data.rowMode,
-      )
-      return {
-        result: {
-          command: result.command,
-          rowCount: result.rowCount,
-          oid: result.oid,
-          rows: result.rows,
-          fields: result.fields,
-        },
-      }
-    }
-    case 'DB_EXEC': {
-      const app = await appService.getApp(requestingAppIdentifier, {
-        enabled: true,
-      })
-      if (!app) {
-        return {
-          error: { code: 404, message: 'App not found.' },
-        }
-      }
-      if (!app.database) {
-        return {
-          error: {
-            code: 409,
-            message: 'Database is not enabled for this app.',
-          },
-        }
-      }
-      const result = await ormService.executeExecForApp(
-        requestingAppIdentifier,
-        parsedRequest.data.sql,
-        parsedRequest.data.params,
-      )
-      return { result: { rowCount: result.rowCount } }
-    }
-    case 'DB_BATCH': {
-      const app = await appService.getApp(requestingAppIdentifier, {
-        enabled: true,
-      })
-      if (!app) {
-        return {
-          error: { code: 404, message: 'App not found.' },
-        }
-      }
-      if (!app.database) {
-        return {
-          error: {
-            code: 409,
-            message: 'Database is not enabled for this app.',
-          },
-        }
-      }
-      const result = await ormService.executeBatchForApp(
-        requestingAppIdentifier,
-        parsedRequest.data.steps,
-        parsedRequest.data.atomic,
-      )
-      return { result: { results: result.results } }
-    }
     case 'SAVE_LOG_ENTRY':
       await logEntryService.emitLog({
         emitterIdentifier: requestingAppIdentifier,

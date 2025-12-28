@@ -1,11 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import * as crypto from 'crypto'
+import { eq, sql } from 'drizzle-orm'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import * as path from 'path'
-import { Client, Pool, type PoolClient, QueryResult, QueryResultRow } from 'pg'
+import { Client, Pool, type PoolClient } from 'pg'
+import { KVService } from 'src/cache/kv.service'
 
-import { appsTable } from '../app/entities/app.entity'
+import { App, appsTable } from '../app/entities/app.entity'
 import {
   appFolderSettingsRelations,
   appFolderSettingsTable,
@@ -32,7 +35,11 @@ import { storageLocationsTable } from '../storage/entities/storage-location.enti
 import { tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
-import { SHARED_ACL_FOLDER_VIEW, SHARED_ACL_SCHEMA } from './constants'
+import {
+  EXTENSIONS_SCHEMA,
+  SHARED_FOLDER_ACL_FOLDER_VIEW,
+  SHARED_FOLDER_ACL_SCHEMA,
+} from './constants'
 
 export const dbSchema = {
   usersTable,
@@ -66,6 +73,7 @@ export class OrmService {
   constructor(
     @Inject(ormConfig.KEY)
     private readonly _ormConfig: nestjsConfig.ConfigType<typeof ormConfig>,
+    private readonly kvService: KVService,
   ) {}
 
   get client(): Pool {
@@ -89,24 +97,77 @@ export class OrmService {
     return `app_role_${appIdentifier}`
   }
 
+  private getAppRolePassword(appIdentifier: string): string | undefined {
+    return this.kvService.ops.get(`app_role_password_${appIdentifier}`) as
+      | string
+      | undefined
+  }
+
+  private async getOrGenerateAppRolePassword(
+    appIdentifier: string,
+    forceNew = false,
+  ): Promise<{
+    password: string
+    isNew: boolean
+  }> {
+    const roleName = this.getAppRoleName(appIdentifier)
+    let isNew = false
+    let currentPassword: string | undefined = forceNew
+      ? undefined
+      : this.getAppRolePassword(appIdentifier)
+    if (!currentPassword) {
+      isNew = true
+      currentPassword = crypto.randomBytes(32).toString('hex')
+      this.kvService.ops.set(
+        `app_role_password_${appIdentifier}`,
+        currentPassword,
+      )
+    }
+    if (isNew) {
+      await this.client.query(
+        `ALTER ROLE ${roleName} PASSWORD '${currentPassword}'`,
+      )
+    }
+
+    return { password: currentPassword, isNew }
+  }
+
+  async initAppRolesForAllApps(): Promise<void> {
+    const apps = await this.db.query.appsTable.findMany({
+      where: eq(sql`(${appsTable.config} ->> 'database')`, true),
+    })
+    await Promise.all(apps.map((app) => this.ensureAppDbConfig(app)))
+  }
+
+  async ensureAppDbConfig(app: App): Promise<void> {
+    await this.ensureAppSchemaAndRole(app.identifier)
+    await this.getOrGenerateAppRolePassword(app.identifier)
+    if (app.config.permissions?.platform?.includes('READ_FOLDER_ACL')) {
+      await this.ensureAppFolderAclSchemaAccess(app.identifier)
+    }
+  }
+
   private async ensureAppRole(appIdentifier: string): Promise<void> {
     const client = this.client
-    const schemaName = this.getAppSchemaName(appIdentifier)
-    const roleName = this.getAppRoleName(appIdentifier)
+    const appSchemaName = this.getAppSchemaName(appIdentifier)
+    const appRoleName = this.getAppRoleName(appIdentifier)
     const platformRole = this._ormConfig.dbUser
 
     const roleExists = await client.query<{ exists: number }>(
       'SELECT 1 as exists FROM pg_roles WHERE rolname = $1',
-      [roleName],
+      [appRoleName],
     )
 
     if (roleExists.rows.length === 0) {
       try {
-        await client.query(`CREATE ROLE ${roleName} NOLOGIN`)
-        this.logger.log(`Created role ${roleName} for app ${appIdentifier}`)
+        await client.query(`CREATE ROLE ${appRoleName} LOGIN`)
+        await client.query(
+          `ALTER ROLE ${appRoleName} SET search_path = ${appSchemaName}, ${EXTENSIONS_SCHEMA}`,
+        )
+        this.logger.log(`Created role ${appRoleName} for app ${appIdentifier}`)
       } catch (error) {
         this.logger.error(
-          `Failed to create role ${roleName} for app ${appIdentifier}`,
+          `Failed to create role ${appRoleName} for app ${appIdentifier}`,
           error as Error,
         )
         throw error
@@ -114,56 +175,30 @@ export class OrmService {
     }
 
     try {
-      await client.query(`GRANT ${roleName} TO ${platformRole}`)
+      await client.query(`GRANT ${appRoleName} TO ${platformRole}`)
       await client.query(
-        `GRANT USAGE, CREATE ON SCHEMA ${schemaName} TO ${roleName}`,
+        `GRANT USAGE, CREATE ON SCHEMA ${appSchemaName} TO ${appRoleName}`,
       )
-      await client.query(`GRANT USAGE ON SCHEMA extensions TO ${roleName}`)
+      await client.query(`GRANT USAGE ON SCHEMA extensions TO ${appRoleName}`)
       await client.query(
-        `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${schemaName} TO ${roleName}`,
-      )
-      await client.query(
-        `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${schemaName} TO ${roleName}`,
+        `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
       )
       await client.query(
-        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${schemaName} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${roleName}`,
+        `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
       )
       await client.query(
-        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${schemaName} GRANT USAGE, SELECT ON SEQUENCES TO ${roleName}`,
+        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${appSchemaName} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${appRoleName}`,
+      )
+      await client.query(
+        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${appSchemaName} GRANT USAGE, SELECT ON SEQUENCES TO ${appRoleName}`,
       )
     } catch (error) {
       this.logger.error(
-        `Failed to grant privileges for role ${roleName} and schema ${schemaName}, extensions`,
+        `Failed to grant privileges for role ${appRoleName} and schema ${appSchemaName}, extensions`,
         error as Error,
       )
       throw error
     }
-  }
-
-  private async configureAppSession(
-    client: PoolClient,
-    appIdentifier: string,
-    options: { includePgCatalog?: boolean } = {},
-  ): Promise<void> {
-    const roleName = this.getAppRoleName(appIdentifier)
-    const schemaName = this.getAppSchemaName(appIdentifier)
-    const includePgCatalog = options.includePgCatalog ?? true
-
-    try {
-      await client.query(`SET LOCAL ROLE ${roleName}`)
-    } catch (error) {
-      this.logger.error(
-        `Failed to set local role ${roleName} for app ${appIdentifier}`,
-        error as Error,
-      )
-      throw error
-    }
-
-    const searchPath = includePgCatalog
-      ? `${schemaName}, pg_catalog`
-      : `${schemaName}`
-
-    await client.query(`SET LOCAL search_path TO ${searchPath}, extensions`)
   }
 
   async runWithTestClient(func: (client: Client) => Promise<void>) {
@@ -253,6 +288,30 @@ export class OrmService {
     await this.truncateAllTestTables()
   }
 
+  async getLatestDbCredentials(appIdentifier: string): Promise<{
+    host: string
+    user: string
+    password: string
+    database: string
+    ssl: boolean
+    port: number
+  }> {
+    await this.ensureAppSchemaAndRole(appIdentifier)
+    return {
+      host: this._ormConfig.dbHost,
+      user: this.getAppRoleName(appIdentifier),
+      password: (await this.getOrGenerateAppRolePassword(appIdentifier))
+        .password,
+      database: this._ormConfig.dbName,
+      ssl:
+        (await this._client
+          ?.query<{ ssl: string }>(`SHOW ssl`)
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          .then((res) => res.rows[0]!.ssl)) === 'on',
+      port: this._ormConfig.dbPort,
+    }
+  }
+
   public async truncateAllTestTables() {
     if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
       throw new Error('Attempt to truncate non-test database.')
@@ -320,9 +379,11 @@ export class OrmService {
   }
 
   async ensureSharedAclSchema(): Promise<void> {
-    await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${SHARED_ACL_SCHEMA}`)
+    await this.client.query(
+      `CREATE SCHEMA IF NOT EXISTS ${SHARED_FOLDER_ACL_SCHEMA}`,
+    )
     await this.client.query(`
-      CREATE OR REPLACE VIEW ${SHARED_ACL_SCHEMA}.${SHARED_ACL_FOLDER_VIEW} AS
+      CREATE OR REPLACE VIEW ${SHARED_FOLDER_ACL_SCHEMA}.${SHARED_FOLDER_ACL_FOLDER_VIEW} AS
       SELECT
         f."id" AS "folderId",
         f."ownerId" AS "userId",
@@ -341,180 +402,16 @@ export class OrmService {
 
   async ensureExtensionsSchema(): Promise<void> {
     // Create extensions schema if it doesn't exist
-    await this.client.query(`CREATE SCHEMA IF NOT EXISTS extensions;`)
+    await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${EXTENSIONS_SCHEMA};`)
     await this.client.query(
       `GRANT USAGE ON SCHEMA extensions TO ${this._ormConfig.dbUser};`,
     )
   }
 
   /**
-   * Execute a query for a specific app using its schema
-   * Uses transaction-scoped search path to avoid affecting other queries
-   */
-  async executeQueryForApp<T extends QueryResultRow>(
-    appIdentifier: string,
-    sql: string,
-    params: unknown[] = [],
-    rowMode = 'array',
-  ): Promise<QueryResult<T>> {
-    // Validate app identifier to prevent SQL injection
-    if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
-      throw new Error(`Invalid app identifier: ${appIdentifier}`)
-    }
-
-    const client: PoolClient = await this.client.connect()
-    try {
-      await client.query('BEGIN')
-      await this.configureAppSession(client, appIdentifier)
-
-      // Handle rowMode parameter
-      const queryConfig: { text: string; values: unknown[]; rowMode?: string } =
-        {
-          text: sql,
-          values: params,
-        }
-      if (rowMode) {
-        queryConfig.rowMode = rowMode
-      }
-
-      const result = await client.query(queryConfig)
-      await client.query('COMMIT')
-      return result as QueryResult<T>
-    } catch (error) {
-      await client.query('ROLLBACK')
-      throw error
-    } finally {
-      client.release()
-    }
-  }
-
-  /**
-   * Execute a non-SELECT statement for a specific app using its schema
-   * Uses transaction-scoped search path to avoid affecting other queries
-   */
-  async executeExecForApp(
-    appIdentifier: string,
-    sql: string,
-    params: unknown[] = [],
-  ): Promise<{ rowCount: number }> {
-    // Validate app identifier to prevent SQL injection
-    if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
-      throw new Error(`Invalid app identifier: ${appIdentifier}`)
-    }
-
-    const client: PoolClient = await this.client.connect()
-    try {
-      await client.query('BEGIN')
-      await this.configureAppSession(client, appIdentifier)
-      const result = await client.query(sql, params)
-      await client.query('COMMIT')
-      return { rowCount: result.rowCount ?? 0 }
-    } catch (error) {
-      await client.query('ROLLBACK')
-      throw error
-    } finally {
-      client.release()
-    }
-  }
-
-  /**
-   * Execute a batch of operations for a specific app using its schema
-   * Uses transaction-scoped search path to avoid affecting other queries
-   */
-  async executeBatchForApp(
-    appIdentifier: string,
-    steps: {
-      sql: string
-      params?: unknown[]
-      kind: 'query' | 'exec'
-      rowMode?: string
-    }[],
-    atomic = false,
-  ): Promise<{ results: unknown[] }> {
-    // Validate app identifier to prevent SQL injection
-    if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
-      throw new Error(`Invalid app identifier: ${appIdentifier}`)
-    }
-
-    if (atomic) {
-      const client: PoolClient = await this.client.connect()
-      try {
-        await client.query('BEGIN')
-        await this.configureAppSession(client, appIdentifier, {
-          includePgCatalog: false,
-        })
-        const results: unknown[] = []
-        for (const step of steps) {
-          // Handle rowMode parameter
-          const queryConfig: {
-            text: string
-            values: unknown[]
-            rowMode?: string
-          } = {
-            text: step.sql,
-            values: step.params || [],
-          }
-          if (step.rowMode) {
-            queryConfig.rowMode = step.rowMode
-          }
-
-          const res = await client.query(queryConfig)
-          results.push(
-            step.kind === 'query' ? res.rows : { rowCount: res.rowCount },
-          )
-        }
-        await client.query('COMMIT')
-        return { results }
-      } catch (error) {
-        await client.query('ROLLBACK')
-        throw error
-      } finally {
-        client.release()
-      }
-    } else {
-      // For non-atomic operations, each step gets its own transaction
-      const results: unknown[] = []
-      for (const step of steps) {
-        const client: PoolClient = await this.client.connect()
-        try {
-          await client.query('BEGIN')
-          await this.configureAppSession(client, appIdentifier, {
-            includePgCatalog: false,
-          })
-
-          // Handle rowMode parameter
-          const queryConfig: {
-            text: string
-            values: unknown[]
-            rowMode?: string
-          } = {
-            text: step.sql,
-            values: step.params || [],
-          }
-          if (step.rowMode) {
-            queryConfig.rowMode = step.rowMode
-          }
-
-          const res = await client.query(queryConfig)
-          await client.query('COMMIT')
-          results.push(
-            step.kind === 'query' ? res.rows : { rowCount: res.rowCount },
-          )
-        } catch (error) {
-          await client.query('ROLLBACK')
-          throw error
-        } finally {
-          client.release()
-        }
-      }
-      return { results }
-    }
-  }
-
-  /**
    * Ensure app schema exists
    */
-  async ensureAppSchema(appIdentifier: string): Promise<void> {
+  async ensureAppSchemaAndRole(appIdentifier: string): Promise<void> {
     const schemaName = this.getAppSchemaName(appIdentifier)
 
     // Check if schema exists
@@ -539,17 +436,23 @@ export class OrmService {
     await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
-  async grantAclSchemaUsageToApp(appIdentifier: string): Promise<void> {
-    const roleName = this.getAppRoleName(appIdentifier)
+  async ensureAppFolderAclSchemaAccess(appIdentifier: string): Promise<void> {
+    const appRoleName = this.getAppRoleName(appIdentifier)
 
     await this.client.query(
-      `GRANT USAGE ON SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+      `GRANT USAGE ON SCHEMA ${SHARED_FOLDER_ACL_SCHEMA} TO ${appRoleName}`,
     )
     await this.client.query(
-      `GRANT SELECT ON ALL TABLES IN SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+      `GRANT SELECT ON ALL TABLES IN SCHEMA ${SHARED_FOLDER_ACL_SCHEMA} TO ${appRoleName}`,
     )
     await this.client.query(
-      `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${SHARED_ACL_SCHEMA} TO ${roleName}`,
+      `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${SHARED_FOLDER_ACL_SCHEMA} TO ${appRoleName}`,
+    )
+
+    const appSchemaName = this.getAppSchemaName(appIdentifier)
+
+    await this.client.query(
+      `ALTER ROLE ${appRoleName} SET search_path = ${appSchemaName}, ${EXTENSIONS_SCHEMA}, ${SHARED_FOLDER_ACL_SCHEMA}`,
     )
   }
 
@@ -560,17 +463,7 @@ export class OrmService {
     appIdentifier: string,
     migrationFiles: { filename: string; content: string }[],
   ): Promise<void> {
-    await this.ensureAppSchema(appIdentifier)
-
-    // Validate app identifier to prevent SQL injection
-    if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
-      throw new Error(`Invalid app identifier: ${appIdentifier}`)
-    }
-
     const schemaName = this.getAppSchemaName(appIdentifier)
-
-    // Ensure schema exists
-    await this.ensureAppSchema(appIdentifier)
 
     if (migrationFiles.length === 0) {
       return
@@ -689,11 +582,17 @@ export class OrmService {
       const checksum = this.calculateChecksum(migrationFile.content)
 
       const client: PoolClient = await this.client.connect()
-      const roleName = this.getAppRoleName(appIdentifier)
+      const appRoleName = this.getAppRoleName(appIdentifier)
       try {
         await client.query('BEGIN')
-        await client.query(`SET LOCAL ROLE ${roleName}`)
-        await this.configureAppSession(client, appIdentifier)
+        await client.query(`SET LOCAL ROLE ${appRoleName}`)
+        // Explicitly set search_path since SET ROLE doesn't apply role defaults
+        await client.query(
+          `SET LOCAL search_path = ${schemaName}, ${EXTENSIONS_SCHEMA}`,
+        )
+        await client.query(
+          `SET LOCAL application_name = 'lombok_migrations=${appIdentifier}'`,
+        )
         await client.query(migrationFileContent)
         await client.query(
           `INSERT INTO ${schemaName}.__migrations__ (filename, version, checksum) VALUES ($1, $2, $3)`,

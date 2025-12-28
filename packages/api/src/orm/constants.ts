@@ -10,5 +10,6 @@ export const bytea = customType<{
   },
 })
 
-export const SHARED_ACL_SCHEMA = 'shared_acl'
-export const SHARED_ACL_FOLDER_VIEW = 'folder_acl_context'
+export const SHARED_FOLDER_ACL_SCHEMA = 'shared_folder_acl'
+export const SHARED_FOLDER_ACL_FOLDER_VIEW = 'folder_acl_context'
+export const EXTENSIONS_SCHEMA = 'extensions'
