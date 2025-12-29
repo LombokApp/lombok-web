@@ -9,6 +9,7 @@ import type {
   ContainerInfo,
   CreateContainerOptions,
   DockerAdapter,
+  DockerError,
   DockerStateFunc,
 } from './docker-client.types'
 
@@ -27,7 +28,6 @@ class DockerClientError extends Error {
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerClientService {
   private readonly logger = new Logger(DockerClientService.name)
-  private readonly dockerHostAdapters: Record<string, DockerAdapter> = {}
 
   constructor(
     private readonly dockerAdapterProvider: DockerAdapterProvider,
@@ -61,7 +61,9 @@ export class DockerClientService {
       string,
       { result: ConnectionTestResult; id: string }
     > = {}
-    for (const hostId of Object.keys(this.dockerHostAdapters)) {
+    for (const hostId of Object.keys(
+      this._platformConfig.dockerHostConfig.hosts ?? {},
+    )) {
       results[hostId] = {
         id: this.getAdapter(hostId).getDescription(),
         result: await this.getAdapter(hostId).testConnection(),
@@ -134,15 +136,16 @@ export class DockerClientService {
     }
   }
 
-  async execInContainerAndReturnOutput(
+  async execInContainer(
     hostId: string,
     containerId: string,
     command: string[],
-  ): Promise<{ stdout: string; stderr: string }> {
-    return this.getAdapter(hostId).execInContainerAndReturnOutput(
-      containerId,
-      command,
-    )
+  ): Promise<{
+    getError: () => Promise<DockerError>
+    state: DockerStateFunc
+    output: () => { stdout: string; stderr: string }
+  }> {
+    return this.getAdapter(hostId).execInContainer(containerId, { command })
   }
 
   resolveDockerHostConfigForProfile(profileKey: string): {
@@ -200,8 +203,9 @@ export class DockerClientService {
   ): Promise<{
     containerId: string
     hostId: string
+    getError: () => Promise<DockerError>
     state: DockerStateFunc
-    output: () => Promise<{ stdout: string; stderr: string }>
+    output: () => { stdout: string; stderr: string }
   }> {
     const { hostId, volumes, gpus, extraHosts, networkMode } =
       this.resolveDockerHostConfigForProfile(profileKey)
@@ -245,11 +249,15 @@ export class DockerClientService {
       labels,
     })
 
-    const { state, output } = await adapter.execInContainer(container.id, {
-      command,
-    })
+    const { getError, state, output } = await adapter.execInContainer(
+      container.id,
+      {
+        command,
+      },
+    )
 
     return {
+      getError,
       hostId,
       containerId: container.id,
       state,

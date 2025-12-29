@@ -1,14 +1,16 @@
 import { Logger } from '@nestjs/common'
 import Docker from 'dockerode'
 import * as fs from 'fs'
-import { dockerDemuxStream } from 'src/docker/docker.util'
+import { PassThrough } from 'stream'
 
 import type { ContainerExecuteOptions } from '../docker.schema'
-import type {
-  ConnectionTestResult,
-  ContainerInfo,
-  CreateContainerOptions,
-  DockerAdapter,
+import {
+  type ConnectionTestResult,
+  type ContainerInfo,
+  type CreateContainerOptions,
+  type DockerAdapter,
+  DockerError,
+  type DockerStateFunc,
 } from '../docker-client.types'
 import {
   type DockerEndpointAuth,
@@ -287,40 +289,86 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
-  async execInContainer(containerId: string, options: ContainerExecuteOptions) {
-    try {
-      const container = this.docker.getContainer(containerId)
-      const exec = await container.exec({
-        Cmd: options.command,
-        AttachStdout: true,
-        AttachStderr: true,
-      })
-      const stream = await exec.start({ Detach: false, Tty: false })
+  private async execInContainerAndCapture(
+    containerId: string,
+    command: string[],
+  ): Promise<{
+    getError: () => Promise<DockerError>
+    state: DockerStateFunc
+    output: () => { stdout: string; stderr: string }
+  }> {
+    const container = this.docker.getContainer(containerId)
 
-      const outputPromise = dockerDemuxStream(stream)
+    const exec = await container.exec({
+      Cmd: command,
+      AttachStdout: true,
+      AttachStderr: true,
+      Tty: false, // must be false to demux
+    })
 
-      return {
-        output: () => outputPromise,
-        state: () =>
-          exec.inspect().then((inspect) => {
-            return inspect.Running
-              ? ({
-                  running: true,
-                  exitCode: null,
-                } as const)
-              : ({
-                  running: false,
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  exitCode: inspect.ExitCode!,
-                } as const)
-          }),
-      }
-    } catch (error) {
-      throw new Error(
-        `EXEC_FAILED: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`,
-        { cause: error },
+    const stream = await exec.start({ Tty: false })
+    const stdoutStream = new PassThrough()
+    const stderrStream = new PassThrough()
+
+    let stdout = ''
+    let stderr = ''
+
+    stdoutStream.on('data', (b: Buffer) => (stdout += b.toString('utf8')))
+    stderrStream.on('data', (b: Buffer) => (stderr += b.toString('utf8')))
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    exec.modem.demuxStream(stream, stdoutStream, stderrStream)
+
+    // Important: resolve on 'close' as well as 'end'
+    await new Promise<void>((resolve, reject) => {
+      stream.on('end', resolve)
+      stream.on('close', resolve)
+      stream.on('error', reject)
+    })
+
+    return {
+      getError: () =>
+        exec
+          .inspect()
+          .then((state) => this.resolveError(state, { stdout, stderr })),
+      state: () =>
+        exec.inspect().then((state) =>
+          !state.Running
+            ? {
+                running: false,
+                exitCode: state.ExitCode === 0 ? 0 : (state.ExitCode ?? 1),
+              }
+            : {
+                running: true,
+                exitCode: null,
+              },
+        ),
+      output: () => {
+        return { stdout, stderr }
+      },
+    }
+  }
+
+  private resolveError(
+    state: Docker.ExecInspectInfo,
+    { stderr }: { stdout: string; stderr: string },
+  ): DockerError {
+    if (state.ExitCode === 0) {
+      throw new Error(`getError called for non-failed exec`)
+    }
+
+    if (stderr.includes('argument list too long')) {
+      return new DockerError(
+        'COMMAND_ARGUMENT_LIST_TOO_LONG',
+        'Error: ' + stderr,
       )
     }
+
+    return new DockerError('UNKNOWN_ERROR', 'Unknown error: ' + stderr)
+  }
+
+  async execInContainer(containerId: string, options: ContainerExecuteOptions) {
+    return this.execInContainerAndCapture(containerId, options.command)
   }
 
   async startContainer(containerId: string): Promise<void> {
@@ -348,36 +396,5 @@ export class LocalDockerAdapter implements DockerAdapter {
     } catch {
       return false
     }
-  }
-
-  /**
-   * Execute a command in a container and return the output as a string
-   */
-  async execInContainerAndReturnOutput(
-    containerId: string,
-    command: string[],
-  ): Promise<{ stdout: string; stderr: string }> {
-    const container = this.docker.getContainer(containerId)
-
-    const exec = await container.exec({
-      Cmd: command,
-      AttachStdout: true,
-      AttachStderr: true,
-    })
-
-    const stream = await exec.start({ Detach: false, Tty: false })
-
-    // Wait for the stream to end and collect all output
-    const output = await dockerDemuxStream(stream)
-
-    // Wait for the exec to complete to ensure all data is flushed
-    // Poll until the exec is no longer running
-    let inspect = await exec.inspect()
-    while (inspect.Running) {
-      await new Promise((resolve) => setTimeout(resolve, 10))
-      inspect = await exec.inspect()
-    }
-
-    return output
   }
 }

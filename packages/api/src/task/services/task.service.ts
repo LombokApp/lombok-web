@@ -186,7 +186,7 @@ export class TaskService {
     if (search) {
       conditions.push(
         or(
-          ilike(tasksTable.id, `%${search}%`),
+          ilike(sql<string>`${tasksTable.id}::text`, `%${search}%`),
           ilike(tasksTable.taskIdentifier, `%${search}%`),
           ilike(tasksTable.taskDescription, `%${search}%`),
           ilike(sql<string>`${tasksTable.error} ->> 'details'`, `%${search}%`),

@@ -145,8 +145,14 @@ async function resolveTemplateExpression(
             })
 
     const fnResult = fn(...args)
-    if (fnResult instanceof Promise) {
-      return fnResult.then((result) => result)
+    if (
+      fnResult !== null &&
+      typeof fnResult === 'object' &&
+      typeof (fnResult as { then?: unknown }).then === 'function'
+    ) {
+      return (fnResult as Promise<JsonSerializableValue>).then(
+        (result) => result,
+      )
     }
     return fnResult
   }

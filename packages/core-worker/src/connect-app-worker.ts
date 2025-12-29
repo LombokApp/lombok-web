@@ -67,7 +67,8 @@ export const connectAndPerformWork = (
       resolve()
     })
 
-    socket.on('PENDING_TASKS_NOTIFICATION', async (_data) => {
+    socket.on('PENDING_TASKS_NOTIFICATION', async (_data: unknown) => {
+      console.log('PENDING_TASKS_NOTIFICATION', { _data, concurrentTasks })
       if (concurrentTasks < 10) {
         try {
           concurrentTasks++

@@ -40,19 +40,19 @@ export class PlatformTaskService {
   async drainPlatformTasks(waitForCompletion = false) {
     const runId = crypto.randomUUID()
     if (this.draining) {
-      this.logger.verbose('Platform task draining already running')
+      this.logger.debug('Platform task draining already running')
       if (waitForCompletion) {
         await this.draining
       }
       return
     }
-    this.logger.verbose('Draining platform tasks started:', runId)
+    this.logger.debug('Draining platform tasks started:', runId)
     let unstartedPlatformTasksCount = 0
 
     try {
       this.draining = this._drainPlatformTasks()
       const { completed, pending } = await this.draining
-      this.logger.verbose('Draining platform task run complete:', {
+      this.logger.debug('Draining platform task run complete:', {
         runId,
         completed,
         pending,
@@ -220,6 +220,26 @@ export class PlatformTaskService {
         })
         .finally(() => {
           this.runningTasksCount--
+          void this.ormService.db.query.tasksTable
+            .findFirst({
+              where: eq(tasksTable.id, startedTask.id),
+            })
+            .then((finalTaskState) => {
+              this.logger.debug(
+                `Platform task completed [${startedTask.id}]:`,
+                {
+                  task: {
+                    identifier: finalTaskState?.taskIdentifier,
+                    description: finalTaskState?.taskDescription,
+                    startedAt: finalTaskState?.startedAt,
+                    completedAt: finalTaskState?.completedAt,
+                    success: finalTaskState?.success,
+                    error: finalTaskState?.error,
+                    systemLog: finalTaskState?.systemLog,
+                  },
+                },
+              )
+            })
         })
     }
   }

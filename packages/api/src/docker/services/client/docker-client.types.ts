@@ -60,22 +60,15 @@ export interface DockerAdapter {
   createContainer: (options: CreateContainerOptions) => Promise<ContainerInfo>
 
   /**
-   * Execute a command in a running container and return the output as a string
-   */
-  execInContainerAndReturnOutput: (
-    containerId: string,
-    command: string[],
-  ) => Promise<{ stdout: string; stderr: string }>
-
-  /**
    * Execute a command in a running container
    */
   execInContainer: (
     containerId: string,
     options: ContainerExecuteOptions,
   ) => Promise<{
+    getError: () => Promise<DockerError>
     state: DockerStateFunc
-    output: () => Promise<{ stdout: string; stderr: string }>
+    output: () => { stdout: string; stderr: string }
   }>
 
   /**
@@ -127,7 +120,7 @@ export type DockerExecResult<T extends boolean> = T extends true
   ? DockerSynchronousExecResult
   : DockerAsynchronousExecResult
 
-export type DockerStateFunc = () => Promise<DockerExecState>
+export type DockerStateFunc = (timeoutMs?: number) => Promise<DockerExecState>
 
 export type DockerExecState = DockerExecStateRunning | DockerExecStateExited
 
@@ -139,4 +132,58 @@ export interface DockerExecStateRunning {
 export interface DockerExecStateExited {
   running: false
   exitCode: number
+}
+
+export class DockerError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'DockerError'
+  }
+}
+
+export class DockerJobExecuteError extends DockerError {
+  constructor(
+    public readonly code: string,
+    message: string,
+  ) {
+    super(code, message)
+    this.name = 'DockerJobExecuteError'
+  }
+}
+
+export class DockerJobSubmitError extends DockerError {
+  constructor(
+    public readonly code: string,
+    message: string,
+  ) {
+    super(code, message)
+    this.name = 'DockerJobSubmitError'
+  }
+}
+
+export class DockerJobSubmissionError extends DockerJobSubmitError {
+  constructor(
+    public readonly code: string,
+    message: string,
+  ) {
+    super(code, message)
+    this.name = 'DockerJobSubmissionError'
+  }
+}
+
+export class DockerJobCompletionError extends DockerJobExecuteError {
+  constructor(code: string, message: string) {
+    super(code, message)
+    this.name = 'DockerJobCompletionError'
+  }
+}
+
+export class DockerLogAccessError extends DockerError {
+  constructor(code: string, message: string) {
+    super(code, message)
+    this.name = 'DockerLogAccessError'
+  }
 }

@@ -35,7 +35,10 @@ const MAX_WORKER_IDLE_TIME = 5 * 60 * 1000 // 5 minutes
 class MessageRouter {
   private readonly responseWaiters = new Map<
     string,
-    (response: WorkerPipeResponse) => void
+    {
+      resolve: (response: WorkerPipeResponse) => void
+      reject: (error: Error) => void
+    }
   >()
   private readonly streamingHandlers = new Map<
     string,
@@ -44,6 +47,7 @@ class MessageRouter {
       nextChunkIndex: number
       totalChunks?: number
       controller: ReadableStreamDefaultController<Uint8Array>
+      onComplete?: () => void
     }
   >()
   private readonly stdoutHandlers = new Map<string, (text: string) => void>()
@@ -59,6 +63,7 @@ class MessageRouter {
   >()
   private readonly reader: PipeReader
   private isRunning = false
+  private stopError: Error | null = null
 
   constructor(reader: PipeReader) {
     this.reader = reader
@@ -85,6 +90,9 @@ class MessageRouter {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Message router error:', error)
+        this.abortPendingRequests(
+          error instanceof Error ? error : new Error(String(error)),
+        )
         break
       }
     }
@@ -106,7 +114,7 @@ class MessageRouter {
         const waiter = this.responseWaiters.get(response.id)
         if (waiter) {
           this.responseWaiters.delete(response.id)
-          waiter(response)
+          waiter.resolve(response)
         } else {
           this.debug(`No waiter found for response ${response.id}`)
         }
@@ -148,7 +156,7 @@ class MessageRouter {
       }
       case 'shutdown': {
         // Graceful shutdown signal; stop the router loop
-        this.stop()
+        this.stop(new Error('Worker daemon shutdown'))
         break
       }
       default:
@@ -269,6 +277,7 @@ class MessageRouter {
       nextChunkIndex: number
       totalChunks?: number
       controller: ReadableStreamDefaultController<Uint8Array>
+      onComplete?: () => void
     },
     requestId: string,
     totalChunks: number,
@@ -310,6 +319,9 @@ class MessageRouter {
       // Also remove any stdout handler registered for this request
       this.stdoutHandlers.delete(requestId)
       this.orphanedStdout.delete(requestId)
+      if (handler.onComplete) {
+        handler.onComplete()
+      }
     } else {
       this.debug(
         `NOT closing ${requestId} - only ${handler.nextChunkIndex}/${totalChunks} delivered`,
@@ -318,14 +330,18 @@ class MessageRouter {
   }
 
   waitForResponse(requestId: string): Promise<WorkerPipeResponse> {
-    return new Promise((resolve) => {
-      this.responseWaiters.set(requestId, resolve)
+    if (this.stopError) {
+      return Promise.reject(this.stopError)
+    }
+    return new Promise((resolve, reject) => {
+      this.responseWaiters.set(requestId, { resolve, reject })
     })
   }
 
   registerStreamingHandler(
     requestId: string,
     controller: ReadableStreamDefaultController<Uint8Array>,
+    onComplete?: () => void,
   ): void {
     this.debug(`Registering streaming handler for ${requestId}`)
 
@@ -333,6 +349,7 @@ class MessageRouter {
       chunks: new Map(),
       nextChunkIndex: 0,
       controller,
+      onComplete,
     }
     this.streamingHandlers.set(requestId, handler)
 
@@ -386,8 +403,37 @@ class MessageRouter {
     this.orphanedStdout.delete(requestId)
   }
 
-  stop(): void {
+  private abortPendingRequests(reason: Error): void {
+    if (this.stopError) {
+      return
+    }
+    this.stopError = reason
     this.isRunning = false
+
+    for (const waiter of this.responseWaiters.values()) {
+      waiter.reject(reason)
+    }
+    this.responseWaiters.clear()
+
+    for (const handler of this.streamingHandlers.values()) {
+      try {
+        handler.controller.error(reason)
+      } catch {
+        // ignore
+      }
+      if (handler.onComplete) {
+        handler.onComplete()
+      }
+    }
+    this.streamingHandlers.clear()
+    this.orphanedChunks.clear()
+    this.orphanedStreamEnds.clear()
+    this.stdoutHandlers.clear()
+    this.orphanedStdout.clear()
+  }
+
+  stop(reason?: Error): void {
+    this.abortPendingRequests(reason ?? new Error('Message router stopped'))
   }
 }
 
@@ -402,6 +448,7 @@ function handleStreamingResponse(
   },
   requestId: string,
   messageRouter: MessageRouter,
+  onComplete?: () => void,
 ): Response {
   const debug = (...args: unknown[]) => {
     if (LOMBOK_PIPE_DEBUG) {
@@ -417,12 +464,15 @@ function handleStreamingResponse(
       debug(`Started streaming response for ${requestId}`)
 
       // Register with message router
-      messageRouter.registerStreamingHandler(requestId, ctrl)
+      messageRouter.registerStreamingHandler(requestId, ctrl, onComplete)
 
       debug(`Registered streaming handler for ${requestId}`)
     },
     cancel() {
       debug(`Streaming response cancelled for ${requestId}`)
+      if (onComplete) {
+        onComplete()
+      }
     },
   })
 
@@ -956,6 +1006,7 @@ const workerProcesses = new Map<
     requestPipePath: string
     responsePipePath: string
     lastUsed: number
+    activeRequests: number
   }
 >()
 
@@ -968,6 +1019,7 @@ const workerCreationPromises = new Map<
     messageRouter: MessageRouter
     workerRootPath: string
     logsDir: string
+    workerId: string
   }>
 >()
 
@@ -983,7 +1035,7 @@ const cleanupWorkerProcess = async (workerId: string) => {
 
   try {
     // Stop message router
-    worker.messageRouter.stop()
+    worker.messageRouter.stop(new Error('Worker process cleaned up'))
 
     // Send shutdown signal (may fail if process already exited)
     try {
@@ -1009,6 +1061,7 @@ const cleanupWorkerProcess = async (workerId: string) => {
 // Separate function to actually create the worker process
 async function createWorkerProcess(
   appIdentifier: string,
+  appInstallId: string,
   workerIdentifier: string,
   server: IAppPlatformService,
   options: {
@@ -1022,8 +1075,9 @@ async function createWorkerProcess(
   messageRouter: MessageRouter
   workerRootPath: string
   logsDir: string
+  workerId: string
 }> {
-  const workerId = `${appIdentifier}--${workerIdentifier}`
+  const workerId = `${appIdentifier}--${appInstallId}--${workerIdentifier}`
 
   // Create new worker process
   const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}`
@@ -1171,6 +1225,7 @@ async function createWorkerProcess(
     requestPipePath,
     responsePipePath,
     lastUsed: Date.now(),
+    activeRequests: 0,
   })
 
   // Handle process exit
@@ -1200,6 +1255,9 @@ setInterval(
     const now = Date.now()
 
     for (const [workerId, worker] of workerProcesses) {
+      if (worker.activeRequests > 0) {
+        continue
+      }
       if (now - worker.lastUsed > MAX_WORKER_IDLE_TIME) {
         if (LOMBOK_PIPE_DEBUG) {
           // eslint-disable-next-line no-console
@@ -1245,6 +1303,7 @@ async function getOrCreateWorkerProcess(
       messageRouter: existingWorker.messageRouter,
       workerRootPath: path.dirname(existingWorker.requestPipePath),
       logsDir: path.join(path.dirname(existingWorker.requestPipePath), 'logs'),
+      workerId,
     }
   }
 
@@ -1258,15 +1317,18 @@ async function getOrCreateWorkerProcess(
   // Create a new worker process (with locking)
   const creationPromise = createWorkerProcess(
     appIdentifier,
+    appInstallId,
     workerIdentifier,
     server,
     options,
-  )
+  ).then((result) => ({
+    ...result,
+    workerId,
+  }))
   workerCreationPromises.set(workerId, creationPromise)
 
   try {
-    const result = await creationPromise
-    return result
+    return await creationPromise
   } finally {
     // Clean up the creation promise
     workerCreationPromises.delete(workerId)
@@ -1320,6 +1382,8 @@ export async function runWorkerScript(
   } = args
 
   const overallStartTime = performance.now()
+  let deferCompletion = false
+  let completeRequest: (() => void) | null = null
 
   try {
     // Get or create long-running worker process
@@ -1327,6 +1391,7 @@ export async function runWorkerScript(
       requestWriter,
       messageRouter: workerMessageRouter,
       logsDir,
+      workerId,
     } = await getOrCreateWorkerProcess(
       appIdentifier,
       appInstallId,
@@ -1334,6 +1399,25 @@ export async function runWorkerScript(
       server,
       options,
     )
+    const workerEntry = workerProcesses.get(workerId)
+    if (workerEntry) {
+      workerEntry.activeRequests += 1
+    }
+    let requestCompleted = false
+    completeRequest = () => {
+      if (requestCompleted) {
+        return
+      }
+      requestCompleted = true
+      const workerState = workerProcesses.get(workerId)
+      if (workerState) {
+        workerState.activeRequests = Math.max(
+          0,
+          workerState.activeRequests - 1,
+        )
+        workerState.lastUsed = Date.now()
+      }
+    }
 
     // Generate unique request ID
     const requestId = `${workerExecutionId}__${Date.now()}_${crypto.randomUUID()}`
@@ -1521,7 +1605,9 @@ export async function runWorkerScript(
         },
         requestId,
         workerMessageRouter,
+        () => completeRequest?.(),
       )
+      deferCompletion = true
       // The stdout handler remains active until stream_end closes the stream; caller may still receive stdout
       return response
     }
@@ -1588,6 +1674,10 @@ export async function runWorkerScript(
       parseError: error instanceof Error ? error.message : String(error),
       exitCode: undefined,
     })
+  } finally {
+    if (!deferCompletion && completeRequest) {
+      completeRequest()
+    }
   }
 }
 
