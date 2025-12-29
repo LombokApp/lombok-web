@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": ["../../app-demo-workers/src/workers/demo_object_added_worker/index.ts"],
+  "sourcesContent": [
+    "import { AppAPIError, type TaskHandler } from '@lombokapp/app-worker-sdk'\nimport { SignedURLsRequestMethod } from '@lombokapp/types'\n\nexport const handleTask: TaskHandler = async function handleTask(\n  task,\n  { serverClient },\n) {\n  if (!task.targetLocation?.objectKey) {\n    throw new AppAPIError(\n      'INVALID_TASK_DATA',\n      'Missing target location or object key',\n    )\n  }\n  const response = await serverClient.getContentSignedUrls([\n    {\n      folderId: task.targetLocation.folderId,\n      objectKey: task.targetLocation.objectKey,\n      method: SignedURLsRequestMethod.GET,\n    },\n  ])\n\n  if ('error' in response) {\n    throw new Error(response.error.message)\n  }\n\n  console.log('From within object_added worker:', {\n    objectFetchUrl: response.result[0]?.url ?? '',\n    envVars: process.env,\n  })\n}\n"
+  ],
+  "mappings": ";AAAA,sBAAS,kCACT,kCAAS,yBAEF,IAAM,EAA0B,cAAyB,CAC9D,GACE,gBACF,CACA,GAAI,CAAC,EAAK,gBAAgB,UACxB,MAAM,IAAI,EACR,oBACA,uCACF,EAEF,IAAM,EAAW,MAAM,EAAa,qBAAqB,CACvD,CACE,SAAU,EAAK,eAAe,SAC9B,UAAW,EAAK,eAAe,UAC/B,OAAQ,EAAwB,GAClC,CACF,CAAC,EAED,GAAI,UAAW,EACb,MAAU,MAAM,EAAS,MAAM,OAAO,EAGxC,QAAQ,IAAI,mCAAoC,CAC9C,eAAgB,EAAS,OAAO,IAAI,KAAO,GAC3C,QAAS,QAAQ,GACnB,CAAC",
+  "debugId": "707BF3809BFD2BDF64756E2164756E21",
+  "names": []
+}

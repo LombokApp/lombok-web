@@ -1,6 +1,6 @@
 {
   "description": "The demo app.",
-  "identifier": "demo",
+  "slug": "demo",
   "label": "Demo App",
   "subscribedPlatformEvents": [
     "platform:object_added",
@@ -61,25 +61,25 @@
   ],
   "workers": {
     "demo_object_added_worker": {
-      "entrypoint": "demo_object_added_worker/index.ts",
+      "entrypoint": "demo_object_added_worker/index.js",
       "description": "Runs for every newly added object.",
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
       }
     },
     "demo_scheduled_worker": {
-      "entrypoint": "demo_scheduled_worker/index.ts",
+      "entrypoint": "demo_scheduled_worker/index.js",
       "description": "Runs in response to a schedule event.",
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
       }
     },
     "demo_on_complete_worker": {
-      "entrypoint": "demo_on_complete_worker/index.ts",
+      "entrypoint": "demo_on_complete_worker/index.js",
       "description": "Runs as a completion handler for another task."
     },
     "demo_api_request_worker": {
-      "entrypoint": "demo_api_request_worker/index.ts",
+      "entrypoint": "demo_api_request_worker/index.js",
       "description": "Is run to service and incoming API request.",
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"

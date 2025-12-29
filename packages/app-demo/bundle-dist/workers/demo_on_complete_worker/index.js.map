@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": ["../../app-demo-workers/src/workers/demo_on_complete_worker/index.ts"],
+  "sourcesContent": [
+    "import { type TaskHandler } from '@lombokapp/app-worker-sdk'\n\n// eslint-disable-next-line @typescript-eslint/require-await\nexport const handleTask: TaskHandler = async function handleTask(task) {\n  console.log('From within on complete worker:', {\n    task,\n  })\n}\n"
+  ],
+  "mappings": ";AAGO,IAAM,EAA0B,cAAyB,CAAC,EAAM,CACrE,QAAQ,IAAI,kCAAmC,CAC7C,MACF,CAAC",
+  "debugId": "216859283DED961A64756E2164756E21",
+  "names": []
+}

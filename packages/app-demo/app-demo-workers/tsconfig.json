@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "types": ["bun"],
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -34,5 +34,5 @@
       "@lombokapp/utils/*": ["../../utils/src/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "eslint.config.ts"]
+  "include": ["src", "vite.config.ts", "eslint.config.ts", "build.ts"]
 }
