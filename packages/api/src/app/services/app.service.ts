@@ -92,6 +92,7 @@ import { AppMaxFileSizeException } from '../exceptions/app-max-file-size.excepti
 import { AppMaxSizeException } from '../exceptions/app-max-size.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import { appConfigSanitize } from '../utils/app-config-sanitize'
 import { generateAppIdentifierSuffix } from '../utils/app-id.util'
 import {
   resolveFolderAppSettings,
@@ -1340,6 +1341,16 @@ export class AppService {
           }
         : undefined,
     }
+
+    if (app.definition) {
+      const sanitizedConfig = appConfigSanitize.safeParse(app.definition.config)
+      if (!sanitizedConfig.success) {
+        throw new AppInvalidException(
+          `Config is invalid: ${JSON.stringify(sanitizedConfig.error.errors, null, 2)}`,
+        )
+      }
+    }
+
     return app
   }
 

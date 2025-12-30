@@ -17,13 +17,13 @@ export class ReindexFolderProcessor extends BaseProcessor<PlatformTaskName.Reind
       task.trigger.kind === 'user_action'
         ? task.trigger.invokeContext.userId
         : undefined
-    if (!task.targetLocation?.folderId || !userId) {
+    if (!task.targetLocationFolderId || !userId) {
       throw new Error(
         `Missing folder id or calling user id in "${PlatformTaskName.ReindexFolder}" task processing.`,
       )
     }
     await this.folderService.reindexFolder({
-      folderId: task.targetLocation.folderId,
+      folderId: task.targetLocationFolderId,
     })
   }
 }

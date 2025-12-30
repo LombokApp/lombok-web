@@ -3302,18 +3302,18 @@ export interface components {
                 systemLog: {
                     /** Format: date-time */
                     at: string;
-                    payload: {
-                        /** @enum {string} */
-                        logType: "started" | "error" | "requeue" | "success";
-                        data?: {
-                            [key: string]: unknown;
-                        };
+                    message: string;
+                    /** @enum {string} */
+                    logType: "started" | "error" | "requeue" | "success";
+                    payload?: {
+                        [key: string]: unknown;
                     };
                 }[];
                 taskLog: {
                     /** Format: date-time */
                     at: string;
                     message: string;
+                    logType: string;
                     payload?: {
                         [key: string]: unknown;
                     };

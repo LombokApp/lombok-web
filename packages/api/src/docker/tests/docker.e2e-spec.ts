@@ -32,6 +32,7 @@ import {
 import type { User } from 'src/users/entities/user.entity'
 
 import { DockerAdapterProvider } from '../services/client/adapters/docker-adapter.provider'
+import { DockerError } from '../services/client/docker-client.types'
 import {
   buildMockDockerAdapter,
   MockDockerAdapterProvider,
@@ -115,6 +116,7 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
     handlerIdentifier: 'testapp:test_job',
     taskIdentifier: 'test_job_task',
     data: {},
+    storageAccessPolicy: [],
     trigger: {
       kind: 'event',
       eventIdentifier: 'testapp:test_job',
@@ -215,7 +217,8 @@ const triggerAppDockerHandledTask = async (
       eventIdentifier: PlatformEvent.docker_task_enqueued,
       emitterIdentifier: PLATFORM_IDENTIFIER,
       targetUserId: null,
-      targetLocation: null,
+      targetLocationFolderId: null,
+      targetLocationObjectKey: null,
       data: {
         innerTaskId: expect.any(String),
         appIdentifier,
@@ -242,9 +245,8 @@ const triggerAppDockerHandledTask = async (
       systemLog: [
         {
           at: expect.any(Date),
-          payload: {
-            logType: 'started',
-          },
+          logType: 'started',
+          message: 'Task is started',
         },
       ],
       taskLog: [],
@@ -262,7 +264,8 @@ const triggerAppDockerHandledTask = async (
           },
         },
       },
-      targetLocation: null,
+      targetLocationFolderId: null,
+      targetLocationObjectKey: null,
       targetUserId: null,
       startedAt: expect.any(Date),
       completedAt: null,
@@ -344,23 +347,49 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({ stdout: '', stderr: '' }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
+
     await testModule?.services.appService.executeAppDockerJob({
       appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
       jobData: {},
     })
-    expect(getAdapterSpy).toHaveBeenCalledWith('local')
 
-    const execCall = execSpy.mock.calls[0]!
+    expect(execSpy).toHaveBeenCalledWith('1', {
+      command: ['lombok-worker-agent', 'run-job', expect.any(String)],
+    })
 
-    expect(execCall).toEqual([
+    expect(execSpy.mock.calls[0]).toEqual([
       '1',
       { command: ['lombok-worker-agent', 'run-job', expect.any(String)] },
     ])
-    const payload = parseJobPayload(execCall[1].command.at(-1) ?? '', {
-      expectJobToken: false,
-    })
+
+    expect(execSpy.mock.calls[1]).toEqual([
+      '1',
+      {
+        command: [
+          'lombok-worker-agent',
+          'job-state',
+          '--job-id',
+          expect.any(String),
+        ],
+      },
+    ])
+
+    const payload = parseJobPayload(
+      execSpy.mock.calls[0]![1].command.at(-1) ?? '',
+      {
+        expectJobToken: false,
+      },
+    )
 
     expect(payload).toEqual({
       jobId: expect.any(String),
@@ -392,7 +421,7 @@ describe('Docker Jobs', () => {
       jobData: {},
     })
 
-    const execCall2 = execSpy.mock.calls[1]!
+    const execCall2 = execSpy.mock.calls[2]!
 
     expect(execCall2).toEqual([
       '1',
@@ -414,6 +443,15 @@ describe('Docker Jobs', () => {
     await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
+    })
+
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({ stdout: '', stderr: '' }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
     })
 
     await testModule?.services.appService.executeAppDockerJob({
@@ -465,11 +503,16 @@ describe('Docker Jobs', () => {
 
     execSpy.mockImplementationOnce(() =>
       Promise.resolve({
-        output: () =>
+        getError: () =>
           Promise.resolve({
-            stdout: '',
-            stderr: 'unknown interface kind: invalid_kind',
+            code: 'UNKNOWN_INTERFACE_KIND',
+            message: 'unknown interface kind: invalid_kind',
+            name: 'DockerError',
           }),
+        output: () => ({
+          stdout: '',
+          stderr: 'unknown interface kind: invalid_kind',
+        }),
         state: () =>
           Promise.resolve({
             running: false,
@@ -490,7 +533,7 @@ describe('Docker Jobs', () => {
       submitError: {
         code: 'SUBMISSION_ERROR',
         message:
-          'Job submission failed with exit code 1.\nOutput: \nError: unknown interface kind: invalid_kind',
+          'Job submission failed with error: [UNKNOWN_INTERFACE_KIND] Message: unknown interface kind: invalid_kind',
       },
     })
   })
@@ -502,6 +545,15 @@ describe('Docker Jobs', () => {
     })
 
     const { taskId } = await insertTaskWithEvent(testModule!)
+
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({ stdout: '', stderr: '' }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
 
     await testModule?.services.appService.executeAppDockerJob({
       appIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
@@ -545,6 +597,21 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
+
     const { dockerRunTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
@@ -570,6 +637,20 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
@@ -589,7 +670,8 @@ describe('Docker Jobs', () => {
       trigger: {
         kind: 'app_action',
       },
-      targetLocation: null,
+      targetLocationFolderId: null,
+      targetLocationObjectKey: null,
       targetUserId: null,
       startedAt: null,
       completedAt: null,
@@ -648,6 +730,20 @@ describe('Docker Jobs', () => {
         ),
       )
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
@@ -691,7 +787,8 @@ describe('Docker Jobs', () => {
         kind: 'app_action',
       },
       userVisible: true,
-      targetLocation: null,
+      targetLocationFolderId: null,
+      targetLocationObjectKey: null,
       targetUserId: null,
       startedAt: null,
       completedAt: null,
@@ -1156,6 +1253,20 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
     const testFolder = await createTestFolder({
       testModule: testModule!,
       folderName: 'test-folder',
@@ -1300,6 +1411,20 @@ describe('Docker Jobs', () => {
         ),
       )
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_job_task',
@@ -1320,7 +1445,8 @@ describe('Docker Jobs', () => {
       trigger: {
         kind: 'app_action',
       },
-      targetLocation: null,
+      targetLocationFolderId: null,
+      targetLocationObjectKey: null,
       userVisible: true,
       targetUserId: null,
       startedAt: null,
@@ -1352,6 +1478,20 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
+    execSpy.mockImplementation((_containerId, _options) => {
+      return Promise.resolve({
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
+        state: () => Promise.resolve({ running: false, exitCode: 0 }),
+      })
+    })
     const { innerTask, dockerRunTask } = await triggerAppDockerHandledTask(
       testModule!,
       {
@@ -1386,14 +1526,13 @@ describe('Docker Jobs', () => {
     expect(startedInnerTask?.systemLog.length).toBe(1)
     expect(startedInnerTask?.systemLog.at(0)).toEqual({
       at: expect.any(Date),
+      logType: 'started',
+      message: 'Task is started',
       payload: {
-        logType: 'started',
-        data: {
-          __executor: {
-            jobIdentifier: 'test_job_other',
-            profileHash: '679f45ae',
-            profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
-          },
+        __executor: {
+          jobIdentifier: 'test_job_other',
+          profileHash: '679f45ae',
+          profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
         },
       },
     })
@@ -1421,24 +1560,22 @@ describe('Docker Jobs', () => {
     expect(completedInnerTask?.systemLog).toEqual([
       {
         at: expect.any(Date),
+        logType: 'started',
+        message: 'Task is started',
         payload: {
-          logType: 'started',
-          data: {
-            __executor: {
-              jobIdentifier: 'test_job_other',
-              profileHash: '679f45ae',
-              profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
-            },
+          __executor: {
+            jobIdentifier: 'test_job_other',
+            profileHash: '679f45ae',
+            profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
           },
         },
       },
       {
         at: expect.any(Date),
+        logType: 'success',
+        message: 'Task completed successfully',
         payload: {
-          logType: 'success',
-          data: {
-            result: { message: 'done' },
-          },
+          result: { message: 'done' },
         },
       },
     ])
@@ -1453,15 +1590,13 @@ describe('Docker Jobs', () => {
     expect(completedDockerTask?.systemLog).toEqual([
       {
         at: expect.any(Date),
-        payload: {
-          logType: 'started',
-        },
+        logType: 'started',
+        message: 'Task is started',
       },
       {
         at: expect.any(Date),
-        payload: {
-          logType: 'success',
-        },
+        logType: 'success',
+        message: 'Task completed successfully',
       },
     ])
   })

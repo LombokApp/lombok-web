@@ -1,5 +1,6 @@
 import type { IDockerAdapterProvider } from '../services/client/adapters/docker-adapter.provider'
 import type { DockerAdapter } from '../services/client/docker-client.types'
+import { DockerError } from '../services/client/docker-client.types'
 
 export class MockDockerAdapterProvider implements IDockerAdapterProvider {
   constructor(private readonly mockAdapter: DockerAdapter) {}
@@ -14,6 +15,8 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
     throw new Error(`Unsupported host ID: ${hostId}`)
   }
   return {
+    startContainer: () => Promise.resolve(),
+    isContainerRunning: () => Promise.resolve(true),
     getDescription: () => 'Mock Docker Host',
     // eslint-disable-next-line @typescript-eslint/require-await
     testConnection: async () => ({
@@ -38,34 +41,23 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
       _containerId: string,
       _options: { command: string[] },
     ) => {
+      const stdout = _options.command.includes('job-state')
+        ? '{"job_id":"123","job_class":"test_job","status":"complete","success":true}'
+        : 'mock-output'
       return {
-        output: () => Promise.resolve({ stdout: 'mock-output', stderr: '' }),
+        getError: () =>
+          Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+        output: () => ({ stdout, stderr: '' }),
         state: () =>
           Promise.resolve({
             running: false,
             exitCode: 0,
-            output: { stdout: 'mock-output', stderr: '' },
+            output: {
+              stdout,
+              stderr: '',
+            },
           }),
       }
     },
-
-    // eslint-disable-next-line @typescript-eslint/require-await
-    execInContainerAndReturnOutput: async (
-      _containerId: string,
-      _command: string[],
-    ) => {
-      if (_command.includes('job-state')) {
-        return {
-          stdout: '{"job_id":"123","job_class":"test_job","status":"pending"}',
-          stderr: '',
-        }
-      }
-      return { stdout: 'mock-output', stderr: '' }
-    },
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    startContainer: async () => {},
-    // eslint-disable-next-line @typescript-eslint/require-await
-    isContainerRunning: async () => true,
   }
 }

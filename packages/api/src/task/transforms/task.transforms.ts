@@ -26,15 +26,23 @@ export function transformTaskToDTO(
     systemLog: task.systemLog.map((log) => ({
       at: log.at.toISOString(),
       payload: log.payload,
+      logType: log.logType,
+      message: log.message,
     })),
     taskLog: task.taskLog.map((log) => ({
       at: log.at.toISOString(),
       message: log.message,
       payload: log.payload,
+      logType: log.logType,
     })),
     handlerIdentifier: task.handlerIdentifier ?? undefined,
     data: task.data,
-    targetLocation: task.targetLocation ?? undefined,
+    targetLocation: task.targetLocationFolderId
+      ? {
+          folderId: task.targetLocationFolderId,
+          objectKey: task.targetLocationObjectKey ?? undefined,
+        }
+      : undefined,
     success: task.success ?? undefined,
     error: task.error ?? undefined,
     createdAt: task.createdAt.toISOString(),
@@ -46,12 +54,12 @@ export function transformTaskToDTO(
   }
 
   // If folder is present, add subjectContext and return TaskWithFolderSubjectContextDTO
-  if (task.targetLocation?.folderId && task.folder) {
+  if (task.targetLocationFolderId && task.folder) {
     return {
       ...baseDTO,
       targetLocationContext: {
-        folderId: task.targetLocation.folderId,
-        objectKey: task.targetLocation.objectKey ?? undefined,
+        folderId: task.targetLocationFolderId,
+        objectKey: task.targetLocationObjectKey ?? undefined,
         folderName: task.folder.name,
         folderOwnerId: task.folder.ownerId,
       },
@@ -81,7 +89,12 @@ export function transformTaskSummaryToDTO(
     handlerIdentifier: task.handlerIdentifier ?? undefined,
     success: task.success ?? undefined,
     error: task.error ?? undefined,
-    targetLocation: task.targetLocation ?? undefined,
+    targetLocation: task.targetLocationFolderId
+      ? {
+          folderId: task.targetLocationFolderId,
+          objectKey: task.targetLocationObjectKey ?? undefined,
+        }
+      : undefined,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
     taskIdentifier: task.taskIdentifier,
@@ -90,12 +103,12 @@ export function transformTaskSummaryToDTO(
     completedAt: task.completedAt?.toISOString() ?? undefined,
   }
 
-  if (task.targetLocation?.folderId && task.folder) {
+  if (task.targetLocationFolderId && task.folder) {
     return {
       ...baseDTO,
       targetLocationContext: {
-        folderId: task.targetLocation.folderId,
-        objectKey: task.targetLocation.objectKey ?? undefined,
+        folderId: task.targetLocationFolderId,
+        objectKey: task.targetLocationObjectKey ?? undefined,
         folderName: task.folder.name,
         folderOwnerId: task.folder.ownerId,
       },

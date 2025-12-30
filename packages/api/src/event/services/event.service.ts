@@ -193,6 +193,7 @@ export class EventService {
               },
             },
             taskIdentifier: taskDefinition.identifier,
+            storageAccessPolicy: [],
             taskDescription: taskDefinition.description,
             data: {},
             ownerIdentifier: app.identifier,
@@ -315,7 +316,8 @@ export class EventService {
           id: uuidV4(),
           eventIdentifier,
           emitterIdentifier,
-          targetLocation,
+          targetLocationFolderId: targetLocation?.folderId,
+          targetLocationObjectKey: targetLocation?.objectKey,
           targetUserId,
           createdAt: now,
           data,
@@ -400,12 +402,8 @@ export class EventService {
                   ...trigger,
                   invokeContext: this.buildEventInvocation(event),
                 },
-                targetLocation: targetLocation?.folderId
-                  ? {
-                      folderId: targetLocation.folderId,
-                      objectKey: targetLocation.objectKey,
-                    }
-                  : undefined,
+                targetLocationFolderId: targetLocation?.folderId,
+                targetLocationObjectKey: targetLocation?.objectKey,
                 taskDescription: taskDefinition.description,
                 taskIdentifier: taskDefinition.identifier,
                 data: trigger.dataTemplate
@@ -420,11 +418,13 @@ export class EventService {
                       },
                     )
                   : {},
+                storageAccessPolicy: [],
                 ownerIdentifier: subscribedApp.identifier,
                 systemLog: [
                   {
                     at: new Date(),
-                    payload: { logType: 'started', data: {} },
+                    logType: 'started',
+                    message: 'Task is started',
                   },
                 ],
                 createdAt: now,
@@ -459,9 +459,9 @@ export class EventService {
       await tx.insert(tasksTable).values(tasks)
       // notify folder rooms of new tasks
       tasks.forEach((_task) => {
-        if (_task.targetLocation?.folderId) {
+        if (_task.targetLocationFolderId) {
           this.folderSocketService.sendToFolderRoom(
-            _task.targetLocation.folderId,
+            _task.targetLocationFolderId,
             FolderPushMessage.TASK_ADDED,
             { task: _task },
           )
@@ -517,7 +517,12 @@ export class EventService {
       eventId: event.id,
       emitterIdentifier: event.emitterIdentifier,
       targetUserId: event.targetUserId ?? undefined,
-      targetLocation: event.targetLocation ?? undefined,
+      targetLocation: event.targetLocationFolderId
+        ? {
+            folderId: event.targetLocationFolderId,
+            objectKey: event.targetLocationObjectKey ?? undefined,
+          }
+        : undefined,
       eventData: event.data ?? {},
     }
   }
@@ -540,6 +545,7 @@ export class EventService {
           eventIdentifier: event.eventIdentifier,
           invokeContext: this.buildEventInvocation(event),
         },
+        storageAccessPolicy: [],
         taskIdentifier,
         taskDescription: PLATFORM_TASKS[taskIdentifier].description,
         data: buildData(event),
@@ -591,7 +597,6 @@ export class EventService {
     actor: User,
     { folderId, eventId }: { folderId: string; eventId: string },
   ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
-    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const result = await this.ormService.db
@@ -601,8 +606,16 @@ export class EventService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(eventsTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
-      .where(and(eq(targetFolderId, folder.id), eq(eventsTable.id, eventId)))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, eventsTable.targetLocationFolderId),
+      )
+      .where(
+        and(
+          eq(eventsTable.targetLocationFolderId, folder.id),
+          eq(eventsTable.id, eventId),
+        ),
+      )
       .limit(1)
 
     const record = result.at(0)
@@ -614,8 +627,14 @@ export class EventService {
 
     return {
       ...record.event,
+      targetLocation: record.event.targetLocationFolderId
+        ? {
+            folderId: record.event.targetLocationFolderId,
+            objectKey: record.event.targetLocationObjectKey ?? undefined,
+          }
+        : undefined,
       folder:
-        record.event.targetLocation?.folderId &&
+        record.event.targetLocationFolderId &&
         record.folderName &&
         record.folderOwnerId
           ? { name: record.folderName, ownerId: record.folderOwnerId }
@@ -645,7 +664,6 @@ export class EventService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         event: eventsTable,
@@ -653,7 +671,10 @@ export class EventService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(eventsTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, eventsTable.targetLocationFolderId),
+      )
       .where(eq(eventsTable.id, eventId))
       .limit(1)
     const record = result.at(0)
@@ -662,8 +683,14 @@ export class EventService {
     }
     return {
       ...record.event,
+      targetLocation: record.event.targetLocationFolderId
+        ? {
+            folderId: record.event.targetLocationFolderId,
+            objectKey: record.event.targetLocationObjectKey ?? undefined,
+          }
+        : undefined,
       folder:
-        record.event.targetLocation?.folderId &&
+        record.event.targetLocationFolderId &&
         record.folderName &&
         record.folderOwnerId
           ? { name: record.folderName, ownerId: record.folderOwnerId }
@@ -720,11 +747,9 @@ export class EventService {
     limit?: number
     sort?: EventSort[]
   }) {
-    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
-    const targetObjectKey = sql<string>`${eventsTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(targetFolderId, folderId))
+      conditions.push(eq(eventsTable.targetLocationFolderId, folderId))
     }
 
     if (search) {
@@ -737,7 +762,7 @@ export class EventService {
     }
 
     if (objectKey) {
-      conditions.push(eq(targetObjectKey, objectKey))
+      conditions.push(eq(eventsTable.targetLocationObjectKey, objectKey))
     }
 
     const events = await this.ormService.db
@@ -749,7 +774,7 @@ export class EventService {
       .from(eventsTable)
       .leftJoin(
         foldersTable,
-        sql`${foldersTable.id} = (${eventsTable.targetLocation} ->> 'folderId')::uuid`,
+        eq(foldersTable.id, eventsTable.targetLocationFolderId),
       )
       .where(conditions.length ? and(...conditions) : undefined)
       .offset(Math.max(0, offset ?? 0))
@@ -771,8 +796,14 @@ export class EventService {
     return {
       result: events.map(({ event, folderName, folderOwnerId }) => ({
         ...event,
+        targetLocation: event.targetLocationFolderId
+          ? {
+              folderId: event.targetLocationFolderId,
+              objectKey: event.targetLocationObjectKey ?? undefined,
+            }
+          : undefined,
         folder:
-          event.targetLocation?.folderId && folderName && folderOwnerId
+          event.targetLocationFolderId && folderName && folderOwnerId
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })),

@@ -49,6 +49,7 @@ import {
   evalOnCompleteHandlerCondition,
   OnCompleteConditionTaskContext,
 } from '../util/eval-oncomplete-condition.util'
+import { serializeLogEntry } from '../util/log-encoder.util'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -91,7 +92,6 @@ export class TaskService {
     { folderId, taskId }: { folderId: string; taskId: string },
   ): Promise<Task & { folder?: { name: string; ownerId: string } }> {
     await this.folderService.getFolderAsUser(actor, folderId)
-    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         task: tasksTable,
@@ -99,8 +99,11 @@ export class TaskService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(tasksTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
-      .where(and(eq(tasksTable.id, taskId), eq(targetFolderId, folderId)))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, tasksTable.targetLocationFolderId),
+      )
+      .where(and(eq(tasksTable.id, taskId), eq(foldersTable.id, folderId)))
       .limit(1)
 
     const record = result.at(0)
@@ -141,7 +144,6 @@ export class TaskService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         task: tasksTable,
@@ -149,7 +151,10 @@ export class TaskService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(tasksTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, tasksTable.targetLocationFolderId),
+      )
       .where(eq(tasksTable.id, taskId))
       .limit(1)
     const record = result.at(0)
@@ -176,11 +181,9 @@ export class TaskService {
     includeWaiting,
     folderId,
   }: TasksListQueryParamsDTO) {
-    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
-    const targetObjectKey = sql<string>`${tasksTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(targetFolderId, folderId))
+      conditions.push(eq(tasksTable.targetLocationFolderId, folderId))
     }
 
     if (search) {
@@ -228,7 +231,7 @@ export class TaskService {
     }
 
     if (objectKey) {
-      conditions.push(eq(targetObjectKey, objectKey))
+      conditions.push(eq(tasksTable.targetLocationObjectKey, objectKey))
     }
 
     const tasks = await this.ormService.db
@@ -240,7 +243,8 @@ export class TaskService {
           taskDescription: tasksTable.taskDescription,
           trigger: tasksTable.trigger,
           targetUserId: tasksTable.targetUserId,
-          targetLocation: tasksTable.targetLocation,
+          targetLocationFolderId: tasksTable.targetLocationFolderId,
+          targetLocationObjectKey: tasksTable.targetLocationObjectKey,
           startedAt: tasksTable.startedAt,
           dontStartBefore: tasksTable.dontStartBefore,
           completedAt: tasksTable.completedAt,
@@ -258,7 +262,10 @@ export class TaskService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(tasksTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, tasksTable.targetLocationFolderId),
+      )
       .where(conditions.length ? and(...conditions) : undefined)
       .offset(Math.max(0, offset ?? 0))
       .limit(Math.min(100, limit ?? 25))
@@ -279,8 +286,14 @@ export class TaskService {
     return {
       result: tasks.map(({ task, folderName, folderOwnerId }) => ({
         ...task,
+        targetLocation: task.targetLocationFolderId
+          ? {
+              folderId: task.targetLocationFolderId,
+              objectKey: task.targetLocationObjectKey ?? undefined,
+            }
+          : undefined,
         folder:
-          task.targetLocation?.folderId && folderName
+          task.targetLocationFolderId && folderName
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })),
@@ -358,7 +371,7 @@ export class TaskService {
     dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy,
+    storageAccessPolicy = [],
   }: {
     userId: string
     taskIdentifier: string
@@ -391,7 +404,8 @@ export class TaskService {
       updatedAt: now,
       handlerType: 'platform',
       storageAccessPolicy,
-      targetLocation,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
       targetUserId,
     }
 
@@ -424,7 +438,7 @@ export class TaskService {
     dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy,
+    storageAccessPolicy = [],
   }: {
     userId: string
     appIdentifier: string
@@ -472,7 +486,8 @@ export class TaskService {
       updatedAt: now,
       handlerType: 'platform',
       storageAccessPolicy,
-      targetLocation,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
       targetUserId,
     }
 
@@ -505,7 +520,7 @@ export class TaskService {
     dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy,
+    storageAccessPolicy = [],
     onComplete,
   }: {
     appIdentifier: string
@@ -546,7 +561,7 @@ export class TaskService {
     }
 
     // validate the entire storage access policy if one is provided
-    if (storageAccessPolicy?.length) {
+    if (storageAccessPolicy.length) {
       await this.appService.validateAppStorageAccessPolicy({
         appIdentifier,
         storageAccessPolicy,
@@ -580,7 +595,8 @@ export class TaskService {
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
       targetUserId,
-      targetLocation,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
     }
 
     return this.ormService.db.transaction(async (tx) => {
@@ -612,7 +628,7 @@ export class TaskService {
     targetUserId,
     targetLocation,
     onComplete = [],
-    storageAccessPolicy,
+    storageAccessPolicy = [],
     options = {},
   }: {
     parentTaskSuccess: boolean
@@ -645,13 +661,13 @@ export class TaskService {
 
     const parentTaskSuccessLog = parentTask.systemLog
       .reverse()
-      .find((log) => log.payload.logType === 'success')?.payload.data as
+      .find((log) => log.logType === 'success')?.payload as
       | { result: JsonSerializableObject }
       | undefined
 
     const parentTaskErrorLog = parentTask.systemLog
       .reverse()
-      .find((log) => log.payload.logType === 'error')?.payload.data as
+      .find((log) => log.logType === 'error')?.payload as
       | {
           error: {
             code: string
@@ -685,7 +701,13 @@ export class TaskService {
                 success: true,
                 result: parentTaskSuccessLog?.result ?? {},
                 error: parentTaskErrorLog?.error ?? {},
-                targetLocation: parentTask.targetLocation ?? {},
+                targetLocation: parentTask.targetLocationFolderId
+                  ? {
+                      folderId: parentTask.targetLocationFolderId,
+                      objectKey:
+                        parentTask.targetLocationObjectKey ?? undefined,
+                    }
+                  : {},
                 data: parentTask.data,
                 startedAt: parentTask.startedAt,
                 completedAt: parentTask.completedAt,
@@ -717,7 +739,8 @@ export class TaskService {
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
       targetUserId,
-      targetLocation,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
     }
 
     this.logger.debug('onComplete handler task queued', {
@@ -794,10 +817,9 @@ export class TaskService {
 
     const startSystemLog: SystemLogEntry = {
       at: now,
-      payload: {
-        logType: 'started',
-        data: startContext,
-      },
+      logType: 'started',
+      message: 'Task is started',
+      payload: startContext,
     }
 
     const updatedTask = (
@@ -808,7 +830,7 @@ export class TaskService {
           updatedAt: now,
           systemLog: sql<
             SystemLogEntry[]
-          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(startSystemLog)}::jsonb`,
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(serializeLogEntry(startSystemLog))}::jsonb`,
         })
         .where(and(eq(tasksTable.id, task.id), isNull(tasksTable.startedAt)))
         .returning()
@@ -946,21 +968,20 @@ export class TaskService {
     // build the task system log
     const completionSystemLog: SystemLogEntry = {
       at: now,
-      payload: completion.success
-        ? {
-            logType: 'success',
-            data: completion.result
-              ? {
-                  result: completion.result,
-                }
-              : undefined,
-          }
-        : {
-            logType: 'error',
-            data: {
-              error: completion.error,
-            },
-          },
+      logType: completion.success ? 'success' : 'error',
+      message: completion.success
+        ? 'Task completed successfully'
+        : 'Task failed',
+      payload:
+        completion.success && completion.result
+          ? {
+              result: completion.result,
+            }
+          : !completion.success
+            ? {
+                error: completion.error,
+              }
+            : undefined,
     }
 
     const requeueConfig: RequeueConfig =
@@ -980,13 +1001,11 @@ export class TaskService {
         ? [
             {
               at: now,
+              logType: 'requeue',
+              message: 'Task is requeued',
               payload: {
-                logType: 'requeue',
-                data: {
-                  delayMs: requeueConfig.delayMs,
-                  dontStartBefore:
-                    requeueConfig.notBefore?.toISOString() ?? null,
-                },
+                delayMs: requeueConfig.delayMs,
+                dontStartBefore: requeueConfig.notBefore?.toISOString() ?? null,
               },
             },
           ]
@@ -1023,7 +1042,7 @@ export class TaskService {
               }),
           systemLog: sql<
             SystemLogEntry[]
-          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLogs)}::jsonb`,
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLogs.map(serializeLogEntry))}::jsonb`,
         })
         .where(
           and(
@@ -1070,7 +1089,12 @@ export class TaskService {
           taskIdentifier: onCompleteHandler.taskIdentifier,
           taskDataTemplate: onCompleteHandler.dataTemplate ?? {},
           targetUserId: updatedTask.targetUserId ?? undefined,
-          targetLocation: updatedTask.targetLocation ?? undefined,
+          targetLocation: updatedTask.targetLocationFolderId
+            ? {
+                folderId: updatedTask.targetLocationFolderId,
+                objectKey: updatedTask.targetLocationObjectKey ?? undefined,
+              }
+            : undefined,
           storageAccessPolicy: updatedTask.storageAccessPolicy,
           options: { tx },
         })

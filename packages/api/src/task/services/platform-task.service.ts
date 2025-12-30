@@ -138,9 +138,8 @@ export class PlatformTaskService {
 
         const platformTaskStartLog: SystemLogEntry = {
           at: startedTimestamp,
-          payload: {
-            logType: 'started',
-          },
+          logType: 'started',
+          message: 'Task is started',
         }
 
         await tx
@@ -161,10 +160,10 @@ export class PlatformTaskService {
         )
       }
 
-      if (startedTask.targetLocation?.folderId) {
+      if (startedTask.targetLocationFolderId) {
         // notify folder rooms of updated task
         this.folderSocketService.sendToFolderRoom(
-          startedTask.targetLocation.folderId,
+          startedTask.targetLocationFolderId,
           FolderPushMessage.TASK_UPDATED,
           { task: startedTask },
         )
@@ -207,10 +206,10 @@ export class PlatformTaskService {
             this.logger.warn('Platform task error:', { updatedTask })
           }
           // send a folder socket message to the frontend that the task status was updated
-          if (startedTask.targetLocation?.folderId) {
+          if (startedTask.targetLocationFolderId) {
             // notify folder rooms of updated task
             this.folderSocketService.sendToFolderRoom(
-              startedTask.targetLocation.folderId,
+              startedTask.targetLocationFolderId,
               FolderPushMessage.TASK_UPDATED,
               {
                 updatedTask,

@@ -1,16 +1,6 @@
-import type {
-  JsonSerializableObject,
-  TargetLocationContext,
-} from '@lombokapp/types'
-import { sql } from 'drizzle-orm'
-import {
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import type { JsonSerializableObject } from '@lombokapp/types'
+import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { jsonbBase64 } from 'src/orm/util/json-base64-type'
 
 export const eventsTable = pgTable(
   'events',
@@ -19,14 +9,14 @@ export const eventsTable = pgTable(
     eventIdentifier: text('eventIdentifier').notNull(),
     emitterIdentifier: text('emitterIdentifier').notNull(),
     targetUserId: uuid('targetUserId'),
-    targetLocation: jsonb('targetLocation').$type<TargetLocationContext>(),
-    data: jsonb('data').$type<JsonSerializableObject>(),
+    targetLocationFolderId: uuid('targetLocationFolderId'),
+    targetLocationObjectKey: text('targetLocationObjectKey'),
+    data: jsonbBase64('data').$type<JsonSerializableObject>(),
     createdAt: timestamp('createdAt').notNull(),
   },
   (table) => [
-    index('events_target_location_folder_id_idx').using(
-      'btree',
-      sql`((${table.targetLocation} ->> 'folderId')::uuid)`,
+    index('events_target_location_folder_id_idx').on(
+      table.targetLocationFolderId,
     ),
   ],
 )

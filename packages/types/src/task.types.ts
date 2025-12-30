@@ -18,28 +18,28 @@ export const taskDataSchema: z.ZodType<TaskData> =
 
 export const taskSystemLogEntryDTOSchema = z.object({
   at: z.string().datetime(),
-  payload: z.object({
-    logType: z.enum(['started', 'error', 'requeue', 'success']),
-    data: z.record(z.string(), z.unknown()).optional(),
-  }),
+  message: z.string(),
+  logType: z.enum(['started', 'error', 'requeue', 'success']),
+  payload: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const taskLogEntryDTOSchema = z.object({
   at: z.string().datetime(),
   message: z.string(),
+  logType: z.string().regex(/^[a-z0-9_]+$/),
   payload: z.record(z.string(), z.unknown()).optional(),
 })
 
 export interface SystemLogEntry {
   at: Date
-  payload: {
-    logType: 'started' | 'error' | 'requeue' | 'success'
-    data?: JsonSerializableObject
-  }
+  logType: 'started' | 'error' | 'requeue' | 'success'
+  message: string
+  payload?: JsonSerializableObject
 }
 
 export interface TaskLogEntry {
   at: Date
+  logType: string
   message: string
   payload?: JsonSerializableObject
 }

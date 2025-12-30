@@ -11,7 +11,12 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
+import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
+import {
+  buildMockDockerAdapter,
+  MockDockerAdapterProvider,
+} from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -35,6 +40,11 @@ const MINIO_SECRET_ACCESS_KEY = 'testsecretaccesskey'
 const MINIO_ENDPOINT = 'http://miniotest:9000'
 const MINIO_REGION = 'auto'
 
+const mockDockerAdapter = buildMockDockerAdapter('local')
+const mockDockerAdapterProvider = new MockDockerAdapterProvider(
+  mockDockerAdapter,
+)
+
 export async function buildTestModule({
   testModuleKey,
   overrides = [],
@@ -44,8 +54,7 @@ export async function buildTestModule({
   testModuleKey: string
   debug?: true
   startServerOnPort?: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  overrides?: { token: any; value: unknown }[]
+  overrides?: { token: symbol | string | Type; value: unknown }[]
 }) {
   if (
     typeof startServerOnPort === 'number' &&
@@ -61,7 +70,7 @@ export async function buildTestModule({
   const { PlatformTestModule } = await import('src/test/platform-test.module')
 
   const initTestModuleWithOverrides = (
-    _overrides: { token: symbol | string; value: unknown }[],
+    _overrides: { token: symbol | string | Type; value: unknown }[],
   ): TestingModuleBuilder => {
     const moduleBuilder = Test.createTestingModule({
       imports: [PlatformTestModule],
@@ -72,6 +81,14 @@ export async function buildTestModule({
       return acc
     }, moduleBuilder)
   }
+
+  const builtInOverrides: { token: symbol | string | Type; value: unknown }[] =
+    [
+      {
+        token: DockerAdapterProvider,
+        value: mockDockerAdapterProvider,
+      },
+    ]
 
   const logger = new NoPrefixConsoleLogger({
     colors: true,
@@ -87,7 +104,7 @@ export async function buildTestModule({
       token: ormConfig.KEY,
       value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
     },
-    ...overrides,
+    ...builtInOverrides.concat(overrides),
   ])
     .compile()
     .then((moduleRef) => moduleRef.createNestApplication({ logger }))

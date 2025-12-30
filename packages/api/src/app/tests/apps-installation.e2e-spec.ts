@@ -285,6 +285,42 @@ describe('Apps Installation via Zip', () => {
     }
   })
 
+  it('should reject app installation with illegal characters in config.json', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin8',
+      password: '123',
+      admin: true,
+    })
+
+    const appSlug = `testappillegal${Date.now()}`
+    const appLabel = 'Test App with Illegal Characters'
+
+    // Build an app zip with a config containing illegal characters (NUL character)
+    const invalidConfig = createTestAppConfig(appSlug, appLabel)
+    // Add NUL character to the label field
+    invalidConfig.label = `Test App\u0000with NUL`
+
+    const zipBuffer = await buildAppZip({
+      slug: appSlug,
+      label: appLabel,
+      config: invalidConfig,
+    })
+
+    const response = await request(testModule!.app.getHttpServer() as App)
+      .post('/api/v1/server/apps/install')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', zipBuffer, 'test-app-illegal.zip')
+
+    expect(response.status).toBe(400)
+    const responseBody = response.body as { message: string }
+    expect(responseBody.message).toBeDefined()
+    // The error should indicate that the config is invalid due to illegal characters
+    expect(responseBody.message).toContain('AppInvalidException')
+    expect(responseBody.message).toContain('NUL character')
+  })
+
   it('should update an existing app when installing the same app again', async () => {
     const {
       session: { accessToken },

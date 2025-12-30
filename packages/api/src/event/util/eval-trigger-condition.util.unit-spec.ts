@@ -8,11 +8,9 @@ const event: Event = {
   eventIdentifier: 'object_added',
   emitterIdentifier: 'platform',
   targetUserId: null,
-  targetLocation: {
-    folderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
-    objectKey:
-      'DALLE-2024-01-11-22.04.56-A-variation-of-the-simplified-colorful-logo-for-the-Circles-photo-sharing-application-with-larger-circles.-The-design-maintains-the-minimalist-sty-1705007405829.png',
-  },
+  targetLocationFolderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
+  targetLocationObjectKey:
+    'DALLE-2024-01-11-22.04.56-A-variation-of-the-simplified-colorful-logo-for-the-Circles-photo-sharing-application-with-larger-circles.-The-design-maintains-the-minimalist-sty-1705007405829.png',
   data: {
     id: 'cb7aaf95-a2aa-49e3-9af1-af9eb4548118',
     eTag: '"0b6f9097d06139cf1c3a069bd9ee7c1b"',

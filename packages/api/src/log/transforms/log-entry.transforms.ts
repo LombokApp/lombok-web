@@ -20,18 +20,23 @@ export function transformLogEntryToDTO(
     emitterIdentifier: logEntry.emitterIdentifier,
     message: logEntry.message,
     level: logEntry.level,
-    targetLocation: logEntry.targetLocation ?? undefined,
+    targetLocation: logEntry.targetLocationFolderId
+      ? {
+          folderId: logEntry.targetLocationFolderId,
+          objectKey: logEntry.targetLocationObjectKey ?? undefined,
+        }
+      : undefined,
     data: logEntry.data,
     createdAt: logEntry.createdAt.toISOString(),
   }
 
   // If folder is present, add subjectContext and return LogEntryWithFolderSubjectContextDTO
-  if (logEntry.targetLocation?.folderId && logEntry.folder) {
+  if (logEntry.targetLocationFolderId && logEntry.folder) {
     return {
       ...baseDTO,
       targetLocationContext: {
-        folderId: logEntry.targetLocation.folderId,
-        objectKey: logEntry.targetLocation.objectKey ?? undefined,
+        folderId: logEntry.targetLocationFolderId,
+        objectKey: logEntry.targetLocationObjectKey ?? undefined,
         folderName: logEntry.folder.name,
         folderOwnerId: logEntry.folder.ownerId,
       },

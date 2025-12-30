@@ -9,7 +9,8 @@ const baseEvent: Event = {
   eventIdentifier: 'platform:worker_task_enqueued',
   emitterIdentifier: 'platform',
   targetUserId: null,
-  targetLocation: null,
+  targetLocationFolderId: null,
+  targetLocationObjectKey: null,
   data: {
     innerTaskId: 'abc-123',
     appIdentifier: 'demo-app',

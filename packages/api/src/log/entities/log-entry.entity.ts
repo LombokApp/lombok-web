@@ -1,13 +1,6 @@
-import type { LogEntryLevel } from '@lombokapp/types'
-import { sql } from 'drizzle-orm'
-import {
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import type { JsonSerializableObject, LogEntryLevel } from '@lombokapp/types'
+import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { jsonbBase64 } from 'src/orm/util/json-base64-type'
 
 export const logEntriesTable = pgTable(
   'log_entries',
@@ -15,18 +8,15 @@ export const logEntriesTable = pgTable(
     id: uuid('id').primaryKey(),
     message: text('message').notNull(),
     emitterIdentifier: text('emitterIdentifier').notNull(),
-    targetLocation: jsonb('targetLocation').$type<{
-      folderId: string
-      objectKey?: string
-    }>(),
+    targetLocationFolderId: uuid('targetLocationFolderId'),
+    targetLocationObjectKey: text('targetLocationObjectKey'),
     level: text('level').notNull().$type<LogEntryLevel>(),
-    data: jsonb('data').$type<unknown>(),
+    data: jsonbBase64('data').$type<JsonSerializableObject>(),
     createdAt: timestamp('createdAt').notNull(),
   },
   (table) => [
-    index('log_entries_target_location_folder_id_idx').using(
-      'btree',
-      sql`((${table.targetLocation} ->> 'folderId')::uuid)`,
+    index('log_entries_target_location_folder_id_idx').on(
+      table.targetLocationFolderId,
     ),
   ],
 )

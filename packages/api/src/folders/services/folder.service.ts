@@ -614,20 +614,10 @@ export class FolderService {
       // Delete all folder tasks and events
       await tx
         .delete(tasksTable)
-        .where(
-          eq(
-            sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`,
-            folderId,
-          ),
-        )
+        .where(eq(tasksTable.targetLocationFolderId, folderId))
       await tx
         .delete(eventsTable)
-        .where(
-          eq(
-            sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`,
-            folderId,
-          ),
-        )
+        .where(eq(eventsTable.targetLocationFolderId, folderId))
       await tx.delete(foldersTable).where(eq(foldersTable.id, folderId))
     })
 

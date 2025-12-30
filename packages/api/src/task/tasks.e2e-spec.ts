@@ -235,9 +235,7 @@ describe('Task lifecycle', () => {
 
     expect(startedParent.task.startedAt).toBeInstanceOf(Date)
     expect(
-      startedParent.task.systemLog.some(
-        (entry) => entry.payload.logType === 'started',
-      ),
+      startedParent.task.systemLog.some((entry) => entry.logType === 'started'),
     ).toBe(true)
 
     await testModule!.services.taskService.registerTaskCompleted(
@@ -354,9 +352,7 @@ describe('Task lifecycle', () => {
 
     expect(startedParent.task.startedAt).toBeInstanceOf(Date)
     expect(
-      startedParent.task.systemLog.some(
-        (entry) => entry.payload.logType === 'started',
-      ),
+      startedParent.task.systemLog.some((entry) => entry.logType === 'started'),
     ).toBe(true)
 
     await testModule!.services.taskService.registerTaskCompleted(
@@ -404,7 +400,7 @@ describe('Task lifecycle', () => {
     expect(startedChildTask.task.startedAt).toBeInstanceOf(Date)
     expect(
       startedChildTask.task.systemLog.some(
-        (entry) => entry.payload.logType === 'started',
+        (entry) => entry.logType === 'started',
       ),
     ).toBe(true)
 
@@ -420,9 +416,7 @@ describe('Task lifecycle', () => {
     expect(completedChildTask.success).toBe(true)
     expect(completedChildTask.error).toBeNull()
     expect(
-      completedChildTask.systemLog.some(
-        (entry) => entry.payload.logType === 'started',
-      ),
+      completedChildTask.systemLog.some((entry) => entry.logType === 'started'),
     ).toBe(true)
 
     const chainOne =
@@ -445,9 +439,7 @@ describe('Task lifecycle', () => {
         startContext: { __executor: { kind: 'test' } },
       })
     expect(startedChainOne.task.startedAt).toBeInstanceOf(Date)
-    expect(startedChainOne.task.systemLog.at(0)?.payload.logType).toBe(
-      'started',
-    )
+    expect(startedChainOne.task.systemLog.at(0)?.logType).toBe('started')
 
     await testModule!.services.taskService.registerTaskCompleted(chainOne.id, {
       success: true,
@@ -462,9 +454,7 @@ describe('Task lifecycle', () => {
     expect(parentTaskRecord?.success).toBe(true)
     expect(parentTaskRecord?.completedAt).toBeInstanceOf(Date)
     expect(
-      parentTaskRecord?.systemLog.some(
-        (entry) => entry.payload.logType === 'success',
-      ),
+      parentTaskRecord?.systemLog.some((entry) => entry.logType === 'success'),
     ).toBe(true)
 
     const events =
@@ -502,8 +492,8 @@ describe('Task lifecycle', () => {
     expect(started.task.startedAt).toBeInstanceOf(Date)
     expect(started.task.completedAt).toBeNull()
     expect(started.task.systemLog.length).toBe(1)
-    expect(started.task.systemLog[0]?.payload.logType).toBe('started')
-    expect(started.task.systemLog[0]?.payload.data).toEqual({
+    expect(started.task.systemLog[0]?.logType).toBe('started')
+    expect(started.task.systemLog[0]?.payload).toEqual({
       __executor: { kind: 'test' },
     })
 
@@ -516,8 +506,8 @@ describe('Task lifecycle', () => {
     expect(completed.completedAt).toBeInstanceOf(Date)
     expect(completed.success).toBe(true)
     expect(completed.systemLog.length).toBe(2)
-    expect(completed.systemLog[1]?.payload.logType).toBe('success')
-    expect(completed.systemLog[1]?.payload.data).toEqual({
+    expect(completed.systemLog[1]?.logType).toBe('success')
+    expect(completed.systemLog[1]?.payload).toEqual({
       result: { message: 'done' },
     })
   })
@@ -828,7 +818,7 @@ describe('Task lifecycle', () => {
       taskId: task.id,
       startContext: { __executor: { kind: 'test' } },
     })
-    expect(started.task.systemLog.at(0)?.payload.logType).toBe('started')
+    expect(started.task.systemLog.at(0)?.logType).toBe('started')
     expect(started.task.startedAt).toBeInstanceOf(Date)
     expect(started.task.completedAt).toBeNull()
 
@@ -838,11 +828,334 @@ describe('Task lifecycle', () => {
         result: { message: 'user-finished' },
       })
 
-    expect(completed.systemLog.at(1)?.payload.logType).toBe('success')
-    expect(completed.systemLog.at(1)?.payload.data).toEqual({
+    expect(completed.systemLog.at(1)?.logType).toBe('success')
+    expect(completed.systemLog.at(1)?.payload).toEqual({
       result: { message: 'user-finished' },
     })
     expect(completed.completedAt).toBeInstanceOf(Date)
     expect(completed.success).toBe(true)
+  })
+
+  it('handles invalid byte sequences in task data', async () => {
+    const task = await testModule!.services.taskService.triggerAppActionTask({
+      appIdentifier:
+        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+      taskIdentifier: APP_ACTION_TASK_ID,
+      taskData: {
+        raw: 'This is invalid: \u0000',
+        nested: {
+          value: 'Another null byte: \u0000 here',
+          array: ['normal', 'with null: \u0000', 'end'],
+        },
+      },
+    })
+
+    const retrievedTask = await getTaskByIdentifier(
+      testModule!,
+      APP_ACTION_TASK_ID,
+    )
+    if (!retrievedTask) {
+      throw new Error('Task with invalid byte sequences was not created.')
+    }
+
+    expect(retrievedTask.id).toBe(task.id)
+    expect(retrievedTask.data).toEqual({
+      raw: 'This is invalid: \u0000',
+      nested: {
+        value: 'Another null byte: \u0000 here',
+        array: ['normal', 'with null: \u0000', 'end'],
+      },
+    })
+
+    // Verify that null bytes are preserved in the stored data
+    if (typeof retrievedTask.data.raw === 'string') {
+      expect(retrievedTask.data.raw).toInclude('\u0000')
+    }
+    if (
+      typeof retrievedTask.data.nested === 'object' &&
+      retrievedTask.data.nested !== null &&
+      !Array.isArray(retrievedTask.data.nested)
+    ) {
+      const nested = retrievedTask.data.nested as {
+        value?: unknown
+        array?: unknown
+      }
+      if (typeof nested.value === 'string') {
+        expect(nested.value).toInclude('\u0000')
+      }
+      if (Array.isArray(nested.array) && typeof nested.array[1] === 'string') {
+        expect(nested.array[1]).toInclude('\u0000')
+      }
+    }
+
+    // Verify the task can be retrieved from the database
+    const taskFromDb =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+
+    expect(taskFromDb).toBeTruthy()
+    if (taskFromDb) {
+      expect(taskFromDb.data).toEqual({
+        raw: 'This is invalid: \u0000',
+        nested: {
+          value: 'Another null byte: \u0000 here',
+          array: ['normal', 'with null: \u0000', 'end'],
+        },
+      })
+    }
+  })
+
+  it('should base64 encode payloads in the systemLog and taskLog', async () => {
+    await testModule!.services.ormService.db.insert(tasksTable).values([
+      {
+        id: crypto.randomUUID(),
+        ownerIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        trigger: {
+          kind: 'app_action',
+        },
+        handlerType: 'app_action',
+        handlerIdentifier: 'app_action',
+        taskDescription: 'Test task',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        data: { raw: 'This is invalid (in data): \u0000' },
+        storageAccessPolicy: [],
+        systemLog: [
+          {
+            at: new Date(),
+            logType: 'started',
+            message: 'Task is started',
+            payload: {
+              raw: 'This is invalid: \u0000',
+              nested: {
+                value: 'Another null byte: \u0000 here',
+                array: ['normal', 'with null: \u0000', 'end'],
+              },
+            },
+          },
+        ],
+        taskLog: [
+          {
+            at: new Date(),
+            message: 'Test tasklog',
+            logType: 'started',
+            payload: {
+              raw: 'This is invalid (tasklog): \u0000',
+              nested: {
+                value: 'Another null byte (tasklog): \u0000 here',
+                array: [
+                  'normal (tasklog)',
+                  'with null: \u0000',
+                  'end (tasklog)',
+                ],
+              },
+            },
+          },
+        ],
+      },
+    ])
+
+    const result = await testModule!.services.ormService.client.query<{
+      systemLog: {
+        at: string
+        message: string
+        logType: string
+        payload: string
+      }[]
+      taskLog: {
+        at: string
+        message: string
+        logType: string
+        payload: string
+      }[]
+      data: { base64: string }
+    }>(
+      `SELECT "systemLog", "taskLog", "data" FROM tasks WHERE "taskIdentifier" = '${APP_ACTION_TASK_ID}'`,
+    )
+
+    expect(result.rows[0]?.systemLog).toEqual([
+      {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        at: expect.any(String),
+        logType: 'started',
+        message: 'Task is started',
+        payload:
+          'eyJyYXciOiJUaGlzIGlzIGludmFsaWQ6IFx1MDAwMCIsIm5lc3RlZCI6eyJ2YWx1ZSI6IkFub3RoZXIgbnVsbCBieXRlOiBcdTAwMDAgaGVyZSIsImFycmF5IjpbIm5vcm1hbCIsIndpdGggbnVsbDogXHUwMDAwIiwiZW5kIl19fQ==',
+      },
+    ])
+
+    expect(result.rows[0]?.taskLog).toEqual([
+      {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        at: expect.any(String),
+        message: 'Test tasklog',
+        logType: 'started',
+        payload:
+          'eyJyYXciOiJUaGlzIGlzIGludmFsaWQgKHRhc2tsb2cpOiBcdTAwMDAiLCJuZXN0ZWQiOnsidmFsdWUiOiJBbm90aGVyIG51bGwgYnl0ZSAodGFza2xvZyk6IFx1MDAwMCBoZXJlIiwiYXJyYXkiOlsibm9ybWFsICh0YXNrbG9nKSIsIndpdGggbnVsbDogXHUwMDAwIiwiZW5kICh0YXNrbG9nKSJdfX0=',
+      },
+    ])
+
+    expect(result.rows[0]?.data).toEqual({
+      base64: 'eyJyYXciOiJUaGlzIGlzIGludmFsaWQgKGluIGRhdGEpOiBcdTAwMDAifQ==',
+    })
+  })
+
+  it('should decode payloads in the systemLog and taskLog from base64', async () => {
+    await testModule!.services.ormService.db.insert(tasksTable).values([
+      {
+        id: crypto.randomUUID(),
+        ownerIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        trigger: {
+          kind: 'app_action',
+        },
+        handlerType: 'app_action',
+        handlerIdentifier: 'app_action',
+        taskDescription: 'Test task',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        data: { raw: 'This is invalid (in data): \u0000' },
+        storageAccessPolicy: [],
+        systemLog: [
+          {
+            at: new Date(),
+            logType: 'started',
+            message: 'Task is started',
+            payload: {
+              raw: 'This is invalid: \u0000',
+              nested: {
+                value: 'Another null byte: \u0000 here',
+                array: ['normal', 'with null: \u0000', 'end'],
+              },
+            },
+          },
+        ],
+        taskLog: [
+          {
+            at: new Date(),
+            message: 'Test tasklog',
+            logType: 'started',
+            payload: {
+              raw: 'This is invalid (tasklog): \u0000',
+              nested: {
+                value: 'Another null byte (tasklog): \u0000 here',
+                array: [
+                  'normal (tasklog)',
+                  'with null: \u0000',
+                  'end (tasklog)',
+                ],
+              },
+            },
+          },
+        ],
+      },
+    ])
+
+    const retrievedTask = await getTaskByIdentifier(
+      testModule!,
+      APP_ACTION_TASK_ID,
+    )
+    if (!retrievedTask) {
+      throw new Error('Task with invalid byte sequences was not created.')
+    }
+
+    expect(retrievedTask.systemLog).toEqual([
+      {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        at: expect.any(Date),
+        message: 'Task is started',
+        logType: 'started',
+        payload: {
+          raw: 'This is invalid: \u0000',
+          nested: {
+            value: 'Another null byte: \u0000 here',
+            array: ['normal', 'with null: \u0000', 'end'],
+          },
+        },
+      },
+    ])
+
+    expect(retrievedTask.taskLog).toEqual([
+      {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        at: expect.any(Date),
+        message: 'Test tasklog',
+        logType: 'started',
+        payload: {
+          raw: 'This is invalid (tasklog): \u0000',
+          nested: {
+            value: 'Another null byte (tasklog): \u0000 here',
+            array: ['normal (tasklog)', 'with null: \u0000', 'end (tasklog)'],
+          },
+        },
+      },
+    ])
+
+    expect(retrievedTask.data).toEqual({
+      raw: 'This is invalid (in data): \u0000',
+    })
+  })
+
+  it('should allow inserting null bytes in task systemLog and taskLog', async () => {
+    await testModule!.services.ormService.db.insert(tasksTable).values([
+      {
+        id: crypto.randomUUID(),
+        ownerIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        trigger: {
+          kind: 'app_action',
+        },
+        handlerType: 'app_action',
+        handlerIdentifier: 'app_action',
+        taskDescription: 'Test task',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        data: { raw: 'This is invalid: \u0000' },
+        storageAccessPolicy: [],
+        systemLog: [
+          {
+            at: new Date(),
+            logType: 'started',
+            message: 'Task is started',
+            payload: {
+              raw: 'This is invalid: \u0000',
+              nested: {
+                value: 'Another null byte: \u0000 here',
+                array: ['normal', 'with null: \u0000', 'end'],
+              },
+            },
+          },
+        ],
+      },
+    ])
+
+    const retrievedTask = await getTaskByIdentifier(
+      testModule!,
+      APP_ACTION_TASK_ID,
+    )
+    if (!retrievedTask) {
+      throw new Error('Task with invalid byte sequences was not created.')
+    }
+
+    expect(retrievedTask.systemLog).toEqual([
+      {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        at: expect.any(Date),
+        logType: 'started',
+        message: 'Task is started',
+        payload: {
+          raw: 'This is invalid: \u0000',
+          nested: {
+            value: 'Another null byte: \u0000 here',
+            array: ['normal', 'with null: \u0000', 'end'],
+          },
+        },
+      },
+    ])
   })
 })

@@ -14699,31 +14699,27 @@
                       "type": "string",
                       "format": "date-time"
                     },
+                    "message": {
+                      "type": "string"
+                    },
+                    "logType": {
+                      "type": "string",
+                      "enum": [
+                        "started",
+                        "error",
+                        "requeue",
+                        "success"
+                      ]
+                    },
                     "payload": {
                       "type": "object",
-                      "properties": {
-                        "logType": {
-                          "type": "string",
-                          "enum": [
-                            "started",
-                            "error",
-                            "requeue",
-                            "success"
-                          ]
-                        },
-                        "data": {
-                          "type": "object",
-                          "additionalProperties": {}
-                        }
-                      },
-                      "required": [
-                        "logType"
-                      ]
+                      "additionalProperties": {}
                     }
                   },
                   "required": [
                     "at",
-                    "payload"
+                    "message",
+                    "logType"
                   ]
                 }
               },
@@ -14739,6 +14735,10 @@
                     "message": {
                       "type": "string"
                     },
+                    "logType": {
+                      "type": "string",
+                      "pattern": "^[a-z0-9_]+$"
+                    },
                     "payload": {
                       "type": "object",
                       "additionalProperties": {}
@@ -14746,7 +14746,8 @@
                   },
                   "required": [
                     "at",
-                    "message"
+                    "message",
+                    "logType"
                   ]
                 }
               },
