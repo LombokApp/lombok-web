@@ -1534,6 +1534,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -1770,6 +1771,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -2006,6 +2008,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -2249,6 +2252,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -2457,6 +2461,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -3212,16 +3217,15 @@ export interface components {
                 trigger: {
                     /** @enum {string} */
                     kind: "event";
-                    eventIdentifier: string;
-                    dataTemplate?: {
-                        [key: string]: unknown;
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
                         emitterIdentifier: string;
+                        eventIdentifier: string;
+                        eventTriggerConfigIndex: number;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
                         /** Format: uuid */
                         targetUserId?: string;
                         targetLocation?: {
@@ -3233,40 +3237,37 @@ export interface components {
                             [key: string]: unknown;
                         };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "schedule";
-                    config: {
-                        interval: number;
-                        /** @enum {string} */
-                        unit: "minutes" | "hours" | "days";
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
-                        [key: string]: unknown;
+                        timestampBucket: string;
+                        name: string;
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "user_action";
-                    scope?: {
-                        user?: {
-                            permissions: string;
-                        };
-                        folder?: {
-                            /** Format: uuid */
-                            folderId: string;
-                        };
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         userId: string;
+                        /** Format: uuid */
+                        requestId: string;
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "app_action";
+                    invokeContext: {
+                        /** Format: uuid */
+                        requestId: string;
+                    };
                     onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
@@ -3278,6 +3279,7 @@ export interface components {
                             identifier: string;
                             success: boolean;
                         };
+                        onCompleteHandlerIndex: number;
                     };
                     onComplete?: unknown[];
                 };
@@ -3348,16 +3350,15 @@ export interface components {
                 trigger: {
                     /** @enum {string} */
                     kind: "event";
-                    eventIdentifier: string;
-                    dataTemplate?: {
-                        [key: string]: unknown;
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
                         emitterIdentifier: string;
+                        eventIdentifier: string;
+                        eventTriggerConfigIndex: number;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
                         /** Format: uuid */
                         targetUserId?: string;
                         targetLocation?: {
@@ -3369,40 +3370,37 @@ export interface components {
                             [key: string]: unknown;
                         };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "schedule";
-                    config: {
-                        interval: number;
-                        /** @enum {string} */
-                        unit: "minutes" | "hours" | "days";
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
-                        [key: string]: unknown;
+                        timestampBucket: string;
+                        name: string;
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "user_action";
-                    scope?: {
-                        user?: {
-                            permissions: string;
-                        };
-                        folder?: {
-                            /** Format: uuid */
-                            folderId: string;
-                        };
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         userId: string;
+                        /** Format: uuid */
+                        requestId: string;
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "app_action";
+                    invokeContext: {
+                        /** Format: uuid */
+                        requestId: string;
+                    };
                     onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
@@ -3414,6 +3412,7 @@ export interface components {
                             identifier: string;
                             success: boolean;
                         };
+                        onCompleteHandlerIndex: number;
                     };
                     onComplete?: unknown[];
                 };

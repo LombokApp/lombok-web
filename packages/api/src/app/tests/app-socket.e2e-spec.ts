@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { io, type Socket } from 'socket.io-client'
 import { eventsTable } from 'src/event/entities/event.entity'
+import { runWithThreadContext } from 'src/shared/request-context'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
@@ -259,13 +260,14 @@ describe('App Socket Interface', () => {
     socket = await connectSocket('test-instance-1', ['socket_test_task'])
 
     // Create a task that the app can handle
-    await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
-
     const response = await buildAppClient(
       socket,
       serverBaseUrl,
@@ -286,11 +288,13 @@ describe('App Socket Interface', () => {
     socket = await connectSocket('test-instance-1', ['socket_test_task'])
 
     // Create and start a task
-    await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     const startResponse = await buildAppClient(
@@ -418,11 +422,13 @@ describe('App Socket Interface', () => {
     })
 
     // Create a task
-    await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     await testModule!.services.taskService.handlePendingTasks()
@@ -445,11 +451,13 @@ describe('App Socket Interface', () => {
     socket = await connectSocket('test-instance-1', ['socket_test_task'])
 
     // Create and start a task owned by sockettestapp
-    await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     const startResponse = await buildAppClient(
@@ -494,11 +502,13 @@ describe('App Socket Interface', () => {
 
   it('should reject COMPLETE_HANDLE_TASK when non-owner app does not have SERVE_APPS permission', async () => {
     // Create a task owned by sockettestapp
-    const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     // Try to complete the task as a different app (sockettestappnodb) without SERVE_APPS
@@ -530,11 +540,13 @@ describe('App Socket Interface', () => {
 
   it('should reject ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID when non-owner app does not have SERVE_APPS permission', async () => {
     // Create a task owned by sockettestapp
-    const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     // Try to start the task as a different app (sockettestappnodb) without SERVE_APPS
@@ -564,11 +576,13 @@ describe('App Socket Interface', () => {
 
   it('should reject COMPLETE_HANDLE_TASK when app with SERVE_APPS tries to complete non-worker task', async () => {
     // Create a task owned by sockettestapp with handlerType 'external' (not 'worker')
-    const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     // Try to complete the task as core app (which has SERVE_APPS) but task is not a worker task
@@ -600,11 +614,13 @@ describe('App Socket Interface', () => {
 
   it('should reject ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID when app with SERVE_APPS tries to start non-worker task', async () => {
     // Create a task owned by sockettestapp with handlerType 'external' (not 'worker')
-    const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      taskIdentifier: 'socket_test_task',
-      taskData: { testData: 'value' },
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
+        taskIdentifier: 'socket_test_task',
+        taskData: { testData: 'value' },
+      })
     })
 
     // Try to start the task as core app (which has SERVE_APPS) but task is not a worker task

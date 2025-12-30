@@ -1,5 +1,5 @@
 {
-  "id": "015b18ae-5d99-4af5-b672-0fc9c5c94c7a",
+  "id": "8943a57a-98ca-406b-9d34-6db3513e7734",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1240,6 +1240,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "idempotencyKey": {
+          "name": "idempotencyKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "targetUserId": {
           "name": "targetUserId",
           "type": "uuid",
@@ -1294,8 +1300,7 @@
           "name": "storageAccessPolicy",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
+          "notNull": true
         },
         "success": {
           "name": "success",
@@ -1349,6 +1354,33 @@
               "expression": "(\"trigger\" ->> 'kind')",
               "asc": true,
               "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_idempotency_key_idx": {
+          "name": "tasks_idempotency_key_idx",
+          "columns": [
+            {
+              "expression": "ownerIdentifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "taskIdentifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "idempotencyKey",
+              "isExpression": false,
+              "asc": true,
               "nulls": "last"
             }
           ],

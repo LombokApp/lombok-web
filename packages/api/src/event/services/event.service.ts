@@ -5,7 +5,7 @@ import {
   JsonSerializableObject,
   PLATFORM_IDENTIFIER,
   PlatformEvent,
-  TaskScheduleTriggerConfig,
+  ScheduleTaskTriggerConfig,
 } from '@lombokapp/types'
 import {
   forwardRef,
@@ -26,7 +26,6 @@ import {
   ilike,
   or,
   SQL,
-  sql,
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
@@ -42,6 +41,8 @@ import {
 } from 'src/task/constants/platform-tasks.constants'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { getUtcScheduleBucket } from 'src/task/util/schedule-bucket.util'
+import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -89,7 +90,7 @@ export class EventService {
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
 
-  private getScheduleIntervalMs(scheduleTrigger: TaskScheduleTriggerConfig) {
+  private getScheduleIntervalMs(scheduleTrigger: ScheduleTaskTriggerConfig) {
     if (scheduleTrigger.config.unit === 'minutes') {
       return scheduleTrigger.config.interval * 60 * 1000
     }
@@ -126,6 +127,7 @@ export class EventService {
     this.isProcessingScheduleTriggers = true
     try {
       const now = new Date()
+      const nowMs = now.getTime()
       const enabledApps = await this.ormService.db.query.appsTable.findMany({
         where: eq(appsTable.enabled, true),
         columns: {
@@ -146,27 +148,8 @@ export class EventService {
         }
 
         for (const scheduleTrigger of scheduleTriggers) {
-          const earliestAllowed = new Date(
-            now.getTime() - this.getScheduleIntervalMs(scheduleTrigger),
-          )
-
-          const existingTask =
-            await this.ormService.db.query.tasksTable.findFirst({
-              columns: { id: true, createdAt: true },
-              where: and(
-                eq(tasksTable.ownerIdentifier, app.identifier),
-                eq(tasksTable.taskIdentifier, scheduleTrigger.taskIdentifier),
-                sql`(${tasksTable.trigger} ->> 'kind') = 'schedule'`,
-                sql`(${tasksTable.trigger} -> 'config' ->> 'unit') = ${scheduleTrigger.config.unit}`,
-                sql`(${tasksTable.trigger} -> 'config' ->> 'interval')::int = ${scheduleTrigger.config.interval}`,
-                gte(tasksTable.createdAt, earliestAllowed),
-              ),
-              orderBy: desc(tasksTable.createdAt),
-            })
-
-          if (existingTask) {
-            continue
-          }
+          const intervalMs = this.getScheduleIntervalMs(scheduleTrigger)
+          const earliestAllowed = new Date(nowMs - intervalMs)
 
           const taskDefinition = app.config.tasks?.find(
             (task) => task.identifier === scheduleTrigger.taskIdentifier,
@@ -182,14 +165,20 @@ export class EventService {
           const { handlerType, handlerIdentifier } =
             this.resolveTaskHandler(taskDefinition)
 
-          const newTask: NewTask = {
+          const newTask = withTaskIdempotencyKey({
             id: uuidV4(),
             trigger: {
               kind: 'schedule',
-              invokeContext: {},
-              config: {
-                interval: scheduleTrigger.config.interval,
-                unit: scheduleTrigger.config.unit,
+              invokeContext: {
+                timestampBucket: getUtcScheduleBucket(
+                  scheduleTrigger.config,
+                  now,
+                ).bucketStart.toISOString(),
+                name: scheduleTrigger.name,
+                config: {
+                  interval: scheduleTrigger.config.interval,
+                  unit: scheduleTrigger.config.unit,
+                },
               },
             },
             taskIdentifier: taskDefinition.identifier,
@@ -201,8 +190,23 @@ export class EventService {
             updatedAt: now,
             handlerType,
             handlerIdentifier,
-          }
+          })
 
+          const existingTask =
+            await this.ormService.db.query.tasksTable.findFirst({
+              columns: { id: true, createdAt: true },
+              where: and(
+                eq(tasksTable.ownerIdentifier, app.identifier),
+                eq(tasksTable.taskIdentifier, newTask.taskIdentifier),
+                eq(tasksTable.idempotencyKey, newTask.idempotencyKey),
+                gte(tasksTable.createdAt, earliestAllowed),
+              ),
+              orderBy: desc(tasksTable.createdAt),
+            })
+
+          if (existingTask) {
+            continue
+          }
           tasksToInsert.push(newTask)
         }
       }
@@ -369,82 +373,87 @@ export class EventService {
           }
         }
         return Promise.all(
-          (subscribedApp.config.triggers ?? []).map(async (trigger) => {
-            if (
-              trigger.kind === 'event' &&
-              trigger.eventIdentifier === eventTriggerIdentifier
-            ) {
-              const taskDefinition = subscribedApp.config.tasks?.find(
-                (task) => task.identifier === trigger.taskIdentifier,
-              )
-              if (!taskDefinition) {
-                this.logger.error(
-                  `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
-                )
-                return Promise.resolve()
-              }
-
-              const triggerConditionResult = trigger.condition
-                ? evalTriggerHandlerCondition(trigger.condition, event)
-                : undefined
-
-              if (trigger.condition && triggerConditionResult === false) {
-                this.logger.debug(
-                  `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
-                )
-                return Promise.resolve()
-              }
-
-              // Build the base task object
-              const baseTask: NewTask = {
-                id: uuidV4(),
-                trigger: {
-                  ...trigger,
-                  invokeContext: this.buildEventInvocation(event),
-                },
-                targetLocationFolderId: targetLocation?.folderId,
-                targetLocationObjectKey: targetLocation?.objectKey,
-                taskDescription: taskDefinition.description,
-                taskIdentifier: taskDefinition.identifier,
-                data: trigger.dataTemplate
-                  ? await parseDataFromEventWithTrigger(
-                      trigger.dataTemplate,
-                      event,
-                      {
-                        createPresignedUrl:
-                          this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
-                            subscribedApp.identifier,
-                          ),
-                      },
-                    )
-                  : {},
-                storageAccessPolicy: [],
-                ownerIdentifier: subscribedApp.identifier,
-                systemLog: [
-                  {
-                    at: new Date(),
-                    logType: 'started',
-                    message: 'Task is started',
-                  },
-                ],
-                createdAt: now,
-                updatedAt: now,
-                handlerType: taskDefinition.handler.type,
-                handlerIdentifier: (
-                  taskDefinition.handler as { identifier: string } | undefined
-                )?.identifier,
-              }
-              tasks.push(baseTask)
+          (subscribedApp.config.triggers ?? []).map(
+            async (trigger, eventTriggerConfigIndex) => {
               if (
-                taskDefinition.handler.type === 'worker' ||
-                taskDefinition.handler.type === 'docker'
+                trigger.kind === 'event' &&
+                trigger.eventIdentifier === eventTriggerIdentifier
               ) {
-                // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                await this.emitRunnableTaskEnqueuedEvent(baseTask, tx)
+                const taskDefinition = subscribedApp.config.tasks?.find(
+                  (task) => task.identifier === trigger.taskIdentifier,
+                )
+                if (!taskDefinition) {
+                  this.logger.error(
+                    `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
+                  )
+                  return Promise.resolve()
+                }
+
+                const triggerConditionResult = trigger.condition
+                  ? evalTriggerHandlerCondition(trigger.condition, event)
+                  : undefined
+
+                if (trigger.condition && triggerConditionResult === false) {
+                  this.logger.debug(
+                    `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
+                  )
+                  return Promise.resolve()
+                }
+
+                // Build the base task object
+                const task: NewTask = withTaskIdempotencyKey({
+                  id: uuidV4(),
+                  trigger: {
+                    ...trigger,
+                    invokeContext: this.buildEventInvocation(
+                      event,
+                      eventTriggerConfigIndex,
+                    ),
+                  },
+                  targetLocationFolderId: targetLocation?.folderId,
+                  targetLocationObjectKey: targetLocation?.objectKey,
+                  taskDescription: taskDefinition.description,
+                  taskIdentifier: taskDefinition.identifier,
+                  data: trigger.dataTemplate
+                    ? await parseDataFromEventWithTrigger(
+                        trigger.dataTemplate,
+                        event,
+                        {
+                          createPresignedUrl:
+                            this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
+                              subscribedApp.identifier,
+                            ),
+                        },
+                      )
+                    : {},
+                  storageAccessPolicy: [],
+                  ownerIdentifier: subscribedApp.identifier,
+                  systemLog: [
+                    {
+                      at: new Date(),
+                      logType: 'started',
+                      message: 'Task is started',
+                    },
+                  ],
+                  createdAt: now,
+                  updatedAt: now,
+                  handlerType: taskDefinition.handler.type,
+                  handlerIdentifier: (
+                    taskDefinition.handler as { identifier: string } | undefined
+                  )?.identifier,
+                })
+                tasks.push(task)
+                if (
+                  taskDefinition.handler.type === 'worker' ||
+                  taskDefinition.handler.type === 'docker'
+                ) {
+                  // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
+                  await this.emitRunnableTaskEnqueuedEvent(task, tx)
+                }
               }
-            }
-            return Promise.resolve()
-          }),
+              return Promise.resolve()
+            },
+          ),
         )
       }),
     )
@@ -512,10 +521,12 @@ export class EventService {
     }
   }
 
-  private buildEventInvocation(event: Event) {
+  private buildEventInvocation(event: Event, eventTriggerConfigIndex: number) {
     return {
       eventId: event.id,
+      eventTriggerConfigIndex,
       emitterIdentifier: event.emitterIdentifier,
+      eventIdentifier: event.eventIdentifier,
       targetUserId: event.targetUserId ?? undefined,
       targetLocation: event.targetLocationFolderId
         ? {
@@ -538,22 +549,26 @@ export class EventService {
       ] ?? []
 
     const platformTasks: NewTask[] = platformTaskDefinitions.map(
-      ({ taskIdentifier, buildData }) => ({
-        id: uuidV4(),
-        trigger: {
-          kind: 'event',
-          eventIdentifier: event.eventIdentifier,
-          invokeContext: this.buildEventInvocation(event),
-        },
-        storageAccessPolicy: [],
-        taskIdentifier,
-        taskDescription: PLATFORM_TASKS[taskIdentifier].description,
-        data: buildData(event),
-        ownerIdentifier: PLATFORM_IDENTIFIER,
-        handlerType: PLATFORM_IDENTIFIER,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      }),
+      ({ taskIdentifier, buildData }, eventTriggerConfigIndex) => {
+        return withTaskIdempotencyKey({
+          id: crypto.randomUUID(),
+          trigger: {
+            kind: 'event',
+            invokeContext: this.buildEventInvocation(
+              event,
+              eventTriggerConfigIndex,
+            ),
+          },
+          storageAccessPolicy: [],
+          taskIdentifier,
+          taskDescription: PLATFORM_TASKS[taskIdentifier].description,
+          data: buildData(event),
+          ownerIdentifier: PLATFORM_IDENTIFIER,
+          handlerType: PLATFORM_IDENTIFIER,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        })
+      },
     )
 
     return platformTasks

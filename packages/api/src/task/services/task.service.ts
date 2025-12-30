@@ -38,18 +38,20 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { dataFromTemplate } from 'src/platform/utils/data-template.util'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
+import { getRequestId } from 'src/shared/request-context'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import type { User } from 'src/users/entities/user.entity'
 
 import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
-import type { NewTask, Task } from '../entities/task.entity'
+import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
 import {
   evalOnCompleteHandlerCondition,
   OnCompleteConditionTaskContext,
 } from '../util/eval-oncomplete-condition.util'
 import { serializeLogEntry } from '../util/log-encoder.util'
+import { withTaskIdempotencyKey } from '../util/task-idempotency-key.util'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -242,6 +244,7 @@ export class TaskService {
           taskIdentifier: tasksTable.taskIdentifier,
           taskDescription: tasksTable.taskDescription,
           trigger: tasksTable.trigger,
+          idempotencyKey: tasksTable.idempotencyKey,
           targetUserId: tasksTable.targetUserId,
           targetLocationFolderId: tasksTable.targetLocationFolderId,
           targetLocationObjectKey: tasksTable.targetLocationObjectKey,
@@ -382,7 +385,7 @@ export class TaskService {
     storageAccessPolicy?: StorageAccessPolicy
   }) {
     const now = new Date()
-    const newTask: NewTask = {
+    const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: PLATFORM_IDENTIFIER,
       taskIdentifier,
@@ -390,6 +393,7 @@ export class TaskService {
         kind: 'user_action',
         invokeContext: {
           userId,
+          requestId: getRequestId(),
         },
       },
       taskDescription: 'Platform task on user request',
@@ -399,15 +403,15 @@ export class TaskService {
           ? dontStartBefore
           : typeof dontStartBefore === 'number'
             ? addMs(now, dontStartBefore)
-            : undefined,
+            : null,
       createdAt: now,
       updatedAt: now,
       handlerType: 'platform',
       storageAccessPolicy,
-      targetLocationFolderId: targetLocation?.folderId,
-      targetLocationObjectKey: targetLocation?.objectKey,
-      targetUserId,
-    }
+      targetLocationFolderId: targetLocation?.folderId ?? null,
+      targetLocationObjectKey: targetLocation?.objectKey ?? null,
+      targetUserId: targetUserId ?? null,
+    })
 
     const [task] = await this.ormService.db
       .insert(tasksTable)
@@ -464,7 +468,7 @@ export class TaskService {
       )
     }
 
-    const newTask: NewTask = {
+    const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: appIdentifier,
       taskIdentifier,
@@ -472,6 +476,7 @@ export class TaskService {
         kind: 'user_action',
         invokeContext: {
           userId,
+          requestId: getRequestId(),
         },
       },
       taskDescription: taskDefinition.description,
@@ -489,7 +494,7 @@ export class TaskService {
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
       targetUserId,
-    }
+    })
 
     return this.ormService.db.transaction(async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -569,14 +574,16 @@ export class TaskService {
     }
 
     const now = new Date()
-
-    const newTask: NewTask = {
+    const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: appIdentifier,
       taskIdentifier,
       trigger: {
         kind: 'app_action',
-        ...(onComplete && { onComplete }),
+        invokeContext: {
+          requestId: getRequestId(),
+        },
+        onComplete: onComplete ?? undefined,
       },
       data: taskData,
       handlerType: taskDefinition.handler.type,
@@ -597,7 +604,7 @@ export class TaskService {
       targetUserId,
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
-    }
+    })
 
     return this.ormService.db.transaction(async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -629,6 +636,7 @@ export class TaskService {
     targetLocation,
     onComplete = [],
     storageAccessPolicy = [],
+    handlerIndex,
     options = {},
   }: {
     parentTaskSuccess: boolean
@@ -640,6 +648,7 @@ export class TaskService {
     targetLocation?: { folderId: string; objectKey?: string }
     onComplete?: TaskOnCompleteConfig[]
     storageAccessPolicy?: StorageAccessPolicy
+    handlerIndex: number
     options: { tx?: OrmService['db'] }
   }) {
     const app = await this.appService.getApp(parentTask.ownerIdentifier, {
@@ -678,7 +687,7 @@ export class TaskService {
       | undefined
 
     const now = new Date()
-    const newTask: NewTask = {
+    const childTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: parentTask.ownerIdentifier,
       taskIdentifier,
@@ -690,6 +699,7 @@ export class TaskService {
             identifier: parentTask.taskIdentifier,
             success: parentTaskSuccess,
           },
+          onCompleteHandlerIndex: handlerIndex,
         },
         onComplete: onComplete.length > 0 ? onComplete : undefined,
       },
@@ -741,22 +751,21 @@ export class TaskService {
       targetUserId,
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
-    }
+    })
 
     this.logger.debug('onComplete handler task queued', {
-      id: newTask.id,
-      taskIdentifier: newTask.taskIdentifier,
-      parent:
-        newTask.trigger.kind === 'task_child'
-          ? newTask.trigger.invokeContext.parentTask.id
-          : undefined,
-      onComplete: newTask.trigger.onComplete,
+      id: childTask.id,
+      taskIdentifier: childTask.taskIdentifier,
+      ...(childTask.trigger.kind === 'task_child'
+        ? { parent: childTask.trigger.invokeContext.parentTask.id }
+        : {}),
+      onComplete: childTask.trigger.onComplete,
     })
 
     if (options.tx) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const task = (
-        await options.tx.insert(tasksTable).values(newTask).returning()
+        await options.tx.insert(tasksTable).values(childTask).returning()
       )[0]!
       await this.eventService.emitRunnableTaskEnqueuedEvent(task, options.tx)
       return task
@@ -764,7 +773,7 @@ export class TaskService {
       return this.ormService.db.transaction(async (tx) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const task = (
-          await tx.insert(tasksTable).values(newTask).returning()
+          await tx.insert(tasksTable).values(childTask).returning()
         )[0]!
         await this.eventService.emitRunnableTaskEnqueuedEvent(task, tx)
         return task
@@ -1059,48 +1068,55 @@ export class TaskService {
     }
 
     // Enqueue the completion handler task if one was configured for this task
-    for (const onCompleteHandler of task.trigger.onComplete ?? []) {
-      const conditionInput: OnCompleteConditionTaskContext = {
-        id: updatedTask.id,
-        ...(completion.success
-          ? { success: true, result: completion.result ?? {} }
-          : {
-              success: false,
-              error: completion.error,
-            }),
-      }
-      const onCompleteConditionResult = onCompleteHandler.condition
-        ? evalOnCompleteHandlerCondition(
-            onCompleteHandler.condition,
-            conditionInput,
-          )
-        : undefined
-      if (onCompleteHandler.condition && !conditionInput.success) {
-        this.logger.debug('Task onComplete condition evaluation failed:', {
-          condition: onCompleteHandler.condition,
-          input: conditionInput,
-        })
-      }
-      if (!onCompleteHandler.condition || onCompleteConditionResult === true) {
-        await this.executeOnCompleteHandler({
-          parentTaskSuccess: completion.success,
-          parentTask: updatedTask,
-          onComplete: onCompleteHandler.onComplete ?? [],
-          taskIdentifier: onCompleteHandler.taskIdentifier,
-          taskDataTemplate: onCompleteHandler.dataTemplate ?? {},
-          targetUserId: updatedTask.targetUserId ?? undefined,
-          targetLocation: updatedTask.targetLocationFolderId
-            ? {
-                folderId: updatedTask.targetLocationFolderId,
-                objectKey: updatedTask.targetLocationObjectKey ?? undefined,
-              }
-            : undefined,
-          storageAccessPolicy: updatedTask.storageAccessPolicy,
-          options: { tx },
-        })
+    if (task.trigger.onComplete?.length) {
+      for (let i = 0; i < task.trigger.onComplete.length; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const onCompleteHandler = task.trigger.onComplete[i]!
+        const conditionInput: OnCompleteConditionTaskContext = {
+          id: updatedTask.id,
+          ...(completion.success
+            ? { success: true, result: completion.result ?? {} }
+            : {
+                success: false,
+                error: completion.error,
+              }),
+        }
+        const onCompleteConditionResult = onCompleteHandler.condition
+          ? evalOnCompleteHandlerCondition(
+              onCompleteHandler.condition,
+              conditionInput,
+            )
+          : undefined
+        if (onCompleteHandler.condition && !conditionInput.success) {
+          this.logger.debug('Task onComplete condition evaluation failed:', {
+            condition: onCompleteHandler.condition,
+            input: conditionInput,
+          })
+        }
+        if (
+          !onCompleteHandler.condition ||
+          onCompleteConditionResult === true
+        ) {
+          await this.executeOnCompleteHandler({
+            parentTaskSuccess: completion.success,
+            parentTask: updatedTask,
+            onComplete: onCompleteHandler.onComplete ?? [],
+            taskIdentifier: onCompleteHandler.taskIdentifier,
+            taskDataTemplate: onCompleteHandler.dataTemplate ?? {},
+            targetUserId: updatedTask.targetUserId ?? undefined,
+            targetLocation: updatedTask.targetLocationFolderId
+              ? {
+                  folderId: updatedTask.targetLocationFolderId,
+                  objectKey: updatedTask.targetLocationObjectKey ?? undefined,
+                }
+              : undefined,
+            storageAccessPolicy: updatedTask.storageAccessPolicy,
+            handlerIndex: i,
+            options: { tx },
+          })
+        }
       }
     }
-
     return updatedTask
   }
 }

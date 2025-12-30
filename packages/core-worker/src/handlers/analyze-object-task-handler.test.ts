@@ -55,13 +55,15 @@ describe('Analyze Object Task Handler', () => {
       ownerIdentifier: 'core-worker',
       trigger: {
         kind: 'event' as const,
-        eventIdentifier: PlatformEvent.object_added,
         invokeContext: {
           eventId: uuidV4(),
           emitterIdentifier: PLATFORM_IDENTIFIER,
+          eventIdentifier: PlatformEvent.object_added,
+          eventTriggerConfigIndex: 0,
           eventData: {} as JsonSerializableObject,
         },
       },
+      idempotencyKey: '__',
       systemLog: [],
       taskLog: [],
       taskDescription: 'analyze_object',

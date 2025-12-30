@@ -12,8 +12,9 @@ const dummyTask = {
   ownerIdentifier: 'core-worker',
   trigger: {
     kind: 'event' as const,
-    eventIdentifier: '__dummy__',
     invokeContext: {
+      eventIdentifier: '__dummy__',
+      eventTriggerConfigIndex: 0,
       eventId: crypto.randomUUID(),
       emitterIdentifier: '__dummy__',
       eventData: {} as JsonSerializableObject,

@@ -7,6 +7,7 @@ import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { and, count, eq, isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
+import { runWithThreadContext } from 'src/shared/request-context'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 
@@ -40,19 +41,19 @@ export class PlatformTaskService {
   async drainPlatformTasks(waitForCompletion = false) {
     const runId = crypto.randomUUID()
     if (this.draining) {
-      this.logger.debug('Platform task draining already running')
+      this.logger.debug('Platform task draining called while already running')
       if (waitForCompletion) {
         await this.draining
       }
       return
     }
-    this.logger.debug('Draining platform tasks started:', runId)
+    this.logger.verbose('Draining platform tasks started')
     let unstartedPlatformTasksCount = 0
 
     try {
       this.draining = this._drainPlatformTasks()
       const { completed, pending } = await this.draining
-      this.logger.debug('Draining platform task run complete:', {
+      this.logger.verbose('Draining platform task run complete:', {
         runId,
         completed,
         pending,
@@ -177,69 +178,71 @@ export class PlatformTaskService {
       }
       const shouldRegisterComplete = processor.shouldRegisterComplete()
       this.runningTasksCount++
-      await processor
-        ._run(startedTask)
-        .then((processorResult) => {
-          if (shouldRegisterComplete) {
-            return this.taskService.registerTaskCompleted(taskId, {
-              success: true,
-              result: processorResult?.result,
-            })
-          }
-          return startedTask
-        })
-        .catch((error: Error | TaskProcessorError) => {
-          // handle failure
-          const isCaughtError = error instanceof TaskProcessorError
-
-          return this.taskService.registerTaskCompleted(taskId, {
-            success: false,
-            error: {
-              code: isCaughtError ? error.code : error.name,
-              message: error.message,
-              details: isCaughtError ? error.details : undefined,
-            },
+      await runWithThreadContext(crypto.randomUUID(), async () => {
+        await processor
+          ._run(startedTask)
+          .then((processorResult) => {
+            if (shouldRegisterComplete) {
+              return this.taskService.registerTaskCompleted(taskId, {
+                success: true,
+                result: processorResult?.result,
+              })
+            }
+            return startedTask
           })
-        })
-        .then((updatedTask) => {
-          if (updatedTask.completedAt && !updatedTask.success) {
-            this.logger.warn('Platform task error:', { updatedTask })
-          }
-          // send a folder socket message to the frontend that the task status was updated
-          if (startedTask.targetLocationFolderId) {
-            // notify folder rooms of updated task
-            this.folderSocketService.sendToFolderRoom(
-              startedTask.targetLocationFolderId,
-              FolderPushMessage.TASK_UPDATED,
-              {
-                updatedTask,
+          .catch((error: Error | TaskProcessorError) => {
+            // handle failure
+            const isCaughtError = error instanceof TaskProcessorError
+
+            return this.taskService.registerTaskCompleted(taskId, {
+              success: false,
+              error: {
+                code: isCaughtError ? error.code : error.name,
+                message: error.message,
+                details: isCaughtError ? error.details : undefined,
               },
-            )
-          }
-        })
-        .finally(() => {
-          this.runningTasksCount--
-          void this.ormService.db.query.tasksTable
-            .findFirst({
-              where: eq(tasksTable.id, startedTask.id),
             })
-            .then((finalTaskState) => {
-              this.logger.debug(
-                `Platform task completed [${startedTask.id}]:`,
+          })
+          .then((updatedTask) => {
+            if (updatedTask.completedAt && !updatedTask.success) {
+              this.logger.warn('Platform task error:', { updatedTask })
+            }
+            // send a folder socket message to the frontend that the task status was updated
+            if (startedTask.targetLocationFolderId) {
+              // notify folder rooms of updated task
+              this.folderSocketService.sendToFolderRoom(
+                startedTask.targetLocationFolderId,
+                FolderPushMessage.TASK_UPDATED,
                 {
-                  task: {
-                    identifier: finalTaskState?.taskIdentifier,
-                    description: finalTaskState?.taskDescription,
-                    startedAt: finalTaskState?.startedAt,
-                    completedAt: finalTaskState?.completedAt,
-                    success: finalTaskState?.success,
-                    error: finalTaskState?.error,
-                    systemLog: finalTaskState?.systemLog,
-                  },
+                  updatedTask,
                 },
               )
-            })
-        })
+            }
+          })
+          .finally(() => {
+            this.runningTasksCount--
+            void this.ormService.db.query.tasksTable
+              .findFirst({
+                where: eq(tasksTable.id, startedTask.id),
+              })
+              .then((finalTaskState) => {
+                this.logger.debug(
+                  `Platform task completed [${startedTask.id}]:`,
+                  {
+                    task: {
+                      identifier: finalTaskState?.taskIdentifier,
+                      description: finalTaskState?.taskDescription,
+                      startedAt: finalTaskState?.startedAt,
+                      completedAt: finalTaskState?.completedAt,
+                      success: finalTaskState?.success,
+                      error: finalTaskState?.error,
+                      systemLog: finalTaskState?.systemLog,
+                    },
+                  },
+                )
+              })
+          })
+      })
     }
   }
 

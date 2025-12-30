@@ -23,6 +23,7 @@
     },
     {
       "kind": "schedule",
+      "name": "hourly_job",
       "config": {
         "interval": 1,
         "unit": "hours"

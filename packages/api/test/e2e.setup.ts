@@ -164,6 +164,7 @@ const testAppDefinitions: AppConfig[] = [
     triggers: [
       {
         kind: 'schedule',
+        name: 'dummy_schedule',
         config: {
           interval: 1,
           unit: 'hours',

@@ -1,12 +1,12 @@
 import z from 'zod'
 
 import { validateConditionExpression } from './condition-validation.util'
-import { platformPrefixedEventIdentifierSchema } from './events.types'
-import { targetLocationContextDTOSchema } from './folder.types'
 import {
-  genericIdentifierSchema,
-  taskIdentifierSchema,
-} from './identifiers.types'
+  eventIdentifierSchema,
+  platformPrefixedEventIdentifierSchema,
+} from './events.types'
+import { targetLocationContextDTOSchema } from './folder.types'
+import { taskIdentifierSchema } from './identifiers.types'
 import type { JsonSerializableObject } from './json.types'
 import { jsonSerializableObjectDTOSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
@@ -94,92 +94,58 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
     }),
   )
 
-export const userActionTriggerDataSchema = z.object({
-  userId: z.string().uuid(),
-})
-
-export const taskEventInvocationContextSchema = z.object({
-  eventId: z.string().uuid(),
-  emitterIdentifier: z.string(),
-  targetUserId: z.string().uuid().optional(),
-  targetLocation: targetLocationContextDTOSchema.optional(),
-  eventData: jsonSerializableObjectDTOSchema,
-})
-
-export const userActionEventInvocationContextSchema = z.object({
-  userId: z.string().uuid(),
-})
-
-const taskOnCompleteConfigBaseSchema = z.object({
+const taskTriggerConfigBaseSchema = z.object({
+  condition: z
+    .string()
+    .nonempty()
+    .refine(
+      (value) => {
+        const validation = validateConditionExpression(value)
+        return validation.valid
+      },
+      (value) => {
+        const validation = validateConditionExpression(value)
+        return {
+          message: validation.error ?? 'Invalid condition expression',
+        }
+      },
+    )
+    .optional(),
+  taskIdentifier: taskIdentifierSchema,
   onComplete: taskOnCompleteConfigSchema.array().optional(),
 })
 
-const taskTriggerConfigBaseSchema = z
-  .object({
-    condition: z
-      .string()
-      .nonempty()
-      .refine(
-        (value) => {
-          const validation = validateConditionExpression(value)
-          return validation.valid
-        },
-        (value) => {
-          const validation = validateConditionExpression(value)
-          return {
-            message: validation.error ?? 'Invalid condition expression',
-          }
-        },
-      )
-      .optional(),
-    taskIdentifier: taskIdentifierSchema,
-  })
-  .merge(taskOnCompleteConfigBaseSchema)
+export const scheduleUnitSchema = z.enum(['minutes', 'hours', 'days'])
+export type ScheduleUnit = z.infer<typeof scheduleUnitSchema>
+export const scheduleConfigSchema = z.object({
+  interval: z.number().int().positive(),
+  unit: scheduleUnitSchema,
+})
+export type ScheduleConfig = z.infer<typeof scheduleConfigSchema>
 
-export const childTaskTriggerInvocationSchema = z
-  .object({
-    kind: z.literal('task_child'),
-    invokeContext: z.object({
-      parentTask: z.object({
-        id: z.string().uuid(),
-        identifier: z.string(),
-        success: z.boolean(),
-      }),
-    }),
-  })
-  .merge(taskOnCompleteConfigBaseSchema)
-
-export const appActionTaskTriggerInvocationSchema = z
-  .object({
-    kind: z.literal('app_action'),
-  })
-  .merge(taskOnCompleteConfigBaseSchema)
-
-export const taskScheduleTriggerConfigSchema = z
+export const scheduleTaskTriggerConfigSchema = z
   .object({
     kind: z.literal('schedule'),
-    config: z.object({
-      interval: z.number().int().positive(),
-      unit: z.enum(['minutes', 'hours', 'days']),
-    }),
+    config: scheduleConfigSchema,
+    name: z.string(),
   })
   .merge(taskTriggerConfigBaseSchema)
 
-export type TaskScheduleTriggerConfig = z.infer<
-  typeof taskScheduleTriggerConfigSchema
+export type ScheduleTaskTriggerConfig = z.infer<
+  typeof scheduleTaskTriggerConfigSchema
 >
 
-export const taskEventTriggerConfigSchema = z
+export const eventTaskTriggerConfigSchema = z
   .object({
     kind: z.literal('event'),
-    eventIdentifier: genericIdentifierSchema.or(
+    eventIdentifier: eventIdentifierSchema.or(
       platformPrefixedEventIdentifierSchema,
     ),
     dataTemplate: jsonSerializableObjectDTOSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
   })
   .merge(taskTriggerConfigBaseSchema)
 
-export const taskUserActionTriggerConfigSchema = z
+export const userActionTaskTriggerConfigSchema = z
   .object({
     kind: z.literal('user_action'),
     scope: z
@@ -199,25 +165,69 @@ export const taskUserActionTriggerConfigSchema = z
   })
   .merge(taskTriggerConfigBaseSchema)
 
-// The invoked task's trigger config and invocation context
+// The invoked task's invocation context
 export const taskInvocationSchema = z.discriminatedUnion('kind', [
-  taskEventTriggerConfigSchema
-    .omit({ taskIdentifier: true })
-    .merge(z.object({ invokeContext: taskEventInvocationContextSchema })),
-  taskScheduleTriggerConfigSchema
-    .omit({ taskIdentifier: true })
-    .merge(z.object({ invokeContext: jsonSerializableObjectDTOSchema })),
-  taskUserActionTriggerConfigSchema
-    .omit({ taskIdentifier: true })
-    .merge(z.object({ invokeContext: userActionEventInvocationContextSchema })),
-  appActionTaskTriggerInvocationSchema,
-  childTaskTriggerInvocationSchema,
+  z.object({
+    kind: z.literal('event'),
+    invokeContext: z.object({
+      eventId: z.string().uuid(),
+      emitterIdentifier: z.string(),
+      eventIdentifier: eventIdentifierSchema.or(
+        platformPrefixedEventIdentifierSchema,
+      ),
+      eventTriggerConfigIndex: z.number().int(),
+      dataTemplate: jsonSerializableObjectDTOSchema.optional(),
+      targetUserId: z.string().uuid().optional(),
+      targetLocation: targetLocationContextDTOSchema.optional(),
+      eventData: jsonSerializableObjectDTOSchema,
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+  }),
+  z.object({
+    kind: z.literal('schedule'),
+    invokeContext: z.object({
+      timestampBucket: z.string(),
+      name: z.string(),
+      config: z.object({
+        interval: z.number().int().positive(),
+        unit: z.enum(['minutes', 'hours', 'days']),
+      }),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+  }),
+  z.object({
+    kind: z.literal('user_action'),
+    invokeContext: z.object({
+      userId: z.string().uuid(),
+      requestId: z.string().uuid(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+  }),
+  z.object({
+    kind: z.literal('app_action'),
+    invokeContext: z.object({
+      requestId: z.string().uuid(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+  }),
+  z.object({
+    kind: z.literal('task_child'),
+    invokeContext: z.object({
+      parentTask: z.object({
+        id: z.string().uuid(),
+        identifier: z.string(),
+        success: z.boolean(),
+      }),
+      onCompleteHandlerIndex: z.number().int(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+  }),
 ])
 
 export const taskTriggerConfigSchema = z.discriminatedUnion('kind', [
-  taskEventTriggerConfigSchema,
-  taskScheduleTriggerConfigSchema,
-  taskUserActionTriggerConfigSchema,
+  eventTaskTriggerConfigSchema,
+  scheduleTaskTriggerConfigSchema,
+  userActionTaskTriggerConfigSchema,
 ])
 
 export type TaskInvocation = z.infer<typeof taskInvocationSchema>

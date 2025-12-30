@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
+import { runWithThreadContext } from 'src/shared/request-context'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -10,6 +11,9 @@ import {
   createTestUser,
 } from 'src/test/test.util'
 import { usersTable } from 'src/users/entities/user.entity'
+
+import { getUtcScheduleBucket } from './util/schedule-bucket.util'
+import { withTaskIdempotencyKey } from './util/task-idempotency-key.util'
 
 const TEST_MODULE_KEY = 'task_lifecycle'
 
@@ -142,30 +146,34 @@ describe('Task lifecycle', () => {
         updatedAt: now,
       })
 
-    const parentTask =
-      await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier:
-          await testModule!.getAppIdentifierBySlug(SOCKET_DATA_APP_SLUG),
-        taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
-        taskData: {
-          testKey: 'test-value',
-        },
-        targetLocation: {
-          folderId: testFolder.folder.id,
-          objectKey: 'file.txt',
-        },
-        onComplete: [
-          {
-            taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
-            condition: 'task.success',
-            dataTemplate: {
-              taskKeyValue: '{{task.data.testKey}}',
-              fileUrl:
-                "{{createPresignedUrl(task.targetLocation.folderId, task.targetLocation.objectKey, 'GET')}}",
-            },
+    const parentTask = await runWithThreadContext(
+      crypto.randomUUID(),
+      async () => {
+        return testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier:
+            await testModule!.getAppIdentifierBySlug(SOCKET_DATA_APP_SLUG),
+          taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
+          taskData: {
+            testKey: 'test-value',
           },
-        ],
-      })
+          targetLocation: {
+            folderId: testFolder.folder.id,
+            objectKey: 'file.txt',
+          },
+          onComplete: [
+            {
+              taskIdentifier: SOCKET_DATA_TASK_IDENTIFIER,
+              condition: 'task.success',
+              dataTemplate: {
+                taskKeyValue: '{{task.data.testKey}}',
+                fileUrl:
+                  "{{createPresignedUrl(task.targetLocation.folderId, task.targetLocation.objectKey, 'GET')}}",
+              },
+            },
+          ],
+        })
+      },
+    )
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: parentTask.id,
@@ -465,11 +473,13 @@ describe('Task lifecycle', () => {
   })
 
   it('creates an app_action task and tracks lifecycle fields', async () => {
-    await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
-      taskIdentifier: APP_ACTION_TASK_ID,
-      taskData: { foo: 'bar' },
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { foo: 'bar' },
+      })
     })
 
     const task = await getTaskByIdentifier(testModule!, APP_ACTION_TASK_ID)
@@ -513,22 +523,26 @@ describe('Task lifecycle', () => {
   })
 
   it('creates an app_action task with a single onComplete handler', async () => {
-    const parentTask =
-      await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier:
-          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
-        taskIdentifier: APP_ACTION_TASK_ID,
-        taskData: { testData: 'value' },
-        onComplete: [
-          {
-            taskIdentifier: ON_COMPLETE_TASK_ID,
-            condition: 'task.success',
-            dataTemplate: {
-              inheritedData: '{{task.data.testData}}',
+    const parentTask = await runWithThreadContext(
+      crypto.randomUUID(),
+      async () => {
+        return testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier:
+            await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+          taskIdentifier: APP_ACTION_TASK_ID,
+          taskData: { testData: 'value' },
+          onComplete: [
+            {
+              taskIdentifier: ON_COMPLETE_TASK_ID,
+              condition: 'task.success',
+              dataTemplate: {
+                inheritedData: '{{task.data.testData}}',
+              },
             },
-          },
-        ],
-      })
+          ],
+        })
+      },
+    )
 
     expect(parentTask.trigger.kind).toBe('app_action')
     expect(parentTask.trigger.onComplete).toEqual([
@@ -541,18 +555,20 @@ describe('Task lifecycle', () => {
       },
     ])
 
-    await testModule!.services.taskService.registerTaskStarted({
-      taskId: parentTask.id,
-      startContext: { __executor: { kind: 'test' } },
-    })
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.registerTaskStarted({
+        taskId: parentTask.id,
+        startContext: { __executor: { kind: 'test' } },
+      })
 
-    await testModule!.services.taskService.registerTaskCompleted(
-      parentTask.id,
-      {
-        success: true,
-        result: { message: 'parent done' },
-      },
-    )
+      await testModule!.services.taskService.registerTaskCompleted(
+        parentTask.id,
+        {
+          success: true,
+          result: { message: 'parent done' },
+        },
+      )
+    })
 
     const childTask = await getTaskByIdentifier(
       testModule!,
@@ -581,31 +597,35 @@ describe('Task lifecycle', () => {
   })
 
   it('creates an app_action task with an array of onComplete handlers and chains them', async () => {
-    const parentTask =
-      await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier:
-          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
-        taskIdentifier: APP_ACTION_TASK_ID,
-        taskData: { chainData: 'start' },
-        onComplete: [
-          {
-            taskIdentifier: ON_COMPLETE_TASK_ID,
-            condition: 'task.success',
-            dataTemplate: {
-              fromParent: '{{task.data.chainData}}',
-            },
-            onComplete: [
-              {
-                taskIdentifier: CHAIN_ONE_TASK_ID,
-                condition: 'task.success',
-                dataTemplate: {
-                  doubleInheritedPayload: '{{task.data.fromParent}}',
-                },
+    const parentTask = await runWithThreadContext(
+      crypto.randomUUID(),
+      async () => {
+        return testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier:
+            await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+          taskIdentifier: APP_ACTION_TASK_ID,
+          taskData: { chainData: 'start' },
+          onComplete: [
+            {
+              taskIdentifier: ON_COMPLETE_TASK_ID,
+              condition: 'task.success',
+              dataTemplate: {
+                fromParent: '{{task.data.chainData}}',
               },
-            ],
-          },
-        ],
-      })
+              onComplete: [
+                {
+                  taskIdentifier: CHAIN_ONE_TASK_ID,
+                  condition: 'task.success',
+                  dataTemplate: {
+                    doubleInheritedPayload: '{{task.data.fromParent}}',
+                  },
+                },
+              ],
+            },
+          ],
+        })
+      },
+    )
 
     expect(parentTask.trigger.kind).toBe('app_action')
     expect(parentTask.trigger.onComplete).toEqual([
@@ -707,35 +727,41 @@ describe('Task lifecycle', () => {
   })
 
   it('enqueues onComplete task when a negated condition matches a failure', async () => {
-    const parentTask =
-      await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier:
-          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
-        taskIdentifier: APP_ACTION_TASK_ID,
-        taskData: { shouldFail: true },
-        onComplete: [
-          {
-            taskIdentifier: ON_COMPLETE_TASK_ID,
-            condition: '!task.success',
-          },
-        ],
-      })
-
-    await testModule!.services.taskService.registerTaskStarted({
-      taskId: parentTask.id,
-      startContext: { __executor: { kind: 'test' } },
-    })
-
-    await testModule!.services.taskService.registerTaskCompleted(
-      parentTask.id,
-      {
-        success: false,
-        error: {
-          code: 'NEGATED_FAILURE',
-          message: 'expected failure',
-        },
+    const parentTask = await runWithThreadContext(
+      crypto.randomUUID(),
+      async () => {
+        return testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier:
+            await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+          taskIdentifier: APP_ACTION_TASK_ID,
+          taskData: { shouldFail: true },
+          onComplete: [
+            {
+              taskIdentifier: ON_COMPLETE_TASK_ID,
+              condition: '!task.success',
+            },
+          ],
+        })
       },
     )
+
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule!.services.taskService.registerTaskStarted({
+        taskId: parentTask.id,
+        startContext: { __executor: { kind: 'test' } },
+      })
+
+      await testModule!.services.taskService.registerTaskCompleted(
+        parentTask.id,
+        {
+          success: false,
+          error: {
+            code: 'NEGATED_FAILURE',
+            message: 'expected failure',
+          },
+        },
+      )
+    })
 
     const childTask = await getTaskByIdentifier(
       testModule!,
@@ -760,8 +786,17 @@ describe('Task lifecycle', () => {
     }
 
     if (firstTask.trigger.kind === 'schedule') {
-      expect(firstTask.trigger.config).toEqual({ interval: 1, unit: 'hours' })
-      expect(firstTask.trigger.invokeContext).toEqual({})
+      expect(firstTask.trigger.invokeContext).toEqual({
+        name: 'dummy_schedule',
+        config: {
+          interval: 1,
+          unit: 'hours',
+        },
+        timestampBucket: getUtcScheduleBucket(
+          firstTask.trigger.invokeContext.config,
+          firstTask.createdAt,
+        ).bucketStart.toISOString(),
+      })
     } else {
       throw new Error('Schedule task trigger was not schedule.')
     }
@@ -794,127 +829,137 @@ describe('Task lifecycle', () => {
     if (!userId) {
       throw new Error('User not created.')
     }
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const task =
+        await testModule!.services.taskService.triggerAppUserActionTask({
+          userId,
+          appIdentifier:
+            await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+          taskIdentifier: USER_ACTION_TASK_ID,
+          taskData: { from: 'user' },
+          targetUserId: userId,
+        })
 
-    const task =
-      await testModule!.services.taskService.triggerAppUserActionTask({
-        userId,
-        appIdentifier:
-          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
-        taskIdentifier: USER_ACTION_TASK_ID,
-        taskData: { from: 'user' },
-        targetUserId: userId,
-      })
+      expect(task.trigger.kind).toBe('user_action')
+      if (task.trigger.kind === 'user_action') {
+        expect(task.trigger.invokeContext.userId).toBe(userId)
+      }
+      expect(task.startedAt).toBeNull()
+      expect(task.completedAt).toBeNull()
+      expect(task.success).toBeNull()
+      expect(task.systemLog.length).toBe(0)
 
-    expect(task.trigger.kind).toBe('user_action')
-    if (task.trigger.kind === 'user_action') {
-      expect(task.trigger.invokeContext.userId).toBe(userId)
-    }
-    expect(task.startedAt).toBeNull()
-    expect(task.completedAt).toBeNull()
-    expect(task.success).toBeNull()
-    expect(task.systemLog.length).toBe(0)
+      const started =
+        await testModule!.services.taskService.registerTaskStarted({
+          taskId: task.id,
+          startContext: { __executor: { kind: 'test' } },
+        })
+      expect(started.task.systemLog.at(0)?.logType).toBe('started')
+      expect(started.task.startedAt).toBeInstanceOf(Date)
+      expect(started.task.completedAt).toBeNull()
 
-    const started = await testModule!.services.taskService.registerTaskStarted({
-      taskId: task.id,
-      startContext: { __executor: { kind: 'test' } },
-    })
-    expect(started.task.systemLog.at(0)?.logType).toBe('started')
-    expect(started.task.startedAt).toBeInstanceOf(Date)
-    expect(started.task.completedAt).toBeNull()
+      const completed =
+        await testModule!.services.taskService.registerTaskCompleted(task.id, {
+          success: true,
+          result: { message: 'user-finished' },
+        })
 
-    const completed =
-      await testModule!.services.taskService.registerTaskCompleted(task.id, {
-        success: true,
+      expect(completed.systemLog.at(1)?.logType).toBe('success')
+      expect(completed.systemLog.at(1)?.payload).toEqual({
         result: { message: 'user-finished' },
       })
-
-    expect(completed.systemLog.at(1)?.logType).toBe('success')
-    expect(completed.systemLog.at(1)?.payload).toEqual({
-      result: { message: 'user-finished' },
+      expect(completed.completedAt).toBeInstanceOf(Date)
+      expect(completed.success).toBe(true)
     })
-    expect(completed.completedAt).toBeInstanceOf(Date)
-    expect(completed.success).toBe(true)
   })
 
   it('handles invalid byte sequences in task data', async () => {
-    const task = await testModule!.services.taskService.triggerAppActionTask({
-      appIdentifier:
-        await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
-      taskIdentifier: APP_ACTION_TASK_ID,
-      taskData: {
-        raw: 'This is invalid: \u0000',
-        nested: {
-          value: 'Another null byte: \u0000 here',
-          array: ['normal', 'with null: \u0000', 'end'],
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const task = await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: {
+          raw: 'This is invalid: \u0000',
+          nested: {
+            value: 'Another null byte: \u0000 here',
+            array: ['normal', 'with null: \u0000', 'end'],
+          },
         },
-      },
-    })
-
-    const retrievedTask = await getTaskByIdentifier(
-      testModule!,
-      APP_ACTION_TASK_ID,
-    )
-    if (!retrievedTask) {
-      throw new Error('Task with invalid byte sequences was not created.')
-    }
-
-    expect(retrievedTask.id).toBe(task.id)
-    expect(retrievedTask.data).toEqual({
-      raw: 'This is invalid: \u0000',
-      nested: {
-        value: 'Another null byte: \u0000 here',
-        array: ['normal', 'with null: \u0000', 'end'],
-      },
-    })
-
-    // Verify that null bytes are preserved in the stored data
-    if (typeof retrievedTask.data.raw === 'string') {
-      expect(retrievedTask.data.raw).toInclude('\u0000')
-    }
-    if (
-      typeof retrievedTask.data.nested === 'object' &&
-      retrievedTask.data.nested !== null &&
-      !Array.isArray(retrievedTask.data.nested)
-    ) {
-      const nested = retrievedTask.data.nested as {
-        value?: unknown
-        array?: unknown
-      }
-      if (typeof nested.value === 'string') {
-        expect(nested.value).toInclude('\u0000')
-      }
-      if (Array.isArray(nested.array) && typeof nested.array[1] === 'string') {
-        expect(nested.array[1]).toInclude('\u0000')
-      }
-    }
-
-    // Verify the task can be retrieved from the database
-    const taskFromDb =
-      await testModule!.services.ormService.db.query.tasksTable.findFirst({
-        where: eq(tasksTable.id, task.id),
       })
 
-    expect(taskFromDb).toBeTruthy()
-    if (taskFromDb) {
-      expect(taskFromDb.data).toEqual({
+      const retrievedTask = await getTaskByIdentifier(
+        testModule!,
+        APP_ACTION_TASK_ID,
+      )
+      if (!retrievedTask) {
+        throw new Error('Task with invalid byte sequences was not created.')
+      }
+
+      expect(retrievedTask.id).toBe(task.id)
+      expect(retrievedTask.data).toEqual({
         raw: 'This is invalid: \u0000',
         nested: {
           value: 'Another null byte: \u0000 here',
           array: ['normal', 'with null: \u0000', 'end'],
         },
       })
-    }
+
+      // Verify that null bytes are preserved in the stored data
+      if (typeof retrievedTask.data.raw === 'string') {
+        expect(retrievedTask.data.raw).toInclude('\u0000')
+      }
+      if (
+        typeof retrievedTask.data.nested === 'object' &&
+        retrievedTask.data.nested !== null &&
+        !Array.isArray(retrievedTask.data.nested)
+      ) {
+        const nested = retrievedTask.data.nested as {
+          value?: unknown
+          array?: unknown
+        }
+        if (typeof nested.value === 'string') {
+          expect(nested.value).toInclude('\u0000')
+        }
+        if (
+          Array.isArray(nested.array) &&
+          typeof nested.array[1] === 'string'
+        ) {
+          expect(nested.array[1]).toInclude('\u0000')
+        }
+      }
+
+      // Verify the task can be retrieved from the database
+      const taskFromDb =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, task.id),
+        })
+
+      expect(taskFromDb).toBeTruthy()
+      if (taskFromDb) {
+        expect(taskFromDb.data).toEqual({
+          raw: 'This is invalid: \u0000',
+          nested: {
+            value: 'Another null byte: \u0000 here',
+            array: ['normal', 'with null: \u0000', 'end'],
+          },
+        })
+      }
+    })
   })
 
   it('should base64 encode payloads in the systemLog and taskLog', async () => {
     await testModule!.services.ormService.db.insert(tasksTable).values([
-      {
+      withTaskIdempotencyKey({
         id: crypto.randomUUID(),
         ownerIdentifier:
           await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
         trigger: {
           kind: 'app_action',
+          invokeContext: {
+            requestId: crypto.randomUUID(),
+          },
         },
         handlerType: 'app_action',
         handlerIdentifier: 'app_action',
@@ -955,7 +1000,7 @@ describe('Task lifecycle', () => {
             },
           },
         ],
-      },
+      }),
     ])
 
     const result = await testModule!.services.ormService.client.query<{
@@ -1004,14 +1049,18 @@ describe('Task lifecycle', () => {
   })
 
   it('should decode payloads in the systemLog and taskLog from base64', async () => {
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
     await testModule!.services.ormService.db.insert(tasksTable).values([
-      {
+      withTaskIdempotencyKey({
         id: crypto.randomUUID(),
-        ownerIdentifier:
-          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        ownerIdentifier: appIdentifier,
         taskIdentifier: APP_ACTION_TASK_ID,
         trigger: {
           kind: 'app_action',
+          invokeContext: {
+            requestId: crypto.randomUUID(),
+          },
         },
         handlerType: 'app_action',
         handlerIdentifier: 'app_action',
@@ -1052,7 +1101,7 @@ describe('Task lifecycle', () => {
             },
           },
         ],
-      },
+      }),
     ])
 
     const retrievedTask = await getTaskByIdentifier(
@@ -1102,13 +1151,16 @@ describe('Task lifecycle', () => {
 
   it('should allow inserting null bytes in task systemLog and taskLog', async () => {
     await testModule!.services.ormService.db.insert(tasksTable).values([
-      {
+      withTaskIdempotencyKey({
         id: crypto.randomUUID(),
         ownerIdentifier:
           await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
         trigger: {
           kind: 'app_action',
+          invokeContext: {
+            requestId: crypto.randomUUID(),
+          },
         },
         handlerType: 'app_action',
         handlerIdentifier: 'app_action',
@@ -1131,7 +1183,7 @@ describe('Task lifecycle', () => {
             },
           },
         ],
-      },
+      }),
     ])
 
     const retrievedTask = await getTaskByIdentifier(

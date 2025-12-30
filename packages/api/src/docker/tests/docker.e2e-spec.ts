@@ -22,7 +22,9 @@ import { eq, notIlike } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { appUserSettingsTable } from 'src/app/entities/app-user-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
+import { runWithThreadContext } from 'src/shared/request-context'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -106,28 +108,32 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
     createdAt: now,
   })
 
-  await testModule.services.ormService.db.insert(tasksTable).values({
-    id: taskId,
-    ownerIdentifier: await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
-    taskDescription: 'Test task',
-    createdAt: now,
-    updatedAt: now,
-    handlerType: 'docker',
-    handlerIdentifier: 'testapp:test_job',
-    taskIdentifier: 'test_job_task',
-    data: {},
-    storageAccessPolicy: [],
-    trigger: {
-      kind: 'event',
-      eventIdentifier: 'testapp:test_job',
-      invokeContext: {
-        eventId,
-        emitterIdentifier:
-          await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
-        eventData: {},
+  const appIdentifier = await testModule.getAppIdentifierBySlug(TEST_APP_SLUG)
+  await testModule.services.ormService.db.insert(tasksTable).values(
+    withTaskIdempotencyKey({
+      id: taskId,
+      ownerIdentifier: appIdentifier,
+      taskDescription: 'Test task',
+      createdAt: now,
+      updatedAt: now,
+      handlerType: 'docker',
+      handlerIdentifier: 'testapp:test_job',
+      taskIdentifier: 'test_job_task',
+      data: {},
+      storageAccessPolicy: [],
+      trigger: {
+        kind: 'event',
+        invokeContext: {
+          eventIdentifier: 'testapp:test_job',
+          eventTriggerConfigIndex: 0,
+          eventId,
+          emitterIdentifier:
+            await testModule.getAppIdentifierBySlug(TEST_APP_SLUG),
+          eventData: {},
+        },
       },
-    },
-  })
+    }),
+  )
 
   return { taskId, eventId, createdAt: now }
 }
@@ -148,11 +154,13 @@ const triggerAppDockerHandledTask = async (
     expectRecords?: boolean
   },
 ) => {
-  await testModule.services.taskService.triggerAppActionTask({
-    appIdentifier,
-    taskIdentifier,
-    ...(storageAccessPolicy && { storageAccessPolicy }),
-    taskData,
+  await runWithThreadContext(crypto.randomUUID(), async () => {
+    await testModule.services.taskService.triggerAppActionTask({
+      appIdentifier,
+      taskIdentifier,
+      ...(storageAccessPolicy && { storageAccessPolicy }),
+      taskData,
+    })
   })
 
   // drain the platform tasks (twice) to ensure the docker run task is enqueued and started
@@ -252,8 +260,9 @@ const triggerAppDockerHandledTask = async (
       taskLog: [],
       trigger: {
         kind: 'event',
-        eventIdentifier: PlatformEvent.docker_task_enqueued,
         invokeContext: {
+          eventIdentifier: PlatformEvent.docker_task_enqueued,
+          eventTriggerConfigIndex: 0,
           eventId: events[0]!.id,
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {
@@ -264,6 +273,7 @@ const triggerAppDockerHandledTask = async (
           },
         },
       },
+      idempotencyKey: expect.any(String),
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       targetUserId: null,
@@ -657,9 +667,11 @@ describe('Docker Jobs', () => {
       taskData: { myTaskData: 'test' },
     })
 
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
     expect(innerTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+      ownerIdentifier: appIdentifier,
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
       data: { myTaskData: 'test' },
@@ -669,7 +681,11 @@ describe('Docker Jobs', () => {
       taskLog: [],
       trigger: {
         kind: 'app_action',
+        invokeContext: {
+          requestId: expect.any(String),
+        },
       },
+      idempotencyKey: expect.any(String),
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       targetUserId: null,
@@ -762,9 +778,11 @@ describe('Docker Jobs', () => {
       ],
     })
 
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
     expect(innerTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+      ownerIdentifier: appIdentifier,
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
       data: { myTaskData: 'test' },
@@ -785,7 +803,11 @@ describe('Docker Jobs', () => {
       taskLog: [],
       trigger: {
         kind: 'app_action',
+        invokeContext: {
+          requestId: expect.any(String),
+        },
       },
+      idempotencyKey: expect.any(String),
       userVisible: true,
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
@@ -1432,9 +1454,11 @@ describe('Docker Jobs', () => {
       storageAccessPolicy: [storageAccessPolicyRule],
     })
 
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
     expect(innerTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
+      ownerIdentifier: appIdentifier,
       taskIdentifier: 'non_triggered_docker_job_task',
       taskDescription: 'Task that is handled by a docker job.',
       data: { myTaskData: 'test' },
@@ -1444,7 +1468,11 @@ describe('Docker Jobs', () => {
       taskLog: [],
       trigger: {
         kind: 'app_action',
+        invokeContext: {
+          requestId: expect.any(String),
+        },
       },
+      idempotencyKey: expect.any(String),
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       userVisible: true,

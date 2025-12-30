@@ -346,6 +346,7 @@ describe('apps.types', () => {
           },
           {
             kind: 'schedule',
+            name: 'hourly_job',
             config: {
               interval: 1,
               unit: 'hours',
@@ -395,6 +396,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'schedule',
+            name: 'hourly_job',
             config: {
               interval: 1,
               unit: 'hours',

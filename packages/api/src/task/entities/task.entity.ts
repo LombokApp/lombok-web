@@ -64,6 +64,7 @@ export const tasksTable = pgTable(
     taskDescription: text('taskDescription').notNull(),
     data: jsonbBase64('data').notNull().$type<TaskData>(),
     trigger: jsonbBase64('trigger').$type<TaskInvocation>().notNull(),
+    idempotencyKey: text('idempotencyKey').notNull().unique(),
     targetUserId: uuid('targetUserId'),
     targetLocationFolderId: uuid('targetLocationFolderId'),
     targetLocationObjectKey: text('targetLocationObjectKey'),
@@ -89,6 +90,11 @@ export const tasksTable = pgTable(
   },
   (table) => [
     index('tasks_trigger_kind_idx').on(sql`(${table.trigger} ->> 'kind')`),
+    index('tasks_idempotency_key_idx').on(
+      table.ownerIdentifier,
+      table.taskIdentifier,
+      table.idempotencyKey,
+    ),
     index('tasks_target_location_folder_id_idx').on(
       table.targetLocationFolderId,
     ),

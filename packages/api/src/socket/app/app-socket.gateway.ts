@@ -7,6 +7,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
+import crypto from 'crypto'
 import { Jwt } from 'jsonwebtoken'
 import { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
@@ -16,6 +17,7 @@ import {
   JWTService,
 } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
+import { runWithThreadContext } from 'src/shared/request-context'
 import { z } from 'zod'
 
 import {
@@ -225,42 +227,53 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                     message: unknown,
                     ack?: (response: unknown) => void,
                   ) => {
-                    this.logger.log('APP Message Request:', {
-                      message,
-                      instanceId: auth.instanceId,
-                      appIdentifier,
-                    })
-                    const response = await this.appService
-                      .handleAppRequest(auth.instanceId, appIdentifier, message)
-                      // eslint-disable-next-line promise/no-nesting
-                      .catch((error: unknown) => {
-                        this.logger.error(
-                          'Unexpected error during message handling:',
-                          {
-                            message,
-                            error,
-                          },
+                    const requestId = crypto.randomUUID()
+                    const response = await runWithThreadContext(
+                      requestId,
+                      async () => {
+                        this.logger.log(
+                          `APP API Request appIdentifier=${appIdentifier} requestId=${requestId} message=${(message as { name: string }).name}:`,
                         )
-                        return {
-                          error: {
-                            code: '500',
-                            message: 'Unexpected error.',
-                          },
-                        }
-                      })
+                        return (
+                          this.appService
+                            .handleAppRequest(
+                              auth.instanceId,
+                              appIdentifier,
+                              message,
+                            )
+                            // eslint-disable-next-line promise/no-nesting
+                            .catch((error: unknown) => {
+                              this.logger.error(
+                                'Unexpected error during message handling:',
+                                {
+                                  message,
+                                  error,
+                                },
+                              )
+                              return {
+                                error: {
+                                  code: '500',
+                                  message: 'Unexpected error.',
+                                },
+                              }
+                            })
+                        )
+                      },
+                    )
                     if ('error' in response) {
-                      this.logger.log('APP Message Error:', {
-                        message: (message as { name: string }).name,
-                        appIdentifier,
-                        error: response.error,
-                      })
+                      this.logger.warn(
+                        `APP API Error Response appIdentifier=${appIdentifier} requestId=${requestId}:`,
+                        {
+                          message,
+                          error: response.error,
+                        },
+                      )
                     } else {
-                      this.logger.log('APP Message Response:', {
-                        message: (message as { name: string }).name,
-                        appIdentifier,
-                        response,
-                      })
+                      this.logger.log(
+                        `APP API Success Response appIdentifier=${appIdentifier} requestId=${requestId} result: ${response.result ? `keys: ${Object.keys(response.result).join(', ')}` : 'none'}`,
+                      )
                     }
+
                     ack?.(response)
                   },
                 )

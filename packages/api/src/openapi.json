@@ -7278,6 +7278,9 @@
                                 "unit"
                               ]
                             },
+                            "name": {
+                              "type": "string"
+                            },
                             "condition": {
                               "type": "string",
                               "minLength": 1
@@ -7295,6 +7298,7 @@
                           "required": [
                             "kind",
                             "config",
+                            "name",
                             "taskIdentifier"
                           ]
                         },
@@ -8323,6 +8327,9 @@
                                   "unit"
                                 ]
                               },
+                              "name": {
+                                "type": "string"
+                              },
                               "condition": {
                                 "type": "string",
                                 "minLength": 1
@@ -8340,6 +8347,7 @@
                             "required": [
                               "kind",
                               "config",
+                              "name",
                               "taskIdentifier"
                             ]
                           },
@@ -9368,6 +9376,9 @@
                                 "unit"
                               ]
                             },
+                            "name": {
+                              "type": "string"
+                            },
                             "condition": {
                               "type": "string",
                               "minLength": 1
@@ -9385,6 +9396,7 @@
                           "required": [
                             "kind",
                             "config",
+                            "name",
                             "taskIdentifier"
                           ]
                         },
@@ -10436,6 +10448,9 @@
                                   "unit"
                                 ]
                               },
+                              "name": {
+                                "type": "string"
+                              },
                               "condition": {
                                 "type": "string",
                                 "minLength": 1
@@ -10453,6 +10468,7 @@
                             "required": [
                               "kind",
                               "config",
+                              "name",
                               "taskIdentifier"
                             ]
                           },
@@ -11359,6 +11375,9 @@
                                 "unit"
                               ]
                             },
+                            "name": {
+                              "type": "string"
+                            },
                             "condition": {
                               "type": "string",
                               "minLength": 1
@@ -11376,6 +11395,7 @@
                           "required": [
                             "kind",
                             "config",
+                            "name",
                             "taskIdentifier"
                           ]
                         },
@@ -14390,32 +14410,6 @@
                           "event"
                         ]
                       },
-                      "eventIdentifier": {
-                        "oneOf": [
-                          {
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "^[a-z_]+$"
-                          },
-                          {
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "^platform:[a-z_]+$"
-                          }
-                        ]
-                      },
-                      "dataTemplate": {
-                        "type": "object",
-                        "additionalProperties": {}
-                      },
-                      "condition": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "onComplete": {
-                        "type": "array",
-                        "items": {}
-                      },
                       "invokeContext": {
                         "type": "object",
                         "properties": {
@@ -14425,6 +14419,27 @@
                           },
                           "emitterIdentifier": {
                             "type": "string"
+                          },
+                          "eventIdentifier": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^platform:[a-z_]+$"
+                              }
+                            ]
+                          },
+                          "eventTriggerConfigIndex": {
+                            "type": "integer"
+                          },
+                          "dataTemplate": {
+                            "type": "object",
+                            "additionalProperties": {}
                           },
                           "targetUserId": {
                             "type": "string",
@@ -14453,13 +14468,18 @@
                         "required": [
                           "eventId",
                           "emitterIdentifier",
+                          "eventIdentifier",
+                          "eventTriggerConfigIndex",
                           "eventData"
                         ]
+                      },
+                      "onComplete": {
+                        "type": "array",
+                        "items": {}
                       }
                     },
                     "required": [
                       "kind",
-                      "eventIdentifier",
                       "invokeContext"
                     ]
                   },
@@ -14472,44 +14492,51 @@
                           "schedule"
                         ]
                       },
-                      "config": {
+                      "invokeContext": {
                         "type": "object",
                         "properties": {
-                          "interval": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "exclusiveMinimum": true
+                          "timestampBucket": {
+                            "type": "string"
                           },
-                          "unit": {
-                            "type": "string",
-                            "enum": [
-                              "minutes",
-                              "hours",
-                              "days"
+                          "name": {
+                            "type": "string"
+                          },
+                          "config": {
+                            "type": "object",
+                            "properties": {
+                              "interval": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "exclusiveMinimum": true
+                              },
+                              "unit": {
+                                "type": "string",
+                                "enum": [
+                                  "minutes",
+                                  "hours",
+                                  "days"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "interval",
+                              "unit"
                             ]
                           }
                         },
                         "required": [
-                          "interval",
-                          "unit"
+                          "timestampBucket",
+                          "name",
+                          "config"
                         ]
-                      },
-                      "condition": {
-                        "type": "string",
-                        "minLength": 1
                       },
                       "onComplete": {
                         "type": "array",
                         "items": {}
-                      },
-                      "invokeContext": {
-                        "type": "object",
-                        "additionalProperties": {}
                       }
                     },
                     "required": [
                       "kind",
-                      "config",
                       "invokeContext"
                     ]
                   },
@@ -14522,53 +14549,26 @@
                           "user_action"
                         ]
                       },
-                      "scope": {
-                        "type": "object",
-                        "properties": {
-                          "user": {
-                            "type": "object",
-                            "properties": {
-                              "permissions": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "permissions"
-                            ]
-                          },
-                          "folder": {
-                            "type": "object",
-                            "properties": {
-                              "folderId": {
-                                "type": "string",
-                                "format": "uuid"
-                              }
-                            },
-                            "required": [
-                              "folderId"
-                            ]
-                          }
-                        }
-                      },
-                      "condition": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "onComplete": {
-                        "type": "array",
-                        "items": {}
-                      },
                       "invokeContext": {
                         "type": "object",
                         "properties": {
                           "userId": {
                             "type": "string",
                             "format": "uuid"
+                          },
+                          "requestId": {
+                            "type": "string",
+                            "format": "uuid"
                           }
                         },
                         "required": [
-                          "userId"
+                          "userId",
+                          "requestId"
                         ]
+                      },
+                      "onComplete": {
+                        "type": "array",
+                        "items": {}
                       }
                     },
                     "required": [
@@ -14585,13 +14585,26 @@
                           "app_action"
                         ]
                       },
+                      "invokeContext": {
+                        "type": "object",
+                        "properties": {
+                          "requestId": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "requestId"
+                        ]
+                      },
                       "onComplete": {
                         "type": "array",
                         "items": {}
                       }
                     },
                     "required": [
-                      "kind"
+                      "kind",
+                      "invokeContext"
                     ]
                   },
                   {
@@ -14625,10 +14638,14 @@
                               "identifier",
                               "success"
                             ]
+                          },
+                          "onCompleteHandlerIndex": {
+                            "type": "integer"
                           }
                         },
                         "required": [
-                          "parentTask"
+                          "parentTask",
+                          "onCompleteHandlerIndex"
                         ]
                       },
                       "onComplete": {
@@ -14852,32 +14869,6 @@
                             "event"
                           ]
                         },
-                        "eventIdentifier": {
-                          "oneOf": [
-                            {
-                              "type": "string",
-                              "minLength": 1,
-                              "pattern": "^[a-z_]+$"
-                            },
-                            {
-                              "type": "string",
-                              "minLength": 1,
-                              "pattern": "^platform:[a-z_]+$"
-                            }
-                          ]
-                        },
-                        "dataTemplate": {
-                          "type": "object",
-                          "additionalProperties": {}
-                        },
-                        "condition": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "onComplete": {
-                          "type": "array",
-                          "items": {}
-                        },
                         "invokeContext": {
                           "type": "object",
                           "properties": {
@@ -14887,6 +14878,27 @@
                             },
                             "emitterIdentifier": {
                               "type": "string"
+                            },
+                            "eventIdentifier": {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^[a-z_]+$"
+                                },
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "pattern": "^platform:[a-z_]+$"
+                                }
+                              ]
+                            },
+                            "eventTriggerConfigIndex": {
+                              "type": "integer"
+                            },
+                            "dataTemplate": {
+                              "type": "object",
+                              "additionalProperties": {}
                             },
                             "targetUserId": {
                               "type": "string",
@@ -14915,13 +14927,18 @@
                           "required": [
                             "eventId",
                             "emitterIdentifier",
+                            "eventIdentifier",
+                            "eventTriggerConfigIndex",
                             "eventData"
                           ]
+                        },
+                        "onComplete": {
+                          "type": "array",
+                          "items": {}
                         }
                       },
                       "required": [
                         "kind",
-                        "eventIdentifier",
                         "invokeContext"
                       ]
                     },
@@ -14934,44 +14951,51 @@
                             "schedule"
                           ]
                         },
-                        "config": {
+                        "invokeContext": {
                           "type": "object",
                           "properties": {
-                            "interval": {
-                              "type": "integer",
-                              "minimum": 0,
-                              "exclusiveMinimum": true
+                            "timestampBucket": {
+                              "type": "string"
                             },
-                            "unit": {
-                              "type": "string",
-                              "enum": [
-                                "minutes",
-                                "hours",
-                                "days"
+                            "name": {
+                              "type": "string"
+                            },
+                            "config": {
+                              "type": "object",
+                              "properties": {
+                                "interval": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "minutes",
+                                    "hours",
+                                    "days"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "interval",
+                                "unit"
                               ]
                             }
                           },
                           "required": [
-                            "interval",
-                            "unit"
+                            "timestampBucket",
+                            "name",
+                            "config"
                           ]
-                        },
-                        "condition": {
-                          "type": "string",
-                          "minLength": 1
                         },
                         "onComplete": {
                           "type": "array",
                           "items": {}
-                        },
-                        "invokeContext": {
-                          "type": "object",
-                          "additionalProperties": {}
                         }
                       },
                       "required": [
                         "kind",
-                        "config",
                         "invokeContext"
                       ]
                     },
@@ -14984,53 +15008,26 @@
                             "user_action"
                           ]
                         },
-                        "scope": {
-                          "type": "object",
-                          "properties": {
-                            "user": {
-                              "type": "object",
-                              "properties": {
-                                "permissions": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "permissions"
-                              ]
-                            },
-                            "folder": {
-                              "type": "object",
-                              "properties": {
-                                "folderId": {
-                                  "type": "string",
-                                  "format": "uuid"
-                                }
-                              },
-                              "required": [
-                                "folderId"
-                              ]
-                            }
-                          }
-                        },
-                        "condition": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "onComplete": {
-                          "type": "array",
-                          "items": {}
-                        },
                         "invokeContext": {
                           "type": "object",
                           "properties": {
                             "userId": {
                               "type": "string",
                               "format": "uuid"
+                            },
+                            "requestId": {
+                              "type": "string",
+                              "format": "uuid"
                             }
                           },
                           "required": [
-                            "userId"
+                            "userId",
+                            "requestId"
                           ]
+                        },
+                        "onComplete": {
+                          "type": "array",
+                          "items": {}
                         }
                       },
                       "required": [
@@ -15047,13 +15044,26 @@
                             "app_action"
                           ]
                         },
+                        "invokeContext": {
+                          "type": "object",
+                          "properties": {
+                            "requestId": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "requestId"
+                          ]
+                        },
                         "onComplete": {
                           "type": "array",
                           "items": {}
                         }
                       },
                       "required": [
-                        "kind"
+                        "kind",
+                        "invokeContext"
                       ]
                     },
                     {
@@ -15087,10 +15097,14 @@
                                 "identifier",
                                 "success"
                               ]
+                            },
+                            "onCompleteHandlerIndex": {
+                              "type": "integer"
                             }
                           },
                           "required": [
-                            "parentTask"
+                            "parentTask",
+                            "onCompleteHandlerIndex"
                           ]
                         },
                         "onComplete": {
