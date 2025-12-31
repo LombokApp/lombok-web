@@ -933,6 +933,12 @@ describe('apps.types', () => {
             path: '/object-detail',
           },
         ],
+        folderDetailViews: [
+          {
+            label: 'Folder Detail',
+            path: '/folder-detail',
+          },
+        ],
       }
       const result = appContributionsSchema.safeParse(validContributions)
       expectZodSuccess(result)
@@ -944,6 +950,7 @@ describe('apps.types', () => {
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
+        folderDetailViews: [],
       }
       const result = appContributionsSchema.safeParse(validContributions)
       expectZodSuccess(result)
@@ -955,6 +962,7 @@ describe('apps.types', () => {
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
+        folderDetailViews: [],
       }
       const result = appContributionsSchema.safeParse(
         invalidContributions as unknown,
@@ -968,6 +976,7 @@ describe('apps.types', () => {
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
+        folderDetailViews: [],
       }
       const result = appContributionsSchema.safeParse(
         invalidContributions as unknown,
@@ -1502,6 +1511,7 @@ describe('apps.types', () => {
           folderSidebarViews: [],
           objectSidebarViews: [],
           objectDetailViews: [],
+          folderDetailViews: [],
         },
         permissions: {
           core: ['READ_FOLDER_ACL'],

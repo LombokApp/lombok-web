@@ -123,6 +123,7 @@ export const appContributionsSchema = z
     folderSidebarViews: z.array(appContributionEmbedLinkSchema),
     objectSidebarViews: z.array(appContributionEmbedLinkSchema),
     objectDetailViews: z.array(appContributionEmbedLinkSchema),
+    folderDetailViews: z.array(appContributionEmbedLinkSchema),
   })
   .strict()
 

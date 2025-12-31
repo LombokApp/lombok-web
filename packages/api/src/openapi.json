@@ -6411,13 +6411,38 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "folderDetailViews": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
                       "sidebarMenuLinks",
                       "folderSidebarViews",
                       "objectSidebarViews",
-                      "objectDetailViews"
+                      "objectDetailViews",
+                      "folderDetailViews"
                     ],
                     "additionalProperties": false
                   }
@@ -6693,13 +6718,38 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "folderDetailViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
                   }
                 },
                 "required": [
                   "sidebarMenuLinks",
                   "folderSidebarViews",
                   "objectSidebarViews",
-                  "objectDetailViews"
+                  "objectDetailViews",
+                  "folderDetailViews"
                 ],
                 "additionalProperties": false
               },
@@ -7410,13 +7460,38 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "folderDetailViews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
                         }
                       },
                       "required": [
                         "sidebarMenuLinks",
                         "folderSidebarViews",
                         "objectSidebarViews",
-                        "objectDetailViews"
+                        "objectDetailViews",
+                        "folderDetailViews"
                       ],
                       "additionalProperties": false
                     }
@@ -7692,13 +7767,38 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "folderDetailViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
                     "sidebarMenuLinks",
                     "folderSidebarViews",
                     "objectSidebarViews",
-                    "objectDetailViews"
+                    "objectDetailViews",
+                    "folderDetailViews"
                   ],
                   "additionalProperties": false
                 },
@@ -8409,13 +8509,38 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "folderDetailViews": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
                       "sidebarMenuLinks",
                       "folderSidebarViews",
                       "objectSidebarViews",
-                      "objectDetailViews"
+                      "objectDetailViews",
+                      "folderDetailViews"
                     ],
                     "additionalProperties": false
                   }
@@ -8691,13 +8816,38 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "folderDetailViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
                   }
                 },
                 "required": [
                   "sidebarMenuLinks",
                   "folderSidebarViews",
                   "objectSidebarViews",
-                  "objectDetailViews"
+                  "objectDetailViews",
+                  "folderDetailViews"
                 ],
                 "additionalProperties": false
               },
@@ -9434,13 +9584,38 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "folderDetailViews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
                         }
                       },
                       "required": [
                         "sidebarMenuLinks",
                         "folderSidebarViews",
                         "objectSidebarViews",
-                        "objectDetailViews"
+                        "objectDetailViews",
+                        "folderDetailViews"
                       ],
                       "additionalProperties": false
                     }
@@ -9685,13 +9860,38 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "folderDetailViews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
                     "sidebarMenuLinks",
                     "folderSidebarViews",
                     "objectSidebarViews",
-                    "objectDetailViews"
+                    "objectDetailViews",
+                    "folderDetailViews"
                   ],
                   "additionalProperties": false
                 },
@@ -10324,13 +10524,38 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "folderDetailViews": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
                       "sidebarMenuLinks",
                       "folderSidebarViews",
                       "objectSidebarViews",
-                      "objectDetailViews"
+                      "objectDetailViews",
+                      "folderDetailViews"
                     ],
                     "additionalProperties": false
                   }
@@ -10575,13 +10800,38 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "folderDetailViews": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "iconPath": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
                   }
                 },
                 "required": [
                   "sidebarMenuLinks",
                   "folderSidebarViews",
                   "objectSidebarViews",
-                  "objectDetailViews"
+                  "objectDetailViews",
+                  "folderDetailViews"
                 ],
                 "additionalProperties": false
               },
@@ -10723,13 +10973,38 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "folderDetailViews": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "label"
+                    ],
+                    "additionalProperties": false
+                  }
                 }
               },
               "required": [
                 "sidebarMenuLinks",
                 "folderSidebarViews",
                 "objectSidebarViews",
-                "objectDetailViews"
+                "objectDetailViews",
+                "folderDetailViews"
               ],
               "additionalProperties": false
             }

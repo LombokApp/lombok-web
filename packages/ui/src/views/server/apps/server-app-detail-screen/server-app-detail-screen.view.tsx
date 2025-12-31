@@ -76,20 +76,25 @@ export function ServerAppDetailScreen({
     'folderSidebarViews',
     'objectSidebarViews',
     'objectDetailViews',
+    'folderDetailViews',
   ] as const
   const appPathContributionTypeLabels = {
     sidebarMenuLinks: 'Sidebar menu links',
     folderSidebarViews: 'Folder sidebar views',
     objectSidebarViews: 'Object sidebar views',
     objectDetailViews: 'Object detail views',
+    folderDetailViews: 'Folder detail views',
   } as const
 
   const appPathContributionTypeDescriptions = {
-    sidebarMenuLinks: 'App views that can replace the main content object view',
-    folderSidebarViews: 'App views that can are rendered in the folder sidebar',
-    objectSidebarViews: 'App views that can are rendered in the object sidebar',
+    sidebarMenuLinks:
+      'App views that are rendered as links in the sidebar menu',
+    folderSidebarViews: 'App views that are rendered in the folder sidebar',
+    objectSidebarViews: 'App views that are rendered in the object sidebar',
     objectDetailViews:
-      'App views that can replace the main content object view',
+      'App views that are rendered in the main content view of a folder object',
+    folderDetailViews:
+      'App views that are rendered in the main content view of a folder',
   } as const
 
   const appRouteLinkContributionTypeEmptyMessages = {
@@ -97,6 +102,7 @@ export function ServerAppDetailScreen({
     folderSidebarViews: 'No folder sidebar views available',
     objectSidebarViews: 'No object sidebar views available',
     objectDetailViews: 'No object detail views configured',
+    folderDetailViews: 'No folder detail views configured',
   } as const
 
   const appQuery = $api.useQuery('get', '/api/v1/server/apps/{appIdentifier}', {

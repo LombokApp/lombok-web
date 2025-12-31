@@ -507,6 +507,7 @@ describe('app-config-sanitize', () => {
           folderSidebarViews: [],
           objectSidebarViews: [],
           objectDetailViews: [],
+          folderDetailViews: [],
         },
       }
       const result = appConfigSchema.safeParse(invalidConfig)
@@ -533,6 +534,7 @@ describe('app-config-sanitize', () => {
           folderSidebarViews: [],
           objectSidebarViews: [],
           objectDetailViews: [],
+          folderDetailViews: [],
         },
       }
       const result = appConfigSchema.safeParse(invalidConfig)

@@ -1287,6 +1287,11 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                        folderDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
                     };
                 };
                 requiresStorage: boolean;
@@ -1353,6 +1358,11 @@ export interface components {
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderDetailViews: {
                         path: string;
                         label: string;
                         iconPath?: string;
@@ -1515,6 +1525,11 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                        folderDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
                     };
                 };
                 requiresStorage: boolean;
@@ -1581,6 +1596,11 @@ export interface components {
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderDetailViews: {
                         path: string;
                         label: string;
                         iconPath?: string;
@@ -1743,6 +1763,11 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                        folderDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
                     };
                 };
                 requiresStorage: boolean;
@@ -1809,6 +1834,11 @@ export interface components {
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderDetailViews: {
                         path: string;
                         label: string;
                         iconPath?: string;
@@ -1979,6 +2009,11 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                        folderDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
                     };
                 };
                 enabled: boolean;
@@ -2038,6 +2073,11 @@ export interface components {
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderDetailViews: {
                         path: string;
                         label: string;
                         iconPath?: string;
@@ -2181,6 +2221,11 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                        folderDetailViews: {
+                            path: string;
+                            label: string;
+                            iconPath?: string;
+                        }[];
                     };
                 };
                 enabled: boolean;
@@ -2244,6 +2289,11 @@ export interface components {
                         label: string;
                         iconPath?: string;
                     }[];
+                    folderDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
                 };
                 /** Format: date-time */
                 createdAt: string;
@@ -2272,6 +2322,11 @@ export interface components {
                         iconPath?: string;
                     }[];
                     objectDetailViews: {
+                        path: string;
+                        label: string;
+                        iconPath?: string;
+                    }[];
+                    folderDetailViews: {
                         path: string;
                         label: string;
                         iconPath?: string;
