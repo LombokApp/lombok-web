@@ -222,8 +222,11 @@ export class CoreAppService {
 
         this.child?.stdin?.write(JSON.stringify(workerDataPayload))
         this.logger.debug(
-          'Embedded core app worker thread started with execution options:',
-          workerDataPayload.executionOptions,
+          `Embedded core app worker thread started with execution options: ${Object.keys(
+            workerDataPayload.executionOptions ?? {},
+          )
+            .map((key) => `${key}=${workerDataPayload.executionOptions?.[key]}`)
+            .join(', ')}`,
         )
       }, 500)
     }

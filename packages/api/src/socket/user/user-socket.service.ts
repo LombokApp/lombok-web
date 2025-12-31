@@ -27,7 +27,9 @@ export class UserSocketService {
   constructor(private readonly jwtService: JWTService) {}
 
   async handleConnection(socket: Socket): Promise<void> {
-    this.logger.debug('UserSocketService handleConnection:', socket.nsp.name)
+    this.logger.debug(
+      `UserSocketService handleConnection: [${socket.nsp.name}]`,
+    )
 
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)

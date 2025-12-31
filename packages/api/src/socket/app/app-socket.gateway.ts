@@ -232,7 +232,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                       requestId,
                       async () => {
                         this.logger.log(
-                          `APP API Request appIdentifier=${appIdentifier} requestId=${requestId} message=${(message as { name: string }).name}:`,
+                          `APP API Req:      appIdentifier=${appIdentifier} requestId=${requestId} message=${(message as { name: string }).name}`,
                         )
                         return (
                           this.appService
@@ -262,7 +262,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                     )
                     if ('error' in response) {
                       this.logger.warn(
-                        `APP API Error Response appIdentifier=${appIdentifier} requestId=${requestId}:`,
+                        `APP API Error:    appIdentifier=${appIdentifier} requestId=${requestId}`,
                         {
                           message,
                           error: response.error,
@@ -270,7 +270,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                       )
                     } else {
                       this.logger.log(
-                        `APP API Success Response appIdentifier=${appIdentifier} requestId=${requestId} result: ${response.result ? `keys: ${Object.keys(response.result).join(', ')}` : 'none'}`,
+                        `APP API Res:      appIdentifier=${appIdentifier} requestId=${requestId}`,
                       )
                     }
 
