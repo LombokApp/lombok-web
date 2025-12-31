@@ -383,13 +383,20 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
+        workers: {
+          myworker: {
+            entrypoint: 'worker.js',
+            description: 'Test worker',
+          },
+        },
         tasks: [
           {
             identifier: 'root_task',
             label: 'Root task',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'worker',
+              identifier: 'myworker',
             },
           },
         ],
@@ -426,7 +433,8 @@ describe('apps.types', () => {
             label: 'Root task',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'worker',
+              identifier: 'myworker',
             },
           },
           {
@@ -434,7 +442,8 @@ describe('apps.types', () => {
             label: 'First onComplete',
             description: 'First onComplete task',
             handler: {
-              type: 'external',
+              type: 'worker',
+              identifier: 'mysecondworker',
             },
           },
         ],

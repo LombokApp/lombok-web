@@ -24,6 +24,7 @@ import { appUserSettingsTable } from 'src/app/entities/app-user-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { runWithThreadContext } from 'src/shared/request-context'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { PlatformTaskName } from 'src/task/task.constants'
 import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -207,7 +208,8 @@ const triggerAppDockerHandledTask = async (
   }
   const innerTask = tasks.find((task) => task.taskIdentifier === taskIdentifier)
   const dockerRunTask = tasks.find(
-    (task) => task.taskIdentifier === 'run_docker_job',
+    (task) =>
+      task.taskIdentifier === (PlatformTaskName.RunDockerWorker as string),
   )
 
   // console.log('events', events)

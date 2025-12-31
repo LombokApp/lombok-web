@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
-import { CoreAppService } from 'src/app/core-app.service'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
 import { DockerModule } from 'src/docker/docker.module'
@@ -39,7 +38,6 @@ import { FolderService } from './services/folder.service'
     AppService,
     LogEntryService,
     ReindexFolderProcessor,
-    CoreAppService,
   ],
   exports: [FolderService, ReindexFolderProcessor],
 })

@@ -37,7 +37,7 @@
     "src/**/*.ts",
     "index.ts",
     "script/**/*.ts",
-    "core-app-worker.ts",
+    "core-worker.ts",
     "eslint.config.ts"
   ],
   "exclude": ["dist"]

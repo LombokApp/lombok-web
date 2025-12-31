@@ -1,6 +1,5 @@
 import type { SerializeableRequest } from '@lombokapp/app-worker-sdk'
 import type { TaskDTO } from '@lombokapp/types'
-import { z } from 'zod'
 
 export interface WorkerModuleStartContext {
   outputLogFilepath: string
@@ -15,24 +14,6 @@ export interface WorkerModuleStartContext {
   requestPipePath: string
   responsePipePath: string
 }
-
-export const coreWorkerProcessDataPayloadSchema = z.object({
-  instanceId: z.string(),
-  appToken: z.string(),
-  socketBaseUrl: z.string(),
-  appInstallIdMapping: z.record(z.string(), z.string()),
-  platformHost: z.string(),
-  executionOptions: z
-    .object({
-      printWorkerOutput: z.boolean().optional(),
-      removeWorkerDirectory: z.boolean().optional(),
-    })
-    .optional(),
-})
-
-export type CoreWorkerProcessDataPayload = z.infer<
-  typeof coreWorkerProcessDataPayloadSchema
->
 
 // Pipe communication protocol for long-running workers
 export interface WorkerPipeRequest {

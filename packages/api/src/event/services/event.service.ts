@@ -104,16 +104,10 @@ export class EventService {
     handlerType: NewTask['handlerType']
     handlerIdentifier?: NewTask['handlerIdentifier']
   } {
-    if (
-      taskDefinition.handler.type === 'worker' ||
-      taskDefinition.handler.type === 'docker'
-    ) {
-      return {
-        handlerType: taskDefinition.handler.type,
-        handlerIdentifier: taskDefinition.handler.identifier,
-      }
+    return {
+      handlerType: taskDefinition.handler.type,
+      handlerIdentifier: taskDefinition.handler.identifier,
     }
-    return { handlerType: 'external' }
   }
 
   async processScheduledTaskTriggers() {
@@ -443,13 +437,8 @@ export class EventService {
                   )?.identifier,
                 })
                 tasks.push(task)
-                if (
-                  taskDefinition.handler.type === 'worker' ||
-                  taskDefinition.handler.type === 'docker'
-                ) {
-                  // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                  await this.emitRunnableTaskEnqueuedEvent(task, tx)
-                }
+                // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
+                await this.emitRunnableTaskEnqueuedEvent(task, tx)
               }
               return Promise.resolve()
             },
@@ -587,7 +576,7 @@ export class EventService {
         emitterIdentifier: PLATFORM_IDENTIFIER,
         eventIdentifier:
           task.handlerType === 'worker'
-            ? PlatformEvent.worker_task_enqueued
+            ? PlatformEvent.serverless_task_enqueued
             : PlatformEvent.docker_task_enqueued,
         data: {
           innerTaskId: task.id,

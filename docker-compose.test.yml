@@ -53,7 +53,6 @@ services:
       target: local
     volumes:
       - ./:/usr/src/app
-      - ./.test-data/apps-test:/apps-test
       - ./.test-data/minio:/minio-test-data
     entrypoint: ['bun', '--cwd', './packages/core-worker', 'test:e2e']
   dbtest:

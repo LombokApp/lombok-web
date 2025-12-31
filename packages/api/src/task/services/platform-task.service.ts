@@ -16,6 +16,7 @@ import { tasksTable } from '../entities/task.entity'
 import { TaskService } from './task.service'
 
 const MAX_CONCURRENT_PLATFORM_TASKS = 10
+
 @Injectable()
 export class PlatformTaskService {
   private readonly logger = new Logger(PlatformTaskService.name)

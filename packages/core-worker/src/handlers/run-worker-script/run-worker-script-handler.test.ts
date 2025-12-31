@@ -23,7 +23,7 @@ import { Server as IOServer } from 'socket.io'
 import { v4 as uuidV4 } from 'uuid'
 
 import { buildTestServerClient } from '../../test/test-server-client.mock'
-import { bulidRunWorkerScriptTaskHandler } from './run-worker-script-handler'
+import { buildRunWorkerScriptTaskHandler } from './run-worker-script-handler'
 
 describe('Run Worker Script Task Handler', () => {
   const WORKER_BUNDLE_URL = 'https://example.com/worker-bundle.zip'
@@ -230,14 +230,15 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
 
   it('completes run-worker-script task successfully', async () => {
     const dummyInstallId = crypto.randomUUID()
-    // Mock run_worker_script task and the underlying worker script task
+    // Mock run_serverless_worker task and the underlying worker script task
     const workerScriptTask = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
       trigger: {
         kind: 'event' as const,
-        eventIdentifier: PlatformEvent.object_added,
         invokeContext: {
+          eventIdentifier: PlatformEvent.object_added,
+          eventTriggerConfigIndex: 0,
           eventId: uuidV4(),
           emitterIdentifier: PLATFORM_IDENTIFIER,
           eventData: {} as JsonSerializableObject,
@@ -256,76 +257,10 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       updatedAt: new Date().toISOString(),
     }
 
-    const runWorkerScriptEnvelopeTask = {
-      id: uuidV4(),
-      ownerIdentifier: 'core-worker',
-      trigger: {
-        kind: 'event' as const,
-        eventIdentifier: PlatformEvent.object_added,
-        invokeContext: {
-          eventId: uuidV4(),
-          emitterIdentifier: PLATFORM_IDENTIFIER,
-          eventData: {} as JsonSerializableObject,
-        },
-      },
-      systemLog: [],
-      taskLog: [],
-      taskDescription: 'run_worker_script',
-      taskIdentifier: 'run_worker_script',
-      data: {
-        innerTaskId: workerScriptTask.id,
-        appIdentifier: 'core-worker',
-        workerIdentifier: 'test-worker',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    let completed = false
-    let failed = false
     let getContentSignedUrlsCalled = false
-
     const mockServerClient: IAppPlatformService = buildTestServerClient({
       getServerBaseUrl: () => serverBaseUrl,
       // return a Promise but avoid async-without-await lint
-      getWorkerExecutionDetails: () =>
-        Promise.resolve({
-          result: {
-            installId: dummyInstallId,
-            entrypoint: 'index.ts',
-            workerToken: 'test-token',
-            environmentVariables: {},
-            hash: 'test-worker-hash',
-            payloadUrl: WORKER_BUNDLE_URL,
-          },
-        }),
-      attemptStartHandleTaskById: () =>
-        Promise.resolve({
-          result: {
-            task: workerScriptTask,
-          },
-        }),
-      attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({
-          result: {
-            task: workerScriptTask,
-          },
-        }),
-      completeHandleTask: ({
-        success,
-      }: {
-        success: boolean
-        taskId: string
-        error?: {
-          code: string
-          message: string
-          details?: JsonSerializableObject
-        }
-      }) => {
-        completed = !!success
-        failed = !success
-        return Promise.resolve({ result: null })
-      },
       getContentSignedUrls: () => {
         getContentSignedUrlsCalled = true
         return Promise.resolve({
@@ -343,18 +278,29 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     // Make the socket server delegate API calls to this mock
     currentServerClient = mockServerClient
 
-    const handler = bulidRunWorkerScriptTaskHandler(
+    const handler = buildRunWorkerScriptTaskHandler(
       {
         printWorkerOutput: false,
         removeWorkerDirectory: true,
       },
       { 'core-worker': dummyInstallId },
+      serverBaseUrl,
     )
 
-    await handler(runWorkerScriptEnvelopeTask, mockServerClient)
+    await handler({
+      task: workerScriptTask,
+      appIdentifier: 'core-worker',
+      workerIdentifier: 'test-worker',
+      serverlessWorkerDetails: {
+        installId: dummyInstallId,
+        entrypoint: 'index.ts',
+        workerToken: 'test-token',
+        environmentVariables: {},
+        hash: 'test-worker-hash',
+        payloadUrl: WORKER_BUNDLE_URL,
+      },
+    })
 
-    expect(failed).toBe(false)
-    expect(completed).toBe(true)
     expect(getContentSignedUrlsCalled).toBe(true)
   })
 })

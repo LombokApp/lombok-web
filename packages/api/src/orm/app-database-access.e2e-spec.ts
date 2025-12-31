@@ -37,19 +37,7 @@ function createMockAppPlatformService(
     emitEvent: () => {
       throw new Error('Not implemented in test mock')
     },
-    getWorkerExecutionDetails: () => {
-      throw new Error('Not implemented in test mock')
-    },
-    getAppUIbundle: () => {
-      throw new Error('Not implemented in test mock')
-    },
     saveLogEntry: () => {
-      throw new Error('Not implemented in test mock')
-    },
-    attemptStartHandleTaskById: () => {
-      throw new Error('Not implemented in test mock')
-    },
-    attemptStartHandleAnyAvailableTask: () => {
       throw new Error('Not implemented in test mock')
     },
     completeHandleTask: () => {

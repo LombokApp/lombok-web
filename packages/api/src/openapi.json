@@ -1072,53 +1072,6 @@
         ]
       }
     },
-    "/api/v1/server/install-local-apps": {
-      "post": {
-        "operationId": "installLocalApps",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InstallAppsResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Install all apps from disk.",
-        "tags": [
-          "Server"
-        ]
-      }
-    },
     "/api/v1/server/metrics": {
       "get": {
         "operationId": "getServerMetrics",
@@ -6678,26 +6631,6 @@
           "settingKey"
         ]
       },
-      "InstallAppsResponse": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Success message",
-            "example": "Apps installation completed"
-          },
-          "timestamp": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Timestamp when the installation was completed",
-            "example": "2024-01-01T00:00:00.000Z"
-          }
-        },
-        "required": [
-          "message",
-          "timestamp"
-        ]
-      },
       "ServerMetricsResponse": {
         "type": "object",
         "properties": {
@@ -7380,62 +7313,23 @@
                           "type": "string"
                         },
                         "handler": {
-                          "discriminator": {
-                            "propertyName": "type"
-                          },
-                          "oneOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "worker"
-                                  ]
-                                },
-                                "identifier": {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "identifier"
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "worker",
+                                "docker"
                               ]
                             },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "docker"
-                                  ]
-                                },
-                                "identifier": {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "identifier"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "external"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ]
+                            "identifier": {
+                              "type": "string",
+                              "minLength": 1
                             }
+                          },
+                          "required": [
+                            "type",
+                            "identifier"
                           ]
                         }
                       },
@@ -8429,62 +8323,23 @@
                             "type": "string"
                           },
                           "handler": {
-                            "discriminator": {
-                              "propertyName": "type"
-                            },
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "worker"
-                                    ]
-                                  },
-                                  "identifier": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "identifier"
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "worker",
+                                  "docker"
                                 ]
                               },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "docker"
-                                    ]
-                                  },
-                                  "identifier": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "identifier"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "external"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "type"
-                                ]
+                              "identifier": {
+                                "type": "string",
+                                "minLength": 1
                               }
+                            },
+                            "required": [
+                              "type",
+                              "identifier"
                             ]
                           }
                         },
@@ -9478,62 +9333,23 @@
                           "type": "string"
                         },
                         "handler": {
-                          "discriminator": {
-                            "propertyName": "type"
-                          },
-                          "oneOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "worker"
-                                  ]
-                                },
-                                "identifier": {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "identifier"
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "worker",
+                                "docker"
                               ]
                             },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "docker"
-                                  ]
-                                },
-                                "identifier": {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "identifier"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "external"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ]
+                            "identifier": {
+                              "type": "string",
+                              "minLength": 1
                             }
+                          },
+                          "required": [
+                            "type",
+                            "identifier"
                           ]
                         }
                       },
@@ -10550,62 +10366,23 @@
                             "type": "string"
                           },
                           "handler": {
-                            "discriminator": {
-                              "propertyName": "type"
-                            },
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "worker"
-                                    ]
-                                  },
-                                  "identifier": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "identifier"
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "worker",
+                                  "docker"
                                 ]
                               },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "docker"
-                                    ]
-                                  },
-                                  "identifier": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "identifier"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": [
-                                      "external"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "type"
-                                ]
+                              "identifier": {
+                                "type": "string",
+                                "minLength": 1
                               }
+                            },
+                            "required": [
+                              "type",
+                              "identifier"
                             ]
                           }
                         },
@@ -11477,62 +11254,23 @@
                           "type": "string"
                         },
                         "handler": {
-                          "discriminator": {
-                            "propertyName": "type"
-                          },
-                          "oneOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "worker"
-                                  ]
-                                },
-                                "identifier": {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "identifier"
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "worker",
+                                "docker"
                               ]
                             },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "docker"
-                                  ]
-                                },
-                                "identifier": {
-                                  "type": "string",
-                                  "minLength": 1
-                                }
-                              },
-                              "required": [
-                                "type",
-                                "identifier"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "external"
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "type"
-                              ]
+                            "identifier": {
+                              "type": "string",
+                              "minLength": 1
                             }
+                          },
+                          "required": [
+                            "type",
+                            "identifier"
                           ]
                         }
                       },

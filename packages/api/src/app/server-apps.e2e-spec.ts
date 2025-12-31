@@ -1,7 +1,7 @@
-import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { DUMMY_APP_SLUG } from 'test/e2e.setup'
 
 const TEST_MODULE_KEY = 'server_apps'
 
@@ -79,7 +79,7 @@ describe('Server Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     const getAppResponse = await apiClient(accessToken).GET(
       `/api/v1/server/apps/{appIdentifier}`,
       {
@@ -114,7 +114,7 @@ describe('Server Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
 
     // Enable app
     const enableResponse = await apiClient(accessToken).PUT(

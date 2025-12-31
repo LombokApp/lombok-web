@@ -50,25 +50,6 @@ const DockerIcon = ({ className }: { className?: string }) => {
   )
 }
 
-const ExternalIcon = ({ className }: { className?: string }) => {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  )
-}
-
 const WorkerIcon = ({ className }: { className?: string }) => {
   return (
     <svg
@@ -375,9 +356,10 @@ export function ServerAppDetailScreen({
                     handlerType: task.handler.type,
                     handler:
                       task.handler.type === 'worker' ||
+                      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                       task.handler.type === 'docker'
                         ? task.handler.identifier
-                        : 'external',
+                        : null,
                   })) ?? []
                 }
                 columns={[
@@ -411,11 +393,10 @@ export function ServerAppDetailScreen({
                       <div className="flex items-center gap-2">
                         {row.original.handlerType === 'docker' ? (
                           <DockerIcon className="size-8" />
-                        ) : row.original.handlerType === 'worker' ? (
+                        ) : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                        row.original.handlerType === 'worker' ? (
                           <WorkerIcon className="size-8" />
-                        ) : (
-                          <ExternalIcon className="size-8" />
-                        )}
+                        ) : null}
                         <div>{row.original.handler}</div>
                       </div>
                     ),

@@ -11,20 +11,14 @@ import { jsonSerializableObjectDTOSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 
-export const CORE_APP_SLUG = 'core'
-
 export const AppSocketMessage = z.enum([
   'GET_LATEST_DB_CREDENTIALS',
-  'GET_WORKER_EXECUTION_DETAILS',
   'SAVE_LOG_ENTRY',
   'GET_APP_STORAGE_SIGNED_URLS',
   'GET_CONTENT_SIGNED_URLS',
   'GET_METADATA_SIGNED_URLS',
-  'GET_APP_UI_BUNDLE',
   'GET_APP_USER_ACCESS_TOKEN',
   'UPDATE_CONTENT_METADATA',
-  'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
-  'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
   'COMPLETE_HANDLE_TASK',
   'AUTHENTICATE_USER',
   'EMIT_EVENT',

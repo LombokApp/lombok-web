@@ -44,26 +44,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['EMIT_EVENT'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'EMIT_EVENT'>>
-  getWorkerExecutionDetails: (
-    params: AppSocketMessageDataMap['GET_WORKER_EXECUTION_DETAILS'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'GET_WORKER_EXECUTION_DETAILS'>>
-  getAppUIbundle: (
-    params: AppSocketMessageDataMap['GET_APP_UI_BUNDLE'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'GET_APP_UI_BUNDLE'>>
   saveLogEntry: (
     entry: AppSocketMessageDataMap['SAVE_LOG_ENTRY'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'SAVE_LOG_ENTRY'>>
-  attemptStartHandleTaskById: (
-    params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID'>>
-  attemptStartHandleAnyAvailableTask: (
-    params: AppSocketMessageDataMap['ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK'>>
   completeHandleTask: (
     params: AppSocketMessageDataMap['COMPLETE_HANDLE_TASK'],
     options?: PlatformApiExecuteOptions,
@@ -191,12 +175,6 @@ export const buildAppClient = (
     emitEvent(params, options) {
       return emitWithAck('EMIT_EVENT', params, options)
     },
-    getWorkerExecutionDetails(params, options) {
-      return emitWithAck('GET_WORKER_EXECUTION_DETAILS', params, options)
-    },
-    getAppUIbundle(params, options) {
-      return emitWithAck('GET_APP_UI_BUNDLE', params, options)
-    },
     saveLogEntry(params, options) {
       return emitWithAck('SAVE_LOG_ENTRY', params, options)
     },
@@ -220,20 +198,6 @@ export const buildAppClient = (
     },
     authenticateUser(params, options) {
       return emitWithAck('AUTHENTICATE_USER', params, options)
-    },
-    attemptStartHandleTaskById(params, options) {
-      return emitWithAck(
-        'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
-        params,
-        options,
-      )
-    },
-    attemptStartHandleAnyAvailableTask(params, options) {
-      return emitWithAck(
-        'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
-        params,
-        options,
-      )
     },
     executeAppDockerJob(params, options) {
       return emitWithAck('EXECUTE_APP_DOCKER_JOB', params, options)

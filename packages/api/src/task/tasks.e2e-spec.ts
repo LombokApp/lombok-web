@@ -51,6 +51,7 @@ describe('Task lifecycle', () => {
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
+      // debug: true,
     })
     apiClient = testModule.apiClient
   })
@@ -78,6 +79,7 @@ describe('Task lifecycle', () => {
       mockFiles: [{ objectKey: 'file.txt', content: 'hello' }],
       apiClient,
     })
+    await testModule?.installLocalAppBundles([SOCKET_DATA_APP_SLUG])
 
     const now = new Date()
     await testModule!.services.ormService.db
@@ -133,6 +135,7 @@ describe('Task lifecycle', () => {
       mockFiles: [{ objectKey: 'file.txt', content: 'hello' }],
       apiClient,
     })
+    await testModule?.installLocalAppBundles([SOCKET_DATA_APP_SLUG])
 
     const now = new Date()
     await testModule!.services.ormService.db
@@ -206,6 +209,7 @@ describe('Task lifecycle', () => {
   })
 
   it('enqueues an onComplete task when the parent task completes successfully', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await testModule!.services.eventService.emitEvent({
       emitterIdentifier:
         await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
@@ -274,6 +278,7 @@ describe('Task lifecycle', () => {
   })
 
   it('skips onComplete task when the condition evaluates to false', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await testModule!.services.eventService.emitEvent({
       emitterIdentifier:
         await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
@@ -315,6 +320,7 @@ describe('Task lifecycle', () => {
   })
 
   it('enqueues onComplete tasks (array) and propagates through the chain', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await testModule!.services.eventService.emitEvent({
       emitterIdentifier:
         await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
@@ -473,6 +479,7 @@ describe('Task lifecycle', () => {
   })
 
   it('creates an app_action task and tracks lifecycle fields', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await runWithThreadContext(crypto.randomUUID(), async () => {
       await testModule!.services.taskService.triggerAppActionTask({
         appIdentifier:
@@ -523,6 +530,8 @@ describe('Task lifecycle', () => {
   })
 
   it('creates an app_action task with a single onComplete handler', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
     const parentTask = await runWithThreadContext(
       crypto.randomUUID(),
       async () => {
@@ -597,6 +606,7 @@ describe('Task lifecycle', () => {
   })
 
   it('creates an app_action task with an array of onComplete handlers and chains them', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     const parentTask = await runWithThreadContext(
       crypto.randomUUID(),
       async () => {
@@ -727,6 +737,7 @@ describe('Task lifecycle', () => {
   })
 
   it('enqueues onComplete task when a negated condition matches a failure', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     const parentTask = await runWithThreadContext(
       crypto.randomUUID(),
       async () => {
@@ -778,6 +789,8 @@ describe('Task lifecycle', () => {
   })
 
   it('creates schedule-triggered tasks and skips duplicates within interval', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
     await testModule!.services.eventService.processScheduledTaskTriggers()
 
     const firstTask = await getTaskByIdentifier(testModule!, SCHEDULE_TASK_ID)
@@ -816,6 +829,7 @@ describe('Task lifecycle', () => {
   })
 
   it('creates a user_action task and tracks lifecycle fields', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await createTestUser(testModule!, {
       username: 'taskuser',
       password: '123456',
@@ -875,6 +889,7 @@ describe('Task lifecycle', () => {
 
   it('handles invalid byte sequences in task data', async () => {
     await runWithThreadContext(crypto.randomUUID(), async () => {
+      await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
       const task = await testModule!.services.taskService.triggerAppActionTask({
         appIdentifier:
           await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
@@ -949,6 +964,7 @@ describe('Task lifecycle', () => {
   })
 
   it('should base64 encode payloads in the systemLog and taskLog', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await testModule!.services.ormService.db.insert(tasksTable).values([
       withTaskIdempotencyKey({
         id: crypto.randomUUID(),
@@ -1049,6 +1065,7 @@ describe('Task lifecycle', () => {
   })
 
   it('should decode payloads in the systemLog and taskLog from base64', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     const appIdentifier =
       await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
     await testModule!.services.ormService.db.insert(tasksTable).values([
@@ -1150,6 +1167,7 @@ describe('Task lifecycle', () => {
   })
 
   it('should allow inserting null bytes in task systemLog and taskLog', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
     await testModule!.services.ormService.db.insert(tasksTable).values([
       withTaskIdempotencyKey({
         id: crypto.randomUUID(),

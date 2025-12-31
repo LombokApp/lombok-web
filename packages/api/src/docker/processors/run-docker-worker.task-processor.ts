@@ -13,7 +13,7 @@ import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 
 @Injectable()
-export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDockerJob> {
+export class RunDockerWorkerProcessor extends BaseProcessor<PlatformTaskName.RunDockerWorker> {
   private readonly appService: AppService
 
   constructor(
@@ -22,7 +22,7 @@ export class RunDockerJobProcessor extends BaseProcessor<PlatformTaskName.RunDoc
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
-    super(PlatformTaskName.RunDockerJob)
+    super(PlatformTaskName.RunDockerWorker)
     this.appService = _appService as AppService
   }
 

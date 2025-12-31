@@ -1,9 +1,10 @@
-import { CORE_APP_SLUG, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestModule } from 'src/test/test.types'
 import { buildTestModule } from 'src/test/test.util'
+import { DUMMY_APP_SLUG } from 'test/e2e.setup'
 
 const TEST_MODULE_KEY = 'platform_events'
 
@@ -41,13 +42,13 @@ describe('Platform events', () => {
 
     const tasks =
       await testModule!.services.ormService.db.query.tasksTable.findMany({
-        where: eq(tasksTable.taskIdentifier, 'run_worker_script'),
+        where: eq(tasksTable.taskIdentifier, 'run_serverless_worker'),
       })
 
     expect(tasks.length).toBe(1)
     const task = tasks[0]
     expect(task?.ownerIdentifier).toBe(
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG),
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG),
     )
     expect(task?.data).toEqual({
       innerTaskId: 'abc-123',

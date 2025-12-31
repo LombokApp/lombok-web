@@ -150,9 +150,6 @@ export async function buildTestModule({
   // Truncate the DB after app init (migrations/initialization complete)
   await services.ormService.truncateAllTestTables()
 
-  // Install apps from disk for tests (since installAppsOnStart may not be set in test env)
-  await services.appService.installAllAppsFromDisk()
-
   async function initMinioTestBucket(
     createFiles: { objectKey: string; content: Buffer | string }[] = [],
   ) {
@@ -197,6 +194,23 @@ export async function buildTestModule({
     return bucketName
   }
 
+  const setServerStorageLocation = async () => {
+    const bucketName = await initMinioTestBucket()
+    await services.serverConfigurationService.setServerStorageAsAdmin(
+      {
+        isAdmin: true,
+      } as User,
+      {
+        accessKeyId: MINIO_ACCESS_KEY_ID,
+        secretAccessKey: MINIO_SECRET_ACCESS_KEY,
+        endpoint: MINIO_ENDPOINT,
+        region: MINIO_REGION,
+        bucket: bucketName,
+        prefix: '',
+      },
+    )
+  }
+
   return {
     app,
     services,
@@ -228,7 +242,6 @@ export async function buildTestModule({
     resetAppState: async () => {
       services.kvService.ops.flushall()
       await services.ormService.resetTestDb()
-      await services.appService.installAllAppsFromDisk()
     },
     testS3ClientConfig: () => ({
       accessKeyId: MINIO_ACCESS_KEY_ID,
@@ -252,22 +265,11 @@ export async function buildTestModule({
       }
       return _app.identifier
     },
-    setServerStorageLocation: async () => {
-      const bucketName = await initMinioTestBucket()
-      await services.serverConfigurationService.setServerStorageAsAdmin(
-        {
-          isAdmin: true,
-        } as User,
-        {
-          accessKeyId: MINIO_ACCESS_KEY_ID,
-          secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-          endpoint: MINIO_ENDPOINT,
-          region: MINIO_REGION,
-          bucket: bucketName,
-          prefix: '',
-        },
-      )
+    installLocalAppBundles: async (limitTo: string[] | null = null) => {
+      await setServerStorageLocation()
+      await services.appService.installLocalAppBundles(limitTo)
     },
+    setServerStorageLocation,
     initMinioTestBucket,
     createS3PresignedUrls: (
       presignedRequests: {

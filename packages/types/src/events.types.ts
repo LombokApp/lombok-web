@@ -7,7 +7,7 @@ export enum PlatformEvent {
   object_removed = 'object_removed',
   object_updated = 'object_updated',
   folder_scanned = 'folder_scanned',
-  worker_task_enqueued = 'worker_task_enqueued',
+  serverless_task_enqueued = 'serverless_task_enqueued',
   docker_task_enqueued = 'docker_task_enqueued',
 }
 

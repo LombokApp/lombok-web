@@ -1,4 +1,3 @@
-import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -7,6 +6,7 @@ import {
   testS3Location,
 } from 'src/test/test.util'
 import type { User } from 'src/users/entities/user.entity'
+import { DUMMY_APP_SLUG } from 'test/e2e.setup'
 
 const TEST_MODULE_KEY = 'folder_app_permissions'
 
@@ -53,7 +53,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -123,7 +123,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -216,7 +216,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -323,7 +323,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -446,7 +446,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -532,7 +532,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -643,7 +643,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -768,7 +768,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -866,7 +866,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -977,7 +977,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1086,7 +1086,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1197,7 +1197,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1316,7 +1316,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1388,7 +1388,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {

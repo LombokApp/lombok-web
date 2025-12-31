@@ -237,19 +237,10 @@ export const taskConfigSchema = z
     identifier: taskIdentifierSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string(),
-    handler: z.discriminatedUnion('type', [
-      z.object({
-        type: z.literal('worker'),
-        identifier: z.string().nonempty(),
-      }),
-      z.object({
-        type: z.literal('docker'),
-        identifier: z.string().nonempty(),
-      }),
-      z.object({
-        type: z.literal('external'),
-      }),
-    ]),
+    handler: z.object({
+      type: z.enum(['worker', 'docker']),
+      identifier: z.string().nonempty(),
+    }),
   })
   .strict()
 

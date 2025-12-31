@@ -15,7 +15,6 @@ import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
 import type { TaskService } from 'src/task/services/task.service'
-import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import type { z, ZodTypeAny } from 'zod'
 
 import type { AppService } from './app.service'
@@ -200,84 +199,6 @@ export async function handleAppSocketMessage(
       }
 
       return { result: null }
-    }
-    case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
-      const startContext = {
-        ...(parsedRequest.data.startContext ?? {}),
-        __executor: {
-          appIdentifier: requestingAppIdentifier,
-          handlerInstanceId,
-        },
-      }
-      try {
-        const { task: securedTask } = await taskService.startAnyAvailableTask({
-          appIdentifier: requestingAppIdentifier,
-          taskIdentifiers: parsedRequest.data.taskIdentifiers,
-          startContext,
-        })
-        return { result: { task: transformTaskToDTO(securedTask) } }
-      } catch (error) {
-        if (error instanceof HttpException) {
-          return {
-            error: { code: error.getStatus(), message: error.message },
-          }
-        }
-        return {
-          error: {
-            code: 500,
-            message:
-              error instanceof Error
-                ? `Unexpected server error: ${error.message}`
-                : 'Unexpected server error',
-          },
-        }
-      }
-    }
-    case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
-      const startContext = {
-        __executor: {
-          appIdentifier: requestingAppIdentifier,
-          handlerId: handlerInstanceId,
-        },
-        ...(parsedRequest.data.startContext ?? {}),
-      }
-      try {
-        const startedTask = await appService.startWorkerTaskByIdAsApp(
-          requestingAppIdentifier,
-          {
-            taskId: parsedRequest.data.taskId,
-            startContext,
-          },
-        )
-        return { result: { task: transformTaskToDTO(startedTask) } }
-      } catch (error) {
-        if (error instanceof HttpException) {
-          return {
-            error: { code: error.getStatus(), message: error.message },
-          }
-        }
-        return {
-          error: {
-            code: 500,
-            message:
-              error instanceof Error
-                ? `Unexpected server error: ${error.message}`
-                : 'Unexpected server error',
-          },
-        }
-      }
-    }
-
-    case 'GET_APP_UI_BUNDLE':
-      return appService.getAppUIbundleAsAppServer(
-        requestingAppIdentifier,
-        parsedRequest.data,
-      )
-    case 'GET_WORKER_EXECUTION_DETAILS': {
-      return appService.getWorkerExecutionDetailsAsAppServer(
-        requestingAppIdentifier,
-        parsedRequest.data,
-      )
     }
     case 'GET_APP_STORAGE_SIGNED_URLS':
       return {

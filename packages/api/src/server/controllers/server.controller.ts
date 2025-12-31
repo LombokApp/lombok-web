@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   Param,
-  Post,
   Put,
   Req,
   UnauthorizedException,
@@ -18,7 +17,6 @@ import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
 
-import { InstallAppsResponse } from '../dto/responses/install-apps-response.dto'
 import { ServerMetricsResponse } from '../dto/responses/server-metrics-response.dto'
 import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'
 import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
@@ -98,23 +96,6 @@ export class ServerController {
       await this.serverConfigurationService.getServerSettingsAsAdmin(req.user)
 
     return { settingKey, settingValue: newSettings[settingKey] as never }
-  }
-
-  /**
-   * Install all apps from disk.
-   */
-  @Post('/install-local-apps')
-  async installLocalApps(
-    @Req() req: express.Request,
-  ): Promise<InstallAppsResponse> {
-    if (!req.user?.isAdmin) {
-      throw new UnauthorizedException()
-    }
-    await this.appService.installAllAppsFromDisk()
-    return {
-      message: 'Apps installation completed',
-      timestamp: new Date(),
-    }
   }
 
   /**

@@ -1,7 +1,6 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { forwardRef, Inject, Module } from '@nestjs/common'
-import nestJSConfig, { ConfigModule } from '@nestjs/config'
-import { AuthModule } from 'src/auth/auth.module'
+import { forwardRef, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
@@ -16,14 +15,13 @@ import { StorageModule } from 'src/storage/storage.module'
 import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
 import { UserAppsController } from './controllers/user-apps.controller'
-import { CoreAppService } from './core-app.service'
+import { ServerlessWorkerRunnerService } from './serverless-worker-runner.service'
 import { AppService } from './services/app.service'
 
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(platformConfig),
-    forwardRef(() => AuthModule),
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,
@@ -34,31 +32,23 @@ import { AppService } from './services/app.service'
   controllers: [AppsController, UserAppsController],
   providers: [
     AppService,
-    CoreAppService,
     S3Service,
     ServerConfigurationService,
+    ServerlessWorkerRunnerService,
   ],
-  exports: [AppService],
+  exports: [AppService, ServerlessWorkerRunnerService],
 })
 export class AppModule implements OnModuleInit {
   constructor(
-    private readonly coreAppService: CoreAppService,
+    private readonly serverlessWorkerRunnerService: ServerlessWorkerRunnerService,
     private readonly ormService: OrmService,
-    private readonly appService: AppService,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestJSConfig.ConfigType<
-      typeof platformConfig
-    >,
   ) {}
   async onModuleInit() {
     await this.ormService
       .waitForInit()
-      .then(() => {
-        if (this._platformConfig.installAppsOnStart) {
-          return this.appService.installAllAppsFromDisk()
-        }
-      })
-      .then(() => this.coreAppService.startCoreAppThread())
+      .then(() =>
+        this.serverlessWorkerRunnerService.startServerlessWorkerRunnerThread(),
+      )
 
     // init app roles
     await this.ormService.initAppRolesForAllApps()

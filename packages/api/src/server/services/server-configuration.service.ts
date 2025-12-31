@@ -131,18 +131,19 @@ export class ServerConfigurationService {
         where: eq(serverSettingsTable.key, settingKey),
       })
 
+    const now = new Date()
     if (existingRecord) {
       return (
         await this.ormService.db
           .update(serverSettingsTable)
           .set({
             value: settingValue,
+            updatedAt: now,
           })
           .where(eq(serverSettingsTable.key, settingKey))
           .returning()
       )[0]
     } else {
-      const now = new Date()
       const values: NewServerSetting = {
         key: settingKey,
         value: settingValue,

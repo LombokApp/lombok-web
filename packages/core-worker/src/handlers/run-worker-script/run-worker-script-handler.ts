@@ -1,100 +1,72 @@
-import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
-import type { CoreWorkerProcessDataPayload } from '@lombokapp/core-worker-utils'
+import type {
+  CoreWorkerMessagePayloadTypes,
+  ServerlessWorkerExecConfig,
+} from '@lombokapp/core-worker-utils'
 import {
   uniqueExecutionKey,
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
 import type { TaskDTO } from '@lombokapp/types'
-import { z } from 'zod'
 
-import { runWorkerScript } from '../../worker-scripts/run-worker-script'
+import { runWorker } from '../../worker-scripts/run-worker'
 
-const runWorkerScriptTaskInputDataSchema = z.object({
-  innerTaskId: z.string().uuid(),
-  appIdentifier: z.string(),
-  workerIdentifier: z.string(),
-})
+interface RunWorkerScriptTaskInput {
+  task: TaskDTO
+  appIdentifier: string
+  workerIdentifier: string
+  serverlessWorkerDetails: ServerlessWorkerExecConfig
+  onStdoutChunk?: (text: string) => void
+}
 
-export const bulidRunWorkerScriptTaskHandler =
+export const buildRunWorkerScriptTaskHandler =
   (
-    workerExecutionOptions: CoreWorkerProcessDataPayload['executionOptions'],
+    workerExecutionOptions: CoreWorkerMessagePayloadTypes['init']['request']['executionOptions'],
     appInstallIdMapping: Record<string, string>,
+    serverBaseUrl: string,
   ) =>
-  async (runWorkerScriptTask: TaskDTO, server: IAppPlatformService) => {
-    const {
-      data: parsedRunWorkerTaskData,
-      error: parseRunWorkerTaskDataError,
-      success: parseRunWorkerTaskDataSuccess,
-    } = runWorkerScriptTaskInputDataSchema.safeParse(runWorkerScriptTask.data)
-    if (!parseRunWorkerTaskDataSuccess) {
-      throw new AppAPIError(
-        'INVALID_TASK',
-        'Invalid RunWorkerScript task data',
-        parseRunWorkerTaskDataError.flatten().fieldErrors,
-      )
-    }
-
-    const attemptStartHandleResponse = await server.attemptStartHandleTaskById({
-      taskId: parsedRunWorkerTaskData.innerTaskId,
-    })
-    if ('error' in attemptStartHandleResponse) {
-      throw new AppAPIError(
-        attemptStartHandleResponse.error.code,
-        attemptStartHandleResponse.error.message,
-      )
-    }
-
+  async ({
+    task,
+    appIdentifier,
+    workerIdentifier,
+    serverlessWorkerDetails,
+    onStdoutChunk,
+  }: RunWorkerScriptTaskInput) => {
     const appInstallId =
-      appInstallIdMapping[parsedRunWorkerTaskData.appIdentifier]
+      appInstallIdMapping[appIdentifier] ?? serverlessWorkerDetails.installId
 
     if (!appInstallId) {
       throw new AppAPIError(
         'APP_INSTALL_ID_NOT_FOUND',
         'App install ID not found',
         {
-          appIdentifier: parsedRunWorkerTaskData.appIdentifier,
+          appIdentifier,
         },
       )
     }
 
-    const { task } = attemptStartHandleResponse.result
-    const appIdentifier = parsedRunWorkerTaskData.appIdentifier
-    const workerIdentifier = parsedRunWorkerTaskData.workerIdentifier
+    if (!(appIdentifier in appInstallIdMapping)) {
+      appInstallIdMapping[appIdentifier] = appInstallId
+    }
+
     const workerExecutionId = `${workerIdentifier.toLowerCase()}__task__${uniqueExecutionKey()}`
+
     try {
-      await runWorkerScript({
+      await runWorker({
         requestOrTask: task,
-        server,
+        serverBaseUrl,
         appIdentifier,
         appInstallId,
         workerIdentifier,
         workerExecutionId,
+        serverlessWorkerDetails,
         options: workerExecutionOptions,
+        onStdoutChunk,
       })
-
-      // Report success
-      await server.completeHandleTask({ success: true, taskId: task.id })
     } catch (error) {
-      const isWorkerError = error instanceof WorkerScriptRuntimeError
-      // Report failure
-      await server.completeHandleTask({
-        taskId: task.id,
-        success: false,
-        error: isWorkerError
-          ? {
-              // If it's a worker script error, report it as a failure against the worker script task
-              code: 'WORKER_SCRIPT_RUNTIME_ERROR',
-              message: 'Worker task script failed to load and/or execute.',
-              details: error.details,
-            }
-          : {
-              // If it's not a worker error, report it as an internal server error for the script task and then rethrow so it fails the run_worker_script task
-              code: 'WORKER_EXECUTOR_ERROR',
-              message:
-                'A system error occurred while executing the worker task script.',
-            },
-      })
+      if (error instanceof WorkerScriptRuntimeError) {
+        throw error
+      }
       throw error
     }
   }

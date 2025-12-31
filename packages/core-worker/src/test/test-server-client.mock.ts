@@ -1,31 +1,4 @@
 import type { IAppPlatformService } from '@lombokapp/app-worker-sdk'
-import type { JsonSerializableObject } from '@lombokapp/types'
-
-const dummyTask = {
-  id: crypto.randomUUID(),
-  taskIdentifier: 'analyze_object',
-  data: {} as JsonSerializableObject,
-  targetLocation: {
-    folderId: '__dummy__',
-    objectKey: '__dummy__',
-  },
-  ownerIdentifier: 'core-worker',
-  trigger: {
-    kind: 'event' as const,
-    invokeContext: {
-      eventIdentifier: '__dummy__',
-      eventTriggerConfigIndex: 0,
-      eventId: crypto.randomUUID(),
-      emitterIdentifier: '__dummy__',
-      eventData: {} as JsonSerializableObject,
-    },
-  },
-  systemLog: [],
-  taskLog: [],
-  taskDescription: 'analyze_object',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}
 
 export function buildTestServerClient(
   overrides: Partial<IAppPlatformService> = {},
@@ -35,30 +8,7 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     emitEvent: async () => ({ result: { success: true } }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    getWorkerExecutionDetails: async () => ({
-      result: {
-        installId: crypto.randomUUID(),
-        entrypoint: 'index.ts',
-        workerToken: 'test-token',
-        environmentVariables: {},
-        hash: 'test-worker-hash',
-        payloadUrl: 'https://example.com/worker-bundle.zip',
-      },
-    }),
-    // eslint-disable-next-line @typescript-eslint/require-await
-    getAppUIbundle: async () => ({
-      result: { installId: crypto.randomUUID(), manifest: {}, bundleUrl: '' },
-    }),
-    // eslint-disable-next-line @typescript-eslint/require-await
     saveLogEntry: async () => ({ result: null }),
-    // eslint-disable-next-line @typescript-eslint/require-await, no-empty-pattern
-    attemptStartHandleTaskById: async ({}: { taskId: string }) => ({
-      result: { task: dummyTask },
-    }),
-    // eslint-disable-next-line @typescript-eslint/require-await
-    attemptStartHandleAnyAvailableTask: async () => ({
-      result: { task: dummyTask },
-    }),
     // eslint-disable-next-line @typescript-eslint/require-await
     completeHandleTask: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await

@@ -1,7 +1,7 @@
-import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { DUMMY_APP_SLUG } from 'test/e2e.setup'
 
 const TEST_MODULE_KEY = 'user_apps'
 
@@ -38,7 +38,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     const enableResponse = await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -97,7 +97,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -144,7 +144,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -199,7 +199,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -282,7 +282,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -357,7 +357,7 @@ describe('User Apps', () => {
       {
         params: {
           path: {
-            appIdentifier: CORE_APP_SLUG,
+            appIdentifier: DUMMY_APP_SLUG,
           },
         },
       },

@@ -16,6 +16,7 @@ import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
 import { platformConfig } from './config'
+import { RunServerlessWorkerProcessor } from './processors/run-serverless-worker.task-processor'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
@@ -36,7 +37,11 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     LogModule,
     DockerModule,
   ],
-  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
+    RunServerlessWorkerProcessor,
+  ],
+  exports: [RunServerlessWorkerProcessor],
   controllers: [],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

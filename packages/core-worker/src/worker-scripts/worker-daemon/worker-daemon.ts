@@ -305,6 +305,14 @@ void (async () => {
           // Authenticate the user if Authorization header is present
           let userId: string | undefined
           let accessToken: string | undefined
+          let actor: Parameters<RequestHandler>[1]['actor']
+
+          let isSystemRequest = false
+          try {
+            isSystemRequest = new URL(request.url).hostname === '__SYSTEM__'
+          } catch {
+            isSystemRequest = false
+          }
 
           const authStartTime = Date.now()
           logTiming('authentication_start', authStartTime, {
@@ -312,47 +320,55 @@ void (async () => {
           })
 
           try {
-            const authHeader = request.headers.get('Authorization')
-
-            if (
-              authHeader?.startsWith('Bearer ') &&
-              pipeRequest.appIdentifier
-            ) {
-              const token = authHeader.slice('Bearer '.length)
-
-              const authResult = await serverClient.authenticateUser({
-                token,
-                appIdentifier: pipeRequest.appIdentifier,
-              })
-
-              if ('error' in authResult) {
-                const errorMessage = authResult.error.message
-                logTiming('authentication_failed', authStartTime, {
-                  requestId: pipeRequest.id,
-                  error: errorMessage,
-                  appIdentifier: pipeRequest.appIdentifier,
-                })
-                throw new WorkerRuntimeError(
-                  'Authentication failed',
-                  new Error(errorMessage),
-                )
-              }
-
-              userId = authResult.result.userId
-              accessToken = token
-              logTiming('authentication_complete', authStartTime, {
-                requestId: pipeRequest.id,
-                userId,
-                appIdentifier: pipeRequest.appIdentifier,
-              })
-              console.log(
-                `Authenticated user: ${userId} for app: ${pipeRequest.appIdentifier}`,
-              )
-            } else {
+            if (isSystemRequest) {
+              actor = { actorType: 'system' }
               logTiming('authentication_skipped', authStartTime, {
                 requestId: pipeRequest.id,
-                reason: authHeader ? 'no_app_identifier' : 'no_auth_header',
+                reason: 'system_request',
               })
+            } else {
+              const authHeader = request.headers.get('Authorization')
+
+              if (
+                authHeader?.startsWith('Bearer ') &&
+                pipeRequest.appIdentifier
+              ) {
+                const token = authHeader.slice('Bearer '.length)
+
+                const authResult = await serverClient.authenticateUser({
+                  token,
+                  appIdentifier: pipeRequest.appIdentifier,
+                })
+
+                if ('error' in authResult) {
+                  const errorMessage = authResult.error.message
+                  logTiming('authentication_failed', authStartTime, {
+                    requestId: pipeRequest.id,
+                    error: errorMessage,
+                    appIdentifier: pipeRequest.appIdentifier,
+                  })
+                  throw new WorkerRuntimeError(
+                    'Authentication failed',
+                    new Error(errorMessage),
+                  )
+                }
+
+                userId = authResult.result.userId
+                accessToken = token
+                logTiming('authentication_complete', authStartTime, {
+                  requestId: pipeRequest.id,
+                  userId,
+                  appIdentifier: pipeRequest.appIdentifier,
+                })
+                console.log(
+                  `Authenticated user: ${userId} for app: ${pipeRequest.appIdentifier}`,
+                )
+              } else {
+                logTiming('authentication_skipped', authStartTime, {
+                  requestId: pipeRequest.id,
+                  reason: authHeader ? 'no_app_identifier' : 'no_auth_header',
+                })
+              }
             }
           } catch (err) {
             logTiming('authentication_error', authStartTime, {
@@ -363,6 +379,21 @@ void (async () => {
               'Authentication error',
               err instanceof Error ? err : new Error(String(err)),
             )
+          }
+
+          if (!actor && userId) {
+            actor = {
+              actorType: 'user',
+              userId,
+              userApiClient: createFetchClient<paths>({
+                baseUrl: workerModuleStartContext.serverBaseUrl,
+                fetch: async (fetchRequest) => {
+                  const headers = new Headers(fetchRequest.headers)
+                  headers.set('Authorization', `Bearer ${accessToken}`)
+                  return fetch(new Request(fetchRequest, { headers }))
+                },
+              }),
+            }
           }
 
           logTiming('execution_start', executionStartTime, {
@@ -381,20 +412,7 @@ void (async () => {
             serverClient,
             dbClient,
             createDb,
-            actor: userId // Pass the authenticated user to the handler
-              ? {
-                  actorType: 'user',
-                  userId,
-                  userApiClient: createFetchClient<paths>({
-                    baseUrl: workerModuleStartContext.serverBaseUrl,
-                    fetch: async (fetchRequest) => {
-                      const headers = new Headers(fetchRequest.headers)
-                      headers.set('Authorization', `Bearer ${accessToken}`)
-                      return fetch(new Request(fetchRequest, { headers }))
-                    },
-                  }),
-                }
-              : undefined,
+            actor,
           })
         } else {
           // Handle task

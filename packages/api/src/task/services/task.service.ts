@@ -25,12 +25,10 @@ import {
   inArray,
   isNotNull,
   isNull,
-  ne,
   or,
   SQL,
   sql,
 } from 'drizzle-orm'
-import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { EventService } from 'src/event/services/event.service'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -305,56 +303,6 @@ export class TaskService {
     }
   }
 
-  async handlePendingTasks() {
-    const pendingTasks = await this.ormService.db
-      .select({
-        taskIdentifier: tasksTable.taskIdentifier,
-        ownerIdentifier: tasksTable.ownerIdentifier,
-        count: sql<number>`cast(coalesce(count(${tasksTable.id}), 0) as int)`,
-      })
-      .from(tasksTable)
-      .innerJoin(
-        appsTable,
-        eq(tasksTable.ownerIdentifier, appsTable.identifier),
-      )
-      .where(
-        and(
-          isNull(tasksTable.startedAt),
-          eq(tasksTable.handlerType, 'external'),
-          ne(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
-          eq(appsTable.enabled, true),
-        ),
-      )
-      .groupBy(tasksTable.taskIdentifier, tasksTable.ownerIdentifier)
-    const pendingTasksByApp = pendingTasks.reduce<
-      Record<string, Record<string, number>>
-    >((acc, next) => {
-      return {
-        ...acc,
-        [next.ownerIdentifier]: {
-          ...(next.ownerIdentifier in acc ? acc[next.ownerIdentifier] : {}),
-          [next.taskIdentifier]: next.count,
-        },
-      }
-    }, {})
-
-    for (const appIdentifier of Object.keys(pendingTasksByApp)) {
-      for (const taskIdentifier of Object.keys(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        pendingTasksByApp[appIdentifier]!,
-      )) {
-        const pendingTaskCount =
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          pendingTasksByApp[appIdentifier]![taskIdentifier]!
-        this.appSocketService.notifyAppWorkersOfPendingTasks(
-          appIdentifier,
-          taskIdentifier,
-          pendingTaskCount,
-        )
-      }
-    }
-  }
-
   /**
    * Used to trigger a platform task on request from a user.
    *
@@ -587,10 +535,7 @@ export class TaskService {
       },
       data: taskData,
       handlerType: taskDefinition.handler.type,
-      handlerIdentifier:
-        taskDefinition.handler.type === 'external'
-          ? null
-          : taskDefinition.handler.identifier,
+      handlerIdentifier: taskDefinition.handler.identifier,
       createdAt: now,
       updatedAt: now,
       dontStartBefore:
@@ -734,10 +679,7 @@ export class TaskService {
           })
         : {},
       handlerType: taskDefinition.handler.type,
-      handlerIdentifier:
-        taskDefinition.handler.type === 'external'
-          ? null
-          : taskDefinition.handler.identifier,
+      handlerIdentifier: taskDefinition.handler.identifier,
       createdAt: now,
       updatedAt: now,
       dontStartBefore:

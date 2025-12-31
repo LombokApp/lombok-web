@@ -117,30 +117,7 @@ describe('Analyze Object Task Handler', () => {
     const mockServerClient: IAppPlatformService = {
       getServerBaseUrl: () => 'http://localhost:3000',
       emitEvent: () => Promise.resolve({ result: { success: true } }),
-      getWorkerExecutionDetails: () =>
-        Promise.resolve({
-          result: {
-            installId: crypto.randomUUID(),
-            entrypoint: 'test-entrypoint',
-            workerToken: 'test-token',
-            environmentVariables: {},
-            hash: 'test-hash',
-            payloadUrl: 'https://example.com/bundle',
-          },
-        }),
-      getAppUIbundle: () =>
-        Promise.resolve({
-          result: {
-            installId: crypto.randomUUID(),
-            manifest: {},
-            bundleUrl: 'https://example.com/bundle',
-          },
-        }),
       saveLogEntry: () => Promise.resolve({ result: null }),
-      attemptStartHandleTaskById: () =>
-        Promise.resolve({ result: { task: analyzeTask } }),
-      attemptStartHandleAnyAvailableTask: () =>
-        Promise.resolve({ result: { task: analyzeTask } }),
       completeHandleTask: () => Promise.resolve({ result: null }),
       authenticateUser: () =>
         Promise.resolve({

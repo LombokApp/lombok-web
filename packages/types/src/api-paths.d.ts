@@ -261,23 +261,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/install-local-apps": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Install all apps from disk. */
-        post: operations["installLocalApps"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/server/metrics": {
         parameters: {
             query?: never;
@@ -1390,19 +1373,6 @@ export interface components {
             settingKey: string;
             settingValue?: unknown;
         };
-        InstallAppsResponse: {
-            /**
-             * @description Success message
-             * @example Apps installation completed
-             */
-            message: string;
-            /**
-             * Format: date-time
-             * @description Timestamp when the installation was completed
-             * @example 2024-01-01T00:00:00.000Z
-             */
-            timestamp: string;
-        };
         ServerMetricsResponse: {
             totalUsers: number;
             totalFolders: number;
@@ -1560,15 +1530,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "worker" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -1797,15 +1760,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "worker" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -2034,15 +1990,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "worker" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -2278,15 +2227,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "worker" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -2487,15 +2429,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "worker" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -4220,43 +4155,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettingSetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    installLocalApps: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InstallAppsResponse"];
                 };
             };
             /** @description Server Error */

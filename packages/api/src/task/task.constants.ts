@@ -1,4 +1,5 @@
 export enum PlatformTaskName {
   ReindexFolder = 'reindex_folder',
-  RunDockerJob = 'run_docker_job',
+  RunDockerWorker = 'run_docker_worker',
+  RunServerlessWorker = 'run_serverless_worker',
 }

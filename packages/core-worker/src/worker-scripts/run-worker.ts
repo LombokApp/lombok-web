@@ -1,9 +1,6 @@
-import {
-  AppAPIError,
-  type IAppPlatformService,
-  type SerializeableRequest,
-} from '@lombokapp/app-worker-sdk'
+import { type SerializeableRequest } from '@lombokapp/app-worker-sdk'
 import type {
+  ServerlessWorkerExecConfig,
   WorkerModuleStartContext,
   WorkerPipeMessage,
   WorkerPipeRequest,
@@ -1063,7 +1060,8 @@ async function createWorkerProcess(
   appIdentifier: string,
   appInstallId: string,
   workerIdentifier: string,
-  server: IAppPlatformService,
+  serverBaseUrl: string,
+  workerExecConfig: ServerlessWorkerExecConfig,
   options: {
     printWorkerOutput?: boolean
     removeWorkerDirectory?: boolean
@@ -1124,25 +1122,12 @@ async function createWorkerProcess(
   // Create bidirectional pipes
   await createWorkerPipes(requestPipePath, responsePipePath)
 
-  const getWorkerExecutionDetailsResponse =
-    await server.getWorkerExecutionDetails({
-      appIdentifier,
-      workerIdentifier,
-    })
-
-  if ('error' in getWorkerExecutionDetailsResponse) {
-    throw new AppAPIError(
-      getWorkerExecutionDetailsResponse.error.code,
-      getWorkerExecutionDetailsResponse.error.message,
-    )
-  }
-  const { result: workerExecutionDetails } = getWorkerExecutionDetailsResponse
   const workerEnvVars = Object.keys(
-    workerExecutionDetails.environmentVariables,
+    workerExecConfig.environmentVariables,
   ).reduce<string[]>(
     (acc, next) =>
       acc.concat(
-        `WORKER_ENV_${next.trim()}=${workerExecutionDetails.environmentVariables[next]?.trim()}`,
+        `WORKER_ENV_${next.trim()}=${workerExecConfig.environmentVariables[next]?.trim()}`,
       ),
     [],
   )
@@ -1150,8 +1135,8 @@ async function createWorkerProcess(
   // Prepare or reuse cached worker bundle by hash
   const { cacheDir } = await prepareWorkerBundle({
     appIdentifier,
-    payloadUrl: workerExecutionDetails.payloadUrl,
-    bundleHash: workerExecutionDetails.hash,
+    payloadUrl: workerExecConfig.payloadUrl,
+    bundleHash: workerExecConfig.hash,
   })
 
   const environmentVariables = workerEnvVars.map((v) => v.trim())
@@ -1159,11 +1144,11 @@ async function createWorkerProcess(
   const workerModuleStartContext: WorkerModuleStartContext = {
     outputLogFilepath: '/worker-tmp/logs/output.log',
     errorLogFilepath: '/worker-tmp/logs/error.json',
-    scriptPath: `/app/${workerExecutionDetails.entrypoint}`,
-    workerToken: workerExecutionDetails.workerToken,
+    scriptPath: `/app/${workerExecConfig.entrypoint}`,
+    workerToken: workerExecConfig.workerToken,
     executionId,
     workerIdentifier,
-    serverBaseUrl: server.getServerBaseUrl(),
+    serverBaseUrl,
     startTimestamp: Date.now(),
     requestPipePath: '/worker-tmp/request.pipe',
     responsePipePath: '/worker-tmp/response.pipe',
@@ -1246,6 +1231,7 @@ async function createWorkerProcess(
     messageRouter,
     workerRootPath,
     logsDir,
+    workerId,
   }
 }
 
@@ -1275,10 +1261,11 @@ setInterval(
 
 // Get or create a long-running worker process
 async function getOrCreateWorkerProcess(
+  serverBaseUrl: string,
   appIdentifier: string,
   appInstallId: string,
   workerIdentifier: string,
-  server: IAppPlatformService,
+  workerExecutionDetails: ServerlessWorkerExecConfig,
   options: {
     printWorkerOutput?: boolean
     removeWorkerDirectory?: boolean
@@ -1290,6 +1277,7 @@ async function getOrCreateWorkerProcess(
   messageRouter: MessageRouter
   workerRootPath: string
   logsDir: string
+  workerId: string
 }> {
   const workerId = `${appIdentifier}--${appInstallId}--${workerIdentifier}`
 
@@ -1319,7 +1307,8 @@ async function getOrCreateWorkerProcess(
     appIdentifier,
     appInstallId,
     workerIdentifier,
-    server,
+    serverBaseUrl,
+    workerExecutionDetails,
     options,
   ).then((result) => ({
     ...result,
@@ -1336,7 +1325,8 @@ async function getOrCreateWorkerProcess(
 }
 
 interface RunWorkerScriptBaseArgs {
-  server: IAppPlatformService
+  serverBaseUrl: string
+  serverlessWorkerDetails: ServerlessWorkerExecConfig
   appIdentifier: string
   appInstallId: string
   workerIdentifier: string
@@ -1357,18 +1347,19 @@ interface RunWorkerScriptTaskArgs extends RunWorkerScriptBaseArgs {
   requestOrTask: TaskDTO
 }
 
-export async function runWorkerScript(
+export async function runWorker(
   args: RunWorkerScriptRequestArgs,
 ): Promise<Response | undefined>
-export async function runWorkerScript(
+export async function runWorker(
   args: RunWorkerScriptTaskArgs,
 ): Promise<JsonSerializableObject | undefined>
-export async function runWorkerScript(
+export async function runWorker(
   args: RunWorkerScriptRequestArgs | RunWorkerScriptTaskArgs,
 ): Promise<Response | JsonSerializableObject | undefined> {
   const {
+    serverBaseUrl,
+    serverlessWorkerDetails,
     requestOrTask,
-    server,
     appIdentifier,
     workerIdentifier,
     appInstallId,
@@ -1393,10 +1384,11 @@ export async function runWorkerScript(
       logsDir,
       workerId,
     } = await getOrCreateWorkerProcess(
+      serverBaseUrl,
       appIdentifier,
       appInstallId,
       workerIdentifier,
-      server,
+      serverlessWorkerDetails,
       options,
     )
     const workerEntry = workerProcesses.get(workerId)
@@ -1411,10 +1403,7 @@ export async function runWorkerScript(
       requestCompleted = true
       const workerState = workerProcesses.get(workerId)
       if (workerState) {
-        workerState.activeRequests = Math.max(
-          0,
-          workerState.activeRequests - 1,
-        )
+        workerState.activeRequests = Math.max(0, workerState.activeRequests - 1)
         workerState.lastUsed = Date.now()
       }
     }
