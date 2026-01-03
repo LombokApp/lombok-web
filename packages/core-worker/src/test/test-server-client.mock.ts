@@ -10,8 +10,6 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     saveLogEntry: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    completeHandleTask: async () => ({ result: null }),
-    // eslint-disable-next-line @typescript-eslint/require-await
     authenticateUser: async () => ({
       result: { userId: 'user', success: true },
     }),

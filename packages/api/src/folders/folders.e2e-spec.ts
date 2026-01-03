@@ -306,7 +306,7 @@ describe('Folders', () => {
       { params: { path: { folderId: testFolder.folder.id } } },
     )
 
-    expect(listObjectsResponse.data?.result.length).toBeGreaterThan(0)
+    expect(listObjectsResponse.data?.result.length ?? 0).toBeGreaterThan(0)
   })
 
   it(`should result in the correct bucket config for a server location backed folder`, async () => {

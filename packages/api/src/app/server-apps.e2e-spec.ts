@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { DUMMY_APP_SLUG } from 'test/e2e.setup'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
 const TEST_MODULE_KEY = 'server_apps'
 
@@ -70,6 +70,7 @@ describe('Server Apps', () => {
   })
 
   it(`should get app as admin`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -99,12 +100,13 @@ describe('Server Apps', () => {
     expect(getAppResponse.data.app.identifier).toBe(appIdentifier)
     // Admin app DTO should have admin-only fields
     expect(getAppResponse.data.app.publicKey).toBeDefined()
-    expect(getAppResponse.data.app.externalWorkers).toBeDefined()
+    expect(getAppResponse.data.app.connectedWorkers).toBeDefined()
     expect(getAppResponse.data.app.metrics).toBeDefined()
     expect(getAppResponse.data.app.requiresStorage).toBeDefined()
   })
 
   it(`should enable and disable app as admin`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {

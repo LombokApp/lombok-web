@@ -5,8 +5,8 @@ import type {
   AppManifest,
   AppMetrics,
   AppWorkersMap,
+  AppWorkerSocketConnection,
   ExecuteAppDockerJobOptions,
-  ExternalAppWorker,
   FolderScopeAppPermissions,
   JsonSerializableObject,
   StorageAccessPolicy,
@@ -39,6 +39,7 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import { ServerlessWorkerRunnerService } from 'src/core-worker/serverless-worker-runner.service'
 import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
 import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -57,7 +58,7 @@ import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
 import {
-  APP_WORKER_INFO_CACHE_KEY_PREFIX,
+  APP_WORKER_SOCKET_STATE,
   AppSocketService,
 } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
@@ -91,17 +92,13 @@ import { AppMaxFileSizeException } from '../exceptions/app-max-file-size.excepti
 import { AppMaxSizeException } from '../exceptions/app-max-size.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
-import { ServerlessWorkerRunnerService } from '../serverless-worker-runner.service'
 import { appConfigSanitize } from '../utils/app-config-sanitize'
 import { generateAppIdentifierSuffix } from '../utils/app-id.util'
 import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
 } from '../utils/resolve-app-settings.utils'
-import {
-  AppRequestByName,
-  handleAppSocketMessage,
-} from './app-socket-message.handler'
+import { handleAppSocketMessage } from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -574,29 +571,6 @@ export class AppService {
       ),
       hash: workerApp.workers.hash,
     }
-  }
-
-  async registerTaskCompletedAsApp(
-    requestingAppIdentifier: string,
-    data: AppRequestByName<'COMPLETE_HANDLE_TASK'>['data'],
-  ) {
-    const taskToComplete = await this.ormService.db.query.tasksTable.findFirst({
-      where: and(
-        eq(tasksTable.id, data.taskId),
-        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-      ),
-    })
-
-    if (!taskToComplete) {
-      throw new NotFoundException(`Worker task not found: ${data.taskId}`)
-    }
-
-    await this.taskService.registerTaskCompleted(
-      data.taskId,
-      data.success
-        ? { success: true, result: data.result }
-        : { success: false, error: data.error },
-    )
   }
 
   async startWorkerTaskByIdAsApp(
@@ -1472,7 +1446,7 @@ export class AppService {
     return app.workers.definitions[workerIdentifier].environmentVariables
   }
 
-  getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {
+  getWorkerConnections(): Record<string, AppWorkerSocketConnection[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -1481,7 +1455,7 @@ export class AppService {
 
       const scanResult = this.kvService.ops.scan(
         cursor,
-        `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:*`,
+        `${APP_WORKER_SOCKET_STATE}:*`,
         10000,
       )
       cursor = scanResult[0]
@@ -1492,11 +1466,11 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<Record<string, ExternalAppWorker[]>>(
+          .reduce<Record<string, AppWorkerSocketConnection[]>>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(
                 _r ?? 'null',
-              ) as ExternalAppWorker | null
+              ) as AppWorkerSocketConnection | null
               if (!parsed) {
                 return acc
               }

@@ -7,7 +7,7 @@ await build({
     './src/workers/demo_scheduled_worker/index.ts',
     './src/workers/demo_on_complete_worker/index.ts',
   ],
-  outdir: '../bundle-dist/workers',
+  outdir: '../dist/workers',
   external: ['@lombokapp/*', 'pg'],
   target: 'bun',
   minify: true,

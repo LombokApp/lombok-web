@@ -51,6 +51,7 @@ export const DOCKER_LABELS = {
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
+  workerJobService: WorkerJobService
   constructor(
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
@@ -59,8 +60,9 @@ export class DockerJobsService {
     private readonly ormService: OrmService,
     private readonly dockerClientService: DockerClientService,
     @Inject(forwardRef(() => WorkerJobService))
-    private readonly workerJobService: WorkerJobService,
+    private readonly _workerJobService,
   ) {
+    this.workerJobService = _workerJobService as WorkerJobService
     void this.dockerClientService.testAllHostConnections().then((result) => {
       this.logger.debug('Docker host connection test result:', result)
     })

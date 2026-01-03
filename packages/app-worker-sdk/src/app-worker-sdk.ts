@@ -48,10 +48,6 @@ export interface IAppPlatformService {
     entry: AppSocketMessageDataMap['SAVE_LOG_ENTRY'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'SAVE_LOG_ENTRY'>>
-  completeHandleTask: (
-    params: AppSocketMessageDataMap['COMPLETE_HANDLE_TASK'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'COMPLETE_HANDLE_TASK'>>
   authenticateUser: (
     params: AppSocketMessageDataMap['AUTHENTICATE_USER'],
     options?: PlatformApiExecuteOptions,
@@ -192,9 +188,6 @@ export const buildAppClient = (
     },
     updateContentMetadata(params, options) {
       return emitWithAck('UPDATE_CONTENT_METADATA', params, options)
-    },
-    completeHandleTask(params, options) {
-      return emitWithAck('COMPLETE_HANDLE_TASK', params, options)
     },
     authenticateUser(params, options) {
       return emitWithAck('AUTHENTICATE_USER', params, options)

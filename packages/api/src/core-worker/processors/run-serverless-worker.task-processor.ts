@@ -1,13 +1,14 @@
 import { CoreWorkerMessagePayloadTypes } from '@lombokapp/core-worker-utils'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
-import { ServerlessWorkerRunnerService } from 'src/app/serverless-worker-runner.service'
 import { OrmService } from 'src/orm/orm.service'
 import { BaseProcessor, TaskProcessorError } from 'src/task/base.processor'
 import { Task, tasksTable } from 'src/task/entities/task.entity'
 import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
+
+import { ServerlessWorkerRunnerService } from '../serverless-worker-runner.service'
 
 @Injectable()
 export class RunServerlessWorkerProcessor extends BaseProcessor<PlatformTaskName.RunServerlessWorker> {

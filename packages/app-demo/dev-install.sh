@@ -7,8 +7,8 @@ set -e  # Exit on any error
 
 API_URL="http://localhost:3000"
 CREDENTIALS_FILE=".lombok-credentials"
-ZIP_FILE="bundle-dist.zip"
-BUNDLE_DIR="bundle-dist"
+ZIP_FILE="app-demo.zip"
+BUNDLE_DIR="dist"
 
 echo "Starting dev install process..."
 
@@ -16,7 +16,7 @@ echo "Starting dev install process..."
 echo "Step 1: Building bundle..."
 bun build:bundle
 
-# Step 2: Create zip file from bundle-dist
+# Step 2: Create zip file from dist
 echo "Step 2: Creating zip file from bundle output..."
 if [ -f "$ZIP_FILE" ]; then
   rm "$ZIP_FILE"

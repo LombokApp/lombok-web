@@ -1,8 +1,8 @@
-import type { AppExternalWorkersDTO } from '@lombokapp/types'
+import type { ConnectedAppWorkersDTO } from '@lombokapp/types'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 
-export const serverAppExternalWorkerTableColumns: ColumnDef<AppExternalWorkersDTO>[] =
+export const serverConnectedAppWorkersTableColumns: ColumnDef<ConnectedAppWorkersDTO>[] =
   [
     {
       accessorKey: 'appIdentifier',
@@ -36,25 +36,6 @@ export const serverAppExternalWorkerTableColumns: ColumnDef<AppExternalWorkersDT
         return (
           <div className="flex items-center gap-2 font-normal">
             {appWorker.workerId}
-          </div>
-        )
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: 'handledTaskIdentifiers',
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          canHide={column.getCanHide()}
-          column={column}
-          title="Handled Tasks"
-        />
-      ),
-      cell: ({ row: { original: appWorker } }) => {
-        return (
-          <div className="flex items-center gap-2 font-normal">
-            {appWorker.handledTaskIdentifiers.join(', ')}
           </div>
         )
       },

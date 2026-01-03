@@ -8,7 +8,6 @@ import {
   appSocketMessageSchema,
   AppSocketMessageSchemaMap,
 } from '@lombokapp/types'
-import { HttpException } from '@nestjs/common'
 import type { JWTService } from 'src/auth/services/jwt.service'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
@@ -177,29 +176,6 @@ export async function handleAppSocketMessage(
         parsedRequest.data,
       )
       return { result: null }
-    case 'COMPLETE_HANDLE_TASK': {
-      try {
-        await appService.registerTaskCompletedAsApp(
-          requestingAppIdentifier,
-          parsedRequest.data,
-        )
-      } catch (error) {
-        return {
-          error:
-            error instanceof HttpException
-              ? { code: error.getStatus(), message: error.message }
-              : {
-                  code: 500,
-                  message:
-                    error instanceof Error
-                      ? `Unexpected server error: ${error.message}`
-                      : `Unexpected server error: ${String(error)}`,
-                },
-        }
-      }
-
-      return { result: null }
-    }
     case 'GET_APP_STORAGE_SIGNED_URLS':
       return {
         result: await appService.createSignedAppStorageUrls(

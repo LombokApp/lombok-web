@@ -40,9 +40,6 @@ function createMockAppPlatformService(
     saveLogEntry: () => {
       throw new Error('Not implemented in test mock')
     },
-    completeHandleTask: () => {
-      throw new Error('Not implemented in test mock')
-    },
     authenticateUser: () => {
       throw new Error('Not implemented in test mock')
     },
@@ -227,6 +224,8 @@ describe('ORM Schema Isolation', () => {
   afterEach(() => testModule?.resetAppState())
 
   it('should not interfere with main app queries after app queries', async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
+
     const ormService = testModule!.services.ormService
     const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
 
@@ -290,11 +289,11 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle batch operations with proper isolation', async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
-    const testAppId = 'testapp'
 
     // Create a LombokAppPgClient for the app
-    const appClient = createAppPgClient(ormService, testAppId)
+    const appClient = createAppPgClient(ormService, TEST_APP_SLUG)
 
     // Create a test table
     await appClient.query(`
@@ -352,7 +351,7 @@ describe('ORM Schema Isolation', () => {
 
     // Clean up
     await appClient.end()
-    await ormService.dropAppSchema(testAppId)
+    await ormService.dropAppSchema(TEST_APP_SLUG)
   })
 
   it('should handle multiple concurrent app schemas without interference', async () => {
@@ -436,6 +435,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should prevent app queries from accessing other schemas', async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
     const appId = await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
 
@@ -570,6 +570,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle app migrations with proper isolation', async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
     const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
 
@@ -650,6 +651,7 @@ describe('ORM Schema Isolation', () => {
   })
 
   it('should handle rowMode array format correctly', async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
     const testAppId =
       await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
@@ -744,6 +746,7 @@ describe('ORM Schema Isolation', () => {
 
   describe('Database Access Restrictions', () => {
     it('should have database field set to false for app without database enabled', async () => {
+      await testModule!.installLocalAppBundles([SOCKET_TEST_APP_NO_DB_SLUG])
       const app = await testModule!.services.appService.getApp(
         await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_NO_DB_SLUG),
       )
@@ -757,6 +760,7 @@ describe('ORM Schema Isolation', () => {
     })
 
     it('should have database field set to true for app with database enabled', async () => {
+      await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
       const app = await testModule!.services.appService.getApp(
         await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
       )
@@ -770,8 +774,9 @@ describe('ORM Schema Isolation', () => {
     })
 
     it('should allow ORM service methods for app with database enabled', async () => {
+      await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug('sockettestapp')
+        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
       const ormService = testModule!.services.ormService
 
       // Create a LombokAppPgClient for the app
@@ -805,6 +810,11 @@ describe('ORM Schema Isolation', () => {
     })
 
     it('should verify database restriction check logic correctly identifies restricted apps', async () => {
+      await testModule!.installLocalAppBundles([
+        SOCKET_TEST_APP_NO_DB_SLUG,
+        SOCKET_TEST_APP_SLUG,
+      ])
+
       const appService = testModule!.services.appService
 
       // Helper function to simulate the restriction check from socket handler

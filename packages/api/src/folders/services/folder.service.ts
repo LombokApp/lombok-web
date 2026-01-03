@@ -71,7 +71,6 @@ import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
-import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
@@ -171,6 +170,7 @@ export class FolderService {
   private readonly logger = new Logger(FolderService.name)
   eventService: EventService
   appService: AppService
+  taskService: TaskService
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
@@ -190,8 +190,8 @@ export class FolderService {
     private readonly _platformTaskService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    private readonly taskService: TaskService,
-    private readonly userService: UserService,
+    @Inject(forwardRef(() => TaskService))
+    private readonly _taskService,
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
       typeof platformConfig
@@ -199,6 +199,7 @@ export class FolderService {
   ) {
     this.eventService = this.moduleRef.get(EventService)
     this.appService = this.moduleRef.get(AppService)
+    this.taskService = _taskService as TaskService
   }
 
   async createFolder({

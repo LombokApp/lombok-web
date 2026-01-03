@@ -70,23 +70,6 @@ export const updateMetadataSchema = z.array(
   }),
 )
 
-export const completeHandleTaskSchema = z.discriminatedUnion('success', [
-  z.object({
-    success: z.literal(true),
-    taskId: z.string().uuid(),
-    result: jsonSerializableObjectDTOSchema.optional(),
-  }),
-  z.object({
-    success: z.literal(false),
-    taskId: z.string().uuid(),
-    error: z.object({
-      code: z.string(),
-      message: z.string(),
-      details: jsonSerializableObjectDTOSchema.optional(),
-    }),
-  }),
-])
-
 export const getAppStorageSignedUrlsSchema = z.array(
   z.object({
     objectKey: z.string().min(1),
@@ -166,7 +149,6 @@ export const AppSocketMessageSchemaMap = {
   GET_METADATA_SIGNED_URLS: getMetadataSignedUrlsSchema,
   UPDATE_CONTENT_METADATA: updateMetadataSchema,
   GET_LATEST_DB_CREDENTIALS: z.undefined(),
-  COMPLETE_HANDLE_TASK: completeHandleTaskSchema,
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
@@ -259,7 +241,6 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   GET_METADATA_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
   UPDATE_CONTENT_METADATA: createResponseSchema(z.null()),
-  COMPLETE_HANDLE_TASK: createResponseSchema(z.null()),
   GET_APP_STORAGE_SIGNED_URLS: createResponseSchema(z.array(z.string())),
   AUTHENTICATE_USER: createResponseSchema(
     z.object({

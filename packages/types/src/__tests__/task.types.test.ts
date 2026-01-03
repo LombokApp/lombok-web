@@ -268,7 +268,8 @@ describe('task.types', () => {
         label: 'Test Task',
         description: 'A test task',
         handler: {
-          type: 'external',
+          type: 'worker',
+          identifier: 'worker-123',
         },
       }
       const result = taskConfigSchema.safeParse(validTask)

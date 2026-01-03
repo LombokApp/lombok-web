@@ -2,11 +2,7 @@ import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
 import { platformPrefixedEventIdentifierSchema } from './events.types'
-import {
-  appIdentifierSchema,
-  slugSchema,
-  taskIdentifierSchema,
-} from './identifiers.types'
+import { appIdentifierSchema, slugSchema } from './identifiers.types'
 import { jsonSerializableObjectDTOSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
@@ -19,14 +15,11 @@ export const AppSocketMessage = z.enum([
   'GET_METADATA_SIGNED_URLS',
   'GET_APP_USER_ACCESS_TOKEN',
   'UPDATE_CONTENT_METADATA',
-  'COMPLETE_HANDLE_TASK',
   'AUTHENTICATE_USER',
   'EMIT_EVENT',
   'EXECUTE_APP_DOCKER_JOB',
   'TRIGGER_APP_TASK',
 ])
-
-export const EXECUTE_SYSTEM_REQUEST_MESSAGE = 'EXECUTE_SYSTEM_REQUEST'
 
 export const appMessageErrorSchema = z.object({
   code: z.union([z.number(), z.string()]),
@@ -135,7 +128,6 @@ export const appContributionsSchema = z
 // Permissions that can be granted to an app for the platform
 export const platformScopeAppPermissionsSchema = z.enum([
   'READ_FOLDER_ACL', // Read the user <-> folder ACL context
-  'SERVE_APPS', // Serve other apps
 ])
 
 // Permissions that can be granted to an app for a specific user
@@ -488,13 +480,16 @@ export const appWorkerScriptIdentifierSchema = z
   .nonempty()
   .regex(/^[a-z_]+$/)
 
-export const externalAppWorkerSchema = z.object({
+export const appWorkerSocketConnectionSchema = z.object({
   appIdentifier: appIdentifierSchema,
   workerId: z.string(),
-  handledTaskIdentifiers: z.array(taskIdentifierSchema),
   socketClientId: z.string(),
   ip: z.string(),
 })
+
+export type AppWorkerSocketConnection = z.infer<
+  typeof appWorkerSocketConnectionSchema
+>
 
 export const appMetricsSchema = z.object({
   tasksExecutedLast24Hours: z.object({
@@ -537,11 +532,7 @@ export type AppWorkersMap = z.infer<typeof appWorkersMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 
-export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>
-
 export type AppContributions = z.infer<typeof appContributionsSchema>
-
-export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>
 
 export type AppMetrics = z.infer<typeof appMetricsSchema>
 

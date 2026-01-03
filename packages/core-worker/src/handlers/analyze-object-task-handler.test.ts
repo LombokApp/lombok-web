@@ -118,7 +118,6 @@ describe('Analyze Object Task Handler', () => {
       getServerBaseUrl: () => 'http://localhost:3000',
       emitEvent: () => Promise.resolve({ result: { success: true } }),
       saveLogEntry: () => Promise.resolve({ result: null }),
-      completeHandleTask: () => Promise.resolve({ result: null }),
       authenticateUser: () =>
         Promise.resolve({
           result: { userId: 'test-user', success: true },

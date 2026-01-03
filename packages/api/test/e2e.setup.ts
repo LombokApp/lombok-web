@@ -3,9 +3,7 @@ import { spawn } from 'bun'
 import crypto from 'crypto'
 import fs from 'fs'
 
-const APPS_PATH = '/tmp/lombok-apps'
-
-export const DUMMY_APP_SLUG = 'dummy'
+import { DUMMY_APP_SLUG, E2E_TEST_APPS_PATH } from './e2e.contants'
 
 // Generate key pair for socket test app
 const generateKeyPair = (): Promise<{
@@ -53,7 +51,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
 const testAppDefinitions: AppConfig[] = [
   {
     description: 'A dummy app.',
-    slug: 'dummy',
+    slug: DUMMY_APP_SLUG,
     label: 'Dummy',
     requiresStorage: false,
     subscribedPlatformEvents: ['platform:object_added'],
@@ -68,9 +66,8 @@ const testAppDefinitions: AppConfig[] = [
         taskIdentifier: 'minimal_worker_task',
         eventIdentifier: 'platform:object_added',
         dataTemplate: {
-          innerTaskId: '{{event.data.innerTaskId}}',
-          appIdentifier: '{{event.data.appIdentifier}}',
-          workerIdentifier: '{{event.data.workerIdentifier}}',
+          folderId: '{{event.data.folderId}}',
+          objectKey: '{{event.data.objectKey}}',
         },
       },
     ],
@@ -93,7 +90,7 @@ const testAppDefinitions: AppConfig[] = [
     },
   },
   {
-    description: 'A dummy app for testing docker jobs.',
+    description: 'A dummy app for testing docker workers.',
     slug: 'testapp',
     label: 'Test App',
     requiresStorage: false,
@@ -105,19 +102,19 @@ const testAppDefinitions: AppConfig[] = [
     },
     tasks: [
       {
-        identifier: 'triggered_docker_job_task',
+        identifier: 'triggered_docker_worker_task',
         label: 'Docker Handled and Event Triggered Job',
         description:
-          'A task that is triggered by an event and handled by a docker job.',
+          'A task that is triggered by an event and handled by a docker worker.',
         handler: {
           type: 'docker',
           identifier: 'dummy_profile:test_job',
         },
       },
       {
-        identifier: 'non_triggered_docker_job_task',
+        identifier: 'non_triggered_docker_worker_task',
         label: 'Docker Handled Job',
-        description: 'Task that is handled by a docker job.',
+        description: 'Task that is handled by a docker worker.',
         handler: {
           type: 'docker',
           identifier: 'dummy_profile_two:test_job_other',
@@ -401,33 +398,41 @@ const testAppDefinitions: AppConfig[] = [
   },
 ]
 
-console.log(`Adding test app definitions at path: ${APPS_PATH}`)
+console.log(`Adding test app definitions at path: ${E2E_TEST_APPS_PATH}`)
 const addTestAppDefinition = async (appConfig: AppConfig) => {
-  if (!fs.existsSync(`${APPS_PATH}/${appConfig.slug}`)) {
-    fs.mkdirSync(`${APPS_PATH}/${appConfig.slug}`, { recursive: true })
+  if (!fs.existsSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}`)) {
+    fs.mkdirSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}`, { recursive: true })
   }
 
   fs.writeFileSync(
-    `${APPS_PATH}/${appConfig.slug}/config.json`,
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/config.json`,
     JSON.stringify(appConfig),
   )
-  fs.mkdirSync(`${APPS_PATH}/${appConfig.slug}/workers`, { recursive: true })
+  fs.mkdirSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}/workers`, {
+    recursive: true,
+  })
   fs.writeFileSync(
-    `${APPS_PATH}/${appConfig.slug}/workers/minimal-worker.ts`,
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/workers/minimal-worker.ts`,
     MINIMAL_WORKER_CONTENT,
   )
 
   // Generate and store public key for sockettestapp
   const { publicKey, privateKey } = await generateKeyPair()
-  fs.writeFileSync(`${APPS_PATH}/${appConfig.slug}/.publicKey`, publicKey)
+  fs.writeFileSync(
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/.publicKey`,
+    publicKey,
+  )
   // Store private key in a file that tests can read
-  fs.writeFileSync(`${APPS_PATH}/${appConfig.slug}/.privateKey`, privateKey)
+  fs.writeFileSync(
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/.privateKey`,
+    privateKey,
+  )
 
-  // Zip up the files and leave the zip at ${APPS_PATH}/${appConfig.slug}.zip
-  const zipPath = `${APPS_PATH}/${appConfig.slug}.zip`
+  // Zip up the files and leave the zip at ${E2E_TEST_APPS_PATH}/${appConfig.slug}.zip
+  const zipPath = `${E2E_TEST_APPS_PATH}/${appConfig.slug}.zip`
   const zipProc = spawn({
     cmd: ['zip', '-r', zipPath, appConfig.slug],
-    cwd: APPS_PATH,
+    cwd: E2E_TEST_APPS_PATH,
     stdout: 'inherit',
     stderr: 'inherit',
   })
@@ -437,7 +442,10 @@ const addTestAppDefinition = async (appConfig: AppConfig) => {
       `Failed to create zip file for ${appConfig.slug}: ${zipCode}`,
     )
   }
-  fs.rmSync(`${APPS_PATH}/${appConfig.slug}/`, { recursive: true, force: true })
+  fs.rmSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}/`, {
+    recursive: true,
+    force: true,
+  })
 }
 
 await Promise.all(

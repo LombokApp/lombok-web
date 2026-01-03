@@ -4,7 +4,7 @@ import type { AdminAppDTO } from '../admin-app.dto'
 
 export function transformAppToDTO(
   app: App,
-  externalWorkers: AdminAppDTO['externalWorkers'],
+  connectedWorkers: AdminAppDTO['connectedWorkers'],
 ): AdminAppDTO {
   return {
     identifier: app.identifier,
@@ -14,7 +14,7 @@ export function transformAppToDTO(
     config: app.config,
     manifest: app.manifest,
     installId: app.installId,
-    externalWorkers,
+    connectedWorkers,
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,
     userScopeEnabledDefault: app.userScopeEnabledDefault,

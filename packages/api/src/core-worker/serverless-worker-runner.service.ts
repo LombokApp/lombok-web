@@ -23,6 +23,8 @@ import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import z from 'zod'
 
+import { SHOULD_START_CORE_WORKER_THREAD } from './core-worker.constants'
+
 @Injectable()
 export class ServerlessWorkerRunnerService {
   private readonly logger = new Logger(ServerlessWorkerRunnerService.name)
@@ -43,6 +45,8 @@ export class ServerlessWorkerRunnerService {
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
+    @Inject(SHOULD_START_CORE_WORKER_THREAD)
+    private readonly shouldStartThread: boolean,
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
       typeof platformConfig
@@ -299,7 +303,10 @@ export class ServerlessWorkerRunnerService {
     process.once('exit', terminate)
   }
 
-  async startServerlessWorkerRunnerThread() {
+  startCoreWorkerThread() {
+    if (!this.shouldStartThread) {
+      return
+    }
     const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
     if (this._platformConfig.disableEmbeddedCoreAppWorker) {
       this.logger.warn(
@@ -309,11 +316,11 @@ export class ServerlessWorkerRunnerService {
     }
     if (!this.workers[instanceId]) {
       this.serverlessWorkerThreadReady = false
-      // Resolve the core-app-worker entry: use src in dev, dist in production
+      // Resolve the core-worker entry: use src in dev, dist in production
       const isProduction = process.env.NODE_ENV === 'production'
       const workerEntry = isProduction
-        ? require.resolve('@lombokapp/core-worker/core-app-worker')
-        : require.resolve('@lombokapp/core-worker/core-app-worker.ts')
+        ? require.resolve('@lombokapp/core-worker/core-worker')
+        : require.resolve('@lombokapp/core-worker/core-worker.ts')
       this.child = spawn('bun', [workerEntry], {
         uid: 1000,
         gid: 1000,
@@ -381,7 +388,7 @@ export class ServerlessWorkerRunnerService {
           if (!hasScheduledRetry) {
             hasScheduledRetry = true
             setTimeout(() => {
-              void this.startServerlessWorkerRunnerThread()
+              this.startCoreWorkerThread()
             }, 1000)
           }
         }
@@ -392,8 +399,6 @@ export class ServerlessWorkerRunnerService {
           `Embedded core app worker process error: ${String(err.message)}`,
         )
       })
-
-      const appInstallIdMapping = await this.getAppInstallIdMapping()
 
       setTimeout(() => {
         const executionOptions = {
@@ -406,27 +411,24 @@ export class ServerlessWorkerRunnerService {
         }
         const workerDataPayload: CoreWorkerMessagePayloadTypes['init']['request'] =
           {
-            appInstallIdMapping,
+            appInstallIdMapping: {},
             instanceId,
             executionOptions,
             serverBaseUrl: this.getServerBaseUrl(),
           }
 
-        this.sendIpcMessage({
-          type: 'request',
-          id: crypto.randomUUID(),
-          payload: {
-            action: 'init',
-            payload: workerDataPayload,
-          },
-        })
-        this.logger.debug(
-          `Serverless worker runner thread started with execution options: ${Object.keys(
-            workerDataPayload.executionOptions ?? {},
+        void this.sendRequest('init', workerDataPayload).then(() => {
+          void this.updateAppInstallIdMapping()
+          this.logger.debug(
+            `Serverless worker runner thread started with execution options: ${Object.keys(
+              workerDataPayload.executionOptions ?? {},
+            )
+              .map(
+                (key) => `${key}=${workerDataPayload.executionOptions?.[key]}`,
+              )
+              .join(', ')}`,
           )
-            .map((key) => `${key}=${workerDataPayload.executionOptions?.[key]}`)
-            .join(', ')}`,
-        )
+        })
       }, 500)
     }
   }
@@ -447,13 +449,10 @@ export class ServerlessWorkerRunnerService {
 
   async updateAppInstallIdMapping() {
     const appInstallIdMapping = await this.getAppInstallIdMapping()
-    this.sendIpcMessage({
-      type: 'request',
-      id: crypto.randomUUID(),
-      payload: {
-        action: 'update_app_install_id_mapping',
-        payload: { appInstallIdMapping },
-      },
-    })
+    if (this.child?.stdin) {
+      await this.sendRequest('update_app_install_id_mapping', {
+        appInstallIdMapping,
+      })
+    }
   }
 }

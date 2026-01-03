@@ -157,7 +157,7 @@ const getWorkerExecutionDetails = async (
   }
   const parsedPayload =
     coreWorkerMessagePayloadSchemas.get_worker_exec_config.response.parse(
-      response.result,
+      response,
     )
 
   if (!parsedPayload.success) {
@@ -177,9 +177,7 @@ const getUiBundle = async (
   }
 
   const parsedPayload =
-    coreWorkerMessagePayloadSchemas.get_ui_bundle.response.parse(
-      response.result,
-    )
+    coreWorkerMessagePayloadSchemas.get_ui_bundle.response.parse(response)
   if (!parsedPayload.success) {
     throw new Error(parsedPayload.error.message)
   }
@@ -235,7 +233,7 @@ const handleInit = (
   workerData: CoreWorkerMessagePayloadTypes['init']['request'],
 ) => {
   if (initialized) {
-    return
+    return null
   }
 
   initialized = true
@@ -349,6 +347,7 @@ process.stdin.on('data', (data) => {
     const rawMessage = JSON.parse(line) as unknown
     const parsedMessage =
       coreWorkerIncomingIpcMessageSchema.safeParse(rawMessage)
+
     if (!parsedMessage.success) {
       continue
     }
@@ -385,8 +384,13 @@ process.stdin.on('data', (data) => {
                 }
               : {
                   code: 'WORKER_EXECUTION_ERROR',
-                  message:
-                    error instanceof Error ? error.message : String(error),
+                  message: `Failed to handle core request`,
+                  details: {
+                    action: parsedMessage.data.payload.action,
+                    payload: parsedMessage.data.payload.payload,
+                    errorMessage:
+                      error instanceof Error ? error.message : String(error),
+                  },
                 }
           sendIpcMessage(
             coreWorkerOutgoingIpcMessageSchema.parse({

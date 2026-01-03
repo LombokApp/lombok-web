@@ -192,7 +192,6 @@ export const buildAppRequestServer = ({
       } else {
         try {
           const bundleResponse = await getUiBundle({ appIdentifier })
-
           if (!bundleResponse.installId) {
             return new Response('App not ready', { status: 409 })
           }

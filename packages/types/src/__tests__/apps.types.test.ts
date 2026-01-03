@@ -18,12 +18,12 @@ import {
   appWorkerSchema,
   appWorkerScriptIdentifierSchema,
   appWorkersMapSchema,
+  appWorkerSocketConnectionSchema,
   ConfigParamType,
   containerProfileConfigSchema,
   containerProfileResourceHintsSchema,
   dockerWorkerConfigSchema,
   execJobDefinitionSchema,
-  externalAppWorkerSchema,
   folderScopeAppPermissionsSchema,
   httpJobDefinitionSchema,
   paramConfigSchema,
@@ -736,16 +736,6 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        tasks: [
-          {
-            identifier: 'task_one',
-            label: 'Task 1',
-            description: 'First task',
-            handler: {
-              type: 'external',
-            },
-          },
-        ],
       }
 
       const result = appConfigWithManifestSchema(manifest).safeParse(validApp)
@@ -783,25 +773,24 @@ describe('apps.types', () => {
     })
   })
 
-  describe('externalAppWorkerSchema', () => {
-    it('should validate external app worker', () => {
+  describe('appWorkerSocketConnectionSchema', () => {
+    it('should validate app worker socket connection', () => {
       const validWorker = {
         appIdentifier: 'testapp',
         workerId: 'worker1',
-        handledTaskIdentifiers: ['task', 'task'],
         socketClientId: 'client123',
         ip: '192.168.1.1',
       }
-      const result = externalAppWorkerSchema.safeParse(validWorker)
+      const result = appWorkerSocketConnectionSchema.safeParse(validWorker)
       expectZodSuccess(result)
     })
 
-    it('should reject external app worker with missing fields', () => {
+    it('should reject worker socket connection with missing fields', () => {
       const invalidWorker = {
         appIdentifier: 'testapp',
         // missing other required fields
       }
-      const result = externalAppWorkerSchema.safeParse(invalidWorker)
+      const result = appWorkerSocketConnectionSchema.safeParse(invalidWorker)
       expectZodFailure(result)
     })
   })

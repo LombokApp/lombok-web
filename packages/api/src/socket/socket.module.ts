@@ -6,6 +6,7 @@ import { AppService } from 'src/app/services/app.service'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
 import { JWTService } from 'src/auth/services/jwt.service'
+import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
@@ -27,14 +28,15 @@ import { UserSocketService } from './user/user-socket.service'
 @Module({
   controllers: [],
   imports: [
+    StorageModule,
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
     forwardRef(() => AuthModule),
-    StorageModule,
     forwardRef(() => EventModule),
     forwardRef(() => LogModule),
     forwardRef(() => ServerModule),
     forwardRef(() => DockerModule),
+    forwardRef(() => CoreWorkerModule),
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(platformConfig),
     ConfigModule.forFeature(appConfig),

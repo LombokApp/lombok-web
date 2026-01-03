@@ -8,7 +8,7 @@ export const AppSocketAuthPayload = z.object({
   handledTaskIdentifiers: z.array(z.string()).optional(),
 })
 
-export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
+export const APP_WORKER_SOCKET_STATE = 'APP_WORKER_SOCKET_STATE'
 
 @Injectable({ scope: Scope.DEFAULT })
 export class AppSocketService {

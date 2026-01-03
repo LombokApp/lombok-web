@@ -30,9 +30,9 @@ import { $api } from '@/src/services/api'
 import { formatTriggerLabel } from '@/src/utils/trigger-utils'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
-import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
+import { serverConnectedAppWorkersTableColumns } from './server-connected-app-workers-table-columns'
 
 const DockerIcon = ({ className }: { className?: string }) => {
   return (
@@ -153,7 +153,7 @@ export function ServerAppDetailScreen({
               <CardDescription>
                 {app?.config.description}
                 <br />
-                <span className="text-muted-foreground/50 text-xs italic">
+                <span className="text-xs italic text-muted-foreground/50">
                   Install ID: {app?.installId}
                 </span>
               </CardDescription>
@@ -293,12 +293,12 @@ export function ServerAppDetailScreen({
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="py-0 text-base">
                   <div className="flex flex-col">
-                    <span className="pr-2">External workers</span>
+                    <span className="pr-2">App Worker Connections</span>
                     <span
-                      id="external-workers-description"
+                      id="connected-workers-description"
                       className="text-sm font-normal text-muted-foreground/70"
                     >
-                      The external app workers currently connected to the server
+                      The app workers currently connected to the server
                     </span>
                   </div>
                 </CardTitle>
@@ -312,8 +312,8 @@ export function ServerAppDetailScreen({
                     'w-1/3',
                     'bg-foreground/[0.02] text-foreground/50',
                   )}
-                  data={app?.externalWorkers ?? []}
-                  columns={serverAppExternalWorkerTableColumns}
+                  data={app?.connectedWorkers ?? []}
+                  columns={serverConnectedAppWorkersTableColumns}
                 />
               </CardContent>
             </Card>

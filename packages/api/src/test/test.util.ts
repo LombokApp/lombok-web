@@ -11,6 +11,7 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
+import { SHOULD_START_CORE_WORKER_THREAD } from 'src/core-worker/core-worker.constants'
 import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
 import {
@@ -19,6 +20,7 @@ import {
 } from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
+import { PlatformModule } from 'src/platform/platform.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { runWithThreadContext } from 'src/shared/request-context'
@@ -51,10 +53,12 @@ export async function buildTestModule({
   overrides = [],
   debug,
   startServerOnPort,
+  startCoreWorker = false,
 }: {
   testModuleKey: string
   debug?: true
   startServerOnPort?: number
+  startCoreWorker?: boolean
   overrides?: { token: symbol | string | Type; value: unknown }[]
 }) {
   if (
@@ -68,13 +72,12 @@ export async function buildTestModule({
   const dbName = `test_db_${testModuleKey}`
   const bucketPathsToRemove: string[] = []
   let httpServer: Server | undefined = undefined
-  const { PlatformTestModule } = await import('src/test/platform-test.module')
 
   const initTestModuleWithOverrides = (
     _overrides: { token: symbol | string | Type; value: unknown }[],
   ): TestingModuleBuilder => {
     const moduleBuilder = Test.createTestingModule({
-      imports: [PlatformTestModule],
+      imports: [PlatformModule],
       providers: [],
     })
     return _overrides.reduce((acc, { token, value }) => {
@@ -89,6 +92,14 @@ export async function buildTestModule({
         token: DockerAdapterProvider,
         value: mockDockerAdapterProvider,
       },
+      {
+        token: ormConfig.KEY,
+        value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
+      },
+      {
+        token: SHOULD_START_CORE_WORKER_THREAD,
+        value: startCoreWorker,
+      },
     ]
 
   const logger = new NoPrefixConsoleLogger({
@@ -101,10 +112,6 @@ export async function buildTestModule({
   })
 
   const appPromise = initTestModuleWithOverrides([
-    {
-      token: ormConfig.KEY,
-      value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
-    },
     ...builtInOverrides.concat(overrides),
   ])
     .compile()
@@ -268,6 +275,12 @@ export async function buildTestModule({
     installLocalAppBundles: async (limitTo: string[] | null = null) => {
       await setServerStorageLocation()
       await services.appService.installLocalAppBundles(limitTo)
+    },
+    getInstalledAppsCount: async () => {
+      const apps = await services.ormService.db.query.appsTable.findMany({
+        where: eq(appsTable.enabled, true),
+      })
+      return apps.length
     },
     setServerStorageLocation,
     initMinioTestBucket,

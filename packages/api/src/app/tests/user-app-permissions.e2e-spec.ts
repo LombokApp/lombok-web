@@ -1,7 +1,15 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { DUMMY_APP_SLUG } from 'test/e2e.setup'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
 const TEST_MODULE_KEY = 'user_app_permissions'
 
@@ -18,6 +26,10 @@ describe('User App Permissions', () => {
 
   afterEach(async () => {
     await testModule?.resetAppState()
+  })
+
+  beforeEach(async () => {
+    await testModule?.installLocalAppBundles([DUMMY_APP_SLUG])
   })
 
   it(`should get app user settings with defaults`, async () => {
@@ -80,6 +92,7 @@ describe('User App Permissions', () => {
   })
 
   it(`should create app user settings`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {

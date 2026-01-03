@@ -1,4 +1,3 @@
-import { ExternalAppWorker } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
 import { Logger, UnauthorizedException } from '@nestjs/common'
 import {
@@ -20,10 +19,7 @@ import { KVService } from 'src/cache/kv.service'
 import { runWithThreadContext } from 'src/shared/request-context'
 import { z } from 'zod'
 
-import {
-  APP_WORKER_INFO_CACHE_KEY_PREFIX,
-  AppSocketService,
-} from './app-socket.service'
+import { APP_WORKER_SOCKET_STATE, AppSocketService } from './app-socket.service'
 
 export const AppSocketAuthPayload = z.object({
   instanceId: z.string(),
@@ -76,10 +72,10 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
           }
 
           const sub = jwt.payload.sub as string | undefined
-          const isExternalAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
+          const isAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
           const isAppWorkerToken = sub?.startsWith(APP_WORKER_JWT_SUB_PREFIX)
 
-          const appIdentifier = isExternalAppToken
+          const appIdentifier = isAppToken
             ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               sub!.slice(APP_JWT_SUB_PREFIX.length)
             : isAppWorkerToken
@@ -108,7 +104,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
 
               try {
                 // verifies the token using the publicKey we have on file for this app
-                if (isExternalAppToken) {
+                if (isAppToken) {
                   this.jwtService.verifyAppJWT({
                     appIdentifier,
                     publicKey: app.publicKey,
@@ -125,17 +121,16 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                 next(this.closeSocketAndReturnUnauthorized(socket))
               }
 
-              const workerInfo: ExternalAppWorker = {
+              const workerInfo = {
                 appIdentifier,
                 socketClientId: socket.id,
-                handledTaskIdentifiers: auth.handledTaskIdentifiers ?? [], // TODO: validate worker reported task keys to match their config
                 workerId: auth.instanceId,
                 ip: socket.handshake.address,
               }
-              const workerCacheKey = `${appIdentifier}:${auth.instanceId}`
+              const instanceKey = `${appIdentifier}:${auth.instanceId}`
               // persist worker state in memory
               void this.kvService.ops.set(
-                `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
+                `${APP_WORKER_SOCKET_STATE}:${instanceKey}`,
                 JSON.stringify(workerInfo),
               )
 
@@ -171,7 +166,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                 this.appSocketService.connectedAppWorkers.delete(socket.id)
 
                 void this.kvService.ops.del(
-                  `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
+                  `${APP_WORKER_SOCKET_STATE}:${instanceKey}`,
                 )
               })
               const clientId = socket.id

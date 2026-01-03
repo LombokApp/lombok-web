@@ -15,6 +15,9 @@ const event: Event = {
     id: 'cb7aaf95-a2aa-49e3-9af1-af9eb4548118',
     eTag: '"0b6f9097d06139cf1c3a069bd9ee7c1b"',
     hash: null,
+    nestedTest: {
+      nestedValue: 'nested value',
+    },
     filename:
       'DALLE-2024-01-11-22.04.56-A-variation-of-the-simplified-colorful-logo-for-the-Circles-photo-sharing-application-with-larger-circles.-The-design-maintains-the-minimalist-sty-1705007405829.png',
     folderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
@@ -242,7 +245,7 @@ describe('evalTriggerHandlerCondition', () => {
     it('accesses targetLocation properties', () => {
       expect(
         evalTriggerHandlerCondition(
-          "event.targetLocation && event.targetLocation.folderId === 'b85646a9-3c5c-40c6-afe8-6035fdb827da'",
+          "event.targetLocationFolderId === 'b85646a9-3c5c-40c6-afe8-6035fdb827da'",
           event,
         ),
       ).toBe(true)
@@ -251,7 +254,7 @@ describe('evalTriggerHandlerCondition', () => {
     it('handles deeply nested property access', () => {
       expect(
         evalTriggerHandlerCondition(
-          "event.targetLocation.folderId === 'b85646a9-3c5c-40c6-afe8-6035fdb827da'",
+          "event.data.nestedTest.nestedValue === 'nested value'",
           event,
         ),
       ).toBe(true)

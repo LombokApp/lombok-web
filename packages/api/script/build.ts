@@ -43,7 +43,7 @@ void (async () => {
     process.exit(1)
   }
 
-  // No longer build core-app-worker inside API; it's resolved from core-worker package
+  // No longer build core-worker inside API; it's resolved from core-worker package
 
   console.log('Built successfully!')
 })()

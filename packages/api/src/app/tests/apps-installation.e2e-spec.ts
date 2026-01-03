@@ -278,7 +278,7 @@ describe('Apps Installation via Zip', () => {
       // The error should indicate that config.json is missing
       const responseBody = response.body as { message: string }
       expect(responseBody.message).toEqual(
-        'AppNotParsableException: Could not find app directory in zip file',
+        `App 'slug: n/a - (source: test-app.zip)': AppNotParsableException: Could not find app directory in zip file`,
       )
     } finally {
       await fs.promises.rm(tempDir, { recursive: true, force: true })

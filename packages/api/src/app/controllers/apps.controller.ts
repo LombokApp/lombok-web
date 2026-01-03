@@ -79,14 +79,10 @@ export class AppsController {
       zipFilename: file.originalname ?? 'no filename provided',
       zipFileBuffer: file.buffer,
     })
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedAppWorkers = this.appService.getWorkerConnections()
 
     return {
-      app: transformAppToDTO(
-        app,
-        connectedExternalAppWorkers[app.identifier] ?? [],
-      ),
+      app: transformAppToDTO(app, connectedAppWorkers[app.identifier] ?? []),
     }
   }
 
@@ -108,8 +104,7 @@ export class AppsController {
         enabled: queryParams.enabled,
       },
     )
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     const result = apps.map((app) => {
       return transformAppToDTO(
         app,
@@ -136,8 +131,7 @@ export class AppsController {
       appIdentifier,
       enabled,
     )
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     return {
       app: transformAppToDTO(
         app,
@@ -158,8 +152,7 @@ export class AppsController {
     if (!app) {
       throw new NotFoundException()
     }
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
 
     // Calculate app metrics
     const metrics = await this.appService.calculateAppMetrics(appIdentifier)
@@ -189,8 +182,7 @@ export class AppsController {
       appIdentifier,
       body,
     )
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     return {
       app: transformAppToDTO(
         app,

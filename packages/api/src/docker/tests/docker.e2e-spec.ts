@@ -13,6 +13,7 @@ import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   it,
@@ -32,7 +33,6 @@ import {
   createTestFolder,
   createTestUser,
 } from 'src/test/test.util'
-import type { User } from 'src/users/entities/user.entity'
 
 import { DockerAdapterProvider } from '../services/client/adapters/docker-adapter.provider'
 import { DockerError } from '../services/client/docker-client.types'
@@ -41,7 +41,7 @@ import {
   MockDockerAdapterProvider,
 } from './docker.e2e-mocks'
 
-const TEST_MODULE_KEY = 'docker_jobs'
+const TEST_MODULE_KEY = 'docker_workers'
 const TEST_APP_SLUG = 'testapp'
 const responseStatus = (result: { response?: Response; error?: unknown }) =>
   result.response?.status ??
@@ -242,7 +242,7 @@ const triggerAppDockerHandledTask = async (
     expect(dockerRunTask).toEqual({
       id: expect.any(String),
       ownerIdentifier: PLATFORM_IDENTIFIER,
-      taskIdentifier: 'run_docker_job',
+      taskIdentifier: 'run_docker_worker',
       taskDescription: 'Run a docker job to execute a docker handled task',
       storageAccessPolicy: [],
       data: {
@@ -333,18 +333,17 @@ describe('Docker Jobs', () => {
       ],
       // debug: true,
     })
-    const apps = await testModule.services.appService.listAppsAsAdmin(
-      {
-        id: '1',
-        isAdmin: true,
-      } as User,
-      { enabled: true },
-    )
+    await testModule.installLocalAppBundles([TEST_APP_SLUG])
+    const appsCount = await testModule.getInstalledAppsCount()
 
-    if (apps.result.length !== 6) {
+    if (appsCount !== 1) {
       throw new Error('Dummy test apps not installed (maybe invalid).')
     }
     _apiClient = testModule.apiClient
+  })
+
+  beforeEach(async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
   })
 
   afterEach(async () => {
@@ -626,7 +625,7 @@ describe('Docker Jobs', () => {
 
     const { dockerRunTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-      taskIdentifier: 'non_triggered_docker_job_task',
+      taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
     })
 
@@ -665,7 +664,7 @@ describe('Docker Jobs', () => {
     })
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-      taskIdentifier: 'non_triggered_docker_job_task',
+      taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
     })
 
@@ -674,8 +673,8 @@ describe('Docker Jobs', () => {
     expect(innerTask).toEqual({
       id: expect.any(String),
       ownerIdentifier: appIdentifier,
-      taskIdentifier: 'non_triggered_docker_job_task',
-      taskDescription: 'Task that is handled by a docker job.',
+      taskIdentifier: 'non_triggered_docker_worker_task',
+      taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
       storageAccessPolicy: [],
       dontStartBefore: null,
@@ -704,6 +703,7 @@ describe('Docker Jobs', () => {
   })
 
   it('should be accept and respect a provided storageAccessPolicy', async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const {
       session: { accessToken: folderOwnerAccessToken },
     } = await createTestUser(testModule!, {
@@ -764,7 +764,7 @@ describe('Docker Jobs', () => {
     })
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-      taskIdentifier: 'non_triggered_docker_job_task',
+      taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
@@ -785,8 +785,8 @@ describe('Docker Jobs', () => {
     expect(innerTask).toEqual({
       id: expect.any(String),
       ownerIdentifier: appIdentifier,
-      taskIdentifier: 'non_triggered_docker_job_task',
-      taskDescription: 'Task that is handled by a docker job.',
+      taskIdentifier: 'non_triggered_docker_worker_task',
+      taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
@@ -1270,6 +1270,7 @@ describe('Docker Jobs', () => {
   })
 
   it('should disallow triggering of an app task with an invalid access policy', async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const {
       session: { accessToken: folderOwnerAccessToken },
     } = await createTestUser(testModule!, {
@@ -1337,7 +1338,7 @@ describe('Docker Jobs', () => {
 
     const firstTry = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-      taskIdentifier: 'non_triggered_docker_job_task',
+      taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
@@ -1366,6 +1367,7 @@ describe('Docker Jobs', () => {
       .returning()
 
     await resetTestData()
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
 
     const {
       session: { accessToken: folderOwnerAccessToken2 },
@@ -1384,7 +1386,7 @@ describe('Docker Jobs', () => {
 
     const triggerAppTask = triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-      taskIdentifier: 'non_triggered_docker_job_task',
+      taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [
         {
@@ -1401,6 +1403,7 @@ describe('Docker Jobs', () => {
   })
 
   it('should result in the storage access policy being encoded in the jobToken', async () => {
+    await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const {
       session: { accessToken: folderOwnerAccessToken },
     } = await createTestUser(testModule!, {
@@ -1451,7 +1454,7 @@ describe('Docker Jobs', () => {
     })
     const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-      taskIdentifier: 'non_triggered_docker_job_task',
+      taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
       storageAccessPolicy: [storageAccessPolicyRule],
     })
@@ -1461,8 +1464,8 @@ describe('Docker Jobs', () => {
     expect(innerTask).toEqual({
       id: expect.any(String),
       ownerIdentifier: appIdentifier,
-      taskIdentifier: 'non_triggered_docker_job_task',
-      taskDescription: 'Task that is handled by a docker job.',
+      taskIdentifier: 'non_triggered_docker_worker_task',
+      taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
       storageAccessPolicy: [storageAccessPolicyRule],
       dontStartBefore: null,
@@ -1526,7 +1529,7 @@ describe('Docker Jobs', () => {
       testModule!,
       {
         appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
-        taskIdentifier: 'non_triggered_docker_job_task',
+        taskIdentifier: 'non_triggered_docker_worker_task',
         taskData: { myTaskData: 'test' },
       },
     )

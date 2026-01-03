@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { LogEntryLevel } from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { io, type Socket } from 'socket.io-client'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -81,6 +89,8 @@ describe('App Socket Interface', () => {
       // debug: true,
     })
 
+    await testModule.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
+
     // Get the platform host from config
     // const platformConfig = testModule.app.get('platform')
     // platformHost = platformConfig?.platformHost ?? 'lombok.localhost'
@@ -107,6 +117,10 @@ describe('App Socket Interface', () => {
         `Socket test app with slug "${SOCKET_TEST_APP_SLUG}" not found. Make sure it's defined in e2e.setup.ts.`,
       )
     }
+  })
+
+  beforeEach(async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
   })
 
   afterEach(async () => {
@@ -192,6 +206,7 @@ describe('App Socket Interface', () => {
   })
 
   it('should return 409 for a app without db enabled', async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG_NO_DB])
     socket = await connectSocket(
       'test-instance-1',
       [],
@@ -211,6 +226,7 @@ describe('App Socket Interface', () => {
   })
 
   it('should handle SAVE_LOG_ENTRY message', async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
     socket = await connectSocket('test-instance-1')
 
     const response = await buildAppClient(socket, serverBaseUrl).saveLogEntry({
@@ -256,6 +272,7 @@ describe('App Socket Interface', () => {
   })
 
   it('should handle TRIGGER_APP_TASK message', async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
     socket = await connectSocket('test-instance-1')
 
     const response = await buildAppClient(socket, serverBaseUrl).triggerAppTask(

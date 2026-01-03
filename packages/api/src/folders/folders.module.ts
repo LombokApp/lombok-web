@@ -4,6 +4,7 @@ import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
+import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
@@ -25,6 +26,7 @@ import { FolderService } from './services/folder.service'
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(platformConfig),
     ConfigModule.forFeature(authConfig),
+    forwardRef(() => CoreWorkerModule),
     forwardRef(() => ServerModule),
     forwardRef(() => TaskModule),
     forwardRef(() => EventModule),

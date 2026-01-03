@@ -46,3 +46,4 @@ packages/app-demo/app-demo-ui/dist
 .linked-node-modules
 docker/worker-agent/dist
 docker/worker-agent/.gocache
+packages/app-demo/bundle-dist

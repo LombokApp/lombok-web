@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
+import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { LogModule } from 'src/log/log.module'
 import { SocketModule } from 'src/socket/socket.module'
@@ -16,13 +17,13 @@ import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
 import { platformConfig } from './config'
-import { RunServerlessWorkerProcessor } from './processors/run-serverless-worker.task-processor'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
     ConfigModule.forFeature(platformConfig),
+    CoreWorkerModule,
     AuthModule,
     OrmModule,
     FoldersModule,
@@ -37,12 +38,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     LogModule,
     DockerModule,
   ],
-  providers: [
-    { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
-    RunServerlessWorkerProcessor,
-  ],
-  exports: [RunServerlessWorkerProcessor],
-  controllers: [],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class PlatformModule {}

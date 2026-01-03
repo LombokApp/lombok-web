@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestModule } from 'src/test/test.types'
 import { buildTestModule } from 'src/test/test.util'
-import { DUMMY_APP_SLUG } from 'test/e2e.setup'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
 const TEST_MODULE_KEY = 'platform_events'
 
@@ -30,19 +30,20 @@ describe('Platform events', () => {
   })
 
   it('creates tasks for apps subscribed to platform events', async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+    const data = {
+      folderId: crypto.randomUUID(),
+      objectKey: crypto.randomUUID(),
+    }
     await testModule!.services.eventService.emitEvent({
       emitterIdentifier: PLATFORM_IDENTIFIER,
-      eventIdentifier: 'worker_task_enqueued',
-      data: {
-        innerTaskId: 'abc-123',
-        appIdentifier: 'demo-app',
-        workerIdentifier: 'worker-1',
-      },
+      eventIdentifier: 'object_added',
+      data,
     })
 
     const tasks =
       await testModule!.services.ormService.db.query.tasksTable.findMany({
-        where: eq(tasksTable.taskIdentifier, 'run_serverless_worker'),
+        where: eq(tasksTable.taskIdentifier, 'minimal_worker_task'),
       })
 
     expect(tasks.length).toBe(1)
@@ -50,10 +51,6 @@ describe('Platform events', () => {
     expect(task?.ownerIdentifier).toBe(
       await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG),
     )
-    expect(task?.data).toEqual({
-      innerTaskId: 'abc-123',
-      appIdentifier: 'demo-app',
-      workerIdentifier: 'worker-1',
-    })
+    expect(task?.data).toEqual(data)
   })
 })
