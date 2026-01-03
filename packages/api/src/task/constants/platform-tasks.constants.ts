@@ -5,14 +5,17 @@ import type { Event } from 'src/event/entities/event.entity'
 import { PlatformTaskName } from '../task.constants'
 
 export const PLATFORM_TASKS = {
+  [PlatformTaskName.AnalyzeObject]: {
+    description: 'Generate metadata and previews for an object',
+  },
   [PlatformTaskName.ReindexFolder]: {
     description: 'Reindex a folder and its contents',
   },
   [PlatformTaskName.RunDockerWorker]: {
-    description: 'Run a docker job to execute a docker handled task',
+    description: 'Run a docker worker to execute a task',
   },
   [PlatformTaskName.RunServerlessWorker]: {
-    description: 'Run a serverless worker task',
+    description: 'Run a serverless worker to execute a task',
   },
 }
 
@@ -25,6 +28,17 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
     }[]
   >
 > = {
+  [PlatformEvent.object_added]: [
+    {
+      taskIdentifier: PlatformTaskName.AnalyzeObject,
+      buildData: (event: Event) => ({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        folderId: event.targetLocationFolderId!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        objectKey: event.targetLocationObjectKey!,
+      }),
+    },
+  ],
   [PlatformEvent.docker_task_enqueued]: [
     {
       taskIdentifier: PlatformTaskName.RunDockerWorker,

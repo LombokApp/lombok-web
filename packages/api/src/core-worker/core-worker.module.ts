@@ -5,7 +5,8 @@ import { AppModule } from 'src/app/app.module'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 
-import { SHOULD_START_CORE_WORKER_THREAD } from './core-worker.constants'
+import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
+import { AnalyzeObjectProcessor } from './processors/analyze-object.task-processor'
 import { RunServerlessWorkerProcessor } from './processors/run-serverless-worker.task-processor'
 import { ServerlessWorkerRunnerService } from './serverless-worker-runner.service'
 
@@ -15,11 +16,12 @@ import { ServerlessWorkerRunnerService } from './serverless-worker-runner.servic
     forwardRef(() => AppModule),
   ],
   providers: [
-    { provide: SHOULD_START_CORE_WORKER_THREAD, useValue: true },
+    { provide: SHOULD_START_CORE_WORKER_THREAD_KEY, useValue: true },
     ServerlessWorkerRunnerService,
     RunServerlessWorkerProcessor,
+    AnalyzeObjectProcessor,
   ],
-  exports: [ServerlessWorkerRunnerService, RunServerlessWorkerProcessor],
+  exports: [ServerlessWorkerRunnerService],
 })
 export class CoreWorkerModule implements OnModuleInit {
   constructor(

@@ -192,7 +192,7 @@ export class AppService {
       throw new NotFoundException('Failed to update app enabled status.')
     }
 
-    // update the app install ID mapping in the core app worker
+    // update the app install ID mapping in the core worker
     void this.serverlessWorkerRunnerService.updateAppInstallIdMapping()
 
     return updated
@@ -331,11 +331,10 @@ export class AppService {
       })
     }
     // get presigned upload URLs for content objects
-    return this._createSignedUrls(requests)
+    return this.createSignedContentUrls(requests)
   }
 
-  async createSignedMetadataUrlsAsApp(
-    requestingAppIdentifier: string,
+  async createSignedMetadataUrls(
     requests: {
       folderId: string
       objectKey: string
@@ -344,12 +343,6 @@ export class AppService {
       metadataHash: string
     }[],
   ) {
-    for (const request of requests) {
-      await this.validateAppFolderAccess({
-        appIdentifier: requestingAppIdentifier,
-        folderId: request.folderId,
-      })
-    }
     const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
@@ -406,6 +399,25 @@ export class AppService {
     return urls
   }
 
+  async createSignedMetadataUrlsAsApp(
+    requestingAppIdentifier: string,
+    requests: {
+      folderId: string
+      objectKey: string
+      contentHash: string
+      method: SignedURLsRequestMethod
+      metadataHash: string
+    }[],
+  ) {
+    for (const request of requests) {
+      await this.validateAppFolderAccess({
+        appIdentifier: requestingAppIdentifier,
+        folderId: request.folderId,
+      })
+    }
+    return this.createSignedMetadataUrls(requests)
+  }
+
   async createSignedAppStorageUrls(
     requestingAppIdentifier: string,
     payload: {
@@ -433,7 +445,7 @@ export class AppService {
     return urls
   }
 
-  async _createSignedUrls(
+  async createSignedContentUrls(
     signedUrlRequests: {
       method: SignedURLsRequestMethod
       folderId: string
@@ -956,7 +968,7 @@ export class AppService {
       }
     }
 
-    // update the app install ID mapping in the core app worker
+    // update the app install ID mapping in the core worker
     void this.serverlessWorkerRunnerService.updateAppInstallIdMapping()
 
     return newlyInstalledAppInstance

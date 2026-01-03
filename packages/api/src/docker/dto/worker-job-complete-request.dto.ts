@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { jsonSerializableObjectDTOSchema } from '@lombokapp/types'
+import { jsonSerializableObjectSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const outputFilesSchema = z.object({
@@ -26,7 +26,7 @@ export const errorResponseSchema = z
 export const successResponseSchema = z
   .object({
     success: z.literal(true),
-    result: jsonSerializableObjectDTOSchema,
+    result: jsonSerializableObjectSchema,
   })
   .merge(outputFilesSchema)
 

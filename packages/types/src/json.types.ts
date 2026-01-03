@@ -19,11 +19,11 @@ export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
     ]),
   )
 
-export const jsonSerializableObjectDTOSchema = z.record(
+export const jsonSerializableObjectSchema = z.record(
   z.string(),
   jsonSerializableValueSchema,
 )
 
 export type JsonSerializableObject = z.infer<
-  typeof jsonSerializableObjectDTOSchema
+  typeof jsonSerializableObjectSchema
 >

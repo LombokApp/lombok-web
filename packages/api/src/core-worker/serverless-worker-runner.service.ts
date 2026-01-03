@@ -23,7 +23,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import z from 'zod'
 
-import { SHOULD_START_CORE_WORKER_THREAD } from './core-worker.constants'
+import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
 
 @Injectable()
 export class ServerlessWorkerRunnerService {
@@ -45,7 +45,7 @@ export class ServerlessWorkerRunnerService {
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
-    @Inject(SHOULD_START_CORE_WORKER_THREAD)
+    @Inject(SHOULD_START_CORE_WORKER_THREAD_KEY)
     private readonly shouldStartThread: boolean,
     @Inject(platformConfig.KEY)
     private readonly _platformConfig: nestjsConfig.ConfigType<
@@ -220,6 +220,22 @@ export class ServerlessWorkerRunnerService {
           } as const
         }
       }
+      case 'get_metadata_signed_urls': {
+        return {
+          success: true,
+          result: await this.appService.createSignedMetadataUrls(
+            message.payload,
+          ),
+        }
+      }
+      case 'get_content_signed_urls': {
+        return {
+          success: true,
+          result: await this.appService.createSignedContentUrls(
+            message.payload,
+          ),
+        }
+      }
       default: {
         throw new Error(
           `Unknown core worker request: ${JSON.stringify(message)}`,
@@ -383,7 +399,7 @@ export class ServerlessWorkerRunnerService {
         this.serverlessWorkerThreadReady = false
         if (code && code !== 0) {
           this.logger.warn(
-            `Embedded core app worker exited with code ${String(code)}. Retrying...`,
+            `Embedded core worker exited with code ${String(code)}. Retrying...`,
           )
           if (!hasScheduledRetry) {
             hasScheduledRetry = true
@@ -396,7 +412,7 @@ export class ServerlessWorkerRunnerService {
       this.child.on('error', (err) => {
         this.serverlessWorkerThreadReady = false
         this.logger.error(
-          `Embedded core app worker process error: ${String(err.message)}`,
+          `Embedded core worker process error: ${String(err.message)}`,
         )
       })
 
@@ -417,8 +433,9 @@ export class ServerlessWorkerRunnerService {
             serverBaseUrl: this.getServerBaseUrl(),
           }
 
-        void this.sendRequest('init', workerDataPayload).then(() => {
-          void this.updateAppInstallIdMapping()
+        void this.sendRequest('init', workerDataPayload).then(async () => {
+          await this.updateAppInstallIdMapping()
+          this.serverlessWorkerThreadReady = true
           this.logger.debug(
             `Serverless worker runner thread started with execution options: ${Object.keys(
               workerDataPayload.executionOptions ?? {},
@@ -433,6 +450,13 @@ export class ServerlessWorkerRunnerService {
     }
   }
 
+  async analyzeObject(
+    payload: CoreWorkerMessagePayloadTypes['analyze_object']['request'],
+    timeoutMs = 5 * 60_000,
+  ) {
+    return this.sendRequest('analyze_object', payload, timeoutMs)
+  }
+
   async executeServerlessTask(
     payload: CoreWorkerMessagePayloadTypes['execute_task']['request'],
     timeoutMs = 5 * 60_000,
@@ -442,7 +466,7 @@ export class ServerlessWorkerRunnerService {
 
   async executeServerlessRequest(
     payload: CoreWorkerMessagePayloadTypes['execute_system_request']['request'],
-    timeoutMs = 60_000,
+    timeoutMs = 3 * 60_000,
   ) {
     return this.sendRequest('execute_system_request', payload, timeoutMs)
   }

@@ -1,6 +1,9 @@
 import {
   appManifestSchema,
-  jsonSerializableObjectDTOSchema,
+  getContentSignedUrlsSchema,
+  getMetadataSignedUrlsSchema,
+  jsonSerializableObjectSchema,
+  metadataEntrySchema,
   taskDTOSchema,
 } from '@lombokapp/types'
 import type { Variant } from '@lombokapp/utils'
@@ -17,7 +20,7 @@ export const createResponseSchema = <T extends z.ZodTypeAny>(resultSchema: T) =>
       error: z.object({
         code: z.string(),
         message: z.string(),
-        details: jsonSerializableObjectDTOSchema.optional(),
+        details: jsonSerializableObjectSchema.optional(),
       }),
     }),
   ])
@@ -72,6 +75,35 @@ export const coreWorkerMessagePayloadSchemas = {
       appInstallIdMapping: z.record(z.string(), z.string()),
     }),
     response: createResponseSchema(z.null()),
+  },
+  analyze_object: {
+    request: z.object({
+      folderId: z.string().nonempty(),
+      objectKey: z.string().nonempty(),
+    }),
+    response: createResponseSchema(z.record(z.string(), metadataEntrySchema)),
+  },
+  get_metadata_signed_urls: {
+    request: getMetadataSignedUrlsSchema,
+    response: createResponseSchema(
+      z.array(
+        z.object({
+          folderId: z.string(),
+          objectKey: z.string(),
+          url: z.string(),
+        }),
+      ),
+    ),
+  },
+  get_content_signed_urls: {
+    request: getContentSignedUrlsSchema,
+    response: createResponseSchema(
+      z.array(
+        z.object({
+          url: z.string(),
+        }),
+      ),
+    ),
   },
   execute_task: {
     request: z.object({
@@ -132,6 +164,15 @@ export const coreWorkerIncomingResponseMessageSchema = z.discriminatedUnion(
   'action',
   [
     z.object({
+      action: z.literal('get_content_signed_urls'),
+      payload: coreWorkerMessagePayloadSchemas.get_content_signed_urls.response,
+    }),
+    z.object({
+      action: z.literal('get_metadata_signed_urls'),
+      payload:
+        coreWorkerMessagePayloadSchemas.get_metadata_signed_urls.response,
+    }),
+    z.object({
       action: z.literal('get_worker_exec_config'),
       payload: coreWorkerMessagePayloadSchemas.get_worker_exec_config.response,
     }),
@@ -147,23 +188,24 @@ export const coreWorkerIncomingRequestMessageSchema = z.discriminatedUnion(
   [
     z.object({
       action: z.literal('init'),
-      payload: coreWorkerMessagePayloadSchemas['init']['request'],
+      payload: coreWorkerMessagePayloadSchemas.init.request,
+    }),
+    z.object({
+      action: z.literal('analyze_object'),
+      payload: coreWorkerMessagePayloadSchemas.analyze_object.request,
     }),
     z.object({
       action: z.literal('update_app_install_id_mapping'),
       payload:
-        coreWorkerMessagePayloadSchemas['update_app_install_id_mapping'][
-          'request'
-        ],
+        coreWorkerMessagePayloadSchemas.update_app_install_id_mapping.request,
     }),
     z.object({
       action: z.literal('execute_task'),
-      payload: coreWorkerMessagePayloadSchemas['execute_task']['request'],
+      payload: coreWorkerMessagePayloadSchemas.execute_task.request,
     }),
     z.object({
       action: z.literal('execute_system_request'),
-      payload:
-        coreWorkerMessagePayloadSchemas['execute_system_request']['request'],
+      payload: coreWorkerMessagePayloadSchemas.execute_system_request.request,
     }),
   ],
 )
@@ -179,6 +221,10 @@ export const coreWorkerOutgoingResponseMessageSchema = z.discriminatedUnion(
       action: z.literal('update_app_install_id_mapping'),
       payload:
         coreWorkerMessagePayloadSchemas.update_app_install_id_mapping.response,
+    }),
+    z.object({
+      action: z.literal('analyze_object'),
+      payload: coreWorkerMessagePayloadSchemas.analyze_object.response,
     }),
     z.object({
       action: z.literal('execute_task'),
@@ -197,6 +243,14 @@ export const coreWorkerOutgoingRequestMessageSchema = z.discriminatedUnion(
     z.object({
       action: z.literal('get_worker_exec_config'),
       payload: coreWorkerMessagePayloadSchemas.get_worker_exec_config.request,
+    }),
+    z.object({
+      action: z.literal('get_metadata_signed_urls'),
+      payload: coreWorkerMessagePayloadSchemas.get_metadata_signed_urls.request,
+    }),
+    z.object({
+      action: z.literal('get_content_signed_urls'),
+      payload: coreWorkerMessagePayloadSchemas.get_content_signed_urls.request,
     }),
     z.object({
       action: z.literal('get_ui_bundle'),

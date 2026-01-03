@@ -11,6 +11,7 @@ import { runWithThreadContext } from 'src/shared/request-context'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 
+import type { PlatformProcessorTask } from '../base.processor'
 import { BaseProcessor, TaskProcessorError } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'
 import { TaskService } from './task.service'
@@ -20,7 +21,9 @@ const MAX_CONCURRENT_PLATFORM_TASKS = 10
 @Injectable()
 export class PlatformTaskService {
   private readonly logger = new Logger(PlatformTaskService.name)
-  processors: Record<string, BaseProcessor<PlatformTaskName>> = {}
+  processors: Partial<
+    Record<PlatformTaskName, BaseProcessor<PlatformTaskName>>
+  > = {}
   runningTasksCount = 0
   draining: Promise<{ completed: number; pending: number }> | undefined
 
@@ -171,7 +174,7 @@ export class PlatformTaskService {
         )
       }
       // we have secured the task, so perform execution
-      const processorName = startedTask.taskIdentifier
+      const processorName = startedTask.taskIdentifier as PlatformTaskName
 
       const processor = this.processors[processorName]
       if (!processor) {
@@ -181,12 +184,12 @@ export class PlatformTaskService {
       this.runningTasksCount++
       await runWithThreadContext(crypto.randomUUID(), async () => {
         await processor
-          ._run(startedTask)
-          .then((processorResult) => {
+          .run(startedTask as PlatformProcessorTask<PlatformTaskName>)
+          .then(() => {
             if (shouldRegisterComplete) {
               return this.taskService.registerTaskCompleted(taskId, {
                 success: true,
-                result: processorResult?.result,
+                // result: processorResult?.result,
               })
             }
             return startedTask
@@ -249,8 +252,9 @@ export class PlatformTaskService {
 
   registerProcessor = <K extends PlatformTaskName>(
     taskName: K,
-    processorFunction: BaseProcessor<PlatformTaskName>,
+    processorFunction: BaseProcessor<K>,
   ) => {
-    this.processors[taskName] = processorFunction
+    this.processors[taskName] =
+      processorFunction as unknown as BaseProcessor<PlatformTaskName>
   }
 }

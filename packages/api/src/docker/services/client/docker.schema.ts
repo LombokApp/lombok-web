@@ -1,7 +1,7 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   containerProfileConfigSchema,
-  jsonSerializableObjectDTOSchema,
+  jsonSerializableObjectSchema,
   storageAccessPolicySchema,
 } from '@lombokapp/types'
 import z from 'zod'
@@ -61,7 +61,7 @@ export const dockerExecuteJobOptionsSchema = z.object({
     .object({ folderId: z.string(), prefix: z.string().optional() })
     .optional(),
   jobIdentifier: z.string(),
-  jobData: jsonSerializableObjectDTOSchema,
+  jobData: jsonSerializableObjectSchema,
 })
 
 export type DockerExecuteJobOptions = z.infer<

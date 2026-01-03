@@ -141,7 +141,7 @@ export const buildAppRequestServer = ({
             status: 'ok',
             timestamp: new Date().toISOString(),
             workerId: instanceId,
-            message: 'Core app worker is running',
+            message: 'Core worker is running',
           }),
           { headers: { 'Content-Type': 'application/json' } },
         )

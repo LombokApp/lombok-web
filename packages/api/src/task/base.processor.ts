@@ -1,10 +1,19 @@
-import type { JsonSerializableObject, TaskInvocation } from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
 import { getApp } from 'src/shared/app-helper'
 
+import type { JsonSerializableObject } from '../../../types'
 import type { Task } from './entities/task.entity'
 import { PlatformTaskService } from './services/platform-task.service'
-import type { PlatformTaskName } from './task.constants'
+import type {
+  PlatformProcessorTaskData,
+  PlatformTaskName,
+} from './task.constants'
+
+export type PlatformProcessorTask<K extends PlatformTaskName> = Task<
+  PlatformProcessorTaskData[K]
+> & {
+  taskIdentifier: K
+}
 
 export class TaskProcessorError extends Error {
   constructor(
@@ -17,38 +26,27 @@ export class TaskProcessorError extends Error {
 }
 
 export abstract class BaseProcessor<K extends PlatformTaskName> {
-  protected readonly logger: Logger
-  constructor(private readonly platformTaskName: K) {
-    this.logger = new Logger(`${platformTaskName}_PlatformTaskProcessor`)
-    // defer the init so the app is created first
+  protected constructor(
+    private readonly platformTaskName: K,
+    public readonly run: (task: PlatformProcessorTask<K>) => Promise<void>,
+    protected readonly logger = new Logger(
+      `${this.platformTaskName}_PlatformTaskProcessor`,
+    ),
+  ) {
     setTimeout(() => void this.registerProcessor(), 100)
   }
-
-  async _run(
-    task: Task,
-  ): Promise<undefined | { result: JsonSerializableObject }> {
-    const result = await this.run(task)
-    return result
+  // False if this tasks completion should be handled by the processor itself
+  shouldRegisterComplete(): boolean {
+    return true
   }
-
-  abstract run<T extends { result: JsonSerializableObject } | undefined>(
-    task: Task,
-  ): Promise<T>
-
-  abstract run(task: Task, trigger: TaskInvocation): Promise<void>
 
   async registerProcessor() {
     const app = await getApp()
     if (!app) {
-      this.logger.error('App did not exist when registering processor.')
+      // this.logger.error('App did not exist when registering processor.')
       return
     }
     const platformTaskService = await app.resolve(PlatformTaskService)
     platformTaskService.registerProcessor(this.platformTaskName, this)
-  }
-
-  // False if this tasks completion should be handled by the processor itself
-  shouldRegisterComplete(): boolean {
-    return true
   }
 }

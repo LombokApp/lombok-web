@@ -297,15 +297,9 @@ export class EventService {
       }
     }
 
-    this.logger.debug('EventService.emitEvent:', {
-      eventIdentifier,
-      emitterIdentifier,
-      data,
-      target: {
-        location: targetLocation,
-        userId: targetUserId,
-      },
-    })
+    this.logger.debug(
+      `EventService.emitEvent identifier=${eventIdentifier} emitterIdentifier=${emitterIdentifier} targetLocation=${JSON.stringify(targetLocation)} targetUserId=${targetUserId}`,
+    )
 
     const events = await tx
       .insert(eventsTable)

@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { BaseProcessor } from 'src/task/base.processor'
-import { Task, tasksTable } from 'src/task/entities/task.entity'
+import { tasksTable } from 'src/task/entities/task.entity'
 import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 
@@ -22,61 +22,59 @@ export class RunDockerWorkerProcessor extends BaseProcessor<PlatformTaskName.Run
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
-    super(PlatformTaskName.RunDockerWorker)
+    super(PlatformTaskName.RunDockerWorker, async (task) => {
+      if (task.trigger.kind !== 'event') {
+        throw new NotFoundException(
+          'RunDockerJobProcessor requires event trigger',
+        )
+      }
+      const invokeContext = task.trigger.invokeContext
+      const eventData = invokeContext.eventData as {
+        innerTaskId: string
+        profileIdentifier: string
+        jobClassIdentifier: string
+        appIdentifier: string
+      }
+
+      const innerTask = await this.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, eventData.innerTaskId),
+      })
+
+      if (!innerTask) {
+        throw new NotFoundException(
+          `Inner task not found: ${eventData.innerTaskId} for docker job task ${task.id}`,
+        )
+      }
+
+      // Have the executor tell us if it accepted the job
+      const execResult = await this.appService.executeAppDockerJob({
+        appIdentifier: eventData.appIdentifier,
+        jobData: innerTask.data,
+        profileIdentifier: eventData.profileIdentifier,
+        jobIdentifier: eventData.jobClassIdentifier,
+        asyncTaskId: task.id,
+        storageAccessPolicy: innerTask.storageAccessPolicy,
+      })
+
+      this.logger.debug(`Docker job processor exec complete [${task.id}]:`, {
+        execResult,
+      })
+
+      if ('submitError' in execResult) {
+        this.logger.error('Docker job not accepted:', { execResult })
+        await this.taskService.registerTaskCompleted(task.id, {
+          success: false,
+          error: execResult.submitError ?? {
+            code: 'JOB_NOT_ACCEPTED',
+            message: 'Job not accepted',
+          },
+        })
+      }
+    })
     this.appService = _appService as AppService
   }
 
   shouldRegisterComplete(): boolean {
     return false
-  }
-
-  async run(task: Task) {
-    if (task.trigger.kind !== 'event') {
-      throw new NotFoundException(
-        'RunDockerJobProcessor requires event trigger',
-      )
-    }
-    const invokeContext = task.trigger.invokeContext
-    const eventData = invokeContext.eventData as {
-      innerTaskId: string
-      profileIdentifier: string
-      jobClassIdentifier: string
-      appIdentifier: string
-    }
-
-    const innerTask = await this.ormService.db.query.tasksTable.findFirst({
-      where: eq(tasksTable.id, eventData.innerTaskId),
-    })
-
-    if (!innerTask) {
-      throw new NotFoundException(
-        `Inner task not found: ${eventData.innerTaskId} for docker job task ${task.id}`,
-      )
-    }
-
-    // Have the executor tell us if it accepted the job
-    const execResult = await this.appService.executeAppDockerJob({
-      appIdentifier: eventData.appIdentifier,
-      jobData: innerTask.data,
-      profileIdentifier: eventData.profileIdentifier,
-      jobIdentifier: eventData.jobClassIdentifier,
-      asyncTaskId: task.id,
-      storageAccessPolicy: innerTask.storageAccessPolicy,
-    })
-
-    this.logger.debug(`Docker job processor exec complete [${task.id}]:`, {
-      execResult,
-    })
-
-    if ('submitError' in execResult) {
-      this.logger.error('Docker job not accepted:', { execResult })
-      await this.taskService.registerTaskCompleted(task.id, {
-        success: false,
-        error: execResult.submitError ?? {
-          code: 'JOB_NOT_ACCEPTED',
-          message: 'Job not accepted',
-        },
-      })
-    }
   }
 }

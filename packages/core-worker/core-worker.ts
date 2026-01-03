@@ -16,6 +16,7 @@ import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { analyzeObject } from 'src/handlers/analyze-object-handler'
 import { buildAppRequestServer } from 'src/handlers/app-request-server-builder'
 import { buildSystemRequestWorker } from 'src/handlers/system-message-worker-builder'
 import z from 'zod'
@@ -229,6 +230,34 @@ const handleExecuteSystemRequest = async (
   return responsePayload
 }
 
+const handleAnalyzeObject = async (
+  analyzeObjectRequestPayload: CoreWorkerMessagePayloadTypes['analyze_object']['request'],
+) => {
+  return analyzeObject(
+    analyzeObjectRequestPayload.folderId,
+    analyzeObjectRequestPayload.objectKey,
+    (getContentSignedUrlArgs) =>
+      sendIpcRequest(
+        'get_content_signed_urls',
+        getContentSignedUrlArgs.requests,
+      ).then((response) => {
+        if (!response.success) {
+          throw new Error(response.error.message)
+        }
+        return response.result
+      }),
+    (getMetadataUrlsArgs) =>
+      sendIpcRequest('get_metadata_signed_urls', getMetadataUrlsArgs).then(
+        (response) => {
+          if (!response.success) {
+            throw new Error(response.error.message)
+          }
+          return response.result
+        },
+      ),
+  )
+}
+
 const handleInit = (
   workerData: CoreWorkerMessagePayloadTypes['init']['request'],
 ) => {
@@ -315,6 +344,8 @@ const handleCoreRequest = async (message: CoreWorkerIncomingRequestMessage) => {
     return handleExecuteSystemRequest(message.payload)
   } else if (message.action === 'init') {
     return handleInit(message.payload)
+  } else if (message.action === 'analyze_object') {
+    return handleAnalyzeObject(message.payload)
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (message.action === 'update_app_install_id_mapping') {
     updateAppInstallIdMapping(message.payload.appInstallIdMapping)
@@ -375,6 +406,9 @@ process.stdin.on('data', (data) => {
           sendIpcMessage(coreWorkerOutgoingIpcMessageSchema.parse(response))
         })
         .catch((error: unknown) => {
+          console.log(
+            `handleCoreRequest error: ${JSON.stringify(error, null, 2)}`,
+          )
           const errorPayload =
             error instanceof WorkerScriptRuntimeError
               ? {

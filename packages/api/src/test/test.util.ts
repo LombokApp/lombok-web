@@ -11,7 +11,7 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
-import { SHOULD_START_CORE_WORKER_THREAD } from 'src/core-worker/core-worker.constants'
+import { SHOULD_START_CORE_WORKER_THREAD_KEY } from 'src/core-worker/core-worker.constants'
 import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
 import {
@@ -97,7 +97,7 @@ export async function buildTestModule({
         value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
       },
       {
-        token: SHOULD_START_CORE_WORKER_THREAD,
+        token: SHOULD_START_CORE_WORKER_THREAD_KEY,
         value: startCoreWorker,
       },
     ]

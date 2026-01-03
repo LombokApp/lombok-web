@@ -5,7 +5,7 @@ import type { AppSocketMessage } from './apps.types'
 import { appMessageErrorSchema } from './apps.types'
 import { metadataEntrySchema } from './content.types'
 import { eventIdentifierSchema } from './events.types'
-import { jsonSerializableObjectDTOSchema } from './json.types'
+import { jsonSerializableObjectSchema } from './json.types'
 import { LogEntryLevel } from './platform.types'
 import { SignedURLsRequestMethod } from './storage.types'
 import {
@@ -22,10 +22,10 @@ export const logEntrySchema = z.object({
       objectKey: z.string().optional(),
     })
     .optional(),
-  data: jsonSerializableObjectDTOSchema.optional(),
+  data: jsonSerializableObjectSchema.optional(),
 })
 
-export const startContextSchema = jsonSerializableObjectDTOSchema
+export const startContextSchema = jsonSerializableObjectSchema
   .refine((v) => !Object.keys(v).some((key) => key.startsWith('__')))
   .optional()
 
@@ -85,7 +85,7 @@ export const dbQuerySchema = z.object({
 
 export const emitEventSchema = z.object({
   eventIdentifier: eventIdentifierSchema,
-  data: jsonSerializableObjectDTOSchema,
+  data: jsonSerializableObjectSchema,
 })
 
 export const dbExecSchema = z.object({
@@ -113,13 +113,13 @@ export const authenticateUserSchema = z.object({
 export const executeAppDockerJobSchema = z.object({
   profileIdentifier: z.string(),
   jobIdentifier: z.string(),
-  jobData: jsonSerializableObjectDTOSchema,
+  jobData: jsonSerializableObjectSchema,
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
 export const triggerAppTaskSchema = z.object({
   taskIdentifier: z.string(),
-  inputData: jsonSerializableObjectDTOSchema,
+  inputData: jsonSerializableObjectSchema,
   dontStartBefore: z
     .union([
       z.object({
@@ -176,7 +176,7 @@ export const executeAppDockerJobResponseSchema = createResponseSchema(
     z.object({
       jobId: z.string(),
       jobSuccess: z.literal(true),
-      jobResult: jsonSerializableObjectDTOSchema,
+      jobResult: jsonSerializableObjectSchema,
     }),
     z.object({
       jobId: z.string(),

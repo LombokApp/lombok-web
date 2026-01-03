@@ -8,13 +8,12 @@ import {
 import { targetLocationContextDTOSchema } from './folder.types'
 import { taskIdentifierSchema } from './identifiers.types'
 import type { JsonSerializableObject } from './json.types'
-import { jsonSerializableObjectDTOSchema } from './json.types'
+import { jsonSerializableObjectSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 
 export type TaskData = JsonSerializableObject
 
-export const taskDataSchema: z.ZodType<TaskData> =
-  jsonSerializableObjectDTOSchema
+export const taskDataSchema: z.ZodType<TaskData> = jsonSerializableObjectSchema
 
 export const taskSystemLogEntryDTOSchema = z.object({
   at: z.string().datetime(),
@@ -89,7 +88,7 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
           },
         )
         .optional(), // e.g. "task.success"
-      dataTemplate: jsonSerializableObjectDTOSchema.optional(), // e.g. { someKey: "{{task.result.someKey}}" }
+      dataTemplate: jsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{task.result.someKey}}" }
       onComplete: taskOnCompleteConfigSchema.array().optional(),
     }),
   )
@@ -141,7 +140,7 @@ export const eventTaskTriggerConfigSchema = z
     eventIdentifier: eventIdentifierSchema.or(
       platformPrefixedEventIdentifierSchema,
     ),
-    dataTemplate: jsonSerializableObjectDTOSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
+    dataTemplate: jsonSerializableObjectSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
   })
   .merge(taskTriggerConfigBaseSchema)
 
@@ -176,10 +175,10 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
         platformPrefixedEventIdentifierSchema,
       ),
       eventTriggerConfigIndex: z.number().int(),
-      dataTemplate: jsonSerializableObjectDTOSchema.optional(),
+      dataTemplate: jsonSerializableObjectSchema.optional(),
       targetUserId: z.string().uuid().optional(),
       targetLocation: targetLocationContextDTOSchema.optional(),
-      eventData: jsonSerializableObjectDTOSchema,
+      eventData: jsonSerializableObjectSchema,
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
   }),
@@ -257,7 +256,7 @@ export const taskDTOSchema = z.object({
     .object({
       code: z.string(),
       message: z.string(),
-      details: jsonSerializableObjectDTOSchema.optional(),
+      details: jsonSerializableObjectSchema.optional(),
     })
     .optional(),
   taskDescription: z.string(),

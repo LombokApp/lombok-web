@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { LombokApiClient } from './api.types'
 import { platformPrefixedEventIdentifierSchema } from './events.types'
 import { appIdentifierSchema, slugSchema } from './identifiers.types'
-import { jsonSerializableObjectDTOSchema } from './json.types'
+import { jsonSerializableObjectSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 
@@ -24,7 +24,7 @@ export const AppSocketMessage = z.enum([
 export const appMessageErrorSchema = z.object({
   code: z.union([z.number(), z.string()]),
   message: z.string(),
-  details: jsonSerializableObjectDTOSchema.optional(),
+  details: jsonSerializableObjectSchema.optional(),
 })
 
 export type WorkerApiActor =
