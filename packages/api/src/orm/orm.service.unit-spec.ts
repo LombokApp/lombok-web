@@ -12,7 +12,6 @@ describe('OrmService', () => {
       dbPassword: 'test',
       dbName: 'test',
       logQueries: false,
-      disableNoticeLogging: false,
       runMigrations: false,
       createDatabase: false,
     }

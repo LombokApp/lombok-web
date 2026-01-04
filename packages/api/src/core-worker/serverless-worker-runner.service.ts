@@ -324,7 +324,7 @@ export class ServerlessWorkerRunnerService {
       return
     }
     const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
-    if (this._platformConfig.disableEmbeddedCoreAppWorker) {
+    if (this._platformConfig.disableCoreWorker) {
       this.logger.warn(
         'Serverless worker runner not enabled, skipping thread start',
       )
@@ -353,7 +353,7 @@ export class ServerlessWorkerRunnerService {
           const line = stdoutBuffer.slice(0, idx)
           stdoutBuffer = stdoutBuffer.slice(idx + 1)
           this.handleWorkerMessage(line, instanceId)
-          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+          if (this._platformConfig.printCoreWorkerOutput) {
             this.logger.debug(`[core-worker stdout] ${line}`)
           }
           idx = stdoutBuffer.indexOf('\n')
@@ -369,7 +369,7 @@ export class ServerlessWorkerRunnerService {
           const line = stderrBuffer.slice(0, idx)
           stderrBuffer = stderrBuffer.slice(idx + 1)
           this.handleWorkerMessage(line, instanceId)
-          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+          if (this._platformConfig.printCoreWorkerOutput) {
             this.logger.error(`[core-worker stderr] ${line}`)
           }
           idx = stderrBuffer.indexOf('\n')
@@ -379,7 +379,7 @@ export class ServerlessWorkerRunnerService {
       // Flush any remaining buffered content on stream end
       this.child.stdout?.on('end', () => {
         if (stdoutBuffer.length > 0) {
-          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+          if (this._platformConfig.printCoreWorkerOutput) {
             this.logger.debug(`[core-worker stdout] ${stdoutBuffer}`)
           }
           stdoutBuffer = ''
@@ -387,7 +387,7 @@ export class ServerlessWorkerRunnerService {
       })
       this.child.stderr?.on('end', () => {
         if (stderrBuffer.length > 0) {
-          if (this._platformConfig.printEmbeddedCoreAppWorkerOutput) {
+          if (this._platformConfig.printCoreWorkerOutput) {
             this.logger.error(`[core-worker stderr] ${stderrBuffer}`)
           }
           stderrBuffer = ''
@@ -418,12 +418,11 @@ export class ServerlessWorkerRunnerService {
 
       setTimeout(() => {
         const executionOptions = {
-          printWorkerOutput:
-            this._platformConfig.printEmbeddedCoreAppWorkerOutput,
+          printWorkerOutput: this._platformConfig.printCoreWorkerOutput,
           removeWorkerDirectory:
-            this._platformConfig.removeEmbeddedCoreAppWorkerDirectories,
+            this._platformConfig.removeCoreWorkerDirectories,
           printNsjailVerboseOutput:
-            this._platformConfig.printEmbeddedCoreAppNsjailVerboseOutput,
+            this._platformConfig.printCoreWorkerNsjailVerboseOutput,
         }
         const workerDataPayload: CoreWorkerMessagePayloadTypes['init']['request'] =
           {

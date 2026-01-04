@@ -113,22 +113,15 @@ export const platformConfig = registerAs('platform', () => {
         },
       )
       .optional(),
-    INSTALL_APPS_ON_START: z.string().refine(isBoolean).optional(),
     PLATFORM_HOST: z.string(),
     PLATFORM_PORT: z.string().refine(isInteger).optional(),
     PLATFORM_HTTPS: z.literal('false').or(z.literal('0')).optional(),
     INITIAL_USER: z.string().optional(),
-    DISABLE_EMBEDDED_CORE_APP_WORKER: z.string().refine(isBoolean).optional(),
+    DISABLE_CORE_WORKER: z.string().refine(isBoolean).optional(),
     INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),
-    PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT: z
-      .string()
-      .refine(isBoolean)
-      .optional(),
-    REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES: z
-      .string()
-      .refine(isBoolean)
-      .optional(),
-    PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT: z
+    PRINT_CORE_WORKER_OUTPUT: z.string().refine(isBoolean).optional(),
+    REMOVE_CORE_WORKER_DIRECTORIES: z.string().refine(isBoolean).optional(),
+    PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT: z
       .string()
       .refine(isBoolean)
       .optional(),
@@ -136,26 +129,20 @@ export const platformConfig = registerAs('platform', () => {
 
   return {
     dockerHostConfig: env.DOCKER_HOST_CONFIG ?? {},
-    installAppsOnStart: !!(
-      env.INSTALL_APPS_ON_START === '1' || env.INSTALL_APPS_ON_START === 'true'
-    ),
     platformHost: env.PLATFORM_HOST,
     platformHttps: env.PLATFORM_HTTPS !== 'false' && env.PLATFORM_HTTPS !== '0',
     platformPort: env.PLATFORM_PORT ? parseInt(env.PLATFORM_PORT, 10) : null,
     initialUser: env.INITIAL_USER,
-    disableEmbeddedCoreAppWorker:
-      env.DISABLE_EMBEDDED_CORE_APP_WORKER === '1' ||
-      env.DISABLE_EMBEDDED_CORE_APP_WORKER === 'true',
-    initEventJobs:
-      env.INIT_EVENT_JOBS === '1' || env.INIT_EVENT_JOBS === 'true',
-    printEmbeddedCoreAppWorkerOutput:
-      env.PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT === '1' ||
-      env.PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT === 'true',
-    removeEmbeddedCoreAppWorkerDirectories:
-      env.REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES !== '0' &&
-      env.REMOVE_EMBEDDED_CORE_APP_WORKER_DIRECTORIES !== 'false',
-    printEmbeddedCoreAppNsjailVerboseOutput:
-      env.PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT === '1' ||
-      env.PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT === 'true',
+    disableCoreWorker:
+      env.DISABLE_CORE_WORKER === '1' || env.DISABLE_CORE_WORKER === 'true',
+    printCoreWorkerOutput:
+      env.PRINT_CORE_WORKER_OUTPUT === '1' ||
+      env.PRINT_CORE_WORKER_OUTPUT === 'true',
+    removeCoreWorkerDirectories:
+      env.REMOVE_CORE_WORKER_DIRECTORIES !== '0' &&
+      env.REMOVE_CORE_WORKER_DIRECTORIES !== 'false',
+    printCoreWorkerNsjailVerboseOutput:
+      env.PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT === '1' ||
+      env.PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT === 'true',
   }
 })

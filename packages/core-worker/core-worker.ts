@@ -392,6 +392,7 @@ process.stdin.on('data', (data) => {
     } else if (parsedMessage.data.type === 'request') {
       void handleCoreRequest(parsedMessage.data.payload)
         .then((responsePayload) => {
+          console.log('responsePayload', responsePayload)
           const response = {
             type: 'response',
             id: parsedMessage.data.id,
