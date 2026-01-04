@@ -25,6 +25,9 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
     {
       taskIdentifier: PlatformTaskName
       buildData: (event: Event) => JsonSerializableObject
+      buildTargetLocation?: (
+        event: Event,
+      ) => { folderId: string | null; objectKey: string | null } | null
     }[]
   >
 > = {
@@ -36,6 +39,12 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
         folderId: event.targetLocationFolderId!,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         objectKey: event.targetLocationObjectKey!,
+      }),
+      buildTargetLocation: (event: Event) => ({
+        folderId: event.targetLocationFolderId ?? null,
+        objectKey: event.targetLocationFolderId
+          ? (event.targetLocationObjectKey ?? null)
+          : null,
       }),
     },
   ],

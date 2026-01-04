@@ -204,9 +204,26 @@ describe('apps.types', () => {
       expectZodFailure(result)
     })
 
-    it("should reject app with 'platform' identifier", () => {
+    it("should reject app with 'platform' slug", () => {
       const invalidApp = {
         slug: 'platform',
+        label: 'Test App',
+        description: 'A test application',
+        tasks: [
+          {
+            identifier: 'task_one',
+            label: 'Task 1',
+            description: 'First task',
+          },
+        ],
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it("should reject app with 'core' slug", () => {
+      const invalidApp = {
+        slug: 'core',
         label: 'Test App',
         description: 'A test application',
         tasks: [

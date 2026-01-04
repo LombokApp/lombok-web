@@ -19,6 +19,7 @@ import nestjsConfig from '@nestjs/config'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { AppService } from 'src/app/services/app.service'
+import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import z from 'zod'
@@ -41,7 +42,7 @@ export class ServerlessWorkerRunnerService {
     }
   >()
   private readonly appService: AppService
-
+  private readonly folderService: FolderService
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
@@ -54,8 +55,11 @@ export class ServerlessWorkerRunnerService {
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppService))
     _appService,
+    @Inject(forwardRef(() => FolderService))
+    _folderService,
   ) {
     this.appService = _appService as AppService
+    this.folderService = _folderService as FolderService
   }
 
   async getAppInstallIdMapping() {
@@ -453,7 +457,23 @@ export class ServerlessWorkerRunnerService {
     payload: CoreWorkerMessagePayloadTypes['analyze_object']['request'],
     timeoutMs = 5 * 60_000,
   ) {
-    return this.sendRequest('analyze_object', payload, timeoutMs)
+    const response = await this.sendRequest(
+      'analyze_object',
+      payload,
+      timeoutMs,
+    )
+    if (!response.success) {
+      throw new Error(response.error.message)
+    }
+    await this.folderService.updateFolderObjectMetadata('core', [
+      {
+        folderId: payload.folderId,
+        objectKey: payload.objectKey,
+        hash: response.result.contentHash,
+        metadata: response.result.contentMetadata,
+      },
+    ])
+    return response.result
   }
 
   async executeServerlessTask(

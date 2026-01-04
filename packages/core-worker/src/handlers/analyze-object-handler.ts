@@ -1,4 +1,5 @@
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import type { coreWorkerMessagePayloadSchemas } from '@lombokapp/core-worker-utils'
 import {
   downloadFileToDisk,
   hashLocalFile,
@@ -6,6 +7,7 @@ import {
   uploadFile,
 } from '@lombokapp/core-worker-utils'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
+import type { Variant } from '@lombokapp/utils'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import fs from 'fs'
 import os from 'os'
@@ -41,7 +43,13 @@ export const analyzeObject = async (
       url: string
     }[]
   >,
-) => {
+): Promise<
+  Variant<
+    typeof coreWorkerMessagePayloadSchemas.analyze_object.response,
+    'success',
+    true
+  >['result']
+> => {
   const tempDir = await fs.promises.mkdtemp(
     path.join(os.tmpdir(), `lombok_task_${crypto.randomUUID()}_`),
   )

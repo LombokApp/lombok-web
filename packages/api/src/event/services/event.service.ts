@@ -532,7 +532,11 @@ export class EventService {
       ] ?? []
 
     const platformTasks: NewTask[] = platformTaskDefinitions.map(
-      ({ taskIdentifier, buildData }, eventTriggerConfigIndex) => {
+      (
+        { taskIdentifier, buildData, buildTargetLocation },
+        eventTriggerConfigIndex,
+      ) => {
+        const targetLocation = buildTargetLocation?.(event)
         return withTaskIdempotencyKey({
           id: crypto.randomUUID(),
           trigger: {
@@ -544,6 +548,8 @@ export class EventService {
           },
           storageAccessPolicy: [],
           taskIdentifier,
+          targetLocationFolderId: targetLocation?.folderId ?? null,
+          targetLocationObjectKey: targetLocation?.objectKey ?? null,
           taskDescription: PLATFORM_TASKS[taskIdentifier].description,
           data: buildData(event),
           ownerIdentifier: PLATFORM_IDENTIFIER,

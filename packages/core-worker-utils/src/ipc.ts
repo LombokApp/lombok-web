@@ -1,9 +1,9 @@
 import {
   appManifestSchema,
+  contentMetadataSchema,
   getContentSignedUrlsSchema,
   getMetadataSignedUrlsSchema,
   jsonSerializableObjectSchema,
-  metadataEntrySchema,
   taskDTOSchema,
 } from '@lombokapp/types'
 import type { Variant } from '@lombokapp/utils'
@@ -81,7 +81,12 @@ export const coreWorkerMessagePayloadSchemas = {
       folderId: z.string().nonempty(),
       objectKey: z.string().nonempty(),
     }),
-    response: createResponseSchema(z.record(z.string(), metadataEntrySchema)),
+    response: createResponseSchema(
+      z.object({
+        contentHash: z.string(),
+        contentMetadata: contentMetadataSchema,
+      }),
+    ),
   },
   get_metadata_signed_urls: {
     request: getMetadataSignedUrlsSchema,

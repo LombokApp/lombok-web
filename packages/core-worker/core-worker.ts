@@ -11,6 +11,7 @@ import {
   WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
 import { LogEntryLevel } from '@lombokapp/types'
+import type { Variant } from '@lombokapp/utils'
 import { log } from 'console'
 import crypto from 'crypto'
 import fs from 'fs'
@@ -232,7 +233,13 @@ const handleExecuteSystemRequest = async (
 
 const handleAnalyzeObject = async (
   analyzeObjectRequestPayload: CoreWorkerMessagePayloadTypes['analyze_object']['request'],
-) => {
+): Promise<
+  Variant<
+    typeof coreWorkerMessagePayloadSchemas.analyze_object.response,
+    'success',
+    true
+  >['result']
+> => {
   return analyzeObject(
     analyzeObjectRequestPayload.folderId,
     analyzeObjectRequestPayload.objectKey,
@@ -392,7 +399,6 @@ process.stdin.on('data', (data) => {
     } else if (parsedMessage.data.type === 'request') {
       void handleCoreRequest(parsedMessage.data.payload)
         .then((responsePayload) => {
-          console.log('responsePayload', responsePayload)
           const response = {
             type: 'response',
             id: parsedMessage.data.id,
@@ -407,9 +413,6 @@ process.stdin.on('data', (data) => {
           sendIpcMessage(coreWorkerOutgoingIpcMessageSchema.parse(response))
         })
         .catch((error: unknown) => {
-          console.log(
-            `handleCoreRequest error: ${JSON.stringify(error, null, 2)}`,
-          )
           const errorPayload =
             error instanceof WorkerScriptRuntimeError
               ? {

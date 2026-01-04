@@ -2,6 +2,7 @@ import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
+import { FoldersModule } from 'src/folders/folders.module'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 
@@ -14,6 +15,7 @@ import { ServerlessWorkerRunnerService } from './serverless-worker-runner.servic
   imports: [
     ConfigModule.forFeature(platformConfig),
     forwardRef(() => AppModule),
+    forwardRef(() => FoldersModule),
   ],
   providers: [
     { provide: SHOULD_START_CORE_WORKER_THREAD_KEY, useValue: true },

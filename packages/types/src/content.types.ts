@@ -62,13 +62,10 @@ export const previewMetadataSchema = z.object({
 
 export type ContentMetadataEntry = z.infer<typeof metadataEntrySchema>
 export type PreviewMetadata = z.infer<typeof previewMetadataSchema>
-export const contentMetadataSchema = z.record(
-  z.string(),
-  metadataEntrySchema.optional(),
-)
+export const contentMetadataSchema = z.record(z.string(), metadataEntrySchema)
 export const contentMetadataByHashSchema = z.record(
   z.string(),
-  contentMetadataSchema.optional(),
+  contentMetadataSchema,
 )
 
 export type ContentMetadataType = z.infer<typeof contentMetadataSchema>

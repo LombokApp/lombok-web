@@ -7,24 +7,18 @@ export const genericIdentifierSchema = z
 
 export const taskIdentifierSchema = genericIdentifierSchema
 
-export const slugSchema = z
+export const appSlugSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z0-9]+$/)
   .refine((v) => v.toLowerCase() === v, {
     message: 'App slug must be lowercase',
   })
-  .refine((v) => v !== 'platform', {
-    message: "App slug cannot be 'platform'",
+  .refine((v) => v !== 'platform' && v !== 'core', {
+    message: "App slug cannot be 'platform' or 'core'",
   })
 
 export const appIdentifierSchema = z
   .string()
   .nonempty()
-  .regex(/^[a-zA-Z0-9_]+$/)
-  .refine((v) => v.toLowerCase() === v, {
-    message: 'App identifier must be lowercase',
-  })
-  .refine((v) => v !== 'platform', {
-    message: "App identifier cannot be 'platform'",
-  })
+  .regex(/^[a-z0-9_]+$/)

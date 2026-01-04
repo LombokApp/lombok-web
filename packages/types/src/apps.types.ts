@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
 import { platformPrefixedEventIdentifierSchema } from './events.types'
-import { appIdentifierSchema, slugSchema } from './identifiers.types'
+import { appIdentifierSchema, appSlugSchema } from './identifiers.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
@@ -234,7 +234,7 @@ export const appConfigSchema = z
         folder: z.array(folderScopeAppPermissionsSchema).optional(),
       })
       .optional(),
-    slug: slugSchema,
+    slug: appSlugSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
     subscribedPlatformEvents: z
