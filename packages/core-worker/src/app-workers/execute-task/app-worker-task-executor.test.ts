@@ -23,7 +23,7 @@ import { Server as IOServer } from 'socket.io'
 import { v4 as uuidV4 } from 'uuid'
 
 import { buildTestServerClient } from '../../test/test-server-client.mock'
-import { buildRunWorkerScriptTaskHandler } from './run-worker-script-handler'
+import { buildRunWorkerScriptTaskHandler } from './app-worker-task-executor'
 
 describe('Run Worker Script Task Handler', () => {
   const WORKER_BUNDLE_URL = 'https://example.com/worker-bundle.zip'

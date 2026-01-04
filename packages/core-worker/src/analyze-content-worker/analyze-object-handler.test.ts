@@ -14,7 +14,7 @@ import { analyzeObject } from './analyze-object-handler'
 // Mock global fetch
 const mockFetch = mock()
 
-describe('Analyze Object Task Handler', () => {
+describe('Analyze Object Handler', () => {
   let testFolderId: string
   let testObjectKey: string
   let testImagePath: string

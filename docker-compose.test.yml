@@ -25,6 +25,7 @@ services:
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
     entrypoint: ['bun', '--cwd', './packages/api', './test/e2e.run.ts']
+    privileged: true
   coreworkerutilsunittest:
     container_name: 'lombok-core-worker-utils-unit-test'
     build:

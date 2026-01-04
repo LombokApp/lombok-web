@@ -17,12 +17,12 @@ import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { analyzeObject } from 'src/handlers/analyze-object-handler'
-import { buildAppRequestServer } from 'src/handlers/app-request-server-builder'
-import { buildSystemRequestWorker } from 'src/handlers/system-message-worker-builder'
+import { analyzeObject } from 'src/analyze-content-worker/analyze-object-handler'
+import { buildAppRequestServer } from 'src/app-workers/app-request-server'
+import { buildSystemRequestWorker } from 'src/app-workers/app-system-request-executor'
 import z from 'zod'
 
-import { buildRunWorkerScriptTaskHandler } from './src/handlers/run-worker-script/run-worker-script-handler'
+import { buildRunWorkerScriptTaskHandler } from './src/app-workers/execute-task/app-worker-task-executor'
 import { shutdownAllWorkerSandboxes } from './src/worker-scripts/run-worker'
 
 let initialized = false
@@ -149,7 +149,7 @@ const resolveCoreResponse = <K extends keyof CoreWorkerMessagePayloadTypes>(
   }
 }
 
-const getWorkerExecutionDetails = async (
+const getWorkerExecConfig = async (
   payload: CoreWorkerMessagePayloadTypes['get_worker_exec_config']['request'],
 ) => {
   const response = await sendIpcRequest('get_worker_exec_config', payload)
@@ -194,7 +194,7 @@ const handleExecuteTask = async (
     throw new Error('Worker executor not initialized')
   }
 
-  const serverlessWorkerDetails = await getWorkerExecutionDetails({
+  const serverlessWorkerDetails = await getWorkerExecConfig({
     appIdentifier: executeTaskPayload.appIdentifier,
     workerIdentifier: executeTaskPayload.workerIdentifier,
   })
@@ -310,7 +310,7 @@ const handleInit = (
       instanceId: workerData.instanceId,
       serverBaseUrl,
       executionOptions,
-      getWorkerExecutionDetails,
+      getWorkerExecConfig,
       getUiBundle,
     })
   } catch (error) {
@@ -338,7 +338,7 @@ const handleInit = (
     appInstallIdMapping,
     serverBaseUrl,
     executionOptions,
-    getWorkerExecutionDetails,
+    getWorkerExecConfig,
   })
   return null
 }

@@ -33,7 +33,6 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { ModuleRef } from '@nestjs/core'
 import {
   aliasedTable,
   and,
@@ -171,35 +170,36 @@ export class FolderService {
   eventService: EventService
   appService: AppService
   taskService: TaskService
-  get folderSocketService(): FolderSocketService {
-    return this._folderSocketService as FolderSocketService
-  }
-  get platformTaskService(): PlatformTaskService {
-    return this._platformTaskService as PlatformTaskService
-  }
-  get s3Service(): S3Service {
-    return this._s3Service as S3Service
-  }
+  s3Service: S3Service
+  platformTaskService: PlatformTaskService
+  folderSocketService: FolderSocketService
+  platformConfig: nestjsConfig.ConfigType<typeof platformConfig>
+
   constructor(
-    private readonly moduleRef: ModuleRef,
     @Inject(forwardRef(() => S3Service))
-    private readonly _s3Service,
+    _s3Service,
+    @Inject(forwardRef(() => AppService))
+    _appService,
+    @Inject(forwardRef(() => EventService))
+    _eventService,
     @Inject(forwardRef(() => FolderSocketService))
-    private readonly _folderSocketService,
+    _folderSocketService,
     @Inject(forwardRef(() => PlatformTaskService))
-    private readonly _platformTaskService,
+    _platformTaskService,
+    @Inject(forwardRef(() => TaskService))
+    _taskService,
+    @Inject(platformConfig.KEY)
+    _platformConfig: nestjsConfig.ConfigType<typeof platformConfig>,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    @Inject(forwardRef(() => TaskService))
-    private readonly _taskService,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
   ) {
-    this.eventService = this.moduleRef.get(EventService)
-    this.appService = this.moduleRef.get(AppService)
+    this.s3Service = _s3Service as S3Service
+    this.platformTaskService = _platformTaskService as PlatformTaskService
+    this.folderSocketService = _folderSocketService as FolderSocketService
+    this.eventService = _eventService as EventService
+    this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
+    this.platformConfig = _platformConfig
   }
 
   async createFolder({
@@ -459,7 +459,7 @@ export class FolderService {
             ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.lombok_cors_check_${folderId}`
             : `.lombok_cors_check_${folderId}`
         const corsUrl = `${folder.contentLocation.endpoint.replace(/\/$/, '')}/${folder.contentLocation.bucket}/${objectKey}`
-        const appPlatformHost: string = this._platformConfig.platformHost
+        const appPlatformHost: string = this.platformConfig.platformHost
         const originCandidates = [
           `https://${appPlatformHost}`,
           `http://${appPlatformHost}`,
@@ -681,7 +681,7 @@ export class FolderService {
       })
 
     if (!folderObject) {
-      throw new FolderObjectNotFoundException()
+      throw new FolderObjectNotFoundException(folderId, objectKey)
     }
 
     await this.s3Service.s3DeleteBucketObject({
@@ -743,7 +743,7 @@ export class FolderService {
       ),
     })
     if (!obj) {
-      throw new FolderObjectNotFoundException()
+      throw new FolderObjectNotFoundException(folderId, objectKey)
     }
     return obj
   }
@@ -1446,7 +1446,7 @@ export class FolderService {
         })
 
       if (!folderObject) {
-        throw new FolderObjectNotFoundException()
+        throw new FolderObjectNotFoundException(folderId, objectKey)
       }
       // Function to merge new previews with existing ones
       function updatePreviews(): InlineMetadataEntry {

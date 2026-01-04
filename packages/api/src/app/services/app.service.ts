@@ -153,11 +153,10 @@ export class AppService {
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
     @Inject(forwardRef(() => DockerJobsService)) _dockerJobsService,
     @Inject(forwardRef(() => CoreWorkerService))
-    _serverlessWorkerRunnerService,
+    _coreWorkerService,
   ) {
     this.platformTaskService = _platformTaskService as PlatformTaskService
-    this.serverlessWorkerRunnerService =
-      _serverlessWorkerRunnerService as CoreWorkerService
+    this.serverlessWorkerRunnerService = _coreWorkerService as CoreWorkerService
     this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
@@ -529,7 +528,7 @@ export class AppService {
     }))
   }
 
-  async getWorkerExecutionDetails(requestData: {
+  async getWorkerExecConfig(requestData: {
     appIdentifier: string
     workerIdentifier: string
   }) {

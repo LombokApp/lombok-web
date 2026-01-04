@@ -12,6 +12,7 @@ import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from 'src/core-worker/core-worker.constants'
+import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
 import {
@@ -144,6 +145,7 @@ export async function buildTestModule({
 
   const services = {
     jwtService: await app.resolve(JWTService),
+    coreWorkerService: await app.resolve(CoreWorkerService),
     appService: await app.resolve(AppService),
     serverConfigurationService: await app.resolve(ServerConfigurationService),
     workerJobService: await app.resolve(WorkerJobService),

@@ -1341,6 +1341,7 @@ interface RunWorkerScriptBaseArgs {
 
 interface RunWorkerScriptRequestArgs extends RunWorkerScriptBaseArgs {
   requestOrTask: Request
+  isSystemRequest: boolean
 }
 
 interface RunWorkerScriptTaskArgs extends RunWorkerScriptBaseArgs {
@@ -1453,6 +1454,7 @@ export async function runWorker(
     const pipeRequest: WorkerPipeRequest = {
       id: requestId,
       type: requestOrTask instanceof Request ? 'request' : 'task',
+      isSystemRequest: 'isSystemRequest' in args ? args.isSystemRequest : false,
       timestamp: Date.now(),
       data: serializedRequestOrTask,
       outputLogFilepath: jailOutLogPath,

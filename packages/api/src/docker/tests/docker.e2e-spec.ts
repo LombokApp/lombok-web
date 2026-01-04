@@ -243,7 +243,7 @@ const triggerAppDockerHandledTask = async (
       id: expect.any(String),
       ownerIdentifier: PLATFORM_IDENTIFIER,
       taskIdentifier: 'run_docker_worker',
-      taskDescription: 'Run a docker job to execute a docker handled task',
+      taskDescription: 'Run a docker worker to execute a task',
       storageAccessPolicy: [],
       data: {
         appIdentifier,

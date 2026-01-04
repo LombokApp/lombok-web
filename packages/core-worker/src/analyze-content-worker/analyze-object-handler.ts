@@ -14,7 +14,7 @@ import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 
-import { analyzeContent } from '../analyze/analyze-content'
+import { analyzeContent } from './analyze-content'
 
 export const analyzeObject = async (
   folderId: string,

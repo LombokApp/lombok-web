@@ -20,6 +20,7 @@ export interface WorkerPipeRequest {
   id: string
   type: 'request' | 'task'
   timestamp: number
+  isSystemRequest: boolean
   data: SerializeableRequest | TaskDTO
   // For authentication context
   authToken?: string

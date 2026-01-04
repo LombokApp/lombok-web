@@ -17,7 +17,7 @@ export const buildAppRequestServer = ({
   instanceId,
   serverBaseUrl,
   executionOptions,
-  getWorkerExecutionDetails,
+  getWorkerExecConfig,
   getUiBundle,
 }: {
   log: (log: {
@@ -30,7 +30,7 @@ export const buildAppRequestServer = ({
   instanceId: string
   serverBaseUrl: string
   executionOptions: CoreWorkerMessagePayloadTypes['init']['request']['executionOptions']
-  getWorkerExecutionDetails: (params: {
+  getWorkerExecConfig: (params: {
     appIdentifier: string
     workerIdentifier: string
   }) => Promise<ServerlessWorkerExecConfig>
@@ -64,7 +64,7 @@ export const buildAppRequestServer = ({
 
         let serverlessWorkerDetails: ServerlessWorkerExecConfig
         try {
-          serverlessWorkerDetails = await getWorkerExecutionDetails({
+          serverlessWorkerDetails = await getWorkerExecConfig({
             appIdentifier,
             workerIdentifier,
           })
@@ -98,6 +98,7 @@ export const buildAppRequestServer = ({
         try {
           const response = await runWorker({
             requestOrTask: req,
+            isSystemRequest: false,
             serverBaseUrl,
             appIdentifier,
             appInstallId,

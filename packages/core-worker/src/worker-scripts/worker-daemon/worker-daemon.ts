@@ -307,20 +307,13 @@ void (async () => {
           let accessToken: string | undefined
           let actor: Parameters<RequestHandler>[1]['actor']
 
-          let isSystemRequest = false
-          try {
-            isSystemRequest = new URL(request.url).hostname === '__SYSTEM__'
-          } catch {
-            isSystemRequest = false
-          }
-
           const authStartTime = Date.now()
           logTiming('authentication_start', authStartTime, {
             requestId: pipeRequest.id,
           })
 
           try {
-            if (isSystemRequest) {
+            if (pipeRequest.isSystemRequest) {
               actor = { actorType: 'system' }
               logTiming('authentication_skipped', authStartTime, {
                 requestId: pipeRequest.id,

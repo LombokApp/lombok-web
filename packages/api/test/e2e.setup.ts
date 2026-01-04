@@ -433,8 +433,8 @@ const addTestAppDefinition = async (appConfig: AppConfig) => {
   const zipProc = spawn({
     cmd: ['zip', '-r', zipPath, appConfig.slug],
     cwd: E2E_TEST_APPS_PATH,
-    stdout: 'inherit',
-    stderr: 'inherit',
+    stdout: 'ignore',
+    stderr: 'ignore',
   })
   const zipCode = await zipProc.exited
   if (zipCode !== 0) {
@@ -450,4 +450,9 @@ const addTestAppDefinition = async (appConfig: AppConfig) => {
 
 await Promise.all(
   testAppDefinitions.map((appDef) => addTestAppDefinition(appDef)),
+)
+console.log(
+  '%d test app definitions added! (slugs: %s)',
+  testAppDefinitions.length,
+  testAppDefinitions.map((appDef) => appDef.slug).join(', '),
 )

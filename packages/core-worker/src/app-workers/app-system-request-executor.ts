@@ -15,7 +15,7 @@ export const buildSystemRequestWorker = ({
   appInstallIdMapping,
   serverBaseUrl,
   executionOptions,
-  getWorkerExecutionDetails,
+  getWorkerExecConfig,
 }: {
   log: (log: {
     message: string
@@ -25,7 +25,7 @@ export const buildSystemRequestWorker = ({
   appInstallIdMapping: Record<string, string>
   serverBaseUrl: string
   executionOptions: CoreWorkerMessagePayloadTypes['init']['request']['executionOptions']
-  getWorkerExecutionDetails: (params: {
+  getWorkerExecConfig: (params: {
     appIdentifier: string
     workerIdentifier: string
   }) => Promise<ServerlessWorkerExecConfig>
@@ -45,7 +45,7 @@ export const buildSystemRequestWorker = ({
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const workerIdentifier = workerIdentifierMatch[1]!
 
-    const serverlessWorkerDetails = await getWorkerExecutionDetails({
+    const serverlessWorkerDetails = await getWorkerExecConfig({
       appIdentifier,
       workerIdentifier,
     })
@@ -85,6 +85,7 @@ export const buildSystemRequestWorker = ({
       workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
       options: executionOptions,
       serverlessWorkerDetails,
+      isSystemRequest: true,
       onStdoutChunk:
         executionOptions?.printWorkerOutput !== false
           ? (text) => {

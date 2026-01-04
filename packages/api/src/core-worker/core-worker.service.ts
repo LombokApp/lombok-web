@@ -154,7 +154,7 @@ export class CoreWorkerService {
       case 'get_worker_exec_config': {
         try {
           return await this.appService
-            .getWorkerExecutionDetails({
+            .getWorkerExecConfig({
               appIdentifier: message.payload.appIdentifier,
               workerIdentifier: message.payload.workerIdentifier,
             })
