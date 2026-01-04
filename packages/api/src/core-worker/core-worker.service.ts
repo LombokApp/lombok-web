@@ -27,8 +27,8 @@ import z from 'zod'
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
 
 @Injectable()
-export class ServerlessWorkerRunnerService {
-  private readonly logger = new Logger(ServerlessWorkerRunnerService.name)
+export class CoreWorkerService {
+  private readonly logger = new Logger(CoreWorkerService.name)
   private child: ReturnType<typeof spawn> | undefined
   private serverlessWorkerThreadReady = false
   private readonly pendingRequests = new Map<
@@ -324,16 +324,11 @@ export class ServerlessWorkerRunnerService {
   }
 
   startCoreWorkerThread() {
-    if (!this.shouldStartThread) {
+    if (!this.shouldStartThread || this._platformConfig.disableCoreWorker) {
+      this.logger.warn('Core worker disabled, skipping thread start')
       return
     }
     const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
-    if (this._platformConfig.disableCoreWorker) {
-      this.logger.warn(
-        'Serverless worker runner not enabled, skipping thread start',
-      )
-      return
-    }
     if (!this.workers[instanceId]) {
       this.serverlessWorkerThreadReady = false
       // Resolve the core-worker entry: use src in dev, dist in production

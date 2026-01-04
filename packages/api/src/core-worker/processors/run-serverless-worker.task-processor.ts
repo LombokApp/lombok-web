@@ -8,13 +8,13 @@ import { TaskService } from 'src/task/services/task.service'
 import { PlatformTaskName } from 'src/task/task.constants'
 import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 
-import { ServerlessWorkerRunnerService } from '../serverless-worker-runner.service'
+import { CoreWorkerService } from '../core-worker.service'
 
 @Injectable()
 export class RunServerlessWorkerProcessor extends BaseProcessor<PlatformTaskName.RunServerlessWorker> {
   constructor(
     private readonly ormService: OrmService,
-    private readonly serverlessWorkerRunnerService: ServerlessWorkerRunnerService,
+    private readonly serverlessWorkerRunnerService: CoreWorkerService,
     private readonly taskService: TaskService,
   ) {
     super(PlatformTaskName.RunServerlessWorker, async (task) => {

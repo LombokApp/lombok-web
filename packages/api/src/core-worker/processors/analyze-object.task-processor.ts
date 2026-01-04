@@ -2,12 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { BaseProcessor, TaskProcessorError } from 'src/task/base.processor'
 import { PlatformTaskName } from 'src/task/task.constants'
 
-import { ServerlessWorkerRunnerService } from '../serverless-worker-runner.service'
+import { CoreWorkerService } from '../core-worker.service'
 
 @Injectable()
 export class AnalyzeObjectProcessor extends BaseProcessor<PlatformTaskName.AnalyzeObject> {
   constructor(
-    private readonly serverlessWorkerRunnerService: ServerlessWorkerRunnerService,
+    private readonly serverlessWorkerRunnerService: CoreWorkerService,
   ) {
     super(PlatformTaskName.AnalyzeObject, async (task) => {
       if (task.trigger.kind !== 'event') {
