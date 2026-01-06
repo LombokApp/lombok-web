@@ -23,6 +23,7 @@ import {
 import nestjsConfig from '@nestjs/config'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
+import { Socket } from 'net'
 import { AppService } from 'src/app/services/app.service'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -30,12 +31,15 @@ import { platformConfig } from 'src/platform/config'
 import z from 'zod'
 
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
+import { createSocketServer, writeSocketMessage } from './socket-utils'
 
 @Injectable()
 export class CoreWorkerService {
   private readonly logger = new Logger(CoreWorkerService.name)
   private child: ReturnType<typeof spawn> | undefined
   private serverlessWorkerThreadReady = false
+  private ipcSocket: Socket | undefined
+  private socketCleanup: (() => void) | undefined
   private readonly pendingRequests = new Map<
     string,
     {
@@ -90,11 +94,11 @@ export class CoreWorkerService {
     return !!this.child && this.serverlessWorkerThreadReady
   }
 
-  private sendIpcMessage(message: CoreWorkerIncomingIpcMessage) {
-    if (!this.child?.stdin) {
-      throw new Error('Core worker process not available')
+  private async sendIpcMessage(message: CoreWorkerIncomingIpcMessage) {
+    if (!this.ipcSocket) {
+      throw new Error('Core worker IPC socket not available')
     }
-    this.child.stdin.write(`${JSON.stringify(message)}\n`)
+    await writeSocketMessage(this.ipcSocket, message)
   }
 
   private sendRequest<K extends keyof CoreWorkerMessagePayloadTypes>(
@@ -102,8 +106,8 @@ export class CoreWorkerService {
     payload: CoreWorkerMessagePayloadTypes[K]['request'],
     timeoutMs = 60_000,
   ): Promise<CoreWorkerMessagePayloadTypes[K]['response']> {
-    if (!this.child?.stdin) {
-      return Promise.reject(new Error('Core worker process not available'))
+    if (!this.ipcSocket) {
+      return Promise.reject(new Error('Core worker IPC socket not available'))
     }
 
     const id = crypto.randomUUID()
@@ -130,7 +134,7 @@ export class CoreWorkerService {
         }, timeoutMs)
 
         this.pendingRequests.set(id, { resolve, reject, timeout })
-        this.sendIpcMessage(request)
+        void this.sendIpcMessage(request)
       },
     )
   }
@@ -279,13 +283,16 @@ export class CoreWorkerService {
     }
   }
 
-  private handleWorkerMessage(line: string, _instanceId: string) {
-    if (!this.child?.stdout || !this.child.stderr) {
+  private handleWorkerMessage(line: string, _socket: Socket) {
+    let jsonData: unknown
+    try {
+      jsonData = JSON.parse(line)
+    } catch {
+      // Line is not valid JSON, ignore
       return
     }
-    const parsedMessage = coreWorkerOutgoingIpcMessageSchema.safeParse(
-      JSON.parse(line),
-    )
+
+    const parsedMessage = coreWorkerOutgoingIpcMessageSchema.safeParse(jsonData)
     if (!parsedMessage.success) {
       return
     }
@@ -302,7 +309,7 @@ export class CoreWorkerService {
     if (parsedMessage.data.type === 'request') {
       void this.handleWorkerRequest(parsedMessage.data.payload)
         .then((responsePayload) => {
-          this.sendIpcMessage(
+          void this.sendIpcMessage(
             coreWorkerIncomingIpcMessageSchema.parse({
               type: 'response',
               id: parsedMessage.data.id,
@@ -329,7 +336,7 @@ export class CoreWorkerService {
                       error instanceof Error ? error.message : String(error),
                   }),
                 }).toEnvelope()
-          this.sendIpcMessage({
+          void this.sendIpcMessage({
             type: 'response',
             id: parsedMessage.data.id,
             payload: {
@@ -354,6 +361,9 @@ export class CoreWorkerService {
       } catch {
         void 0
       }
+      if (this.socketCleanup) {
+        this.socketCleanup()
+      }
     }
     process.once('SIGINT', terminate)
     process.once('SIGTERM', terminate)
@@ -361,7 +371,7 @@ export class CoreWorkerService {
     process.once('exit', terminate)
   }
 
-  startCoreWorkerThread() {
+  async startCoreWorkerThread() {
     if (!this.shouldStartThread || this._platformConfig.disableCoreWorker) {
       this.logger.warn('Core worker disabled, skipping thread start')
       return
@@ -369,6 +379,25 @@ export class CoreWorkerService {
     const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
     if (!this.workers[instanceId]) {
       this.serverlessWorkerThreadReady = false
+
+      // Create Unix socket for IPC
+      const socketPath = `/tmp/lombok-core-worker-${instanceId}.sock`
+      const { server, cleanup } = await createSocketServer(
+        socketPath,
+        (message: string, socket: Socket) => {
+          this.handleWorkerMessage(message, socket)
+        },
+      )
+      this.socketCleanup = cleanup
+
+      // Store the socket connection (will be set when client connects)
+      server.on('connection', (socket: Socket) => {
+        this.ipcSocket = socket
+        socket.on('close', () => {
+          this.ipcSocket = undefined
+        })
+      })
+
       // Resolve the core-worker entry: use src in dev, dist in production
       const isProduction = process.env.NODE_ENV === 'production'
       const workerEntry = isProduction
@@ -378,62 +407,34 @@ export class CoreWorkerService {
         uid: 1000,
         gid: 1000,
         stdio: ['pipe', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          LOMBOK_CORE_WORKER_SOCKET_PATH: socketPath,
+        },
       })
       this.setupParentShutdownHooks(this.child)
       let hasScheduledRetry = false
 
-      let stdoutBuffer = ''
       this.child.stdout?.on('data', (chunk: Buffer) => {
-        stdoutBuffer += chunk.toString()
-        let idx = stdoutBuffer.indexOf('\n')
-        while (idx !== -1) {
-          const line = stdoutBuffer.slice(0, idx)
-          stdoutBuffer = stdoutBuffer.slice(idx + 1)
-          this.handleWorkerMessage(line, instanceId)
-          if (this._platformConfig.printCoreWorkerOutput) {
-            this.logger.debug(`[core-worker stdout] ${line}`)
-          }
-          idx = stdoutBuffer.indexOf('\n')
+        if (this._platformConfig.printCoreWorkerOutput) {
+          this.logger.debug(`[core-worker stdout] ${chunk.toString()}`)
         }
       })
 
-      // Also parse error channel for JSON lines if emitted there
-      let stderrBuffer = ''
       this.child.stderr?.on('data', (chunk: Buffer) => {
-        stderrBuffer += chunk.toString()
-        let idx = stderrBuffer.indexOf('\n')
-        while (idx !== -1) {
-          const line = stderrBuffer.slice(0, idx)
-          stderrBuffer = stderrBuffer.slice(idx + 1)
-          this.handleWorkerMessage(line, instanceId)
-          if (this._platformConfig.printCoreWorkerOutput) {
-            this.logger.error(`[core-worker stderr] ${line}`)
-          }
-          idx = stderrBuffer.indexOf('\n')
-        }
-      })
-
-      // Flush any remaining buffered content on stream end
-      this.child.stdout?.on('end', () => {
-        if (stdoutBuffer.length > 0) {
-          if (this._platformConfig.printCoreWorkerOutput) {
-            this.logger.debug(`[core-worker stdout] ${stdoutBuffer}`)
-          }
-          stdoutBuffer = ''
-        }
-      })
-      this.child.stderr?.on('end', () => {
-        if (stderrBuffer.length > 0) {
-          if (this._platformConfig.printCoreWorkerOutput) {
-            this.logger.error(`[core-worker stderr] ${stderrBuffer}`)
-          }
-          stderrBuffer = ''
+        if (this._platformConfig.printCoreWorkerOutput) {
+          this.logger.error(`[core-worker stderr] ${chunk.toString()}`)
         }
       })
 
       // If the child exits unexpectedly, schedule a retry
       this.child.on('exit', (code) => {
         this.serverlessWorkerThreadReady = false
+        this.ipcSocket = undefined
+        if (this.socketCleanup) {
+          this.socketCleanup()
+          this.socketCleanup = undefined
+        }
         if (code && code !== 0) {
           this.logger.warn(
             `Embedded core worker exited with code ${String(code)}. Retrying...`,
@@ -441,7 +442,7 @@ export class CoreWorkerService {
           if (!hasScheduledRetry) {
             hasScheduledRetry = true
             setTimeout(() => {
-              this.startCoreWorkerThread()
+              void this.startCoreWorkerThread()
             }, 1000)
           }
         }
@@ -525,7 +526,7 @@ export class CoreWorkerService {
 
   async updateAppInstallIdMapping() {
     const appInstallIdMapping = await this.getAppInstallIdMapping()
-    if (this.child?.stdin) {
+    if (this.ipcSocket) {
       await this.sendRequest('update_app_install_id_mapping', {
         appInstallIdMapping,
       })

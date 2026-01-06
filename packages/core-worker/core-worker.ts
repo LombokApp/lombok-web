@@ -16,6 +16,8 @@ import type { Variant } from '@lombokapp/utils'
 import { log } from 'console'
 import crypto from 'crypto'
 import fs from 'fs'
+import type { Socket } from 'net'
+import { createConnection } from 'net'
 import os from 'os'
 import path from 'path'
 import { analyzeObject } from 'src/analyze-content-worker/analyze-object-handler'
@@ -40,6 +42,7 @@ let scriptExecutor:
 
 let systemRequestWorker: ReturnType<typeof buildSystemRequestWorker> | undefined
 let staticAppServer: ReturnType<typeof buildAppRequestServer> | undefined
+let ipcSocket: Socket | undefined
 
 const pendingCoreRequests = new Map<
   string,
@@ -58,16 +61,19 @@ const cleanup = () => {
     staticAppServer = undefined
   }
   void shutdownAllWorkerSandboxes().catch(() => undefined)
+  if (ipcSocket) {
+    try {
+      ipcSocket.destroy()
+    } catch {
+      void 0
+    }
+    ipcSocket = undefined
+  }
 }
 
 process.on('SIGTERM', cleanup)
 process.on('SIGINT', cleanup)
 process.on('exit', cleanup)
-
-process.stdin.on('close', () => {
-  cleanup()
-  process.exit(0)
-})
 
 const appInstallIdMapping: Record<string, string> = {}
 // eslint-disable-next-line @typescript-eslint/require-await
@@ -90,12 +96,21 @@ const updateAppInstallIdMapping = (
   }
 }
 
-const sendIpcMessage = (message: CoreWorkerOutgoingIpcMessage) => {
-  try {
-    process.stdout.write(`${JSON.stringify(message)}\n`)
-  } catch {
-    void 0
+const sendIpcMessage = async (message: CoreWorkerOutgoingIpcMessage) => {
+  if (!ipcSocket) {
+    throw new Error('IPC socket not available')
   }
+  const socket = ipcSocket
+  return new Promise<void>((resolve, reject) => {
+    const data = `${JSON.stringify(message)}\n`
+    socket.write(data, (error?: Error | null) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve()
+      }
+    })
+  })
 }
 
 // const buildExecutionErrorDetails = (
@@ -164,7 +179,7 @@ const sendIpcRequest = <K extends keyof CoreWorkerMessagePayloadTypes>(
       }, timeoutMs)
 
       pendingCoreRequests.set(id, { resolve, reject, timeout })
-      sendIpcMessage(request)
+      void sendIpcMessage(request)
     },
   )
 }
@@ -392,20 +407,38 @@ const handleCoreRequest = async (message: CoreWorkerIncomingRequestMessage) => {
   throw new Error(`Unknown core worker request: ${JSON.stringify(message)}`)
 }
 
-let stdinBuffer = ''
-process.stdin.on('data', (data) => {
-  stdinBuffer += data.toString()
-  let idx = stdinBuffer.indexOf('\n')
+// Connect to IPC socket and handle messages
+const socketPath = process.env.LOMBOK_CORE_WORKER_SOCKET_PATH
+if (!socketPath) {
+  console.error('LOMBOK_CORE_WORKER_SOCKET_PATH environment variable not set')
+  process.exit(1)
+}
+
+let socketBuffer = ''
+ipcSocket = createConnection(socketPath, () => {
+  // Socket connected
+})
+
+ipcSocket.on('data', (data: Buffer) => {
+  socketBuffer += data.toString()
+  let idx = socketBuffer.indexOf('\n')
   while (idx !== -1) {
-    const line = stdinBuffer.slice(0, idx).trim()
-    stdinBuffer = stdinBuffer.slice(idx + 1)
-    idx = stdinBuffer.indexOf('\n')
+    const line = socketBuffer.slice(0, idx).trim()
+    socketBuffer = socketBuffer.slice(idx + 1)
+    idx = socketBuffer.indexOf('\n')
 
     if (!line) {
       continue
     }
 
-    const rawMessage = JSON.parse(line) as unknown
+    let rawMessage: unknown
+    try {
+      rawMessage = JSON.parse(line)
+    } catch {
+      // Invalid JSON, ignore
+      continue
+    }
+
     const parsedMessage =
       coreWorkerIncomingIpcMessageSchema.safeParse(rawMessage)
 
@@ -433,7 +466,9 @@ process.stdin.on('data', (data) => {
               },
             },
           }
-          sendIpcMessage(coreWorkerOutgoingIpcMessageSchema.parse(response))
+          void sendIpcMessage(
+            coreWorkerOutgoingIpcMessageSchema.parse(response),
+          )
         })
         .catch((error: unknown) => {
           const errorPayload =
@@ -451,7 +486,7 @@ process.stdin.on('data', (data) => {
                       error instanceof Error ? error.message : String(error),
                   }),
                 }).toEnvelope()
-          sendIpcMessage(
+          void sendIpcMessage(
             coreWorkerOutgoingIpcMessageSchema.parse({
               type: 'response',
               id: parsedMessage.data.id,
@@ -465,7 +500,17 @@ process.stdin.on('data', (data) => {
             }),
           )
         })
-      continue
     }
   }
+})
+
+ipcSocket.on('error', (error: Error) => {
+  console.error('IPC socket error:', error.message)
+  cleanup()
+  process.exit(1)
+})
+
+ipcSocket.on('close', () => {
+  cleanup()
+  process.exit(0)
 })
