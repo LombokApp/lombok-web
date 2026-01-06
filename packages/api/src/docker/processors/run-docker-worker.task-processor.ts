@@ -7,13 +7,13 @@ import {
 import { eq } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
-import { BaseProcessor } from 'src/task/base.processor'
+import { BaseCoreTaskProcessor } from 'src/task/base.processor'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { TaskService } from 'src/task/services/task.service'
-import { PlatformTaskName } from 'src/task/task.constants'
+import { CoreTaskName } from 'src/task/task.constants'
 
 @Injectable()
-export class RunDockerWorkerProcessor extends BaseProcessor<PlatformTaskName.RunDockerWorker> {
+export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTaskName.RunDockerWorker> {
   private readonly appService: AppService
 
   constructor(
@@ -22,7 +22,7 @@ export class RunDockerWorkerProcessor extends BaseProcessor<PlatformTaskName.Run
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
-    super(PlatformTaskName.RunDockerWorker, async (task) => {
+    super(CoreTaskName.RunDockerWorker, async (task) => {
       if (task.trigger.kind !== 'event') {
         throw new NotFoundException(
           'RunDockerJobProcessor requires event trigger',

@@ -24,10 +24,10 @@ import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { PlatformModule } from 'src/platform/platform.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
-import { runWithThreadContext } from 'src/shared/request-context'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import type { User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
@@ -149,7 +149,7 @@ export async function buildTestModule({
     appService: await app.resolve(AppService),
     serverConfigurationService: await app.resolve(ServerConfigurationService),
     workerJobService: await app.resolve(WorkerJobService),
-    platformTaskService: await app.resolve(PlatformTaskService),
+    platformTaskService: await app.resolve(CoreTaskService),
     eventService: await app.resolve(EventService),
     taskService: await app.resolve(TaskService),
     ormService: await app.resolve(OrmService),

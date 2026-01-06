@@ -1,9 +1,9 @@
 import {
   AppTaskConfig,
+  CORE_IDENTIFIER,
   eventIdentifierSchema,
   FolderPushMessage,
   JsonSerializableObject,
-  PLATFORM_IDENTIFIER,
   PlatformEvent,
   ScheduleTaskTriggerConfig,
 } from '@lombokapp/types'
@@ -40,7 +40,7 @@ import {
   PLATFORM_TASKS,
 } from 'src/task/constants/platform-tasks.constants'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { getUtcScheduleBucket } from 'src/task/util/schedule-bucket.util'
 import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import { User } from 'src/users/entities/user.entity'
@@ -76,13 +76,13 @@ export class EventService {
     return this._appService as AppService
   }
 
-  get platformTaskService(): PlatformTaskService {
-    return this._platformTaskService as PlatformTaskService
+  get platformTaskService(): CoreTaskService {
+    return this._platformTaskService as CoreTaskService
   }
 
   constructor(
     private readonly ormService: OrmService,
-    @Inject(forwardRef(() => PlatformTaskService))
+    @Inject(forwardRef(() => CoreTaskService))
     private readonly _platformTaskService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
@@ -252,7 +252,7 @@ export class EventService {
 
     const now = new Date()
 
-    const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
+    const isPlatformEmitter = emitterIdentifier === CORE_IDENTIFIER
     const appIdentifier = !isPlatformEmitter ? emitterIdentifier : undefined
 
     const app = appIdentifier
@@ -322,7 +322,7 @@ export class EventService {
 
     // regular event, so we should lookup apps that have subscribed to this event
     const eventTriggerIdentifier = isPlatformEmitter
-      ? `${PLATFORM_IDENTIFIER}:${eventIdentifier}`
+      ? `${CORE_IDENTIFIER}:${eventIdentifier}`
       : eventIdentifier
 
     const subscribedApps = isPlatformEmitter
@@ -522,7 +522,7 @@ export class EventService {
   }
 
   gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
-    if (event.emitterIdentifier !== PLATFORM_IDENTIFIER) {
+    if (event.emitterIdentifier !== CORE_IDENTIFIER) {
       return []
     }
 
@@ -552,8 +552,8 @@ export class EventService {
           targetLocationObjectKey: targetLocation?.objectKey ?? null,
           taskDescription: PLATFORM_TASKS[taskIdentifier].description,
           data: buildData(event),
-          ownerIdentifier: PLATFORM_IDENTIFIER,
-          handlerType: PLATFORM_IDENTIFIER,
+          ownerIdentifier: CORE_IDENTIFIER,
+          handlerType: CORE_IDENTIFIER,
           createdAt: timestamp,
           updatedAt: timestamp,
         })
@@ -573,7 +573,7 @@ export class EventService {
   async emitRunnableTaskEnqueuedEvent(task: NewTask, tx: OrmService['db']) {
     if (task.handlerType === 'worker' || task.handlerType === 'docker') {
       const event = {
-        emitterIdentifier: PLATFORM_IDENTIFIER,
+        emitterIdentifier: CORE_IDENTIFIER,
         eventIdentifier:
           task.handlerType === 'worker'
             ? PlatformEvent.serverless_task_enqueued

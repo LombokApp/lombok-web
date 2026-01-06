@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
-import { runWithThreadContext } from 'src/shared/request-context'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {

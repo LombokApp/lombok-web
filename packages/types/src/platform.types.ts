@@ -1,4 +1,4 @@
-export const PLATFORM_IDENTIFIER = 'platform'
+export const CORE_IDENTIFIER = 'core'
 
 export enum LogEntryLevel {
   TRACE = 'TRACE',

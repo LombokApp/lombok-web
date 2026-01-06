@@ -1,4 +1,4 @@
-import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -36,7 +36,7 @@ describe('Platform events', () => {
       objectKey: crypto.randomUUID(),
     }
     await testModule!.services.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
+      emitterIdentifier: CORE_IDENTIFIER,
       eventIdentifier: 'object_added',
       data,
     })

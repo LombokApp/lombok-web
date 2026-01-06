@@ -1,6 +1,6 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
 import {
-  PLATFORM_IDENTIFIER,
+  CORE_IDENTIFIER,
   PlatformEvent,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
@@ -57,7 +57,7 @@ describe('Analyze Object Handler', () => {
         kind: 'event' as const,
         invokeContext: {
           eventId: uuidV4(),
-          emitterIdentifier: PLATFORM_IDENTIFIER,
+          emitterIdentifier: CORE_IDENTIFIER,
           eventIdentifier: PlatformEvent.object_added,
           eventTriggerConfigIndex: 0,
           eventData: {} as JsonSerializableObject,

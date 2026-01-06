@@ -7,9 +7,9 @@ import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
-import { AnalyzeObjectProcessor } from './processors/analyze-object.task-processor'
-import { RunServerlessWorkerProcessor } from './processors/run-serverless-worker.task-processor'
 import { CoreWorkerService } from './core-worker.service'
+import { AnalyzeObjectProcessor } from './processors/analyze-object.processor'
+import { RunServerlessWorkerTaskProcessor } from './processors/run-serverless-worker-task.processor'
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { CoreWorkerService } from './core-worker.service'
   providers: [
     { provide: SHOULD_START_CORE_WORKER_THREAD_KEY, useValue: true },
     CoreWorkerService,
-    RunServerlessWorkerProcessor,
+    RunServerlessWorkerTaskProcessor,
     AnalyzeObjectProcessor,
   ],
   exports: [CoreWorkerService],

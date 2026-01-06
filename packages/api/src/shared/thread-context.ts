@@ -13,7 +13,7 @@ export const runWithThreadContext = <T>(
   callback: () => T,
 ): T => requestContextStorage.run({ threadId }, callback)
 
-export const getRequestId = () => {
+export const getThreadId = () => {
   const threadId = requestContextStorage.getStore()?.threadId
   if (!threadId) {
     throw new InternalServerErrorException('Thread ID not found')

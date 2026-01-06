@@ -1,4 +1,8 @@
 import {
+  AppNotFoundError,
+  AppWorkerNotFoundError,
+  AsyncWorkError,
+  AsyncWorkErrorEnvelope,
   CoreWorkerIncomingIpcMessage,
   coreWorkerIncomingIpcMessageSchema,
   coreWorkerIncomingRequestMessageSchema,
@@ -6,14 +10,15 @@ import {
   CoreWorkerMessagePayloadTypes,
   coreWorkerOutgoingIpcMessageSchema,
   CoreWorkerOutgoingRequestMessage,
+  UnknownAsyncWorkError,
 } from '@lombokapp/core-worker-utils'
 import {
-  ConflictException,
   forwardRef,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
+  NotImplementedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { spawn } from 'child_process'
@@ -143,7 +148,7 @@ export class CoreWorkerService {
     if (response.success) {
       pending.resolve(response)
     } else {
-      pending.reject(new Error(response.error.message))
+      pending.reject(new AsyncWorkError(response.error))
     }
   }
 
@@ -163,29 +168,43 @@ export class CoreWorkerService {
               throw error
             })
         } catch (error) {
+          let errorEnvelope: AsyncWorkErrorEnvelope | undefined
           if (error instanceof NotFoundException) {
-            return {
-              success: false,
-              error: {
-                code: 'WORKER_NOT_FOUND',
-                message: error.message,
+            errorEnvelope = new AppNotFoundError({
+              message: `Worker "${message.payload.workerIdentifier}" not found for app "${message.payload.appIdentifier}"`,
+              details: {
+                appIdentifier: message.payload.appIdentifier,
+                workerIdentifier: message.payload.workerIdentifier,
               },
-            } as const
-          } else if (error instanceof ConflictException) {
-            return {
-              success: false,
-              error: {
-                code: 'WORKER_UNAVAILABLE',
-                message: error.message,
+            }).toEnvelope()
+          } else if (error instanceof NotImplementedException) {
+            errorEnvelope = new AppWorkerNotFoundError({
+              message: `Worker "${message.payload.workerIdentifier}" not found for app "${message.payload.appIdentifier}"`,
+              details: {
+                appIdentifier: message.payload.appIdentifier,
+                workerIdentifier: message.payload.workerIdentifier,
               },
-            } as const
+            }).toEnvelope()
+          } else {
+            errorEnvelope = new UnknownAsyncWorkError(
+              error instanceof Error
+                ? {
+                    message: error.message,
+                    details: {
+                      error: error.message,
+                    },
+                  }
+                : {
+                    message: String(error),
+                    details: {
+                      error: String(error),
+                    },
+                  },
+            ).toEnvelope()
           }
           return {
             success: false,
-            error: {
-              code: 'WORKER_UNAVAILABLE',
-              message: `Error: ${String(error)}`,
-            },
+            error: errorEnvelope,
           } as const
         }
       }
@@ -198,29 +217,41 @@ export class CoreWorkerService {
             ),
           } as const
         } catch (error) {
+          let errorEnvelope: AsyncWorkErrorEnvelope | undefined
           if (error instanceof NotFoundException) {
-            return {
-              success: false,
-              error: {
-                code: 'APP_NOT_FOUND',
-                message: error.message,
+            errorEnvelope = new AppNotFoundError({
+              message: `UI bundle not found for app "${message.payload.appIdentifier}"`,
+              details: {
+                appIdentifier: message.payload.appIdentifier,
               },
-            } as const
-          } else if (error instanceof ConflictException) {
-            return {
-              success: false,
-              error: {
-                code: 'APP_UNAVAILABLE',
-                message: error.message,
+            }).toEnvelope()
+          } else if (error instanceof NotImplementedException) {
+            errorEnvelope = new AppWorkerNotFoundError({
+              message: `UI bundle not found for app "${message.payload.appIdentifier}"`,
+              details: {
+                appIdentifier: message.payload.appIdentifier,
               },
-            } as const
+            }).toEnvelope()
+          } else {
+            errorEnvelope = new UnknownAsyncWorkError(
+              error instanceof Error
+                ? {
+                    message: error.message,
+                    details: {
+                      error: error.message,
+                    },
+                  }
+                : {
+                    message: String(error),
+                    details: {
+                      error: String(error),
+                    },
+                  },
+            ).toEnvelope()
           }
           return {
             success: false,
-            error: {
-              code: 'WORKER_UNAVAILABLE',
-              message: `Error: ${String(error)}`,
-            },
+            error: errorEnvelope,
           } as const
         }
       }
@@ -252,59 +283,66 @@ export class CoreWorkerService {
     if (!this.child?.stdout || !this.child.stderr) {
       return
     }
-    try {
-      const parsedMessage = coreWorkerOutgoingIpcMessageSchema.safeParse(
-        JSON.parse(line),
+    const parsedMessage = coreWorkerOutgoingIpcMessageSchema.safeParse(
+      JSON.parse(line),
+    )
+    if (!parsedMessage.success) {
+      return
+    }
+
+    if (parsedMessage.data.type === 'response') {
+      this.resolveWorkerResponse(
+        parsedMessage.data.id,
+        parsedMessage.data.payload.payload,
       )
-      if (!parsedMessage.success) {
-        return
-      }
+      return
+    }
 
-      if (parsedMessage.data.type === 'response') {
-        this.resolveWorkerResponse(
-          parsedMessage.data.id,
-          parsedMessage.data.payload.payload,
-        )
-        return
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (parsedMessage.data.type === 'request') {
-        void this.handleWorkerRequest(parsedMessage.data.payload)
-          .then((responsePayload) => {
-            this.sendIpcMessage(
-              coreWorkerIncomingIpcMessageSchema.parse({
-                type: 'response',
-                id: parsedMessage.data.id,
-                payload: {
-                  action: parsedMessage.data.payload.action,
-                  payload: responsePayload,
-                },
-              }),
-            )
-          })
-          .catch((error: unknown) => {
-            this.sendIpcMessage({
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (parsedMessage.data.type === 'request') {
+      void this.handleWorkerRequest(parsedMessage.data.payload)
+        .then((responsePayload) => {
+          this.sendIpcMessage(
+            coreWorkerIncomingIpcMessageSchema.parse({
               type: 'response',
               id: parsedMessage.data.id,
               payload: {
-                action: parsedMessage.data.payload.action as
-                  | 'get_worker_exec_config'
-                  | 'get_ui_bundle',
-                payload: {
-                  success: false,
-                  error: {
-                    code: 'UNKNOWN_ERROR',
+                action: parsedMessage.data.payload.action,
+                payload: responsePayload,
+              },
+            }),
+          )
+        })
+        .catch((error: unknown) => {
+          const errorPayload =
+            error instanceof AsyncWorkError
+              ? error.toEnvelope()
+              : new UnknownAsyncWorkError({
+                  origin: 'internal',
+                  stack: new Error().stack,
+                  message: `Unknown error during core worker "${parsedMessage.data.payload.action}" request: ${error instanceof Error ? error.message : String(error)}`,
+                  cause: new UnknownAsyncWorkError({
+                    origin: 'internal',
+                    stack:
+                      error instanceof Error ? error.stack : new Error().stack,
                     message:
                       error instanceof Error ? error.message : String(error),
-                  },
-                },
+                  }),
+                }).toEnvelope()
+          this.sendIpcMessage({
+            type: 'response',
+            id: parsedMessage.data.id,
+            payload: {
+              action: parsedMessage.data.payload.action as
+                | 'get_worker_exec_config'
+                | 'get_ui_bundle',
+              payload: {
+                success: false,
+                error: errorPayload,
               },
-            })
+            },
           })
-      }
-    } catch {
-      void 0
+        })
     }
   }
 
@@ -458,7 +496,7 @@ export class CoreWorkerService {
       timeoutMs,
     )
     if (!response.success) {
-      throw new Error(response.error.message)
+      throw new AsyncWorkError(response.error)
     }
     await this.folderService.updateFolderObjectMetadata('core', [
       {
@@ -471,7 +509,7 @@ export class CoreWorkerService {
     return response.result
   }
 
-  async executeServerlessTask(
+  async executeServerlessAppTask(
     payload: CoreWorkerMessagePayloadTypes['execute_task']['request'],
     timeoutMs = 5 * 60_000,
   ) {

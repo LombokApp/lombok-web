@@ -4,8 +4,8 @@ import type {
   ServerlessWorkerExecConfig,
 } from '@lombokapp/core-worker-utils'
 import {
+  AsyncWorkError,
   uniqueExecutionKey,
-  WorkerScriptRuntimeError,
 } from '@lombokapp/core-worker-utils'
 import type { TaskDTO } from '@lombokapp/types'
 
@@ -64,7 +64,7 @@ export const buildRunWorkerScriptTaskHandler =
         onStdoutChunk,
       })
     } catch (error) {
-      if (error instanceof WorkerScriptRuntimeError) {
+      if (error instanceof AsyncWorkError) {
         throw error
       }
       throw error

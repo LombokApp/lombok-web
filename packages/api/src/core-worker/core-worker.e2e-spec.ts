@@ -1,4 +1,4 @@
-import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { CORE_IDENTIFIER, SignedURLsRequestMethod } from '@lombokapp/types'
 import {
   afterAll,
   afterEach,
@@ -17,6 +17,9 @@ import path from 'path'
 import { AppService } from 'src/app/services/app.service'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { waitForTrue } from 'src/platform/utils/wait.util'
+import { runWithThreadContext } from 'src/shared/thread-context'
+import { tasksTable } from 'src/task/entities/task.entity'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -28,7 +31,10 @@ import {
 const TEST_MODULE_KEY = 'core_worker'
 const API_SERVER_PORT = 7001
 const WORKER_IDENTIFIER = 'test_worker'
+const EXECUTION_ERROR_WORKER_IDENTIFIER = 'test_worker_exec_error'
 const WORKER_ENTRYPOINT = 'worker-entry.ts'
+const SCRIPT_ERROR_TASK_IDENTIFIER = 'script_error_task'
+const EXECUTION_ERROR_TASK_IDENTIFIER = 'execution_error_task'
 const CONTENT_OBJECT_KEY = 'sample.txt'
 
 const WORKER_ENV_VARS = {
@@ -37,9 +43,13 @@ const WORKER_ENV_VARS = {
 
 const WORKER_SOURCE = `import type { RequestHandler, TaskHandler } from '@lombokapp/app-worker-sdk'
 
-export const handleTask: TaskHandler = async function handleTask() {
+export const handleTask: TaskHandler = async function handleTask(task) {
   if (process.env.WORKER_ENV_TEST_FLAG !== 'true') {
     throw new Error('Missing worker env flag')
+  }
+
+  if (task.taskIdentifier === '${SCRIPT_ERROR_TASK_IDENTIFIER}') {
+    throw new Error('Script error for test')
   }
 }
 
@@ -89,6 +99,9 @@ describe('Core Worker', () => {
     | undefined
   let getWorkerExecConfigSpy:
     | ReturnType<typeof spyOn<AppService, 'getWorkerExecConfig'>>
+    | undefined
+  let originalGetWorkerExecConfig:
+    | typeof AppService.prototype.getWorkerExecConfig
     | undefined
   let createSignedContentUrlsSpy:
     | ReturnType<typeof spyOn<AppService, 'createSignedContentUrls'>>
@@ -146,6 +159,11 @@ describe('Core Worker', () => {
           entrypoint: WORKER_ENTRYPOINT,
           environmentVariables: WORKER_ENV_VARS,
         },
+        [EXECUTION_ERROR_WORKER_IDENTIFIER]: {
+          description: 'Execution error test worker',
+          entrypoint: WORKER_ENTRYPOINT,
+          environmentVariables: WORKER_ENV_VARS,
+        },
       },
       tasks: [
         {
@@ -155,6 +173,24 @@ describe('Core Worker', () => {
           handler: {
             type: 'worker',
             identifier: WORKER_IDENTIFIER,
+          },
+        },
+        {
+          identifier: SCRIPT_ERROR_TASK_IDENTIFIER,
+          label: 'Script Error Task',
+          description: 'Task that throws a script error for core worker tests',
+          handler: {
+            type: 'worker',
+            identifier: WORKER_IDENTIFIER,
+          },
+        },
+        {
+          identifier: EXECUTION_ERROR_TASK_IDENTIFIER,
+          label: 'Execution Error Task',
+          description: 'Task that simulates a worker execution failure',
+          handler: {
+            type: 'worker',
+            identifier: EXECUTION_ERROR_WORKER_IDENTIFIER,
           },
         },
       ],
@@ -212,6 +248,27 @@ describe('Core Worker', () => {
     }
   }
 
+  const findRunServerlessWorkerTask = async (innerTaskId: string) => {
+    if (!testModule) {
+      throw new Error('Test module not initialized')
+    }
+
+    const platformTasks =
+      await testModule.services.ormService.db.query.tasksTable.findMany({
+        where: and(
+          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+          eq(tasksTable.taskIdentifier, CoreTaskName.RunServerlessWorker),
+        ),
+      })
+
+    return platformTasks.find((task) => {
+      const invokeContext = task.trigger.invokeContext as
+        | { eventData?: { innerTaskId?: string } }
+        | undefined
+      return invokeContext?.eventData?.innerTaskId === innerTaskId
+    })
+  }
+
   beforeAll(async () => {
     previousPlatformPort = process.env.PLATFORM_PORT
     previousPlatformHttps = process.env.PLATFORM_HTTPS
@@ -224,7 +281,7 @@ describe('Core Worker', () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
       startCoreWorker: true,
-      // debug: true,
+      debug: true,
       startServerOnPort: API_SERVER_PORT,
     })
     apiClient = testModule.apiClient
@@ -243,14 +300,14 @@ describe('Core Worker', () => {
     })
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const originalGetWorkerExecConfig = AppService.prototype.getWorkerExecConfig
+    originalGetWorkerExecConfig = AppService.prototype.getWorkerExecConfig
     getWorkerExecConfigSpy = spyOn(
       AppService.prototype,
       'getWorkerExecConfig',
     ).mockImplementation(async function (this: AppService, ...args) {
       // Call the original implementation with the correct 'this' context
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const getWorkerExecConfigResult = await originalGetWorkerExecConfig.call(
+      const getWorkerExecConfigResult = await originalGetWorkerExecConfig!.call(
         this,
         ...args,
       )
@@ -293,14 +350,6 @@ describe('Core Worker', () => {
       maxRetries: 6,
       totalMaxDurationMs: 10000,
     })
-
-    // const originalGetMetadataSignedUrls =
-    //   AppService.prototype.getMetadataSignedUrls
-    // await waitForTrue(() => testModule!.services.coreWorkerService.isReady(), {
-    //   retryPeriodMs: 250,
-    //   maxRetries: 6,
-    //   totalMaxDurationMs: 10000,
-    // })
   })
 
   beforeEach(async () => {
@@ -363,7 +412,7 @@ describe('Core Worker', () => {
 
   it('should execute tasks and request worker exec config', async () => {
     const response =
-      await testModule!.services.coreWorkerService.executeServerlessTask({
+      await testModule!.services.coreWorkerService.executeServerlessAppTask({
         task: buildTask(),
         appIdentifier: installedAppIdentifier,
         workerIdentifier: WORKER_IDENTIFIER,
@@ -408,6 +457,99 @@ describe('Core Worker', () => {
       expect(parsedBody.actorType).toBe('system')
       expect(getWorkerExecConfigSpy?.mock.calls.length).toBe(1)
     }
+  })
+
+  it('records script errors on inner tasks while completing run_serverless_worker', async () => {
+    const innerTask =
+      await testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: installedAppIdentifier,
+        taskIdentifier: SCRIPT_ERROR_TASK_IDENTIFIER,
+        taskData: {},
+      })
+
+    await testModule!.services.platformTaskService.drainPlatformTasks(true)
+
+    const updatedInnerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, innerTask.id),
+      })
+    if (!updatedInnerTask) {
+      throw new Error('Inner task not found after execution')
+    }
+
+    const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+    if (!outerTask) {
+      throw new Error('Run serverless worker task not found')
+    }
+
+    expect(updatedInnerTask.success).toBe(false)
+    expect(updatedInnerTask.error?.code).toBe('WORKER_SCRIPT_RUNTIME_ERROR')
+    const innerErrorDetails = updatedInnerTask.error?.details as
+      | { message?: string }
+      | undefined
+    expect(innerErrorDetails?.message).toBe('Script error for test')
+
+    expect(outerTask.success).toBe(true)
+    expect(outerTask.error).toBeFalsy()
+  })
+
+  it.only('records execution errors on outer tasks with generic inner errors', async () => {
+    if (!getWorkerExecConfigSpy || !originalGetWorkerExecConfig) {
+      throw new Error('Worker exec config spy not initialized')
+    }
+
+    getWorkerExecConfigSpy.mockImplementationOnce(async function (
+      this: AppService,
+      ...args
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const getWorkerExecConfigResult = await originalGetWorkerExecConfig!.call(
+        this,
+        ...args,
+      )
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return {
+        ...getWorkerExecConfigResult,
+        payloadUrl: 'http://127.0.0.1:1/invalid-worker.zip',
+        hash: `invalid-hash-${Date.now()}`,
+      }
+    })
+
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const innerTask =
+        await testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier: installedAppIdentifier,
+          taskIdentifier: EXECUTION_ERROR_TASK_IDENTIFIER,
+          taskData: {},
+        })
+
+      await testModule!.services.platformTaskService.drainPlatformTasks(true)
+
+      const updatedInnerTask =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTask.id),
+        })
+      if (!updatedInnerTask) {
+        throw new Error('Inner task not found after execution')
+      }
+
+      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      if (!outerTask) {
+        throw new Error('Run serverless worker task not found')
+      }
+
+      expect(updatedInnerTask.success).toBe(false)
+      expect(updatedInnerTask.error?.code).toBe('WORKER_EXECUTION_ERROR')
+      expect(updatedInnerTask.error?.details).toBeFalsy()
+
+      expect(outerTask.success).toBe(false)
+      expect(outerTask.error?.code).toBe('WORKER_EXECUTION_ERROR')
+      const outerErrorDetails = outerTask.error?.details as
+        | { errorMessage?: string; action?: string }
+        | undefined
+      expect(outerErrorDetails?.action).toBe('execute_task')
+      expect(typeof outerErrorDetails?.errorMessage).toBe('string')
+    })
   })
 
   it('should analyze objects and request signed urls', async () => {

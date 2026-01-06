@@ -3,19 +3,15 @@ import { getApp } from 'src/shared/app-helper'
 
 import type { JsonSerializableObject } from '../../../types'
 import type { Task } from './entities/task.entity'
-import { PlatformTaskService } from './services/platform-task.service'
-import type {
-  PlatformProcessorTaskData,
-  PlatformTaskName,
-} from './task.constants'
+import { CoreTaskService } from './services/core-task.service'
+import type { CoreTaskData, CoreTaskName } from './task.constants'
 
-export type PlatformProcessorTask<K extends PlatformTaskName> = Task<
-  PlatformProcessorTaskData[K]
-> & {
+export type CoreTask<K extends CoreTaskName> = Task<CoreTaskData[K]> & {
   taskIdentifier: K
+  handlerType: 'core'
 }
 
-export class TaskProcessorError extends Error {
+export class CoreTaskProcessorError extends Error {
   constructor(
     public readonly code: string,
     public readonly message: string,
@@ -25,10 +21,10 @@ export class TaskProcessorError extends Error {
   }
 }
 
-export abstract class BaseProcessor<K extends PlatformTaskName> {
+export abstract class BaseCoreTaskProcessor<K extends CoreTaskName> {
   protected constructor(
     private readonly platformTaskName: K,
-    public readonly run: (task: PlatformProcessorTask<K>) => Promise<void>,
+    public readonly run: (task: CoreTask<K>) => Promise<void>,
     protected readonly logger = new Logger(
       `${this.platformTaskName}_PlatformTaskProcessor`,
     ),
@@ -46,7 +42,7 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
       // this.logger.error('App did not exist when registering processor.')
       return
     }
-    const platformTaskService = await app.resolve(PlatformTaskService)
+    const platformTaskService = await app.resolve(CoreTaskService)
     platformTaskService.registerProcessor(this.platformTaskName, this)
   }
 }

@@ -2,19 +2,19 @@ import type { JsonSerializableObject } from '@lombokapp/types'
 import { PlatformEvent } from '@lombokapp/types'
 import type { Event } from 'src/event/entities/event.entity'
 
-import { PlatformTaskName } from '../task.constants'
+import { CoreTaskName } from '../task.constants'
 
 export const PLATFORM_TASKS = {
-  [PlatformTaskName.AnalyzeObject]: {
+  [CoreTaskName.AnalyzeObject]: {
     description: 'Generate metadata and previews for an object',
   },
-  [PlatformTaskName.ReindexFolder]: {
+  [CoreTaskName.ReindexFolder]: {
     description: 'Reindex a folder and its contents',
   },
-  [PlatformTaskName.RunDockerWorker]: {
+  [CoreTaskName.RunDockerWorker]: {
     description: 'Run a docker worker to execute a task',
   },
-  [PlatformTaskName.RunServerlessWorker]: {
+  [CoreTaskName.RunServerlessWorker]: {
     description: 'Run a serverless worker to execute a task',
   },
 }
@@ -23,7 +23,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
   Record<
     PlatformEvent,
     {
-      taskIdentifier: PlatformTaskName
+      taskIdentifier: CoreTaskName
       buildData: (event: Event) => JsonSerializableObject
       buildTargetLocation?: (
         event: Event,
@@ -33,7 +33,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
 > = {
   [PlatformEvent.object_added]: [
     {
-      taskIdentifier: PlatformTaskName.AnalyzeObject,
+      taskIdentifier: CoreTaskName.AnalyzeObject,
       buildData: (event: Event) => ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         folderId: event.targetLocationFolderId!,
@@ -50,7 +50,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
   ],
   [PlatformEvent.docker_task_enqueued]: [
     {
-      taskIdentifier: PlatformTaskName.RunDockerWorker,
+      taskIdentifier: CoreTaskName.RunDockerWorker,
       buildData: (event: Event) => ({
         innerTaskId: event.data?.innerTaskId ?? null,
         appIdentifier: event.data?.appIdentifier ?? null,
@@ -61,7 +61,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
   ],
   [PlatformEvent.serverless_task_enqueued]: [
     {
-      taskIdentifier: PlatformTaskName.RunServerlessWorker,
+      taskIdentifier: CoreTaskName.RunServerlessWorker,
       buildData: (event: Event) => ({
         innerTaskId: event.data?.innerTaskId ?? null,
         appIdentifier: event.data?.appIdentifier ?? null,

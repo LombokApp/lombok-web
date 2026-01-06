@@ -3,11 +3,12 @@ import {
   contentMetadataSchema,
   getContentSignedUrlsSchema,
   getMetadataSignedUrlsSchema,
-  jsonSerializableObjectSchema,
   taskDTOSchema,
 } from '@lombokapp/types'
 import type { Variant } from '@lombokapp/utils'
 import { z } from 'zod'
+
+import { errorEnvelopeSchema } from './errors/work-errors.types'
 
 export const createResponseSchema = <T extends z.ZodTypeAny>(resultSchema: T) =>
   z.discriminatedUnion('success', [
@@ -17,11 +18,7 @@ export const createResponseSchema = <T extends z.ZodTypeAny>(resultSchema: T) =>
     }),
     z.object({
       success: z.literal(false),
-      error: z.object({
-        code: z.string(),
-        message: z.string(),
-        details: jsonSerializableObjectSchema.optional(),
-      }),
+      error: errorEnvelopeSchema,
     }),
   ])
 

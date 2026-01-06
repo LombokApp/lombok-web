@@ -91,13 +91,6 @@ describe('App Socket Interface', () => {
 
     await testModule.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
 
-    // Get the platform host from config
-    // const platformConfig = testModule.app.get('platform')
-    // platformHost = platformConfig?.platformHost ?? 'lombok.localhost'
-
-    // Get the server base URL from the app
-    // const app = testModule.app
-
     serverBaseUrl = `http://localhost:${startServerOnPort}`
 
     // Verify the app is installed

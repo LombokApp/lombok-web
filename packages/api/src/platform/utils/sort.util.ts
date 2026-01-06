@@ -1,7 +1,7 @@
 import { asc, desc } from 'drizzle-orm'
 import type { PgTableWithColumns } from 'drizzle-orm/pg-core'
 
-import { InvalidSortColumnException } from '../exceptions/invalid-sort-column.exception'
+import { InvalidSortColumnException } from '../../shared/exceptions/invalid-sort-column.exception'
 
 export type Sort<T extends string, O extends string = 'asc' | 'desc'> =
   | `${T}-${O}`

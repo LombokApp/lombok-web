@@ -6,7 +6,7 @@ import { evalTriggerHandlerCondition } from './eval-trigger-condition.util'
 const event: Event = {
   id: 'd55c783e-c9e6-45ec-ad80-0d3a6e514c41',
   eventIdentifier: 'object_added',
-  emitterIdentifier: 'platform',
+  emitterIdentifier: 'core',
   targetUserId: null,
   targetLocationFolderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
   targetLocationObjectKey:
@@ -373,7 +373,7 @@ describe('evalTriggerHandlerCondition', () => {
     it('handles multiple property comparisons', () => {
       expect(
         evalTriggerHandlerCondition(
-          "event.eventIdentifier === 'object_added' && event.emitterIdentifier === 'platform' && event.data.mediaType === 'IMAGE'",
+          "event.eventIdentifier === 'object_added' && event.emitterIdentifier === 'core' && event.data.mediaType === 'IMAGE'",
           event,
         ),
       ).toBe(true)

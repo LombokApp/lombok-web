@@ -25,7 +25,7 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { platformConfig } from 'src/platform/config'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -62,7 +62,7 @@ export interface CompleteJobRequest {
 export class WorkerJobService {
   private readonly logger = new Logger(WorkerJobService.name)
   taskService: TaskService
-  platformTaskService: PlatformTaskService
+  platformTaskService: CoreTaskService
   appService: AppService
   constructor(
     @Inject(authConfig.KEY)
@@ -72,14 +72,14 @@ export class WorkerJobService {
       typeof platformConfig
     >,
     private readonly ormService: OrmService,
-    @Inject(forwardRef(() => PlatformTaskService))
+    @Inject(forwardRef(() => CoreTaskService))
     _platformTaskService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
-    this.platformTaskService = _platformTaskService as PlatformTaskService
+    this.platformTaskService = _platformTaskService as CoreTaskService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
   }

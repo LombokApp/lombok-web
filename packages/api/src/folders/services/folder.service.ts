@@ -12,7 +12,7 @@ import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
-  PLATFORM_IDENTIFIER,
+  CORE_IDENTIFIER,
   PlatformEvent,
   previewMetadataSchema,
   SignedURLsRequestMethod,
@@ -65,9 +65,9 @@ import { StorageProvisionNotFoundException } from 'src/storage/exceptions/storag
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
-import { PlatformTaskName } from 'src/task/task.constants'
+import { CoreTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
 import { v4 as uuidV4 } from 'uuid'
@@ -171,7 +171,7 @@ export class FolderService {
   appService: AppService
   taskService: TaskService
   s3Service: S3Service
-  platformTaskService: PlatformTaskService
+  platformTaskService: CoreTaskService
   folderSocketService: FolderSocketService
   platformConfig: nestjsConfig.ConfigType<typeof platformConfig>
 
@@ -184,7 +184,7 @@ export class FolderService {
     _eventService,
     @Inject(forwardRef(() => FolderSocketService))
     _folderSocketService,
-    @Inject(forwardRef(() => PlatformTaskService))
+    @Inject(forwardRef(() => CoreTaskService))
     _platformTaskService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
@@ -194,7 +194,7 @@ export class FolderService {
     private readonly serverConfigurationService: ServerConfigurationService,
   ) {
     this.s3Service = _s3Service as S3Service
-    this.platformTaskService = _platformTaskService as PlatformTaskService
+    this.platformTaskService = _platformTaskService as CoreTaskService
     this.folderSocketService = _folderSocketService as FolderSocketService
     this.eventService = _eventService as EventService
     this.appService = _appService as AppService
@@ -1217,7 +1217,7 @@ export class FolderService {
     const folder = await this.getFolderAsUser(actor, folderId)
     if (folder.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
       await this.taskService.triggerPlatformUserActionTask({
-        taskIdentifier: PlatformTaskName.ReindexFolder,
+        taskIdentifier: CoreTaskName.ReindexFolder,
         taskData: { folderId },
         targetLocation: { folderId },
         userId: actor.id,
@@ -1413,7 +1413,7 @@ export class FolderService {
     )
 
     await this.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
+      emitterIdentifier: CORE_IDENTIFIER,
       eventIdentifier: wasAdded
         ? PlatformEvent.object_added
         : PlatformEvent.object_updated,

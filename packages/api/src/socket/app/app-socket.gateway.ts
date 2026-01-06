@@ -16,7 +16,7 @@ import {
   JWTService,
 } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
-import { runWithThreadContext } from 'src/shared/request-context'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { z } from 'zod'
 
 import { APP_WORKER_SOCKET_STATE, AppSocketService } from './app-socket.service'

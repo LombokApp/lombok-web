@@ -1,4 +1,4 @@
-import type { JsonSerializableObject } from '@lombokapp/types'
+import { CORE_IDENTIFIER, type JsonSerializableObject } from '@lombokapp/types'
 import { describe, expect, it } from 'bun:test'
 
 import type { Event } from '../entities/event.entity'
@@ -6,8 +6,8 @@ import { parseDataFromEventWithTrigger } from './event-template.util'
 
 const baseEvent: Event = {
   id: 'event-id',
-  eventIdentifier: 'platform:worker_task_enqueued',
-  emitterIdentifier: 'platform',
+  eventIdentifier: 'worker_task_enqueued',
+  emitterIdentifier: CORE_IDENTIFIER,
   targetUserId: null,
   targetLocationFolderId: null,
   targetLocationObjectKey: null,

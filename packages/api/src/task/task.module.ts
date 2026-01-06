@@ -13,7 +13,7 @@ import { SocketModule } from 'src/socket/socket.module'
 
 import { ServerTasksController } from './controllers/server-tasks.controller'
 import { TasksController } from './controllers/tasks.controller'
-import { PlatformTaskService } from './services/platform-task.service'
+import { CoreTaskService } from './services/core-task.service'
 import { TaskService } from './services/task.service'
 
 @Global()
@@ -24,13 +24,13 @@ import { TaskService } from './services/task.service'
     forwardRef(() => AppModule),
     forwardRef(() => EventModule),
   ],
-  providers: [PlatformTaskService, TaskService],
+  providers: [CoreTaskService, TaskService],
   controllers: [ServerTasksController, TasksController],
-  exports: [PlatformTaskService, TaskService],
+  exports: [CoreTaskService, TaskService],
 })
 export class TaskModule implements OnModuleInit, OnModuleDestroy {
   constructor(
-    private readonly platformTaskService: PlatformTaskService,
+    private readonly platformTaskService: CoreTaskService,
     private readonly taskService: TaskService,
   ) {}
 

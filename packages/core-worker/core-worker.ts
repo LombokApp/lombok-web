@@ -1,14 +1,15 @@
 import type {
   CoreWorkerIncomingRequestMessage,
+  coreWorkerMessagePayloadSchemas,
   CoreWorkerMessagePayloadTypes,
   CoreWorkerOutgoingIpcMessage,
 } from '@lombokapp/core-worker-utils'
 import {
+  AsyncWorkError,
   coreWorkerIncomingIpcMessageSchema,
-  coreWorkerMessagePayloadSchemas,
   coreWorkerOutgoingIpcMessageSchema,
   coreWorkerOutgoingRequestMessageSchema,
-  WorkerScriptRuntimeError,
+  UnknownAsyncWorkError,
 } from '@lombokapp/core-worker-utils'
 import { LogEntryLevel } from '@lombokapp/types'
 import type { Variant } from '@lombokapp/utils'
@@ -97,6 +98,42 @@ const sendIpcMessage = (message: CoreWorkerOutgoingIpcMessage) => {
   }
 }
 
+// const buildExecutionErrorDetails = (
+//   error: unknown,
+//   action:
+//     | CoreWorkerIncomingRequestMessage['action']
+//     | CoreWorkerOutgoingRequestMessage['action'],
+//   // payload?: JsonSerializableObject,
+// ) => {
+//   const details: Record<string, unknown> = {
+//     action,
+//     // payload,
+//   }
+
+//   if (error instanceof Error) {
+//     details.errorClass = error.constructor.name
+//     details.errorName = error.name
+//     details.errorMessage = error.message
+//     if (error.stack) {
+//       details.errorStack = error.stack
+//     }
+//   } else {
+//     details.errorMessage = String(error)
+//     details.errorType = typeof error
+//   }
+
+//   if (error instanceof ScriptExecutionError) {
+//     details.executionDetails = error.details
+//   } else if (error && typeof error === 'object' && 'details' in error) {
+//     const errorDetails = (error as { details?: unknown }).details
+//     if (errorDetails && typeof errorDetails === 'object') {
+//       details.errorDetails = errorDetails
+//     }
+//   }
+
+//   return details
+// }
+
 const sendIpcRequest = <K extends keyof CoreWorkerMessagePayloadTypes>(
   action: K,
   payload: CoreWorkerMessagePayloadTypes[K]['request'],
@@ -145,7 +182,7 @@ const resolveCoreResponse = <K extends keyof CoreWorkerMessagePayloadTypes>(
   if (response.success) {
     pending.resolve(response)
   } else {
-    pending.reject(new Error(response.error.message))
+    pending.reject(new AsyncWorkError(response.error))
   }
 }
 
@@ -155,18 +192,10 @@ const getWorkerExecConfig = async (
   const response = await sendIpcRequest('get_worker_exec_config', payload)
 
   if (!response.success) {
-    throw new Error(response.error.message)
-  }
-  const parsedPayload =
-    coreWorkerMessagePayloadSchemas.get_worker_exec_config.response.parse(
-      response,
-    )
-
-  if (!parsedPayload.success) {
-    throw new Error(parsedPayload.error.message)
+    throw new AsyncWorkError(response.error)
   }
 
-  return parsedPayload.result
+  return response.result
 }
 
 const getUiBundle = async (
@@ -175,16 +204,10 @@ const getUiBundle = async (
   const response = await sendIpcRequest('get_ui_bundle', payload)
 
   if (!response.success) {
-    throw new Error(response.error.message)
+    throw new AsyncWorkError(response.error)
   }
 
-  const parsedPayload =
-    coreWorkerMessagePayloadSchemas.get_ui_bundle.response.parse(response)
-  if (!parsedPayload.success) {
-    throw new Error(parsedPayload.error.message)
-  }
-
-  return parsedPayload.result
+  return response.result
 }
 
 const handleExecuteTask = async (
@@ -249,7 +272,7 @@ const handleAnalyzeObject = async (
         getContentSignedUrlArgs.requests,
       ).then((response) => {
         if (!response.success) {
-          throw new Error(response.error.message)
+          throw new AsyncWorkError(response.error)
         }
         return response.result
       }),
@@ -257,7 +280,7 @@ const handleAnalyzeObject = async (
       sendIpcRequest('get_metadata_signed_urls', getMetadataUrlsArgs).then(
         (response) => {
           if (!response.success) {
-            throw new Error(response.error.message)
+            throw new AsyncWorkError(response.error)
           }
           return response.result
         },
@@ -414,22 +437,20 @@ process.stdin.on('data', (data) => {
         })
         .catch((error: unknown) => {
           const errorPayload =
-            error instanceof WorkerScriptRuntimeError
-              ? {
-                  code: 'WORKER_SCRIPT_RUNTIME_ERROR',
-                  message: error.message,
-                  details: error.details,
-                }
-              : {
-                  code: 'WORKER_EXECUTION_ERROR',
-                  message: `Failed to handle core request`,
-                  details: {
-                    action: parsedMessage.data.payload.action,
-                    payload: parsedMessage.data.payload.payload,
-                    errorMessage:
+            error instanceof AsyncWorkError
+              ? error.toEnvelope()
+              : new UnknownAsyncWorkError({
+                  origin: 'internal',
+                  stack: new Error().stack,
+                  message: `Unknown error during core "${parsedMessage.data.payload.action}" request: ${error instanceof Error ? error.message : String(error)}`,
+                  cause: new UnknownAsyncWorkError({
+                    origin: 'internal',
+                    stack:
+                      error instanceof Error ? error.stack : new Error().stack,
+                    message:
                       error instanceof Error ? error.message : String(error),
-                  },
-                }
+                  }),
+                }).toEnvelope()
           sendIpcMessage(
             coreWorkerOutgoingIpcMessageSchema.parse({
               type: 'response',

@@ -1,6 +1,6 @@
 import {
+  CORE_IDENTIFIER,
   JsonSerializableObject,
-  PLATFORM_IDENTIFIER,
   RequeueConfig,
   StorageAccessPolicy,
   SystemLogEntry,
@@ -36,7 +36,7 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { dataFromTemplate } from 'src/platform/utils/data-template.util'
 import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
-import { getRequestId } from 'src/shared/request-context'
+import { getThreadId } from 'src/shared/thread-context'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import type { User } from 'src/users/entities/user.entity'
 
@@ -335,13 +335,13 @@ export class TaskService {
     const now = new Date()
     const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: PLATFORM_IDENTIFIER,
+      ownerIdentifier: CORE_IDENTIFIER,
       taskIdentifier,
       trigger: {
         kind: 'user_action',
         invokeContext: {
           userId,
-          requestId: getRequestId(),
+          requestId: getThreadId(),
         },
       },
       taskDescription: 'Platform task on user request',
@@ -354,7 +354,7 @@ export class TaskService {
             : null,
       createdAt: now,
       updatedAt: now,
-      handlerType: 'platform',
+      handlerType: 'core',
       storageAccessPolicy,
       targetLocationFolderId: targetLocation?.folderId ?? null,
       targetLocationObjectKey: targetLocation?.objectKey ?? null,
@@ -424,7 +424,7 @@ export class TaskService {
         kind: 'user_action',
         invokeContext: {
           userId,
-          requestId: getRequestId(),
+          requestId: getThreadId(),
         },
       },
       taskDescription: taskDefinition.description,
@@ -437,7 +437,7 @@ export class TaskService {
             : undefined,
       createdAt: now,
       updatedAt: now,
-      handlerType: 'platform',
+      handlerType: 'core',
       storageAccessPolicy,
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
@@ -529,7 +529,7 @@ export class TaskService {
       trigger: {
         kind: 'app_action',
         invokeContext: {
-          requestId: getRequestId(),
+          requestId: getThreadId(),
         },
         onComplete: onComplete ?? undefined,
       },

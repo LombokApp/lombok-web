@@ -4,7 +4,7 @@ import type {
   StorageAccessPolicy,
 } from '@lombokapp/types'
 import {
-  PLATFORM_IDENTIFIER,
+  CORE_IDENTIFIER,
   PlatformEvent,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
@@ -23,9 +23,9 @@ import { eq, notIlike } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { appUserSettingsTable } from 'src/app/entities/app-user-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
-import { runWithThreadContext } from 'src/shared/request-context'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskName } from 'src/task/task.constants'
+import { CoreTaskName } from 'src/task/task.constants'
 import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -172,10 +172,7 @@ const triggerAppDockerHandledTask = async (
     .select()
     .from(eventsTable)
     .where(
-      notIlike(
-        eventsTable.eventIdentifier,
-        `${PLATFORM_IDENTIFIER}:schedule:%`,
-      ),
+      notIlike(eventsTable.eventIdentifier, `${CORE_IDENTIFIER}:schedule:%`),
     )
   const tasks = await testModule.services.ormService.db
     .select()
@@ -208,8 +205,7 @@ const triggerAppDockerHandledTask = async (
   }
   const innerTask = tasks.find((task) => task.taskIdentifier === taskIdentifier)
   const dockerRunTask = tasks.find(
-    (task) =>
-      task.taskIdentifier === (PlatformTaskName.RunDockerWorker as string),
+    (task) => task.taskIdentifier === (CoreTaskName.RunDockerWorker as string),
   )
 
   // console.log('events', events)
@@ -225,7 +221,7 @@ const triggerAppDockerHandledTask = async (
     expect(dockerTaskEnqueuedEvent).toEqual({
       id: expect.any(String),
       eventIdentifier: PlatformEvent.docker_task_enqueued,
-      emitterIdentifier: PLATFORM_IDENTIFIER,
+      emitterIdentifier: CORE_IDENTIFIER,
       targetUserId: null,
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
@@ -241,7 +237,7 @@ const triggerAppDockerHandledTask = async (
     expect(dockerRunTask?.data.innerTaskId).toBeDefined()
     expect(dockerRunTask).toEqual({
       id: expect.any(String),
-      ownerIdentifier: PLATFORM_IDENTIFIER,
+      ownerIdentifier: CORE_IDENTIFIER,
       taskIdentifier: 'run_docker_worker',
       taskDescription: 'Run a docker worker to execute a task',
       storageAccessPolicy: [],
@@ -266,7 +262,7 @@ const triggerAppDockerHandledTask = async (
           eventIdentifier: PlatformEvent.docker_task_enqueued,
           eventTriggerConfigIndex: 0,
           eventId: events[0]!.id,
-          emitterIdentifier: PLATFORM_IDENTIFIER,
+          emitterIdentifier: CORE_IDENTIFIER,
           eventData: {
             innerTaskId: expect.any(String),
             appIdentifier,
@@ -286,7 +282,7 @@ const triggerAppDockerHandledTask = async (
       error: null,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date),
-      handlerType: PLATFORM_IDENTIFIER,
+      handlerType: CORE_IDENTIFIER,
       handlerIdentifier: null,
     })
     expect(dockerRunTask?.startedAt).toEqual(dockerRunTask?.updatedAt)

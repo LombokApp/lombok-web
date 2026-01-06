@@ -7,9 +7,9 @@ import type {
   WorkerPipeResponse,
 } from '@lombokapp/core-worker-utils'
 import {
+  AsyncWorkError,
   downloadFileToDisk,
-  ScriptExecutionError,
-  WorkerScriptRuntimeError,
+  UnknownAsyncWorkError,
 } from '@lombokapp/core-worker-utils'
 import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import fs from 'fs'
@@ -1146,6 +1146,7 @@ async function createWorkerProcess(
     errorLogFilepath: '/worker-tmp/logs/error.json',
     scriptPath: `/app/${workerExecConfig.entrypoint}`,
     workerToken: workerExecConfig.workerToken,
+    appIdentifier,
     executionId,
     workerIdentifier,
     serverBaseUrl,
@@ -1494,60 +1495,19 @@ export async function runWorker(
     const requestTime = requestEndTime - requestStartTime
 
     // Handle response
-    let finalResponse = pipeResponse
     if (!pipeResponse.success) {
+      console.log(
+        `[TIMING] Worker execution failed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
+      )
+
       const error = pipeResponse.error
       if (!error) {
-        throw new Error('Response marked as failed but no error provided')
+        throw new UnknownAsyncWorkError({
+          message: 'Response marked as failed but no error provided',
+        })
       }
 
-      // Handle daemon not ready error with a brief retry
-      if (error.name === 'DaemonNotReady') {
-        console.log(
-          `Daemon not ready, retrying request ${requestId} in 200ms...`,
-        )
-        await new Promise((resolve) => setTimeout(resolve, 200))
-
-        // Retry the request once
-        await requestWriter.writeRequest(pipeRequest)
-        const retryResponse =
-          await workerMessageRouter.waitForResponse(requestId)
-
-        if (!retryResponse.success) {
-          const retryError = retryResponse.error
-          if (!retryError) {
-            throw new Error(
-              'Retry response marked as failed but no error provided',
-            )
-          }
-          throw new WorkerScriptRuntimeError(
-            `Worker execution failed after retry: ${retryError.message}`,
-            {
-              className: 'WorkerScriptRuntimeError',
-              name: retryError.name,
-              message: retryError.message,
-              stack: retryError.stack ?? '',
-            },
-          )
-        }
-
-        // Use the retry response
-        finalResponse = retryResponse
-      } else {
-        console.log(
-          `[TIMING] Worker execution failed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
-        )
-
-        throw new WorkerScriptRuntimeError(
-          `Worker execution failed: ${error.message}`,
-          {
-            className: 'WorkerScriptRuntimeError',
-            name: error.name,
-            message: error.message,
-            stack: error.stack ?? '',
-          },
-        )
-      }
+      throw new AsyncWorkError(error)
     }
 
     if (!(requestOrTask instanceof Request)) {
@@ -1561,8 +1521,10 @@ export async function runWorker(
       return undefined
     }
 
-    if (!finalResponse.response) {
-      throw new Error('No response data received for request')
+    if (!pipeResponse.response) {
+      throw new UnknownAsyncWorkError({
+        message: 'No response data received for request',
+      })
     }
 
     console.log(
@@ -1576,7 +1538,7 @@ export async function runWorker(
       console.log('[run-worker-script]', 'Received response from worker')
     }
 
-    const responseData = finalResponse.response
+    const responseData = pipeResponse.response
 
     // Check if this is a serialized streaming response
     if (
@@ -1657,13 +1619,16 @@ export async function runWorker(
       // eslint-disable-next-line no-console
       console.log('[run-worker-script]', error)
     }
-    if (error instanceof WorkerScriptRuntimeError) {
+    if (error instanceof AsyncWorkError) {
       throw error
     }
 
-    throw new ScriptExecutionError('Failed to execute worker via pipe', {
-      parseError: error instanceof Error ? error.message : String(error),
-      exitCode: undefined,
+    throw new UnknownAsyncWorkError({
+      message: 'Failed to execute worker via pipe',
+      cause: new UnknownAsyncWorkError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : new Error().stack,
+      }),
     })
   } finally {
     if (!deferCompletion && completeRequest) {

@@ -1,28 +1,32 @@
 import {
+  AsyncWorkError,
+  UnknownAsyncWorkError,
+} from '@lombokapp/core-worker-utils'
+import {
+  CORE_IDENTIFIER,
   FolderPushMessage,
-  PLATFORM_IDENTIFIER,
   SystemLogEntry,
 } from '@lombokapp/types'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { and, count, eq, isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
-import { runWithThreadContext } from 'src/shared/request-context'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { PlatformTaskName } from 'src/task/task.constants'
+import { CoreTaskName } from 'src/task/task.constants'
 
-import type { PlatformProcessorTask } from '../base.processor'
-import { BaseProcessor, TaskProcessorError } from '../base.processor'
+import type { CoreTask } from '../base.processor'
+import { BaseCoreTaskProcessor } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'
 import { TaskService } from './task.service'
 
 const MAX_CONCURRENT_PLATFORM_TASKS = 10
 
 @Injectable()
-export class PlatformTaskService {
-  private readonly logger = new Logger(PlatformTaskService.name)
+export class CoreTaskService {
+  private readonly logger = new Logger(CoreTaskService.name)
   processors: Partial<
-    Record<PlatformTaskName, BaseProcessor<PlatformTaskName>>
+    Record<CoreTaskName, BaseCoreTaskProcessor<CoreTaskName>>
   > = {}
   runningTasksCount = 0
   draining: Promise<{ completed: number; pending: number }> | undefined
@@ -86,7 +90,7 @@ export class PlatformTaskService {
         .where(
           and(
             isNull(tasksTable.startedAt),
-            eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
+            eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
           ),
         )
         .limit(taskExecutionLimit)
@@ -110,7 +114,7 @@ export class PlatformTaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
-          eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
+          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
         ),
       )
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -128,7 +132,7 @@ export class PlatformTaskService {
       this.logger.warn(
         'Platform task already started during drain (should not happen)',
       )
-    } else if (task.ownerIdentifier !== PLATFORM_IDENTIFIER) {
+    } else if (task.ownerIdentifier !== CORE_IDENTIFIER) {
       this.logger.warn(
         'Platform task execution run for non-plaform task (should not happen)',
       )
@@ -174,7 +178,7 @@ export class PlatformTaskService {
         )
       }
       // we have secured the task, so perform execution
-      const processorName = startedTask.taskIdentifier as PlatformTaskName
+      const processorName = startedTask.taskIdentifier as CoreTaskName
 
       const processor = this.processors[processorName]
       if (!processor) {
@@ -184,7 +188,7 @@ export class PlatformTaskService {
       this.runningTasksCount++
       await runWithThreadContext(crypto.randomUUID(), async () => {
         await processor
-          .run(startedTask as PlatformProcessorTask<PlatformTaskName>)
+          .run(startedTask as CoreTask<CoreTaskName>)
           .then(() => {
             if (shouldRegisterComplete) {
               return this.taskService.registerTaskCompleted(taskId, {
@@ -194,17 +198,39 @@ export class PlatformTaskService {
             }
             return startedTask
           })
-          .catch((error: Error | TaskProcessorError) => {
+          .catch((error: unknown) => {
             // handle failure
-            const isCaughtError = error instanceof TaskProcessorError
+            const isAlreadyCaptured = error instanceof AsyncWorkError
+            const capturedError = isAlreadyCaptured
+              ? error
+              : new UnknownAsyncWorkError({
+                  origin: 'internal',
+                  message: 'Unknown error',
+                  stack:
+                    error instanceof Error ? error.stack : new Error().stack,
+                  cause:
+                    error instanceof Error
+                      ? {
+                          origin: 'internal',
+                          class: 'permanent',
+                          retry: false,
+                          code: 'UNKNOWN_ERROR',
+                          message: error.message,
+                          stack: error.stack,
+                        }
+                      : {
+                          origin: 'internal',
+                          class: 'permanent',
+                          code: 'UNKNOWN_ERROR',
+                          retry: false,
+                          message: String(error),
+                          stack: new Error().stack,
+                        },
+                })
 
             return this.taskService.registerTaskCompleted(taskId, {
               success: false,
-              error: {
-                code: isCaughtError ? error.code : error.name,
-                message: error.message,
-                details: isCaughtError ? error.details : undefined,
-              },
+              error: capturedError.toEnvelope(),
             })
           })
           .then((updatedTask) => {
@@ -250,11 +276,11 @@ export class PlatformTaskService {
     }
   }
 
-  registerProcessor = <K extends PlatformTaskName>(
+  registerProcessor = <K extends CoreTaskName>(
     taskName: K,
-    processorFunction: BaseProcessor<K>,
+    processorFunction: BaseCoreTaskProcessor<K>,
   ) => {
     this.processors[taskName] =
-      processorFunction as unknown as BaseProcessor<PlatformTaskName>
+      processorFunction as unknown as BaseCoreTaskProcessor<CoreTaskName>
   }
 }

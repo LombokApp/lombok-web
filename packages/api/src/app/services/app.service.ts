@@ -21,12 +21,12 @@ import {
 import { mimeFromExtension } from '@lombokapp/utils'
 import {
   BadRequestException,
-  ConflictException,
   forwardRef,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
+  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
@@ -65,7 +65,7 @@ import { storageLocationsTable } from 'src/storage/entities/storage-location.ent
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
@@ -132,7 +132,7 @@ export class AppService {
   eventService: EventService
   serverlessWorkerRunnerService: CoreWorkerService
   taskService: TaskService
-  platformTaskService: PlatformTaskService
+  platformTaskService: CoreTaskService
   private readonly appSocketService: AppSocketService
   private readonly dockerJobsService: DockerJobsService
   private readonly logger = new Logger(AppService.name)
@@ -146,7 +146,7 @@ export class AppService {
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     private readonly s3Service: S3Service,
-    @Inject(forwardRef(() => PlatformTaskService)) _platformTaskService,
+    @Inject(forwardRef(() => CoreTaskService)) _platformTaskService,
     @Inject(forwardRef(() => TaskService)) _taskService,
     @Inject(forwardRef(() => EventService)) _eventService,
     @Inject(forwardRef(() => FolderService)) _folderService,
@@ -155,7 +155,7 @@ export class AppService {
     @Inject(forwardRef(() => CoreWorkerService))
     _coreWorkerService,
   ) {
-    this.platformTaskService = _platformTaskService as PlatformTaskService
+    this.platformTaskService = _platformTaskService as CoreTaskService
     this.serverlessWorkerRunnerService = _coreWorkerService as CoreWorkerService
     this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
@@ -540,7 +540,7 @@ export class AppService {
     })
 
     if (!workerApp) {
-      throw new NotFoundException('Worker app not found.')
+      throw new NotFoundException('Worker app not found')
     }
 
     if (!(requestData.workerIdentifier in workerApp.workers.definitions)) {
@@ -552,7 +552,9 @@ export class AppService {
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorage()
     if (!serverStorageLocation) {
-      throw new ConflictException('Server storage location not available.')
+      throw new NotImplementedException(
+        'Server storage location not configured',
+      )
     }
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
@@ -630,7 +632,9 @@ export class AppService {
       await this.serverConfigurationService.getServerStorage()
 
     if (!serverStorageLocation) {
-      throw new ConflictException('Server storage location not available.')
+      throw new NotImplementedException(
+        'Server storage location not configured',
+      )
     }
 
     const presignedGetURL = this.s3Service.createS3PresignedUrls([

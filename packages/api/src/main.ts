@@ -5,7 +5,7 @@ import { PlatformModule } from './platform/platform.module'
 import { appReference, setApp, setAppInitializing } from './shared/app-helper'
 import { HttpExceptionFilter } from './shared/http-exception-filter'
 import { NoPrefixConsoleLogger } from './shared/no-prefix-console-logger'
-import { runWithThreadContext } from './shared/request-context'
+import { runWithThreadContext } from './shared/thread-context'
 
 export async function buildApp() {
   if (appReference.app) {

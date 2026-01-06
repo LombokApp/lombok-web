@@ -1,10 +1,13 @@
 import type { SerializeableRequest } from '@lombokapp/app-worker-sdk'
 import type { TaskDTO } from '@lombokapp/types'
 
+import type { AsyncWorkErrorEnvelope } from './errors'
+
 export interface WorkerModuleStartContext {
   outputLogFilepath: string
   errorLogFilepath: string
   workerIdentifier: string
+  appIdentifier: string
   workerToken: string
   serverBaseUrl: string
   scriptPath: string
@@ -59,11 +62,7 @@ export interface WorkerPipeResponse {
         body: string
         url: string
       }
-  error?: {
-    name: string
-    message: string
-    stack?: string
-  }
+  error?: AsyncWorkErrorEnvelope
 }
 
 export interface StreamChunk {
