@@ -3,6 +3,7 @@ import {
   AppWorkerNotFoundError,
   AsyncWorkError,
   AsyncWorkErrorEnvelope,
+  buildUnexpectedError,
   CoreWorkerIncomingIpcMessage,
   coreWorkerIncomingIpcMessageSchema,
   coreWorkerIncomingRequestMessageSchema,
@@ -10,7 +11,7 @@ import {
   CoreWorkerMessagePayloadTypes,
   coreWorkerOutgoingIpcMessageSchema,
   CoreWorkerOutgoingRequestMessage,
-  UnknownAsyncWorkError,
+  NotReadyAsyncWorkError,
 } from '@lombokapp/core-worker-utils'
 import {
   forwardRef,
@@ -175,6 +176,7 @@ export class CoreWorkerService {
           let errorEnvelope: AsyncWorkErrorEnvelope | undefined
           if (error instanceof NotFoundException) {
             errorEnvelope = new AppNotFoundError({
+              name: 'Error',
               message: `Worker "${message.payload.workerIdentifier}" not found for app "${message.payload.appIdentifier}"`,
               details: {
                 appIdentifier: message.payload.appIdentifier,
@@ -183,6 +185,7 @@ export class CoreWorkerService {
             }).toEnvelope()
           } else if (error instanceof NotImplementedException) {
             errorEnvelope = new AppWorkerNotFoundError({
+              name: 'Error',
               message: `Worker "${message.payload.workerIdentifier}" not found for app "${message.payload.appIdentifier}"`,
               details: {
                 appIdentifier: message.payload.appIdentifier,
@@ -190,21 +193,15 @@ export class CoreWorkerService {
               },
             }).toEnvelope()
           } else {
-            errorEnvelope = new UnknownAsyncWorkError(
-              error instanceof Error
-                ? {
-                    message: error.message,
-                    details: {
-                      error: error.message,
-                    },
-                  }
-                : {
-                    message: String(error),
-                    details: {
-                      error: String(error),
-                    },
-                  },
-            ).toEnvelope()
+            errorEnvelope = buildUnexpectedError({
+              code: 'UNEXPECTED_ERROR_GETTING_WORKER_EXEC_CONFIG',
+              message: 'Unexpected error getting worker exec config',
+              error,
+              details: {
+                appIdentifier: message.payload.appIdentifier,
+                workerIdentifier: message.payload.workerIdentifier,
+              },
+            }).toEnvelope()
           }
           return {
             success: false,
@@ -224,6 +221,7 @@ export class CoreWorkerService {
           let errorEnvelope: AsyncWorkErrorEnvelope | undefined
           if (error instanceof NotFoundException) {
             errorEnvelope = new AppNotFoundError({
+              name: 'Error',
               message: `UI bundle not found for app "${message.payload.appIdentifier}"`,
               details: {
                 appIdentifier: message.payload.appIdentifier,
@@ -231,27 +229,21 @@ export class CoreWorkerService {
             }).toEnvelope()
           } else if (error instanceof NotImplementedException) {
             errorEnvelope = new AppWorkerNotFoundError({
+              name: 'Error',
               message: `UI bundle not found for app "${message.payload.appIdentifier}"`,
               details: {
                 appIdentifier: message.payload.appIdentifier,
               },
             }).toEnvelope()
           } else {
-            errorEnvelope = new UnknownAsyncWorkError(
-              error instanceof Error
-                ? {
-                    message: error.message,
-                    details: {
-                      error: error.message,
-                    },
-                  }
-                : {
-                    message: String(error),
-                    details: {
-                      error: String(error),
-                    },
-                  },
-            ).toEnvelope()
+            errorEnvelope = buildUnexpectedError({
+              code: 'UNEXPECTED_ERROR_GETTING_UI_BUNDLE',
+              message: 'Unexpected error getting UI bundle',
+              error,
+              details: {
+                appIdentifier: message.payload.appIdentifier,
+              },
+            }).toEnvelope()
           }
           return {
             success: false,
@@ -324,17 +316,10 @@ export class CoreWorkerService {
           const errorPayload =
             error instanceof AsyncWorkError
               ? error.toEnvelope()
-              : new UnknownAsyncWorkError({
-                  origin: 'internal',
-                  stack: new Error().stack,
+              : buildUnexpectedError({
+                  code: 'UNEXPECTED_ERROR_DURING_CORE_WORKER_REQUEST_HANDLING',
                   message: `Unknown error during core worker "${parsedMessage.data.payload.action}" request: ${error instanceof Error ? error.message : String(error)}`,
-                  cause: new UnknownAsyncWorkError({
-                    origin: 'internal',
-                    stack:
-                      error instanceof Error ? error.stack : new Error().stack,
-                    message:
-                      error instanceof Error ? error.message : String(error),
-                  }),
+                  error,
                 }).toEnvelope()
           void this.sendIpcMessage({
             type: 'response',
@@ -514,6 +499,15 @@ export class CoreWorkerService {
     payload: CoreWorkerMessagePayloadTypes['execute_task']['request'],
     timeoutMs = 5 * 60_000,
   ) {
+    if (!this.isReady()) {
+      throw new NotReadyAsyncWorkError({
+        name: 'Error',
+        code: 'SERVERLESS_EXECUTOR_NOT_READY',
+        message: 'Serverless executor not ready to accept workloads',
+        requeue: { mode: 'auto', delayMs: 10000 },
+        stack: new Error().stack,
+      })
+    }
     return this.sendRequest('execute_task', payload, timeoutMs)
   }
 
@@ -521,6 +515,15 @@ export class CoreWorkerService {
     payload: CoreWorkerMessagePayloadTypes['execute_system_request']['request'],
     timeoutMs = 3 * 60_000,
   ) {
+    if (!this.isReady()) {
+      throw new NotReadyAsyncWorkError({
+        name: 'Error',
+        code: 'SERVERLESS_EXECUTOR_NOT_READY',
+        message: 'Serverless executor not ready to accept workloads',
+        requeue: { mode: 'auto', delayMs: 10000 },
+        stack: new Error().stack,
+      })
+    }
     return this.sendRequest('execute_system_request', payload, timeoutMs)
   }
 

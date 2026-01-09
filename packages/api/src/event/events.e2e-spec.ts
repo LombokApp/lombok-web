@@ -6,9 +6,9 @@ import type { TestModule } from 'src/test/test.types'
 import { buildTestModule } from 'src/test/test.util'
 import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
-const TEST_MODULE_KEY = 'platform_events'
+const TEST_MODULE_KEY = 'core_events'
 
-describe('Platform events', () => {
+describe('Core Events', () => {
   let testModule: TestModule | undefined
 
   const resetTestState = async () => {
@@ -18,6 +18,7 @@ describe('Platform events', () => {
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
+      // debug: true,
     })
   })
 
@@ -29,8 +30,9 @@ describe('Platform events', () => {
     await testModule?.shutdown()
   })
 
-  it('creates tasks for apps subscribed to platform events', async () => {
+  it('creates tasks for apps subscribed to core events', async () => {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
     const data = {
       folderId: crypto.randomUUID(),
       objectKey: crypto.randomUUID(),

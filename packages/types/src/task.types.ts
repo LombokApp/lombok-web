@@ -2,8 +2,8 @@ import z from 'zod'
 
 import { validateConditionExpression } from './condition-validation.util'
 import {
+  corePrefixedEventIdentifierSchema,
   eventIdentifierSchema,
-  platformPrefixedEventIdentifierSchema,
 } from './events.types'
 import { targetLocationContextDTOSchema } from './folder.types'
 import { taskIdentifierSchema } from './identifiers.types'
@@ -138,7 +138,7 @@ export const eventTaskTriggerConfigSchema = z
   .object({
     kind: z.literal('event'),
     eventIdentifier: eventIdentifierSchema.or(
-      platformPrefixedEventIdentifierSchema,
+      corePrefixedEventIdentifierSchema,
     ),
     dataTemplate: jsonSerializableObjectSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
   })
@@ -172,7 +172,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       eventId: z.string().uuid(),
       emitterIdentifier: z.string(),
       eventIdentifier: eventIdentifierSchema.or(
-        platformPrefixedEventIdentifierSchema,
+        corePrefixedEventIdentifierSchema,
       ),
       eventTriggerConfigIndex: z.number().int(),
       dataTemplate: jsonSerializableObjectSchema.optional(),
@@ -268,6 +268,34 @@ export const taskDTOSchema = z.object({
   updatedAt: z.string().datetime(),
 })
 
-export type RequeueConfig =
-  | { shouldRequeue: true; delayMs: number; notBefore: Date | undefined }
-  | { shouldRequeue: false }
+export const requeueConfigSchema = z.discriminatedUnion('mode', [
+  z
+    .object({
+      mode: z.literal('manual'),
+    })
+    .strict(),
+  z
+    .object({
+      mode: z.literal('auto'),
+      delayMs: z.number().int().positive(),
+    })
+    .strict(),
+])
+
+export type RequeueConfig = z.infer<typeof requeueConfigSchema>
+export type RequeueConfigSerializable = z.infer<typeof requeueConfigSchema>
+
+export type TaskCompletion =
+  | {
+      success: false
+      error: {
+        code: string
+        message: string
+        name: string
+        details?: JsonSerializableObject
+      }
+    }
+  | {
+      success: true
+      result?: JsonSerializableObject
+    }

@@ -9,7 +9,6 @@ import type {
 import {
   AsyncWorkError,
   downloadFileToDisk,
-  UnknownAsyncWorkError,
 } from '@lombokapp/core-worker-utils'
 import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import fs from 'fs'
@@ -982,6 +981,9 @@ async function prepareWorkerBundle({
 
     fs.rmSync(tmpRoot, { recursive: true })
     return { cacheDir }
+  } catch (error) {
+    console.error('Failed to prepare worker bundle:', error)
+    throw error
   } finally {
     // Release lock
     try {
@@ -1502,8 +1504,12 @@ export async function runWorker(
 
       const error = pipeResponse.error
       if (!error) {
-        throw new UnknownAsyncWorkError({
+        throw new AsyncWorkError({
+          name: 'InvalidWorkerError',
+          origin: 'internal',
+          code: 'NO_ERROR_PROVIDED',
           message: 'Response marked as failed but no error provided',
+          stack: new Error().stack,
         })
       }
 
@@ -1522,8 +1528,12 @@ export async function runWorker(
     }
 
     if (!pipeResponse.response) {
-      throw new UnknownAsyncWorkError({
+      throw new AsyncWorkError({
+        name: 'InvalidWorkerResponse',
+        origin: 'internal',
+        code: 'NO_RESPONSE_DATA_RECEIVED',
         message: 'No response data received for request',
+        stack: new Error().stack,
       })
     }
 
@@ -1623,13 +1633,7 @@ export async function runWorker(
       throw error
     }
 
-    throw new UnknownAsyncWorkError({
-      message: 'Failed to execute worker via pipe',
-      cause: new UnknownAsyncWorkError({
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : new Error().stack,
-      }),
-    })
+    throw error
   } finally {
     if (!deferCompletion && completeRequest) {
       completeRequest()

@@ -64,10 +64,13 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
         this.logger.error('Docker job not accepted:', { execResult })
         await this.taskService.registerTaskCompleted(task.id, {
           success: false,
-          error: execResult.submitError ?? {
-            code: 'JOB_NOT_ACCEPTED',
-            message: 'Job not accepted',
-          },
+          error: execResult.submitError
+            ? { ...execResult.submitError, name: 'Error' }
+            : {
+                name: 'Error',
+                code: 'JOB_NOT_ACCEPTED',
+                message: 'Job not accepted',
+              },
         })
       }
     })

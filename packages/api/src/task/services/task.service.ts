@@ -4,6 +4,7 @@ import {
   RequeueConfig,
   StorageAccessPolicy,
   SystemLogEntry,
+  TaskCompletion,
   TaskOnCompleteConfig,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
@@ -254,6 +255,8 @@ export class TaskService {
           success: tasksTable.success,
           userVisible: tasksTable.userVisible,
           error: tasksTable.error,
+          attemptCount: tasksTable.attemptCount,
+          failureCount: tasksTable.failureCount,
           createdAt: tasksTable.createdAt,
           updatedAt: tasksTable.updatedAt,
           handlerType: tasksTable.handlerType,
@@ -319,7 +322,6 @@ export class TaskService {
     userId,
     taskIdentifier,
     taskData,
-    dontStartBefore,
     targetUserId,
     targetLocation,
     storageAccessPolicy = [],
@@ -327,7 +329,6 @@ export class TaskService {
     userId: string
     taskIdentifier: string
     taskData: JsonSerializableObject
-    dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
     storageAccessPolicy?: StorageAccessPolicy
@@ -346,12 +347,6 @@ export class TaskService {
       },
       taskDescription: 'Platform task on user request',
       data: taskData,
-      dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
-            : null,
       createdAt: now,
       updatedAt: now,
       handlerType: 'core',
@@ -387,7 +382,6 @@ export class TaskService {
     appIdentifier,
     taskIdentifier,
     taskData,
-    dontStartBefore,
     targetUserId,
     targetLocation,
     storageAccessPolicy = [],
@@ -396,7 +390,6 @@ export class TaskService {
     appIdentifier: string
     taskIdentifier: string
     taskData: JsonSerializableObject
-    dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId: string
     targetLocation?: { folderId: string; objectKey?: string }
     storageAccessPolicy?: StorageAccessPolicy
@@ -429,12 +422,6 @@ export class TaskService {
       },
       taskDescription: taskDefinition.description,
       data: taskData,
-      dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
-            : undefined,
       createdAt: now,
       updatedAt: now,
       handlerType: 'core',
@@ -539,10 +526,10 @@ export class TaskService {
       createdAt: now,
       updatedAt: now,
       dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
+        dontStartBefore && 'timestamp' in dontStartBefore
+          ? dontStartBefore.timestamp
+          : dontStartBefore && 'delayMs' in dontStartBefore
+            ? addMs(now, dontStartBefore.delayMs)
             : undefined,
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
@@ -683,10 +670,10 @@ export class TaskService {
       createdAt: now,
       updatedAt: now,
       dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
+        dontStartBefore && 'timestamp' in dontStartBefore
+          ? dontStartBefore.timestamp
+          : dontStartBefore && 'delayMs' in dontStartBefore
+            ? addMs(now, dontStartBefore.delayMs)
             : undefined,
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
@@ -850,20 +837,7 @@ export class TaskService {
 
   async registerTaskCompleted(
     taskId: string,
-    completion:
-      | {
-          success: false
-          requeue?: { delayMs: number }
-          error: {
-            code: string
-            message: string
-            details?: JsonSerializableObject
-          }
-        }
-      | {
-          success: true
-          result?: JsonSerializableObject
-        },
+    completion: TaskCompletion,
     options: { tx?: OrmService['db'] } = { tx: undefined },
   ) {
     const args = { taskId, completion }
@@ -889,6 +863,7 @@ export class TaskService {
             error: {
               code: string
               message: string
+              name: string
               details?: JsonSerializableObject
             }
           }
@@ -935,38 +910,41 @@ export class TaskService {
             : undefined,
     }
 
-    const requeueConfig: RequeueConfig =
+    const requeueConfig: RequeueConfig | undefined =
       !completion.success && completion.requeue
         ? ({
-            shouldRequeue: true,
+            mode: 'auto',
             delayMs: Math.max(completion.requeue.delayMs, 0),
-            notBefore:
-              completion.requeue.delayMs > 0
-                ? new Date(now.getTime() + completion.requeue.delayMs)
-                : undefined,
           } as const)
-        : { shouldRequeue: false }
+        : undefined
 
+    const requeueConfigSystemLog = requeueConfig
+      ? ({
+          at: now,
+          logType: 'requeue',
+          message: 'Task is requeued',
+          payload: {
+            requeueConfig,
+            dontStartBefore: new Date(
+              Date.now() + requeueConfig.delayMs,
+            ).toISOString(),
+          },
+        } as const)
+      : undefined
     const systemLogs = [completionSystemLog].concat(
-      requeueConfig.shouldRequeue
-        ? [
-            {
-              at: now,
-              logType: 'requeue',
-              message: 'Task is requeued',
-              payload: {
-                delayMs: requeueConfig.delayMs,
-                dontStartBefore: requeueConfig.notBefore?.toISOString() ?? null,
-              },
-            },
-          ]
-        : [],
+      requeueConfigSystemLog ? [requeueConfigSystemLog] : [],
     )
 
     const updatedTask = (
       await tx
         .update(tasksTable)
         .set({
+          attemptCount: sql<number>`coalesce(${tasksTable.attemptCount}, 0) + 1`,
+          ...(!completion.success
+            ? {
+                failureCount: sql<number>`coalesce(${tasksTable.failureCount}, 0) + 1`,
+              }
+            : {}),
           updatedAt: now,
           ...(completion.success
             ? {
@@ -979,12 +957,15 @@ export class TaskService {
                 completedAt: now,
                 error: {
                   code: completion.error.code,
+                  name: completion.error.name,
                   message: completion.error.message,
                   details: completion.error.details,
                 },
-                ...(requeueConfig.shouldRequeue
+                ...(requeueConfigSystemLog
                   ? {
-                      dontStartBefore: requeueConfig.notBefore,
+                      dontStartBefore: new Date(
+                        requeueConfigSystemLog.payload.dontStartBefore,
+                      ),
                       success: null,
                       completedAt: null,
                       startedAt: null,

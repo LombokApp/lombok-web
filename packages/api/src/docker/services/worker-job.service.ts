@@ -52,6 +52,7 @@ export interface CompleteJobRequest {
   success: boolean
   result?: JsonSerializableObject
   error?: {
+    name: string
     code: string
     message: string
   }
@@ -367,8 +368,9 @@ export class WorkerJobService {
       }
 
       const resolvedError = {
-        code: error?.code || 'UNKNOWN_ERROR',
-        message: error?.message || 'Job failed without error details',
+        name: error?.name ?? 'UnknownError',
+        code: error?.code ?? 'UNKNOWN_ERROR',
+        message: error?.message ?? 'Job failed without error details',
         details: {},
       }
 

@@ -27,9 +27,10 @@ export class AnalyzeObjectProcessor extends BaseCoreTaskProcessor<CoreTaskName.A
 
       if (!this.coreWorkerService.isReady()) {
         throw new NotReadyAsyncWorkError({
+          name: 'Error',
           message: 'Executor not ready to accept workloads',
           code: 'CORE_WORKER_NOT_READY',
-          retry: true,
+          requeue: { mode: 'auto', delayMs: 10000 },
         })
       }
 

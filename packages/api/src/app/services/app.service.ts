@@ -1246,7 +1246,7 @@ export class AppService {
               user: config.permissions?.user ?? [],
               folder: config.permissions?.folder ?? [],
             },
-            subscribedPlatformEvents: config.subscribedPlatformEvents ?? [],
+            subscribedCoreEvents: config.subscribedCoreEvents ?? [],
             implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||

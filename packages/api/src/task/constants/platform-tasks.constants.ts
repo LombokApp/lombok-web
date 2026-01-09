@@ -1,5 +1,5 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
-import { PlatformEvent } from '@lombokapp/types'
+import { CoreEvent } from '@lombokapp/types'
 import type { Event } from 'src/event/entities/event.entity'
 
 import { CoreTaskName } from '../task.constants'
@@ -21,7 +21,7 @@ export const PLATFORM_TASKS = {
 
 export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
   Record<
-    PlatformEvent,
+    CoreEvent,
     {
       taskIdentifier: CoreTaskName
       buildData: (event: Event) => JsonSerializableObject
@@ -31,7 +31,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
     }[]
   >
 > = {
-  [PlatformEvent.object_added]: [
+  [CoreEvent.object_added]: [
     {
       taskIdentifier: CoreTaskName.AnalyzeObject,
       buildData: (event: Event) => ({
@@ -48,7 +48,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
       }),
     },
   ],
-  [PlatformEvent.docker_task_enqueued]: [
+  [CoreEvent.docker_task_enqueued]: [
     {
       taskIdentifier: CoreTaskName.RunDockerWorker,
       buildData: (event: Event) => ({
@@ -59,7 +59,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
       }),
     },
   ],
-  [PlatformEvent.serverless_task_enqueued]: [
+  [CoreEvent.serverless_task_enqueued]: [
     {
       taskIdentifier: CoreTaskName.RunServerlessWorker,
       buildData: (event: Event) => ({

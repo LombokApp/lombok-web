@@ -13,7 +13,7 @@ import {
   FolderPushMessage,
   MediaType,
   CORE_IDENTIFIER,
-  PlatformEvent,
+  CoreEvent,
   previewMetadataSchema,
   SignedURLsRequestMethod,
   StorageProvisionTypeEnum,
@@ -1415,8 +1415,8 @@ export class FolderService {
     await this.eventService.emitEvent({
       emitterIdentifier: CORE_IDENTIFIER,
       eventIdentifier: wasAdded
-        ? PlatformEvent.object_added
-        : PlatformEvent.object_updated,
+        ? CoreEvent.object_added
+        : CoreEvent.object_updated,
       targetLocation: {
         folderId: record.folderId,
         objectKey: record.objectKey,

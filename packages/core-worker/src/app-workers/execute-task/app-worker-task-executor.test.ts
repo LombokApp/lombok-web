@@ -5,7 +5,7 @@ import type {
   LogEntryLevel,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
-import { CORE_IDENTIFIER, PlatformEvent } from '@lombokapp/types'
+import { CORE_IDENTIFIER, CoreEvent } from '@lombokapp/types'
 import {
   afterAll,
   beforeAll,
@@ -237,7 +237,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       trigger: {
         kind: 'event' as const,
         invokeContext: {
-          eventIdentifier: PlatformEvent.object_added,
+          eventIdentifier: CoreEvent.object_added,
           eventTriggerConfigIndex: 0,
           eventId: uuidV4(),
           emitterIdentifier: CORE_IDENTIFIER,

@@ -4,7 +4,7 @@ import {
   eventIdentifierSchema,
   FolderPushMessage,
   JsonSerializableObject,
-  PlatformEvent,
+  CoreEvent,
   ScheduleTaskTriggerConfig,
 } from '@lombokapp/types'
 import {
@@ -328,7 +328,7 @@ export class EventService {
     const subscribedApps = isPlatformEmitter
       ? await tx.query.appsTable.findMany({
           where: and(
-            arrayContains(appsTable.subscribedPlatformEvents, [
+            arrayContains(appsTable.subscribedCoreEvents, [
               eventTriggerIdentifier,
             ]),
             eq(appsTable.enabled, true),
@@ -469,7 +469,7 @@ export class EventService {
       )
     }
 
-    void this.platformTaskService.drainPlatformTasks()
+    void this.platformTaskService.startDrainPlatformTasks()
   }
 
   async emitEvent(
@@ -528,7 +528,7 @@ export class EventService {
 
     const platformTaskDefinitions =
       PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP[
-        event.eventIdentifier as PlatformEvent
+        event.eventIdentifier as CoreEvent
       ] ?? []
 
     const platformTasks: NewTask[] = platformTaskDefinitions.map(
@@ -576,8 +576,8 @@ export class EventService {
         emitterIdentifier: CORE_IDENTIFIER,
         eventIdentifier:
           task.handlerType === 'worker'
-            ? PlatformEvent.serverless_task_enqueued
-            : PlatformEvent.docker_task_enqueued,
+            ? CoreEvent.serverless_task_enqueued
+            : CoreEvent.docker_task_enqueued,
         data: {
           innerTaskId: task.id,
           appIdentifier: task.ownerIdentifier,

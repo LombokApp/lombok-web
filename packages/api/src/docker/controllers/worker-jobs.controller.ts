@@ -126,7 +126,10 @@ export class WorkerJobsController {
           }
         : {
             success: false,
-            error: bodyDiscriminated.error,
+            error: {
+              name: 'Error',
+              ...bodyDiscriminated.error,
+            },
             outputFiles: body.outputFiles,
           },
     )

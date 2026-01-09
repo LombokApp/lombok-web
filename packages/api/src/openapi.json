@@ -5889,12 +5889,12 @@
                     "minLength": 1,
                     "maxLength": 1024
                   },
-                  "subscribedPlatformEvents": {
+                  "subscribedCoreEvents": {
                     "type": "array",
                     "items": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^platform:[a-z_]+$"
+                      "pattern": "^core:[a-z_]+$"
                     }
                   },
                   "triggers": {
@@ -5923,7 +5923,7 @@
                                 {
                                   "type": "string",
                                   "minLength": 1,
-                                  "pattern": "^platform:[a-z_]+$"
+                                  "pattern": "^core:[a-z_]+$"
                                 }
                               ]
                             },
@@ -6471,7 +6471,7 @@
                     "appIdentifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-zA-Z0-9_]+$"
+                      "pattern": "^[a-z0-9_]+$"
                     },
                     "workerId": {
                       "type": "string"
@@ -6889,12 +6889,12 @@
                       "minLength": 1,
                       "maxLength": 1024
                     },
-                    "subscribedPlatformEvents": {
+                    "subscribedCoreEvents": {
                       "type": "array",
                       "items": {
                         "type": "string",
                         "minLength": 1,
-                        "pattern": "^platform:[a-z_]+$"
+                        "pattern": "^core:[a-z_]+$"
                       }
                     },
                     "triggers": {
@@ -6923,7 +6923,7 @@
                                   {
                                     "type": "string",
                                     "minLength": 1,
-                                    "pattern": "^platform:[a-z_]+$"
+                                    "pattern": "^core:[a-z_]+$"
                                   }
                                 ]
                               },
@@ -7471,7 +7471,7 @@
                       "appIdentifier": {
                         "type": "string",
                         "minLength": 1,
-                        "pattern": "^[a-zA-Z0-9_]+$"
+                        "pattern": "^[a-z0-9_]+$"
                       },
                       "workerId": {
                         "type": "string"
@@ -7889,12 +7889,12 @@
                     "minLength": 1,
                     "maxLength": 1024
                   },
-                  "subscribedPlatformEvents": {
+                  "subscribedCoreEvents": {
                     "type": "array",
                     "items": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^platform:[a-z_]+$"
+                      "pattern": "^core:[a-z_]+$"
                     }
                   },
                   "triggers": {
@@ -7923,7 +7923,7 @@
                                 {
                                   "type": "string",
                                   "minLength": 1,
-                                  "pattern": "^platform:[a-z_]+$"
+                                  "pattern": "^core:[a-z_]+$"
                                 }
                               ]
                             },
@@ -8471,7 +8471,7 @@
                     "appIdentifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-zA-Z0-9_]+$"
+                      "pattern": "^[a-z0-9_]+$"
                     },
                     "workerId": {
                       "type": "string"
@@ -8912,12 +8912,12 @@
                       "minLength": 1,
                       "maxLength": 1024
                     },
-                    "subscribedPlatformEvents": {
+                    "subscribedCoreEvents": {
                       "type": "array",
                       "items": {
                         "type": "string",
                         "minLength": 1,
-                        "pattern": "^platform:[a-z_]+$"
+                        "pattern": "^core:[a-z_]+$"
                       }
                     },
                     "triggers": {
@@ -8946,7 +8946,7 @@
                                   {
                                     "type": "string",
                                     "minLength": 1,
-                                    "pattern": "^platform:[a-z_]+$"
+                                    "pattern": "^core:[a-z_]+$"
                                   }
                                 ]
                               },
@@ -9799,12 +9799,12 @@
                     "minLength": 1,
                     "maxLength": 1024
                   },
-                  "subscribedPlatformEvents": {
+                  "subscribedCoreEvents": {
                     "type": "array",
                     "items": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^platform:[a-z_]+$"
+                      "pattern": "^core:[a-z_]+$"
                     }
                   },
                   "triggers": {
@@ -9833,7 +9833,7 @@
                                 {
                                   "type": "string",
                                   "minLength": 1,
-                                  "pattern": "^platform:[a-z_]+$"
+                                  "pattern": "^core:[a-z_]+$"
                                 }
                               ]
                             },
@@ -13431,7 +13431,7 @@
                               {
                                 "type": "string",
                                 "minLength": 1,
-                                "pattern": "^platform:[a-z_]+$"
+                                "pattern": "^core:[a-z_]+$"
                               }
                             ]
                           },
@@ -13890,7 +13890,7 @@
                                 {
                                   "type": "string",
                                   "minLength": 1,
-                                  "pattern": "^platform:[a-z_]+$"
+                                  "pattern": "^core:[a-z_]+$"
                                 }
                               ]
                             },

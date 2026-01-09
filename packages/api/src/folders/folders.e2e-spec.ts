@@ -299,7 +299,7 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await testModule?.services.platformTaskService.drainPlatformTasks(true)
+    await testModule!.waitForTasks('completed')
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',

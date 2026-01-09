@@ -47,7 +47,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
     this.jobs = [
       new CronJob(
         '*/5 * * * * *',
-        () => void this.platformTaskService.drainPlatformTasks(),
+        () => void this.platformTaskService.startDrainPlatformTasks(),
         null,
         true,
       ),

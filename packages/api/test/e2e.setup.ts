@@ -54,7 +54,7 @@ const testAppDefinitions: AppConfig[] = [
     slug: DUMMY_APP_SLUG,
     label: 'Dummy',
     requiresStorage: false,
-    subscribedPlatformEvents: ['platform:object_added'],
+    subscribedCoreEvents: ['core:object_added'],
     permissions: {
       platform: [],
       user: [],
@@ -64,7 +64,7 @@ const testAppDefinitions: AppConfig[] = [
       {
         kind: 'event',
         taskIdentifier: 'minimal_worker_task',
-        eventIdentifier: 'platform:object_added',
+        eventIdentifier: 'core:object_added',
         dataTemplate: {
           folderId: '{{event.data.folderId}}',
           objectKey: '{{event.data.objectKey}}',
@@ -94,7 +94,7 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'testapp',
     label: 'Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
       platform: [],
       user: [],
@@ -159,7 +159,7 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'tasklifecycle',
     label: 'Task Lifecycle App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
       platform: [],
       user: [],
@@ -297,7 +297,7 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'sockettestapp',
     label: 'Socket Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     database: {
       enabled: true,
     },
@@ -330,7 +330,7 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'sockettestappnodb',
     label: 'Socket Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
       platform: [],
       user: [],
@@ -359,7 +359,7 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'sockettestappdatatemplate',
     label: 'Socket Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
       platform: [],
       user: [],

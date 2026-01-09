@@ -6,10 +6,10 @@ import type {
 } from '@lombokapp/core-worker-utils'
 import {
   AsyncWorkError,
+  buildUnexpectedError,
   coreWorkerIncomingIpcMessageSchema,
   coreWorkerOutgoingIpcMessageSchema,
   coreWorkerOutgoingRequestMessageSchema,
-  UnknownAsyncWorkError,
 } from '@lombokapp/core-worker-utils'
 import { LogEntryLevel } from '@lombokapp/types'
 import type { Variant } from '@lombokapp/utils'
@@ -382,26 +382,40 @@ const handleInit = (
 }
 
 const handleCoreRequest = async (message: CoreWorkerIncomingRequestMessage) => {
-  if (message.action === 'execute_task') {
-    await handleExecuteTask(message.payload)
-    return null
-  } else if (message.action === 'execute_system_request') {
-    return handleExecuteSystemRequest(message.payload)
-  } else if (message.action === 'init') {
-    return handleInit(message.payload)
-  } else if (message.action === 'analyze_object') {
-    return handleAnalyzeObject(message.payload)
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  } else if (message.action === 'update_app_install_id_mapping') {
-    updateAppInstallIdMapping(message.payload.appInstallIdMapping)
-    void _log({
-      message: 'App install ID mapping updated',
-      level: LogEntryLevel.DEBUG,
-      data: {
-        appInstallIdMapping: message.payload.appInstallIdMapping,
+  try {
+    if (message.action === 'execute_task') {
+      await handleExecuteTask(message.payload)
+      return null
+    } else if (message.action === 'execute_system_request') {
+      return await handleExecuteSystemRequest(message.payload)
+    } else if (message.action === 'init') {
+      return handleInit(message.payload)
+    } else if (message.action === 'analyze_object') {
+      return await handleAnalyzeObject(message.payload)
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    } else if (message.action === 'update_app_install_id_mapping') {
+      updateAppInstallIdMapping(message.payload.appInstallIdMapping)
+      void _log({
+        message: 'App install ID mapping updated',
+        level: LogEntryLevel.DEBUG,
+        data: {
+          appInstallIdMapping: message.payload.appInstallIdMapping,
+        },
+      })
+      return null
+    }
+  } catch (error) {
+    if (error instanceof AsyncWorkError) {
+      throw error
+    }
+    throw buildUnexpectedError({
+      code: 'UNEXPECTED_ERROR_DURING_CORE_REQUEST_HANDLING',
+      message: 'Unexpected error during core reuqest handling',
+      error,
+      details: {
+        action: message.action,
       },
     })
-    return null
   }
 
   throw new Error(`Unknown core worker request: ${JSON.stringify(message)}`)
@@ -470,21 +484,19 @@ ipcSocket.on('data', (data: Buffer) => {
             coreWorkerOutgoingIpcMessageSchema.parse(response),
           )
         })
-        .catch((error: unknown) => {
+        .catch((_error: unknown) => {
+          const normalizedError =
+            _error instanceof Error ? _error : new Error(String(_error))
           const errorPayload =
-            error instanceof AsyncWorkError
-              ? error.toEnvelope()
-              : new UnknownAsyncWorkError({
-                  origin: 'internal',
-                  stack: new Error().stack,
-                  message: `Unknown error during core "${parsedMessage.data.payload.action}" request: ${error instanceof Error ? error.message : String(error)}`,
-                  cause: new UnknownAsyncWorkError({
-                    origin: 'internal',
-                    stack:
-                      error instanceof Error ? error.stack : new Error().stack,
-                    message:
-                      error instanceof Error ? error.message : String(error),
-                  }),
+            normalizedError instanceof AsyncWorkError
+              ? normalizedError.toEnvelope()
+              : buildUnexpectedError({
+                  code: 'UNEXPECTED_ERROR_DURING_IPC_MESSAGE_HANDLING',
+                  message: `Unexpected error during core worker handling of "${parsedMessage.data.payload.action}" request: ${normalizedError.message}`,
+                  error: normalizedError,
+                  details: {
+                    action: parsedMessage.data.payload.action,
+                  },
                 }).toEnvelope()
           void sendIpcMessage(
             coreWorkerOutgoingIpcMessageSchema.parse({

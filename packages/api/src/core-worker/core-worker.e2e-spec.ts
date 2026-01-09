@@ -1,4 +1,8 @@
-import { CORE_IDENTIFIER, SignedURLsRequestMethod } from '@lombokapp/types'
+import {
+  CORE_IDENTIFIER,
+  type JsonSerializableObject,
+  SignedURLsRequestMethod,
+} from '@lombokapp/types'
 import {
   afterAll,
   afterEach,
@@ -34,6 +38,10 @@ const WORKER_IDENTIFIER = 'test_worker'
 const EXECUTION_ERROR_WORKER_IDENTIFIER = 'test_worker_exec_error'
 const WORKER_ENTRYPOINT = 'worker-entry.ts'
 const SCRIPT_ERROR_TASK_IDENTIFIER = 'script_error_task'
+const UNEXPECTED_SCRIPT_ERROR_TASK_IDENTIFIER = 'unexpected_script_error_task'
+const THROWN_SCRIPT_ERROR_TASK_IDENTIFIER = 'thrown_script_error_task'
+const THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER =
+  'thrown_script_error_with_requeue_task'
 const EXECUTION_ERROR_TASK_IDENTIFIER = 'execution_error_task'
 const CONTENT_OBJECT_KEY = 'sample.txt'
 
@@ -41,7 +49,7 @@ const WORKER_ENV_VARS = {
   TEST_FLAG: 'true',
 }
 
-const WORKER_SOURCE = `import type { RequestHandler, TaskHandler } from '@lombokapp/app-worker-sdk'
+const WORKER_SOURCE = `import { AppTaskError, type RequestHandler, type TaskHandler } from '@lombokapp/app-worker-sdk'
 
 export const handleTask: TaskHandler = async function handleTask(task) {
   if (process.env.WORKER_ENV_TEST_FLAG !== 'true') {
@@ -51,6 +59,22 @@ export const handleTask: TaskHandler = async function handleTask(task) {
   if (task.taskIdentifier === '${SCRIPT_ERROR_TASK_IDENTIFIER}') {
     throw new Error('Script error for test')
   }
+
+  if (task.taskIdentifier === '${THROWN_SCRIPT_ERROR_TASK_IDENTIFIER}') {
+    throw new AppTaskError('CUSTOM_APP_ERROR_CODE', 'This is a custom error message from the app')
+  }
+
+  if (task.taskIdentifier === '${UNEXPECTED_SCRIPT_ERROR_TASK_IDENTIFIER}') {
+    thisVarDoesNotExist.anything()
+  }
+
+  if (task.taskIdentifier === '${THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER}') {
+    throw new AppTaskError('CUSTOM_APP_ERROR_CODE_WITH_REQUEUE', 'This is a custom error message from the app', {}, {
+      mode: 'auto',
+      delayMs: 1000,
+    })
+  }
+
 }
 
 export const handleRequest: RequestHandler = async function handleRequest(request, { actor }) {
@@ -143,7 +167,7 @@ describe('Core Worker', () => {
       label: 'Core Worker Test App',
       description: 'Core worker e2e app',
       requiresStorage: true,
-      subscribedPlatformEvents: [],
+      subscribedCoreEvents: [],
       permissions: {
         platform: [],
         user: [],
@@ -191,6 +215,34 @@ describe('Core Worker', () => {
           handler: {
             type: 'worker',
             identifier: EXECUTION_ERROR_WORKER_IDENTIFIER,
+          },
+        },
+        {
+          identifier: THROWN_SCRIPT_ERROR_TASK_IDENTIFIER,
+          label: 'Thrown AppTaskError Task',
+          description: 'Task that simulates a throw app task error',
+          handler: {
+            type: 'worker',
+            identifier: WORKER_IDENTIFIER,
+          },
+        },
+        {
+          identifier: UNEXPECTED_SCRIPT_ERROR_TASK_IDENTIFIER,
+          label: 'Unexpected Script Error Task',
+          description: 'Task that simulates an unexpected runtime error',
+          handler: {
+            type: 'worker',
+            identifier: WORKER_IDENTIFIER,
+          },
+        },
+        {
+          identifier: THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER,
+          label: 'Unexpected Script Error Task (with requeue)',
+          description:
+            'Task that simulates an unexpected runtime error with requeue',
+          handler: {
+            type: 'worker',
+            identifier: WORKER_IDENTIFIER,
           },
         },
       ],
@@ -281,7 +333,7 @@ describe('Core Worker', () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
       startCoreWorker: true,
-      debug: true,
+      // debug: true,
       startServerOnPort: API_SERVER_PORT,
     })
     apiClient = testModule.apiClient
@@ -460,40 +512,268 @@ describe('Core Worker', () => {
   })
 
   it('records script errors on inner tasks while completing run_serverless_worker', async () => {
-    const innerTask =
-      await testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier: installedAppIdentifier,
-        taskIdentifier: SCRIPT_ERROR_TASK_IDENTIFIER,
-        taskData: {},
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const innerTask =
+        await testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier: installedAppIdentifier,
+          taskIdentifier: SCRIPT_ERROR_TASK_IDENTIFIER,
+          taskData: {},
+        })
+
+      await testModule!.waitForTasks('completed', {
+        taskIds: [innerTask.id],
       })
 
-    await testModule!.services.platformTaskService.drainPlatformTasks(true)
+      const updatedInnerTask =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTask.id),
+        })
+      if (!updatedInnerTask) {
+        throw new Error('Inner task not found after execution')
+      }
 
-    const updatedInnerTask =
-      await testModule!.services.ormService.db.query.tasksTable.findFirst({
-        where: eq(tasksTable.id, innerTask.id),
-      })
-    if (!updatedInnerTask) {
-      throw new Error('Inner task not found after execution')
-    }
+      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      if (!outerTask) {
+        throw new Error('Run serverless worker task not found')
+      }
 
-    const outerTask = await findRunServerlessWorkerTask(innerTask.id)
-    if (!outerTask) {
-      throw new Error('Run serverless worker task not found')
-    }
+      expect(updatedInnerTask.success).toBe(false)
+      expect(updatedInnerTask.error?.code).toBe('UNEXPECTED_ERROR')
+      const innerErrorDetails = updatedInnerTask.error?.details as
+        | { message?: string }
+        | undefined
+      expect(innerErrorDetails?.message).toBe('Script error for test')
 
-    expect(updatedInnerTask.success).toBe(false)
-    expect(updatedInnerTask.error?.code).toBe('WORKER_SCRIPT_RUNTIME_ERROR')
-    const innerErrorDetails = updatedInnerTask.error?.details as
-      | { message?: string }
-      | undefined
-    expect(innerErrorDetails?.message).toBe('Script error for test')
-
-    expect(outerTask.success).toBe(true)
-    expect(outerTask.error).toBeFalsy()
+      expect(outerTask.success).toBe(true)
+      expect(outerTask.error).toBeFalsy()
+    })
   })
 
-  it.only('records execution errors on outer tasks with generic inner errors', async () => {
+  it('handles unexpected runtime error from serverless worker script', async () => {
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const innerTask =
+        await testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier: installedAppIdentifier,
+          taskIdentifier: UNEXPECTED_SCRIPT_ERROR_TASK_IDENTIFIER,
+          taskData: {},
+        })
+
+      await testModule!.waitForTasks('completed', {
+        taskIds: [innerTask.id],
+      })
+
+      const updatedInnerTask =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTask.id),
+        })
+      if (!updatedInnerTask) {
+        throw new Error('Inner task not found after execution')
+      }
+
+      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      if (!outerTask) {
+        throw new Error('Run serverless worker task not found')
+      }
+
+      expect(updatedInnerTask.success).toBe(false)
+      expect(updatedInnerTask.startedAt).not.toBeNull()
+      expect(updatedInnerTask.error?.code).toBe('UNEXPECTED_ERROR')
+      expect(updatedInnerTask.error?.name).toBe('ReferenceError')
+      expect(updatedInnerTask.error?.message).toBe(
+        'thisVarDoesNotExist is not defined',
+      )
+      expect(updatedInnerTask.error?.details).toEqual({
+        message: 'thisVarDoesNotExist is not defined',
+        name: 'ReferenceError',
+        code: 'UNEXPECTED_ERROR',
+        origin: 'app',
+        stack: `ReferenceError: thisVarDoesNotExist is not defined
+    at handleTask (/app/worker-entry.ts:17:5)
+    at handleTask (/app/worker-entry.ts:3:66)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:504:30)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:35)
+    at run (node:async_hooks:62:22)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:26)
+    at handleRequest (/app/worker-daemon/worker-daemon.ts:278:5)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:686:19)
+    at processTicksAndRejections (native:7:39)`,
+      })
+      expect(outerTask.error).toBeNull()
+      expect(outerTask.success).toBeTrue()
+      expect(outerTask.systemLog).toEqual([
+        {
+          at: expect.any(Date) as Date,
+          logType: 'started',
+          message: 'Task is started',
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'success',
+          message: 'Task completed successfully',
+        },
+      ])
+    })
+  })
+
+  it('handles thrown AppTaskError from serverless worker script', async () => {
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const innerTask =
+        await testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier: installedAppIdentifier,
+          taskIdentifier: THROWN_SCRIPT_ERROR_TASK_IDENTIFIER,
+          taskData: {},
+        })
+
+      await testModule!.waitForTasks('completed', {
+        taskIds: [innerTask.id],
+      })
+
+      const updatedInnerTask =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTask.id),
+        })
+      if (!updatedInnerTask) {
+        throw new Error('Inner task not found after execution')
+      }
+
+      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      if (!outerTask) {
+        throw new Error('Run serverless worker task not found')
+      }
+
+      expect(updatedInnerTask.success).toBe(false)
+      expect(updatedInnerTask.error?.code).toBe('CUSTOM_APP_ERROR_CODE')
+      expect(updatedInnerTask.error?.name).toBe('Error')
+      expect(updatedInnerTask.error?.message).toBe(
+        'This is a custom error message from the app',
+      )
+      expect(updatedInnerTask.error?.details).toEqual({
+        message: 'This is a custom error message from the app',
+        name: 'Error',
+        code: 'CUSTOM_APP_ERROR_CODE',
+        origin: 'app',
+        stack: `Error: This is a custom error message from the app
+    at handleTask (/app/worker-entry.ts:13:15)
+    at handleTask (/app/worker-entry.ts:3:66)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:504:30)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:35)
+    at run (node:async_hooks:62:22)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:26)
+    at handleRequest (/app/worker-daemon/worker-daemon.ts:278:5)
+    at <anonymous> (/app/worker-daemon/worker-daemon.ts:686:19)
+    at processTicksAndRejections (native:7:39)`,
+      })
+      expect(outerTask.error).toBeNull()
+      expect(outerTask.success).toBeTrue()
+      expect(outerTask.systemLog).toEqual([
+        {
+          at: expect.any(Date) as Date,
+          logType: 'started',
+          message: 'Task is started',
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'success',
+          message: 'Task completed successfully',
+        },
+      ])
+    })
+  })
+
+  it('handles thrown AppTaskError from serverless worker script with requeue', async () => {
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const innerTask =
+        await testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier: installedAppIdentifier,
+          taskIdentifier: THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER,
+          taskData: {},
+        })
+
+      await testModule!.waitForTasks('attempted', {
+        taskIds: [innerTask.id],
+      })
+
+      const updatedInnerTask =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTask.id),
+        })
+      if (!updatedInnerTask) {
+        throw new Error('Inner task not found after execution')
+      }
+
+      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      if (!outerTask) {
+        throw new Error('Run serverless worker task not found')
+      }
+
+      expect(updatedInnerTask.success).toBeNull()
+      expect(updatedInnerTask.systemLog).toEqual([
+        {
+          at: expect.any(Date) as Date,
+          logType: 'started',
+          message: 'Task is started',
+          payload: {
+            __executor: {
+              kind: 'core_worker',
+            },
+          },
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'error',
+          message: 'Task failed',
+          payload: {
+            error: {
+              name: 'Error',
+              message: 'This is a custom error message from the app',
+              code: 'CUSTOM_APP_ERROR_CODE_WITH_REQUEUE',
+              details: {
+                code: 'CUSTOM_APP_ERROR_CODE_WITH_REQUEUE',
+                message: 'This is a custom error message from the app',
+                name: 'Error',
+                origin: 'app',
+                requeue: {
+                  delayMs: 1000,
+                  mode: 'auto',
+                },
+                stack: expect.any(String) as string,
+              },
+              stack: expect.any(String) as string,
+            },
+          },
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'requeue',
+          message: 'Task is requeued',
+          payload: {
+            requeueConfig: {
+              delayMs: 1000,
+              mode: 'auto',
+            },
+            dontStartBefore: expect.any(String) as string,
+          },
+        },
+      ])
+
+      expect(outerTask.error).toBeNull()
+      expect(outerTask.success).toBeTrue()
+      expect(outerTask.systemLog).toEqual([
+        {
+          at: expect.any(Date) as Date,
+          logType: 'started',
+          message: 'Task is started',
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'success',
+          message: 'Task completed successfully',
+        },
+      ])
+    })
+  })
+
+  it('records execution errors on outer tasks with generic inner errors', async () => {
     if (!getWorkerExecConfigSpy || !originalGetWorkerExecConfig) {
       throw new Error('Worker exec config spy not initialized')
     }
@@ -523,7 +803,9 @@ describe('Core Worker', () => {
           taskData: {},
         })
 
-      await testModule!.services.platformTaskService.drainPlatformTasks(true)
+      await testModule!.waitForTasks('completed', {
+        taskIds: [innerTask.id],
+      })
 
       const updatedInnerTask =
         await testModule!.services.ormService.db.query.tasksTable.findFirst({
@@ -539,16 +821,23 @@ describe('Core Worker', () => {
       }
 
       expect(updatedInnerTask.success).toBe(false)
-      expect(updatedInnerTask.error?.code).toBe('WORKER_EXECUTION_ERROR')
+      expect(updatedInnerTask.error?.code).toBe('EXECUTION_ERROR')
       expect(updatedInnerTask.error?.details).toBeFalsy()
 
       expect(outerTask.success).toBe(false)
-      expect(outerTask.error?.code).toBe('WORKER_EXECUTION_ERROR')
-      const outerErrorDetails = outerTask.error?.details as
-        | { errorMessage?: string; action?: string }
+      expect(outerTask.error?.code).toBe(
+        'UNEXPECTED_ERROR_DURING_CORE_REQUEST_HANDLING',
+      )
+      const outerErrorDetails = outerTask.error?.details
+      const outerErrorDetailsDetails = outerErrorDetails?.details as
+        | JsonSerializableObject
         | undefined
-      expect(outerErrorDetails?.action).toBe('execute_task')
-      expect(typeof outerErrorDetails?.errorMessage).toBe('string')
+      expect(outerErrorDetailsDetails?.action).toBe('execute_task')
+      expect(outerErrorDetails?.cause).toBeDefined()
+      expect(
+        (outerErrorDetails?.cause as JsonSerializableObject | undefined)
+          ?.message,
+      ).toBe('Downoad failed when connecting to host')
     })
   })
 
@@ -579,7 +868,21 @@ describe('Core Worker', () => {
       apiClient,
     })
 
-    await testModule!.services.platformTaskService.drainPlatformTasks(true)
+    const reindexTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: and(
+          eq(tasksTable.taskIdentifier, CoreTaskName.ReindexFolder),
+          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+        ),
+      })
+
+    if (!reindexTask) {
+      throw new Error('Reindex task not found')
+    }
+
+    await testModule!.waitForTasks('completed', {
+      taskIds: [reindexTask.id],
+    })
 
     const folderObject =
       await testModule!.services.ormService.db.query.folderObjectsTable.findFirst(
@@ -590,6 +893,8 @@ describe('Core Worker', () => {
           ),
         },
       )
+
+    await testModule!.waitForTasks('completed')
 
     expect(folderObject?.hash).toBe(expectedContentHash)
     expect(folderObject?.mimeType).toBeDefined()

@@ -3,7 +3,8 @@ import { SignedURLsRequestMethod } from '@lombokapp/types'
 import type { Type } from '@nestjs/common'
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { eq } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
+import { and, count, eq, gt, inArray, isNotNull, not, or } from 'drizzle-orm'
 import fs from 'fs'
 import type { Server } from 'http'
 import path from 'path'
@@ -22,11 +23,13 @@ import {
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { PlatformModule } from 'src/platform/platform.module'
+import { waitForTrue } from 'src/platform/utils/wait.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
+import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import type { User } from 'src/users/entities/user.entity'
@@ -223,6 +226,54 @@ export async function buildTestModule({
   return {
     app,
     services,
+    waitForTasks: async (
+      waitType: 'started' | 'completed' | 'attempted',
+      {
+        taskIds,
+        timeoutMs = 5000,
+      }: {
+        taskIds?: string[]
+        timeoutMs?: number
+      } = {
+        timeoutMs: 5000,
+      },
+    ) => {
+      await services.platformTaskService.startDrainPlatformTasks()
+
+      const condition: SQL =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        (
+          waitType === 'started'
+            ? or(
+                gt(tasksTable.attemptCount, 0),
+                isNotNull(tasksTable.startedAt),
+              )
+            : waitType === 'attempted'
+              ? gt(tasksTable.attemptCount, 0)
+              : isNotNull(tasksTable.completedAt)
+        )!
+
+      await waitForTrue(
+        async () => {
+          const result = await services.ormService.db
+            .select({
+              count: count(),
+            })
+            .from(tasksTable)
+            .where(
+              taskIds
+                ? and(condition, inArray(tasksTable.id, taskIds))
+                : not(condition),
+            )
+          return result[0]?.count === (taskIds?.length ?? 0)
+        },
+        {
+          retryPeriodMs: 100,
+          maxRetries: Math.ceil(timeoutMs / 100),
+          totalMaxDurationMs: timeoutMs,
+        },
+      )
+    },
     apiClient: buildSupertestApiClient(app),
     shutdown: async () => {
       // remove created minio buckets

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { CORE_IDENTIFIER } from './platform.types'
 
-export enum PlatformEvent {
+export enum CoreEvent {
   object_added = 'object_added',
   object_removed = 'object_removed',
   object_updated = 'object_updated',
@@ -16,11 +16,11 @@ export const eventIdentifierSchema = z
   .nonempty()
   .regex(/^[a-z_]+$/)
 
-export const platformPrefixedEventIdentifierSchema = z
+export const corePrefixedEventIdentifierSchema = z
   .string()
   .nonempty()
-  .regex(/^platform:[a-z_]+$/)
+  .regex(/^core:[a-z_]+$/)
 
-export const PlatformObjectAddedEventTriggerIdentifier = `${CORE_IDENTIFIER}:${PlatformEvent.object_added}`
-export const PlatformObjectRemovedEventTriggerIdentifier = `${CORE_IDENTIFIER}:${PlatformEvent.object_removed}`
-export const PlatformObjectUpdatedEventTriggerIdentifier = `${CORE_IDENTIFIER}:${PlatformEvent.object_updated}`
+export const CoreObjectAddedEventTriggerIdentifier = `${CORE_IDENTIFIER}:${CoreEvent.object_added}`
+export const CoreObjectRemovedEventTriggerIdentifier = `${CORE_IDENTIFIER}:${CoreEvent.object_removed}`
+export const CoreObjectUpdatedEventTriggerIdentifier = `${CORE_IDENTIFIER}:${CoreEvent.object_updated}`

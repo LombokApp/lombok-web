@@ -5,7 +5,7 @@ import type {
 } from '@lombokapp/types'
 import {
   CORE_IDENTIFIER,
-  PlatformEvent,
+  CoreEvent,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
@@ -164,9 +164,8 @@ const triggerAppDockerHandledTask = async (
     })
   })
 
-  // drain the platform tasks (twice) to ensure the docker run task is enqueued and started
-  await testModule.services.platformTaskService.drainPlatformTasks(true)
-  await testModule.services.platformTaskService.drainPlatformTasks(true)
+  // trigger drain and wait for task completion
+  await testModule.waitForTasks('completed')
 
   const events = await testModule.services.ormService.db
     .select()
@@ -197,6 +196,7 @@ const triggerAppDockerHandledTask = async (
   // )
 
   expect(taskDefinition).toBeDefined()
+
   if (
     taskDefinition?.handler.type !== 'docker' &&
     taskDefinition?.handler.type !== 'worker'
@@ -220,7 +220,7 @@ const triggerAppDockerHandledTask = async (
 
     expect(dockerTaskEnqueuedEvent).toEqual({
       id: expect.any(String),
-      eventIdentifier: PlatformEvent.docker_task_enqueued,
+      eventIdentifier: CoreEvent.docker_task_enqueued,
       emitterIdentifier: CORE_IDENTIFIER,
       targetUserId: null,
       targetLocationFolderId: null,
@@ -259,7 +259,7 @@ const triggerAppDockerHandledTask = async (
       trigger: {
         kind: 'event',
         invokeContext: {
-          eventIdentifier: PlatformEvent.docker_task_enqueued,
+          eventIdentifier: CoreEvent.docker_task_enqueued,
           eventTriggerConfigIndex: 0,
           eventId: events[0]!.id,
           emitterIdentifier: CORE_IDENTIFIER,
@@ -275,6 +275,8 @@ const triggerAppDockerHandledTask = async (
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       targetUserId: null,
+      attemptCount: 1,
+      failureCount: 0,
       startedAt: expect.any(Date),
       completedAt: null,
       success: null,
@@ -686,6 +688,8 @@ describe('Docker Jobs', () => {
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       targetUserId: null,
+      attemptCount: 0,
+      failureCount: 0,
       startedAt: null,
       completedAt: null,
       userVisible: true,
@@ -810,6 +814,8 @@ describe('Docker Jobs', () => {
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       targetUserId: null,
+      attemptCount: 0,
+      failureCount: 0,
       startedAt: null,
       completedAt: null,
       success: null,
@@ -1478,6 +1484,8 @@ describe('Docker Jobs', () => {
       targetLocationObjectKey: null,
       userVisible: true,
       targetUserId: null,
+      attemptCount: 0,
+      failureCount: 0,
       startedAt: null,
       completedAt: null,
       success: null,

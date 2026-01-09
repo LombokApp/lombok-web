@@ -1,6 +1,6 @@
 import {
   AsyncWorkError,
-  UnknownAsyncWorkError,
+  buildUnexpectedError,
 } from '@lombokapp/core-worker-utils'
 import {
   CORE_IDENTIFIER,
@@ -46,13 +46,10 @@ export class CoreTaskService {
     private readonly _folderSocketService,
   ) {}
 
-  async drainPlatformTasks(waitForCompletion = false) {
+  async startDrainPlatformTasks() {
     const runId = crypto.randomUUID()
     if (this.draining) {
       this.logger.debug('Platform task draining called while already running')
-      if (waitForCompletion) {
-        await this.draining
-      }
       return
     }
     this.logger.verbose('Draining platform tasks started')
@@ -72,7 +69,7 @@ export class CoreTaskService {
     } finally {
       this.draining = undefined
       if (unstartedPlatformTasksCount > 0) {
-        await this.drainPlatformTasks()
+        await this.startDrainPlatformTasks()
       }
     }
   }
@@ -203,29 +200,10 @@ export class CoreTaskService {
             const isAlreadyCaptured = error instanceof AsyncWorkError
             const capturedError = isAlreadyCaptured
               ? error
-              : new UnknownAsyncWorkError({
-                  origin: 'internal',
-                  message: 'Unknown error',
-                  stack:
-                    error instanceof Error ? error.stack : new Error().stack,
-                  cause:
-                    error instanceof Error
-                      ? {
-                          origin: 'internal',
-                          class: 'permanent',
-                          retry: false,
-                          code: 'UNKNOWN_ERROR',
-                          message: error.message,
-                          stack: error.stack,
-                        }
-                      : {
-                          origin: 'internal',
-                          class: 'permanent',
-                          code: 'UNKNOWN_ERROR',
-                          retry: false,
-                          message: String(error),
-                          stack: new Error().stack,
-                        },
+              : buildUnexpectedError({
+                  code: 'UNEXPECTED_ERROR_CORE_TASK_EXECUTION',
+                  message: `Unexpected error while executing '${startedTask.taskIdentifier}' core task`,
+                  error,
                 })
 
             return this.taskService.registerTaskCompleted(taskId, {

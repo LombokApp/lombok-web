@@ -25,7 +25,7 @@ CREATE TABLE "apps" (
 	"label" text NOT NULL,
 	"publicKey" text NOT NULL,
 	"requiresStorage" boolean NOT NULL,
-	"subscribedPlatformEvents" text[] DEFAULT ARRAY[]::text[] NOT NULL,
+	"subscribedCoreEvents" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"implementedTasks" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,
@@ -159,8 +159,10 @@ CREATE TABLE "tasks" (
 	"targetLocationFolderId" uuid,
 	"targetLocationObjectKey" text,
 	"startedAt" timestamp,
-	"dontStartBefore" timestamp,
 	"completedAt" timestamp,
+	"attemptCount" integer DEFAULT 0 NOT NULL,
+	"failureCount" integer DEFAULT 0 NOT NULL,
+	"dontStartBefore" timestamp,
 	"systemLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"taskLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"storageAccessPolicy" jsonb NOT NULL,
@@ -170,7 +172,8 @@ CREATE TABLE "tasks" (
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL,
 	"handlerType" text NOT NULL,
-	"handlerIdentifier" text
+	"handlerIdentifier" text,
+	CONSTRAINT "tasks_idempotencyKey_unique" UNIQUE("idempotencyKey")
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

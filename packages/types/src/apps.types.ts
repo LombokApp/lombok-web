@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
-import { platformPrefixedEventIdentifierSchema } from './events.types'
+import { corePrefixedEventIdentifierSchema } from './events.types'
 import { appIdentifierSchema, appSlugSchema } from './identifiers.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
@@ -237,9 +237,7 @@ export const appConfigSchema = z
     slug: appSlugSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
-    subscribedPlatformEvents: z
-      .array(platformPrefixedEventIdentifierSchema)
-      .optional(),
+    subscribedCoreEvents: z.array(corePrefixedEventIdentifierSchema).optional(),
     triggers: z.array(taskTriggerConfigSchema).optional(),
     tasks: z.array(taskConfigSchema).optional(),
     containerProfiles: z
@@ -404,7 +402,7 @@ export const appConfigSchema = z
       if (
         trigger.kind === 'event' &&
         trigger.eventIdentifier.startsWith('platform:') &&
-        !value.subscribedPlatformEvents?.includes(trigger.eventIdentifier)
+        !value.subscribedCoreEvents?.includes(trigger.eventIdentifier)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

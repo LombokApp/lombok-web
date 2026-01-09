@@ -24,6 +24,11 @@ export const jsonSerializableObjectSchema = z.record(
   jsonSerializableValueSchema,
 )
 
+export const jsonSerializableObjectWithUndefinedSchema = z.record(
+  z.string(),
+  jsonSerializableValueSchema.or(z.undefined()),
+)
+
 export type JsonSerializableObject = z.infer<
   typeof jsonSerializableObjectSchema
 >

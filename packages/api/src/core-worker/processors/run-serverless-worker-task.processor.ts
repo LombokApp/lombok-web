@@ -1,15 +1,12 @@
 import {
-  CoreWorkerMessagePayloadTypes,
-  NotReadyAsyncWorkError,
+  AsyncWorkError,
+  buildUnexpectedError,
 } from '@lombokapp/core-worker-utils'
-import { JsonSerializableObject } from '@lombokapp/types'
+import { TaskCompletion } from '@lombokapp/types'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
-import {
-  BaseCoreTaskProcessor,
-  CoreTaskProcessorError,
-} from 'src/task/base.processor'
+import { BaseCoreTaskProcessor } from 'src/task/base.processor'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { TaskService } from 'src/task/services/task.service'
 import { CoreTaskName } from 'src/task/task.constants'
@@ -25,10 +22,6 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
     private readonly taskService: TaskService,
   ) {
     super(CoreTaskName.RunServerlessWorker, async (task) => {
-      const genericExecutionError = {
-        code: 'WORKER_EXECUTION_ERROR',
-        message: 'Worker execution failed',
-      }
       if (task.trigger.kind !== 'event') {
         throw new NotFoundException(
           'RunServerlessWorkerProcessor requires event trigger',
@@ -58,15 +51,6 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         )
       }
 
-      if (!this.coreWorkerService.isReady()) {
-        throw new NotReadyAsyncWorkError({
-          code: 'SERVERLESS_EXECUTOR_NOT_READY',
-          message: 'Serverless executor not ready to accept workloads',
-          retry: true,
-          stack: new Error().stack,
-        })
-      }
-
       const { task: startedTask } = await this.taskService.registerTaskStarted({
         taskId: innerTask.id,
         startContext: {
@@ -76,68 +60,107 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         },
       })
 
-      let execResult: CoreWorkerMessagePayloadTypes['execute_task']['response']
+      let innerTaskCompletion: TaskCompletion
+      let runnerTaskCompletion: TaskCompletion
       try {
-        execResult = await this.coreWorkerService.executeServerlessAppTask({
-          task: transformTaskToDTO(startedTask),
-          appIdentifier: eventData.appIdentifier,
-          workerIdentifier: eventData.workerIdentifier,
-        })
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        await this.taskService.registerTaskCompleted(innerTask.id, {
-          success: false,
-          error: genericExecutionError,
-        })
-        const details: JsonSerializableObject = {
-          message,
+        const execResult =
+          await this.coreWorkerService.executeServerlessAppTask({
+            task: transformTaskToDTO(startedTask),
+            appIdentifier: eventData.appIdentifier,
+            workerIdentifier: eventData.workerIdentifier,
+          })
+        if (!execResult.success) {
+          throw new AsyncWorkError(execResult.error)
         }
-        // console.log(
-        //   'error [%s] (%s): %s',
-        //   error instanceof Error ? error.name : 'Unknown',
-        //   error instanceof Error ? error.message : 'n/a',
-        //   JSON.stringify(error, null, 2),
-        // )
-        if (error instanceof Error) {
-          details.name = error.name
-          if (error.stack) {
-            details.stack = error.stack
+        innerTaskCompletion = {
+          success: true,
+        }
+        runnerTaskCompletion = {
+          success: true,
+          // result: ... // TODO: add execution details as the result of the runner task
+        }
+      } catch (error) {
+        const normalizedError =
+          error instanceof AsyncWorkError
+            ? error
+            : buildUnexpectedError({
+                code: 'UNEXPECTED_SERVERLESS_EXECUTION_ERROR',
+                message:
+                  'Unexpected error during in run serverless worker core task processor (run-serverless-worker-task.processor.ts)',
+                error,
+              })
+
+        const resolveHighestLevelAppError = (
+          _error: AsyncWorkError,
+        ): AsyncWorkError | undefined => {
+          if (_error.origin === 'app') {
+            return _error
+          }
+          if (_error.cause) {
+            return resolveHighestLevelAppError(_error.cause)
           }
         }
-        throw new CoreTaskProcessorError(
-          error instanceof Error ? error.name : 'Unknown',
-          message,
-          details,
-        )
-      }
 
-      if (!execResult.success) {
-        if (execResult.error.code === 'WORKER_SCRIPT_RUNTIME_ERROR') {
-          await this.taskService.registerTaskCompleted(innerTask.id, {
-            success: false,
-            error: {
-              code: execResult.error.code,
-              message: execResult.error.message,
-              details: execResult.error.details,
-            },
-          })
-          return
+        const highestLevelAppError =
+          resolveHighestLevelAppError(normalizedError)
+        const runnerSuccess = !!highestLevelAppError
+        const appRequestedRequeue = highestLevelAppError?.requeue
+        innerTaskCompletion = {
+          success: false,
+          ...(appRequestedRequeue?.mode === 'auto' &&
+          'delayMs' in appRequestedRequeue
+            ? { requeue: { delayMs: appRequestedRequeue.delayMs } }
+            : {}),
+          error: {
+            code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
+            name: highestLevelAppError?.name ?? 'ExecutionError',
+            message:
+              highestLevelAppError?.message ??
+              `There was an error executing the task (${appRequestedRequeue ? 'requeued' : 'see admin logs for details'})`,
+            ...(highestLevelAppError
+              ? {
+                  name: highestLevelAppError.name,
+                  message: highestLevelAppError.message,
+                  stack: highestLevelAppError.stack,
+                  details: highestLevelAppError.toEnvelope(),
+                }
+              : {}), // TODO: add some details for an internal (non-app) error
+          },
         }
 
-        await this.taskService.registerTaskCompleted(innerTask.id, {
-          success: false,
-          error: genericExecutionError,
-        })
-        throw new CoreTaskProcessorError(
-          execResult.error.code,
-          execResult.error.message,
-          execResult.error.details,
-        )
+        runnerTaskCompletion = {
+          success: runnerSuccess,
+          ...(!runnerSuccess
+            ? {
+                error: {
+                  code: normalizedError.code,
+                  name: normalizedError.name,
+                  message: normalizedError.message,
+                  details: normalizedError.toEnvelope(),
+                },
+              }
+            : undefined),
+        } as TaskCompletion
       }
 
-      await this.taskService.registerTaskCompleted(innerTask.id, {
-        success: true,
+      // Update the inner and runner tasks in a transaction
+      await this.ormService.db.transaction(async (tx) => {
+        await this.taskService.registerTaskCompleted(
+          innerTask.id,
+          innerTaskCompletion,
+          { tx },
+        )
+
+        await this.taskService.registerTaskCompleted(
+          task.id,
+          runnerTaskCompletion,
+          { tx },
+        )
       })
     })
+  }
+
+  override shouldRegisterComplete() {
+    return false
   }
 }

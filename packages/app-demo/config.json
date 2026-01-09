@@ -2,15 +2,15 @@
   "description": "The demo app.",
   "slug": "demo",
   "label": "Demo App",
-  "subscribedPlatformEvents": [
-    "platform:object_added",
-    "platform:object_removed",
-    "platform:object_updated"
+  "subscribedCoreEvents": [
+    "core:object_added",
+    "core:object_removed",
+    "core:object_updated"
   ],
   "triggers": [
     {
       "kind": "event",
-      "eventIdentifier": "platform:object_added",
+      "eventIdentifier": "core:object_added",
       "taskIdentifier": "demo_object_added_worker_task",
       "onComplete": [{
         "taskIdentifier": "demo_worker_task_on_complete",

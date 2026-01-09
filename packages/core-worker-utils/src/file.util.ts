@@ -53,10 +53,28 @@ export const hashLocalFile = async (filepath: string): Promise<string> => {
   return hashFileStream(readStream)
 }
 
+export class DownloadFileToDiskError extends Error {
+  constructor(message: string, cause?: Error) {
+    super(message)
+    this.name = 'DownloadFileToDiskError'
+    this.cause = cause
+  }
+}
+
 export const downloadFileToDisk = async (url: string, filepath: string) => {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Download failed with status ${response.status}`)
+  let response: Response | undefined = undefined
+  try {
+    response = await fetch(url)
+    if (!response.ok) {
+      throw new DownloadFileToDiskError(
+        `Download failed with status ${response.status}`,
+      )
+    }
+  } catch (error) {
+    throw new DownloadFileToDiskError(
+      'Downoad failed when connecting to host',
+      error instanceof Error ? error : new Error(String(error)),
+    )
   }
 
   const mimeType = response.headers.get('content-type')

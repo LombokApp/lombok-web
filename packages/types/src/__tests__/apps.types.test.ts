@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { PlatformObjectAddedEventTriggerIdentifier } from 'src/events.types'
+import { CoreObjectAddedEventTriggerIdentifier } from 'src/events.types'
 import type { SafeParseReturnType } from 'zod'
 
 import type { AppConfig } from '../apps.types'
@@ -260,7 +260,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        subscribedPlatformEvents: ['platform:worker_task_enqueued'],
+        subscribedCoreEvents: ['core:worker_task_enqueued'],
         workers: {
           worker1: {
             entrypoint: 'worker.js',
@@ -281,7 +281,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:worker_task_enqueued',
+            eventIdentifier: 'core:worker_task_enqueued',
             taskIdentifier: 'templated_task',
             dataTemplate: {
               innerTaskId: '{{event.data.innerTaskId}}',
@@ -301,7 +301,7 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
-        subscribedPlatformEvents: ['platform:object_added'],
+        subscribedCoreEvents: ['core:object_added'],
         tasks: [
           {
             identifier: 'demo_worker_task_on_complete',
@@ -348,7 +348,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'demo_object_added_worker_task',
             onComplete: [
               {
@@ -385,7 +385,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'missing_task',
           },
         ],
@@ -467,7 +467,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'root_task',
             onComplete: [
               {
@@ -492,7 +492,7 @@ describe('apps.types', () => {
     it('should validate trigger with onComplete task chain', () => {
       const result = taskTriggerConfigSchema.safeParse({
         kind: 'event',
-        eventIdentifier: 'platform:object_added',
+        eventIdentifier: 'core:object_added',
         taskIdentifier: 'demo_worker',
         onComplete: [
           {
@@ -516,7 +516,7 @@ describe('apps.types', () => {
     it('should reject trigger without a task identifier', () => {
       const result = taskTriggerConfigSchema.safeParse({
         kind: 'event',
-        eventIdentifier: 'platform:object_added',
+        eventIdentifier: 'core:object_added',
       } as unknown)
 
       expectZodFailure(result)
@@ -526,7 +526,7 @@ describe('apps.types', () => {
       it('should accept valid condition expressions', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: "event.data.mediaType === 'IMAGE'",
         })
@@ -537,7 +537,7 @@ describe('apps.types', () => {
       it('should accept condition with logical operators', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition:
             "event.data.mediaType === 'IMAGE' || event.data.mediaType === 'VIDEO'",
@@ -549,7 +549,7 @@ describe('apps.types', () => {
       it('should reject condition with constructor access', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: 'event.data.constructor.constructor',
         })
@@ -563,7 +563,7 @@ describe('apps.types', () => {
       it('should reject condition with nested constructor access', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: 'event.data.someProperty.constructor',
         })
@@ -574,7 +574,7 @@ describe('apps.types', () => {
       it('should accept condition without constructor access', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: 'event.data.mediaType',
         })
@@ -1151,7 +1151,7 @@ describe('apps.types', () => {
         description: 'A test application',
         requiresStorage: true,
         permissions: {
-          platform: ['READ_FOLDER_ACL'],
+          core: ['READ_FOLDER_ACL'],
           user: ['CREATE_FOLDERS', 'READ_USER'],
           folder: ['READ_OBJECTS', 'REINDEX_FOLDER'],
         },
@@ -1368,7 +1368,7 @@ describe('apps.types', () => {
         slug: 'ai',
         label: 'Lombok AI',
         requiresStorage: true,
-        subscribedPlatformEvents: ['platform:object_added'],
+        subscribedCoreEvents: ['core:object_added'],
         workers: {
           api_worker: {
             entrypoint: 'api-worker-entrypoint.js',
@@ -1413,7 +1413,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: PlatformObjectAddedEventTriggerIdentifier,
+            eventIdentifier: CoreObjectAddedEventTriggerIdentifier,
             taskIdentifier: 'trigger_extract_content_metadata',
           },
         ],
@@ -1433,7 +1433,7 @@ describe('apps.types', () => {
           objectDetailViews: [],
         },
         permissions: {
-          platform: ['READ_FOLDER_ACL'],
+          core: ['READ_FOLDER_ACL'],
           folder: [
             'READ_OBJECTS',
             'WRITE_OBJECTS',

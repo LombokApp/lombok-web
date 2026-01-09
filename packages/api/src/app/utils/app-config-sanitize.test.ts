@@ -142,7 +142,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               priority: Infinity,
@@ -182,7 +182,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               count: NaN,
@@ -222,7 +222,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: circularData,
           },
@@ -262,7 +262,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               tags: ['tag1', 'tag\u00002', 'tag3'],
@@ -351,7 +351,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               key: 'value\u0000withNUL',
@@ -386,7 +386,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               message: 'Hello\u0003world',
@@ -428,7 +428,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             onComplete: [
               {
@@ -613,7 +613,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               nested: {
@@ -652,7 +652,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               numbers: [1, 2, Infinity, 4],
@@ -688,7 +688,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               calculations: [1.5, 2.3, NaN, 4.7],
@@ -714,11 +714,11 @@ describe('app-config-sanitize', () => {
         description: 'A complex test application with all features',
         requiresStorage: true,
         permissions: {
-          platform: ['READ_FOLDER_ACL'],
+          core: ['READ_FOLDER_ACL'],
           user: ['CREATE_FOLDERS', 'READ_USER'],
           folder: ['READ_OBJECTS', 'WRITE_OBJECTS'],
         },
-        subscribedPlatformEvents: ['platform:object_added'],
+        subscribedCoreEvents: ['core:object_added'],
         workers: {
           worker_one: {
             entrypoint: 'worker1.js',
@@ -764,7 +764,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               eventData: '{{event.data}}',
@@ -875,7 +875,7 @@ describe('app-config-sanitize', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'task_one',
             dataTemplate: {
               key: 'trigger\u0000data',

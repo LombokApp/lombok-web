@@ -25,7 +25,7 @@ export const appsTable = pgTable('apps', {
   label: text('label').notNull(),
   publicKey: text('publicKey').notNull(),
   requiresStorage: boolean('requiresStorage').notNull(),
-  subscribedPlatformEvents: text('subscribedPlatformEvents')
+  subscribedCoreEvents: text('subscribedCoreEvents')
     .array()
     .notNull()
     .default(sql`ARRAY[]::text[]`),

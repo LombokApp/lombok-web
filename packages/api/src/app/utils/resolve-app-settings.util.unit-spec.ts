@@ -35,7 +35,7 @@ const createMockApp = ({
     label: 'Test App',
     publicKey: 'test_public_key',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     database: false,
     manifest: {},
     implementedTasks: [],

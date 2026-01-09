@@ -1,7 +1,7 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   CORE_IDENTIFIER,
-  PlatformEvent,
+  CoreEvent,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
@@ -58,7 +58,7 @@ describe('Analyze Object Handler', () => {
         invokeContext: {
           eventId: uuidV4(),
           emitterIdentifier: CORE_IDENTIFIER,
-          eventIdentifier: PlatformEvent.object_added,
+          eventIdentifier: CoreEvent.object_added,
           eventTriggerConfigIndex: 0,
           eventData: {} as JsonSerializableObject,
         },

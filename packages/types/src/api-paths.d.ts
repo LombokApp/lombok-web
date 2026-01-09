@@ -1170,7 +1170,7 @@ export interface components {
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -1399,7 +1399,7 @@ export interface components {
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -1628,7 +1628,7 @@ export interface components {
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -1864,7 +1864,7 @@ export interface components {
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -2066,7 +2066,7 @@ export interface components {
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";

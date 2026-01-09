@@ -279,7 +279,7 @@ describe('Folder Objects', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule?.services.platformTaskService.drainPlatformTasks(true)
+    await testModule!.waitForTasks('completed')
 
     // Check initial state
     const initialListObjectsResponse = await apiClient(accessToken).GET(

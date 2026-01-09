@@ -127,7 +127,7 @@ export function createTestAppConfig(
     label,
     description: `Test app: ${label}`,
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
       platform: [],
       user: [],

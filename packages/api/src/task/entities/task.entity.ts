@@ -11,6 +11,7 @@ import {
   boolean,
   customType,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -69,8 +70,10 @@ export const tasksTable = pgTable(
     targetLocationFolderId: uuid('targetLocationFolderId'),
     targetLocationObjectKey: text('targetLocationObjectKey'),
     startedAt: timestamp('startedAt'),
-    dontStartBefore: timestamp('dontStartBefore'),
     completedAt: timestamp('completedAt'),
+    attemptCount: integer('attemptCount').notNull().default(0),
+    failureCount: integer('failureCount').notNull().default(0),
+    dontStartBefore: timestamp('dontStartBefore'),
     systemLog: logJsonb<SystemLogEntry>('systemLog').notNull().default([]),
     taskLog: logJsonb<TaskLogEntry>('taskLog').notNull().default([]),
     storageAccessPolicy: jsonbBase64('storageAccessPolicy')
@@ -80,6 +83,7 @@ export const tasksTable = pgTable(
     userVisible: boolean('userVisible').default(true),
     error: jsonbBase64('error').$type<{
       code: string
+      name: string
       message: string
       details?: JsonSerializableObject
     }>(),

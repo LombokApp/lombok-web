@@ -1,5 +1,5 @@
 {
-  "id": "8943a57a-98ca-406b-9d34-6db3513e7734",
+  "id": "6f9a326c-8388-4113-bd1f-ad53b8f5c23b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -282,8 +282,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "subscribedPlatformEvents": {
-          "name": "subscribedPlatformEvents",
+        "subscribedCoreEvents": {
+          "name": "subscribedCoreEvents",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,
@@ -1270,14 +1270,28 @@
           "primaryKey": false,
           "notNull": false
         },
-        "dontStartBefore": {
-          "name": "dontStartBefore",
+        "completedAt": {
+          "name": "completedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "completedAt": {
-          "name": "completedAt",
+        "attemptCount": {
+          "name": "attemptCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "failureCount": {
+          "name": "failureCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "dontStartBefore": {
+          "name": "dontStartBefore",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -1428,7 +1442,15 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "tasks_idempotencyKey_unique": {
+          "name": "tasks_idempotencyKey_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "idempotencyKey"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
