@@ -1,5 +1,5 @@
 {
-  "id": "6f9a326c-8388-4113-bd1f-ad53b8f5c23b",
+  "id": "9bc2bcd5-eebb-4e36-9614-abf188ae6f02",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -327,8 +327,8 @@
           "notNull": true,
           "default": "'{\"core\":[],\"user\":[],\"folder\":[]}'::jsonb"
         },
-        "workers": {
-          "name": "workers",
+        "runtimeWorkers": {
+          "name": "runtimeWorkers",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true

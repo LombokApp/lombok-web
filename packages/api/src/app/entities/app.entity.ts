@@ -1,8 +1,8 @@
 import type {
   AppConfig,
   AppManifest,
+  AppRuntimeWorkersBundle,
   AppUiBundle,
-  AppWorkersBundle,
   ContainerProfileConfig,
   CoreScopeAppPermissions,
   FolderScopeAppPermissions,
@@ -49,7 +49,9 @@ export const appsTable = pgTable('apps', {
       user: [],
       folder: [],
     }),
-  workers: jsonb('workers').$type<AppWorkersBundle>().notNull(),
+  runtimeWorkers: jsonb('runtimeWorkers')
+    .$type<AppRuntimeWorkersBundle>()
+    .notNull(),
   ui: jsonb('ui').$type<AppUiBundle>().notNull(),
   database: boolean('database').notNull().default(false),
   manifest: jsonb('manifest').$type<AppManifest>().notNull(),

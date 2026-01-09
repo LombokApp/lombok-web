@@ -96,18 +96,18 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     enableHiding: true,
   },
   {
-    id: 'workers',
+    id: 'runtimeWorkers',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Serverless Workers"
+        title="Runtime Workers"
       />
     ),
     cell: ({ row }) => {
-      const allWorkers = Object.keys(row.original.config.workers ?? {}).filter(
-        (v, i, a) => a.indexOf(v) === i,
-      )
+      const allWorkers = Object.keys(
+        row.original.config.runtimeWorkers ?? {},
+      ).filter((v, i, a) => a.indexOf(v) === i)
       return (
         <span className={cn(!allWorkers.length && 'italic opacity-50')}>
           {allWorkers.length ? allWorkers.join(', ') : 'None'}

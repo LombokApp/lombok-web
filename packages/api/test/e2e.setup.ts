@@ -77,12 +77,12 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Minimal Worker Task',
         description: 'A task that is triggered by an object added event.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
     ],
-    workers: {
+    runtimeWorkers: {
       minimal_worker: {
         description: 'Test App Worker',
         entrypoint: 'minimal-worker.ts',
@@ -225,7 +225,7 @@ const testAppDefinitions: AppConfig[] = [
         label: 'App Action Task',
         description: 'Created via triggerAppActionTask.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
@@ -234,7 +234,7 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Schedule Task',
         description: 'Runs on a schedule trigger.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
@@ -243,7 +243,7 @@ const testAppDefinitions: AppConfig[] = [
         label: 'User Action Task',
         description: 'Triggered by a user action.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
@@ -252,7 +252,7 @@ const testAppDefinitions: AppConfig[] = [
         label: 'On Complete Handler',
         description: 'Runs after the parent task completes.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
@@ -262,7 +262,7 @@ const testAppDefinitions: AppConfig[] = [
         description:
           'Triggered by an event registers a single onComplete handler.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
@@ -271,7 +271,7 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Parent Event Task',
         description: 'Triggered by an event and chains an onComplete handler.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
@@ -280,12 +280,12 @@ const testAppDefinitions: AppConfig[] = [
         label: 'On Complete Chain One',
         description: 'First chain onComplete task.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
     ],
-    workers: {
+    runtimeWorkers: {
       minimal_worker: {
         description: 'Test App Worker',
         entrypoint: 'minimal-worker.ts',
@@ -312,12 +312,12 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Socket Test Task',
         description: 'A task for testing socket interface.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
     ],
-    workers: {
+    runtimeWorkers: {
       minimal_worker: {
         description: 'Test App Worker',
         entrypoint: 'minimal-worker.ts',
@@ -342,12 +342,12 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Socket Test Task',
         description: 'A task for testing socket interface.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },
     ],
-    workers: {
+    runtimeWorkers: {
       minimal_worker: {
         description: 'Test App Worker',
         entrypoint: 'minimal-worker.ts',
@@ -378,7 +378,7 @@ const testAppDefinitions: AppConfig[] = [
         },
       },
     ],
-    workers: {
+    runtimeWorkers: {
       minimal_worker: {
         description: 'Test App Worker',
         entrypoint: 'minimal-worker.ts',
@@ -390,7 +390,7 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Socket Test Task',
         description: 'A task for testing socket interface.',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'minimal_worker',
         },
       },

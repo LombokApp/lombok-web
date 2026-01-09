@@ -6089,7 +6089,7 @@
                             "type": {
                               "type": "string",
                               "enum": [
-                                "worker",
+                                "runtime",
                                 "docker"
                               ]
                             },
@@ -6259,7 +6259,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "workers": {
+                  "runtimeWorkers": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
@@ -6463,7 +6463,7 @@
                   ]
                 }
               },
-              "connectedWorkers": {
+              "connectedRuntimeWorkers": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -6491,7 +6491,7 @@
                   ]
                 }
               },
-              "workers": {
+              "runtimeWorkers": {
                 "type": "object",
                 "properties": {
                   "hash": {
@@ -6780,8 +6780,8 @@
               "userScopeEnabledDefault",
               "folderScopeEnabledDefault",
               "manifest",
-              "connectedWorkers",
-              "workers",
+              "connectedRuntimeWorkers",
+              "runtimeWorkers",
               "ui",
               "contributions",
               "metrics",
@@ -7089,7 +7089,7 @@
                               "type": {
                                 "type": "string",
                                 "enum": [
-                                  "worker",
+                                  "runtime",
                                   "docker"
                                 ]
                               },
@@ -7259,7 +7259,7 @@
                         "additionalProperties": false
                       }
                     },
-                    "workers": {
+                    "runtimeWorkers": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -7463,7 +7463,7 @@
                     ]
                   }
                 },
-                "connectedWorkers": {
+                "connectedRuntimeWorkers": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -7491,7 +7491,7 @@
                     ]
                   }
                 },
-                "workers": {
+                "runtimeWorkers": {
                   "type": "object",
                   "properties": {
                     "hash": {
@@ -7780,8 +7780,8 @@
                 "userScopeEnabledDefault",
                 "folderScopeEnabledDefault",
                 "manifest",
-                "connectedWorkers",
-                "workers",
+                "connectedRuntimeWorkers",
+                "runtimeWorkers",
                 "ui",
                 "contributions",
                 "metrics",
@@ -8089,7 +8089,7 @@
                             "type": {
                               "type": "string",
                               "enum": [
-                                "worker",
+                                "runtime",
                                 "docker"
                               ]
                             },
@@ -8259,7 +8259,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "workers": {
+                  "runtimeWorkers": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
@@ -8463,7 +8463,7 @@
                   ]
                 }
               },
-              "connectedWorkers": {
+              "connectedRuntimeWorkers": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -8491,7 +8491,7 @@
                   ]
                 }
               },
-              "workers": {
+              "runtimeWorkers": {
                 "type": "object",
                 "properties": {
                   "hash": {
@@ -8780,8 +8780,8 @@
               "userScopeEnabledDefault",
               "folderScopeEnabledDefault",
               "manifest",
-              "connectedWorkers",
-              "workers",
+              "connectedRuntimeWorkers",
+              "runtimeWorkers",
               "ui",
               "contributions",
               "metrics",
@@ -9112,7 +9112,7 @@
                               "type": {
                                 "type": "string",
                                 "enum": [
-                                  "worker",
+                                  "runtime",
                                   "docker"
                                 ]
                               },
@@ -9282,7 +9282,7 @@
                         "additionalProperties": false
                       }
                     },
-                    "workers": {
+                    "runtimeWorkers": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -9483,7 +9483,7 @@
                     ]
                   }
                 },
-                "workers": {
+                "runtimeWorkers": {
                   "type": "object",
                   "properties": {
                     "hash": {
@@ -9712,7 +9712,7 @@
                 "userScopeEnabledDefault",
                 "folderScopeEnabledDefault",
                 "manifest",
-                "workers",
+                "runtimeWorkers",
                 "ui",
                 "contributions",
                 "createdAt",
@@ -9999,7 +9999,7 @@
                             "type": {
                               "type": "string",
                               "enum": [
-                                "worker",
+                                "runtime",
                                 "docker"
                               ]
                             },
@@ -10169,7 +10169,7 @@
                       "additionalProperties": false
                     }
                   },
-                  "workers": {
+                  "runtimeWorkers": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
@@ -10370,7 +10370,7 @@
                   ]
                 }
               },
-              "workers": {
+              "runtimeWorkers": {
                 "type": "object",
                 "properties": {
                   "hash": {
@@ -10599,7 +10599,7 @@
               "userScopeEnabledDefault",
               "folderScopeEnabledDefault",
               "manifest",
-              "workers",
+              "runtimeWorkers",
               "ui",
               "contributions",
               "createdAt",

@@ -75,7 +75,7 @@ describe('User Apps', () => {
     expect(app.enabled).toBe(true)
     // Should not have admin-only fields
     expect('publicKey' in app).toBe(false)
-    expect('connectedWorkers' in app).toBe(false)
+    expect('connectedRuntimeWorkers' in app).toBe(false)
     expect('metrics' in app).toBe(false)
     expect('requiresStorage' in app).toBe(false)
   })
@@ -180,7 +180,7 @@ describe('User Apps', () => {
     expect(getAppResponse.data.app.enabled).toBe(true)
     // Should not have admin-only fields
     expect('publicKey' in getAppResponse.data.app).toBe(false)
-    expect('connectedWorkers' in getAppResponse.data.app).toBe(false)
+    expect('connectedRuntimeWorkers' in getAppResponse.data.app).toBe(false)
     expect('metrics' in getAppResponse.data.app).toBe(false)
   })
 

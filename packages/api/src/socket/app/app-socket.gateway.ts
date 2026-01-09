@@ -12,14 +12,17 @@ import { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
 import {
   APP_JWT_SUB_PREFIX,
-  APP_WORKER_JWT_SUB_PREFIX,
+  APP_RUNTIME_WORKER_JWT_SUB_PREFIX,
   JWTService,
 } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { z } from 'zod'
 
-import { APP_WORKER_SOCKET_STATE, AppSocketService } from './app-socket.service'
+import {
+  APP_RUNTIME_WORKER_SOCKET_STATE,
+  AppSocketService,
+} from './app-socket.service'
 
 export const AppSocketAuthPayload = z.object({
   instanceId: z.string(),
@@ -73,14 +76,16 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
 
           const sub = jwt.payload.sub as string | undefined
           const isAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
-          const isAppWorkerToken = sub?.startsWith(APP_WORKER_JWT_SUB_PREFIX)
+          const isAppRuntimeWorkerToken = sub?.startsWith(
+            APP_RUNTIME_WORKER_JWT_SUB_PREFIX,
+          )
 
           const appIdentifier = isAppToken
             ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               sub!.slice(APP_JWT_SUB_PREFIX.length)
-            : isAppWorkerToken
+            : isAppRuntimeWorkerToken
               ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                sub!.slice(APP_WORKER_JWT_SUB_PREFIX.length)
+                sub!.slice(APP_RUNTIME_WORKER_JWT_SUB_PREFIX.length)
               : undefined
 
           if (!appIdentifier) {
@@ -110,8 +115,8 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                     publicKey: app.publicKey,
                     token: auth.token,
                   })
-                } else if (isAppWorkerToken) {
-                  this.jwtService.verifyAppWorkerToken({
+                } else if (isAppRuntimeWorkerToken) {
+                  this.jwtService.verifyAppRuntimeWorkerToken({
                     appIdentifier,
                     token: auth.token,
                   })
@@ -130,7 +135,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
               const instanceKey = `${appIdentifier}:${auth.instanceId}`
               // persist worker state in memory
               void this.kvService.ops.set(
-                `${APP_WORKER_SOCKET_STATE}:${instanceKey}`,
+                `${APP_RUNTIME_WORKER_SOCKET_STATE}:${instanceKey}`,
                 JSON.stringify(workerInfo),
               )
 
@@ -163,14 +168,19 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                   }
                 }
                 // Also cleanup from connectedAppWorkers
-                this.appSocketService.connectedAppWorkers.delete(socket.id)
+                this.appSocketService.connectedAppRuntimeWorkers.delete(
+                  socket.id,
+                )
 
                 void this.kvService.ops.del(
-                  `${APP_WORKER_SOCKET_STATE}:${instanceKey}`,
+                  `${APP_RUNTIME_WORKER_SOCKET_STATE}:${instanceKey}`,
                 )
               })
               const clientId = socket.id
-              this.appSocketService.connectedAppWorkers.set(clientId, socket)
+              this.appSocketService.connectedAppRuntimeWorkers.set(
+                clientId,
+                socket,
+              )
               return Promise.all(
                 (auth.handledTaskIdentifiers ?? []).map(
                   async (taskIdentifier) => {

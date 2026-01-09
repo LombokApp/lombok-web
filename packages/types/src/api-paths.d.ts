@@ -4,6836 +4,7321 @@
  */
 
 export interface paths {
-    "/api/v1/server/apps/install": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["installAppFromZip"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/apps": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listApps"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/apps/{appIdentifier}/enabled": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["setAppEnabled"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/apps/{appIdentifier}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getApp"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/apps/{appIdentifier}/access-settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["updateAppAccessSettings"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["setWorkerEnvironmentVariables"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/apps": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List enabled apps available for the current user */
-        get: operations["listApps"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/apps/{appIdentifier}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get an enabled app by identifier for the current user */
-        get: operations["getApp"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/app-contributions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get app contributions */
-        get: operations["getAppContributions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/apps/{appIdentifier}/access-token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Generate app user access token */
-        post: operations["generateAppUserAccessToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/apps/{appIdentifier}/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get app user settings for the current user */
-        get: operations["getAppUserSettings"];
-        put?: never;
-        /** Create or update app user settings for the current user */
-        post: operations["upsertAppUserSettings"];
-        /** Remove app user settings for the current user */
-        delete: operations["removeAppUserSettings"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/events/{eventId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get an event by id. */
-        get: operations["getEvent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List events. */
-        get: operations["listEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/events/{eventId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder event by id. */
-        get: operations["getFolderEvent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks. */
-        get: operations["listFolderEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/logs/{logId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a log entry by id. */
-        get: operations["getLog"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List log entries. */
-        get: operations["listLogs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/logs/{logId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder log entry by id. */
-        get: operations["getFolderLog"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List folder log entries. */
-        get: operations["listFolderLogs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder by id. */
-        get: operations["getFolder"];
-        /** Update a folder by id. */
-        put: operations["updateFolder"];
-        post?: never;
-        /** Delete a folder by id. */
-        delete: operations["deleteFolder"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/check-access": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Check S3 access and update folder accessError */
-        post: operations["checkFolderAccess"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/metadata": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the metadata for a folder by id. */
-        get: operations["getFolderMetadata"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List folders. */
-        get: operations["listFolders"];
-        put?: never;
-        /** Create a folder. */
-        post: operations["createFolder"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/reindex": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Scan the underlying S3 location and update our local representation of it. */
-        post: operations["reindexFolder"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/objects": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List folder objects by folderId. */
-        get: operations["listFolderObjects"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/objects/{objectKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder object by folderId and objectKey. */
-        get: operations["getFolderObject"];
-        put?: never;
-        post?: never;
-        /** Delete a folder object by folderId and objectKey. */
-        delete: operations["deleteFolderObject"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/presigned-urls": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create presigned urls for objects in a folder. */
-        post: operations["createPresignedUrls"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/objects/{objectKey}/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Scan the object again in the underlying storage, and update its state in our db. */
-        post: operations["refreshFolderObjectS3Metadata"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/shares/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get folder share for a user */
-        get: operations["getFolderShares"];
-        put?: never;
-        /** Add or update a folder share */
-        post: operations["upsertFolderShare"];
-        /** Remove a folder share */
-        delete: operations["removeFolderShare"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/shares": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List folder shares */
-        get: operations["listFolderShares"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/user-share-options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List prospective folder share users */
-        get: operations["listFolderShareUsers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/app-settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get all app settings for a folder */
-        get: operations["getFolderAppSettings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Bulk update app settings for a folder */
-        patch: operations["updateFolderAppSettings"];
-        trace?: never;
-    };
-    "/api/v1/access-keys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List access keys. */
-        get: operations["listAccessKeys"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/access-keys/{accessKeyHashId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get an access key by id. */
-        get: operations["getAccessKey"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/access-keys/{accessKeyHashId}/rotate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Rotate an access key. */
-        post: operations["rotateAccessKey"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/access-keys/{accessKeyHashId}/buckets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List buckets for an access key. */
-        get: operations["listAccessKeyBuckets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/access-keys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List server access keys. */
-        get: operations["listServerAccessKeys"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/access-keys/{accessKeyHashId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get server access key by id. */
-        get: operations["getServerAccessKey"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Rotate a server access key. */
-        post: operations["rotateServerAccessKey"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/access-keys/{accessKeyHashId}/buckets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List buckets for an access key. */
-        get: operations["listServerAccessKeyBuckets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/public/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the public server settings object (no authentication required). */
-        get: operations["getPublicServerSettings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the server settings object. */
-        get: operations["getServerSettings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/settings/{settingKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Set a setting in the server settings objects. */
-        put: operations["setServerSetting"];
-        post?: never;
-        /** Reset a setting in the server settings objects. */
-        delete: operations["resetServerSetting"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/metrics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get server metrics including user counts, folder counts, and storage statistics. */
-        get: operations["getServerMetrics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/storage-provisions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the storage provisions. */
-        get: operations["listStorageProvisions"];
-        put?: never;
-        /** Create a new user storage provision. */
-        post: operations["createUserStorageProvision"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/storage-provisions/{storageProvisionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a storage provision by id. */
-        get: operations["getStorageProvision"];
-        /** Update a server provision by id. */
-        put: operations["updateStorageProvision"];
-        post?: never;
-        /** Delete a storage provision by id. */
-        delete: operations["deleteStorageProvision"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/server-storage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the server storage location. */
-        get: operations["getServerStorageLocation"];
-        put?: never;
-        /** Create a new server provision. */
-        post: operations["setServerStorageLocation"];
-        /** Delete any set server storage location. */
-        delete: operations["deleteServerStorageLocation"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/tasks/{taskId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a task by id. */
-        get: operations["getTask"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks. */
-        get: operations["listTasks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/tasks/{taskId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a folder task by id. */
-        get: operations["getFolderTask"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/folders/{folderId}/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List tasks. */
-        get: operations["listFolderTasks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Authenticate the user and return access and refresh tokens. */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register a new user. */
-        post: operations["signup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Logout. Kill the current session. */
-        post: operations["logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/{refreshToken}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refresh a session with a refresh token. */
-        post: operations["refreshToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/complete-signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Complete SSO signup by choosing username */
-        post: operations["completeSignup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/initiate/{provider}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Initiate SSO login flow - returns OAuth URL */
-        post: operations["initiateSSO"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/callback/{provider}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Handle OAuth callback from provider */
-        post: operations["handleCallback"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/link-provider": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Link SSO provider to existing account */
-        post: operations["linkProvider"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/viewer": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getViewer"];
-        put: operations["updateViewer"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the users. */
-        get: operations["listUsers"];
-        put?: never;
-        /** Create a user. */
-        post: operations["createUser"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/users/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a user by id. */
-        get: operations["getUser"];
-        put?: never;
-        post?: never;
-        /** Delete a server user by id. */
-        delete: operations["deleteUser"];
-        options?: never;
-        head?: never;
-        /** Update a user. */
-        patch: operations["updateUser"];
-        trace?: never;
-    };
-    "/api/v1/server/users/{userId}/sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listActiveUserSessions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Request presigned URLs for file operations
-         * @description Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.
-         */
-        post: operations["requestPresignedStorageUrls"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/jobs/{jobId}/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Signal job start
-         * @description Marks the associated task as started. The job token must be valid.
-         */
-        post: operations["startJob"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/jobs/{jobId}/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Signal job completion
-         * @description Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.
-         */
-        post: operations["completeJob"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+  '/api/v1/server/apps/install': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations['installAppFromZip']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/apps': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations['listApps']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/apps/{appIdentifier}/enabled': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations['setAppEnabled']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/apps/{appIdentifier}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations['getApp']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/apps/{appIdentifier}/access-settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations['updateAppAccessSettings']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations['setWorkerEnvironmentVariables']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/user/apps': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List enabled apps available for the current user */
+    get: operations['listApps']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/user/apps/{appIdentifier}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get an enabled app by identifier for the current user */
+    get: operations['getApp']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/user/app-contributions': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get app contributions */
+    get: operations['getAppContributions']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/user/apps/{appIdentifier}/access-token': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Generate app user access token */
+    post: operations['generateAppUserAccessToken']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/user/apps/{appIdentifier}/settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get app user settings for the current user */
+    get: operations['getAppUserSettings']
+    put?: never
+    /** Create or update app user settings for the current user */
+    post: operations['upsertAppUserSettings']
+    /** Remove app user settings for the current user */
+    delete: operations['removeAppUserSettings']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/events/{eventId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get an event by id. */
+    get: operations['getEvent']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List events. */
+    get: operations['listEvents']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/events/{eventId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a folder event by id. */
+    get: operations['getFolderEvent']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List tasks. */
+    get: operations['listFolderEvents']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/logs/{logId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a log entry by id. */
+    get: operations['getLog']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/logs': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List log entries. */
+    get: operations['listLogs']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/logs/{logId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a folder log entry by id. */
+    get: operations['getFolderLog']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/logs': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List folder log entries. */
+    get: operations['listFolderLogs']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a folder by id. */
+    get: operations['getFolder']
+    /** Update a folder by id. */
+    put: operations['updateFolder']
+    post?: never
+    /** Delete a folder by id. */
+    delete: operations['deleteFolder']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/check-access': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Check S3 access and update folder accessError */
+    post: operations['checkFolderAccess']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/metadata': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the metadata for a folder by id. */
+    get: operations['getFolderMetadata']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List folders. */
+    get: operations['listFolders']
+    put?: never
+    /** Create a folder. */
+    post: operations['createFolder']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/reindex': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Scan the underlying S3 location and update our local representation of it. */
+    post: operations['reindexFolder']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/objects': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List folder objects by folderId. */
+    get: operations['listFolderObjects']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/objects/{objectKey}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a folder object by folderId and objectKey. */
+    get: operations['getFolderObject']
+    put?: never
+    post?: never
+    /** Delete a folder object by folderId and objectKey. */
+    delete: operations['deleteFolderObject']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/presigned-urls': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Create presigned urls for objects in a folder. */
+    post: operations['createPresignedUrls']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/objects/{objectKey}/refresh': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Scan the object again in the underlying storage, and update its state in our db. */
+    post: operations['refreshFolderObjectS3Metadata']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/shares/{userId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get folder share for a user */
+    get: operations['getFolderShares']
+    put?: never
+    /** Add or update a folder share */
+    post: operations['upsertFolderShare']
+    /** Remove a folder share */
+    delete: operations['removeFolderShare']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/shares': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List folder shares */
+    get: operations['listFolderShares']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/user-share-options': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List prospective folder share users */
+    get: operations['listFolderShareUsers']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/app-settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get all app settings for a folder */
+    get: operations['getFolderAppSettings']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /** Bulk update app settings for a folder */
+    patch: operations['updateFolderAppSettings']
+    trace?: never
+  }
+  '/api/v1/access-keys': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List access keys. */
+    get: operations['listAccessKeys']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/access-keys/{accessKeyHashId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get an access key by id. */
+    get: operations['getAccessKey']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/access-keys/{accessKeyHashId}/rotate': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Rotate an access key. */
+    post: operations['rotateAccessKey']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/access-keys/{accessKeyHashId}/buckets': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List buckets for an access key. */
+    get: operations['listAccessKeyBuckets']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/access-keys': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List server access keys. */
+    get: operations['listServerAccessKeys']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/access-keys/{accessKeyHashId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get server access key by id. */
+    get: operations['getServerAccessKey']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/access-keys/{accessKeyHashId}/rotate': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Rotate a server access key. */
+    post: operations['rotateServerAccessKey']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/access-keys/{accessKeyHashId}/buckets': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List buckets for an access key. */
+    get: operations['listServerAccessKeyBuckets']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/public/settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the public server settings object (no authentication required). */
+    get: operations['getPublicServerSettings']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/settings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the server settings object. */
+    get: operations['getServerSettings']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/settings/{settingKey}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Set a setting in the server settings objects. */
+    put: operations['setServerSetting']
+    post?: never
+    /** Reset a setting in the server settings objects. */
+    delete: operations['resetServerSetting']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/metrics': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get server metrics including user counts, folder counts, and storage statistics. */
+    get: operations['getServerMetrics']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/storage-provisions': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List the storage provisions. */
+    get: operations['listStorageProvisions']
+    put?: never
+    /** Create a new user storage provision. */
+    post: operations['createUserStorageProvision']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/storage-provisions/{storageProvisionId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a storage provision by id. */
+    get: operations['getStorageProvision']
+    /** Update a server provision by id. */
+    put: operations['updateStorageProvision']
+    post?: never
+    /** Delete a storage provision by id. */
+    delete: operations['deleteStorageProvision']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/server-storage': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the server storage location. */
+    get: operations['getServerStorageLocation']
+    put?: never
+    /** Create a new server provision. */
+    post: operations['setServerStorageLocation']
+    /** Delete any set server storage location. */
+    delete: operations['deleteServerStorageLocation']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/tasks/{taskId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a task by id. */
+    get: operations['getTask']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/tasks': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List tasks. */
+    get: operations['listTasks']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/tasks/{taskId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a folder task by id. */
+    get: operations['getFolderTask']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/folders/{folderId}/tasks': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List tasks. */
+    get: operations['listFolderTasks']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/login': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Authenticate the user and return access and refresh tokens. */
+    post: operations['login']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/signup': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Register a new user. */
+    post: operations['signup']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/logout': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Logout. Kill the current session. */
+    post: operations['logout']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/{refreshToken}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Refresh a session with a refresh token. */
+    post: operations['refreshToken']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/sso/complete-signup': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Complete SSO signup by choosing username */
+    post: operations['completeSignup']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/sso/initiate/{provider}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Initiate SSO login flow - returns OAuth URL */
+    post: operations['initiateSSO']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/sso/callback/{provider}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Handle OAuth callback from provider */
+    post: operations['handleCallback']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/auth/sso/link-provider': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Link SSO provider to existing account */
+    post: operations['linkProvider']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/viewer': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations['getViewer']
+    put: operations['updateViewer']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/users': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List the users. */
+    get: operations['listUsers']
+    put?: never
+    /** Create a user. */
+    post: operations['createUser']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/server/users/{userId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get a user by id. */
+    get: operations['getUser']
+    put?: never
+    post?: never
+    /** Delete a server user by id. */
+    delete: operations['deleteUser']
+    options?: never
+    head?: never
+    /** Update a user. */
+    patch: operations['updateUser']
+    trace?: never
+  }
+  '/api/v1/server/users/{userId}/sessions': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations['listActiveUserSessions']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/docker/jobs/{jobId}/request-presigned-urls': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Request presigned URLs for file operations
+     * @description Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.
+     */
+    post: operations['requestPresignedStorageUrls']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/docker/jobs/{jobId}/start': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Signal job start
+     * @description Marks the associated task as started. The job token must be valid.
+     */
+    post: operations['startJob']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/docker/jobs/{jobId}/complete': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Signal job completion
+     * @description Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.
+     */
+    post: operations['completeJob']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
-export type webhooks = Record<string, never>;
+export type webhooks = Record<string, never>
 export interface components {
-    schemas: {
-        ApiErrorResponseDTO: {
-            code: string;
-            message: string;
-        };
-        AppInstallResponse: {
-            app: {
-                identifier: string;
-                slug: string;
-                installId: string;
-                label: string;
-                publicKey: string;
+  schemas: {
+    ApiErrorResponseDTO: {
+      code: string
+      message: string
+    }
+    AppInstallResponse: {
+      app: {
+        identifier: string
+        slug: string
+        installId: string
+        label: string
+        publicKey: string
+        config: {
+          requiresStorage?: boolean
+          permissions?: {
+            core?: 'READ_FOLDER_ACL'[]
+            user?: (
+              | 'CREATE_FOLDERS'
+              | 'READ_FOLDERS'
+              | 'UPDATE_FOLDERS'
+              | 'DELETE_FOLDERS'
+              | 'READ_USER'
+            )[]
+            folder?: (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+          }
+          slug: string
+          label: string
+          description: string
+          subscribedCoreEvents?: string[]
+          triggers?: (
+            | {
+                /** @enum {string} */
+                kind: 'event'
+                eventIdentifier: string
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'schedule'
                 config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @enum {string} */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "schedule";
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                        name: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "worker" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @enum {string} */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @enum {boolean} */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
-                            } | {
-                                /** @enum {string} */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    maxPerContainer?: number;
-                                    /** @enum {boolean} */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
-                                    identifier: string;
-                                }[];
-                            })[];
-                        };
-                    };
-                    workers?: {
-                        [key: string]: {
-                            entrypoint: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                        };
-                    };
-                    ui?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                };
-                requiresStorage: boolean;
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                connectedWorkers: {
-                    appIdentifier: string;
-                    workerId: string;
-                    socketClientId: string;
-                    ip: string;
-                }[];
-                workers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                metrics: {
-                    tasksExecutedLast24Hours: {
-                        completed: number;
-                        failed: number;
-                    };
-                    errorsLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                    eventsEmittedLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        AppListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                identifier: string;
-                slug: string;
-                installId: string;
-                label: string;
-                publicKey: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @enum {string} */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "schedule";
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                        name: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "worker" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @enum {string} */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @enum {boolean} */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
-                            } | {
-                                /** @enum {string} */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    maxPerContainer?: number;
-                                    /** @enum {boolean} */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
-                                    identifier: string;
-                                }[];
-                            })[];
-                        };
-                    };
-                    workers?: {
-                        [key: string]: {
-                            entrypoint: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                        };
-                    };
-                    ui?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                };
-                requiresStorage: boolean;
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                connectedWorkers: {
-                    appIdentifier: string;
-                    workerId: string;
-                    socketClientId: string;
-                    ip: string;
-                }[];
-                workers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                metrics: {
-                    tasksExecutedLast24Hours: {
-                        completed: number;
-                        failed: number;
-                    };
-                    errorsLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                    eventsEmittedLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        SetAppEnabledInputDTO: {
-            enabled: boolean;
-        };
-        AppGetResponse: {
-            app: {
-                identifier: string;
-                slug: string;
-                installId: string;
-                label: string;
-                publicKey: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @enum {string} */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "schedule";
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                        name: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "worker" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @enum {string} */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @enum {boolean} */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
-                            } | {
-                                /** @enum {string} */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    maxPerContainer?: number;
-                                    /** @enum {boolean} */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
-                                    identifier: string;
-                                }[];
-                            })[];
-                        };
-                    };
-                    workers?: {
-                        [key: string]: {
-                            entrypoint: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                        };
-                    };
-                    ui?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                };
-                requiresStorage: boolean;
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                connectedWorkers: {
-                    appIdentifier: string;
-                    workerId: string;
-                    socketClientId: string;
-                    ip: string;
-                }[];
-                workers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                metrics: {
-                    tasksExecutedLast24Hours: {
-                        completed: number;
-                        failed: number;
-                    };
-                    errorsLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                    eventsEmittedLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        UpdateAppAccessSettingsInputDTO: {
-            userScopeEnabledDefault: boolean;
-            folderScopeEnabledDefault: boolean;
-        };
-        SetWorkerEnvironmentVariablesInputDTO: {
-            environmentVariables: components["schemas"]["StringMapDTO"];
-        };
-        StringMapDTO: {
-            [key: string]: string;
-        };
-        UserAppListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                identifier: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @enum {string} */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "schedule";
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                        name: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "worker" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @enum {string} */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @enum {boolean} */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
-                            } | {
-                                /** @enum {string} */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    maxPerContainer?: number;
-                                    /** @enum {boolean} */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
-                                    identifier: string;
-                                }[];
-                            })[];
-                        };
-                    };
-                    workers?: {
-                        [key: string]: {
-                            entrypoint: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                        };
-                    };
-                    ui?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                };
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                workers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        UserAppGetResponse: {
-            app: {
-                identifier: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @enum {string} */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "schedule";
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                        name: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    } | {
-                        /** @enum {string} */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: unknown[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "worker" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @enum {string} */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @enum {boolean} */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
-                            } | {
-                                /** @enum {string} */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    maxPerContainer?: number;
-                                    /** @enum {boolean} */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
-                                    identifier: string;
-                                }[];
-                            })[];
-                        };
-                    };
-                    workers?: {
-                        [key: string]: {
-                            entrypoint: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                        };
-                    };
-                    ui?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @enum {boolean} */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                };
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                workers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        AppContributionsResponse: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+                name: string
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'user_action'
+                scope?: {
+                  user?: {
+                    permissions: string
+                  }
+                  folder?: {
+                    /** Format: uuid */
+                    folderId: string
+                  }
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+          )[]
+          tasks?: {
+            identifier: string
+            label: string
+            description: string
+            handler: {
+              /** @enum {string} */
+              type: 'runtime' | 'docker'
+              identifier: string
+            }
+          }[]
+          containerProfiles?: {
             [key: string]: {
-                appLabel: string;
-                appIdentifier: string;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-            };
-        };
-        LoginResponse: {
-            session: {
-                accessToken: string;
-                refreshToken: string;
-                /** Format: date-time */
-                expiresAt: string;
-            };
-        };
-        AppUserSettingsGetResponseDTO: {
-            settings: {
-                appIdentifier: string;
-                enabledFallback: boolean;
-                folderScopeEnabledDefaultFallback: boolean;
-                permissionsFallback: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                enabled: boolean | null;
-                folderScopeEnabledDefault: boolean | null;
-                folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-                permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
-            };
-        };
-        AppUserSettingsCreateInputDTO: {
-            enabled: boolean | null;
-            folderScopeEnabledDefault: boolean | null;
-            folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-            permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
-        };
-        EventGetResponse: {
-            event: {
-                /** Format: uuid */
-                id: string;
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data: {
-                    [key: string]: unknown;
-                };
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                /** Format: date-time */
-                createdAt: string;
-            };
-        };
-        EventListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data: {
-                    [key: string]: unknown;
-                };
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                /** Format: date-time */
-                createdAt: string;
-            }[];
-        };
-        LogGetResponse: {
-            log: {
-                /** Format: uuid */
-                id: string;
-                message: string;
-                /** @enum {string} */
-                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
-                emitterIdentifier: string;
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data?: unknown;
-                /** Format: date-time */
-                createdAt: string;
-            };
-        };
-        LogListResponse: {
-            result: {
-                /** Format: uuid */
-                id: string;
-                message: string;
-                /** @enum {string} */
-                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
-                emitterIdentifier: string;
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data?: unknown;
-                /** Format: date-time */
-                createdAt: string;
-            }[];
-            meta: {
-                totalCount: number;
-            };
-        };
-        InlineMetadataEntryDTO: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "inline";
-            mimeType: string;
-            sizeBytes: number;
-            content: string;
-        };
-        ExternalMetadataEntryDTO: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "external";
-            storageKey: string;
-            mimeType: string;
-            sizeBytes: number;
-            hash: string;
-        };
-        ContentMetadataEntryDTO: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
-        FolderGetResponse: {
-            folder: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                ownerId: string;
-                name: string;
-                metadataLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
+              image: string
+              resources?: {
+                gpu?: boolean
+                memoryMB?: number
+                cpuCores?: number
+              }
+              workers: (
+                | {
                     /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix?: string;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                contentLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
+                    kind: 'exec'
+                    command: string[]
+                    jobIdentifier: string
+                    maxPerContainer?: number
+                    /** @enum {boolean} */
+                    countTowardsGlobalCap?: false
+                    priority?: number
+                  }
+                | {
                     /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix?: string;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                accessError?: {
-                    message: string;
-                    code: string;
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-        };
-        FolderGetMetadataResponse: {
-            totalCount: number;
-            totalSizeBytes: number;
-        };
-        FolderListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-                folder: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    ownerId: string;
-                    name: string;
-                    metadataLocation: {
-                        /** Format: uuid */
-                        id: string;
-                        /** Format: uuid */
-                        userId?: string;
-                        /** @enum {string} */
-                        providerType: "SERVER" | "USER";
-                        label: string;
-                        endpoint: string;
-                        region: string;
-                        bucket: string;
-                        prefix?: string;
-                        accessKeyId: string;
-                        accessKeyHashId: string;
-                    };
-                    contentLocation: {
-                        /** Format: uuid */
-                        id: string;
-                        /** Format: uuid */
-                        userId?: string;
-                        /** @enum {string} */
-                        providerType: "SERVER" | "USER";
-                        label: string;
-                        endpoint: string;
-                        region: string;
-                        bucket: string;
-                        prefix?: string;
-                        accessKeyId: string;
-                        accessKeyHashId: string;
-                    };
-                    accessError?: {
-                        message: string;
-                        code: string;
-                    } | null;
-                    /** Format: date-time */
-                    createdAt: string;
-                    /** Format: date-time */
-                    updatedAt: string;
-                };
-            }[];
-        };
-        FolderCreateInputDTO: {
-            name: string;
-            metadataLocation: {
-                accessKeyId: string;
-                secretAccessKey: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix?: string;
-            } | {
-                /** Format: uuid */
-                storageProvisionId: string;
-            } | {
-                /** Format: uuid */
-                userLocationId: string;
-                userLocationBucketOverride: string;
-                userLocationPrefixOverride?: string;
-            };
-            contentLocation: {
-                accessKeyId: string;
-                secretAccessKey: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix?: string;
-            } | {
-                /** Format: uuid */
-                storageProvisionId: string;
-            } | {
-                /** Format: uuid */
-                userLocationId: string;
-                userLocationBucketOverride: string;
-                userLocationPrefixOverride?: string;
-            };
-        };
-        FolderCreateResponse: {
-            folder: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                ownerId: string;
-                name: string;
-                metadataLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix?: string;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                contentLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix?: string;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                accessError?: {
-                    message: string;
-                    code: string;
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        FolderObjectListResponse: {
-            meta: {
-                totalCount: number;
-                nextCursor?: string;
-                previousCursor?: string;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                objectKey: string;
-                /** Format: uuid */
-                folderId: string;
-                hash?: string;
-                lastModified: number;
-                eTag: string;
-                sizeBytes: number;
-                mimeType: string;
-                /** @enum {string} */
-                mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                contentMetadata: {
-                    [key: string]: {
-                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
-                    };
-                };
-            }[];
-        };
-        FolderObjectGetResponse: {
-            folderObject: {
-                /** Format: uuid */
-                id: string;
-                objectKey: string;
-                /** Format: uuid */
-                folderId: string;
-                hash?: string;
-                lastModified: number;
-                eTag: string;
-                sizeBytes: number;
-                mimeType: string;
-                /** @enum {string} */
-                mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                contentMetadata: {
-                    [key: string]: {
-                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
-                    };
-                };
-            };
-        };
-        FolderCreateSignedUrlInputDTO: {
-            objectIdentifier: string;
-            /** @enum {string} */
-            method: "PUT" | "DELETE" | "GET" | "HEAD";
-        }[];
-        FolderCreateSignedUrlsResponse: {
-            urls: string[];
-        };
-        FolderShareGetResponse: {
-            share: {
-                /** Format: uuid */
-                userId: string;
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-            };
-        };
-        FolderShareListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                userId: string;
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-            }[];
-        };
-        FolderShareUserListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                username: string;
-                id: string;
-            }[];
-        };
-        FolderShareCreateInputDTO: {
-            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-        };
-        FolderUpdateInputDTO: {
-            name: string;
-        };
-        FolderUpdateResponseDTO: {
-            folder: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                ownerId: string;
-                name: string;
-                metadataLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix?: string;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                contentLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix?: string;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                accessError?: {
-                    message: string;
-                    code: string;
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        AppFolderSettingsGetResponseDTO: {
-            settings: {
-                [key: string]: {
-                    appIdentifier: string;
-                    enabledFallback: {
-                        value: boolean;
-                        /** @enum {string} */
-                        source: "system" | "user";
-                    };
-                    permissionsFallback: {
-                        value: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                        /** @enum {string} */
-                        source: "system" | "user";
-                    };
-                    enabled: boolean | null;
-                    permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-                };
-            };
-        };
-        AppFolderSettingsUpdateInputDTO: {
-            [key: string]: (((({
-                enabled: boolean | null;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-            } | {
-                enabled: boolean;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-            }) | {
-                enabled: boolean;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-            }) | {
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-            }) | {
-                enabled: boolean | null;
-            }) | null;
-        };
-        AccessKeyListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                accessKeyId: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                endpointDomain: string;
-                region: string;
-                folderCount: number;
-            }[];
-        };
-        AccessKeyGetResponse: {
-            accessKey: {
-                accessKeyId: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                endpointDomain: string;
-                region: string;
-                folderCount: number;
-            };
-        };
-        RotateAccessKeyInputDTO: {
-            accessKeyId: string;
-            secretAccessKey: string;
-        };
-        AccessKeyRotateResponse: {
-            accessKeyHashId: string;
-        };
-        AccessKeyBucketsListResponseDTO: {
-            result: {
-                name: string;
-                /** Format: date-time */
-                createdDate?: string;
-            }[];
-        };
-        PublicSettingsGetResponse: {
-            settings: {
-                SIGNUP_ENABLED?: boolean;
-                GOOGLE_OAUTH_ENABLED?: boolean;
-            };
-        };
-        SettingsGetResponse: {
-            settings: {
-                SIGNUP_ENABLED?: boolean;
-                SIGNUP_PERMISSIONS: string[];
-                SERVER_HOSTNAME: string | null;
-                GOOGLE_OAUTH_CONFIG?: {
-                    enabled: boolean;
-                    clientId: string;
-                    clientSecret: string;
-                };
-                STORAGE_PROVISIONS?: unknown[];
-                SERVER_STORAGE?: unknown;
-            };
-        };
-        SetSettingInputDTO: {
-            value?: unknown;
-        };
-        SettingSetResponse: {
-            settingKey: string;
-            settingValue?: unknown;
-        };
-        ServerMetricsResponse: {
-            totalUsers: number;
-            totalFolders: number;
-            usersCreatedPreviousWeek: number;
-            foldersCreatedPreviousWeek: number;
-            totalIndexedSizeBytes: number;
-            sessionsCreatedPreviousWeek: number;
-            sessionsCreatedPrevious24Hours: number;
-            provisionedStorage: {
-                totalCount: number;
-                summary: string;
-            };
-            totalIndexedSizeBytesAcrossStorageProvisions: number;
-            installedApps: {
-                totalCount: number;
-                summary: string;
-            };
-            tasksCreatedPreviousDay: number;
-            tasksCreatedPreviousHour: number;
-            taskErrorsPreviousDay: number;
-            taskErrorsPreviousHour: number;
-            serverEventsEmittedPreviousDay: number;
-            serverEventsEmittedPreviousHour: number;
-            folderEventsEmittedPreviousDay: number;
-            folderEventsEmittedPreviousHour: number;
-        };
-        StorageProvisionsListResponse: {
-            result: {
-                /** Format: uuid */
-                id: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                accessKeyId: string;
-                prefix?: string;
-                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                label: string;
-                description: string;
-            }[];
-        };
-        StorageProvisionGetResponse: {
-            storageProvision: {
-                /** Format: uuid */
-                id: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                accessKeyId: string;
-                prefix?: string;
-                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                label: string;
-                description: string;
-            };
-        };
-        StorageProvisionInputDTO: {
-            label: string;
-            description: string;
-            endpoint: string;
-            bucket: string;
-            region: string;
-            accessKeyId: string;
-            secretAccessKey: string;
-            prefix?: string;
-            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-        };
-        StorageProvisionUpdateDTO: {
-            label?: string;
-            description?: string;
-            endpoint?: string;
-            bucket?: string;
-            region?: string;
-            prefix?: string;
-            provisionTypes?: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-        };
-        ServerStorageLocationGetResponse: {
-            serverStorageLocation?: {
-                accessKeyHashId: string;
-                accessKeyId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix: string | null;
-            };
-        };
-        ServerStorageInputDTO: {
-            accessKeyId: string;
-            secretAccessKey: string;
-            /** Format: uri */
-            endpoint: string;
-            bucket: string;
-            region: string;
-            prefix: string | null;
-        };
-        TaskGetResponse: {
-            task: {
-                /** Format: uuid */
-                id: string;
-                taskIdentifier: string;
-                ownerIdentifier: string;
-                trigger: {
-                    /** @enum {string} */
-                    kind: "event";
-                    invokeContext: {
-                        /** Format: uuid */
-                        eventId: string;
-                        emitterIdentifier: string;
-                        eventIdentifier: string;
-                        eventTriggerConfigIndex: number;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        /** Format: uuid */
-                        targetUserId?: string;
-                        targetLocation?: {
-                            /** Format: uuid */
-                            folderId: string;
-                            objectKey?: string;
-                        };
-                        eventData: {
-                            [key: string]: unknown;
-                        };
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "schedule";
-                    invokeContext: {
-                        timestampBucket: string;
-                        name: string;
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "user_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        userId: string;
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "app_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "task_child";
-                    invokeContext: {
-                        parentTask: {
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
-                            success: boolean;
-                        };
-                        onCompleteHandlerIndex: number;
-                    };
-                    onComplete?: unknown[];
-                };
-                success?: boolean;
-                handlerIdentifier?: string;
-                data?: {
-                    [key: string]: unknown;
-                };
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                error?: {
-                    code: string;
-                    message: string;
-                    details?: {
-                        [key: string]: unknown;
-                    };
-                };
-                taskDescription: string;
-                systemLog: {
-                    /** Format: date-time */
-                    at: string;
-                    message: string;
-                    /** @enum {string} */
-                    logType: "started" | "error" | "requeue" | "success";
-                    payload?: {
-                        [key: string]: unknown;
-                    };
-                }[];
-                taskLog: {
-                    /** Format: date-time */
-                    at: string;
-                    message: string;
-                    logType: string;
-                    payload?: {
-                        [key: string]: unknown;
-                    };
-                }[];
-                /** Format: date-time */
-                startedAt?: string;
-                /** Format: date-time */
-                completedAt?: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-            };
-        };
-        TaskListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                taskIdentifier: string;
-                ownerIdentifier: string;
-                trigger: {
-                    /** @enum {string} */
-                    kind: "event";
-                    invokeContext: {
-                        /** Format: uuid */
-                        eventId: string;
-                        emitterIdentifier: string;
-                        eventIdentifier: string;
-                        eventTriggerConfigIndex: number;
-                        dataTemplate?: {
-                            [key: string]: unknown;
-                        };
-                        /** Format: uuid */
-                        targetUserId?: string;
-                        targetLocation?: {
-                            /** Format: uuid */
-                            folderId: string;
-                            objectKey?: string;
-                        };
-                        eventData: {
-                            [key: string]: unknown;
-                        };
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "schedule";
-                    invokeContext: {
-                        timestampBucket: string;
-                        name: string;
-                        config: {
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        };
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "user_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        userId: string;
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "app_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: unknown[];
-                } | {
-                    /** @enum {string} */
-                    kind: "task_child";
-                    invokeContext: {
-                        parentTask: {
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
-                            success: boolean;
-                        };
-                        onCompleteHandlerIndex: number;
-                    };
-                    onComplete?: unknown[];
-                };
-                success?: boolean;
-                handlerIdentifier?: string;
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                error?: components["schemas"]["ApiErrorResponseDTO"];
-                taskDescription: string;
-                /** Format: date-time */
-                startedAt?: string;
-                /** Format: date-time */
-                completedAt?: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-            }[];
-        };
-        LoginCredentialsDTO: {
-            login: string;
-            password: string;
-        };
-        SignupCredentialsDTO: {
-            username: string;
-            /** Format: email */
-            email?: string;
-            password: string;
-        };
-        SignupResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        TokenRefreshResponse: {
-            session: {
-                accessToken: string;
-                refreshToken: string;
-                /** Format: date-time */
-                expiresAt: string;
-            };
-        };
-        CompleteSSOSignupDTO: {
-            username: string;
-            providerData: {
-                /** @enum {string} */
-                provider: "google";
-                providerUserInfo: {
-                    id: string;
-                    email: string;
-                    name: string;
-                    picture?: string;
-                };
-                /** Format: date-time */
-                expiry: string;
-            };
-            signature: string;
-        };
-        CompleteSSOSignupResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-            accessToken: string;
-            refreshToken: string;
-            /** Format: date-time */
-            expiresAt: string;
-        };
-        InitiateSSOResponse: {
-            /** Format: uri */
-            authUrl: string;
-        };
-        SSOCallbackDTO: {
-            code: string;
-        };
-        SSOCallbackResponse: components["schemas"]["CompleteSSOSignupResponse"] | {
+                    kind: 'http'
+                    command: string[]
+                    port: number
+                    jobs: {
+                      maxPerContainer?: number
+                      /** @enum {boolean} */
+                      countTowardsGlobalCap?: false
+                      priority?: number
+                      identifier: string
+                    }[]
+                  }
+              )[]
+            }
+          }
+          runtimeWorkers?: {
+            [key: string]: {
+              entrypoint: string
+              description: string
+              environmentVariables?: components['schemas']['StringMapDTO']
+            }
+          }
+          ui?: {
             /** @enum {boolean} */
-            needsUsername: true;
-            provider: string;
-            providerUserInfo: {
-                id: string;
-                email?: string;
-                name?: string;
-                picture?: string;
-            };
-            suggestedUsername: string;
-            signature: string;
-            /** Format: date-time */
-            expiry: string;
-        };
-        LinkSSOProviderDTO: {
-            provider: string;
-            code: string;
-        };
-        LinkProviderResponse: {
-            success: boolean;
-        };
-        ViewerGetResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        ViewerUpdateInputDTO: {
-            name: string;
-        };
-        UserCreateInputDTO: {
-            name?: string;
-            email?: string;
-            emailVerified?: boolean;
-            isAdmin?: boolean;
-            username: string;
-            password: string;
-            permissions?: string[];
-        };
-        UserGetResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        UserUpdateInputDTO: {
-            name?: string | null;
-            email?: string | null;
-            isAdmin?: boolean;
-            username?: string;
-            password?: string;
-            permissions?: string[];
-        };
-        UserListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        UserSessionListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                /** Format: date-time */
-                expiresAt: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        WorkerJobUploadUrlsRequestDTO: {
+            enabled: true
+            csp?: string
+          }
+          database?: {
+            /** @enum {boolean} */
+            enabled: true
+          }
+          contributions?: {
+            sidebarMenuLinks: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            folderSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectDetailViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+          }
+        }
+        requiresStorage: boolean
+        enabled: boolean
+        userScopeEnabledDefault: boolean
+        folderScopeEnabledDefault: boolean
+        manifest: {
+          [key: string]: {
+            hash: string
+            size: number
+            mimeType: string
+          }
+        }
+        connectedRuntimeWorkers: {
+          appIdentifier: string
+          workerId: string
+          socketClientId: string
+          ip: string
+        }[]
+        runtimeWorkers: {
+          hash: string
+          size: number
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+          definitions: {
+            [key: string]: {
+              description: string
+              environmentVariables: components['schemas']['StringMapDTO']
+              entrypoint: string
+            }
+          }
+        }
+        ui: {
+          hash: string
+          size: number
+          csp?: string
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+        } | null
+        contributions: {
+          sidebarMenuLinks: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          folderSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectDetailViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+        }
+        metrics: {
+          tasksExecutedLast24Hours: {
+            completed: number
+            failed: number
+          }
+          errorsLast24Hours: {
+            total: number
+            last10Minutes: number
+          }
+          eventsEmittedLast24Hours: {
+            total: number
+            last10Minutes: number
+          }
+        } | null
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    AppListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        identifier: string
+        slug: string
+        installId: string
+        label: string
+        publicKey: string
+        config: {
+          requiresStorage?: boolean
+          permissions?: {
+            core?: 'READ_FOLDER_ACL'[]
+            user?: (
+              | 'CREATE_FOLDERS'
+              | 'READ_FOLDERS'
+              | 'UPDATE_FOLDERS'
+              | 'DELETE_FOLDERS'
+              | 'READ_USER'
+            )[]
+            folder?: (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+          }
+          slug: string
+          label: string
+          description: string
+          subscribedCoreEvents?: string[]
+          triggers?: (
+            | {
+                /** @enum {string} */
+                kind: 'event'
+                eventIdentifier: string
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'schedule'
+                config: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+                name: string
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'user_action'
+                scope?: {
+                  user?: {
+                    permissions: string
+                  }
+                  folder?: {
+                    /** Format: uuid */
+                    folderId: string
+                  }
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+          )[]
+          tasks?: {
+            identifier: string
+            label: string
+            description: string
+            handler: {
+              /** @enum {string} */
+              type: 'runtime' | 'docker'
+              identifier: string
+            }
+          }[]
+          containerProfiles?: {
+            [key: string]: {
+              image: string
+              resources?: {
+                gpu?: boolean
+                memoryMB?: number
+                cpuCores?: number
+              }
+              workers: (
+                | {
+                    /** @enum {string} */
+                    kind: 'exec'
+                    command: string[]
+                    jobIdentifier: string
+                    maxPerContainer?: number
+                    /** @enum {boolean} */
+                    countTowardsGlobalCap?: false
+                    priority?: number
+                  }
+                | {
+                    /** @enum {string} */
+                    kind: 'http'
+                    command: string[]
+                    port: number
+                    jobs: {
+                      maxPerContainer?: number
+                      /** @enum {boolean} */
+                      countTowardsGlobalCap?: false
+                      priority?: number
+                      identifier: string
+                    }[]
+                  }
+              )[]
+            }
+          }
+          runtimeWorkers?: {
+            [key: string]: {
+              entrypoint: string
+              description: string
+              environmentVariables?: components['schemas']['StringMapDTO']
+            }
+          }
+          ui?: {
+            /** @enum {boolean} */
+            enabled: true
+            csp?: string
+          }
+          database?: {
+            /** @enum {boolean} */
+            enabled: true
+          }
+          contributions?: {
+            sidebarMenuLinks: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            folderSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectDetailViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+          }
+        }
+        requiresStorage: boolean
+        enabled: boolean
+        userScopeEnabledDefault: boolean
+        folderScopeEnabledDefault: boolean
+        manifest: {
+          [key: string]: {
+            hash: string
+            size: number
+            mimeType: string
+          }
+        }
+        connectedRuntimeWorkers: {
+          appIdentifier: string
+          workerId: string
+          socketClientId: string
+          ip: string
+        }[]
+        runtimeWorkers: {
+          hash: string
+          size: number
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+          definitions: {
+            [key: string]: {
+              description: string
+              environmentVariables: components['schemas']['StringMapDTO']
+              entrypoint: string
+            }
+          }
+        }
+        ui: {
+          hash: string
+          size: number
+          csp?: string
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+        } | null
+        contributions: {
+          sidebarMenuLinks: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          folderSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectDetailViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+        }
+        metrics: {
+          tasksExecutedLast24Hours: {
+            completed: number
+            failed: number
+          }
+          errorsLast24Hours: {
+            total: number
+            last10Minutes: number
+          }
+          eventsEmittedLast24Hours: {
+            total: number
+            last10Minutes: number
+          }
+        } | null
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }[]
+    }
+    SetAppEnabledInputDTO: {
+      enabled: boolean
+    }
+    AppGetResponse: {
+      app: {
+        identifier: string
+        slug: string
+        installId: string
+        label: string
+        publicKey: string
+        config: {
+          requiresStorage?: boolean
+          permissions?: {
+            core?: 'READ_FOLDER_ACL'[]
+            user?: (
+              | 'CREATE_FOLDERS'
+              | 'READ_FOLDERS'
+              | 'UPDATE_FOLDERS'
+              | 'DELETE_FOLDERS'
+              | 'READ_USER'
+            )[]
+            folder?: (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+          }
+          slug: string
+          label: string
+          description: string
+          subscribedCoreEvents?: string[]
+          triggers?: (
+            | {
+                /** @enum {string} */
+                kind: 'event'
+                eventIdentifier: string
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'schedule'
+                config: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+                name: string
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'user_action'
+                scope?: {
+                  user?: {
+                    permissions: string
+                  }
+                  folder?: {
+                    /** Format: uuid */
+                    folderId: string
+                  }
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+          )[]
+          tasks?: {
+            identifier: string
+            label: string
+            description: string
+            handler: {
+              /** @enum {string} */
+              type: 'runtime' | 'docker'
+              identifier: string
+            }
+          }[]
+          containerProfiles?: {
+            [key: string]: {
+              image: string
+              resources?: {
+                gpu?: boolean
+                memoryMB?: number
+                cpuCores?: number
+              }
+              workers: (
+                | {
+                    /** @enum {string} */
+                    kind: 'exec'
+                    command: string[]
+                    jobIdentifier: string
+                    maxPerContainer?: number
+                    /** @enum {boolean} */
+                    countTowardsGlobalCap?: false
+                    priority?: number
+                  }
+                | {
+                    /** @enum {string} */
+                    kind: 'http'
+                    command: string[]
+                    port: number
+                    jobs: {
+                      maxPerContainer?: number
+                      /** @enum {boolean} */
+                      countTowardsGlobalCap?: false
+                      priority?: number
+                      identifier: string
+                    }[]
+                  }
+              )[]
+            }
+          }
+          runtimeWorkers?: {
+            [key: string]: {
+              entrypoint: string
+              description: string
+              environmentVariables?: components['schemas']['StringMapDTO']
+            }
+          }
+          ui?: {
+            /** @enum {boolean} */
+            enabled: true
+            csp?: string
+          }
+          database?: {
+            /** @enum {boolean} */
+            enabled: true
+          }
+          contributions?: {
+            sidebarMenuLinks: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            folderSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectDetailViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+          }
+        }
+        requiresStorage: boolean
+        enabled: boolean
+        userScopeEnabledDefault: boolean
+        folderScopeEnabledDefault: boolean
+        manifest: {
+          [key: string]: {
+            hash: string
+            size: number
+            mimeType: string
+          }
+        }
+        connectedRuntimeWorkers: {
+          appIdentifier: string
+          workerId: string
+          socketClientId: string
+          ip: string
+        }[]
+        runtimeWorkers: {
+          hash: string
+          size: number
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+          definitions: {
+            [key: string]: {
+              description: string
+              environmentVariables: components['schemas']['StringMapDTO']
+              entrypoint: string
+            }
+          }
+        }
+        ui: {
+          hash: string
+          size: number
+          csp?: string
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+        } | null
+        contributions: {
+          sidebarMenuLinks: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          folderSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectDetailViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+        }
+        metrics: {
+          tasksExecutedLast24Hours: {
+            completed: number
+            failed: number
+          }
+          errorsLast24Hours: {
+            total: number
+            last10Minutes: number
+          }
+          eventsEmittedLast24Hours: {
+            total: number
+            last10Minutes: number
+          }
+        } | null
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    UpdateAppAccessSettingsInputDTO: {
+      userScopeEnabledDefault: boolean
+      folderScopeEnabledDefault: boolean
+    }
+    SetWorkerEnvironmentVariablesInputDTO: {
+      environmentVariables: components['schemas']['StringMapDTO']
+    }
+    StringMapDTO: {
+      [key: string]: string
+    }
+    UserAppListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        identifier: string
+        label: string
+        config: {
+          requiresStorage?: boolean
+          permissions?: {
+            core?: 'READ_FOLDER_ACL'[]
+            user?: (
+              | 'CREATE_FOLDERS'
+              | 'READ_FOLDERS'
+              | 'UPDATE_FOLDERS'
+              | 'DELETE_FOLDERS'
+              | 'READ_USER'
+            )[]
+            folder?: (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+          }
+          slug: string
+          label: string
+          description: string
+          subscribedCoreEvents?: string[]
+          triggers?: (
+            | {
+                /** @enum {string} */
+                kind: 'event'
+                eventIdentifier: string
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'schedule'
+                config: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+                name: string
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'user_action'
+                scope?: {
+                  user?: {
+                    permissions: string
+                  }
+                  folder?: {
+                    /** Format: uuid */
+                    folderId: string
+                  }
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+          )[]
+          tasks?: {
+            identifier: string
+            label: string
+            description: string
+            handler: {
+              /** @enum {string} */
+              type: 'runtime' | 'docker'
+              identifier: string
+            }
+          }[]
+          containerProfiles?: {
+            [key: string]: {
+              image: string
+              resources?: {
+                gpu?: boolean
+                memoryMB?: number
+                cpuCores?: number
+              }
+              workers: (
+                | {
+                    /** @enum {string} */
+                    kind: 'exec'
+                    command: string[]
+                    jobIdentifier: string
+                    maxPerContainer?: number
+                    /** @enum {boolean} */
+                    countTowardsGlobalCap?: false
+                    priority?: number
+                  }
+                | {
+                    /** @enum {string} */
+                    kind: 'http'
+                    command: string[]
+                    port: number
+                    jobs: {
+                      maxPerContainer?: number
+                      /** @enum {boolean} */
+                      countTowardsGlobalCap?: false
+                      priority?: number
+                      identifier: string
+                    }[]
+                  }
+              )[]
+            }
+          }
+          runtimeWorkers?: {
+            [key: string]: {
+              entrypoint: string
+              description: string
+              environmentVariables?: components['schemas']['StringMapDTO']
+            }
+          }
+          ui?: {
+            /** @enum {boolean} */
+            enabled: true
+            csp?: string
+          }
+          database?: {
+            /** @enum {boolean} */
+            enabled: true
+          }
+          contributions?: {
+            sidebarMenuLinks: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            folderSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectDetailViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+          }
+        }
+        enabled: boolean
+        userScopeEnabledDefault: boolean
+        folderScopeEnabledDefault: boolean
+        manifest: {
+          [key: string]: {
+            hash: string
+            size: number
+            mimeType: string
+          }
+        }
+        runtimeWorkers: {
+          hash: string
+          size: number
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+          definitions: {
+            [key: string]: {
+              description: string
+              environmentVariables: components['schemas']['StringMapDTO']
+              entrypoint: string
+            }
+          }
+        }
+        ui: {
+          hash: string
+          size: number
+          csp?: string
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+        } | null
+        contributions: {
+          sidebarMenuLinks: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          folderSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectDetailViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+        }
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }[]
+    }
+    UserAppGetResponse: {
+      app: {
+        identifier: string
+        label: string
+        config: {
+          requiresStorage?: boolean
+          permissions?: {
+            core?: 'READ_FOLDER_ACL'[]
+            user?: (
+              | 'CREATE_FOLDERS'
+              | 'READ_FOLDERS'
+              | 'UPDATE_FOLDERS'
+              | 'DELETE_FOLDERS'
+              | 'READ_USER'
+            )[]
+            folder?: (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+          }
+          slug: string
+          label: string
+          description: string
+          subscribedCoreEvents?: string[]
+          triggers?: (
+            | {
+                /** @enum {string} */
+                kind: 'event'
+                eventIdentifier: string
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'schedule'
+                config: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+                name: string
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+            | {
+                /** @enum {string} */
+                kind: 'user_action'
+                scope?: {
+                  user?: {
+                    permissions: string
+                  }
+                  folder?: {
+                    /** Format: uuid */
+                    folderId: string
+                  }
+                }
+                condition?: string
+                taskIdentifier: string
+                onComplete?: unknown[]
+              }
+          )[]
+          tasks?: {
+            identifier: string
+            label: string
+            description: string
+            handler: {
+              /** @enum {string} */
+              type: 'runtime' | 'docker'
+              identifier: string
+            }
+          }[]
+          containerProfiles?: {
+            [key: string]: {
+              image: string
+              resources?: {
+                gpu?: boolean
+                memoryMB?: number
+                cpuCores?: number
+              }
+              workers: (
+                | {
+                    /** @enum {string} */
+                    kind: 'exec'
+                    command: string[]
+                    jobIdentifier: string
+                    maxPerContainer?: number
+                    /** @enum {boolean} */
+                    countTowardsGlobalCap?: false
+                    priority?: number
+                  }
+                | {
+                    /** @enum {string} */
+                    kind: 'http'
+                    command: string[]
+                    port: number
+                    jobs: {
+                      maxPerContainer?: number
+                      /** @enum {boolean} */
+                      countTowardsGlobalCap?: false
+                      priority?: number
+                      identifier: string
+                    }[]
+                  }
+              )[]
+            }
+          }
+          runtimeWorkers?: {
+            [key: string]: {
+              entrypoint: string
+              description: string
+              environmentVariables?: components['schemas']['StringMapDTO']
+            }
+          }
+          ui?: {
+            /** @enum {boolean} */
+            enabled: true
+            csp?: string
+          }
+          database?: {
+            /** @enum {boolean} */
+            enabled: true
+          }
+          contributions?: {
+            sidebarMenuLinks: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            folderSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectSidebarViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+            objectDetailViews: {
+              path: string
+              label: string
+              iconPath?: string
+            }[]
+          }
+        }
+        enabled: boolean
+        userScopeEnabledDefault: boolean
+        folderScopeEnabledDefault: boolean
+        manifest: {
+          [key: string]: {
+            hash: string
+            size: number
+            mimeType: string
+          }
+        }
+        runtimeWorkers: {
+          hash: string
+          size: number
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+          definitions: {
+            [key: string]: {
+              description: string
+              environmentVariables: components['schemas']['StringMapDTO']
+              entrypoint: string
+            }
+          }
+        }
+        ui: {
+          hash: string
+          size: number
+          csp?: string
+          manifest: {
+            [key: string]: {
+              hash: string
+              size: number
+              mimeType: string
+            }
+          }
+        } | null
+        contributions: {
+          sidebarMenuLinks: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          folderSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectDetailViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+        }
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    AppContributionsResponse: {
+      [key: string]: {
+        appLabel: string
+        appIdentifier: string
+        contributions: {
+          sidebarMenuLinks: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          folderSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectSidebarViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+          objectDetailViews: {
+            path: string
+            label: string
+            iconPath?: string
+          }[]
+        }
+      }
+    }
+    LoginResponse: {
+      session: {
+        accessToken: string
+        refreshToken: string
+        /** Format: date-time */
+        expiresAt: string
+      }
+    }
+    AppUserSettingsGetResponseDTO: {
+      settings: {
+        appIdentifier: string
+        enabledFallback: boolean
+        folderScopeEnabledDefaultFallback: boolean
+        permissionsFallback: (
+          | 'CREATE_FOLDERS'
+          | 'READ_FOLDERS'
+          | 'UPDATE_FOLDERS'
+          | 'DELETE_FOLDERS'
+          | 'READ_USER'
+        )[]
+        enabled: boolean | null
+        folderScopeEnabledDefault: boolean | null
+        folderScopePermissionsDefault:
+          | (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+          | null
+        permissions:
+          | (
+              | 'CREATE_FOLDERS'
+              | 'READ_FOLDERS'
+              | 'UPDATE_FOLDERS'
+              | 'DELETE_FOLDERS'
+              | 'READ_USER'
+            )[]
+          | null
+      }
+    }
+    AppUserSettingsCreateInputDTO: {
+      enabled: boolean | null
+      folderScopeEnabledDefault: boolean | null
+      folderScopePermissionsDefault:
+        | (
+            | 'READ_OBJECTS'
+            | 'WRITE_OBJECTS'
+            | 'WRITE_OBJECTS_METADATA'
+            | 'WRITE_FOLDER_METADATA'
+            | 'REINDEX_FOLDER'
+          )[]
+        | null
+      permissions:
+        | (
+            | 'CREATE_FOLDERS'
+            | 'READ_FOLDERS'
+            | 'UPDATE_FOLDERS'
+            | 'DELETE_FOLDERS'
+            | 'READ_USER'
+          )[]
+        | null
+    }
+    EventGetResponse: {
+      event: {
+        /** Format: uuid */
+        id: string
+        eventIdentifier: string
+        emitterIdentifier: string
+        targetLocationContext?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+          folderName: string
+          /** Format: uuid */
+          folderOwnerId: string
+        }
+        data: {
+          [key: string]: unknown
+        }
+        targetLocation?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+        }
+        /** Format: date-time */
+        createdAt: string
+      }
+    }
+    EventListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        /** Format: uuid */
+        id: string
+        eventIdentifier: string
+        emitterIdentifier: string
+        targetLocationContext?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+          folderName: string
+          /** Format: uuid */
+          folderOwnerId: string
+        }
+        data: {
+          [key: string]: unknown
+        }
+        targetLocation?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+        }
+        /** Format: date-time */
+        createdAt: string
+      }[]
+    }
+    LogGetResponse: {
+      log: {
+        /** Format: uuid */
+        id: string
+        message: string
+        /** @enum {string} */
+        level: 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
+        emitterIdentifier: string
+        targetLocation?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+        }
+        targetLocationContext?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+          folderName: string
+          /** Format: uuid */
+          folderOwnerId: string
+        }
+        data?: unknown
+        /** Format: date-time */
+        createdAt: string
+      }
+    }
+    LogListResponse: {
+      result: {
+        /** Format: uuid */
+        id: string
+        message: string
+        /** @enum {string} */
+        level: 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
+        emitterIdentifier: string
+        targetLocation?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+        }
+        targetLocationContext?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+          folderName: string
+          /** Format: uuid */
+          folderOwnerId: string
+        }
+        data?: unknown
+        /** Format: date-time */
+        createdAt: string
+      }[]
+      meta: {
+        totalCount: number
+      }
+    }
+    InlineMetadataEntryDTO: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'inline'
+      mimeType: string
+      sizeBytes: number
+      content: string
+    }
+    ExternalMetadataEntryDTO: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'external'
+      storageKey: string
+      mimeType: string
+      sizeBytes: number
+      hash: string
+    }
+    ContentMetadataEntryDTO:
+      | components['schemas']['InlineMetadataEntryDTO']
+      | components['schemas']['ExternalMetadataEntryDTO']
+    FolderGetResponse: {
+      folder: {
+        /** Format: uuid */
+        id: string
+        /** Format: uuid */
+        ownerId: string
+        name: string
+        metadataLocation: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          userId?: string
+          /** @enum {string} */
+          providerType: 'SERVER' | 'USER'
+          label: string
+          endpoint: string
+          region: string
+          bucket: string
+          prefix?: string
+          accessKeyId: string
+          accessKeyHashId: string
+        }
+        contentLocation: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          userId?: string
+          /** @enum {string} */
+          providerType: 'SERVER' | 'USER'
+          label: string
+          endpoint: string
+          region: string
+          bucket: string
+          prefix?: string
+          accessKeyId: string
+          accessKeyHashId: string
+        }
+        accessError?: {
+          message: string
+          code: string
+        } | null
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+      permissions: (
+        | 'FOLDER_REINDEX'
+        | 'FOLDER_FORGET'
+        | 'FOLDER_EDIT'
+        | 'OBJECT_EDIT'
+        | 'OBJECT_MANAGE'
+      )[]
+    }
+    FolderGetMetadataResponse: {
+      totalCount: number
+      totalSizeBytes: number
+    }
+    FolderListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        permissions: (
+          | 'FOLDER_REINDEX'
+          | 'FOLDER_FORGET'
+          | 'FOLDER_EDIT'
+          | 'OBJECT_EDIT'
+          | 'OBJECT_MANAGE'
+        )[]
+        folder: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          ownerId: string
+          name: string
+          metadataLocation: {
             /** Format: uuid */
-            folderId: string;
-            objectKey: string;
+            id: string
+            /** Format: uuid */
+            userId?: string
             /** @enum {string} */
-            method: "PUT" | "DELETE" | "GET" | "HEAD";
-        }[];
-        WorkerJobPresignedUrlsResponseDTO: {
-            urls: {
+            providerType: 'SERVER' | 'USER'
+            label: string
+            endpoint: string
+            region: string
+            bucket: string
+            prefix?: string
+            accessKeyId: string
+            accessKeyHashId: string
+          }
+          contentLocation: {
+            /** Format: uuid */
+            id: string
+            /** Format: uuid */
+            userId?: string
+            /** @enum {string} */
+            providerType: 'SERVER' | 'USER'
+            label: string
+            endpoint: string
+            region: string
+            bucket: string
+            prefix?: string
+            accessKeyId: string
+            accessKeyHashId: string
+          }
+          accessError?: {
+            message: string
+            code: string
+          } | null
+          /** Format: date-time */
+          createdAt: string
+          /** Format: date-time */
+          updatedAt: string
+        }
+      }[]
+    }
+    FolderCreateInputDTO: {
+      name: string
+      metadataLocation:
+        | {
+            accessKeyId: string
+            secretAccessKey: string
+            endpoint: string
+            bucket: string
+            region: string
+            prefix?: string
+          }
+        | {
+            /** Format: uuid */
+            storageProvisionId: string
+          }
+        | {
+            /** Format: uuid */
+            userLocationId: string
+            userLocationBucketOverride: string
+            userLocationPrefixOverride?: string
+          }
+      contentLocation:
+        | {
+            accessKeyId: string
+            secretAccessKey: string
+            endpoint: string
+            bucket: string
+            region: string
+            prefix?: string
+          }
+        | {
+            /** Format: uuid */
+            storageProvisionId: string
+          }
+        | {
+            /** Format: uuid */
+            userLocationId: string
+            userLocationBucketOverride: string
+            userLocationPrefixOverride?: string
+          }
+    }
+    FolderCreateResponse: {
+      folder: {
+        /** Format: uuid */
+        id: string
+        /** Format: uuid */
+        ownerId: string
+        name: string
+        metadataLocation: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          userId?: string
+          /** @enum {string} */
+          providerType: 'SERVER' | 'USER'
+          label: string
+          endpoint: string
+          region: string
+          bucket: string
+          prefix?: string
+          accessKeyId: string
+          accessKeyHashId: string
+        }
+        contentLocation: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          userId?: string
+          /** @enum {string} */
+          providerType: 'SERVER' | 'USER'
+          label: string
+          endpoint: string
+          region: string
+          bucket: string
+          prefix?: string
+          accessKeyId: string
+          accessKeyHashId: string
+        }
+        accessError?: {
+          message: string
+          code: string
+        } | null
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    FolderObjectListResponse: {
+      meta: {
+        totalCount: number
+        nextCursor?: string
+        previousCursor?: string
+      }
+      result: {
+        /** Format: uuid */
+        id: string
+        objectKey: string
+        /** Format: uuid */
+        folderId: string
+        hash?: string
+        lastModified: number
+        eTag: string
+        sizeBytes: number
+        mimeType: string
+        /** @enum {string} */
+        mediaType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'UNKNOWN'
+        contentMetadata: {
+          [key: string]: {
+            [key: string]: components['schemas']['ContentMetadataEntryDTO']
+          }
+        }
+      }[]
+    }
+    FolderObjectGetResponse: {
+      folderObject: {
+        /** Format: uuid */
+        id: string
+        objectKey: string
+        /** Format: uuid */
+        folderId: string
+        hash?: string
+        lastModified: number
+        eTag: string
+        sizeBytes: number
+        mimeType: string
+        /** @enum {string} */
+        mediaType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'UNKNOWN'
+        contentMetadata: {
+          [key: string]: {
+            [key: string]: components['schemas']['ContentMetadataEntryDTO']
+          }
+        }
+      }
+    }
+    FolderCreateSignedUrlInputDTO: {
+      objectIdentifier: string
+      /** @enum {string} */
+      method: 'PUT' | 'DELETE' | 'GET' | 'HEAD'
+    }[]
+    FolderCreateSignedUrlsResponse: {
+      urls: string[]
+    }
+    FolderShareGetResponse: {
+      share: {
+        /** Format: uuid */
+        userId: string
+        permissions: (
+          | 'FOLDER_REINDEX'
+          | 'FOLDER_FORGET'
+          | 'FOLDER_EDIT'
+          | 'OBJECT_EDIT'
+          | 'OBJECT_MANAGE'
+        )[]
+      }
+    }
+    FolderShareListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        /** Format: uuid */
+        userId: string
+        permissions: (
+          | 'FOLDER_REINDEX'
+          | 'FOLDER_FORGET'
+          | 'FOLDER_EDIT'
+          | 'OBJECT_EDIT'
+          | 'OBJECT_MANAGE'
+        )[]
+      }[]
+    }
+    FolderShareUserListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        username: string
+        id: string
+      }[]
+    }
+    FolderShareCreateInputDTO: {
+      permissions: (
+        | 'FOLDER_REINDEX'
+        | 'FOLDER_FORGET'
+        | 'FOLDER_EDIT'
+        | 'OBJECT_EDIT'
+        | 'OBJECT_MANAGE'
+      )[]
+    }
+    FolderUpdateInputDTO: {
+      name: string
+    }
+    FolderUpdateResponseDTO: {
+      folder: {
+        /** Format: uuid */
+        id: string
+        /** Format: uuid */
+        ownerId: string
+        name: string
+        metadataLocation: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          userId?: string
+          /** @enum {string} */
+          providerType: 'SERVER' | 'USER'
+          label: string
+          endpoint: string
+          region: string
+          bucket: string
+          prefix?: string
+          accessKeyId: string
+          accessKeyHashId: string
+        }
+        contentLocation: {
+          /** Format: uuid */
+          id: string
+          /** Format: uuid */
+          userId?: string
+          /** @enum {string} */
+          providerType: 'SERVER' | 'USER'
+          label: string
+          endpoint: string
+          region: string
+          bucket: string
+          prefix?: string
+          accessKeyId: string
+          accessKeyHashId: string
+        }
+        accessError?: {
+          message: string
+          code: string
+        } | null
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    AppFolderSettingsGetResponseDTO: {
+      settings: {
+        [key: string]: {
+          appIdentifier: string
+          enabledFallback: {
+            value: boolean
+            /** @enum {string} */
+            source: 'system' | 'user'
+          }
+          permissionsFallback: {
+            value: (
+              | 'READ_OBJECTS'
+              | 'WRITE_OBJECTS'
+              | 'WRITE_OBJECTS_METADATA'
+              | 'WRITE_FOLDER_METADATA'
+              | 'REINDEX_FOLDER'
+            )[]
+            /** @enum {string} */
+            source: 'system' | 'user'
+          }
+          enabled: boolean | null
+          permissions:
+            | (
+                | 'READ_OBJECTS'
+                | 'WRITE_OBJECTS'
+                | 'WRITE_OBJECTS_METADATA'
+                | 'WRITE_FOLDER_METADATA'
+                | 'REINDEX_FOLDER'
+              )[]
+            | null
+        }
+      }
+    }
+    AppFolderSettingsUpdateInputDTO: {
+      [key: string]:
+        | (
+            | (
+                | (
+                    | (
+                        | {
+                            enabled: boolean | null
+                            permissions: (
+                              | 'READ_OBJECTS'
+                              | 'WRITE_OBJECTS'
+                              | 'WRITE_OBJECTS_METADATA'
+                              | 'WRITE_FOLDER_METADATA'
+                              | 'REINDEX_FOLDER'
+                            )[]
+                          }
+                        | {
+                            enabled: boolean
+                            permissions:
+                              | (
+                                  | 'READ_OBJECTS'
+                                  | 'WRITE_OBJECTS'
+                                  | 'WRITE_OBJECTS_METADATA'
+                                  | 'WRITE_FOLDER_METADATA'
+                                  | 'REINDEX_FOLDER'
+                                )[]
+                              | null
+                          }
+                      )
+                    | {
+                        enabled: boolean
+                        permissions: (
+                          | 'READ_OBJECTS'
+                          | 'WRITE_OBJECTS'
+                          | 'WRITE_OBJECTS_METADATA'
+                          | 'WRITE_FOLDER_METADATA'
+                          | 'REINDEX_FOLDER'
+                        )[]
+                      }
+                  )
+                | {
+                    permissions:
+                      | (
+                          | 'READ_OBJECTS'
+                          | 'WRITE_OBJECTS'
+                          | 'WRITE_OBJECTS_METADATA'
+                          | 'WRITE_FOLDER_METADATA'
+                          | 'REINDEX_FOLDER'
+                        )[]
+                      | null
+                  }
+              )
+            | {
+                enabled: boolean | null
+              }
+          )
+        | null
+    }
+    AccessKeyListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        accessKeyId: string
+        accessKeyHashId: string
+        endpoint: string
+        endpointDomain: string
+        region: string
+        folderCount: number
+      }[]
+    }
+    AccessKeyGetResponse: {
+      accessKey: {
+        accessKeyId: string
+        accessKeyHashId: string
+        endpoint: string
+        endpointDomain: string
+        region: string
+        folderCount: number
+      }
+    }
+    RotateAccessKeyInputDTO: {
+      accessKeyId: string
+      secretAccessKey: string
+    }
+    AccessKeyRotateResponse: {
+      accessKeyHashId: string
+    }
+    AccessKeyBucketsListResponseDTO: {
+      result: {
+        name: string
+        /** Format: date-time */
+        createdDate?: string
+      }[]
+    }
+    PublicSettingsGetResponse: {
+      settings: {
+        SIGNUP_ENABLED?: boolean
+        GOOGLE_OAUTH_ENABLED?: boolean
+      }
+    }
+    SettingsGetResponse: {
+      settings: {
+        SIGNUP_ENABLED?: boolean
+        SIGNUP_PERMISSIONS: string[]
+        SERVER_HOSTNAME: string | null
+        GOOGLE_OAUTH_CONFIG?: {
+          enabled: boolean
+          clientId: string
+          clientSecret: string
+        }
+        STORAGE_PROVISIONS?: unknown[]
+        SERVER_STORAGE?: unknown
+      }
+    }
+    SetSettingInputDTO: {
+      value?: unknown
+    }
+    SettingSetResponse: {
+      settingKey: string
+      settingValue?: unknown
+    }
+    ServerMetricsResponse: {
+      totalUsers: number
+      totalFolders: number
+      usersCreatedPreviousWeek: number
+      foldersCreatedPreviousWeek: number
+      totalIndexedSizeBytes: number
+      sessionsCreatedPreviousWeek: number
+      sessionsCreatedPrevious24Hours: number
+      provisionedStorage: {
+        totalCount: number
+        summary: string
+      }
+      totalIndexedSizeBytesAcrossStorageProvisions: number
+      installedApps: {
+        totalCount: number
+        summary: string
+      }
+      tasksCreatedPreviousDay: number
+      tasksCreatedPreviousHour: number
+      taskErrorsPreviousDay: number
+      taskErrorsPreviousHour: number
+      serverEventsEmittedPreviousDay: number
+      serverEventsEmittedPreviousHour: number
+      folderEventsEmittedPreviousDay: number
+      folderEventsEmittedPreviousHour: number
+    }
+    StorageProvisionsListResponse: {
+      result: {
+        /** Format: uuid */
+        id: string
+        accessKeyHashId: string
+        endpoint: string
+        bucket: string
+        region: string
+        accessKeyId: string
+        prefix?: string
+        provisionTypes: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
+        label: string
+        description: string
+      }[]
+    }
+    StorageProvisionGetResponse: {
+      storageProvision: {
+        /** Format: uuid */
+        id: string
+        accessKeyHashId: string
+        endpoint: string
+        bucket: string
+        region: string
+        accessKeyId: string
+        prefix?: string
+        provisionTypes: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
+        label: string
+        description: string
+      }
+    }
+    StorageProvisionInputDTO: {
+      label: string
+      description: string
+      endpoint: string
+      bucket: string
+      region: string
+      accessKeyId: string
+      secretAccessKey: string
+      prefix?: string
+      provisionTypes: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
+    }
+    StorageProvisionUpdateDTO: {
+      label?: string
+      description?: string
+      endpoint?: string
+      bucket?: string
+      region?: string
+      prefix?: string
+      provisionTypes?: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
+    }
+    ServerStorageLocationGetResponse: {
+      serverStorageLocation?: {
+        accessKeyHashId: string
+        accessKeyId: string
+        endpoint: string
+        bucket: string
+        region: string
+        prefix: string | null
+      }
+    }
+    ServerStorageInputDTO: {
+      accessKeyId: string
+      secretAccessKey: string
+      /** Format: uri */
+      endpoint: string
+      bucket: string
+      region: string
+      prefix: string | null
+    }
+    TaskGetResponse: {
+      task: {
+        /** Format: uuid */
+        id: string
+        taskIdentifier: string
+        ownerIdentifier: string
+        trigger:
+          | {
+              /** @enum {string} */
+              kind: 'event'
+              invokeContext: {
                 /** Format: uuid */
-                folderId: string;
-                objectKey: string;
-                /** @enum {string} */
-                method: "PUT" | "DELETE" | "GET" | "HEAD";
-                /** Format: uri */
-                url: string;
-            }[];
-        };
-        WorkerJobStartedResponseDTO: {
-            ok: boolean;
-        };
-        WorkerJobCompleteRequestDTO: {
-            /** @enum {boolean} */
-            success: true;
-            result: {
-                [key: string]: unknown;
-            };
-            outputFiles?: {
+                eventId: string
+                emitterIdentifier: string
+                eventIdentifier: string
+                eventTriggerConfigIndex: number
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
                 /** Format: uuid */
-                folderId: string;
-                objectKey: string;
-            }[];
-        } | {
-            /** @enum {boolean} */
-            success: false;
-            error: {
-                requeueDelayMs?: number;
-                name?: string;
-                code: string;
-                message: string;
-                details?: {
-                    [key: string]: unknown;
-                };
-            };
-            outputFiles?: {
+                targetUserId?: string
+                targetLocation?: {
+                  /** Format: uuid */
+                  folderId: string
+                  objectKey?: string
+                }
+                eventData: {
+                  [key: string]: unknown
+                }
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'schedule'
+              invokeContext: {
+                timestampBucket: string
+                name: string
+                config: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'user_action'
+              invokeContext: {
                 /** Format: uuid */
-                folderId: string;
-                objectKey: string;
-            }[];
-        };
-        WorkerJobCompleteResponseDTO: {
-            ok: boolean;
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+                userId: string
+                /** Format: uuid */
+                requestId: string
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'app_action'
+              invokeContext: {
+                /** Format: uuid */
+                requestId: string
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'task_child'
+              invokeContext: {
+                parentTask: {
+                  /** Format: uuid */
+                  id: string
+                  identifier: string
+                  success: boolean
+                }
+                onCompleteHandlerIndex: number
+              }
+              onComplete?: unknown[]
+            }
+        success?: boolean
+        handlerIdentifier?: string
+        data?: {
+          [key: string]: unknown
+        }
+        targetLocation?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+        }
+        error?: {
+          code: string
+          message: string
+          details?: {
+            [key: string]: unknown
+          }
+        }
+        taskDescription: string
+        systemLog: {
+          /** Format: date-time */
+          at: string
+          message: string
+          /** @enum {string} */
+          logType: 'started' | 'error' | 'requeue' | 'success'
+          payload?: {
+            [key: string]: unknown
+          }
+        }[]
+        taskLog: {
+          /** Format: date-time */
+          at: string
+          message: string
+          logType: string
+          payload?: {
+            [key: string]: unknown
+          }
+        }[]
+        /** Format: date-time */
+        startedAt?: string
+        /** Format: date-time */
+        completedAt?: string
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+        targetLocationContext?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+          folderName: string
+          /** Format: uuid */
+          folderOwnerId: string
+        }
+      }
+    }
+    TaskListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        /** Format: uuid */
+        id: string
+        taskIdentifier: string
+        ownerIdentifier: string
+        trigger:
+          | {
+              /** @enum {string} */
+              kind: 'event'
+              invokeContext: {
+                /** Format: uuid */
+                eventId: string
+                emitterIdentifier: string
+                eventIdentifier: string
+                eventTriggerConfigIndex: number
+                dataTemplate?: {
+                  [key: string]: unknown
+                }
+                /** Format: uuid */
+                targetUserId?: string
+                targetLocation?: {
+                  /** Format: uuid */
+                  folderId: string
+                  objectKey?: string
+                }
+                eventData: {
+                  [key: string]: unknown
+                }
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'schedule'
+              invokeContext: {
+                timestampBucket: string
+                name: string
+                config: {
+                  interval: number
+                  /** @enum {string} */
+                  unit: 'minutes' | 'hours' | 'days'
+                }
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'user_action'
+              invokeContext: {
+                /** Format: uuid */
+                userId: string
+                /** Format: uuid */
+                requestId: string
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'app_action'
+              invokeContext: {
+                /** Format: uuid */
+                requestId: string
+              }
+              onComplete?: unknown[]
+            }
+          | {
+              /** @enum {string} */
+              kind: 'task_child'
+              invokeContext: {
+                parentTask: {
+                  /** Format: uuid */
+                  id: string
+                  identifier: string
+                  success: boolean
+                }
+                onCompleteHandlerIndex: number
+              }
+              onComplete?: unknown[]
+            }
+        success?: boolean
+        handlerIdentifier?: string
+        targetLocation?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+        }
+        error?: components['schemas']['ApiErrorResponseDTO']
+        taskDescription: string
+        /** Format: date-time */
+        startedAt?: string
+        /** Format: date-time */
+        completedAt?: string
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+        targetLocationContext?: {
+          /** Format: uuid */
+          folderId: string
+          objectKey?: string
+          folderName: string
+          /** Format: uuid */
+          folderOwnerId: string
+        }
+      }[]
+    }
+    LoginCredentialsDTO: {
+      login: string
+      password: string
+    }
+    SignupCredentialsDTO: {
+      username: string
+      /** Format: email */
+      email?: string
+      password: string
+    }
+    SignupResponse: {
+      user: {
+        /** Format: uuid */
+        id: string
+        name: string | null
+        email: string | null
+        emailVerified: boolean
+        isAdmin: boolean
+        username: string
+        permissions: string[]
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    TokenRefreshResponse: {
+      session: {
+        accessToken: string
+        refreshToken: string
+        /** Format: date-time */
+        expiresAt: string
+      }
+    }
+    CompleteSSOSignupDTO: {
+      username: string
+      providerData: {
+        /** @enum {string} */
+        provider: 'google'
+        providerUserInfo: {
+          id: string
+          email: string
+          name: string
+          picture?: string
+        }
+        /** Format: date-time */
+        expiry: string
+      }
+      signature: string
+    }
+    CompleteSSOSignupResponse: {
+      user: {
+        /** Format: uuid */
+        id: string
+        name: string | null
+        email: string | null
+        emailVerified: boolean
+        isAdmin: boolean
+        username: string
+        permissions: string[]
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+      accessToken: string
+      refreshToken: string
+      /** Format: date-time */
+      expiresAt: string
+    }
+    InitiateSSOResponse: {
+      /** Format: uri */
+      authUrl: string
+    }
+    SSOCallbackDTO: {
+      code: string
+    }
+    SSOCallbackResponse:
+      | components['schemas']['CompleteSSOSignupResponse']
+      | {
+          /** @enum {boolean} */
+          needsUsername: true
+          provider: string
+          providerUserInfo: {
+            id: string
+            email?: string
+            name?: string
+            picture?: string
+          }
+          suggestedUsername: string
+          signature: string
+          /** Format: date-time */
+          expiry: string
+        }
+    LinkSSOProviderDTO: {
+      provider: string
+      code: string
+    }
+    LinkProviderResponse: {
+      success: boolean
+    }
+    ViewerGetResponse: {
+      user: {
+        /** Format: uuid */
+        id: string
+        name: string | null
+        email: string | null
+        emailVerified: boolean
+        isAdmin: boolean
+        username: string
+        permissions: string[]
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    ViewerUpdateInputDTO: {
+      name: string
+    }
+    UserCreateInputDTO: {
+      name?: string
+      email?: string
+      emailVerified?: boolean
+      isAdmin?: boolean
+      username: string
+      password: string
+      permissions?: string[]
+    }
+    UserGetResponse: {
+      user: {
+        /** Format: uuid */
+        id: string
+        name: string | null
+        email: string | null
+        emailVerified: boolean
+        isAdmin: boolean
+        username: string
+        permissions: string[]
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }
+    }
+    UserUpdateInputDTO: {
+      name?: string | null
+      email?: string | null
+      isAdmin?: boolean
+      username?: string
+      password?: string
+      permissions?: string[]
+    }
+    UserListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        /** Format: uuid */
+        id: string
+        name: string | null
+        email: string | null
+        emailVerified: boolean
+        isAdmin: boolean
+        username: string
+        permissions: string[]
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }[]
+    }
+    UserSessionListResponse: {
+      meta: {
+        totalCount: number
+      }
+      result: {
+        /** Format: uuid */
+        id: string
+        /** Format: date-time */
+        expiresAt: string
+        /** Format: date-time */
+        createdAt: string
+        /** Format: date-time */
+        updatedAt: string
+      }[]
+    }
+    WorkerJobUploadUrlsRequestDTO: {
+      /** Format: uuid */
+      folderId: string
+      objectKey: string
+      /** @enum {string} */
+      method: 'PUT' | 'DELETE' | 'GET' | 'HEAD'
+    }[]
+    WorkerJobPresignedUrlsResponseDTO: {
+      urls: {
+        /** Format: uuid */
+        folderId: string
+        objectKey: string
+        /** @enum {string} */
+        method: 'PUT' | 'DELETE' | 'GET' | 'HEAD'
+        /** Format: uri */
+        url: string
+      }[]
+    }
+    WorkerJobStartedResponseDTO: {
+      ok: boolean
+    }
+    WorkerJobCompleteRequestDTO:
+      | {
+          /** @enum {boolean} */
+          success: true
+          result: {
+            [key: string]: unknown
+          }
+          outputFiles?: {
+            /** Format: uuid */
+            folderId: string
+            objectKey: string
+          }[]
+        }
+      | {
+          /** @enum {boolean} */
+          success: false
+          error: {
+            requeueDelayMs?: number
+            name?: string
+            code: string
+            message: string
+            details?: {
+              [key: string]: unknown
+            }
+          }
+          outputFiles?: {
+            /** Format: uuid */
+            folderId: string
+            objectKey: string
+          }[]
+        }
+    WorkerJobCompleteResponseDTO: {
+      ok: boolean
+    }
+  }
+  responses: never
+  parameters: never
+  requestBodies: never
+  headers: never
+  pathItems: never
 }
-export type $defs = Record<string, never>;
+export type $defs = Record<string, never>
 export interface operations {
-    installAppFromZip: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppInstallResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listApps: {
-        parameters: {
-            query?: {
-                sort?: ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
-                search?: string;
-                enabled?: boolean;
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    setAppEnabled: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetAppEnabledInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getApp: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateAppAccessSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAppAccessSettingsInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    setWorkerEnvironmentVariables: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-                workerIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetWorkerEnvironmentVariablesInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StringMapDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listApps: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserAppListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getApp: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserAppGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getAppContributions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppContributionsResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    generateAppUserAccessToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getAppUserSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppUserSettingsGetResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    upsertAppUserSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AppUserSettingsCreateInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppUserSettingsGetResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    removeAppUserSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listEvents: {
-        parameters: {
-            query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
-                folderId?: string;
-                objectKey?: string;
-                search?: string;
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolderEvents: {
-        parameters: {
-            query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
-                objectKey?: string;
-                search?: string;
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getLog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                logId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LogGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listLogs: {
-        parameters: {
-            query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
-                folderId?: string;
-                objectKey?: string;
-                search?: string;
-                includeTrace?: "true";
-                includeDebug?: "true";
-                includeInfo?: "true";
-                includeWarning?: "true";
-                includeError?: "true";
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LogListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderLog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                logId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LogGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolderLogs: {
-        parameters: {
-            query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
-                objectKey?: string;
-                search?: string;
-                includeTrace?: "true";
-                includeDebug?: "true";
-                includeInfo?: "true";
-                includeWarning?: "true";
-                includeError?: "true";
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LogListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateFolder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FolderUpdateInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderUpdateResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteFolder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    checkFolderAccess: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderMetadata: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderGetMetadataResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolders: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-                sort?: ("name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    createFolder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FolderCreateInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderCreateResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    reindexFolder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolderObjects: {
-        parameters: {
-            query?: {
-                cursor?: string;
-                offset?: number;
-                limit?: number;
-                search?: string;
-                sort?: ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
-                includeImage?: "true";
-                includeVideo?: "true";
-                includeAudio?: "true";
-                includeDocument?: "true";
-                includeUnknown?: "true";
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderObjectListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderObject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                objectKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderObjectGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteFolderObject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                objectKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    createPresignedUrls: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FolderCreateSignedUrlInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderCreateSignedUrlsResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    refreshFolderObjectS3Metadata: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                objectKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderObjectGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderShares: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderShareGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    upsertFolderShare: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FolderShareCreateInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderShareGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    removeFolderShare: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolderShares: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderShareListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolderShareUsers: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-                search?: string;
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderShareUserListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderAppSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppFolderSettingsGetResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateFolderAppSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AppFolderSettingsUpdateInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppFolderSettingsGetResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listAccessKeys: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc");
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getAccessKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accessKeyHashId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    rotateAccessKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accessKeyHashId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RotateAccessKeyInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyRotateResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listAccessKeyBuckets: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accessKeyHashId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listServerAccessKeys: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc");
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getServerAccessKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accessKeyHashId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    rotateServerAccessKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accessKeyHashId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RotateAccessKeyInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyRotateResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listServerAccessKeyBuckets: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accessKeyHashId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getPublicServerSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Public server settings */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicSettingsGetResponse"];
-                };
-            };
-        };
-    };
-    getServerSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingsGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    setServerSetting: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                settingKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetSettingInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingSetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    resetServerSetting: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                settingKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingSetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getServerMetrics: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerMetricsResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listStorageProvisions: {
-        parameters: {
-            query?: {
-                provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    createUserStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StorageProvisionInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                storageProvisionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                storageProvisionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StorageProvisionUpdateDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                storageProvisionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    setServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServerStorageInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                taskId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listTasks: {
-        parameters: {
-            query?: {
-                objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
-                search?: string;
-                includeWaiting?: "true";
-                includeRunning?: "true";
-                includeComplete?: "true";
-                includeFailed?: "true";
-                offset?: number;
-                limit?: number;
-                folderId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getFolderTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                folderId: string;
-                taskId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listFolderTasks: {
-        parameters: {
-            query?: {
-                objectKey?: string;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
-                search?: string;
-                includeWaiting?: "true";
-                includeRunning?: "true";
-                includeComplete?: "true";
-                includeFailed?: "true";
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginCredentialsDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    signup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SignupCredentialsDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SignupResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": boolean;
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    refreshToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                refreshToken: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenRefreshResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    completeSignup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompleteSSOSignupDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompleteSSOSignupResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    initiateSSO: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InitiateSSOResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    handleCallback: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SSOCallbackDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SSOCallbackResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    linkProvider: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LinkSSOProviderDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LinkProviderResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getViewer: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewerGetResponse"];
-                };
-            };
-        };
-    };
-    updateViewer: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ViewerUpdateInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewerGetResponse"];
-                };
-            };
-        };
-    };
-    listUsers: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-                isAdmin?: boolean;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc");
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    createUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserCreateInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserUpdateInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listActiveUserSessions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserSessionListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    requestPresignedStorageUrls: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WorkerJobUploadUrlsRequestDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobPresignedUrlsResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    startJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobStartedResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    completeJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WorkerJobCompleteRequestDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobCompleteResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
+  installAppFromZip: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppInstallResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listApps: {
+    parameters: {
+      query?: {
+        sort?:
+          | (
+              | 'label-asc'
+              | 'label-desc'
+              | 'identifier-asc'
+              | 'identifier-desc'
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )[]
+          | (
+              | 'label-asc'
+              | 'label-desc'
+              | 'identifier-asc'
+              | 'identifier-desc'
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )
+        search?: string
+        enabled?: boolean
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  setAppEnabled: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetAppEnabledInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getApp: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  updateAppAccessSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateAppAccessSettingsInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  setWorkerEnvironmentVariables: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+        workerIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetWorkerEnvironmentVariablesInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StringMapDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listApps: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserAppListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getApp: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserAppGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getAppContributions: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppContributionsResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  generateAppUserAccessToken: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LoginResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getAppUserSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppUserSettingsGetResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  upsertAppUserSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AppUserSettingsCreateInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppUserSettingsGetResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  removeAppUserSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        appIdentifier: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getEvent: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        eventId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['EventGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listEvents: {
+    parameters: {
+      query?: {
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'eventIdentifier-asc'
+              | 'eventIdentifier-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'objectKey-asc'
+              | 'objectKey-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'eventIdentifier-asc'
+              | 'eventIdentifier-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'objectKey-asc'
+              | 'objectKey-desc'
+            )
+        folderId?: string
+        objectKey?: string
+        search?: string
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['EventListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderEvent: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        eventId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['EventGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolderEvents: {
+    parameters: {
+      query?: {
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'eventIdentifier-asc'
+              | 'eventIdentifier-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'objectKey-asc'
+              | 'objectKey-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'eventIdentifier-asc'
+              | 'eventIdentifier-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'objectKey-asc'
+              | 'objectKey-desc'
+            )
+        objectKey?: string
+        search?: string
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['EventListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getLog: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        logId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LogGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listLogs: {
+    parameters: {
+      query?: {
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'message-asc'
+              | 'message-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'level-asc'
+              | 'level-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'message-asc'
+              | 'message-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'level-asc'
+              | 'level-desc'
+            )
+        folderId?: string
+        objectKey?: string
+        search?: string
+        includeTrace?: 'true'
+        includeDebug?: 'true'
+        includeInfo?: 'true'
+        includeWarning?: 'true'
+        includeError?: 'true'
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LogListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderLog: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        logId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LogGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolderLogs: {
+    parameters: {
+      query?: {
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'message-asc'
+              | 'message-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'level-asc'
+              | 'level-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'message-asc'
+              | 'message-desc'
+              | 'emitterIdentifier-asc'
+              | 'emitterIdentifier-desc'
+              | 'level-asc'
+              | 'level-desc'
+            )
+        objectKey?: string
+        search?: string
+        includeTrace?: 'true'
+        includeDebug?: 'true'
+        includeInfo?: 'true'
+        includeWarning?: 'true'
+        includeError?: 'true'
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LogListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolder: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  updateFolder: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FolderUpdateInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderUpdateResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  deleteFolder: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  checkFolderAccess: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderMetadata: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderGetMetadataResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolders: {
+    parameters: {
+      query?: {
+        offset?: number
+        limit?: number
+        sort?:
+          | (
+              | 'name-asc'
+              | 'name-desc'
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )[]
+          | (
+              | 'name-asc'
+              | 'name-desc'
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )
+        search?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  createFolder: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FolderCreateInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderCreateResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  reindexFolder: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolderObjects: {
+    parameters: {
+      query?: {
+        cursor?: string
+        offset?: number
+        limit?: number
+        search?: string
+        sort?:
+          | (
+              | 'sizeBytes-asc'
+              | 'sizeBytes-desc'
+              | 'filename-asc'
+              | 'filename-desc'
+              | 'objectKey-asc'
+              | 'objectKey-desc'
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )[]
+          | (
+              | 'sizeBytes-asc'
+              | 'sizeBytes-desc'
+              | 'filename-asc'
+              | 'filename-desc'
+              | 'objectKey-asc'
+              | 'objectKey-desc'
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )
+        includeImage?: 'true'
+        includeVideo?: 'true'
+        includeAudio?: 'true'
+        includeDocument?: 'true'
+        includeUnknown?: 'true'
+      }
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderObjectListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderObject: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        objectKey: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderObjectGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  deleteFolderObject: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        objectKey: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  createPresignedUrls: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FolderCreateSignedUrlInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderCreateSignedUrlsResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  refreshFolderObjectS3Metadata: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        objectKey: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderObjectGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderShares: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderShareGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  upsertFolderShare: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FolderShareCreateInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderShareGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  removeFolderShare: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolderShares: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderShareListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolderShareUsers: {
+    parameters: {
+      query?: {
+        offset?: number
+        limit?: number
+        search?: string
+      }
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FolderShareUserListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderAppSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppFolderSettingsGetResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  updateFolderAppSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AppFolderSettingsUpdateInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AppFolderSettingsGetResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listAccessKeys: {
+    parameters: {
+      query?: {
+        offset?: number
+        limit?: number
+        sort?:
+          | (
+              | 'accessKeyId-asc'
+              | 'accessKeyId-desc'
+              | 'accessKeyHashId-asc'
+              | 'accessKeyHashId-desc'
+              | 'endpoint-asc'
+              | 'endpoint-desc'
+              | 'region-asc'
+              | 'region-desc'
+            )[]
+          | (
+              | 'accessKeyId-asc'
+              | 'accessKeyId-desc'
+              | 'accessKeyHashId-asc'
+              | 'accessKeyHashId-desc'
+              | 'endpoint-asc'
+              | 'endpoint-desc'
+              | 'region-asc'
+              | 'region-desc'
+            )
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getAccessKey: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        accessKeyHashId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  rotateAccessKey: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        accessKeyHashId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RotateAccessKeyInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyRotateResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listAccessKeyBuckets: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        accessKeyHashId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyBucketsListResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listServerAccessKeys: {
+    parameters: {
+      query?: {
+        offset?: number
+        limit?: number
+        sort?:
+          | (
+              | 'accessKeyId-asc'
+              | 'accessKeyId-desc'
+              | 'accessKeyHashId-asc'
+              | 'accessKeyHashId-desc'
+              | 'endpoint-asc'
+              | 'endpoint-desc'
+              | 'region-asc'
+              | 'region-desc'
+            )[]
+          | (
+              | 'accessKeyId-asc'
+              | 'accessKeyId-desc'
+              | 'accessKeyHashId-asc'
+              | 'accessKeyHashId-desc'
+              | 'endpoint-asc'
+              | 'endpoint-desc'
+              | 'region-asc'
+              | 'region-desc'
+            )
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getServerAccessKey: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        accessKeyHashId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  rotateServerAccessKey: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        accessKeyHashId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RotateAccessKeyInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyRotateResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listServerAccessKeyBuckets: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        accessKeyHashId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AccessKeyBucketsListResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getPublicServerSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Public server settings */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PublicSettingsGetResponse']
+        }
+      }
+    }
+  }
+  getServerSettings: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SettingsGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  setServerSetting: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        settingKey: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetSettingInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SettingSetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  resetServerSetting: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        settingKey: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SettingSetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getServerMetrics: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ServerMetricsResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listStorageProvisions: {
+    parameters: {
+      query?: {
+        provisionType?: 'CONTENT' | 'METADATA' | 'REDUNDANCY'
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorageProvisionsListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  createUserStorageProvision: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StorageProvisionInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorageProvisionsListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getStorageProvision: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        storageProvisionId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorageProvisionGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  updateStorageProvision: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        storageProvisionId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StorageProvisionUpdateDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorageProvisionsListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  deleteStorageProvision: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        storageProvisionId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorageProvisionsListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getServerStorageLocation: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ServerStorageLocationGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  setServerStorageLocation: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ServerStorageInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ServerStorageLocationGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  deleteServerStorageLocation: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getTask: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        taskId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TaskGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listTasks: {
+    parameters: {
+      query?: {
+        objectKey?: string
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+              | 'startedAt-asc'
+              | 'startedAt-desc'
+              | 'completedAt-asc'
+              | 'completedAt-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+              | 'startedAt-asc'
+              | 'startedAt-desc'
+              | 'completedAt-asc'
+              | 'completedAt-desc'
+            )
+        search?: string
+        includeWaiting?: 'true'
+        includeRunning?: 'true'
+        includeComplete?: 'true'
+        includeFailed?: 'true'
+        offset?: number
+        limit?: number
+        folderId?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TaskListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getFolderTask: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        folderId: string
+        taskId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TaskGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listFolderTasks: {
+    parameters: {
+      query?: {
+        objectKey?: string
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+              | 'startedAt-asc'
+              | 'startedAt-desc'
+              | 'completedAt-asc'
+              | 'completedAt-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+              | 'startedAt-asc'
+              | 'startedAt-desc'
+              | 'completedAt-asc'
+              | 'completedAt-desc'
+            )
+        search?: string
+        includeWaiting?: 'true'
+        includeRunning?: 'true'
+        includeComplete?: 'true'
+        includeFailed?: 'true'
+        offset?: number
+        limit?: number
+      }
+      header?: never
+      path: {
+        folderId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TaskListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  login: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LoginCredentialsDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LoginResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  signup: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SignupCredentialsDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SignupResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  logout: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': boolean
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  refreshToken: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        refreshToken: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['TokenRefreshResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  completeSignup: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CompleteSSOSignupDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CompleteSSOSignupResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  initiateSSO: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        provider: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['InitiateSSOResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  handleCallback: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        provider: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SSOCallbackDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SSOCallbackResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  linkProvider: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LinkSSOProviderDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LinkProviderResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getViewer: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ViewerGetResponse']
+        }
+      }
+    }
+  }
+  updateViewer: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ViewerUpdateInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ViewerGetResponse']
+        }
+      }
+    }
+  }
+  listUsers: {
+    parameters: {
+      query?: {
+        offset?: number
+        limit?: number
+        isAdmin?: boolean
+        sort?:
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'email-asc'
+              | 'email-desc'
+              | 'name-asc'
+              | 'name-desc'
+              | 'username-asc'
+              | 'username-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )[]
+          | (
+              | 'createdAt-asc'
+              | 'createdAt-desc'
+              | 'email-asc'
+              | 'email-desc'
+              | 'name-asc'
+              | 'name-desc'
+              | 'username-asc'
+              | 'username-desc'
+              | 'updatedAt-asc'
+              | 'updatedAt-desc'
+            )
+        search?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  createUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UserCreateInputDTO']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  getUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  deleteUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  updateUser: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UserUpdateInputDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserGetResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  listActiveUserSessions: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        userId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserSessionListResponse']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  requestPresignedStorageUrls: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        jobId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorkerJobUploadUrlsRequestDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkerJobPresignedUrlsResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  startJob: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        jobId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkerJobStartedResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
+  completeJob: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        jobId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorkerJobCompleteRequestDTO']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkerJobCompleteResponseDTO']
+        }
+      }
+      /** @description Server Error */
+      '5XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+      /** @description Client Error */
+      '4XX': {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ApiErrorResponseDTO']
+        }
+      }
+    }
+  }
 }

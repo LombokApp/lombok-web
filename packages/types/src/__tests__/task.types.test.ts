@@ -268,7 +268,7 @@ describe('task.types', () => {
         label: 'Test Task',
         description: 'A test task',
         handler: {
-          type: 'worker',
+          type: 'runtime',
           identifier: 'worker-123',
         },
       }

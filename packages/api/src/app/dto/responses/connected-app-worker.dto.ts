@@ -1,6 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { appWorkerSocketConnectionSchema } from '@lombokapp/types'
+import { appRuntimeWorkerSocketConnectionSchema } from '@lombokapp/types'
 
 export class ConnectedAppWorker extends createZodDto(
-  appWorkerSocketConnectionSchema,
+  appRuntimeWorkerSocketConnectionSchema,
 ) {}

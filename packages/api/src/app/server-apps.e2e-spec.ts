@@ -100,7 +100,7 @@ describe('Server Apps', () => {
     expect(getAppResponse.data.app.identifier).toBe(appIdentifier)
     // Admin app DTO should have admin-only fields
     expect(getAppResponse.data.app.publicKey).toBeDefined()
-    expect(getAppResponse.data.app.connectedWorkers).toBeDefined()
+    expect(getAppResponse.data.app.connectedRuntimeWorkers).toBeDefined()
     expect(getAppResponse.data.app.metrics).toBeDefined()
     expect(getAppResponse.data.app.requiresStorage).toBeDefined()
   })

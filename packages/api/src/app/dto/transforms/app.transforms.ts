@@ -4,7 +4,7 @@ import type { AdminAppDTO } from '../admin-app.dto'
 
 export function transformAppToDTO(
   app: App,
-  connectedWorkers: AdminAppDTO['connectedWorkers'],
+  connectedRuntimeWorkers: AdminAppDTO['connectedRuntimeWorkers'],
 ): AdminAppDTO {
   return {
     identifier: app.identifier,
@@ -14,12 +14,12 @@ export function transformAppToDTO(
     config: app.config,
     manifest: app.manifest,
     installId: app.installId,
-    connectedWorkers,
+    connectedRuntimeWorkers,
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,
     userScopeEnabledDefault: app.userScopeEnabledDefault,
     folderScopeEnabledDefault: app.folderScopeEnabledDefault,
-    workers: app.workers,
+    runtimeWorkers: app.runtimeWorkers,
     contributions: app.config.contributions ?? {
       sidebarMenuLinks: [],
       folderSidebarViews: [],

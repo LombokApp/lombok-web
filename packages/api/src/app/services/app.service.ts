@@ -3,8 +3,8 @@ import type {
   AppContributions,
   AppManifest,
   AppMetrics,
-  AppWorkersMap,
-  AppWorkerSocketConnection,
+  AppRuntimeWorkersMap,
+  AppRuntimeWorkerSocketConnection,
   ExecuteAppDockerJobOptions,
   FolderScopeAppPermissions,
   JsonSerializableObject,
@@ -57,7 +57,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
 import {
-  APP_WORKER_SOCKET_STATE,
+  APP_RUNTIME_WORKER_SOCKET_STATE,
   AppSocketService,
 } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
@@ -108,18 +108,6 @@ export type MetadataUploadUrlsResponse = {
   objectKey: string
   url: string
 }[]
-
-export interface AppDefinition {
-  config: AppConfig
-  ui: Record<string, { size: number; hash: string }>
-  workersScripts: Record<
-    string,
-    {
-      name: string
-      files: Record<string, { size: number; hash: string }>
-    }
-  >
-}
 
 export interface AppInstallBundle
   extends Omit<NewApp, 'identifier' | 'installId' | 'createdAt' | 'updatedAt'> {
@@ -543,7 +531,9 @@ export class AppService {
       throw new NotFoundException('Worker app not found')
     }
 
-    if (!(requestData.workerIdentifier in workerApp.workers.definitions)) {
+    if (
+      !(requestData.workerIdentifier in workerApp.runtimeWorkers.definitions)
+    ) {
       throw new NotFoundException(
         `Worker not found: ${requestData.workerIdentifier}`,
       )
@@ -559,7 +549,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/workers/${workerApp.workers.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/workers/${workerApp.runtimeWorkers.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -574,15 +564,16 @@ export class AppService {
       installId: workerApp.installId,
       entrypoint:
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        workerApp.workers.definitions[requestData.workerIdentifier]!.entrypoint,
+        workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
+          .entrypoint,
       environmentVariables:
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        workerApp.workers.definitions[requestData.workerIdentifier]!
+        workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
           .environmentVariables,
       workerToken: await this.jwtService.createAppWorkerToken(
         requestData.appIdentifier,
       ),
-      hash: workerApp.workers.hash,
+      hash: workerApp.runtimeWorkers.hash,
     }
   }
 
@@ -911,9 +902,9 @@ export class AppService {
       }
 
       // Process worker bundles based on app.config.workers
-      if (app.config.workers) {
-        app.workers = {
-          ...app.workers,
+      if (app.config.runtimeWorkers) {
+        app.runtimeWorkers = {
+          ...app.runtimeWorkers,
           ...(await createAndUploadBundle('workers')),
         }
       }
@@ -1182,9 +1173,9 @@ export class AppService {
       return acc
     }, {})
 
-    const workerScriptDefinitions = Object.entries(
-      config.workers ?? {},
-    ).reduce<AppWorkersMap>((acc, [workerIdentifier, value]) => {
+    const runtimeWorkersDefinitions = Object.entries(
+      config.runtimeWorkers ?? {},
+    ).reduce<AppRuntimeWorkersMap>((acc, [workerIdentifier, value]) => {
       return {
         ...acc,
         [workerIdentifier]: {
@@ -1213,7 +1204,7 @@ export class AppService {
     const migrationFiles = this.discoverMigrationFiles(appRoot)
 
     const parseResult = appConfigWithManifestSchema(manifest).safeParse(config)
-    const workerBundleManifest = Object.keys(manifest)
+    const runtimeWorkersBundleManifest = Object.keys(manifest)
       .filter((filePath) => filePath.startsWith(`/workers/`))
       .reduce<AppManifest>((acc, filePath) => {
         return {
@@ -1235,9 +1226,9 @@ export class AppService {
 
             manifest,
             publicKey,
-            workers: {
-              manifest: workerBundleManifest,
-              definitions: workerScriptDefinitions,
+            runtimeWorkers: {
+              manifest: runtimeWorkersBundleManifest,
+              definitions: runtimeWorkersDefinitions,
               hash: '',
               size: 0,
             },
@@ -1250,7 +1241,7 @@ export class AppService {
             implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||
-              Object.keys(workerScriptDefinitions).length > 0,
+              Object.keys(runtimeWorkersDefinitions).length > 0,
             ui: uiDefinition,
             config,
             containerProfiles: config.containerProfiles ?? {},
@@ -1442,26 +1433,26 @@ export class AppService {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
 
-    if (!app.workers.definitions[workerIdentifier]) {
+    if (!app.runtimeWorkers.definitions[workerIdentifier]) {
       throw new NotFoundException(
         `Worker script not found: ${workerIdentifier}`,
       )
     }
     // Update environmentVariables for the specified worker
-    app.workers.definitions[workerIdentifier] = {
-      ...app.workers.definitions[workerIdentifier],
+    app.runtimeWorkers.definitions[workerIdentifier] = {
+      ...app.runtimeWorkers.definitions[workerIdentifier],
       environmentVariables: { ...environmentVariables },
     }
     // Persist the change
     await this.ormService.db
       .update(appsTable)
-      .set({ workers: app.workers })
+      .set({ runtimeWorkers: app.runtimeWorkers })
       .where(eq(appsTable.identifier, appIdentifier))
 
-    return app.workers.definitions[workerIdentifier].environmentVariables
+    return app.runtimeWorkers.definitions[workerIdentifier].environmentVariables
   }
 
-  getWorkerConnections(): Record<string, AppWorkerSocketConnection[]> {
+  getWorkerConnections(): Record<string, AppRuntimeWorkerSocketConnection[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -1470,7 +1461,7 @@ export class AppService {
 
       const scanResult = this.kvService.ops.scan(
         cursor,
-        `${APP_WORKER_SOCKET_STATE}:*`,
+        `${APP_RUNTIME_WORKER_SOCKET_STATE}:*`,
         10000,
       )
       cursor = scanResult[0]
@@ -1481,11 +1472,11 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<Record<string, AppWorkerSocketConnection[]>>(
+          .reduce<Record<string, AppRuntimeWorkerSocketConnection[]>>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(
                 _r ?? 'null',
-              ) as AppWorkerSocketConnection | null
+              ) as AppRuntimeWorkerSocketConnection | null
               if (!parsed) {
                 return acc
               }

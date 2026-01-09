@@ -237,7 +237,7 @@ export const taskConfigSchema = z
     label: z.string().nonempty().min(1).max(128),
     description: z.string(),
     handler: z.object({
-      type: z.enum(['worker', 'docker']),
+      type: z.enum(['runtime', 'docker']),
       identifier: z.string().nonempty(),
     }),
   })

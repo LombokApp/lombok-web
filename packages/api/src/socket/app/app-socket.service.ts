@@ -8,11 +8,11 @@ export const AppSocketAuthPayload = z.object({
   handledTaskIdentifiers: z.array(z.string()).optional(),
 })
 
-export const APP_WORKER_SOCKET_STATE = 'APP_WORKER_SOCKET_STATE'
+export const APP_RUNTIME_WORKER_SOCKET_STATE = 'APP_RUNTIME_WORKER_SOCKET_STATE'
 
 @Injectable({ scope: Scope.DEFAULT })
 export class AppSocketService {
-  public readonly connectedAppWorkers = new Map<string, Socket>()
+  public readonly connectedAppRuntimeWorkers = new Map<string, Socket>()
   public readonly appIdentifierToClientIds = new Map<string, Set<string>>()
 
   private namespace: Namespace | undefined
@@ -42,7 +42,7 @@ export class AppSocketService {
     // copy to avoid mutation during disconnect events
     const idsToDisconnect = Array.from(clientIds)
     for (const clientId of idsToDisconnect) {
-      const socket = this.connectedAppWorkers.get(clientId)
+      const socket = this.connectedAppRuntimeWorkers.get(clientId)
       if (socket) {
         try {
           socket.disconnect(true)

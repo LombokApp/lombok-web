@@ -206,7 +206,7 @@ const triggerAppDockerHandledTask = async (
 
   if (
     taskDefinition?.handler.type !== 'docker' &&
-    taskDefinition?.handler.type !== 'worker'
+    taskDefinition?.handler.type !== 'runtime'
   ) {
     throw new Error('Task definition not found')
   }

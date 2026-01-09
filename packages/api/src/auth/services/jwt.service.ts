@@ -27,7 +27,7 @@ const ALGORITHM = 'HS256'
 export const USER_JWT_SUB_PREFIX = 'user:'
 export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
 export const APP_JWT_SUB_PREFIX = 'app:'
-export const APP_WORKER_JWT_SUB_PREFIX = 'app_worker:'
+export const APP_RUNTIME_WORKER_JWT_SUB_PREFIX = 'app_runtime_worker:'
 
 export const accessTokenType = z.object({
   aud: z.string(),
@@ -122,7 +122,7 @@ export class JWTService {
         aud: this._coreConfig.platformHost,
         jti: `${uuidV4()}`,
         scp: [],
-        sub: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+        sub: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
       },
       this._authConfig.authJwtSecret,
       {
@@ -253,7 +253,7 @@ export class JWTService {
       throw error
     }
   }
-  verifyAppWorkerToken({
+  verifyAppRuntimeWorkerToken({
     appIdentifier,
     token,
   }: {
@@ -264,7 +264,7 @@ export class JWTService {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
         audience: this._coreConfig.platformHost,
-        subject: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+        subject: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {

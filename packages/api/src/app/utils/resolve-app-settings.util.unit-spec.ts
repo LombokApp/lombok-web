@@ -46,9 +46,9 @@ const createMockApp = ({
       description: 'Test App Description',
       permissions,
       tasks: [],
-      workers: {},
+      runtimeWorkers: {},
     },
-    workers: {
+    runtimeWorkers: {
       size: 0,
       hash: '',
       manifest: {},

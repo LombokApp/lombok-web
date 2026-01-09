@@ -449,10 +449,10 @@ describe('Apps Installation via Zip', () => {
     ).toBeGreaterThan(0)
 
     // Verify workers bundle exists
-    expect(getAppResponseBody.app.workers).toBeDefined()
-    expect(getAppResponseBody.app.workers.manifest).toBeDefined()
+    expect(getAppResponseBody.app.runtimeWorkers).toBeDefined()
+    expect(getAppResponseBody.app.runtimeWorkers.manifest).toBeDefined()
     expect(
-      Object.keys(getAppResponseBody.app.workers.manifest).length,
+      Object.keys(getAppResponseBody.app.runtimeWorkers.manifest).length,
     ).toBeGreaterThan(0)
   })
 

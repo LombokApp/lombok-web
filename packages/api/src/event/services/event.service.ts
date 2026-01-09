@@ -213,7 +213,7 @@ export class EventService {
         await tx.insert(tasksTable).values(tasksToInsert)
 
         for (const task of tasksToInsert) {
-          if (task.handlerType === 'worker' || task.handlerType === 'docker') {
+          if (task.handlerType === 'runtime' || task.handlerType === 'docker') {
             await this.emitRunnableTaskEnqueuedEvent(task, tx)
           }
         }
@@ -584,18 +584,18 @@ export class EventService {
     },
     tx: OrmService['db'],
   ) {
-    if (task.handlerType === 'worker' || task.handlerType === 'docker') {
+    if (task.handlerType === 'runtime' || task.handlerType === 'docker') {
       const event = {
         emitterIdentifier: CORE_IDENTIFIER,
         eventIdentifier:
-          task.handlerType === 'worker'
+          task.handlerType === 'runtime'
             ? CoreEvent.serverless_task_enqueued
             : CoreEvent.docker_task_enqueued,
         data: {
           dontStartBefore: task.dontStartBefore?.toISOString() ?? null,
           innerTaskId: task.id,
           appIdentifier: task.ownerIdentifier,
-          ...(task.handlerType === 'worker'
+          ...(task.handlerType === 'runtime'
             ? {
                 workerIdentifier: task.handlerIdentifier ?? null,
               }

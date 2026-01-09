@@ -281,10 +281,10 @@ describe('app-config-sanitize', () => {
       }
     })
 
-    it('should detect control character in nested object within workers', () => {
+    it('should detect control character in nested object within runtime workers', () => {
       const invalidConfig = {
         ...baseValidConfig,
-        workers: {
+        runtimeWorkers: {
           worker1: {
             entrypoint: 'worker.js',
             description: 'Test\u0002worker',
@@ -315,7 +315,7 @@ describe('app-config-sanitize', () => {
             },
           },
         ],
-        workers: {
+        runtimeWorkers: {
           worker_one: {
             entrypoint: 'worker.js',
             description: 'Test worker',
@@ -548,7 +548,7 @@ describe('app-config-sanitize', () => {
     it('should reject app config with NUL in worker environment variables', () => {
       const invalidConfig = {
         ...baseValidConfig,
-        workers: {
+        runtimeWorkers: {
           worker_one: {
             entrypoint: 'worker.js',
             description: 'Test worker',
@@ -719,7 +719,7 @@ describe('app-config-sanitize', () => {
           folder: ['READ_OBJECTS', 'WRITE_OBJECTS'],
         },
         subscribedCoreEvents: ['core:object_added'],
-        workers: {
+        runtimeWorkers: {
           worker_one: {
             entrypoint: 'worker1.js',
             description: 'First worker',
@@ -739,7 +739,7 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'worker_one',
             },
           },
@@ -852,7 +852,7 @@ describe('app-config-sanitize', () => {
         slug: 'testapp',
         label: 'Test\u0000App',
         description: 'Test application',
-        workers: {
+        runtimeWorkers: {
           worker_one: {
             entrypoint: 'worker.js',
             description: 'Worker\u0000description',
@@ -867,7 +867,7 @@ describe('app-config-sanitize', () => {
             label: 'Task\u0000One',
             description: 'Task description',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'worker_one',
             },
           },
@@ -927,10 +927,10 @@ describe('app-config-sanitize', () => {
       }
     })
 
-    it('should verify path accuracy for NUL in worker description', () => {
+    it('should verify path accuracy for NUL in runtime worker description', () => {
       const invalidConfig = {
         ...baseValidConfig,
-        workers: {
+        runtimeWorkers: {
           worker_one: {
             entrypoint: 'worker.js',
             description: 'Worker\u0000description',
@@ -944,9 +944,9 @@ describe('app-config-sanitize', () => {
           _issue.message.includes('NUL character'),
         )
         expect(issue).toBeDefined()
-        // Path should point to workers.worker_one.description
+        // Path should point to runtimeWorkers.worker_one.description
         if (issue?.path && Array.isArray(issue.path) && issue.path.length > 0) {
-          expect(issue.path[0]).toBe('workers')
+          expect(issue.path[0]).toBe('runtimeWorkers')
           expect(issue.path[1]).toBe('worker_one')
         }
       }

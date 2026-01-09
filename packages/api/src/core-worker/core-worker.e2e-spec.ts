@@ -199,7 +199,7 @@ describe('Core Worker', () => {
           label: 'Test Task',
           description: 'Test task for core worker',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: WORKER_IDENTIFIER,
           },
         },
@@ -208,7 +208,7 @@ describe('Core Worker', () => {
           label: 'Script Error Task',
           description: 'Task that throws a script error for core worker tests',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: WORKER_IDENTIFIER,
           },
         },
@@ -217,7 +217,7 @@ describe('Core Worker', () => {
           label: 'Execution Error Task',
           description: 'Task that simulates a worker execution failure',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: EXECUTION_ERROR_WORKER_IDENTIFIER,
           },
         },
@@ -227,7 +227,7 @@ describe('Core Worker', () => {
           description:
             'Task that simulates an explicitly thrown app runtime error',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: WORKER_IDENTIFIER,
           },
         },
@@ -236,7 +236,7 @@ describe('Core Worker', () => {
           label: 'Unexpected Script Error Task',
           description: 'Task that simulates an unexpected app runtime error',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: WORKER_IDENTIFIER,
           },
         },
@@ -246,7 +246,7 @@ describe('Core Worker', () => {
           description:
             'Task that simulates an explicitly thrown app runtime error with requeue',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: WORKER_IDENTIFIER,
           },
         },
@@ -256,7 +256,7 @@ describe('Core Worker', () => {
           description:
             'Task that simulates an explicitly thrown app runtime error',
           handler: {
-            type: 'worker',
+            type: 'runtime',
             identifier: WORKER_IDENTIFIER,
           },
         },

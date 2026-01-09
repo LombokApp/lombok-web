@@ -234,24 +234,25 @@ export const appConfigSchema = z
         user: z.array(userScopeAppPermissionsSchema).optional(),
         folder: z.array(folderScopeAppPermissionsSchema).optional(),
       })
+      .strict()
       .optional(),
     slug: appSlugSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
     subscribedCoreEvents: z.array(corePrefixedEventIdentifierSchema).optional(),
     triggers: z.array(taskTriggerConfigSchema).optional(),
-    tasks: z.array(taskConfigSchema).optional(),
+    tasks: z.array(taskConfigSchema.strict()).optional(),
     containerProfiles: z
       .record(appProfileIdentifierSchema, containerProfileConfigSchema)
       .optional(),
-    workers: z
+    runtimeWorkers: z
       .record(
         z
           .string()
           .nonempty()
           .regex(/^[a-z0-9_]+$/)
           .refine((v) => v.toLowerCase() === v),
-        appWorkerConfigSchema,
+        appWorkerConfigSchema.strict(),
       )
       .optional(),
     ui: z
@@ -259,17 +260,19 @@ export const appConfigSchema = z
         enabled: z.literal(true),
         csp: z.string().optional(),
       })
+      .strict()
       .optional(),
     database: z
       .object({
         enabled: z.literal(true),
       })
+      .strict()
       .optional(),
-    contributions: appContributionsSchema.optional(),
+    contributions: appContributionsSchema.strict().optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
-    const workerIdentifiersArray = Object.keys(value.workers ?? {})
+    const workerIdentifiersArray = Object.keys(value.runtimeWorkers ?? {})
     const workerIdentifiers = new Set(workerIdentifiersArray)
     const taskIdentifiersArray = value.tasks?.map((t) => t.identifier) ?? []
     const taskIdentifiers = new Set(taskIdentifiersArray)
@@ -323,7 +326,7 @@ export const appConfigSchema = z
 
     value.tasks?.forEach((task, index) => {
       if (
-        task.handler.type === 'worker' &&
+        task.handler.type === 'runtime' &&
         !workerIdentifiers.has(task.handler.identifier)
       ) {
         ctx.addIssue({
@@ -439,30 +442,32 @@ export const appConfigWithManifestSchema = (
   manifest: Record<string, unknown>,
 ) =>
   appConfigSchema.superRefine((value, ctx) => {
-    if (value.workers) {
-      Object.entries(value.workers).forEach(([workerId, workerConfig]) => {
-        if (!manifest[`/workers/${workerConfig.entrypoint}`]) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Worker "${workerId}" entrypoint "${workerConfig.entrypoint}" does not exist in manifest`,
-            path: ['workers', workerId, 'entrypoint'],
-          })
-        }
-      })
+    if (value.runtimeWorkers) {
+      Object.entries(value.runtimeWorkers).forEach(
+        ([workerId, workerConfig]) => {
+          if (!manifest[`/workers/${workerConfig.entrypoint}`]) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Runtime worker "${workerId}" entrypoint "${workerConfig.entrypoint}" does not exist in manifest`,
+              path: ['runtimeWorkers', workerId, 'entrypoint'],
+            })
+          }
+        },
+      )
     }
   })
 
-export const appWorkerSchema = z.object({
+export const appRuntimeWorkerSchema = z.object({
   description: z.string(),
   environmentVariables: z.record(z.string(), z.string()),
   entrypoint: workerEntrypointSchema,
 })
 
-export const appWorkersBundleSchema = z.object({
+export const appRuntimeWorkersBundleSchema = z.object({
   hash: z.string(),
   size: z.number(),
   manifest: appManifestSchema,
-  definitions: z.record(z.string(), appWorkerSchema),
+  definitions: z.record(z.string(), appRuntimeWorkerSchema),
 })
 
 export const appUiBundleSchema = z.object({
@@ -472,22 +477,25 @@ export const appUiBundleSchema = z.object({
   manifest: appManifestSchema,
 })
 
-export const appWorkersMapSchema = z.record(z.string(), appWorkerSchema)
+export const appRuntimeWorkersMapSchema = z.record(
+  z.string(),
+  appRuntimeWorkerSchema,
+)
 
-export const appWorkerScriptIdentifierSchema = z
+export const appRuntimeWorkerScriptIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z_]+$/)
 
-export const appWorkerSocketConnectionSchema = z.object({
+export const appRuntimeWorkerSocketConnectionSchema = z.object({
   appIdentifier: appIdentifierSchema,
   workerId: z.string(),
   socketClientId: z.string(),
   ip: z.string(),
 })
 
-export type AppWorkerSocketConnection = z.infer<
-  typeof appWorkerSocketConnectionSchema
+export type AppRuntimeWorkerSocketConnection = z.infer<
+  typeof appRuntimeWorkerSocketConnectionSchema
 >
 
 export const appMetricsSchema = z.object({
@@ -519,15 +527,17 @@ export type ContainerProfileResourceHints = z.infer<
   typeof containerProfileResourceHintsSchema
 >
 
-export type AppWorkersBundle = z.infer<typeof appWorkersBundleSchema>
+export type AppRuntimeWorkersBundle = z.infer<
+  typeof appRuntimeWorkersBundleSchema
+>
 
 export type AppUILink = z.infer<typeof appUILinkSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 
-export type AppWorker = z.infer<typeof appWorkerSchema>
+export type AppRuntimeWorker = z.infer<typeof appRuntimeWorkerSchema>
 
-export type AppWorkersMap = z.infer<typeof appWorkersMapSchema>
+export type AppRuntimeWorkersMap = z.infer<typeof appRuntimeWorkersMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 

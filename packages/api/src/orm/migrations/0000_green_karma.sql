@@ -32,7 +32,7 @@ CREATE TABLE "apps" (
 	"userScopeEnabledDefault" boolean NOT NULL,
 	"folderScopeEnabledDefault" boolean NOT NULL,
 	"permissions" jsonb DEFAULT '{"core":[],"user":[],"folder":[]}'::jsonb NOT NULL,
-	"workers" jsonb NOT NULL,
+	"runtimeWorkers" jsonb NOT NULL,
 	"ui" jsonb NOT NULL,
 	"database" boolean DEFAULT false NOT NULL,
 	"manifest" jsonb NOT NULL,
