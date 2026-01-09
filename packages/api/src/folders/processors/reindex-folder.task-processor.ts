@@ -9,8 +9,8 @@ export class ReindexFolderProcessor extends BaseCoreTaskProcessor<CoreTaskName.R
   constructor(private readonly folderService: FolderService) {
     super(CoreTaskName.ReindexFolder, async (task) => {
       const userId =
-        task.trigger.kind === 'user_action'
-          ? task.trigger.invokeContext.userId
+        task.invocation.kind === 'user_action'
+          ? task.invocation.invokeContext.userId
           : undefined
       if (!task.data.folderId || !userId) {
         throw new Error(

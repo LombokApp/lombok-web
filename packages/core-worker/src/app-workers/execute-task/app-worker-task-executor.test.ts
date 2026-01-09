@@ -234,7 +234,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     const workerScriptTask = {
       id: uuidV4(),
       ownerIdentifier: 'core-worker',
-      trigger: {
+      invocation: {
         kind: 'event' as const,
         invokeContext: {
           eventIdentifier: CoreEvent.object_added,

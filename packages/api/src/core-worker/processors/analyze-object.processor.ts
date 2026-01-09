@@ -9,12 +9,12 @@ import { CoreWorkerService } from '../core-worker.service'
 export class AnalyzeObjectProcessor extends BaseCoreTaskProcessor<CoreTaskName.AnalyzeObject> {
   constructor(private readonly coreWorkerService: CoreWorkerService) {
     super(CoreTaskName.AnalyzeObject, async (task) => {
-      if (task.trigger.kind !== 'event') {
+      if (task.invocation.kind !== 'event') {
         throw new NotFoundException(
           'AnalyzeObjectProcessor requires event trigger',
         )
       }
-      const invokeContext = task.trigger.invokeContext
+      const invokeContext = task.invocation.invokeContext
       const eventData = invokeContext.eventData as {
         folderId: string
         objectKey: string

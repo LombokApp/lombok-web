@@ -153,7 +153,7 @@ CREATE TABLE "tasks" (
 	"taskIdentifier" text NOT NULL,
 	"taskDescription" text NOT NULL,
 	"data" jsonb NOT NULL,
-	"trigger" jsonb NOT NULL,
+	"invocation" jsonb NOT NULL,
 	"idempotencyKey" text NOT NULL,
 	"targetUserId" uuid,
 	"targetLocationFolderId" uuid,
@@ -212,7 +212,7 @@ CREATE UNIQUE INDEX "folder_objects_folder_id_object_key_unique" ON "folder_obje
 CREATE INDEX "user_idx" ON "folder_shares" USING btree ("userId");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_user_unique" ON "folder_shares" USING btree ("folderId","userId");--> statement-breakpoint
 CREATE INDEX "log_entries_target_location_folder_id_idx" ON "log_entries" USING btree ("targetLocationFolderId");--> statement-breakpoint
-CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("trigger" ->> 'kind'));--> statement-breakpoint
+CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("invocation" ->> 'kind'));--> statement-breakpoint
 CREATE INDEX "tasks_idempotency_key_idx" ON "tasks" USING btree ("ownerIdentifier","taskIdentifier","idempotencyKey");--> statement-breakpoint
 CREATE INDEX "tasks_target_location_folder_id_idx" ON "tasks" USING btree ("targetLocationFolderId");--> statement-breakpoint
 CREATE INDEX "tasks_target_location_folder_id_object_key_idx" ON "tasks" USING btree ("targetLocationFolderId","targetLocationObjectKey");

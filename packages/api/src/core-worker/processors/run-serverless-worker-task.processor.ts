@@ -22,7 +22,7 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
     private readonly taskService: TaskService,
   ) {
     super(CoreTaskName.RunServerlessWorker, async (task) => {
-      if (task.trigger.kind !== 'event') {
+      if (task.invocation.kind !== 'event') {
         throw new NotFoundException(
           'RunServerlessWorkerProcessor requires event trigger',
         )

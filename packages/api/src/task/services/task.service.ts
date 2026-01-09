@@ -240,7 +240,7 @@ export class TaskService {
           ownerIdentifier: tasksTable.ownerIdentifier,
           taskIdentifier: tasksTable.taskIdentifier,
           taskDescription: tasksTable.taskDescription,
-          trigger: tasksTable.trigger,
+          invocation: tasksTable.invocation,
           idempotencyKey: tasksTable.idempotencyKey,
           targetUserId: tasksTable.targetUserId,
           targetLocationFolderId: tasksTable.targetLocationFolderId,
@@ -336,7 +336,7 @@ export class TaskService {
       id: crypto.randomUUID(),
       ownerIdentifier: CORE_IDENTIFIER,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'user_action',
         invokeContext: {
           userId,
@@ -411,7 +411,7 @@ export class TaskService {
       id: crypto.randomUUID(),
       ownerIdentifier: appIdentifier,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'user_action',
         invokeContext: {
           userId,
@@ -511,7 +511,7 @@ export class TaskService {
       id: crypto.randomUUID(),
       ownerIdentifier: appIdentifier,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'app_action',
         invokeContext: {
           requestId: getThreadId(),
@@ -621,7 +621,7 @@ export class TaskService {
       id: crypto.randomUUID(),
       ownerIdentifier: parentTask.ownerIdentifier,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'task_child',
         invokeContext: {
           parentTask: {
@@ -683,10 +683,10 @@ export class TaskService {
     this.logger.debug('onComplete handler task queued', {
       id: childTask.id,
       taskIdentifier: childTask.taskIdentifier,
-      ...(childTask.trigger.kind === 'task_child'
-        ? { parent: childTask.trigger.invokeContext.parentTask.id }
+      ...(childTask.invocation.kind === 'task_child'
+        ? { parent: childTask.invocation.invokeContext.parentTask.id }
         : {}),
-      onComplete: childTask.trigger.onComplete,
+      onComplete: childTask.invocation.onComplete,
     })
 
     if (options.tx) {
@@ -925,10 +925,10 @@ export class TaskService {
     }
 
     // Enqueue the completion handler task if one was configured for this task
-    if (task.trigger.onComplete?.length) {
-      for (let i = 0; i < task.trigger.onComplete.length; i++) {
+    if (task.invocation.onComplete?.length) {
+      for (let i = 0; i < task.invocation.onComplete.length; i++) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const onCompleteHandler = task.trigger.onComplete[i]!
+        const onCompleteHandler = task.invocation.onComplete[i]!
         const conditionInput: OnCompleteConditionTaskContext = {
           id: updatedTask.id,
           ...(completion.success

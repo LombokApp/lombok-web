@@ -5872,7 +5872,8 @@
                           ]
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   },
                   "slug": {
                     "type": "string",
@@ -6297,7 +6298,8 @@
                     },
                     "required": [
                       "enabled"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   "database": {
                     "type": "object",
@@ -6311,7 +6313,8 @@
                     },
                     "required": [
                       "enabled"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   "contributions": {
                     "type": "object",
@@ -6872,7 +6875,8 @@
                             ]
                           }
                         }
-                      }
+                      },
+                      "additionalProperties": false
                     },
                     "slug": {
                       "type": "string",
@@ -7297,7 +7301,8 @@
                       },
                       "required": [
                         "enabled"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     "database": {
                       "type": "object",
@@ -7311,7 +7316,8 @@
                       },
                       "required": [
                         "enabled"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     "contributions": {
                       "type": "object",
@@ -7872,7 +7878,8 @@
                           ]
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   },
                   "slug": {
                     "type": "string",
@@ -8297,7 +8304,8 @@
                     },
                     "required": [
                       "enabled"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   "database": {
                     "type": "object",
@@ -8311,7 +8319,8 @@
                     },
                     "required": [
                       "enabled"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   "contributions": {
                     "type": "object",
@@ -8895,7 +8904,8 @@
                             ]
                           }
                         }
-                      }
+                      },
+                      "additionalProperties": false
                     },
                     "slug": {
                       "type": "string",
@@ -9320,7 +9330,8 @@
                       },
                       "required": [
                         "enabled"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     "database": {
                       "type": "object",
@@ -9334,7 +9345,8 @@
                       },
                       "required": [
                         "enabled"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     "contributions": {
                       "type": "object",
@@ -9782,7 +9794,8 @@
                           ]
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   },
                   "slug": {
                     "type": "string",
@@ -10207,7 +10220,8 @@
                     },
                     "required": [
                       "enabled"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   "database": {
                     "type": "object",
@@ -10221,7 +10235,8 @@
                     },
                     "required": [
                       "enabled"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   "contributions": {
                     "type": "object",
@@ -13397,7 +13412,7 @@
               "ownerIdentifier": {
                 "type": "string"
               },
-              "trigger": {
+              "invocation": {
                 "discriminator": {
                   "propertyName": "kind"
                 },
@@ -13814,7 +13829,7 @@
               "id",
               "taskIdentifier",
               "ownerIdentifier",
-              "trigger",
+              "invocation",
               "taskDescription",
               "systemLog",
               "taskLog",
@@ -13856,7 +13871,7 @@
                 "ownerIdentifier": {
                   "type": "string"
                 },
-                "trigger": {
+                "invocation": {
                   "discriminator": {
                     "propertyName": "kind"
                   },
@@ -14192,7 +14207,7 @@
                 "id",
                 "taskIdentifier",
                 "ownerIdentifier",
-                "trigger",
+                "invocation",
                 "taskDescription",
                 "createdAt",
                 "updatedAt"

@@ -7,10 +7,7 @@ import type {
   WorkerPipeRequest,
   WorkerPipeResponse,
 } from '@lombokapp/worker-utils'
-import {
-  AsyncWorkError,
-  downloadFileToDisk,
-} from '@lombokapp/worker-utils'
+import { AsyncWorkError, downloadFileToDisk } from '@lombokapp/worker-utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'

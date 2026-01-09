@@ -122,7 +122,7 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
       taskIdentifier: 'test_job_task',
       data: {},
       storageAccessPolicy: [],
-      trigger: {
+      invocation: {
         kind: 'event',
         invokeContext: {
           eventIdentifier: 'testapp:test_job',
@@ -264,7 +264,7 @@ const triggerAppDockerHandledTask = async (
         },
       ],
       taskLog: [],
-      trigger: {
+      invocation: {
         kind: 'event',
         invokeContext: {
           eventIdentifier: CoreEvent.docker_task_enqueued,
@@ -687,7 +687,7 @@ describe('Docker Jobs', () => {
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
-      trigger: {
+      invocation: {
         kind: 'app_action',
         invokeContext: {
           requestId: expect.any(String),
@@ -812,7 +812,7 @@ describe('Docker Jobs', () => {
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
-      trigger: {
+      invocation: {
         kind: 'app_action',
         invokeContext: {
           requestId: expect.any(String),
@@ -1482,7 +1482,7 @@ describe('Docker Jobs', () => {
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
-      trigger: {
+      invocation: {
         kind: 'app_action',
         invokeContext: {
           requestId: expect.any(String),

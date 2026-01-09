@@ -23,7 +23,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
     _appService,
   ) {
     super(CoreTaskName.RunDockerWorker, async (task) => {
-      if (task.trigger.kind !== 'event') {
+      if (task.invocation.kind !== 'event') {
         throw new NotFoundException(
           'RunDockerJobProcessor requires event trigger',
         )

@@ -22,7 +22,7 @@ export function transformTaskToDTO(
   const baseDTO: TaskDTO = {
     id: task.id,
     ownerIdentifier: task.ownerIdentifier,
-    trigger: task.trigger,
+    invocation: task.invocation,
     systemLog: task.systemLog.map((log) => ({
       at: log.at.toISOString(),
       payload: log.payload,
@@ -85,7 +85,7 @@ export function transformTaskSummaryToDTO(
   const baseDTO: TaskSummaryDTO = {
     id: task.id,
     ownerIdentifier: task.ownerIdentifier,
-    trigger: task.trigger,
+    invocation: task.invocation,
     handlerIdentifier: task.handlerIdentifier ?? undefined,
     success: task.success ?? undefined,
     error: task.error ?? undefined,

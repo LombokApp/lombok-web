@@ -1,5 +1,5 @@
 {
-  "id": "9bc2bcd5-eebb-4e36-9614-abf188ae6f02",
+  "id": "5554a59e-7ba7-4732-b22c-b3d5027d4d8a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1234,8 +1234,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "trigger": {
-          "name": "trigger",
+        "invocation": {
+          "name": "invocation",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
@@ -1365,7 +1365,7 @@
           "name": "tasks_trigger_kind_idx",
           "columns": [
             {
-              "expression": "(\"trigger\" ->> 'kind')",
+              "expression": "(\"invocation\" ->> 'kind')",
               "asc": true,
               "isExpression": true,
               "nulls": "last"

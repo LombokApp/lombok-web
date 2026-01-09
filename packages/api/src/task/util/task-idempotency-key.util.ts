@@ -3,7 +3,6 @@ import { hashData } from 'src/core/utils/crypto.util'
 
 import type { NewTask } from '../entities/task.entity'
 
-const IDEMPOTENCY_KEY_VERSION = 'v1'
 type TaskIdempotencyKeyInput = Omit<NewTask, 'idempotencyKey'>
 
 const buildTriggerIdempotencyData = (
@@ -44,11 +43,11 @@ export const buildTaskIdempotencyKey = (
   const payload = {
     ownerIdentifier: input.ownerIdentifier,
     taskIdentifier: input.taskIdentifier,
-    triggerData: buildTriggerIdempotencyData(input, input.trigger),
+    triggerData: buildTriggerIdempotencyData(input, input.invocation),
   }
   const serialized = JSON.stringify(payload)
   const hash = hashData(Buffer.from(serialized, 'utf8'))
-  return `task:${IDEMPOTENCY_KEY_VERSION}:${input.trigger.kind}:${hash}`
+  return `${input.invocation.kind}:${hash}`
 }
 
 export const withTaskIdempotencyKey = (

@@ -196,7 +196,7 @@ describe('Task lifecycle', () => {
         where: eq(tasksTable.taskIdentifier, SOCKET_DATA_TASK_IDENTIFIER),
       })
 
-    const childTask = tasks.find((t) => t.trigger.kind === 'task_child')
+    const childTask = tasks.find((t) => t.invocation.kind === 'task_child')
     expect(childTask).toBeTruthy()
     expect(childTask?.data).toEqual({
       taskKeyValue: 'test-value',
@@ -227,9 +227,9 @@ describe('Task lifecycle', () => {
     }
 
     expect(parentTask.data).toEqual({ payload: 'from-event' })
-    expect(parentTask.trigger.kind).toBe('event')
+    expect(parentTask.invocation.kind).toBe('event')
 
-    expect(parentTask.trigger.onComplete).toEqual([
+    expect(parentTask.invocation.onComplete).toEqual([
       {
         taskIdentifier: ON_COMPLETE_TASK_ID,
         condition: 'task.success',
@@ -267,8 +267,10 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    if (childTask.trigger.kind === 'task_child') {
-      expect(childTask.trigger.invokeContext.parentTask.id).toBe(parentTask.id)
+    if (childTask.invocation.kind === 'task_child') {
+      expect(childTask.invocation.invokeContext.parentTask.id).toBe(
+        parentTask.id,
+      )
     } else {
       throw new Error('Child task was not created with a task_child trigger.')
     }
@@ -338,8 +340,8 @@ describe('Task lifecycle', () => {
     }
 
     expect(parentTask.data).toEqual({ payload: 'from-event' })
-    expect(parentTask.trigger.kind).toBe('event')
-    expect(parentTask.trigger.onComplete).toEqual([
+    expect(parentTask.invocation.kind).toBe('event')
+    expect(parentTask.invocation.onComplete).toEqual([
       {
         taskIdentifier: ON_COMPLETE_TASK_ID,
         condition: 'task.success',
@@ -386,12 +388,14 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    if (childTask.trigger.kind === 'task_child') {
-      expect(childTask.trigger.invokeContext.parentTask.id).toBe(parentTask.id)
+    if (childTask.invocation.kind === 'task_child') {
+      expect(childTask.invocation.invokeContext.parentTask.id).toBe(
+        parentTask.id,
+      )
     } else {
       throw new Error('Child task was not created with a task_child trigger.')
     }
-    expect(childTask.trigger.onComplete).toEqual([
+    expect(childTask.invocation.onComplete).toEqual([
       {
         taskIdentifier: CHAIN_ONE_TASK_ID,
         condition: 'task.success',
@@ -440,10 +444,10 @@ describe('Task lifecycle', () => {
     if (!chainOne) {
       throw new Error('Chain one task was not created.')
     }
-    expect(chainOne.trigger.kind).toBe('task_child')
-    if (chainOne.trigger.kind === 'task_child') {
-      expect(chainOne.trigger.onComplete).toBeUndefined()
-      expect(chainOne.trigger.invokeContext.parentTask.id).toBe(childTask.id)
+    expect(chainOne.invocation.kind).toBe('task_child')
+    if (chainOne.invocation.kind === 'task_child') {
+      expect(chainOne.invocation.onComplete).toBeUndefined()
+      expect(chainOne.invocation.invokeContext.parentTask.id).toBe(childTask.id)
     }
     expect(chainOne.data).toEqual({ doubleInheritedPayload: 'from-event' })
 
@@ -494,7 +498,7 @@ describe('Task lifecycle', () => {
       throw new Error('App action task was not created.')
     }
 
-    expect(task.trigger.kind).toBe('app_action')
+    expect(task.invocation.kind).toBe('app_action')
     expect(task.startedAt).toBeNull()
     expect(task.completedAt).toBeNull()
     expect(task.success).toBeNull()
@@ -553,8 +557,8 @@ describe('Task lifecycle', () => {
       },
     )
 
-    expect(parentTask.trigger.kind).toBe('app_action')
-    expect(parentTask.trigger.onComplete).toEqual([
+    expect(parentTask.invocation.kind).toBe('app_action')
+    expect(parentTask.invocation.onComplete).toEqual([
       {
         taskIdentifier: ON_COMPLETE_TASK_ID,
         condition: 'task.success',
@@ -587,10 +591,12 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    expect(childTask.trigger.kind).toBe('task_child')
-    if (childTask.trigger.kind === 'task_child') {
-      expect(childTask.trigger.invokeContext.parentTask.id).toBe(parentTask.id)
-      expect(childTask.trigger.invokeContext.parentTask.success).toBe(true)
+    expect(childTask.invocation.kind).toBe('task_child')
+    if (childTask.invocation.kind === 'task_child') {
+      expect(childTask.invocation.invokeContext.parentTask.id).toBe(
+        parentTask.id,
+      )
+      expect(childTask.invocation.invokeContext.parentTask.success).toBe(true)
     }
     expect(childTask.data).toEqual({
       inheritedData: 'value',
@@ -637,8 +643,8 @@ describe('Task lifecycle', () => {
       },
     )
 
-    expect(parentTask.trigger.kind).toBe('app_action')
-    expect(parentTask.trigger.onComplete).toEqual([
+    expect(parentTask.invocation.kind).toBe('app_action')
+    expect(parentTask.invocation.onComplete).toEqual([
       {
         taskIdentifier: ON_COMPLETE_TASK_ID,
         condition: 'task.success',
@@ -678,10 +684,12 @@ describe('Task lifecycle', () => {
       throw new Error('First on-complete child task was not created.')
     }
 
-    expect(firstChild.trigger.kind).toBe('task_child')
-    if (firstChild.trigger.kind === 'task_child') {
-      expect(firstChild.trigger.invokeContext.parentTask.id).toBe(parentTask.id)
-      expect(firstChild.trigger.onComplete).toEqual([
+    expect(firstChild.invocation.kind).toBe('task_child')
+    if (firstChild.invocation.kind === 'task_child') {
+      expect(firstChild.invocation.invokeContext.parentTask.id).toBe(
+        parentTask.id,
+      )
+      expect(firstChild.invocation.onComplete).toEqual([
         {
           taskIdentifier: CHAIN_ONE_TASK_ID,
           condition: 'task.success',
@@ -716,12 +724,12 @@ describe('Task lifecycle', () => {
       throw new Error('Second on-complete child task was not created.')
     }
 
-    expect(secondChild.trigger.kind).toBe('task_child')
-    if (secondChild.trigger.kind === 'task_child') {
-      expect(secondChild.trigger.invokeContext.parentTask.id).toBe(
+    expect(secondChild.invocation.kind).toBe('task_child')
+    if (secondChild.invocation.kind === 'task_child') {
+      expect(secondChild.invocation.invokeContext.parentTask.id).toBe(
         firstChild.id,
       )
-      expect(secondChild.trigger.onComplete).toBeUndefined()
+      expect(secondChild.invocation.onComplete).toBeUndefined()
     }
     expect(secondChild.data).toEqual({
       doubleInheritedPayload: 'start',
@@ -782,9 +790,9 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    expect(childTask.trigger.kind).toBe('task_child')
-    if (childTask.trigger.kind === 'task_child') {
-      expect(childTask.trigger.invokeContext.parentTask.success).toBe(false)
+    expect(childTask.invocation.kind).toBe('task_child')
+    if (childTask.invocation.kind === 'task_child') {
+      expect(childTask.invocation.invokeContext.parentTask.success).toBe(false)
     }
   })
 
@@ -798,15 +806,15 @@ describe('Task lifecycle', () => {
       throw new Error('Schedule task was not created.')
     }
 
-    if (firstTask.trigger.kind === 'schedule') {
-      expect(firstTask.trigger.invokeContext).toEqual({
+    if (firstTask.invocation.kind === 'schedule') {
+      expect(firstTask.invocation.invokeContext).toEqual({
         name: 'dummy_schedule',
         config: {
           interval: 1,
           unit: 'hours',
         },
         timestampBucket: getUtcScheduleBucket(
-          firstTask.trigger.invokeContext.config,
+          firstTask.invocation.invokeContext.config,
           firstTask.createdAt,
         ).bucketStart.toISOString(),
       })
@@ -854,9 +862,9 @@ describe('Task lifecycle', () => {
           targetUserId: userId,
         })
 
-      expect(task.trigger.kind).toBe('user_action')
-      if (task.trigger.kind === 'user_action') {
-        expect(task.trigger.invokeContext.userId).toBe(userId)
+      expect(task.invocation.kind).toBe('user_action')
+      if (task.invocation.kind === 'user_action') {
+        expect(task.invocation.invokeContext.userId).toBe(userId)
       }
       expect(task.startedAt).toBeNull()
       expect(task.completedAt).toBeNull()
@@ -971,7 +979,7 @@ describe('Task lifecycle', () => {
         ownerIdentifier:
           await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
-        trigger: {
+        invocation: {
           kind: 'app_action',
           invokeContext: {
             requestId: crypto.randomUUID(),
@@ -1073,7 +1081,7 @@ describe('Task lifecycle', () => {
         id: crypto.randomUUID(),
         ownerIdentifier: appIdentifier,
         taskIdentifier: APP_ACTION_TASK_ID,
-        trigger: {
+        invocation: {
           kind: 'app_action',
           invokeContext: {
             requestId: crypto.randomUUID(),
@@ -1174,7 +1182,7 @@ describe('Task lifecycle', () => {
         ownerIdentifier:
           await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
         taskIdentifier: APP_ACTION_TASK_ID,
-        trigger: {
+        invocation: {
           kind: 'app_action',
           invokeContext: {
             requestId: crypto.randomUUID(),

@@ -161,7 +161,7 @@ export class EventService {
 
           const newTask = withTaskIdempotencyKey({
             id: uuidV4(),
-            trigger: {
+            invocation: {
               kind: 'schedule',
               invokeContext: {
                 timestampBucket: getUtcScheduleBucket(
@@ -391,7 +391,7 @@ export class EventService {
                 // Build the base task object
                 const task: NewTask = withTaskIdempotencyKey({
                   id: uuidV4(),
-                  trigger: {
+                  invocation: {
                     ...trigger,
                     invokeContext: this.buildEventInvocation(
                       event,
@@ -542,7 +542,7 @@ export class EventService {
         const targetLocation = buildTargetLocation?.(event)
         return withTaskIdempotencyKey({
           id: crypto.randomUUID(),
-          trigger: {
+          invocation: {
             kind: 'event',
             invokeContext: this.buildEventInvocation(
               event,

@@ -247,7 +247,7 @@ export const taskDTOSchema = z.object({
   id: z.string().uuid(),
   taskIdentifier: z.string(),
   ownerIdentifier: z.string(),
-  trigger: taskInvocationSchema,
+  invocation: taskInvocationSchema,
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),
   data: taskDataSchema.optional(),

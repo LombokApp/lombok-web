@@ -2,9 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@lombokapp/worker-utils": [
-        "./node_modules/@lombokapp/worker-utils/src"
-      ],
+      "@lombokapp/worker-utils": ["./node_modules/@lombokapp/worker-utils/src"],
       "@lombokapp/worker-utils/*": [
         "./node_modules/@lombokapp/worker-utils/src/*"
       ],

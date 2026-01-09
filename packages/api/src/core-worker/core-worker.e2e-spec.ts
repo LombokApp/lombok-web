@@ -301,7 +301,7 @@ describe('Core Worker', () => {
       id: crypto.randomUUID(),
       taskIdentifier: 'test_task',
       ownerIdentifier: installedAppIdentifier,
-      trigger: {
+      invocation: {
         kind: 'app_action' as const,
         invokeContext: {
           requestId: crypto.randomUUID(),
@@ -330,7 +330,7 @@ describe('Core Worker', () => {
       })
 
     return coreTasks.filter((task) => {
-      const invokeContext = task.trigger.invokeContext as
+      const invokeContext = task.invocation.invokeContext as
         | { eventData?: { innerTaskId?: string } }
         | undefined
       return invokeContext?.eventData?.innerTaskId === innerTaskId

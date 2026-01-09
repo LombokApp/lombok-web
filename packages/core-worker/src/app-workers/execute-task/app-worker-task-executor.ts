@@ -4,10 +4,7 @@ import type {
   CoreWorkerMessagePayloadTypes,
   ServerlessWorkerExecConfig,
 } from '@lombokapp/worker-utils'
-import {
-  AsyncWorkError,
-  uniqueExecutionKey,
-} from '@lombokapp/worker-utils'
+import { AsyncWorkError, uniqueExecutionKey } from '@lombokapp/worker-utils'
 
 import { runWorker } from '../../worker-scripts/run-worker'
 
