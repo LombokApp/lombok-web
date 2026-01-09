@@ -1,5 +1,5 @@
 import type { EventDTO, FolderGetResponse } from '@lombokapp/types'
-import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER, FolderPushMessage } from '@lombokapp/types'
 import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
@@ -52,8 +52,8 @@ const EventCard = ({
           <div className="mt-1 flex gap-1 text-xs text-muted-foreground">
             <div>Source:</div>
             <div className="font-mono">
-              {event.emitterIdentifier === PLATFORM_IDENTIFIER
-                ? PLATFORM_IDENTIFIER
+              {event.emitterIdentifier === CORE_IDENTIFIER
+                ? CORE_IDENTIFIER
                 : `app:${event.emitterIdentifier[0]}`}
             </div>
           </div>

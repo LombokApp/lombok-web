@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import crypto from 'crypto'
 
-import { PlatformModule } from './platform/platform.module'
+import { CoreModule } from './core/core.module'
 import { appReference, setApp, setAppInitializing } from './shared/app-helper'
 import { HttpExceptionFilter } from './shared/http-exception-filter'
 import { NoPrefixConsoleLogger } from './shared/no-prefix-console-logger'
@@ -22,7 +22,7 @@ export async function buildApp() {
           ? ['log', 'error', 'warn', 'fatal', 'debug']
           : ['log', 'error', 'warn', 'fatal'],
   })
-  const creationPromise = NestFactory.create(PlatformModule, {
+  const creationPromise = NestFactory.create(CoreModule, {
     logger,
   })
   // set the app init promise reference

@@ -22,9 +22,9 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
+import { coreConfig } from 'src/core/config'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
@@ -57,24 +57,22 @@ export type CompleteJobRequest = z.infer<typeof dockerJobResultSchema>
 export class WorkerJobService {
   private readonly logger = new Logger(WorkerJobService.name)
   taskService: TaskService
-  platformTaskService: CoreTaskService
+  coreTaskService: CoreTaskService
   appService: AppService
   constructor(
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => CoreTaskService))
-    _platformTaskService,
+    _coreTaskService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
-    this.platformTaskService = _platformTaskService as CoreTaskService
+    this.coreTaskService = _coreTaskService as CoreTaskService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
   }
@@ -190,7 +188,7 @@ export class WorkerJobService {
     executorContext?: JsonSerializableObject
   }): string {
     const payload = {
-      aud: this._platformConfig.platformHost,
+      aud: this._coreConfig.platformHost,
       jti: uuidV4(),
       sub: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`,
       job_id: params.jobId,
@@ -215,7 +213,7 @@ export class WorkerJobService {
     try {
       const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._platformConfig.platformHost,
+        audience: this._coreConfig.platformHost,
         subject: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${expectedJobId}`,
       }) as JwtPayload & {
         job_id: string

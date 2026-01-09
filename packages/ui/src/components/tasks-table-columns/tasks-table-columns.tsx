@@ -1,5 +1,5 @@
 import type { TaskSummaryDTO } from '@lombokapp/types'
-import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
@@ -44,8 +44,8 @@ export function configureTasksTableColumns(
             title={row.original.taskIdentifier}
             showSubtitle={config.showOwnerSubtext}
             subtitle={`owned by ${
-              row.original.ownerIdentifier === PLATFORM_IDENTIFIER
-                ? 'internal:platform'
+              row.original.ownerIdentifier === CORE_IDENTIFIER
+                ? 'lombok:core'
                 : `app:${row.original.ownerIdentifier}`
             }`}
           />

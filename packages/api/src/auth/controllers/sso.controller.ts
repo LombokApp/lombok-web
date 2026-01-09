@@ -9,7 +9,7 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 
 import { CompleteSSOSignupDTO } from '../dto/sso/complete-sso-signup.dto'

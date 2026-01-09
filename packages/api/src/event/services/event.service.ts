@@ -29,16 +29,16 @@ import {
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { evalTriggerHandlerCondition } from 'src/event/util/eval-trigger-condition.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import {
-  PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP,
-  PLATFORM_TASKS,
-} from 'src/task/constants/platform-tasks.constants'
+  CORE_EVENT_TRIGGERS_TO_TASKS_MAP,
+  CORE_TASKS,
+} from 'src/task/constants/core-tasks.constants'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { getUtcScheduleBucket } from 'src/task/util/schedule-bucket.util'
@@ -76,14 +76,14 @@ export class EventService {
     return this._appService as AppService
   }
 
-  get platformTaskService(): CoreTaskService {
-    return this._platformTaskService as CoreTaskService
+  get coreTaskService(): CoreTaskService {
+    return this._coreTaskService as CoreTaskService
   }
 
   constructor(
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => CoreTaskService))
-    private readonly _platformTaskService,
+    private readonly _coreTaskService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
@@ -252,8 +252,8 @@ export class EventService {
 
     const now = new Date()
 
-    const isPlatformEmitter = emitterIdentifier === CORE_IDENTIFIER
-    const appIdentifier = !isPlatformEmitter ? emitterIdentifier : undefined
+    const isCoreEmitter = emitterIdentifier === CORE_IDENTIFIER
+    const appIdentifier = !isCoreEmitter ? emitterIdentifier : undefined
 
     const app = appIdentifier
       ? await this.appService.getApp(appIdentifier.toLowerCase(), {
@@ -321,11 +321,11 @@ export class EventService {
     const event = events[0]!
 
     // regular event, so we should lookup apps that have subscribed to this event
-    const eventTriggerIdentifier = isPlatformEmitter
+    const eventTriggerIdentifier = isCoreEmitter
       ? `${CORE_IDENTIFIER}:${eventIdentifier}`
       : eventIdentifier
 
-    const subscribedApps = isPlatformEmitter
+    const subscribedApps = isCoreEmitter
       ? await tx.query.appsTable.findMany({
           where: and(
             arrayContains(appsTable.subscribedCoreEvents, [
@@ -441,10 +441,10 @@ export class EventService {
       }),
     )
 
-    // Insert platform tasks that are subscribed to this platform emitted event
-    if (isPlatformEmitter) {
-      // Collect platform tasks registered for the platform event that was emitted
-      tasks.push(...this.gatherPlatformTasksForEvent(event, now))
+    // Insert core tasks that are subscribed to this core emitted event
+    if (isCoreEmitter) {
+      // Collect core tasks registered for the core event that was emitted
+      tasks.push(...this.gatherCoreTasksForEvent(event, now))
     }
 
     if (tasks.length) {
@@ -469,7 +469,7 @@ export class EventService {
       )
     }
 
-    void this.platformTaskService.startDrainPlatformTasks()
+    void this.coreTaskService.startDrainCoreTasks()
   }
 
   async emitEvent(
@@ -521,17 +521,15 @@ export class EventService {
     }
   }
 
-  gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
+  gatherCoreTasksForEvent(event: Event, timestamp: Date): NewTask[] {
     if (event.emitterIdentifier !== CORE_IDENTIFIER) {
       return []
     }
 
-    const platformTaskDefinitions =
-      PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP[
-        event.eventIdentifier as CoreEvent
-      ] ?? []
+    const coreTaskDefinitions =
+      CORE_EVENT_TRIGGERS_TO_TASKS_MAP[event.eventIdentifier as CoreEvent] ?? []
 
-    const platformTasks: NewTask[] = platformTaskDefinitions.map(
+    const coreTasks: NewTask[] = coreTaskDefinitions.map(
       (
         {
           taskIdentifier,
@@ -556,7 +554,7 @@ export class EventService {
           dontStartBefore: calculateDontStartBefore?.(event),
           targetLocationFolderId: targetLocation?.folderId ?? null,
           targetLocationObjectKey: targetLocation?.objectKey ?? null,
-          taskDescription: PLATFORM_TASKS[taskIdentifier].description,
+          taskDescription: CORE_TASKS[taskIdentifier].description,
           data: buildData(event),
           ownerIdentifier: CORE_IDENTIFIER,
           handlerType: CORE_IDENTIFIER,
@@ -566,7 +564,7 @@ export class EventService {
       },
     )
 
-    return platformTasks
+    return coreTasks
   }
 
   /**

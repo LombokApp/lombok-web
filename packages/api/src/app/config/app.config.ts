@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config'
-import { parseEnv } from 'src/platform/utils/config.util'
+import { parseEnv } from 'src/core/utils/config.util'
 import { z } from 'zod'
 
 export const appConfig = registerAs('app', () => {

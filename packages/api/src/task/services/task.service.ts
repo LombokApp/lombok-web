@@ -28,12 +28,12 @@ import {
   sql,
 } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
+import { dataFromTemplate } from 'src/core/utils/data-template.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
-import { dataFromTemplate } from 'src/platform/utils/data-template.util'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { getThreadId } from 'src/shared/thread-context'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import type { User } from 'src/users/entities/user.entity'
@@ -305,10 +305,10 @@ export class TaskService {
   }
 
   /**
-   * Used to trigger a platform task on request from a user.
+   * Used to trigger a core task on request from a user.
    *
    * @param userId - The user ID triggering the task.
-   * @param taskIdentifier - The identifier of the platform task to trigger.
+   * @param taskIdentifier - The identifier of the core task to trigger.
    * @param taskData - The data to pass to the task (must be serializable).
    * @param targetUserId - The user ID to relate the task to.
    * @param targetLocation - The folderId and possibly objectKey to relate the task to.
@@ -316,7 +316,7 @@ export class TaskService {
    *
    ** @returns The created task record.
    */
-  async triggerPlatformUserActionTask({
+  async triggerCoreUserActionTask({
     userId,
     taskIdentifier,
     taskData,
@@ -343,7 +343,7 @@ export class TaskService {
           requestId: getThreadId(),
         },
       },
-      taskDescription: 'Platform task on user request',
+      taskDescription: 'Core task on user request',
       data: taskData,
       createdAt: now,
       updatedAt: now,

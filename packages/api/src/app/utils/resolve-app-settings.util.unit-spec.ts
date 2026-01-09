@@ -1,6 +1,6 @@
 import type {
+  CoreScopeAppPermissions,
   FolderScopeAppPermissions,
-  PlatformScopeAppPermissions,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import { describe, expect, it } from 'bun:test'
@@ -23,7 +23,7 @@ const createMockApp = ({
   folderScopeEnabledDefault: boolean
   userScopeEnabledDefault: boolean
   permissions: {
-    platform: PlatformScopeAppPermissions[]
+    core: CoreScopeAppPermissions[]
     user: UserScopeAppPermissions[]
     folder: FolderScopeAppPermissions[]
   }
@@ -130,7 +130,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: [],
           },
@@ -175,7 +175,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: ['READ_FOLDER_ACL'],
+            core: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -220,7 +220,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: [],
           },
@@ -265,7 +265,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: ['READ_FOLDER_ACL'],
+            core: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -310,7 +310,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: ['READ_FOLDER_ACL'],
+            core: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -355,7 +355,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -400,7 +400,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -429,7 +429,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -474,7 +474,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -519,7 +519,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -564,7 +564,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -609,7 +609,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: [],
             folder: ['WRITE_OBJECTS'],
           },
@@ -656,7 +656,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -692,7 +692,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: ['READ_FOLDER_ACL'],
+            core: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS', 'DELETE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -728,7 +728,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -764,7 +764,7 @@ describe('resolve-app-settings.util.ts', () => {
           userScopeEnabledDefault: false,
           folderScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -793,7 +793,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: ['READ_FOLDER_ACL'],
+            core: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -829,7 +829,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -865,7 +865,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: ['READ_FOLDER_ACL'],
+            core: ['READ_FOLDER_ACL'],
             user: ['CREATE_FOLDERS', 'DELETE_FOLDERS'],
             folder: ['WRITE_OBJECTS'],
           },
@@ -901,7 +901,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -937,7 +937,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -973,7 +973,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1009,7 +1009,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1045,7 +1045,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1081,7 +1081,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1117,7 +1117,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1154,7 +1154,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1191,7 +1191,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1229,7 +1229,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1267,7 +1267,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1305,7 +1305,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1343,7 +1343,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: true,
           userScopeEnabledDefault: true,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },
@@ -1381,7 +1381,7 @@ describe('resolve-app-settings.util.ts', () => {
           folderScopeEnabledDefault: false,
           userScopeEnabledDefault: false,
           permissions: {
-            platform: [],
+            core: [],
             user: ['CREATE_FOLDERS'],
             folder: [],
           },

@@ -5837,7 +5837,7 @@
                   "permissions": {
                     "type": "object",
                     "properties": {
-                      "platform": {
+                      "core": {
                         "type": "array",
                         "items": {
                           "type": "string",
@@ -6837,7 +6837,7 @@
                     "permissions": {
                       "type": "object",
                       "properties": {
-                        "platform": {
+                        "core": {
                           "type": "array",
                           "items": {
                             "type": "string",
@@ -7837,7 +7837,7 @@
                   "permissions": {
                     "type": "object",
                     "properties": {
-                      "platform": {
+                      "core": {
                         "type": "array",
                         "items": {
                           "type": "string",
@@ -8860,7 +8860,7 @@
                     "permissions": {
                       "type": "object",
                       "properties": {
-                        "platform": {
+                        "core": {
                           "type": "array",
                           "items": {
                             "type": "string",
@@ -9747,7 +9747,7 @@
                   "permissions": {
                     "type": "object",
                     "properties": {
-                      "platform": {
+                      "core": {
                         "type": "array",
                         "items": {
                           "type": "string",

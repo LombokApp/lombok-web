@@ -12,9 +12,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
+import { parseSort } from 'src/core/utils/sort.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
-import { parseSort } from 'src/platform/utils/sort.util'
 import {
   SERVER_STORAGE_CONFIG,
   STORAGE_PROVISIONS_CONFIG,

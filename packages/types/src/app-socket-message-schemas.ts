@@ -6,7 +6,7 @@ import { appMessageErrorSchema } from './apps.types'
 import { metadataEntrySchema } from './content.types'
 import { eventIdentifierSchema } from './events.types'
 import { jsonSerializableObjectSchema } from './json.types'
-import { LogEntryLevel } from './platform.types'
+import { LogEntryLevel } from './core.types'
 import { SignedURLsRequestMethod } from './storage.types'
 import {
   storageAccessPolicySchema,

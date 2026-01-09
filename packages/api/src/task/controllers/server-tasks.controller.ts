@@ -12,8 +12,8 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
-import { normalizeSortParam } from 'src/platform/utils/sort.util'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import { TaskListResponse } from '../dto/responses/task-list-response.dto'

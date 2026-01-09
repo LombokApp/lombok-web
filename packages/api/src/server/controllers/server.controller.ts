@@ -15,7 +15,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { ServerMetricsResponse } from '../dto/responses/server-metrics-response.dto'
 import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'

@@ -1,5 +1,5 @@
 import type { JsonSerializableObject } from './json.types'
-import type { LogEntryLevel } from './platform.types'
+import type { LogEntryLevel } from './core.types'
 
 export enum FolderPushMessage {
   OBJECTS_ADDED = 'OBJECTS_ADDED',

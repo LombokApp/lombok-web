@@ -49,11 +49,11 @@ import {
 } from 'drizzle-orm'
 import { PgColumn } from 'drizzle-orm/pg-core'
 import { AppService } from 'src/app/services/app.service'
+import { coreConfig } from 'src/core/config'
+import { parseSort } from 'src/core/utils/sort.util'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
-import { parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
@@ -171,9 +171,9 @@ export class FolderService {
   appService: AppService
   taskService: TaskService
   s3Service: S3Service
-  platformTaskService: CoreTaskService
+  coreTaskService: CoreTaskService
   folderSocketService: FolderSocketService
-  platformConfig: nestjsConfig.ConfigType<typeof platformConfig>
+  coreConfig: nestjsConfig.ConfigType<typeof coreConfig>
 
   constructor(
     @Inject(forwardRef(() => S3Service))
@@ -185,21 +185,21 @@ export class FolderService {
     @Inject(forwardRef(() => FolderSocketService))
     _folderSocketService,
     @Inject(forwardRef(() => CoreTaskService))
-    _platformTaskService,
+    _coreTaskService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
-    @Inject(platformConfig.KEY)
-    _platformConfig: nestjsConfig.ConfigType<typeof platformConfig>,
+    @Inject(coreConfig.KEY)
+    _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
   ) {
     this.s3Service = _s3Service as S3Service
-    this.platformTaskService = _platformTaskService as CoreTaskService
+    this.coreTaskService = _coreTaskService as CoreTaskService
     this.folderSocketService = _folderSocketService as FolderSocketService
     this.eventService = _eventService as EventService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
-    this.platformConfig = _platformConfig
+    this.coreConfig = _coreConfig
   }
 
   async createFolder({
@@ -459,7 +459,7 @@ export class FolderService {
             ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.lombok_cors_check_${folderId}`
             : `.lombok_cors_check_${folderId}`
         const corsUrl = `${folder.contentLocation.endpoint.replace(/\/$/, '')}/${folder.contentLocation.bucket}/${objectKey}`
-        const appPlatformHost: string = this.platformConfig.platformHost
+        const appPlatformHost: string = this.coreConfig.platformHost
         const originCandidates = [
           `https://${appPlatformHost}`,
           `http://${appPlatformHost}`,
@@ -1216,7 +1216,7 @@ export class FolderService {
   async queueReindexFolderAsUser(actor: User, folderId: string) {
     const folder = await this.getFolderAsUser(actor, folderId)
     if (folder.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      await this.taskService.triggerPlatformUserActionTask({
+      await this.taskService.triggerCoreUserActionTask({
         taskIdentifier: CoreTaskName.ReindexFolder,
         taskData: { folderId },
         targetLocation: { folderId },

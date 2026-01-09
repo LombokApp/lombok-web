@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
+import { CORE_IDENTIFIER } from './core.types'
 import { corePrefixedEventIdentifierSchema } from './events.types'
 import { appIdentifierSchema, appSlugSchema } from './identifiers.types'
 import { jsonSerializableObjectSchema } from './json.types'
@@ -125,8 +126,8 @@ export const appContributionsSchema = z
   })
   .strict()
 
-// Permissions that can be granted to an app for the platform
-export const platformScopeAppPermissionsSchema = z.enum([
+// Permissions that can be granted to an app for the core
+export const coreScopeAppPermissionsSchema = z.enum([
   'READ_FOLDER_ACL', // Read the user <-> folder ACL context
 ])
 
@@ -148,8 +149,8 @@ export const folderScopeAppPermissionsSchema = z.enum([
   'REINDEX_FOLDER',
 ])
 
-export type PlatformScopeAppPermissions = z.infer<
-  typeof platformScopeAppPermissionsSchema
+export type CoreScopeAppPermissions = z.infer<
+  typeof coreScopeAppPermissionsSchema
 >
 export type UserScopeAppPermissions = z.infer<
   typeof userScopeAppPermissionsSchema
@@ -229,7 +230,7 @@ export const appConfigSchema = z
     requiresStorage: z.boolean().optional(),
     permissions: z
       .object({
-        platform: z.array(platformScopeAppPermissionsSchema).optional(),
+        core: z.array(coreScopeAppPermissionsSchema).optional(),
         user: z.array(userScopeAppPermissionsSchema).optional(),
         folder: z.array(folderScopeAppPermissionsSchema).optional(),
       })
@@ -401,7 +402,7 @@ export const appConfigSchema = z
     ;(value.triggers ?? []).forEach((trigger, index) => {
       if (
         trigger.kind === 'event' &&
-        trigger.eventIdentifier.startsWith('platform:') &&
+        trigger.eventIdentifier.startsWith(`${CORE_IDENTIFIER}:`) &&
         !value.subscribedCoreEvents?.includes(trigger.eventIdentifier)
       ) {
         ctx.addIssue({

@@ -39,6 +39,8 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import { readDirRecursive } from 'src/core/utils/fs.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
 import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
@@ -53,8 +55,6 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { logEntriesTable } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
-import { readDirRecursive } from 'src/platform/utils/fs.util'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
 import {
@@ -132,7 +132,7 @@ export class AppService {
   eventService: EventService
   serverlessWorkerRunnerService: CoreWorkerService
   taskService: TaskService
-  platformTaskService: CoreTaskService
+  coreTaskService: CoreTaskService
   private readonly appSocketService: AppSocketService
   private readonly dockerJobsService: DockerJobsService
   private readonly logger = new Logger(AppService.name)
@@ -146,7 +146,7 @@ export class AppService {
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     private readonly s3Service: S3Service,
-    @Inject(forwardRef(() => CoreTaskService)) _platformTaskService,
+    @Inject(forwardRef(() => CoreTaskService)) _coreTaskService,
     @Inject(forwardRef(() => TaskService)) _taskService,
     @Inject(forwardRef(() => EventService)) _eventService,
     @Inject(forwardRef(() => FolderService)) _folderService,
@@ -155,7 +155,7 @@ export class AppService {
     @Inject(forwardRef(() => CoreWorkerService))
     _coreWorkerService,
   ) {
-    this.platformTaskService = _platformTaskService as CoreTaskService
+    this.coreTaskService = _coreTaskService as CoreTaskService
     this.serverlessWorkerRunnerService = _coreWorkerService as CoreWorkerService
     this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
@@ -1242,7 +1242,7 @@ export class AppService {
               size: 0,
             },
             permissions: {
-              platform: config.permissions?.platform ?? [],
+              core: config.permissions?.core ?? [],
               user: config.permissions?.user ?? [],
               folder: config.permissions?.folder ?? [],
             },

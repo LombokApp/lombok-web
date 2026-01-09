@@ -493,7 +493,7 @@ const httpTestCases: HttpTestCase[] = [
 
 let mockPlatformServer: ReturnType<typeof Bun.serve> | null = null
 let mockS3Server: ReturnType<typeof Bun.serve> | null = null
-const MOCK_PLATFORM_PORT = 19876
+const MOCK_CORE_PORT = 19876
 const MOCK_S3_PORT = 19877
 const MOCK_JOB_TOKEN = 'test-jwt-token-for-testing'
 
@@ -516,7 +516,7 @@ function resetMockPlatformState(): void {
 
 function startMockPlatformServer(): void {
   mockPlatformServer = Bun.serve({
-    port: MOCK_PLATFORM_PORT,
+    port: MOCK_CORE_PORT,
     hostname: '0.0.0.0', // Listen on all interfaces so container can reach it
     fetch: async (req) => {
       const url = new URL(req.url)
@@ -634,7 +634,7 @@ function stopMockServers(): void {
 // On macOS with Docker Desktop, use host.docker.internal
 // On Linux, we'd need to use the docker bridge IP
 function getMockPlatformUrl(): string {
-  return `http://host.docker.internal:${MOCK_PLATFORM_PORT}`
+  return `http://host.docker.internal:${MOCK_CORE_PORT}`
 }
 
 // =============================================================================

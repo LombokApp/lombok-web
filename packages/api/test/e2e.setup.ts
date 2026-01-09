@@ -56,7 +56,7 @@ const testAppDefinitions: AppConfig[] = [
     requiresStorage: false,
     subscribedCoreEvents: ['core:object_added'],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -96,7 +96,7 @@ const testAppDefinitions: AppConfig[] = [
     requiresStorage: false,
     subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -161,7 +161,7 @@ const testAppDefinitions: AppConfig[] = [
     requiresStorage: false,
     subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: [],
     },
@@ -302,7 +302,7 @@ const testAppDefinitions: AppConfig[] = [
       enabled: true,
     },
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -332,7 +332,7 @@ const testAppDefinitions: AppConfig[] = [
     requiresStorage: false,
     subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -361,7 +361,7 @@ const testAppDefinitions: AppConfig[] = [
     requiresStorage: false,
     subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -398,6 +398,7 @@ const testAppDefinitions: AppConfig[] = [
   },
 ]
 
+// eslint-disable-next-line no-console
 console.log(`Adding test app definitions at path: ${E2E_TEST_APPS_PATH}`)
 const addTestAppDefinition = async (appConfig: AppConfig) => {
   if (!fs.existsSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}`)) {
@@ -451,6 +452,7 @@ const addTestAppDefinition = async (appConfig: AppConfig) => {
 await Promise.all(
   testAppDefinitions.map((appDef) => addTestAppDefinition(appDef)),
 )
+// eslint-disable-next-line no-console
 console.log(
   '%d test app definitions added! (slugs: %s)',
   testAppDefinitions.length,

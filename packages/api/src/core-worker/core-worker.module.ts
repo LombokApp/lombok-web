@@ -2,9 +2,9 @@ import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
+import { coreConfig } from 'src/core/config'
 import { FoldersModule } from 'src/folders/folders.module'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
 
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
 import { CoreWorkerService } from './core-worker.service'
@@ -13,7 +13,7 @@ import { RunServerlessWorkerTaskProcessor } from './processors/run-serverless-wo
 
 @Module({
   imports: [
-    ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(coreConfig),
     forwardRef(() => AppModule),
     forwardRef(() => FoldersModule),
   ],

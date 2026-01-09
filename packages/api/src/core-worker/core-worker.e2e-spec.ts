@@ -19,8 +19,8 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { AppService } from 'src/app/services/app.service'
+import { waitForTrue } from 'src/core/utils/wait.util'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
-import { waitForTrue } from 'src/platform/utils/wait.util'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskName } from 'src/task/task.constants'
@@ -173,7 +173,7 @@ describe('Core Worker', () => {
       requiresStorage: true,
       subscribedCoreEvents: [],
       permissions: {
-        platform: [],
+        core: [],
         user: [],
         folder: [],
       },
@@ -320,7 +320,7 @@ describe('Core Worker', () => {
       throw new Error('Test module not initialized')
     }
 
-    const platformTasks =
+    const coreTasks =
       await testModule.services.ormService.db.query.tasksTable.findMany({
         where: and(
           eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
@@ -329,7 +329,7 @@ describe('Core Worker', () => {
         orderBy: [asc(tasksTable.createdAt)],
       })
 
-    return platformTasks.filter((task) => {
+    return coreTasks.filter((task) => {
       const invokeContext = task.trigger.invokeContext as
         | { eventData?: { innerTaskId?: string } }
         | undefined
@@ -691,7 +691,7 @@ describe('Core Worker', () => {
           taskData: {},
         })
 
-      void testModule!.services.platformTaskService.startDrainPlatformTasks()
+      void testModule!.services.coreTaskService.startDrainCoreTasks()
       await testModule!.waitForTasks('attempted', {
         taskIds: [innerTask.id],
       })

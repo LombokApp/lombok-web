@@ -6,6 +6,7 @@ import { AppService } from 'src/app/services/app.service'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
 import { JWTService } from 'src/auth/services/jwt.service'
+import { coreConfig } from 'src/core/config'
 import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
@@ -13,7 +14,6 @@ import { EventService } from 'src/event/services/event.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { FolderService } from 'src/folders/services/folder.service'
 import { LogModule } from 'src/log/log.module'
-import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { StorageModule } from 'src/storage/storage.module'
@@ -38,7 +38,7 @@ import { UserSocketService } from './user/user-socket.service'
     forwardRef(() => DockerModule),
     forwardRef(() => CoreWorkerModule),
     ConfigModule.forFeature(authConfig),
-    ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(coreConfig),
     ConfigModule.forFeature(appConfig),
   ],
   providers: [

@@ -129,7 +129,7 @@ export function createTestAppConfig(
     requiresStorage: false,
     subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: [],
     },

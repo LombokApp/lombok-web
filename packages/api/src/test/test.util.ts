@@ -12,6 +12,8 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
+import { CoreModule } from 'src/core/core.module'
+import { waitForTrue } from 'src/core/utils/wait.util'
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from 'src/core-worker/core-worker.constants'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
@@ -22,8 +24,6 @@ import {
 } from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
-import { PlatformModule } from 'src/platform/platform.module'
-import { waitForTrue } from 'src/platform/utils/wait.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { runWithThreadContext } from 'src/shared/thread-context'
@@ -81,7 +81,7 @@ export async function buildTestModule({
     _overrides: { token: symbol | string | Type; value: unknown }[],
   ): TestingModuleBuilder => {
     const moduleBuilder = Test.createTestingModule({
-      imports: [PlatformModule],
+      imports: [CoreModule],
       providers: [],
     })
     return _overrides.reduce((acc, { token, value }) => {
@@ -152,7 +152,7 @@ export async function buildTestModule({
     appService: await app.resolve(AppService),
     serverConfigurationService: await app.resolve(ServerConfigurationService),
     workerJobService: await app.resolve(WorkerJobService),
-    platformTaskService: await app.resolve(CoreTaskService),
+    coreTaskService: await app.resolve(CoreTaskService),
     eventService: await app.resolve(EventService),
     taskService: await app.resolve(TaskService),
     ormService: await app.resolve(OrmService),
@@ -238,7 +238,7 @@ export async function buildTestModule({
         timeoutMs: 5000,
       },
     ) => {
-      await services.platformTaskService.startDrainPlatformTasks()
+      await services.coreTaskService.startDrainCoreTasks()
 
       const condition: SQL =
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

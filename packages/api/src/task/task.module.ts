@@ -29,10 +29,7 @@ import { TaskService } from './services/task.service'
   exports: [CoreTaskService, TaskService],
 })
 export class TaskModule implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    private readonly platformTaskService: CoreTaskService,
-    private readonly taskService: TaskService,
-  ) {}
+  constructor(private readonly coreTaskService: CoreTaskService) {}
 
   jobs: CronJob[] | undefined = undefined
 
@@ -47,7 +44,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
     this.jobs = [
       new CronJob(
         '*/5 * * * * *',
-        () => void this.platformTaskService.startDrainPlatformTasks(),
+        () => void this.coreTaskService.startDrainCoreTasks(),
         null,
         true,
       ),

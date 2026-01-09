@@ -23,10 +23,10 @@ export class CoreTaskProcessorError extends Error {
 
 export abstract class BaseCoreTaskProcessor<K extends CoreTaskName> {
   protected constructor(
-    private readonly platformTaskName: K,
+    private readonly coreTaskName: K,
     public readonly run: (task: CoreTask<K>) => Promise<void>,
     protected readonly logger = new Logger(
-      `${this.platformTaskName}_PlatformTaskProcessor`,
+      `${this.coreTaskName}_CoreTaskProcessor`,
     ),
   ) {
     setTimeout(() => void this.registerProcessor(), 100)
@@ -42,7 +42,7 @@ export abstract class BaseCoreTaskProcessor<K extends CoreTaskName> {
       // this.logger.error('App did not exist when registering processor.')
       return
     }
-    const platformTaskService = await app.resolve(CoreTaskService)
-    platformTaskService.registerProcessor(this.platformTaskName, this)
+    const coreTaskService = await app.resolve(CoreTaskService)
+    coreTaskService.registerProcessor(this.coreTaskName, this)
   }
 }

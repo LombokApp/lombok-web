@@ -13,9 +13,9 @@ import {
 import nestjsConfig from '@nestjs/config'
 import { and, eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
+import { coreConfig } from 'src/core/config'
+import { waitForTrue, WaitForTrueError } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
-import { waitForTrue, WaitForTrueError } from 'src/platform/utils/wait.util'
 
 import {
   DockerExecuteJobOptions,
@@ -43,7 +43,7 @@ const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
 
 /** Labels applied to worker containers for discovery */
 export const DOCKER_LABELS = {
-  PLATFORM: 'lombok.platform',
+  PLATFORM: 'lombok.core',
   PROFILE_ID: 'lombok.profile_id',
   PROFILE_HASH: 'lombok.profile_hash',
 } as const
@@ -53,14 +53,12 @@ export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
   workerJobService: WorkerJobService
   constructor(
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     private readonly dockerClientService: DockerClientService,
     @Inject(forwardRef(() => WorkerJobService))
-    private readonly _workerJobService,
+    _workerJobService,
   ) {
     this.workerJobService = _workerJobService as WorkerJobService
     void this.dockerClientService.testAllHostConnections().then((result) => {
@@ -215,7 +213,7 @@ export class DockerJobsService {
               },
         platform_url: !jobToken
           ? undefined
-          : `http${this._platformConfig.platformHttps ? 's' : ''}://${this._platformConfig.platformHost}${this._platformConfig.platformPort !== null ? `:${this._platformConfig.platformPort}` : ''}`,
+          : `http${this._coreConfig.platformHttps ? 's' : ''}://${this._coreConfig.platformHost}${this._coreConfig.platformPort !== null ? `:${this._coreConfig.platformPort}` : ''}`,
         output_location: outputLocation,
       }
 

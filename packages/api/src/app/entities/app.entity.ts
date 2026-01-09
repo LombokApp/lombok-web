@@ -4,8 +4,8 @@ import type {
   AppUiBundle,
   AppWorkersBundle,
   ContainerProfileConfig,
+  CoreScopeAppPermissions,
   FolderScopeAppPermissions,
-  PlatformScopeAppPermissions,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
@@ -39,13 +39,13 @@ export const appsTable = pgTable('apps', {
   folderScopeEnabledDefault: boolean('folderScopeEnabledDefault').notNull(),
   permissions: jsonb('permissions')
     .$type<{
-      platform: PlatformScopeAppPermissions[]
+      core: CoreScopeAppPermissions[]
       user: UserScopeAppPermissions[]
       folder: FolderScopeAppPermissions[]
     }>()
     .notNull()
     .default({
-      platform: [],
+      core: [],
       user: [],
       folder: [],
     }),

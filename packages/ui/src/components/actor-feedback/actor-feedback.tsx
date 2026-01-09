@@ -1,4 +1,4 @@
-import { PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
@@ -28,7 +28,7 @@ export function ActorFeedback({
             : undefined,
         }}
       >
-        {actorIdentifier === PLATFORM_IDENTIFIER ? (
+        {actorIdentifier === CORE_IDENTIFIER ? (
           <img width={32} height={32} alt="Core" src="/logo.png" />
         ) : (
           <span className="truncate uppercase">{actorIdentifier[0] ?? ''}</span>

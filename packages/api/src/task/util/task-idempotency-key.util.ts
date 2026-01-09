@@ -1,5 +1,5 @@
 import type { JsonSerializableObject, TaskInvocation } from '@lombokapp/types'
-import { hashData } from 'src/platform/utils/crypto.util'
+import { hashData } from 'src/core/utils/crypto.util'
 
 import type { NewTask } from '../entities/task.entity'
 

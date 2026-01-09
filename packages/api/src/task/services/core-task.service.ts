@@ -20,7 +20,7 @@ import { BaseCoreTaskProcessor } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'
 import { TaskService } from './task.service'
 
-const MAX_CONCURRENT_PLATFORM_TASKS = 10
+const MAX_CONCURRENT_CORE_TASKS = 10
 
 @Injectable()
 export class CoreTaskService {
@@ -46,42 +46,42 @@ export class CoreTaskService {
     private readonly _folderSocketService,
   ) {}
 
-  async startDrainPlatformTasks() {
+  async startDrainCoreTasks() {
     const runId = crypto.randomUUID()
     if (this.draining) {
-      this.logger.debug('Platform task draining called while already running')
+      this.logger.debug('Core task draining called while already running')
       return
     }
-    this.logger.verbose('Draining platform tasks started')
-    let unstartedPlatformTasksCount = 0
+    this.logger.verbose('Draining core tasks started')
+    let unstartedCoreTasksCount = 0
 
     try {
-      this.draining = this._drainPlatformTasks()
+      this.draining = this._drainCoreTasks()
       const { completed, pending } = await this.draining
-      this.logger.verbose('Draining platform task run complete:', {
+      this.logger.verbose('Draining core task run complete:', {
         runId,
         completed,
         pending,
       })
-      unstartedPlatformTasksCount = pending
+      unstartedCoreTasksCount = pending
     } catch (error: unknown) {
-      this.logger.error('Error draining platform tasks', { error })
+      this.logger.error('Error draining core tasks', { error })
     } finally {
       this.draining = undefined
-      if (unstartedPlatformTasksCount > 0) {
-        await this.startDrainPlatformTasks()
+      if (unstartedCoreTasksCount > 0) {
+        await this.startDrainCoreTasks()
       }
     }
   }
 
-  private async _drainPlatformTasks() {
+  private async _drainCoreTasks() {
     const taskExecutionLimit = Math.max(
-      MAX_CONCURRENT_PLATFORM_TASKS - this.runningTasksCount,
+      MAX_CONCURRENT_CORE_TASKS - this.runningTasksCount,
       0,
     )
     let completed = 0
     if (taskExecutionLimit) {
-      const platformTasksToExecute = await this.ormService.db
+      const coreTasksToExecute = await this.ormService.db
         .select({ taskId: tasksTable.id })
         .from(tasksTable)
         .where(
@@ -96,19 +96,19 @@ export class CoreTaskService {
           ),
         )
         .limit(taskExecutionLimit)
-      for (const { taskId } of platformTasksToExecute) {
-        await this.executePlatformTask(taskId)
+      for (const { taskId } of coreTasksToExecute) {
+        await this.executeCoreTask(taskId)
         completed++
       }
     }
     return {
       completed,
-      pending: await this.unstartedPlatformTaskCount(),
+      pending: await this.unstartedCoreTaskCount(),
     }
   }
 
-  async unstartedPlatformTaskCount() {
-    const [unstartedPlatformTaskCountResult] = await this.ormService.db
+  async unstartedCoreTaskCount() {
+    const [unstartedCoreTaskCountResult] = await this.ormService.db
       .select({
         count: count(),
       })
@@ -125,10 +125,10 @@ export class CoreTaskService {
         ),
       )
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return unstartedPlatformTaskCountResult!.count
+    return unstartedCoreTaskCountResult!.count
   }
 
-  async executePlatformTask(taskId: string) {
+  async executeCoreTask(taskId: string) {
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, taskId),
     })
@@ -137,11 +137,11 @@ export class CoreTaskService {
     }
     if (task.startedAt) {
       this.logger.warn(
-        'Platform task already started during drain (should not happen)',
+        'Core task already started during drain (should not happen)',
       )
     } else if (task.ownerIdentifier !== CORE_IDENTIFIER) {
       this.logger.warn(
-        'Platform task execution run for non-plaform task (should not happen)',
+        'Core task execution run for non-plaform task (should not happen)',
       )
     } else {
       const startedTimestamp = new Date()
@@ -152,7 +152,7 @@ export class CoreTaskService {
           .where(eq(tasksTable.id, taskId))
           .returning()
 
-        const platformTaskStartLog: SystemLogEntry = {
+        const coreTaskStartLog: SystemLogEntry = {
           at: startedTimestamp,
           logType: 'started',
           message: 'Task is started',
@@ -163,7 +163,7 @@ export class CoreTaskService {
           .set({
             systemLog: sql<
               SystemLogEntry[]
-            >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify([platformTaskStartLog])}::jsonb`,
+            >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify([coreTaskStartLog])}::jsonb`,
           })
           .where(eq(tasksTable.id, taskId))
 
@@ -223,7 +223,7 @@ export class CoreTaskService {
           })
           .then((updatedTask) => {
             if (updatedTask.completedAt && !updatedTask.success) {
-              this.logger.warn('Platform task error:', { updatedTask })
+              this.logger.warn('Core task error:', { updatedTask })
             }
             // send a folder socket message to the frontend that the task status was updated
             if (startedTask.targetLocationFolderId) {
@@ -244,20 +244,17 @@ export class CoreTaskService {
                 where: eq(tasksTable.id, startedTask.id),
               })
               .then((finalTaskState) => {
-                this.logger.debug(
-                  `Platform task completed [${startedTask.id}]:`,
-                  {
-                    task: {
-                      identifier: finalTaskState?.taskIdentifier,
-                      description: finalTaskState?.taskDescription,
-                      startedAt: finalTaskState?.startedAt,
-                      completedAt: finalTaskState?.completedAt,
-                      success: finalTaskState?.success,
-                      error: finalTaskState?.error,
-                      systemLog: finalTaskState?.systemLog,
-                    },
+                this.logger.debug(`Core task completed [${startedTask.id}]:`, {
+                  task: {
+                    identifier: finalTaskState?.taskIdentifier,
+                    description: finalTaskState?.taskDescription,
+                    startedAt: finalTaskState?.startedAt,
+                    completedAt: finalTaskState?.completedAt,
+                    success: finalTaskState?.success,
+                    error: finalTaskState?.error,
+                    systemLog: finalTaskState?.systemLog,
                   },
-                )
+                })
               })
           })
       })

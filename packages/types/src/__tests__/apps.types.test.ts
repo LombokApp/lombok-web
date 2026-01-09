@@ -22,12 +22,12 @@ import {
   ConfigParamType,
   containerProfileConfigSchema,
   containerProfileResourceHintsSchema,
+  coreScopeAppPermissionsSchema,
   dockerWorkerConfigSchema,
   execJobDefinitionSchema,
   folderScopeAppPermissionsSchema,
   httpJobDefinitionSchema,
   paramConfigSchema,
-  platformScopeAppPermissionsSchema,
   userScopeAppPermissionsSchema,
   workerEntrypointSchema,
 } from '../apps.types'
@@ -1200,9 +1200,8 @@ describe('apps.types', () => {
   })
 
   describe('platform, user and folder scope permissions schemas', () => {
-    it('should validate platform scope permissions', () => {
-      const result =
-        platformScopeAppPermissionsSchema.safeParse('READ_FOLDER_ACL')
+    it('should validate core scope permissions', () => {
+      const result = coreScopeAppPermissionsSchema.safeParse('READ_FOLDER_ACL')
       expectZodSuccess(result)
     })
 

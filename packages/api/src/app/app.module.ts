@@ -1,11 +1,11 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { coreConfig } from 'src/core/config'
 import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
-import { platformConfig } from 'src/platform/config'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
@@ -19,7 +19,7 @@ import { AppService } from './services/app.service'
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
-    ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(coreConfig),
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,

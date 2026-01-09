@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { CORE_IDENTIFIER } from './platform.types'
+import { CORE_IDENTIFIER } from './core.types'
 
 export enum CoreEvent {
   object_added = 'object_added',

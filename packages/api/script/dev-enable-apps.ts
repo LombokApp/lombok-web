@@ -27,6 +27,7 @@ export async function enableApps(appIds?: string[]): Promise<void> {
       .where(inArray(appsTable.slug, appIds))
       .returning()
 
+    // eslint-disable-next-line no-console
     console.log(
       `Updated ${result.length} app(s):`,
       result.map((app) => app.identifier).join(', '),
@@ -35,6 +36,7 @@ export async function enableApps(appIds?: string[]): Promise<void> {
     // Update all apps
     const result = await db.update(appsTable).set(updateValues).returning()
 
+    // eslint-disable-next-line no-console
     console.log(
       `Updated ${result.length} app(s):`,
       result.map((app) => app.identifier).join(', '),
@@ -51,10 +53,12 @@ if (require.main === module) {
 
   enableApps(appIds)
     .then(() => {
+      // eslint-disable-next-line no-console
       console.log('Done')
       process.exit(0)
     })
     .catch((error) => {
+      // eslint-disable-next-line no-console
       console.error('Error:', error)
       process.exit(1)
     })

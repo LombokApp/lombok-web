@@ -96,7 +96,7 @@ export const dockerHostConfigSchema = z
 
 export type DockerHostConfig = z.infer<typeof dockerHostConfigSchema>
 
-export const platformConfig = registerAs('platform', () => {
+export const coreConfig = registerAs('core', () => {
   const env = parseEnv({
     DOCKER_HOST_CONFIG: z
       .string()

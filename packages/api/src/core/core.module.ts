@@ -16,13 +16,13 @@ import { FoldersModule } from '../folders/folders.module'
 import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
-import { platformConfig } from './config'
+import { coreConfig } from './config'
 import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
-    ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(coreConfig),
     CoreWorkerModule,
     AuthModule,
     OrmModule,
@@ -41,4 +41,4 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class PlatformModule {}
+export class CoreModule {}

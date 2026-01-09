@@ -1,4 +1,4 @@
-import { type LogEntryDTO, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER, type LogEntryDTO } from '@lombokapp/types'
 import {
   DataTableColumnHeader,
   Dialog,
@@ -180,8 +180,8 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         title={row.original.emitterIdentifier.toUpperCase()}
         showSubtitle={true}
         subtitle={
-          row.original.emitterIdentifier === PLATFORM_IDENTIFIER
-            ? 'internal:platform'
+          row.original.emitterIdentifier === CORE_IDENTIFIER
+            ? 'lombok:core'
             : `app:${row.original.emitterIdentifier}`
         }
       />

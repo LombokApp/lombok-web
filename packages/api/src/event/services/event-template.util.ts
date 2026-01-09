@@ -2,7 +2,7 @@ import type {
   JsonSerializableObject,
   JsonSerializableValue,
 } from '@lombokapp/types'
-import { dataFromTemplate } from 'src/platform/utils/data-template.util'
+import { dataFromTemplate } from 'src/core/utils/data-template.util'
 
 import type { Event } from '../entities/event.entity'
 

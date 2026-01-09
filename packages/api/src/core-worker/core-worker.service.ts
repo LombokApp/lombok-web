@@ -26,9 +26,9 @@ import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { Socket } from 'net'
 import { AppService } from 'src/app/services/app.service'
+import { coreConfig } from 'src/core/config'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
 import z from 'zod'
 
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
@@ -58,10 +58,8 @@ export class CoreWorkerService {
   constructor(
     @Inject(SHOULD_START_CORE_WORKER_THREAD_KEY)
     private readonly shouldStartThread: boolean,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppService))
     _appService,
@@ -86,8 +84,8 @@ export class CoreWorkerService {
   }
 
   private getServerBaseUrl() {
-    const port = this._platformConfig.platformPort ?? 3000
-    const protocol = this._platformConfig.platformHttps ? 'https' : 'http'
+    const port = this._coreConfig.platformPort ?? 3000
+    const protocol = this._coreConfig.platformHttps ? 'https' : 'http'
     return `${protocol}://127.0.0.1:${port}`
   }
 
@@ -357,7 +355,7 @@ export class CoreWorkerService {
   }
 
   async startCoreWorkerThread() {
-    if (!this.shouldStartThread || this._platformConfig.disableCoreWorker) {
+    if (!this.shouldStartThread || this._coreConfig.disableCoreWorker) {
       this.logger.warn('Core worker disabled, skipping thread start')
       return
     }
@@ -401,13 +399,13 @@ export class CoreWorkerService {
       let hasScheduledRetry = false
 
       this.child.stdout?.on('data', (chunk: Buffer) => {
-        if (this._platformConfig.printCoreWorkerOutput) {
+        if (this._coreConfig.printCoreWorkerOutput) {
           this.logger.debug(`[core-worker stdout] ${chunk.toString()}`)
         }
       })
 
       this.child.stderr?.on('data', (chunk: Buffer) => {
-        if (this._platformConfig.printCoreWorkerOutput) {
+        if (this._coreConfig.printCoreWorkerOutput) {
           this.logger.error(`[core-worker stderr] ${chunk.toString()}`)
         }
       })
@@ -441,11 +439,10 @@ export class CoreWorkerService {
 
       setTimeout(() => {
         const executionOptions = {
-          printWorkerOutput: this._platformConfig.printCoreWorkerOutput,
-          removeWorkerDirectory:
-            this._platformConfig.removeCoreWorkerDirectories,
+          printWorkerOutput: this._coreConfig.printCoreWorkerOutput,
+          removeWorkerDirectory: this._coreConfig.removeCoreWorkerDirectories,
           printNsjailVerboseOutput:
-            this._platformConfig.printCoreWorkerNsjailVerboseOutput,
+            this._coreConfig.printCoreWorkerNsjailVerboseOutput,
         }
         const workerDataPayload: CoreWorkerMessagePayloadTypes['init']['request'] =
           {

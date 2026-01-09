@@ -10,9 +10,9 @@ import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
+import { coreConfig } from 'src/core/config/core.config'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
-import { platformConfig } from 'src/platform/config/platform.config'
 import { ServerModule } from 'src/server/server.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
@@ -27,7 +27,7 @@ import { EventService } from './services/event.service'
     forwardRef(() => SocketModule),
     forwardRef(() => FoldersModule),
     forwardRef(() => AuthModule),
-    nestjsConfig.ConfigModule.forFeature(platformConfig),
+    nestjsConfig.ConfigModule.forFeature(coreConfig),
     nestjsConfig.ConfigModule.forFeature(authConfig),
     nestjsConfig.ConfigModule.forFeature(appConfig),
     forwardRef(() => StorageModule),

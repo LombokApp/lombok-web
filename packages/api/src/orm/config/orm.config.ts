@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config'
-import { isBoolean, isInteger, parseEnv } from 'src/platform/utils/config.util'
+import { isBoolean, isInteger, parseEnv } from 'src/core/utils/config.util'
 import { z } from 'zod'
 
 const EMBEDDED_POSTGRES = process.env.EMBEDDED_POSTGRES === 'true'

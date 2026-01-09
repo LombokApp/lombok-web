@@ -4,7 +4,7 @@ import type { Event } from 'src/event/entities/event.entity'
 
 import { CoreTaskName } from '../task.constants'
 
-export const PLATFORM_TASKS = {
+export const CORE_TASKS = {
   [CoreTaskName.AnalyzeObject]: {
     description: 'Generate metadata and previews for an object',
   },
@@ -19,7 +19,7 @@ export const PLATFORM_TASKS = {
   },
 }
 
-export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
+export const CORE_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
   Record<
     CoreEvent,
     {

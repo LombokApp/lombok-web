@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { platformConfig } from 'src/platform/config'
+import { coreConfig } from 'src/core/config'
 
 import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
 import type { ContainerCreateAndExecuteOptions } from './docker.schema'
@@ -31,10 +31,8 @@ export class DockerClientService {
 
   constructor(
     private readonly dockerAdapterProvider: DockerAdapterProvider,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
   ) {}
 
   /**
@@ -62,7 +60,7 @@ export class DockerClientService {
       { result: ConnectionTestResult; id: string }
     > = {}
     for (const hostId of Object.keys(
-      this._platformConfig.dockerHostConfig.hosts ?? {},
+      this._coreConfig.dockerHostConfig.hosts ?? {},
     )) {
       results[hostId] = {
         id: this.getAdapter(hostId).getDescription(),
@@ -159,10 +157,8 @@ export class DockerClientService {
     const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
 
     const resolvedHostId =
-      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
-        profileKey
-      ] ??
-      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[profileKey] ??
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[
         appSlugProfileKey
       ] ??
       'local'
@@ -170,26 +166,30 @@ export class DockerClientService {
     return {
       hostId: resolvedHostId,
       volumes:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.volumes?.[profileKey] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.volumes?.[appSlugProfileKey],
-      gpus:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
           profileKey
         ] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
+          appSlugProfileKey
+        ],
+      gpus:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
           appSlugProfileKey
         ],
       extraHosts:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.extraHosts?.[profileKey] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.extraHosts?.[appSlugProfileKey],
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          appSlugProfileKey
+        ],
       networkMode:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
           ?.networkMode?.[profileKey] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
           ?.networkMode?.[appSlugProfileKey],
     }
   }
@@ -210,7 +210,7 @@ export class DockerClientService {
     const { hostId, volumes, gpus, extraHosts, networkMode } =
       this.resolveDockerHostConfigForProfile(profileKey)
     // Check if docker host is configured
-    if (!(hostId in (this._platformConfig.dockerHostConfig.hosts ?? {}))) {
+    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
       throw new DockerClientError(
         'DOCKER_NOT_CONFIGURED',
         `Unrecognized Docker host "${hostId}" configured for profile "${profileKey}"`,

@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import type { Request } from 'express'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import {
   DiscriminatedWorkerJobCompleteRequestDTO,
