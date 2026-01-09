@@ -1,14 +1,14 @@
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
-import type { coreWorkerMessagePayloadSchemas } from '@lombokapp/core-worker-utils'
+import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
+import type { Variant } from '@lombokapp/utils'
+import { mediaTypeFromMimeType } from '@lombokapp/utils'
+import type { coreWorkerMessagePayloadSchemas } from '@lombokapp/worker-utils'
 import {
   downloadFileToDisk,
   hashLocalFile,
   readFileMetadata,
   uploadFile,
-} from '@lombokapp/core-worker-utils'
-import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
-import type { Variant } from '@lombokapp/utils'
-import { mediaTypeFromMimeType } from '@lombokapp/utils'
+} from '@lombokapp/worker-utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'

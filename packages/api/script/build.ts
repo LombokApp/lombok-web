@@ -10,7 +10,7 @@ const optionalRequirePackages = [
 
 const alwaysExternalPackages = [
   '@lombokapp/core-worker',
-  '@lombokapp/core-worker-utils',
+  '@lombokapp/worker-utils',
 ]
 
 void (async () => {

@@ -3,9 +3,9 @@ import '../../eslint-config/eslint-plugins.d.ts'
 import type { ConfigArray } from 'typescript-eslint'
 import tseslint from 'typescript-eslint'
 
-import baseConfig from '../../eslint-config/base'
-import nodeConfig from '../../eslint-config/node'
-import strictConfig from '../../eslint-config/strict'
+import baseConfig from '../../eslint-config/base.js'
+import nodeConfig from '../../eslint-config/node.js'
+import strictConfig from '../../eslint-config/strict.js'
 
 export default [
   ...baseConfig,

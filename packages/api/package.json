@@ -51,7 +51,7 @@
     "@aws-sdk/client-s3": "3.723.0",
     "@heyputer/kv.js": "0.2.1",
     "@lombokapp/core-worker": "workspace:*",
-    "@lombokapp/core-worker-utils": "workspace:*",
+    "@lombokapp/worker-utils": "workspace:*",
     "@lombokapp/types": "workspace:*",
     "@lombokapp/utils": "workspace:*",
     "@nestjs/common": "11.1.2",

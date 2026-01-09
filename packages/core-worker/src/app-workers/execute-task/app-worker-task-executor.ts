@@ -1,13 +1,13 @@
 import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import type { TaskDTO } from '@lombokapp/types'
 import type {
   CoreWorkerMessagePayloadTypes,
   ServerlessWorkerExecConfig,
-} from '@lombokapp/core-worker-utils'
+} from '@lombokapp/worker-utils'
 import {
   AsyncWorkError,
   uniqueExecutionKey,
-} from '@lombokapp/core-worker-utils'
-import type { TaskDTO } from '@lombokapp/types'
+} from '@lombokapp/worker-utils'
 
 import { runWorker } from '../../worker-scripts/run-worker'
 

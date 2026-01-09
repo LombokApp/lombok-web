@@ -1,5 +1,5 @@
 {
-  "name": "@lombokapp/core-worker-utils",
+  "name": "@lombokapp/worker-utils",
   "private": true,
   "exports": {
     ".": {

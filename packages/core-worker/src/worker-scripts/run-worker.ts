@@ -1,16 +1,16 @@
 import { type SerializeableRequest } from '@lombokapp/app-worker-sdk'
+import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import type {
   ServerlessWorkerExecConfig,
   WorkerModuleStartContext,
   WorkerPipeMessage,
   WorkerPipeRequest,
   WorkerPipeResponse,
-} from '@lombokapp/core-worker-utils'
+} from '@lombokapp/worker-utils'
 import {
   AsyncWorkError,
   downloadFileToDisk,
-} from '@lombokapp/core-worker-utils'
-import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
+} from '@lombokapp/worker-utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -613,7 +613,7 @@ async function ensureLombokSymlinkMirror(mirrorRoot: string): Promise<string> {
     { name: '@lombokapp/app-worker-sdk', dirName: 'app-worker-sdk' },
     { name: '@lombokapp/utils', dirName: 'utils' },
     { name: '@lombokapp/types', dirName: 'types' },
-    { name: '@lombokapp/core-worker-utils', dirName: 'core-worker-utils' },
+    { name: '@lombokapp/worker-utils', dirName: 'worker-utils' },
   ]
   const found: { name: string; dir: string }[] = []
   for (const allowed of allowedPackages) {

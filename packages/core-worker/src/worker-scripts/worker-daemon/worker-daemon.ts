@@ -10,17 +10,17 @@ import {
   createLombokAppPgDatabase,
   LombokAppPgClient,
 } from '@lombokapp/app-worker-sdk'
+import { type paths, type TaskDTO } from '@lombokapp/types'
 import type {
   WorkerModuleStartContext,
   WorkerPipeRequest,
   WorkerPipeResponse,
-} from '@lombokapp/core-worker-utils'
+} from '@lombokapp/worker-utils'
 import {
   AsyncWorkDispatchError,
   AsyncWorkError,
   buildUnexpectedError,
-} from '@lombokapp/core-worker-utils'
-import { type paths, type TaskDTO } from '@lombokapp/types'
+} from '@lombokapp/worker-utils'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
 import createFetchClient from 'openapi-fetch'

@@ -2,11 +2,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@lombokapp/core-worker-utils": [
-        "./node_modules/@lombokapp/core-worker-utils/src"
+      "@lombokapp/worker-utils": [
+        "./node_modules/@lombokapp/worker-utils/src"
       ],
-      "@lombokapp/core-worker-utils/*": [
-        "./node_modules/@lombokapp/core-worker-utils/src/*"
+      "@lombokapp/worker-utils/*": [
+        "./node_modules/@lombokapp/worker-utils/src/*"
       ],
       "@lombokapp/types": ["./node_modules/@lombokapp/types/src"],
       "@lombokapp/types/*": ["./node_modules/@lombokapp/types/src/*"],

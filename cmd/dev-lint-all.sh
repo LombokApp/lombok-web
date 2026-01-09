@@ -10,8 +10,8 @@ bun --cwd packages/api lint:check
 echo "Checking @lombokapp/core-worker..."
 bun --cwd packages/core-worker lint:check
 
-echo "Checking @lombokapp/core-worker-utils..."
-bun --cwd packages/core-worker-utils lint:check
+echo "Checking @lombokapp/worker-utils..."
+bun --cwd packages/worker-utils lint:check
 
 echo "Checking @lombokapp/auth-utils..."
 bun --cwd packages/auth-utils lint:check

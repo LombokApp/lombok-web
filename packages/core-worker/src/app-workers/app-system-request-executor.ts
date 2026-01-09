@@ -1,10 +1,10 @@
+import { LogEntryLevel } from '@lombokapp/types'
 import type {
   CoreWorkerMessagePayloadTypes,
   ServerlessWorkerExecConfig,
   SystemRequestResult,
-} from '@lombokapp/core-worker-utils'
-import { uniqueExecutionKey } from '@lombokapp/core-worker-utils'
-import { LogEntryLevel } from '@lombokapp/types'
+} from '@lombokapp/worker-utils'
+import { uniqueExecutionKey } from '@lombokapp/worker-utils'
 import { runWorker } from 'src/worker-scripts/run-worker'
 
 export type SystemRequestPayload =

@@ -27,14 +27,14 @@ services:
     entrypoint: ['bun', '--cwd', './packages/api', './test/e2e.run.ts']
     privileged: true
   coreworkerutilsunittest:
-    container_name: 'lombok-core-worker-utils-unit-test'
+    container_name: 'lombok-worker-utils-unit-test'
     build:
       context: .
       dockerfile: docker/app.Dockerfile
       target: local
     volumes:
       - ./:/usr/src/app
-    entrypoint: ['bun', '--cwd', './packages/core-worker-utils', 'test:unit']
+    entrypoint: ['bun', '--cwd', './packages/worker-utils', 'test:unit']
     privileged: true
   coreworkerunittest:
     container_name: 'lombok-core-worker-unit-test'

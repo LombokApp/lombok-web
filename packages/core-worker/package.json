@@ -49,7 +49,7 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/app-worker-sdk": "workspace:*",
-    "@lombokapp/core-worker-utils": "workspace:*",
+    "@lombokapp/worker-utils": "workspace:*",
     "socket.io-client": "catalog:",
     "zod": "catalog:"
   }

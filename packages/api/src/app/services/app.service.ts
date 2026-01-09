@@ -1,4 +1,3 @@
-import { hashLocalFile } from '@lombokapp/core-worker-utils'
 import type {
   AppConfig,
   AppContributions,
@@ -70,6 +69,7 @@ import { TaskService } from 'src/task/services/task.service'
 import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
+import { hashLocalFile } from '../../../../worker-utils/src'
 import { appConfig } from '../config'
 import { AppFolderSettingsUpdateInputDTO } from '../dto/app-folder-settings-update-input.dto'
 import { AppSort } from '../dto/apps-list-query-params.dto'

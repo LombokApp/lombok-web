@@ -1,18 +1,18 @@
+import { LogEntryLevel } from '@lombokapp/types'
+import type { Variant } from '@lombokapp/utils'
 import type {
   CoreWorkerIncomingRequestMessage,
   coreWorkerMessagePayloadSchemas,
   CoreWorkerMessagePayloadTypes,
   CoreWorkerOutgoingIpcMessage,
-} from '@lombokapp/core-worker-utils'
+} from '@lombokapp/worker-utils'
 import {
   AsyncWorkError,
   buildUnexpectedError,
   coreWorkerIncomingIpcMessageSchema,
   coreWorkerOutgoingIpcMessageSchema,
   coreWorkerOutgoingRequestMessageSchema,
-} from '@lombokapp/core-worker-utils'
-import { LogEntryLevel } from '@lombokapp/types'
-import type { Variant } from '@lombokapp/utils'
+} from '@lombokapp/worker-utils'
 import { log } from 'console'
 import crypto from 'crypto'
 import fs from 'fs'

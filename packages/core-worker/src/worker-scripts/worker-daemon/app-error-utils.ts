@@ -1,6 +1,6 @@
 import { AppTaskError } from '@lombokapp/app-worker-sdk'
-import { AsyncWorkError } from '@lombokapp/core-worker-utils'
 import type { JsonSerializableObject } from '@lombokapp/types'
+import { AsyncWorkError } from '@lombokapp/worker-utils'
 
 const MAX_STRING_LENGTH = 256
 const MAX_STACK_LENGTH = 2048

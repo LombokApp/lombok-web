@@ -1,19 +1,4 @@
 import {
-  AppNotFoundError,
-  AppWorkerNotFoundError,
-  AsyncWorkError,
-  AsyncWorkErrorEnvelope,
-  buildUnexpectedError,
-  CoreWorkerIncomingIpcMessage,
-  coreWorkerIncomingIpcMessageSchema,
-  coreWorkerIncomingRequestMessageSchema,
-  CoreWorkerIncomingResponseMessage,
-  CoreWorkerMessagePayloadTypes,
-  coreWorkerOutgoingIpcMessageSchema,
-  CoreWorkerOutgoingRequestMessage,
-  NotReadyAsyncWorkError,
-} from '@lombokapp/core-worker-utils'
-import {
   forwardRef,
   Inject,
   Injectable,
@@ -31,6 +16,21 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import z from 'zod'
 
+import {
+  AppNotFoundError,
+  AppWorkerNotFoundError,
+  AsyncWorkError,
+  AsyncWorkErrorEnvelope,
+  buildUnexpectedError,
+  CoreWorkerIncomingIpcMessage,
+  coreWorkerIncomingIpcMessageSchema,
+  coreWorkerIncomingRequestMessageSchema,
+  CoreWorkerIncomingResponseMessage,
+  CoreWorkerMessagePayloadTypes,
+  coreWorkerOutgoingIpcMessageSchema,
+  CoreWorkerOutgoingRequestMessage,
+  NotReadyAsyncWorkError,
+} from '../../../worker-utils/src'
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
 import { createSocketServer, writeSocketMessage } from './socket-utils'
 

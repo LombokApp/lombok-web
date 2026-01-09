@@ -2,7 +2,7 @@ import type {
   WorkerPipeMessage,
   WorkerPipeRequest,
   WorkerPipeResponse,
-} from '@lombokapp/core-worker-utils'
+} from '@lombokapp/worker-utils'
 import fs from 'fs'
 
 const LOMBOK_PIPE_DEBUG = false as boolean

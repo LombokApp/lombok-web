@@ -24,8 +24,8 @@
     "paths": {
       "@lombokapp/app-worker-sdk": ["../app-worker-sdk/src"],
       "@lombokapp/app-worker-sdk/*": ["../app-worker-sdk/src/*"],
-      "@lombokapp/core-worker-utils": ["../core-worker-utils/src"],
-      "@lombokapp/core-worker-utils/*": ["../core-worker-utils/src/*"],
+      "@lombokapp/worker-utils": ["../worker-utils/src"],
+      "@lombokapp/worker-utils/*": ["../worker-utils/src/*"],
       "@lombokapp/types": ["../types/src"],
       "@lombokapp/types/*": ["../types/src/*"],
       "@lombokapp/utils": ["../utils/src"],

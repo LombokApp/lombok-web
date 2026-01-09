@@ -1,8 +1,4 @@
 import {
-  AsyncWorkError,
-  buildUnexpectedError,
-} from '@lombokapp/core-worker-utils'
-import {
   CORE_IDENTIFIER,
   FolderPushMessage,
   SystemLogEntry,
@@ -15,6 +11,10 @@ import { runWithThreadContext } from 'src/shared/thread-context'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { CoreTaskName, MAX_TASK_ATTEMPTS } from 'src/task/task.constants'
 
+import {
+  AsyncWorkError,
+  buildUnexpectedError,
+} from '../../../../worker-utils/src'
 import type { CoreTask } from '../base.processor'
 import { BaseCoreTaskProcessor } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'

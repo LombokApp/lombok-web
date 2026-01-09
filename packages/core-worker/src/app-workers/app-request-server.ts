@@ -1,11 +1,11 @@
+import type { AppManifest } from '@lombokapp/types'
+import { LogEntryLevel } from '@lombokapp/types'
 import type {
   AppUiBundle,
   CoreWorkerMessagePayloadTypes,
   ServerlessWorkerExecConfig,
-} from '@lombokapp/core-worker-utils'
-import { uniqueExecutionKey } from '@lombokapp/core-worker-utils'
-import type { AppManifest } from '@lombokapp/types'
-import { LogEntryLevel } from '@lombokapp/types'
+} from '@lombokapp/worker-utils'
+import { uniqueExecutionKey } from '@lombokapp/worker-utils'
 import fs from 'fs'
 import path from 'path'
 import { runWorker } from 'src/worker-scripts/run-worker'

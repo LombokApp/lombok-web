@@ -1,3 +1,5 @@
+import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
+import { MediaType } from '@lombokapp/types'
 import {
   classifyVideoVariant,
   type Exiv2Metadata,
@@ -5,9 +7,7 @@ import {
   getMediaDimensionsWithFFMpeg,
   parseNumericOrientationValueFromMetadata,
   scaleImage,
-} from '@lombokapp/core-worker-utils'
-import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
-import { MediaType } from '@lombokapp/types'
+} from '@lombokapp/worker-utils'
 import fs from 'fs'
 import path from 'path'
 
