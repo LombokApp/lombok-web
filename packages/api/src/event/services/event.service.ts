@@ -1,10 +1,10 @@
 import {
   AppTaskConfig,
   CORE_IDENTIFIER,
+  CoreEvent,
   eventIdentifierSchema,
   FolderPushMessage,
   JsonSerializableObject,
-  CoreEvent,
   ScheduleTaskTriggerConfig,
 } from '@lombokapp/types'
 import {
@@ -533,7 +533,12 @@ export class EventService {
 
     const platformTasks: NewTask[] = platformTaskDefinitions.map(
       (
-        { taskIdentifier, buildData, buildTargetLocation },
+        {
+          taskIdentifier,
+          buildData,
+          buildTargetLocation,
+          calculateDontStartBefore,
+        },
         eventTriggerConfigIndex,
       ) => {
         const targetLocation = buildTargetLocation?.(event)
@@ -548,6 +553,7 @@ export class EventService {
           },
           storageAccessPolicy: [],
           taskIdentifier,
+          dontStartBefore: calculateDontStartBefore?.(event),
           targetLocationFolderId: targetLocation?.folderId ?? null,
           targetLocationObjectKey: targetLocation?.objectKey ?? null,
           taskDescription: PLATFORM_TASKS[taskIdentifier].description,
@@ -570,7 +576,16 @@ export class EventService {
    * @param task - The runnable task (via worker or docker).
    * @param tx - The transaction to use.
    */
-  async emitRunnableTaskEnqueuedEvent(task: NewTask, tx: OrmService['db']) {
+  async emitRunnableTaskEnqueuedEvent(
+    task: {
+      id: string
+      handlerType: string
+      handlerIdentifier?: string | null
+      ownerIdentifier: string
+      dontStartBefore?: Date | null
+    },
+    tx: OrmService['db'],
+  ) {
     if (task.handlerType === 'worker' || task.handlerType === 'docker') {
       const event = {
         emitterIdentifier: CORE_IDENTIFIER,
@@ -579,6 +594,7 @@ export class EventService {
             ? CoreEvent.serverless_task_enqueued
             : CoreEvent.docker_task_enqueued,
         data: {
+          dontStartBefore: task.dontStartBefore?.toISOString() ?? null,
           innerTaskId: task.id,
           appIdentifier: task.ownerIdentifier,
           ...(task.handlerType === 'worker'

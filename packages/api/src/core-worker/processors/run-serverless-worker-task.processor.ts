@@ -28,26 +28,13 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         )
       }
 
-      const invokeContext = task.trigger.invokeContext
-      const eventData = invokeContext.eventData as {
-        innerTaskId: string
-        appIdentifier: string
-        workerIdentifier: string
-      }
-
-      if (!eventData.appIdentifier || !eventData.workerIdentifier) {
-        throw new NotFoundException(
-          'RunServerlessWorkerProcessor requires app and worker identifiers',
-        )
-      }
-
       const innerTask = await this.ormService.db.query.tasksTable.findFirst({
-        where: eq(tasksTable.id, eventData.innerTaskId),
+        where: eq(tasksTable.id, task.data.innerTaskId),
       })
 
       if (!innerTask) {
         throw new NotFoundException(
-          `Inner task not found: ${eventData.innerTaskId} for docker job task ${task.id}`,
+          `Inner task not found: ${task.data.innerTaskId} for docker job task ${task.id}`,
         )
       }
 
@@ -66,17 +53,19 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         const execResult =
           await this.coreWorkerService.executeServerlessAppTask({
             task: transformTaskToDTO(startedTask),
-            appIdentifier: eventData.appIdentifier,
-            workerIdentifier: eventData.workerIdentifier,
+            appIdentifier: task.data.appIdentifier,
+            workerIdentifier: task.data.workerIdentifier,
           })
         if (!execResult.success) {
           throw new AsyncWorkError(execResult.error)
         }
         innerTaskCompletion = {
           success: true,
+          result: {},
         }
         runnerTaskCompletion = {
           success: true,
+          result: {},
           // result: ... // TODO: add execution details as the result of the runner task
         }
       } catch (error) {
@@ -104,19 +93,15 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         const highestLevelAppError =
           resolveHighestLevelAppError(normalizedError)
         const runnerSuccess = !!highestLevelAppError
-        const appRequestedRequeue = highestLevelAppError?.requeue
         innerTaskCompletion = {
           success: false,
-          ...(appRequestedRequeue?.mode === 'auto' &&
-          'delayMs' in appRequestedRequeue
-            ? { requeue: { delayMs: appRequestedRequeue.delayMs } }
-            : {}),
+          requeueDelayMs: highestLevelAppError?.requeueDelayMs,
           error: {
             code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
             name: highestLevelAppError?.name ?? 'ExecutionError',
             message:
               highestLevelAppError?.message ??
-              `There was an error executing the task (${appRequestedRequeue ? 'requeued' : 'see admin logs for details'})`,
+              `There was an error executing the task (${typeof highestLevelAppError?.requeueDelayMs !== 'undefined' ? 'requeued' : 'see admin logs for details'})`,
             ...(highestLevelAppError
               ? {
                   name: highestLevelAppError.name,

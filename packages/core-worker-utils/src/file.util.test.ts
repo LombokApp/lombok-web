@@ -315,7 +315,7 @@ describe('file.util', () => {
       })
 
       expect(downloadFileToDisk(downloadUrl, outputPath)).rejects.toThrow(
-        'Download failed with status 404',
+        'Download failed when connecting to host (404)',
       )
     }, 10000)
 

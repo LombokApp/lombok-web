@@ -164,8 +164,15 @@ const triggerAppDockerHandledTask = async (
     })
   })
 
-  // trigger drain and wait for task completion
-  await testModule.waitForTasks('completed')
+  const runnerTask =
+    await testModule.services.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.taskIdentifier, 'run_docker_worker'),
+    })
+
+  // trigger drain and wait for runner task start
+  if (runnerTask) {
+    await testModule.waitForTasks('started', { taskIds: [runnerTask.id] })
+  }
 
   const events = await testModule.services.ormService.db
     .select()
@@ -228,6 +235,7 @@ const triggerAppDockerHandledTask = async (
       data: {
         innerTaskId: expect.any(String),
         appIdentifier,
+        dontStartBefore: null,
         profileIdentifier,
         jobClassIdentifier,
       },
@@ -266,6 +274,7 @@ const triggerAppDockerHandledTask = async (
           eventData: {
             innerTaskId: expect.any(String),
             appIdentifier,
+            dontStartBefore: null,
             profileIdentifier,
             jobClassIdentifier,
           },
@@ -275,7 +284,7 @@ const triggerAppDockerHandledTask = async (
       targetLocationFolderId: null,
       targetLocationObjectKey: null,
       targetUserId: null,
-      attemptCount: 1,
+      attemptCount: 0,
       failureCount: 0,
       startedAt: expect.any(Date),
       completedAt: null,
@@ -1634,6 +1643,11 @@ describe('Docker Jobs', () => {
         at: expect.any(Date),
         logType: 'success',
         message: 'Task completed successfully',
+        payload: {
+          result: {
+            message: 'done',
+          },
+        },
       },
     ])
   })

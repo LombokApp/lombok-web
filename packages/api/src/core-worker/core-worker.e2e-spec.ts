@@ -14,7 +14,7 @@ import {
   spyOn,
 } from 'bun:test'
 import crypto from 'crypto'
-import { and, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -39,8 +39,10 @@ const EXECUTION_ERROR_WORKER_IDENTIFIER = 'test_worker_exec_error'
 const WORKER_ENTRYPOINT = 'worker-entry.ts'
 const SCRIPT_ERROR_TASK_IDENTIFIER = 'script_error_task'
 const UNEXPECTED_SCRIPT_ERROR_TASK_IDENTIFIER = 'unexpected_script_error_task'
-const THROWN_SCRIPT_ERROR_TASK_IDENTIFIER = 'thrown_script_error_task'
-const THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER =
+const THROWN_APP_TASK_ERROR_TASK_IDENTIFIER = 'thrown_app_task_error_task'
+const THROWN_INVALID_APP_TASK_ERROR_TASK_IDENTIFIER =
+  'thrown_invalid_app_task_error_task'
+const THROWN_APP_TASK_ERROR_WITH_REQUEUE_TASK_IDENTIFIER =
   'thrown_script_error_with_requeue_task'
 const EXECUTION_ERROR_TASK_IDENTIFIER = 'execution_error_task'
 const CONTENT_OBJECT_KEY = 'sample.txt'
@@ -60,7 +62,7 @@ export const handleTask: TaskHandler = async function handleTask(task) {
     throw new Error('Script error for test')
   }
 
-  if (task.taskIdentifier === '${THROWN_SCRIPT_ERROR_TASK_IDENTIFIER}') {
+  if (task.taskIdentifier === '${THROWN_APP_TASK_ERROR_TASK_IDENTIFIER}') {
     throw new AppTaskError('CUSTOM_APP_ERROR_CODE', 'This is a custom error message from the app')
   }
 
@@ -68,10 +70,12 @@ export const handleTask: TaskHandler = async function handleTask(task) {
     thisVarDoesNotExist.anything()
   }
 
-  if (task.taskIdentifier === '${THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER}') {
-    throw new AppTaskError('CUSTOM_APP_ERROR_CODE_WITH_REQUEUE', 'This is a custom error message from the app', {}, {
-      mode: 'auto',
-      delayMs: 1000,
+  if (task.taskIdentifier === '${THROWN_APP_TASK_ERROR_WITH_REQUEUE_TASK_IDENTIFIER}') {
+    throw new AppTaskError('CUSTOM_APP_ERROR_CODE_WITH_REQUEUE', 'This is a custom error message from the app', {}, 10000)
+  }
+  if (task.taskIdentifier === '${THROWN_INVALID_APP_TASK_ERROR_TASK_IDENTIFIER}') {
+    throw new AppTaskError('CUSTOM_APP_ERROR_CODE_INVALID', 'This is a custom error message from the app', {}, {
+      badInput: 'This is a bad input (requeueDelayMs should be a number)',
     })
   }
 
@@ -218,9 +222,10 @@ describe('Core Worker', () => {
           },
         },
         {
-          identifier: THROWN_SCRIPT_ERROR_TASK_IDENTIFIER,
-          label: 'Thrown AppTaskError Task',
-          description: 'Task that simulates a throw app task error',
+          identifier: THROWN_APP_TASK_ERROR_TASK_IDENTIFIER,
+          label: 'Explicitly Thrown AppTaskError Task',
+          description:
+            'Task that simulates an explicitly thrown app runtime error',
           handler: {
             type: 'worker',
             identifier: WORKER_IDENTIFIER,
@@ -229,17 +234,27 @@ describe('Core Worker', () => {
         {
           identifier: UNEXPECTED_SCRIPT_ERROR_TASK_IDENTIFIER,
           label: 'Unexpected Script Error Task',
-          description: 'Task that simulates an unexpected runtime error',
+          description: 'Task that simulates an unexpected app runtime error',
           handler: {
             type: 'worker',
             identifier: WORKER_IDENTIFIER,
           },
         },
         {
-          identifier: THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER,
-          label: 'Unexpected Script Error Task (with requeue)',
+          identifier: THROWN_APP_TASK_ERROR_WITH_REQUEUE_TASK_IDENTIFIER,
+          label: 'Explicitly Thrown AppTaskError Task (with requeue)',
           description:
-            'Task that simulates an unexpected runtime error with requeue',
+            'Task that simulates an explicitly thrown app runtime error with requeue',
+          handler: {
+            type: 'worker',
+            identifier: WORKER_IDENTIFIER,
+          },
+        },
+        {
+          identifier: THROWN_INVALID_APP_TASK_ERROR_TASK_IDENTIFIER,
+          label: 'Explicitly Thrown Invalid AppTaskError Task',
+          description:
+            'Task that simulates an explicitly thrown app runtime error',
           handler: {
             type: 'worker',
             identifier: WORKER_IDENTIFIER,
@@ -300,7 +315,7 @@ describe('Core Worker', () => {
     }
   }
 
-  const findRunServerlessWorkerTask = async (innerTaskId: string) => {
+  const findRunServerlessWorkerTasks = async (innerTaskId: string) => {
     if (!testModule) {
       throw new Error('Test module not initialized')
     }
@@ -311,9 +326,10 @@ describe('Core Worker', () => {
           eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
           eq(tasksTable.taskIdentifier, CoreTaskName.RunServerlessWorker),
         ),
+        orderBy: [asc(tasksTable.createdAt)],
       })
 
-    return platformTasks.find((task) => {
+    return platformTasks.filter((task) => {
       const invokeContext = task.trigger.invokeContext as
         | { eventData?: { innerTaskId?: string } }
         | undefined
@@ -532,7 +548,8 @@ describe('Core Worker', () => {
         throw new Error('Inner task not found after execution')
       }
 
-      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      const outerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const outerTask = outerTasks[0]
       if (!outerTask) {
         throw new Error('Run serverless worker task not found')
       }
@@ -570,7 +587,9 @@ describe('Core Worker', () => {
         throw new Error('Inner task not found after execution')
       }
 
-      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      const outerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const outerTask = outerTasks[0]
+
       if (!outerTask) {
         throw new Error('Run serverless worker task not found')
       }
@@ -587,16 +606,7 @@ describe('Core Worker', () => {
         name: 'ReferenceError',
         code: 'UNEXPECTED_ERROR',
         origin: 'app',
-        stack: `ReferenceError: thisVarDoesNotExist is not defined
-    at handleTask (/app/worker-entry.ts:17:5)
-    at handleTask (/app/worker-entry.ts:3:66)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:504:30)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:35)
-    at run (node:async_hooks:62:22)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:26)
-    at handleRequest (/app/worker-daemon/worker-daemon.ts:278:5)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:686:19)
-    at processTicksAndRejections (native:7:39)`,
+        stack: expect.any(String) as string,
       })
       expect(outerTask.error).toBeNull()
       expect(outerTask.success).toBeTrue()
@@ -620,7 +630,7 @@ describe('Core Worker', () => {
       const innerTask =
         await testModule!.services.taskService.triggerAppActionTask({
           appIdentifier: installedAppIdentifier,
-          taskIdentifier: THROWN_SCRIPT_ERROR_TASK_IDENTIFIER,
+          taskIdentifier: THROWN_APP_TASK_ERROR_TASK_IDENTIFIER,
           taskData: {},
         })
 
@@ -636,7 +646,8 @@ describe('Core Worker', () => {
         throw new Error('Inner task not found after execution')
       }
 
-      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      const outerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const outerTask = outerTasks[0]
       if (!outerTask) {
         throw new Error('Run serverless worker task not found')
       }
@@ -652,16 +663,7 @@ describe('Core Worker', () => {
         name: 'Error',
         code: 'CUSTOM_APP_ERROR_CODE',
         origin: 'app',
-        stack: `Error: This is a custom error message from the app
-    at handleTask (/app/worker-entry.ts:13:15)
-    at handleTask (/app/worker-entry.ts:3:66)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:504:30)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:35)
-    at run (node:async_hooks:62:22)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:307:26)
-    at handleRequest (/app/worker-daemon/worker-daemon.ts:278:5)
-    at <anonymous> (/app/worker-daemon/worker-daemon.ts:686:19)
-    at processTicksAndRejections (native:7:39)`,
+        stack: expect.any(String) as string,
       })
       expect(outerTask.error).toBeNull()
       expect(outerTask.success).toBeTrue()
@@ -685,10 +687,11 @@ describe('Core Worker', () => {
       const innerTask =
         await testModule!.services.taskService.triggerAppActionTask({
           appIdentifier: installedAppIdentifier,
-          taskIdentifier: THROWN_SCRIPT_ERROR_WITH_REQUEUE_TASK_IDENTIFIER,
+          taskIdentifier: THROWN_APP_TASK_ERROR_WITH_REQUEUE_TASK_IDENTIFIER,
           taskData: {},
         })
 
+      void testModule!.services.platformTaskService.startDrainPlatformTasks()
       await testModule!.waitForTasks('attempted', {
         taskIds: [innerTask.id],
       })
@@ -701,10 +704,15 @@ describe('Core Worker', () => {
         throw new Error('Inner task not found after execution')
       }
 
-      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
-      if (!outerTask) {
+      const runnerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const runnerTask = runnerTasks[0]
+      if (!runnerTask) {
         throw new Error('Run serverless worker task not found')
       }
+
+      await testModule!.waitForTasks('completed', {
+        taskIds: [runnerTask.id],
+      })
 
       expect(updatedInnerTask.success).toBeNull()
       expect(updatedInnerTask.systemLog).toEqual([
@@ -732,10 +740,7 @@ describe('Core Worker', () => {
                 message: 'This is a custom error message from the app',
                 name: 'Error',
                 origin: 'app',
-                requeue: {
-                  delayMs: 1000,
-                  mode: 'auto',
-                },
+                requeueDelayMs: 10000,
                 stack: expect.any(String) as string,
               },
               stack: expect.any(String) as string,
@@ -747,11 +752,107 @@ describe('Core Worker', () => {
           logType: 'requeue',
           message: 'Task is requeued',
           payload: {
-            requeueConfig: {
-              delayMs: 1000,
-              mode: 'auto',
-            },
+            requeueDelayMs: 10000,
             dontStartBefore: expect.any(String) as string,
+          },
+        },
+      ])
+
+      expect(runnerTask.error).toBeNull()
+      expect(runnerTask.success).toBeTrue()
+      expect(runnerTask.systemLog).toEqual([
+        {
+          at: expect.any(Date) as Date,
+          logType: 'started',
+          message: 'Task is started',
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'success',
+          message: 'Task completed successfully',
+        },
+      ])
+
+      const newRunnerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const newRunnerTask = newRunnerTasks.at(-1)
+      expect(newRunnerTask).toBeDefined()
+      expect(newRunnerTask?.createdAt.getTime()).toBeGreaterThan(
+        innerTask.createdAt.getTime(),
+      )
+    })
+  })
+
+  it('handles invalid thrown AppTaskError from serverless worker script', async () => {
+    await runWithThreadContext(crypto.randomUUID(), async () => {
+      const innerTask =
+        await testModule!.services.taskService.triggerAppActionTask({
+          appIdentifier: installedAppIdentifier,
+          taskIdentifier: THROWN_INVALID_APP_TASK_ERROR_TASK_IDENTIFIER,
+          taskData: {},
+        })
+
+      await testModule!.waitForTasks('attempted', {
+        taskIds: [innerTask.id],
+      })
+
+      const updatedInnerTask =
+        await testModule!.services.ormService.db.query.tasksTable.findFirst({
+          where: eq(tasksTable.id, innerTask.id),
+        })
+      if (!updatedInnerTask) {
+        throw new Error('Inner task not found after execution')
+      }
+
+      const outerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const outerTask = outerTasks[0]
+      if (!outerTask) {
+        throw new Error('Run serverless worker task not found')
+      }
+
+      expect(updatedInnerTask.success).toBeFalse()
+      expect(updatedInnerTask.systemLog).toEqual([
+        {
+          at: expect.any(Date) as Date,
+          logType: 'started',
+          message: 'Task is started',
+          payload: {
+            __executor: {
+              kind: 'core_worker',
+            },
+          },
+        },
+        {
+          at: expect.any(Date) as Date,
+          logType: 'error',
+          message: 'Task failed',
+          payload: {
+            error: {
+              name: 'InvalidAppTaskError',
+              message: 'The thrown AppTaskError was invalid',
+              code: 'INVALID_APP_TASK_ERROR',
+              details: {
+                name: 'InvalidAppTaskError',
+                origin: 'app',
+                message: 'The thrown AppTaskError was invalid',
+                code: 'INVALID_APP_TASK_ERROR',
+                details: {
+                  originalError: {
+                    code: 'CUSTOM_APP_ERROR_CODE_INVALID',
+                    message: 'This is a custom error message from the app',
+                    name: 'Error',
+                    requeueDelayMs: {
+                      badInput:
+                        'This is a bad input (requeueDelayMs should be a number)',
+                    },
+                    stack: expect.any(String) as string,
+                  },
+                  validationError:
+                    'Requeue delay must be a non-negative number',
+                },
+                stack: expect.any(String) as string,
+              },
+              stack: expect.any(String) as string,
+            },
           },
         },
       ])
@@ -815,11 +916,11 @@ describe('Core Worker', () => {
         throw new Error('Inner task not found after execution')
       }
 
-      const outerTask = await findRunServerlessWorkerTask(innerTask.id)
+      const outerTasks = await findRunServerlessWorkerTasks(innerTask.id)
+      const outerTask = outerTasks[0]
       if (!outerTask) {
         throw new Error('Run serverless worker task not found')
       }
-
       expect(updatedInnerTask.success).toBe(false)
       expect(updatedInnerTask.error?.code).toBe('EXECUTION_ERROR')
       expect(updatedInnerTask.error?.details).toBeFalsy()
@@ -837,7 +938,7 @@ describe('Core Worker', () => {
       expect(
         (outerErrorDetails?.cause as JsonSerializableObject | undefined)
           ?.message,
-      ).toBe('Downoad failed when connecting to host')
+      ).toBe('Download failed when connecting to host (unknown status)')
     })
   })
 

@@ -268,34 +268,27 @@ export const taskDTOSchema = z.object({
   updatedAt: z.string().datetime(),
 })
 
-export const requeueConfigSchema = z.discriminatedUnion('mode', [
-  z
-    .object({
-      mode: z.literal('manual'),
-    })
-    .strict(),
-  z
-    .object({
-      mode: z.literal('auto'),
-      delayMs: z.number().int().positive(),
-    })
-    .strict(),
+export const requeueSchema = z.number().int().min(0)
+
+export const jobErrorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    name: z.string().optional(),
+    code: z.string(),
+    message: z.string(),
+    details: jsonSerializableObjectSchema.optional(),
+  }),
+  requeueDelayMs: requeueSchema.optional(),
+})
+
+export const jobSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  result: jsonSerializableObjectSchema.optional(),
+})
+
+export const taskCompletionSchema = z.discriminatedUnion('success', [
+  jobErrorResponseSchema,
+  jobSuccessResponseSchema,
 ])
 
-export type RequeueConfig = z.infer<typeof requeueConfigSchema>
-export type RequeueConfigSerializable = z.infer<typeof requeueConfigSchema>
-
-export type TaskCompletion =
-  | {
-      success: false
-      error: {
-        code: string
-        message: string
-        name: string
-        details?: JsonSerializableObject
-      }
-    }
-  | {
-      success: true
-      result?: JsonSerializableObject
-    }
+export type TaskCompletion = z.infer<typeof taskCompletionSchema>

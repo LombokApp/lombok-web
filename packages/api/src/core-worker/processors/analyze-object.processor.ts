@@ -30,7 +30,7 @@ export class AnalyzeObjectProcessor extends BaseCoreTaskProcessor<CoreTaskName.A
           name: 'Error',
           message: 'Executor not ready to accept workloads',
           code: 'CORE_WORKER_NOT_READY',
-          requeue: { mode: 'auto', delayMs: 10000 },
+          requeueDelayMs: 10000,
         })
       }
 

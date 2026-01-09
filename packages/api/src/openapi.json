@@ -15047,7 +15047,30 @@
                 ]
               },
               "error": {
-                "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                "type": "object",
+                "properties": {
+                  "requeueDelayMs": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "details": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
               },
               "outputFiles": {
                 "type": "array",

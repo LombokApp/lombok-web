@@ -1,3 +1,5 @@
+export const MAX_TASK_ATTEMPTS = 5
+
 export enum CoreTaskName {
   AnalyzeObject = 'analyze_object',
   ReindexFolder = 'reindex_folder',

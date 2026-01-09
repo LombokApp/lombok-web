@@ -2,6 +2,7 @@ import type {
   FolderScopeAppPermissions,
   JsonSerializableObject,
   StorageAccessPolicy,
+  TaskCompletion,
 } from '@lombokapp/types'
 import {
   ConflictException,
@@ -28,7 +29,9 @@ import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import { v4 as uuidV4 } from 'uuid'
+import { z } from 'zod'
 
+import { dockerJobResultSchema } from '../dto/worker-job-complete-request.dto'
 import { WorkerJobUploadUrlsRequestDTO } from '../dto/worker-job-presigned-urls-request.dto'
 import { WorkerJobPresignedUrlsResponseDTO } from '../dto/worker-job-presigned-urls-response.dto'
 
@@ -48,16 +51,7 @@ export interface WorkerJobTokenClaims {
   storageAccessPolicy: StorageAccessPolicy
 }
 
-export interface CompleteJobRequest {
-  success: boolean
-  result?: JsonSerializableObject
-  error?: {
-    name: string
-    code: string
-    message: string
-  }
-  outputFiles?: { folderId: string; objectKey: string }[]
-}
+export type CompleteJobRequest = z.infer<typeof dockerJobResultSchema>
 
 @Injectable()
 export class WorkerJobService {
@@ -321,19 +315,18 @@ export class WorkerJobService {
    * task, i.e. the task that is being "handled" by the docker task.
    *
    * @param claims - The claims from the worker job token
-   * @param request - The request to complete the job
+   * @param completeJobRequest - The request to complete the job
    *
    */
   async completeJob(
     claims: WorkerJobTokenClaims,
-    request: CompleteJobRequest,
+    completeJobRequest: CompleteJobRequest,
   ): Promise<void> {
     this.logger.log('WorkerJobService.completeJob', {
       claims,
       request: { dockerRunTaskId: claims.taskId },
     })
     const { taskId: dockerRunTaskId } = claims
-    const { success, result, error } = request
 
     await this.ormService.db.transaction(async (tx) => {
       // Find the task
@@ -367,28 +360,34 @@ export class WorkerJobService {
         throw new NotFoundException(`Inner task not found: ${innerTask}`)
       }
 
-      const resolvedError = {
-        name: error?.name ?? 'UnknownError',
-        code: error?.code ?? 'UNKNOWN_ERROR',
-        message: error?.message ?? 'Job failed without error details',
-        details: {},
-      }
-
-      // TODO: Implement dynamic requeue in the event of failure
+      const innerTaskCompletion: TaskCompletion = completeJobRequest.success
+        ? {
+            success: true,
+            result: completeJobRequest.result,
+          }
+        : {
+            success: false,
+            error: {
+              name: completeJobRequest.error.name ?? 'Error',
+              code: completeJobRequest.error.code,
+              message: completeJobRequest.error.message,
+              ...(completeJobRequest.error.details
+                ? { details: completeJobRequest.error.details }
+                : {}),
+            },
+          }
 
       // Trigger completion of the docker handler task
       await this.taskService.registerTaskCompleted(
         dockerTask.id,
-        success ? { success: true } : { success: false, error: resolvedError },
+        innerTaskCompletion,
         { tx },
       )
 
       // Trigger completion of the inner task
       await this.taskService.registerTaskCompleted(
         innerTask.id,
-        success
-          ? { success: true, result }
-          : { success: false, error: resolvedError },
+        innerTaskCompletion,
         { tx },
       )
     })

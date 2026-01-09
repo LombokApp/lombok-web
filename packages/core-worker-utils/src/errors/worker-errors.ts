@@ -1,7 +1,6 @@
 import {
   type JsonSerializableObject,
   jsonSerializableObjectWithUndefinedSchema,
-  type RequeueConfig,
 } from '@lombokapp/types'
 import type { NullablePartial } from '@lombokapp/utils'
 
@@ -17,7 +16,7 @@ export type AsyncWorkErrorConstructorArg = Omit<
 export class AsyncWorkError extends Error {
   readonly name: string
   readonly origin: ErrorOrigin
-  readonly requeue?: RequeueConfig
+  readonly requeueDelayMs?: number
   readonly code: string
   readonly details?: JsonSerializableObject
   readonly cause?: AsyncWorkError
@@ -26,7 +25,7 @@ export class AsyncWorkError extends Error {
     super(args.message)
     this.name = args.name
     this.origin = args.origin
-    this.requeue = args.requeue
+    this.requeueDelayMs = args.requeueDelayMs
     this.code = args.code
     this.details = args.details
     this.stack = args.stack
@@ -44,7 +43,7 @@ export class AsyncWorkError extends Error {
       code: this.code,
       details: this.details,
       cause: this.cause?.toEnvelope(),
-      requeue: this.requeue,
+      requeueDelayMs: this.requeueDelayMs,
       message: this.message,
       stack: this.stack,
     }
@@ -60,8 +59,7 @@ export class NotReadyAsyncWorkError extends AsyncWorkError {
     super({
       ...args,
       origin: 'internal',
-      class: 'transient',
-      requeue: args.requeue,
+      requeueDelayMs: args.requeueDelayMs,
       code: args.code,
       message: args.message,
       stack: args.stack,
@@ -74,14 +72,13 @@ export class AsyncWorkDispatchError extends AsyncWorkError {
   constructor(
     args: NullablePartial<
       Omit<AsyncWorkErrorConstructorArg, 'origin' | 'class'>,
-      'requeue' | 'code'
+      'requeueDelayMs' | 'code'
     >,
   ) {
     super({
       ...args,
       origin: 'internal',
-      class: 'transient',
-      ...(args.requeue ? { requeue: args.requeue } : {}),
+      ...(args.requeueDelayMs ? { requeueDelayMs: args.requeueDelayMs } : {}),
       code: args.code ?? 'DISPATCH_ERROR',
       message: args.message,
       stack: args.stack,
@@ -100,7 +97,6 @@ export class AppNotFoundError extends AsyncWorkError {
     super({
       ...args,
       origin: 'app',
-      class: 'permanent',
       code: 'APP_NOT_FOUND',
       message: args.message,
       stack: args.stack,
@@ -119,7 +115,6 @@ export class AppWorkerNotFoundError extends AsyncWorkError {
     super({
       ...args,
       origin: 'app',
-      class: 'permanent',
       code: 'APP_WORKER_NOT_FOUND',
       message: args.message,
       stack: args.stack,

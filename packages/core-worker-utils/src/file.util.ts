@@ -72,7 +72,7 @@ export const downloadFileToDisk = async (url: string, filepath: string) => {
     }
   } catch (error) {
     throw new DownloadFileToDiskError(
-      'Downoad failed when connecting to host',
+      `Download failed when connecting to host (${response?.status ?? 'unknown status'})`,
       error instanceof Error ? error : new Error(String(error)),
     )
   }

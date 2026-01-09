@@ -1,7 +1,6 @@
 import {
   CORE_IDENTIFIER,
   JsonSerializableObject,
-  RequeueConfig,
   StorageAccessPolicy,
   SystemLogEntry,
   TaskCompletion,
@@ -19,11 +18,9 @@ import {
 } from '@nestjs/common'
 import {
   and,
-  asc,
   count,
   eq,
   ilike,
-  inArray,
   isNotNull,
   isNull,
   or,
@@ -45,6 +42,7 @@ import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-pa
 import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
+import { MAX_TASK_ATTEMPTS } from '../task.constants'
 import {
   evalOnCompleteHandlerCondition,
   OnCompleteConditionTaskContext,
@@ -312,9 +310,9 @@ export class TaskService {
    * @param userId - The user ID triggering the task.
    * @param taskIdentifier - The identifier of the platform task to trigger.
    * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
    * @param targetUserId - The user ID to relate the task to.
    * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   * @param storageAccessPolicy - The policy regarding governing the storage locations accessible to the task.
    *
    ** @returns The created task record.
    */
@@ -371,9 +369,9 @@ export class TaskService {
    * @param appIdentifier - The identifier of the app that owns the task.
    * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
    * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
    * @param targetUserId - The user ID to relate the task to.
    * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   * @param storageAccessPolicy - The policy regarding governing the storage locations accessible to the task.
    *
    ** @returns The created task record.
    */
@@ -781,60 +779,6 @@ export class TaskService {
     return { task: updatedTask }
   }
 
-  async startAnyAvailableTask({
-    appIdentifier,
-    taskIdentifiers,
-    startContext,
-    maxAttempts = 5,
-  }: {
-    appIdentifier: string
-    taskIdentifiers: string[]
-    startContext: {
-      __executor: JsonSerializableObject
-    } & JsonSerializableObject
-    maxAttempts?: number
-  }) {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const result = await this.ormService.db.transaction(async (tx) => {
-          const task = await tx.query.tasksTable.findFirst({
-            where: and(
-              eq(tasksTable.ownerIdentifier, appIdentifier),
-              inArray(tasksTable.taskIdentifier, taskIdentifiers),
-              isNull(tasksTable.startedAt),
-            ),
-            orderBy: [asc(tasksTable.createdAt)],
-          })
-          if (!task || task.completedAt || task.startedAt) {
-            return null
-          }
-
-          const { task: securedTask } = await this.registerTaskStarted({
-            taskId: task.id,
-            startContext,
-            options: { tx },
-          })
-          return { task: securedTask }
-        })
-
-        if (result) {
-          return result
-        }
-      } catch (error) {
-        // If it's a ConflictException, continue to retry
-        // Otherwise, rethrow
-        if (error instanceof ConflictException) {
-          continue
-        }
-        throw error
-      }
-    }
-
-    throw new ConflictException(
-      `Failed to secure a task after ${maxAttempts} attempts.`,
-    )
-  }
-
   async registerTaskCompleted(
     taskId: string,
     completion: TaskCompletion,
@@ -856,21 +800,7 @@ export class TaskService {
       completion,
     }: {
       taskId: string
-      completion:
-        | {
-            success: false
-            requeue?: { delayMs: number }
-            error: {
-              code: string
-              message: string
-              name: string
-              details?: JsonSerializableObject
-            }
-          }
-        | {
-            success: true
-            result?: JsonSerializableObject
-          }
+      completion: TaskCompletion
     },
     tx: OrmService['db'],
   ) {
@@ -910,31 +840,29 @@ export class TaskService {
             : undefined,
     }
 
-    const requeueConfig: RequeueConfig | undefined =
-      !completion.success && completion.requeue
-        ? ({
-            mode: 'auto',
-            delayMs: Math.max(completion.requeue.delayMs, 0),
-          } as const)
-        : undefined
-
-    const requeueConfigSystemLog = requeueConfig
+    const requeueRequested =
+      !completion.success && typeof completion.requeueDelayMs !== 'undefined'
+    const hasAlreadyReachedMaxRequeues = task.attemptCount >= MAX_TASK_ATTEMPTS
+    const shouldRequeue =
+      !completion.success && requeueRequested && !hasAlreadyReachedMaxRequeues
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const requeueDelayMs = shouldRequeue ? completion.requeueDelayMs! : 0
+    const requeueTimestamp =
+      requeueDelayMs === 0 ? now : addMs(now, requeueDelayMs)
+    const requeueConfigSystemLog = shouldRequeue
       ? ({
           at: now,
           logType: 'requeue',
           message: 'Task is requeued',
           payload: {
-            requeueConfig,
-            dontStartBefore: new Date(
-              Date.now() + requeueConfig.delayMs,
-            ).toISOString(),
+            requeueDelayMs,
+            dontStartBefore: requeueTimestamp.toISOString(),
           },
         } as const)
       : undefined
     const systemLogs = [completionSystemLog].concat(
       requeueConfigSystemLog ? [requeueConfigSystemLog] : [],
     )
-
     const updatedTask = (
       await tx
         .update(tasksTable)
@@ -953,24 +881,25 @@ export class TaskService {
                 error: null,
               }
             : {
-                success: false,
-                completedAt: now,
                 error: {
                   code: completion.error.code,
-                  name: completion.error.name,
+                  name: completion.error.name ?? 'Error',
                   message: completion.error.message,
                   details: completion.error.details,
                 },
-                ...(requeueConfigSystemLog
+                ...(shouldRequeue
                   ? {
-                      dontStartBefore: new Date(
-                        requeueConfigSystemLog.payload.dontStartBefore,
-                      ),
+                      dontStartBefore: requeueTimestamp,
                       success: null,
                       completedAt: null,
                       startedAt: null,
                     }
-                  : {}),
+                  : requeueRequested && hasAlreadyReachedMaxRequeues
+                    ? { maxRequeuesReached: true }
+                    : {
+                        success: false,
+                        completedAt: now,
+                      }),
               }),
           systemLog: sql<
             SystemLogEntry[]
@@ -986,6 +915,11 @@ export class TaskService {
         )
         .returning()
     )[0]
+
+    if (updatedTask && shouldRequeue) {
+      await this.eventService.emitRunnableTaskEnqueuedEvent(updatedTask, tx)
+    }
+
     if (!updatedTask) {
       throw new ConflictException('Failed to register task completion task.')
     }

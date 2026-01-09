@@ -28,6 +28,7 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
       buildTargetLocation?: (
         event: Event,
       ) => { folderId: string | null; objectKey: string | null } | null
+      calculateDontStartBefore?: (event: Event) => Date | undefined
     }[]
   >
 > = {
@@ -57,6 +58,13 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
         profileIdentifier: event.data?.profileIdentifier ?? null,
         jobClassIdentifier: event.data?.jobClassIdentifier ?? null,
       }),
+      calculateDontStartBefore: (event: Event) => {
+        const dontStartBefore =
+          typeof event.data?.dontStartBefore === 'string'
+            ? new Date(event.data.dontStartBefore)
+            : undefined
+        return dontStartBefore
+      },
     },
   ],
   [CoreEvent.serverless_task_enqueued]: [
@@ -67,6 +75,13 @@ export const PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
         appIdentifier: event.data?.appIdentifier ?? null,
         workerIdentifier: event.data?.workerIdentifier ?? null,
       }),
+      calculateDontStartBefore: (event: Event) => {
+        const dontStartBefore =
+          typeof event.data?.dontStartBefore === 'string'
+            ? new Date(event.data.dontStartBefore)
+            : undefined
+        return dontStartBefore
+      },
     },
   ],
 }

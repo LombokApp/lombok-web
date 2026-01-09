@@ -26,6 +26,7 @@ import fs from 'fs'
 import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 
+import { getAsyncWorkErrorFromAppTaskError } from './app-error-utils'
 import { PipeReader, PipeWriter } from './pipe-utils'
 
 void (async () => {
@@ -556,21 +557,10 @@ void (async () => {
           success: false,
           error:
             normalizedError instanceof AppTaskError
-              ? new AsyncWorkError({
-                  name: 'AppTaskError',
-                  origin: 'internal',
-                  message: normalizedError.message,
-                  code: 'APP_TASK_ERROR',
-                  stack: new Error().stack,
-                  cause: {
-                    origin: 'app',
-                    name: normalizedError.name,
-                    code: normalizedError.code,
-                    requeue: normalizedError.requeue,
-                    message: normalizedError.message,
-                    stack: normalizedError.stack,
-                  },
-                }).toEnvelope()
+              ? getAsyncWorkErrorFromAppTaskError(
+                  normalizedError,
+                  new Error().stack,
+                ).toEnvelope()
               : normalizedError instanceof AsyncWorkError
                 ? normalizedError.toEnvelope()
                 : buildUnexpectedError({
@@ -704,7 +694,6 @@ void (async () => {
                   cause: {
                     name: 'AsyncWorkDispatchError',
                     origin: 'internal',
-                    class: 'transient',
                     code: 'DISPATCH_ERROR',
                     message:
                       error instanceof Error ? error.message : String(error),

@@ -504,7 +504,7 @@ export class CoreWorkerService {
         name: 'Error',
         code: 'SERVERLESS_EXECUTOR_NOT_READY',
         message: 'Serverless executor not ready to accept workloads',
-        requeue: { mode: 'auto', delayMs: 10000 },
+        requeueDelayMs: 10000,
         stack: new Error().stack,
       })
     }
@@ -520,7 +520,7 @@ export class CoreWorkerService {
         name: 'Error',
         code: 'SERVERLESS_EXECUTOR_NOT_READY',
         message: 'Serverless executor not ready to accept workloads',
-        requeue: { mode: 'auto', delayMs: 10000 },
+        requeueDelayMs: 10000,
         stack: new Error().stack,
       })
     }

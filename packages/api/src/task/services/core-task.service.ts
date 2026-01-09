@@ -8,12 +8,12 @@ import {
   SystemLogEntry,
 } from '@lombokapp/types'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
-import { and, count, eq, isNull, sql } from 'drizzle-orm'
+import { and, count, eq, isNull, lt, or, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { CoreTaskName } from 'src/task/task.constants'
+import { CoreTaskName, MAX_TASK_ATTEMPTS } from 'src/task/task.constants'
 
 import type { CoreTask } from '../base.processor'
 import { BaseCoreTaskProcessor } from '../base.processor'
@@ -87,6 +87,11 @@ export class CoreTaskService {
         .where(
           and(
             isNull(tasksTable.startedAt),
+            lt(tasksTable.attemptCount, MAX_TASK_ATTEMPTS),
+            or(
+              isNull(tasksTable.dontStartBefore),
+              sql`${tasksTable.dontStartBefore} <= NOW()`,
+            ),
             eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
           ),
         )
@@ -111,6 +116,11 @@ export class CoreTaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
+          lt(tasksTable.attemptCount, MAX_TASK_ATTEMPTS),
+          or(
+            isNull(tasksTable.dontStartBefore),
+            sql`${tasksTable.dontStartBefore} <= NOW()`,
+          ),
           eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
         ),
       )

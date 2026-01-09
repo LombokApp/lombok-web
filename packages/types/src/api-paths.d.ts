@@ -3410,7 +3410,15 @@ export interface components {
         } | {
             /** @enum {boolean} */
             success: false;
-            error: components["schemas"]["ApiErrorResponseDTO"];
+            error: {
+                requeueDelayMs?: number;
+                name?: string;
+                code: string;
+                message: string;
+                details?: {
+                    [key: string]: unknown;
+                };
+            };
             outputFiles?: {
                 /** Format: uuid */
                 folderId: string;
