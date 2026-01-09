@@ -13,7 +13,6 @@ import { z } from 'zod'
 export const adminAppDTOSchema = z.object({
   identifier: z.string(),
   slug: z.string(),
-  installId: z.string(),
   label: z.string(),
   publicKey: z.string(),
   config: appConfigSchema,

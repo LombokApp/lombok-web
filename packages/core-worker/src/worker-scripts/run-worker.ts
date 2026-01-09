@@ -1057,7 +1057,7 @@ const cleanupWorkerProcess = async (workerId: string) => {
 // Separate function to actually create the worker process
 async function createWorkerProcess(
   appIdentifier: string,
-  appInstallId: string,
+  workerHash: string,
   workerIdentifier: string,
   serverBaseUrl: string,
   workerExecConfig: ServerlessWorkerExecConfig,
@@ -1074,7 +1074,7 @@ async function createWorkerProcess(
   logsDir: string
   workerId: string
 }> {
-  const workerId = `${appIdentifier}--${appInstallId}--${workerIdentifier}`
+  const workerId = `${appIdentifier}--${workerHash}--${workerIdentifier}`
 
   // Create new worker process
   const executionId = `${workerIdentifier.toLowerCase()}__daemon__${Date.now()}`
@@ -1263,7 +1263,7 @@ setInterval(
 async function getOrCreateWorkerProcess(
   serverBaseUrl: string,
   appIdentifier: string,
-  appInstallId: string,
+  workerHash: string,
   workerIdentifier: string,
   workerExecutionDetails: ServerlessWorkerExecConfig,
   options: {
@@ -1279,7 +1279,7 @@ async function getOrCreateWorkerProcess(
   logsDir: string
   workerId: string
 }> {
-  const workerId = `${appIdentifier}--${appInstallId}--${workerIdentifier}`
+  const workerId = `${appIdentifier}--${workerHash}--${workerIdentifier}`
 
   // Check if we have an existing worker
   const existingWorker = workerProcesses.get(workerId)
@@ -1305,7 +1305,7 @@ async function getOrCreateWorkerProcess(
   // Create a new worker process (with locking)
   const creationPromise = createWorkerProcess(
     appIdentifier,
-    appInstallId,
+    workerHash,
     workerIdentifier,
     serverBaseUrl,
     workerExecutionDetails,
@@ -1328,7 +1328,7 @@ interface RunWorkerScriptBaseArgs {
   serverBaseUrl: string
   serverlessWorkerDetails: ServerlessWorkerExecConfig
   appIdentifier: string
-  appInstallId: string
+  workerHash: string
   workerIdentifier: string
   workerExecutionId: string
   options?: {
@@ -1363,7 +1363,7 @@ export async function runWorker(
     requestOrTask,
     appIdentifier,
     workerIdentifier,
-    appInstallId,
+    workerHash,
     workerExecutionId,
     options = {
       printWorkerOutput: true,
@@ -1387,7 +1387,7 @@ export async function runWorker(
     } = await getOrCreateWorkerProcess(
       serverBaseUrl,
       appIdentifier,
-      appInstallId,
+      workerHash,
       workerIdentifier,
       serverlessWorkerDetails,
       options,

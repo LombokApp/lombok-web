@@ -12,7 +12,7 @@ import { runWorker } from 'src/worker-scripts/run-worker'
 
 export const buildAppRequestServer = ({
   log,
-  appInstallIdMapping,
+  appUiHashMapping,
   uiBundleCacheWorkerRoot,
   instanceId,
   serverBaseUrl,
@@ -25,7 +25,7 @@ export const buildAppRequestServer = ({
     level: LogEntryLevel
     data?: Record<string, unknown>
   }) => void
-  appInstallIdMapping: Record<string, string>
+  appUiHashMapping: Record<string, string>
   uiBundleCacheWorkerRoot: string
   instanceId: string
   serverBaseUrl: string
@@ -75,13 +75,11 @@ export const buildAppRequestServer = ({
           )
         }
 
-        const appInstallId =
-          appInstallIdMapping[appIdentifier] ??
-          serverlessWorkerDetails.installId
+        const workerHash = serverlessWorkerDetails.hash
 
-        if (!appInstallId) {
+        if (!workerHash) {
           log({
-            message: `App install ID not found for app: ${appIdentifier}`,
+            message: `Worker hash not found for app: ${appIdentifier}`,
             level: LogEntryLevel.ERROR,
             data: {
               appIdentifier,
@@ -91,17 +89,13 @@ export const buildAppRequestServer = ({
           return new Response('Unexpected error', { status: 500 })
         }
 
-        if (!(appIdentifier in appInstallIdMapping)) {
-          appInstallIdMapping[appIdentifier] = appInstallId
-        }
-
         try {
           const response = await runWorker({
             requestOrTask: req,
             isSystemRequest: false,
             serverBaseUrl,
             appIdentifier,
-            appInstallId,
+            workerHash,
             workerIdentifier,
             workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
             options: executionOptions,
@@ -161,10 +155,10 @@ export const buildAppRequestServer = ({
       }
 
       const appIdentifier = hostParts[0] || ''
-      let appInstallId = appInstallIdMapping[appIdentifier] ?? ''
+      let uiHash = appUiHashMapping[appIdentifier] ?? ''
 
-      let appBundleCacheDir = appInstallId
-        ? path.join(uiBundleCacheWorkerRoot, appIdentifier, appInstallId)
+      let appBundleCacheDir = uiHash
+        ? path.join(uiBundleCacheWorkerRoot, appIdentifier, uiHash)
         : ''
       let manifestFilePath = appBundleCacheDir
         ? path.join(appBundleCacheDir, 'manifest.json')
@@ -176,7 +170,7 @@ export const buildAppRequestServer = ({
       let manifest: AppManifest = {}
       let csp = ''
 
-      if (appInstallId && fs.existsSync(manifestFilePath)) {
+      if (uiHash && fs.existsSync(manifestFilePath)) {
         try {
           const manifestContent = await fs.promises.readFile(
             manifestFilePath,
@@ -193,19 +187,19 @@ export const buildAppRequestServer = ({
       } else {
         try {
           const bundleResponse = await getUiBundle({ appIdentifier })
-          if (!bundleResponse.installId) {
+          if (!bundleResponse.uiHash) {
             return new Response('App not ready', { status: 409 })
           }
 
-          if (bundleResponse.installId !== appInstallId) {
-            appInstallId = bundleResponse.installId
-            appInstallIdMapping[appIdentifier] = bundleResponse.installId
+          if (bundleResponse.uiHash !== uiHash) {
+            uiHash = bundleResponse.uiHash
+            appUiHashMapping[appIdentifier] = bundleResponse.uiHash
           }
 
           appBundleCacheDir = path.join(
             uiBundleCacheWorkerRoot,
             appIdentifier,
-            appInstallId,
+            uiHash,
           )
           manifestFilePath = path.join(appBundleCacheDir, 'manifest.json')
           cspFilePath = path.join(appBundleCacheDir, 'csp.txt')

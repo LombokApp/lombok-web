@@ -292,7 +292,7 @@ describe('Core Worker', () => {
       zipFileBuffer,
     })
     installedAppIdentifier = installedApp.identifier
-    await testModule.services.coreWorkerService.updateAppInstallIdMapping()
+    await testModule.services.coreWorkerService.updateAppHashMapping()
   }
 
   const buildTask = () => {
@@ -459,9 +459,9 @@ describe('Core Worker', () => {
     })
   })
 
-  it('should accept app install id mapping updates', () => {
+  it('should accept app hash mapping updates', () => {
     expect(
-      testModule!.services.coreWorkerService.updateAppInstallIdMapping(),
+      testModule!.services.coreWorkerService.updateAppHashMapping(),
     ).resolves.toBeUndefined()
   })
 

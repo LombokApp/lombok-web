@@ -1,5 +1,5 @@
 {
-  "id": "5554a59e-7ba7-4732-b22c-b3d5027d4d8a",
+  "id": "6466df6d-c6df-4ac4-8454-acd8d4669611",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -250,12 +250,6 @@
           "name": "identifier",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
-        },
-        "installId": {
-          "name": "installId",
-          "type": "uuid",
-          "primaryKey": false,
           "notNull": true
         },
         "slug": {

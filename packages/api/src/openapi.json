@@ -5819,9 +5819,6 @@
               "slug": {
                 "type": "string"
               },
-              "installId": {
-                "type": "string"
-              },
               "label": {
                 "type": "string"
               },
@@ -6774,7 +6771,6 @@
             "required": [
               "identifier",
               "slug",
-              "installId",
               "label",
               "publicKey",
               "config",
@@ -6820,9 +6816,6 @@
                   "type": "string"
                 },
                 "slug": {
-                  "type": "string"
-                },
-                "installId": {
                   "type": "string"
                 },
                 "label": {
@@ -7777,7 +7770,6 @@
               "required": [
                 "identifier",
                 "slug",
-                "installId",
                 "label",
                 "publicKey",
                 "config",
@@ -7823,9 +7815,6 @@
                 "type": "string"
               },
               "slug": {
-                "type": "string"
-              },
-              "installId": {
                 "type": "string"
               },
               "label": {
@@ -8780,7 +8769,6 @@
             "required": [
               "identifier",
               "slug",
-              "installId",
               "label",
               "publicKey",
               "config",

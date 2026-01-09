@@ -13,7 +13,6 @@ export function transformAppToDTO(
     publicKey: app.publicKey,
     config: app.config,
     manifest: app.manifest,
-    installId: app.installId,
     connectedRuntimeWorkers,
     requiresStorage: app.requiresStorage,
     enabled: app.enabled,

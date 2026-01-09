@@ -75,24 +75,35 @@ process.on('SIGTERM', cleanup)
 process.on('SIGINT', cleanup)
 process.on('exit', cleanup)
 
-const appInstallIdMapping: Record<string, string> = {}
+const appUiHashMapping: Record<string, string> = {}
+const appWorkerHashMapping: Record<string, string> = {}
 // eslint-disable-next-line @typescript-eslint/require-await
 const _log: (...logArgs: unknown[]) => Promise<void> = async (...args) =>
   // eslint-disable-next-line no-console
   console.log(...args)
 
-const updateAppInstallIdMapping = (
-  updatedInstallIds: Record<string, string>,
+const updateAppHashMapping = (
+  updatedUiHashes: Record<string, string>,
+  updatedWorkerHashes: Record<string, string>,
 ) => {
-  Object.keys(updatedInstallIds).forEach((appIdentifier) => {
+  Object.keys(updatedUiHashes).forEach((appIdentifier) => {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete appInstallIdMapping[appIdentifier]
+    delete appUiHashMapping[appIdentifier]
   })
 
-  for (const [appIdentifier, appInstallId] of Object.entries(
-    updatedInstallIds,
+  for (const [appIdentifier, uiHash] of Object.entries(updatedUiHashes)) {
+    appUiHashMapping[appIdentifier] = uiHash
+  }
+
+  Object.keys(updatedWorkerHashes).forEach((appIdentifier) => {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete appWorkerHashMapping[appIdentifier]
+  })
+
+  for (const [appIdentifier, workerHash] of Object.entries(
+    updatedWorkerHashes,
   )) {
-    appInstallIdMapping[appIdentifier] = appInstallId
+    appWorkerHashMapping[appIdentifier] = workerHash
   }
 }
 
@@ -320,11 +331,14 @@ const handleInit = (
       workerData.executionOptions?.printNsjailVerboseOutput ?? false,
   }
 
-  updateAppInstallIdMapping(workerData.appInstallIdMapping)
+  updateAppHashMapping(
+    workerData.appUiHashMapping,
+    workerData.appWorkerHashMapping,
+  )
 
   scriptExecutor = buildRunWorkerScriptTaskHandler(
     executionOptions,
-    appInstallIdMapping,
+    appWorkerHashMapping,
     serverBaseUrl,
   )
 
@@ -343,7 +357,7 @@ const handleInit = (
   try {
     staticAppServer = buildAppRequestServer({
       log,
-      appInstallIdMapping,
+      appUiHashMapping,
       uiBundleCacheWorkerRoot,
       instanceId: workerData.instanceId,
       serverBaseUrl,
@@ -373,7 +387,7 @@ const handleInit = (
 
   systemRequestWorker = buildSystemRequestWorker({
     log,
-    appInstallIdMapping,
+    appWorkerHashMapping,
     serverBaseUrl,
     executionOptions,
     getWorkerExecConfig,
@@ -393,13 +407,17 @@ const handleCoreRequest = async (message: CoreWorkerIncomingRequestMessage) => {
     } else if (message.action === 'analyze_object') {
       return await handleAnalyzeObject(message.payload)
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } else if (message.action === 'update_app_install_id_mapping') {
-      updateAppInstallIdMapping(message.payload.appInstallIdMapping)
+    } else if (message.action === 'update_app_hash_mapping') {
+      updateAppHashMapping(
+        message.payload.appUiHashMapping,
+        message.payload.appWorkerHashMapping,
+      )
       void _log({
-        message: 'App install ID mapping updated',
+        message: 'App hash mapping updated',
         level: LogEntryLevel.DEBUG,
         data: {
-          appInstallIdMapping: message.payload.appInstallIdMapping,
+          appUiHashMapping: message.payload.appUiHashMapping,
+          appWorkerHashMapping: message.payload.appWorkerHashMapping,
         },
       })
       return null

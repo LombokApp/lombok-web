@@ -70,17 +70,25 @@ export class CoreWorkerService {
     this.folderService = _folderService as FolderService
   }
 
-  async getAppInstallIdMapping() {
+  async getAppHashMapping() {
     const allApps = await this.ormService.db.query.appsTable.findMany({
       columns: {
         identifier: true,
-        installId: true,
+        ui: true,
+        runtimeWorkers: true,
       },
     })
-    return allApps.reduce<Record<string, string>>((acc, app) => {
-      acc[app.identifier] = app.installId
-      return acc
-    }, {})
+    const uiHashMapping: Record<string, string> = {}
+    const workerHashMapping: Record<string, string> = {}
+    for (const app of allApps) {
+      if (app.ui.hash) {
+        uiHashMapping[app.identifier] = app.ui.hash
+      }
+      if (app.runtimeWorkers.hash) {
+        workerHashMapping[app.identifier] = app.runtimeWorkers.hash
+      }
+    }
+    return { uiHashMapping, workerHashMapping }
   }
 
   private getServerBaseUrl() {
@@ -446,14 +454,15 @@ export class CoreWorkerService {
         }
         const workerDataPayload: CoreWorkerMessagePayloadTypes['init']['request'] =
           {
-            appInstallIdMapping: {},
+            appUiHashMapping: {},
+            appWorkerHashMapping: {},
             instanceId,
             executionOptions,
             serverBaseUrl: this.getServerBaseUrl(),
           }
 
         void this.sendRequest('init', workerDataPayload).then(async () => {
-          await this.updateAppInstallIdMapping()
+          await this.updateAppHashMapping()
           this.serverlessWorkerThreadReady = true
           this.logger.debug(
             `Serverless worker runner thread started with execution options: ${Object.keys(
@@ -524,11 +533,12 @@ export class CoreWorkerService {
     return this.sendRequest('execute_system_request', payload, timeoutMs)
   }
 
-  async updateAppInstallIdMapping() {
-    const appInstallIdMapping = await this.getAppInstallIdMapping()
+  async updateAppHashMapping() {
+    const { uiHashMapping, workerHashMapping } = await this.getAppHashMapping()
     if (this.ipcSocket) {
-      await this.sendRequest('update_app_install_id_mapping', {
-        appInstallIdMapping,
+      await this.sendRequest('update_app_hash_mapping', {
+        appUiHashMapping: uiHashMapping,
+        appWorkerHashMapping: workerHashMapping,
       })
     }
   }

@@ -110,7 +110,7 @@ export type MetadataUploadUrlsResponse = {
 }[]
 
 export interface AppInstallBundle
-  extends Omit<NewApp, 'identifier' | 'installId' | 'createdAt' | 'updatedAt'> {
+  extends Omit<NewApp, 'identifier' | 'createdAt' | 'updatedAt'> {
   migrationFiles: { filename: string; content: string }[]
 }
 
@@ -179,8 +179,8 @@ export class AppService {
       throw new NotFoundException('Failed to update app enabled status.')
     }
 
-    // update the app install ID mapping in the core worker
-    void this.serverlessWorkerRunnerService.updateAppInstallIdMapping()
+    // update the app hash mapping in the core worker
+    void this.serverlessWorkerRunnerService.updateAppHashMapping()
 
     return updated
   }
@@ -549,7 +549,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/workers/${workerApp.runtimeWorkers.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.runtimeWorkers.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -561,7 +561,6 @@ export class AppService {
     return {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       payloadUrl: presignedGetURL[0]!,
-      installId: workerApp.installId,
       entrypoint:
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
@@ -631,7 +630,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${appIdentifier}/${app.installId}/ui/${app.ui.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${appIdentifier}/ui/${app.ui.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -642,7 +641,7 @@ export class AppService {
     ])
 
     return {
-      installId: app.installId,
+      uiHash: app.ui.hash,
       manifest: app.ui.manifest,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       bundleUrl: presignedGetURL[0]!,
@@ -790,7 +789,6 @@ export class AppService {
     if (installedApp && !allowUpdate) {
       throw new AppAlreadyInstalledException()
     }
-    const installId = crypto.randomUUID()
     const appIdentifier =
       installedApp?.identifier ??
       `${app.slug}_${await this.generateUniqueAppIdentifierSuffix(app.slug)}`
@@ -818,7 +816,7 @@ export class AppService {
         const pathPrefix = `/${bundleName}/`
         // Create a temp dir for this bundle
         const bundleDir = await fsPromises.mkdtemp(
-          path.join(os.tmpdir(), `appzip-${installId}-${bundleName}-`),
+          path.join(os.tmpdir(), `appzip-${appIdentifier}-${bundleName}-`),
         )
         const filePaths = assetManifestEntryPaths.filter((filePath) =>
           filePath.startsWith(pathPrefix),
@@ -858,7 +856,6 @@ export class AppService {
           serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '',
           'app-bundle-storage',
           appIdentifier,
-          installId,
           bundleName,
           `${zipHash}.zip`,
         ]
@@ -915,7 +912,7 @@ export class AppService {
       const installOrUpdateQuery = installedApp
         ? await this.ormService.db
             .update(appsTable)
-            .set({ ...app, installId, updatedAt: now })
+            .set({ ...app, updatedAt: now })
             .where(eq(appsTable.identifier, installedApp.identifier))
             .returning()
         : await this.ormService.db
@@ -923,7 +920,6 @@ export class AppService {
             .values({
               ...app,
               identifier: appIdentifier,
-              installId,
               createdAt: now,
               updatedAt: now,
             })
@@ -962,8 +958,8 @@ export class AppService {
       }
     }
 
-    // update the app install ID mapping in the core worker
-    void this.serverlessWorkerRunnerService.updateAppInstallIdMapping()
+    // update the app hash mapping in the core worker
+    void this.serverlessWorkerRunnerService.updateAppHashMapping()
 
     return newlyInstalledAppInstance
   }

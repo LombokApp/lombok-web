@@ -19,7 +19,7 @@ interface RunWorkerScriptTaskInput {
 export const buildRunWorkerScriptTaskHandler =
   (
     workerExecutionOptions: CoreWorkerMessagePayloadTypes['init']['request']['executionOptions'],
-    appInstallIdMapping: Record<string, string>,
+    appWorkerHashMapping: Record<string, string>,
     serverBaseUrl: string,
   ) =>
   async ({
@@ -29,21 +29,17 @@ export const buildRunWorkerScriptTaskHandler =
     serverlessWorkerDetails,
     onStdoutChunk,
   }: RunWorkerScriptTaskInput) => {
-    const appInstallId =
-      appInstallIdMapping[appIdentifier] ?? serverlessWorkerDetails.installId
+    const workerHash =
+      appWorkerHashMapping[appIdentifier] ?? serverlessWorkerDetails.hash
 
-    if (!appInstallId) {
-      throw new AppAPIError(
-        'APP_INSTALL_ID_NOT_FOUND',
-        'App install ID not found',
-        {
-          appIdentifier,
-        },
-      )
+    if (!workerHash) {
+      throw new AppAPIError('WORKER_HASH_NOT_FOUND', 'Worker hash not found', {
+        appIdentifier,
+      })
     }
 
-    if (!(appIdentifier in appInstallIdMapping)) {
-      appInstallIdMapping[appIdentifier] = appInstallId
+    if (!(appIdentifier in appWorkerHashMapping)) {
+      appWorkerHashMapping[appIdentifier] = workerHash
     }
 
     const workerExecutionId = `${workerIdentifier.toLowerCase()}__task__${uniqueExecutionKey()}`
@@ -53,7 +49,7 @@ export const buildRunWorkerScriptTaskHandler =
         requestOrTask: task,
         serverBaseUrl,
         appIdentifier,
-        appInstallId,
+        workerHash,
         workerIdentifier,
         workerExecutionId,
         serverlessWorkerDetails,

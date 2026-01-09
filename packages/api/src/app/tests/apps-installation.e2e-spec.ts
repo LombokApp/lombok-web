@@ -359,11 +359,9 @@ describe('Apps Installation via Zip', () => {
     expect(response2.status).toBe(201)
     expect({
       ...response1Body.app,
-      installId: undefined,
       updatedAt: undefined,
     }).toEqual({
       ...response2Body.app,
-      installId: undefined,
       updatedAt: undefined,
     })
     expect(response1Body.app.updatedAt).toBeDefined()

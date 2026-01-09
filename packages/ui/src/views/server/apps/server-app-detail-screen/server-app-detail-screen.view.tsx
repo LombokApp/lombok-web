@@ -153,13 +153,7 @@ export function ServerAppDetailScreen({
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
-              <CardDescription>
-                {app?.config.description}
-                <br />
-                <span className="text-xs italic text-muted-foreground/50">
-                  Install ID: {app?.installId}
-                </span>
-              </CardDescription>
+              <CardDescription>{app?.config.description}</CardDescription>
             </div>
             {!!app && (
               <div className="flex items-center gap-2">

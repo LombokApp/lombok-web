@@ -31,7 +31,6 @@ const createMockApp = ({
   return {
     slug,
     identifier: slug,
-    installId: crypto.randomUUID(),
     label: 'Test App',
     publicKey: 'test_public_key',
     requiresStorage: false,

@@ -12,7 +12,7 @@ export type SystemRequestPayload =
 
 export const buildSystemRequestWorker = ({
   log,
-  appInstallIdMapping,
+  appWorkerHashMapping,
   serverBaseUrl,
   executionOptions,
   getWorkerExecConfig,
@@ -22,7 +22,7 @@ export const buildSystemRequestWorker = ({
     level: LogEntryLevel
     data?: Record<string, unknown>
   }) => void
-  appInstallIdMapping: Record<string, string>
+  appWorkerHashMapping: Record<string, string>
   serverBaseUrl: string
   executionOptions: CoreWorkerMessagePayloadTypes['init']['request']['executionOptions']
   getWorkerExecConfig: (params: {
@@ -50,12 +50,12 @@ export const buildSystemRequestWorker = ({
       workerIdentifier,
     })
 
-    const appInstallId =
-      appInstallIdMapping[appIdentifier] ?? serverlessWorkerDetails.installId
+    const workerHash =
+      appWorkerHashMapping[appIdentifier] ?? serverlessWorkerDetails.hash
 
-    if (!appInstallId) {
+    if (!workerHash) {
       log({
-        message: `App install ID not found for app: ${appIdentifier}`,
+        message: `Worker hash not found for app: ${appIdentifier}`,
         level: LogEntryLevel.ERROR,
         data: {
           appIdentifier,
@@ -80,7 +80,7 @@ export const buildSystemRequestWorker = ({
       }),
       serverBaseUrl,
       appIdentifier,
-      appInstallId,
+      workerHash,
       workerIdentifier,
       workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
       options: executionOptions,

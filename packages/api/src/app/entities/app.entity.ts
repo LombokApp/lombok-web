@@ -9,18 +9,10 @@ import type {
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
-import {
-  boolean,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 export const appsTable = pgTable('apps', {
   identifier: text('identifier').primaryKey(),
-  installId: uuid('installId').notNull(),
   slug: text('slug').notNull(),
   label: text('label').notNull(),
   publicKey: text('publicKey').notNull(),

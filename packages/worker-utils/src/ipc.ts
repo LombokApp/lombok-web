@@ -31,7 +31,6 @@ export const coreWorkerMessagePayloadSchemas = {
     response: createResponseSchema(
       z.object({
         payloadUrl: z.string(),
-        installId: z.string(),
         workerToken: z.string(),
         environmentVariables: z.record(z.string(), z.string()),
         entrypoint: z.string(),
@@ -45,7 +44,7 @@ export const coreWorkerMessagePayloadSchemas = {
     }),
     response: createResponseSchema(
       z.object({
-        installId: z.string(),
+        uiHash: z.string(),
         manifest: appManifestSchema,
         bundleUrl: z.string(),
         csp: z.string().optional(),
@@ -55,7 +54,8 @@ export const coreWorkerMessagePayloadSchemas = {
   init: {
     request: z.object({
       instanceId: z.string(),
-      appInstallIdMapping: z.record(z.string(), z.string()),
+      appUiHashMapping: z.record(z.string(), z.string()),
+      appWorkerHashMapping: z.record(z.string(), z.string()),
       serverBaseUrl: z.string().optional(),
       executionOptions: z
         .object({
@@ -67,9 +67,10 @@ export const coreWorkerMessagePayloadSchemas = {
     }),
     response: createResponseSchema(z.null()),
   },
-  update_app_install_id_mapping: {
+  update_app_hash_mapping: {
     request: z.object({
-      appInstallIdMapping: z.record(z.string(), z.string()),
+      appUiHashMapping: z.record(z.string(), z.string()),
+      appWorkerHashMapping: z.record(z.string(), z.string()),
     }),
     response: createResponseSchema(z.null()),
   },
@@ -197,9 +198,8 @@ export const coreWorkerIncomingRequestMessageSchema = z.discriminatedUnion(
       payload: coreWorkerMessagePayloadSchemas.analyze_object.request,
     }),
     z.object({
-      action: z.literal('update_app_install_id_mapping'),
-      payload:
-        coreWorkerMessagePayloadSchemas.update_app_install_id_mapping.request,
+      action: z.literal('update_app_hash_mapping'),
+      payload: coreWorkerMessagePayloadSchemas.update_app_hash_mapping.request,
     }),
     z.object({
       action: z.literal('execute_task'),
@@ -220,9 +220,8 @@ export const coreWorkerOutgoingResponseMessageSchema = z.discriminatedUnion(
       payload: coreWorkerMessagePayloadSchemas.init.response,
     }),
     z.object({
-      action: z.literal('update_app_install_id_mapping'),
-      payload:
-        coreWorkerMessagePayloadSchemas.update_app_install_id_mapping.response,
+      action: z.literal('update_app_hash_mapping'),
+      payload: coreWorkerMessagePayloadSchemas.update_app_hash_mapping.response,
     }),
     z.object({
       action: z.literal('analyze_object'),

@@ -229,7 +229,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
   })
 
   it('completes run-worker-script task successfully', async () => {
-    const dummyInstallId = crypto.randomUUID()
+    const dummyWorkerHash = 'test-worker-hash'
     // Mock run_serverless_worker task and the underlying worker script task
     const workerScriptTask = {
       id: uuidV4(),
@@ -283,7 +283,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
         printWorkerOutput: false,
         removeWorkerDirectory: true,
       },
-      { 'core-worker': dummyInstallId },
+      { 'core-worker': dummyWorkerHash },
       serverBaseUrl,
     )
 
@@ -292,11 +292,10 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       appIdentifier: 'core-worker',
       workerIdentifier: 'test-worker',
       serverlessWorkerDetails: {
-        installId: dummyInstallId,
         entrypoint: 'index.ts',
         workerToken: 'test-token',
         environmentVariables: {},
-        hash: 'test-worker-hash',
+        hash: dummyWorkerHash,
         payloadUrl: WORKER_BUNDLE_URL,
       },
     })

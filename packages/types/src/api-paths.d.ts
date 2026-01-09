@@ -1157,7 +1157,6 @@ export interface components {
             app: {
                 identifier: string;
                 slug: string;
-                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
@@ -1386,7 +1385,6 @@ export interface components {
             result: {
                 identifier: string;
                 slug: string;
-                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
@@ -1615,7 +1613,6 @@ export interface components {
             app: {
                 identifier: string;
                 slug: string;
-                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
