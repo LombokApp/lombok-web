@@ -1,4 +1,4 @@
-import { PLATFORM_IDENTIFIER, type TaskDTO } from '@lombokapp/types'
+import { CORE_IDENTIFIER, type TaskDTO } from '@lombokapp/types'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 export function TasksListCard({ task }: { task: TaskDTO }) {
@@ -25,8 +25,8 @@ export function TasksListCard({ task }: { task: TaskDTO }) {
         </div>
         <div className="flex gap-1 opacity-50">
           <div className="opacity-60">owner:</div>
-          {task.ownerIdentifier === PLATFORM_IDENTIFIER
-            ? PLATFORM_IDENTIFIER
+          {task.ownerIdentifier === CORE_IDENTIFIER
+            ? CORE_IDENTIFIER
             : task.ownerIdentifier}
         </div>
       </div>

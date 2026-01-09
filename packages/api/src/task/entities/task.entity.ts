@@ -2,7 +2,6 @@ import type {
   JsonSerializableObject,
   StorageAccessPolicy,
   SystemLogEntry,
-  TargetLocationContext,
   TaskData,
   TaskInvocation,
   TaskLogEntry,
@@ -12,38 +11,47 @@ import {
   boolean,
   customType,
   index,
-  jsonb,
+  integer,
   pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
+import { jsonbBase64 } from 'src/orm/util/json-base64-type'
 
-// Custom type to handle the nested dates (that will be serialized as ISO strings) in the log entries
-export const logJsonb = <TLog extends { at: Date }>(name: string) =>
+import {
+  deserializeLogEntry,
+  serializeLogEntry,
+} from '../util/log-encoder.util'
+
+// Custom type to handle serializing of the date objects and untrusted json payloads data in the log entries
+export const logJsonb = <
+  TLog extends {
+    at: Date
+    message: string
+    logType: string
+    payload?: JsonSerializableObject | undefined
+  },
+>(
+  name: string,
+) =>
   customType<{ data: TLog[]; driverData: unknown }>({
     dataType() {
       return 'jsonb'
     },
     toDriver(value: TLog[]) {
       // Persist as ISO strings for `at`
-      const raw = value.map((entry) => ({
-        ...entry,
-        at: entry.at.toISOString(),
-      }))
+      const raw = value.map(serializeLogEntry)
 
-      return JSON.stringify(raw)
+      const rawString = JSON.stringify(raw)
+      return rawString
     },
     fromDriver(value: unknown): TLog[] {
       // Depending on driver, this might already be parsed
       const rawArray = (
         typeof value === 'string' ? JSON.parse(value) : value
-      ) as (TLog & { at: string })[]
-
-      return rawArray.map((entry) => ({
-        ...entry,
-        at: new Date(entry.at),
-      }))
+      ) as (TLog & { at: string; payload?: string })[]
+      return rawArray.map(deserializeLogEntry) as TLog[]
     },
   })(name)
 
@@ -55,23 +63,27 @@ export const tasksTable = pgTable(
     ownerIdentifier: text('ownerIdentifier').notNull(), // core, app:core, app:other, ...
     taskIdentifier: text('taskIdentifier').notNull(),
     taskDescription: text('taskDescription').notNull(),
-    data: jsonb('data').notNull().$type<TaskData>(),
-    trigger: jsonb('trigger').$type<TaskInvocation>().notNull(),
+    data: jsonbBase64('data').notNull().$type<TaskData>(),
+    invocation: jsonbBase64('invocation').$type<TaskInvocation>().notNull(),
+    idempotencyKey: text('idempotencyKey').notNull().unique(),
     targetUserId: uuid('targetUserId'),
-    targetLocation: jsonb('targetLocation').$type<TargetLocationContext>(),
+    targetLocationFolderId: uuid('targetLocationFolderId'),
+    targetLocationObjectKey: text('targetLocationObjectKey'),
     startedAt: timestamp('startedAt'),
-    dontStartBefore: timestamp('dontStartBefore'),
     completedAt: timestamp('completedAt'),
+    attemptCount: integer('attemptCount').notNull().default(0),
+    failureCount: integer('failureCount').notNull().default(0),
+    dontStartBefore: timestamp('dontStartBefore'),
     systemLog: logJsonb<SystemLogEntry>('systemLog').notNull().default([]),
     taskLog: logJsonb<TaskLogEntry>('taskLog').notNull().default([]),
-    storageAccessPolicy: jsonb('storageAccessPolicy')
+    storageAccessPolicy: jsonbBase64('storageAccessPolicy')
       .$type<StorageAccessPolicy>()
-      .notNull()
-      .default([]),
+      .notNull(),
     success: boolean('success'),
     userVisible: boolean('userVisible').default(true),
-    error: jsonb('error').$type<{
+    error: jsonbBase64('error').$type<{
       code: string
+      name: string
       message: string
       details?: JsonSerializableObject
     }>(),
@@ -81,16 +93,25 @@ export const tasksTable = pgTable(
     handlerIdentifier: text('handlerIdentifier'),
   },
   (table) => [
-    index('tasks_trigger_kind_idx').using(
-      'btree',
-      sql`(${table.trigger} ->> 'kind')`,
+    index('tasks_trigger_kind_idx').on(sql`(${table.invocation} ->> 'kind')`),
+    index('tasks_idempotency_key_idx').on(
+      table.ownerIdentifier,
+      table.taskIdentifier,
+      table.idempotencyKey,
     ),
-    index('tasks_target_location_folder_id_idx').using(
-      'btree',
-      sql`((${table.targetLocation} ->> 'folderId')::uuid)`,
+    index('tasks_target_location_folder_id_idx').on(
+      table.targetLocationFolderId,
+    ),
+    index('tasks_target_location_folder_id_object_key_idx').on(
+      table.targetLocationFolderId,
+      table.targetLocationObjectKey,
     ),
   ],
 )
 
-export type Task = typeof tasksTable.$inferSelect
 export type NewTask = typeof tasksTable.$inferInsert
+export type Task<T extends TaskData = TaskData> =
+  typeof tasksTable.$inferSelect & {
+    data: T
+  }
+export type TaskSummary = Omit<Task, 'data' | 'systemLog' | 'taskLog'>

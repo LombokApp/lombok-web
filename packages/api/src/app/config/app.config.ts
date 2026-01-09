@@ -1,12 +1,12 @@
 import { registerAs } from '@nestjs/config'
-import { parseEnv } from 'src/platform/utils/config.util'
+import { parseEnv } from 'src/core/utils/config.util'
 import { z } from 'zod'
 
 export const appConfig = registerAs('app', () => {
   const env = parseEnv({
-    APPS_LOCAL_PATH: z.string(),
+    APP_BUNDLES_PATH: z.string().optional(),
   })
   return {
-    appsLocalPath: env.APPS_LOCAL_PATH,
+    appBundlesPath: env.APP_BUNDLES_PATH,
   }
 })

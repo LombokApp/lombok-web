@@ -9,11 +9,11 @@ import type {
   StorageProvisionType,
 } from '@lombokapp/types'
 import {
+  CORE_IDENTIFIER,
+  CoreEvent,
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
-  PLATFORM_IDENTIFIER,
-  PlatformEvent,
   previewMetadataSchema,
   SignedURLsRequestMethod,
   StorageProvisionTypeEnum,
@@ -33,7 +33,6 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { ModuleRef } from '@nestjs/core'
 import {
   aliasedTable,
   and,
@@ -50,11 +49,11 @@ import {
 } from 'drizzle-orm'
 import { PgColumn } from 'drizzle-orm/pg-core'
 import { AppService } from 'src/app/services/app.service'
+import { coreConfig } from 'src/core/config'
+import { parseSort } from 'src/core/utils/sort.util'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
-import { parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
@@ -66,12 +65,11 @@ import { StorageProvisionNotFoundException } from 'src/storage/exceptions/storag
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
-import { PlatformTaskName } from 'src/task/task.constants'
+import { CoreTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
-import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
@@ -171,34 +169,37 @@ export class FolderService {
   private readonly logger = new Logger(FolderService.name)
   eventService: EventService
   appService: AppService
-  get folderSocketService(): FolderSocketService {
-    return this._folderSocketService as FolderSocketService
-  }
-  get platformTaskService(): PlatformTaskService {
-    return this._platformTaskService as PlatformTaskService
-  }
-  get s3Service(): S3Service {
-    return this._s3Service as S3Service
-  }
+  taskService: TaskService
+  s3Service: S3Service
+  coreTaskService: CoreTaskService
+  folderSocketService: FolderSocketService
+  coreConfig: nestjsConfig.ConfigType<typeof coreConfig>
+
   constructor(
-    private readonly moduleRef: ModuleRef,
     @Inject(forwardRef(() => S3Service))
-    private readonly _s3Service,
+    _s3Service,
+    @Inject(forwardRef(() => AppService))
+    _appService,
+    @Inject(forwardRef(() => EventService))
+    _eventService,
     @Inject(forwardRef(() => FolderSocketService))
-    private readonly _folderSocketService,
-    @Inject(forwardRef(() => PlatformTaskService))
-    private readonly _platformTaskService,
+    _folderSocketService,
+    @Inject(forwardRef(() => CoreTaskService))
+    _coreTaskService,
+    @Inject(forwardRef(() => TaskService))
+    _taskService,
+    @Inject(coreConfig.KEY)
+    _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    private readonly taskService: TaskService,
-    private readonly userService: UserService,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
   ) {
-    this.eventService = this.moduleRef.get(EventService)
-    this.appService = this.moduleRef.get(AppService)
+    this.s3Service = _s3Service as S3Service
+    this.coreTaskService = _coreTaskService as CoreTaskService
+    this.folderSocketService = _folderSocketService as FolderSocketService
+    this.eventService = _eventService as EventService
+    this.appService = _appService as AppService
+    this.taskService = _taskService as TaskService
+    this.coreConfig = _coreConfig
   }
 
   async createFolder({
@@ -458,7 +459,7 @@ export class FolderService {
             ? `${folder.contentLocation.prefix}${folder.contentLocation.prefix.endsWith('/') ? '' : '/'}.lombok_cors_check_${folderId}`
             : `.lombok_cors_check_${folderId}`
         const corsUrl = `${folder.contentLocation.endpoint.replace(/\/$/, '')}/${folder.contentLocation.bucket}/${objectKey}`
-        const appPlatformHost: string = this._platformConfig.platformHost
+        const appPlatformHost: string = this.coreConfig.platformHost
         const originCandidates = [
           `https://${appPlatformHost}`,
           `http://${appPlatformHost}`,
@@ -614,20 +615,10 @@ export class FolderService {
       // Delete all folder tasks and events
       await tx
         .delete(tasksTable)
-        .where(
-          eq(
-            sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`,
-            folderId,
-          ),
-        )
+        .where(eq(tasksTable.targetLocationFolderId, folderId))
       await tx
         .delete(eventsTable)
-        .where(
-          eq(
-            sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`,
-            folderId,
-          ),
-        )
+        .where(eq(eventsTable.targetLocationFolderId, folderId))
       await tx.delete(foldersTable).where(eq(foldersTable.id, folderId))
     })
 
@@ -690,7 +681,7 @@ export class FolderService {
       })
 
     if (!folderObject) {
-      throw new FolderObjectNotFoundException()
+      throw new FolderObjectNotFoundException(folderId, objectKey)
     }
 
     await this.s3Service.s3DeleteBucketObject({
@@ -752,7 +743,7 @@ export class FolderService {
       ),
     })
     if (!obj) {
-      throw new FolderObjectNotFoundException()
+      throw new FolderObjectNotFoundException(folderId, objectKey)
     }
     return obj
   }
@@ -1225,8 +1216,8 @@ export class FolderService {
   async queueReindexFolderAsUser(actor: User, folderId: string) {
     const folder = await this.getFolderAsUser(actor, folderId)
     if (folder.permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
-      await this.taskService.triggerPlatformUserActionTask({
-        taskIdentifier: PlatformTaskName.ReindexFolder,
+      await this.taskService.triggerCoreUserActionTask({
+        taskIdentifier: CoreTaskName.ReindexFolder,
         taskData: { folderId },
         targetLocation: { folderId },
         userId: actor.id,
@@ -1422,10 +1413,10 @@ export class FolderService {
     )
 
     await this.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
+      emitterIdentifier: CORE_IDENTIFIER,
       eventIdentifier: wasAdded
-        ? PlatformEvent.object_added
-        : PlatformEvent.object_updated,
+        ? CoreEvent.object_added
+        : CoreEvent.object_updated,
       targetLocation: {
         folderId: record.folderId,
         objectKey: record.objectKey,
@@ -1455,7 +1446,7 @@ export class FolderService {
         })
 
       if (!folderObject) {
-        throw new FolderObjectNotFoundException()
+        throw new FolderObjectNotFoundException(folderId, objectKey)
       }
       // Function to merge new previews with existing ones
       function updatePreviews(): InlineMetadataEntry {

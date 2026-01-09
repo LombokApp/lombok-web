@@ -1,4 +1,4 @@
-import type { FolderGetResponse, TaskDTO } from '@lombokapp/types'
+import type { FolderGetResponse, TaskSummaryDTO } from '@lombokapp/types'
 import { FolderPushMessage } from '@lombokapp/types'
 import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
@@ -15,7 +15,13 @@ import { $api } from '@/src/services/api'
 
 const TASK_PREVIEW_LENGTH = 5
 
-const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
+const TaskCard = ({
+  task,
+  folderId,
+}: {
+  task: TaskSummaryDTO
+  folderId: string
+}) => {
   return (
     <Link
       to={`/folders/${folderId}/tasks/${task.id}`}

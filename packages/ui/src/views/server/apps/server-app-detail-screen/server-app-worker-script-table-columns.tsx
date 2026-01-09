@@ -1,4 +1,4 @@
-import type { AppWorkersMap } from '@lombokapp/types'
+import type { AppRuntimeWorkersMap } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import type { UseMutationResult } from '@tanstack/react-query'
@@ -23,7 +23,7 @@ export function configureServerAppWorkerScriptTableColumns(
       }
     }>
   >,
-): ColumnDef<AppWorkersMap[string] & { identifier: string }>[] {
+): ColumnDef<AppRuntimeWorkersMap[string] & { identifier: string }>[] {
   return [
     {
       accessorKey: 'identifier',

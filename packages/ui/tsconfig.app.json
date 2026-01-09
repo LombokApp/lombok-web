@@ -27,8 +27,8 @@
     "paths": {
       "@/src": ["./src"],
       "@/src/*": ["./src/*"],
-      "@lombokapp/core-worker-utils": ["../core-worker-utils/src"],
-      "@lombokapp/core-worker-utils/*": ["../core-worker-utils/src/*"],
+      "@lombokapp/worker-utils": ["../worker-utils/src"],
+      "@lombokapp/worker-utils/*": ["../worker-utils/src/*"],
       "@lombokapp/types": ["../types/src"],
       "@lombokapp/types/*": ["../types/src/*"],
       "@lombokapp/sdk": ["../sdk/src"],

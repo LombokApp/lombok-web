@@ -1,12 +1,9 @@
 import type { AppConfig } from '@lombokapp/types'
+import { spawn } from 'bun'
 import crypto from 'crypto'
 import fs from 'fs'
 
-const APPS_PATH = '/apps-test'
-
-if (!fs.existsSync(APPS_PATH)) {
-  fs.mkdirSync(APPS_PATH)
-}
+import { DUMMY_APP_SLUG, E2E_TEST_APPS_PATH } from './e2e.contants'
 
 // Generate key pair for socket test app
 const generateKeyPair = (): Promise<{
@@ -39,78 +36,85 @@ const generateKeyPair = (): Promise<{
   })
 }
 
+const MINIMAL_WORKER_CONTENT = `
+export const handleTask: TaskHandler = async function handleTask(task, { serverClient }) {
+  await serverClient.getContentSignedUrls([
+    {
+      folderId: task.subjectFolderId || 'test-folder',
+      objectKey: task.subjectObjectKey || 'test-object',
+      method: SignedURLsRequestMethod.GET,
+    },
+  ])
+}
+`
+
 const testAppDefinitions: AppConfig[] = [
   {
-    description:
-      'An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.',
-    slug: 'core',
-    label: 'Core',
+    description: 'A dummy app.',
+    slug: DUMMY_APP_SLUG,
+    label: 'Dummy',
     requiresStorage: false,
-    subscribedPlatformEvents: ['platform:worker_task_enqueued'],
+    subscribedCoreEvents: ['core:object_added'],
     permissions: {
-      platform: ['SERVE_APPS'],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
     triggers: [
       {
         kind: 'event',
-        taskIdentifier: 'run_worker_script',
-        eventIdentifier: 'platform:worker_task_enqueued',
+        taskIdentifier: 'minimal_worker_task',
+        eventIdentifier: 'core:object_added',
         dataTemplate: {
-          innerTaskId: '{{event.data.innerTaskId}}',
-          appIdentifier: '{{event.data.appIdentifier}}',
-          workerIdentifier: '{{event.data.workerIdentifier}}',
+          folderId: '{{event.data.folderId}}',
+          objectKey: '{{event.data.objectKey}}',
         },
       },
     ],
-
     tasks: [
       {
-        identifier: 'analyze_object',
-        label: 'Analyze Object',
-        description:
-          'Analyze the content of a file and save the result as metadata',
+        identifier: 'minimal_worker_task',
+        label: 'Minimal Worker Task',
+        description: 'A task that is triggered by an object added event.',
         handler: {
-          type: 'external',
-        },
-      },
-      {
-        identifier: 'run_worker_script',
-        label: 'Run Worker',
-        description: 'Run a worker script.',
-        handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
     ],
+    runtimeWorkers: {
+      minimal_worker: {
+        description: 'Test App Worker',
+        entrypoint: 'minimal-worker.ts',
+      },
+    },
   },
   {
-    description: 'A dummy app for testing docker jobs.',
+    description: 'A dummy app for testing docker workers.',
     slug: 'testapp',
     label: 'Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
     tasks: [
       {
-        identifier: 'triggered_docker_job_task',
+        identifier: 'triggered_docker_worker_task',
         label: 'Docker Handled and Event Triggered Job',
         description:
-          'A task that is triggered by an event and handled by a docker job.',
+          'A task that is triggered by an event and handled by a docker worker.',
         handler: {
           type: 'docker',
           identifier: 'dummy_profile:test_job',
         },
       },
       {
-        identifier: 'non_triggered_docker_job_task',
+        identifier: 'non_triggered_docker_worker_task',
         label: 'Docker Handled Job',
-        description: 'Task that is handled by a docker job.',
+        description: 'Task that is handled by a docker worker.',
         handler: {
           type: 'docker',
           identifier: 'dummy_profile_two:test_job_other',
@@ -155,15 +159,16 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'tasklifecycle',
     label: 'Task Lifecycle App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: [],
     },
     triggers: [
       {
         kind: 'schedule',
+        name: 'dummy_schedule',
         config: {
           interval: 1,
           unit: 'hours',
@@ -220,7 +225,8 @@ const testAppDefinitions: AppConfig[] = [
         label: 'App Action Task',
         description: 'Created via triggerAppActionTask.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
       {
@@ -228,7 +234,8 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Schedule Task',
         description: 'Runs on a schedule trigger.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
       {
@@ -236,7 +243,8 @@ const testAppDefinitions: AppConfig[] = [
         label: 'User Action Task',
         description: 'Triggered by a user action.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
       {
@@ -244,7 +252,8 @@ const testAppDefinitions: AppConfig[] = [
         label: 'On Complete Handler',
         description: 'Runs after the parent task completes.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
       {
@@ -253,7 +262,8 @@ const testAppDefinitions: AppConfig[] = [
         description:
           'Triggered by an event registers a single onComplete handler.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
       {
@@ -261,7 +271,8 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Parent Event Task',
         description: 'Triggered by an event and chains an onComplete handler.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
       {
@@ -269,22 +280,29 @@ const testAppDefinitions: AppConfig[] = [
         label: 'On Complete Chain One',
         description: 'First chain onComplete task.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
     ],
+    runtimeWorkers: {
+      minimal_worker: {
+        description: 'Test App Worker',
+        entrypoint: 'minimal-worker.ts',
+      },
+    },
   },
   {
     description: 'Test app for app socket interface testing.',
     slug: 'sockettestapp',
     label: 'Socket Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     database: {
       enabled: true,
     },
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -294,10 +312,17 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Socket Test Task',
         description: 'A task for testing socket interface.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
     ],
+    runtimeWorkers: {
+      minimal_worker: {
+        description: 'Test App Worker',
+        entrypoint: 'minimal-worker.ts',
+      },
+    },
   },
   {
     description:
@@ -305,9 +330,9 @@ const testAppDefinitions: AppConfig[] = [
     slug: 'sockettestappnodb',
     label: 'Socket Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -317,19 +342,26 @@ const testAppDefinitions: AppConfig[] = [
         label: 'Socket Test Task',
         description: 'A task for testing socket interface.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
     ],
+    runtimeWorkers: {
+      minimal_worker: {
+        description: 'Test App Worker',
+        entrypoint: 'minimal-worker.ts',
+      },
+    },
   },
   {
     description: 'Test app for with data template.',
     slug: 'sockettestappdatatemplate',
     label: 'Socket Test App',
     requiresStorage: false,
-    subscribedPlatformEvents: [],
+    subscribedCoreEvents: [],
     permissions: {
-      platform: [],
+      core: [],
       user: [],
       folder: ['WRITE_OBJECTS', 'READ_OBJECTS'],
     },
@@ -346,36 +378,83 @@ const testAppDefinitions: AppConfig[] = [
         },
       },
     ],
+    runtimeWorkers: {
+      minimal_worker: {
+        description: 'Test App Worker',
+        entrypoint: 'minimal-worker.ts',
+      },
+    },
     tasks: [
       {
         identifier: 'socket_test_task',
         label: 'Socket Test Task',
         description: 'A task for testing socket interface.',
         handler: {
-          type: 'external',
+          type: 'runtime',
+          identifier: 'minimal_worker',
         },
       },
     ],
   },
 ]
 
+// eslint-disable-next-line no-console
+console.log(`Adding test app definitions at path: ${E2E_TEST_APPS_PATH}`)
 const addTestAppDefinition = async (appConfig: AppConfig) => {
-  if (!fs.existsSync(`${APPS_PATH}/${appConfig.slug}`)) {
-    fs.mkdirSync(`${APPS_PATH}/${appConfig.slug}`)
+  if (!fs.existsSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}`)) {
+    fs.mkdirSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}`, { recursive: true })
   }
 
   fs.writeFileSync(
-    `${APPS_PATH}/${appConfig.slug}/config.json`,
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/config.json`,
     JSON.stringify(appConfig),
+  )
+  fs.mkdirSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}/workers`, {
+    recursive: true,
+  })
+  fs.writeFileSync(
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/workers/minimal-worker.ts`,
+    MINIMAL_WORKER_CONTENT,
   )
 
   // Generate and store public key for sockettestapp
   const { publicKey, privateKey } = await generateKeyPair()
-  fs.writeFileSync(`${APPS_PATH}/${appConfig.slug}/.publicKey`, publicKey)
+  fs.writeFileSync(
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/.publicKey`,
+    publicKey,
+  )
   // Store private key in a file that tests can read
-  fs.writeFileSync(`${APPS_PATH}/${appConfig.slug}/.privateKey`, privateKey)
+  fs.writeFileSync(
+    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/.privateKey`,
+    privateKey,
+  )
+
+  // Zip up the files and leave the zip at ${E2E_TEST_APPS_PATH}/${appConfig.slug}.zip
+  const zipPath = `${E2E_TEST_APPS_PATH}/${appConfig.slug}.zip`
+  const zipProc = spawn({
+    cmd: ['zip', '-r', zipPath, appConfig.slug],
+    cwd: E2E_TEST_APPS_PATH,
+    stdout: 'ignore',
+    stderr: 'ignore',
+  })
+  const zipCode = await zipProc.exited
+  if (zipCode !== 0) {
+    throw new Error(
+      `Failed to create zip file for ${appConfig.slug}: ${zipCode}`,
+    )
+  }
+  fs.rmSync(`${E2E_TEST_APPS_PATH}/${appConfig.slug}/`, {
+    recursive: true,
+    force: true,
+  })
 }
 
 await Promise.all(
   testAppDefinitions.map((appDef) => addTestAppDefinition(appDef)),
+)
+// eslint-disable-next-line no-console
+console.log(
+  '%d test app definitions added! (slugs: %s)',
+  testAppDefinitions.length,
+  testAppDefinitions.map((appDef) => appDef.slug).join(', '),
 )

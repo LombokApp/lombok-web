@@ -1,0 +1,51 @@
+{
+  "name": "@lombokapp/worker-utils",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun",
+    "lint:check": "eslint",
+    "lint:fix": "eslint --fix",
+    "tsc:check": "tsc --noEmit",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "test:unit": "bun test",
+    "dev:docker:unit:run": "docker compose -f ../../docker-compose.test.yml up coreworkerutilsunittest"
+  },
+  "trustedDependencies": [
+    "sharp"
+  ],
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@types/fluent-ffmpeg": "2.1.27",
+    "eslint": "catalog:",
+    "@eslint/js": "catalog:",
+    "jiti": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-eslint-comments": "catalog:",
+    "eslint-plugin-promise": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "tsup": "catalog:"
+  },
+  "dependencies": {
+    "@lombokapp/app-worker-sdk": "workspace:*",
+    "@lombokapp/types": "workspace:*",
+    "@lombokapp/utils": "workspace:*",
+    "fluent-ffmpeg": "2.1.3",
+    "zod": "catalog:",
+    "sharp": "0.34.5",
+    "uuid": "catalog:"
+  }
+}

@@ -8,14 +8,12 @@ import {
   appSocketMessageSchema,
   AppSocketMessageSchemaMap,
 } from '@lombokapp/types'
-import { HttpException } from '@nestjs/common'
 import type { JWTService } from 'src/auth/services/jwt.service'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
 import type { TaskService } from 'src/task/services/task.service'
-import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import type { z, ZodTypeAny } from 'zod'
 
 import type { AppService } from './app.service'
@@ -178,107 +176,6 @@ export async function handleAppSocketMessage(
         parsedRequest.data,
       )
       return { result: null }
-    case 'COMPLETE_HANDLE_TASK': {
-      try {
-        await appService.registerTaskCompletedAsApp(
-          requestingAppIdentifier,
-          parsedRequest.data,
-        )
-      } catch (error) {
-        return {
-          error:
-            error instanceof HttpException
-              ? { code: error.getStatus(), message: error.message }
-              : {
-                  code: 500,
-                  message:
-                    error instanceof Error
-                      ? `Unexpected server error: ${error.message}`
-                      : `Unexpected server error: ${String(error)}`,
-                },
-        }
-      }
-
-      return { result: null }
-    }
-    case 'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK': {
-      const startContext = {
-        ...(parsedRequest.data.startContext ?? {}),
-        __executor: {
-          appIdentifier: requestingAppIdentifier,
-          handlerInstanceId,
-        },
-      }
-      try {
-        const { task: securedTask } = await taskService.startAnyAvailableTask({
-          appIdentifier: requestingAppIdentifier,
-          taskIdentifiers: parsedRequest.data.taskIdentifiers,
-          startContext,
-        })
-        return { result: { task: transformTaskToDTO(securedTask) } }
-      } catch (error) {
-        if (error instanceof HttpException) {
-          return {
-            error: { code: error.getStatus(), message: error.message },
-          }
-        }
-        return {
-          error: {
-            code: 500,
-            message:
-              error instanceof Error
-                ? `Unexpected server error: ${error.message}`
-                : 'Unexpected server error',
-          },
-        }
-      }
-    }
-    case 'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID': {
-      const startContext = {
-        __executor: {
-          appIdentifier: requestingAppIdentifier,
-          handlerId: handlerInstanceId,
-        },
-        ...(parsedRequest.data.startContext ?? {}),
-      }
-      try {
-        const startedTask = await appService.startWorkerTaskByIdAsApp(
-          requestingAppIdentifier,
-          {
-            taskId: parsedRequest.data.taskId,
-            startContext,
-          },
-        )
-        return { result: { task: transformTaskToDTO(startedTask) } }
-      } catch (error) {
-        if (error instanceof HttpException) {
-          return {
-            error: { code: error.getStatus(), message: error.message },
-          }
-        }
-        return {
-          error: {
-            code: 500,
-            message:
-              error instanceof Error
-                ? `Unexpected server error: ${error.message}`
-                : 'Unexpected server error',
-          },
-        }
-      }
-    }
-
-    case 'GET_APP_UI_BUNDLE':
-      return appService.getAppUIbundleAsAppServer(
-        requestingAppIdentifier,
-        parsedRequest.data,
-      )
-    case 'GET_WORKER_EXECUTION_DETAILS': {
-      return appService.getWorkerExecutionDetailsAsAppServer(
-        requestingAppIdentifier,
-        parsedRequest.data,
-      )
-    }
     case 'GET_APP_STORAGE_SIGNED_URLS':
       return {
         result: await appService.createSignedAppStorageUrls(
@@ -378,6 +275,7 @@ export async function handleAppSocketMessage(
         appIdentifier: requestingAppIdentifier,
         taskIdentifier: parsedRequest.data.taskIdentifier,
         taskData: parsedRequest.data.inputData,
+        onComplete: parsedRequest.data.onComplete,
         dontStartBefore: parsedRequest.data.dontStartBefore
           ? 'timestamp' in parsedRequest.data.dontStartBefore
             ? {

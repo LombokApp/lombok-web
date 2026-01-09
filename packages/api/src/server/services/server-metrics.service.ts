@@ -1,6 +1,6 @@
 import { StorageProvisionDTO } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { and, count, eq, sql } from 'drizzle-orm'
+import { and, count, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -65,9 +65,7 @@ export class ServerMetricsService {
       await this.ormService.db
         .select({ count: count(sql`*`) })
         .from(usersTable)
-        .where(
-          sql`${usersTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
-        )
+        .where(gte(usersTable.createdAt, oneWeekAgo))
     )[0]!
 
     // Get new sessions in last week
@@ -76,9 +74,7 @@ export class ServerMetricsService {
       await this.ormService.db
         .select({ count: count(sql`*`) })
         .from(sessionsTable)
-        .where(
-          sql`${sessionsTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
-        )
+        .where(gte(sessionsTable.createdAt, oneWeekAgo))
     )[0]!
 
     // Get new sessions in last 24 hours
@@ -87,9 +83,7 @@ export class ServerMetricsService {
       await this.ormService.db
         .select({ count: count(sql`*`) })
         .from(sessionsTable)
-        .where(
-          sql`${sessionsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-        )
+        .where(gte(sessionsTable.createdAt, oneDayAgo))
     )[0]!
 
     // Get total folders
@@ -106,9 +100,7 @@ export class ServerMetricsService {
       await this.ormService.db
         .select({ count: count(sql`*`) })
         .from(foldersTable)
-        .where(
-          sql`${foldersTable.createdAt} >= ${oneWeekAgo.toISOString()}::timestamp`,
-        )
+        .where(gte(foldersTable.createdAt, oneWeekAgo))
     )[0]!
 
     // Get installed apps count
@@ -139,9 +131,7 @@ export class ServerMetricsService {
       await this.ormService.db
         .select({ count: count(sql`*`) })
         .from(tasksTable)
-        .where(
-          sql`${tasksTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
-        )
+        .where(gte(tasksTable.createdAt, oneDayAgo))
     )[0]!
 
     // Get tasks created in the last hour
@@ -150,9 +140,7 @@ export class ServerMetricsService {
       await this.ormService.db
         .select({ count: count(sql`*`) })
         .from(tasksTable)
-        .where(
-          sql`${tasksTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp`,
-        )
+        .where(gte(tasksTable.createdAt, oneHourAgo))
     )[0]!
 
     // Get task errors in the last day
@@ -164,7 +152,7 @@ export class ServerMetricsService {
         .where(
           and(
             eq(tasksTable.success, false),
-            sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+            gte(tasksTable.completedAt, oneDayAgo),
           ),
         )
     )[0]!
@@ -178,13 +166,10 @@ export class ServerMetricsService {
         .where(
           and(
             eq(tasksTable.success, false),
-            sql`${tasksTable.completedAt} >= ${oneHourAgo.toISOString()}::timestamp`,
+            gte(tasksTable.completedAt, oneHourAgo),
           ),
         )
     )[0]!
-
-    // Event metrics
-    const eventFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
 
     // Get server events (targetLocation.folderId is null) emitted in the last day
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -193,7 +178,10 @@ export class ServerMetricsService {
         .select({ count: count(sql`*`) })
         .from(eventsTable)
         .where(
-          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
+          and(
+            gte(eventsTable.createdAt, oneDayAgo),
+            isNull(eventsTable.targetLocationFolderId),
+          ),
         )
     )[0]!
 
@@ -204,7 +192,10 @@ export class ServerMetricsService {
         .select({ count: count(sql`*`) })
         .from(eventsTable)
         .where(
-          sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NULL`,
+          and(
+            gte(eventsTable.createdAt, oneHourAgo),
+            isNull(eventsTable.targetLocationFolderId),
+          ),
         )
     )[0]!
 
@@ -215,7 +206,10 @@ export class ServerMetricsService {
         .select({ count: count(sql`*`) })
         .from(eventsTable)
         .where(
-          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
+          and(
+            gte(eventsTable.createdAt, oneDayAgo),
+            isNotNull(eventsTable.targetLocationFolderId),
+          ),
         )
     )[0]!
 
@@ -226,7 +220,10 @@ export class ServerMetricsService {
         .select({ count: count(sql`*`) })
         .from(eventsTable)
         .where(
-          sql`${eventsTable.createdAt} >= ${oneHourAgo.toISOString()}::timestamp AND ${eventFolderId} IS NOT NULL`,
+          and(
+            gte(eventsTable.createdAt, oneHourAgo),
+            isNotNull(eventsTable.targetLocationFolderId),
+          ),
         )
     )[0]!
 

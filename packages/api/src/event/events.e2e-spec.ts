@@ -1,13 +1,14 @@
-import { CORE_APP_SLUG, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestModule } from 'src/test/test.types'
 import { buildTestModule } from 'src/test/test.util'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
-const TEST_MODULE_KEY = 'platform_events'
+const TEST_MODULE_KEY = 'core_events'
 
-describe('Platform events', () => {
+describe('Core Events', () => {
   let testModule: TestModule | undefined
 
   const resetTestState = async () => {
@@ -17,6 +18,7 @@ describe('Platform events', () => {
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
+      // debug: true,
     })
   })
 
@@ -28,31 +30,29 @@ describe('Platform events', () => {
     await testModule?.shutdown()
   })
 
-  it('creates tasks for apps subscribed to platform events', async () => {
+  it('creates tasks for apps subscribed to core events', async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
+    const data = {
+      folderId: crypto.randomUUID(),
+      objectKey: crypto.randomUUID(),
+    }
     await testModule!.services.eventService.emitEvent({
-      emitterIdentifier: PLATFORM_IDENTIFIER,
-      eventIdentifier: 'worker_task_enqueued',
-      data: {
-        innerTaskId: 'abc-123',
-        appIdentifier: 'demo-app',
-        workerIdentifier: 'worker-1',
-      },
+      emitterIdentifier: CORE_IDENTIFIER,
+      eventIdentifier: 'object_added',
+      data,
     })
 
     const tasks =
       await testModule!.services.ormService.db.query.tasksTable.findMany({
-        where: eq(tasksTable.taskIdentifier, 'run_worker_script'),
+        where: eq(tasksTable.taskIdentifier, 'minimal_worker_task'),
       })
 
     expect(tasks.length).toBe(1)
     const task = tasks[0]
     expect(task?.ownerIdentifier).toBe(
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG),
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG),
     )
-    expect(task?.data).toEqual({
-      innerTaskId: 'abc-123',
-      appIdentifier: 'demo-app',
-      workerIdentifier: 'worker-1',
-    })
+    expect(task?.data).toEqual(data)
   })
 })

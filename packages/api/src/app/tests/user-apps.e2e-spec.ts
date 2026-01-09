@@ -1,7 +1,7 @@
-import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
 const TEST_MODULE_KEY = 'user_apps'
 
@@ -21,6 +21,7 @@ describe('User Apps', () => {
   })
 
   it(`should list enabled apps for user`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -38,7 +39,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     const enableResponse = await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -74,12 +75,13 @@ describe('User Apps', () => {
     expect(app.enabled).toBe(true)
     // Should not have admin-only fields
     expect('publicKey' in app).toBe(false)
-    expect('externalWorkers' in app).toBe(false)
+    expect('connectedRuntimeWorkers' in app).toBe(false)
     expect('metrics' in app).toBe(false)
     expect('requiresStorage' in app).toBe(false)
   })
 
   it(`should not list disabled apps for user`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -97,7 +99,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -127,6 +129,7 @@ describe('User Apps', () => {
   })
 
   it(`should get enabled app by identifier for user`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -144,7 +147,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -177,11 +180,12 @@ describe('User Apps', () => {
     expect(getAppResponse.data.app.enabled).toBe(true)
     // Should not have admin-only fields
     expect('publicKey' in getAppResponse.data.app).toBe(false)
-    expect('externalWorkers' in getAppResponse.data.app).toBe(false)
+    expect('connectedRuntimeWorkers' in getAppResponse.data.app).toBe(false)
     expect('metrics' in getAppResponse.data.app).toBe(false)
   })
 
   it(`should return 404 for disabled app`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -199,7 +203,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -249,6 +253,7 @@ describe('User Apps', () => {
   })
 
   it(`should get app contributions`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -265,6 +270,7 @@ describe('User Apps', () => {
   })
 
   it(`should generate a valid user app access token`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -282,7 +288,7 @@ describe('User Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -357,7 +363,7 @@ describe('User Apps', () => {
       {
         params: {
           path: {
-            appIdentifier: CORE_APP_SLUG,
+            appIdentifier: DUMMY_APP_SLUG,
           },
         },
       },

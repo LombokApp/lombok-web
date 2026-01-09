@@ -2,6 +2,7 @@ import type {
   FolderScopeAppPermissions,
   JsonSerializableObject,
   StorageAccessPolicy,
+  TaskCompletion,
 } from '@lombokapp/types'
 import {
   ConflictException,
@@ -21,14 +22,16 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
+import { coreConfig } from 'src/core/config'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import { v4 as uuidV4 } from 'uuid'
+import { z } from 'zod'
 
+import { dockerJobResultSchema } from '../dto/worker-job-complete-request.dto'
 import { WorkerJobUploadUrlsRequestDTO } from '../dto/worker-job-presigned-urls-request.dto'
 import { WorkerJobPresignedUrlsResponseDTO } from '../dto/worker-job-presigned-urls-response.dto'
 
@@ -48,38 +51,28 @@ export interface WorkerJobTokenClaims {
   storageAccessPolicy: StorageAccessPolicy
 }
 
-export interface CompleteJobRequest {
-  success: boolean
-  result?: JsonSerializableObject
-  error?: {
-    code: string
-    message: string
-  }
-  outputFiles?: { folderId: string; objectKey: string }[]
-}
+export type CompleteJobRequest = z.infer<typeof dockerJobResultSchema>
 
 @Injectable()
 export class WorkerJobService {
   private readonly logger = new Logger(WorkerJobService.name)
   taskService: TaskService
-  platformTaskService: PlatformTaskService
+  coreTaskService: CoreTaskService
   appService: AppService
   constructor(
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
-    @Inject(forwardRef(() => PlatformTaskService))
-    _platformTaskService,
+    @Inject(forwardRef(() => CoreTaskService))
+    _coreTaskService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
     @Inject(forwardRef(() => AppService))
     _appService,
   ) {
-    this.platformTaskService = _platformTaskService as PlatformTaskService
+    this.coreTaskService = _coreTaskService as CoreTaskService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
   }
@@ -195,7 +188,7 @@ export class WorkerJobService {
     executorContext?: JsonSerializableObject
   }): string {
     const payload = {
-      aud: this._platformConfig.platformHost,
+      aud: this._coreConfig.platformHost,
       jti: uuidV4(),
       sub: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`,
       job_id: params.jobId,
@@ -220,7 +213,7 @@ export class WorkerJobService {
     try {
       const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._platformConfig.platformHost,
+        audience: this._coreConfig.platformHost,
         subject: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${expectedJobId}`,
       }) as JwtPayload & {
         job_id: string
@@ -320,20 +313,22 @@ export class WorkerJobService {
    * task, i.e. the task that is being "handled" by the docker task.
    *
    * @param claims - The claims from the worker job token
-   * @param request - The request to complete the job
+   * @param completeJobRequest - The request to complete the job
    *
    */
   async completeJob(
     claims: WorkerJobTokenClaims,
-    request: CompleteJobRequest,
+    completeJobRequest: CompleteJobRequest,
   ): Promise<void> {
-    this.logger.log('WorkerJobService.completeJob', { claims, request })
+    this.logger.log('WorkerJobService.completeJob', {
+      claims,
+      request: { dockerRunTaskId: claims.taskId },
+    })
     const { taskId: dockerRunTaskId } = claims
-    const { success, result, error } = request
 
     await this.ormService.db.transaction(async (tx) => {
       // Find the task
-      const dockerTask = await this.ormService.db.query.tasksTable.findFirst({
+      const dockerTask = await tx.query.tasksTable.findFirst({
         where: eq(tasksTable.id, dockerRunTaskId),
       })
 
@@ -363,27 +358,34 @@ export class WorkerJobService {
         throw new NotFoundException(`Inner task not found: ${innerTask}`)
       }
 
-      const resolvedError = {
-        code: error?.code || 'UNKNOWN_ERROR',
-        message: error?.message || 'Job failed without error details',
-        details: {},
-      }
-
-      // TODO: Implement dynamic requeue in the event of failure
+      const innerTaskCompletion: TaskCompletion = completeJobRequest.success
+        ? {
+            success: true,
+            result: completeJobRequest.result,
+          }
+        : {
+            success: false,
+            error: {
+              name: completeJobRequest.error.name ?? 'Error',
+              code: completeJobRequest.error.code,
+              message: completeJobRequest.error.message,
+              ...(completeJobRequest.error.details
+                ? { details: completeJobRequest.error.details }
+                : {}),
+            },
+          }
 
       // Trigger completion of the docker handler task
       await this.taskService.registerTaskCompleted(
         dockerTask.id,
-        success ? { success: true } : { success: false, error: resolvedError },
+        innerTaskCompletion,
         { tx },
       )
 
       // Trigger completion of the inner task
       await this.taskService.registerTaskCompleted(
         innerTask.id,
-        success
-          ? { success: true, result }
-          : { success: false, error: resolvedError },
+        innerTaskCompletion,
         { tx },
       )
     })
@@ -397,7 +399,10 @@ export class WorkerJobService {
 
    */
   async startJob(claims: WorkerJobTokenClaims): Promise<void> {
-    this.logger.log('WorkerJobService.startJob', claims)
+    this.logger.log('WorkerJobService.startJob', {
+      claims,
+      request: { dockerRunTaskId: claims.taskId },
+    })
     const { taskId: dockerRunTaskId } = claims
 
     await this.ormService.db.transaction(async (tx) => {
@@ -422,7 +427,7 @@ export class WorkerJobService {
 
       const innerTask =
         innerTaskId &&
-        (await this.ormService.db.query.tasksTable.findFirst({
+        (await tx.query.tasksTable.findFirst({
           where: eq(tasksTable.id, innerTaskId),
         }))
 
@@ -455,7 +460,7 @@ export class WorkerJobService {
         startContext: {
           __executor: claims.executorContext,
         },
-        tx,
+        options: { tx },
       })
     })
   }

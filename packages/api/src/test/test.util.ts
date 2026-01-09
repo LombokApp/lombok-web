@@ -3,7 +3,8 @@ import { SignedURLsRequestMethod } from '@lombokapp/types'
 import type { Type } from '@nestjs/common'
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { eq } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
+import { and, count, eq, gt, inArray, isNotNull, not, or } from 'drizzle-orm'
 import fs from 'fs'
 import type { Server } from 'http'
 import path from 'path'
@@ -11,14 +12,25 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
+import { CoreModule } from 'src/core/core.module'
+import { waitForTrue } from 'src/core/utils/wait.util'
+import { SHOULD_START_CORE_WORKER_THREAD_KEY } from 'src/core-worker/core-worker.constants'
+import { CoreWorkerService } from 'src/core-worker/core-worker.service'
+import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
 import { WorkerJobService } from 'src/docker/services/worker-job.service'
+import {
+  buildMockDockerAdapter,
+  MockDockerAdapterProvider,
+} from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { tasksTable } from 'src/task/entities/task.entity'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import type { User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
@@ -35,17 +47,23 @@ const MINIO_SECRET_ACCESS_KEY = 'testsecretaccesskey'
 const MINIO_ENDPOINT = 'http://miniotest:9000'
 const MINIO_REGION = 'auto'
 
+const mockDockerAdapter = buildMockDockerAdapter('local')
+const mockDockerAdapterProvider = new MockDockerAdapterProvider(
+  mockDockerAdapter,
+)
+
 export async function buildTestModule({
   testModuleKey,
   overrides = [],
   debug,
   startServerOnPort,
+  startCoreWorker = false,
 }: {
   testModuleKey: string
   debug?: true
   startServerOnPort?: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  overrides?: { token: any; value: unknown }[]
+  startCoreWorker?: boolean
+  overrides?: { token: symbol | string | Type; value: unknown }[]
 }) {
   if (
     typeof startServerOnPort === 'number' &&
@@ -58,13 +76,12 @@ export async function buildTestModule({
   const dbName = `test_db_${testModuleKey}`
   const bucketPathsToRemove: string[] = []
   let httpServer: Server | undefined = undefined
-  const { PlatformTestModule } = await import('src/test/platform-test.module')
 
   const initTestModuleWithOverrides = (
-    _overrides: { token: symbol | string; value: unknown }[],
+    _overrides: { token: symbol | string | Type; value: unknown }[],
   ): TestingModuleBuilder => {
     const moduleBuilder = Test.createTestingModule({
-      imports: [PlatformTestModule],
+      imports: [CoreModule],
       providers: [],
     })
     return _overrides.reduce((acc, { token, value }) => {
@@ -72,6 +89,22 @@ export async function buildTestModule({
       return acc
     }, moduleBuilder)
   }
+
+  const builtInOverrides: { token: symbol | string | Type; value: unknown }[] =
+    [
+      {
+        token: DockerAdapterProvider,
+        value: mockDockerAdapterProvider,
+      },
+      {
+        token: ormConfig.KEY,
+        value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
+      },
+      {
+        token: SHOULD_START_CORE_WORKER_THREAD_KEY,
+        value: startCoreWorker,
+      },
+    ]
 
   const logger = new NoPrefixConsoleLogger({
     colors: true,
@@ -83,11 +116,7 @@ export async function buildTestModule({
   })
 
   const appPromise = initTestModuleWithOverrides([
-    {
-      token: ormConfig.KEY,
-      value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
-    },
-    ...overrides,
+    ...builtInOverrides.concat(overrides),
   ])
     .compile()
     .then((moduleRef) => moduleRef.createNestApplication({ logger }))
@@ -95,9 +124,14 @@ export async function buildTestModule({
   setAppInitializing(appPromise)
 
   const app = await appPromise
-  app.useGlobalFilters(new HttpExceptionFilter())
-
   setApp(app)
+
+  app.useGlobalFilters(new HttpExceptionFilter())
+  app.use((req, _res, next) => {
+    const requestId = crypto.randomUUID()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    runWithThreadContext(requestId, next)
+  })
 
   // Ensure all modules complete onModuleInit before using providers
   await app.enableShutdownHooks().init()
@@ -114,10 +148,11 @@ export async function buildTestModule({
 
   const services = {
     jwtService: await app.resolve(JWTService),
+    coreWorkerService: await app.resolve(CoreWorkerService),
     appService: await app.resolve(AppService),
     serverConfigurationService: await app.resolve(ServerConfigurationService),
     workerJobService: await app.resolve(WorkerJobService),
-    platformTaskService: await app.resolve(PlatformTaskService),
+    coreTaskService: await app.resolve(CoreTaskService),
     eventService: await app.resolve(EventService),
     taskService: await app.resolve(TaskService),
     ormService: await app.resolve(OrmService),
@@ -126,9 +161,6 @@ export async function buildTestModule({
 
   // Truncate the DB after app init (migrations/initialization complete)
   await services.ormService.truncateAllTestTables()
-
-  // Install apps from disk for tests (since installAppsOnStart may not be set in test env)
-  await services.appService.installAllAppsFromDisk()
 
   async function initMinioTestBucket(
     createFiles: { objectKey: string; content: Buffer | string }[] = [],
@@ -174,9 +206,74 @@ export async function buildTestModule({
     return bucketName
   }
 
+  const setServerStorageLocation = async () => {
+    const bucketName = await initMinioTestBucket()
+    await services.serverConfigurationService.setServerStorageAsAdmin(
+      {
+        isAdmin: true,
+      } as User,
+      {
+        accessKeyId: MINIO_ACCESS_KEY_ID,
+        secretAccessKey: MINIO_SECRET_ACCESS_KEY,
+        endpoint: MINIO_ENDPOINT,
+        region: MINIO_REGION,
+        bucket: bucketName,
+        prefix: '',
+      },
+    )
+  }
+
   return {
     app,
     services,
+    waitForTasks: async (
+      waitType: 'started' | 'completed' | 'attempted',
+      {
+        taskIds,
+        timeoutMs = 5000,
+      }: {
+        taskIds?: string[]
+        timeoutMs?: number
+      } = {
+        timeoutMs: 5000,
+      },
+    ) => {
+      await services.coreTaskService.startDrainCoreTasks()
+
+      const condition: SQL =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        (
+          waitType === 'started'
+            ? or(
+                gt(tasksTable.attemptCount, 0),
+                isNotNull(tasksTable.startedAt),
+              )
+            : waitType === 'attempted'
+              ? gt(tasksTable.attemptCount, 0)
+              : isNotNull(tasksTable.completedAt)
+        )!
+
+      await waitForTrue(
+        async () => {
+          const result = await services.ormService.db
+            .select({
+              count: count(),
+            })
+            .from(tasksTable)
+            .where(
+              taskIds
+                ? and(condition, inArray(tasksTable.id, taskIds))
+                : not(condition),
+            )
+          return result[0]?.count === (taskIds?.length ?? 0)
+        },
+        {
+          retryPeriodMs: 100,
+          maxRetries: Math.ceil(timeoutMs / 100),
+          totalMaxDurationMs: timeoutMs,
+        },
+      )
+    },
     apiClient: buildSupertestApiClient(app),
     shutdown: async () => {
       // remove created minio buckets
@@ -205,7 +302,6 @@ export async function buildTestModule({
     resetAppState: async () => {
       services.kvService.ops.flushall()
       await services.ormService.resetTestDb()
-      await services.appService.installAllAppsFromDisk()
     },
     testS3ClientConfig: () => ({
       accessKeyId: MINIO_ACCESS_KEY_ID,
@@ -229,22 +325,17 @@ export async function buildTestModule({
       }
       return _app.identifier
     },
-    setServerStorageLocation: async () => {
-      const bucketName = await initMinioTestBucket()
-      await services.serverConfigurationService.setServerStorageAsAdmin(
-        {
-          isAdmin: true,
-        } as User,
-        {
-          accessKeyId: MINIO_ACCESS_KEY_ID,
-          secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-          endpoint: MINIO_ENDPOINT,
-          region: MINIO_REGION,
-          bucket: bucketName,
-          prefix: '',
-        },
-      )
+    installLocalAppBundles: async (limitTo: string[] | null = null) => {
+      await setServerStorageLocation()
+      await services.appService.installLocalAppBundles(limitTo)
     },
+    getInstalledAppsCount: async () => {
+      const apps = await services.ormService.db.query.appsTable.findMany({
+        where: eq(appsTable.enabled, true),
+      })
+      return apps.length
+    },
+    setServerStorageLocation,
     initMinioTestBucket,
     createS3PresignedUrls: (
       presignedRequests: {

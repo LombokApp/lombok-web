@@ -1,4 +1,3 @@
-import { ExternalAppWorker } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
 import { Logger, UnauthorizedException } from '@nestjs/common'
 import {
@@ -7,19 +6,21 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
+import crypto from 'crypto'
 import { Jwt } from 'jsonwebtoken'
 import { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
 import {
   APP_JWT_SUB_PREFIX,
-  APP_WORKER_JWT_SUB_PREFIX,
+  APP_RUNTIME_WORKER_JWT_SUB_PREFIX,
   JWTService,
 } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { z } from 'zod'
 
 import {
-  APP_WORKER_INFO_CACHE_KEY_PREFIX,
+  APP_RUNTIME_WORKER_SOCKET_STATE,
   AppSocketService,
 } from './app-socket.service'
 
@@ -74,15 +75,17 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
           }
 
           const sub = jwt.payload.sub as string | undefined
-          const isExternalAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
-          const isAppWorkerToken = sub?.startsWith(APP_WORKER_JWT_SUB_PREFIX)
+          const isAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
+          const isAppRuntimeWorkerToken = sub?.startsWith(
+            APP_RUNTIME_WORKER_JWT_SUB_PREFIX,
+          )
 
-          const appIdentifier = isExternalAppToken
+          const appIdentifier = isAppToken
             ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               sub!.slice(APP_JWT_SUB_PREFIX.length)
-            : isAppWorkerToken
+            : isAppRuntimeWorkerToken
               ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                sub!.slice(APP_WORKER_JWT_SUB_PREFIX.length)
+                sub!.slice(APP_RUNTIME_WORKER_JWT_SUB_PREFIX.length)
               : undefined
 
           if (!appIdentifier) {
@@ -106,14 +109,14 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
 
               try {
                 // verifies the token using the publicKey we have on file for this app
-                if (isExternalAppToken) {
+                if (isAppToken) {
                   this.jwtService.verifyAppJWT({
                     appIdentifier,
                     publicKey: app.publicKey,
                     token: auth.token,
                   })
-                } else if (isAppWorkerToken) {
-                  this.jwtService.verifyAppWorkerToken({
+                } else if (isAppRuntimeWorkerToken) {
+                  this.jwtService.verifyAppRuntimeWorkerToken({
                     appIdentifier,
                     token: auth.token,
                   })
@@ -123,17 +126,16 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                 next(this.closeSocketAndReturnUnauthorized(socket))
               }
 
-              const workerInfo: ExternalAppWorker = {
+              const workerInfo = {
                 appIdentifier,
                 socketClientId: socket.id,
-                handledTaskIdentifiers: auth.handledTaskIdentifiers ?? [], // TODO: validate worker reported task keys to match their config
                 workerId: auth.instanceId,
                 ip: socket.handshake.address,
               }
-              const workerCacheKey = `${appIdentifier}:${auth.instanceId}`
+              const instanceKey = `${appIdentifier}:${auth.instanceId}`
               // persist worker state in memory
               void this.kvService.ops.set(
-                `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
+                `${APP_RUNTIME_WORKER_SOCKET_STATE}:${instanceKey}`,
                 JSON.stringify(workerInfo),
               )
 
@@ -166,14 +168,19 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                   }
                 }
                 // Also cleanup from connectedAppWorkers
-                this.appSocketService.connectedAppWorkers.delete(socket.id)
+                this.appSocketService.connectedAppRuntimeWorkers.delete(
+                  socket.id,
+                )
 
                 void this.kvService.ops.del(
-                  `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
+                  `${APP_RUNTIME_WORKER_SOCKET_STATE}:${instanceKey}`,
                 )
               })
               const clientId = socket.id
-              this.appSocketService.connectedAppWorkers.set(clientId, socket)
+              this.appSocketService.connectedAppRuntimeWorkers.set(
+                clientId,
+                socket,
+              )
               return Promise.all(
                 (auth.handledTaskIdentifiers ?? []).map(
                   async (taskIdentifier) => {
@@ -225,42 +232,53 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                     message: unknown,
                     ack?: (response: unknown) => void,
                   ) => {
-                    this.logger.log('APP Message Request:', {
-                      message,
-                      instanceId: auth.instanceId,
-                      appIdentifier,
-                    })
-                    const response = await this.appService
-                      .handleAppRequest(auth.instanceId, appIdentifier, message)
-                      // eslint-disable-next-line promise/no-nesting
-                      .catch((error: unknown) => {
-                        this.logger.error(
-                          'Unexpected error during message handling:',
-                          {
-                            message,
-                            error,
-                          },
+                    const requestId = crypto.randomUUID()
+                    const response = await runWithThreadContext(
+                      requestId,
+                      async () => {
+                        this.logger.log(
+                          `APP API Req:      appIdentifier=${appIdentifier} requestId=${requestId} message=${(message as { name: string }).name}`,
                         )
-                        return {
-                          error: {
-                            code: '500',
-                            message: 'Unexpected error.',
-                          },
-                        }
-                      })
+                        return (
+                          this.appService
+                            .handleAppRequest(
+                              auth.instanceId,
+                              appIdentifier,
+                              message,
+                            )
+                            // eslint-disable-next-line promise/no-nesting
+                            .catch((error: unknown) => {
+                              this.logger.error(
+                                'Unexpected error during message handling:',
+                                {
+                                  message,
+                                  error,
+                                },
+                              )
+                              return {
+                                error: {
+                                  code: '500',
+                                  message: 'Unexpected error.',
+                                },
+                              }
+                            })
+                        )
+                      },
+                    )
                     if ('error' in response) {
-                      this.logger.log('APP Message Error:', {
-                        message: (message as { name: string }).name,
-                        appIdentifier,
-                        error: response.error,
-                      })
+                      this.logger.warn(
+                        `APP API Error:    appIdentifier=${appIdentifier} requestId=${requestId}`,
+                        {
+                          message,
+                          error: response.error,
+                        },
+                      )
                     } else {
-                      this.logger.log('APP Message Response:', {
-                        message: (message as { name: string }).name,
-                        appIdentifier,
-                        response,
-                      })
+                      this.logger.log(
+                        `APP API Res:      appIdentifier=${appIdentifier} requestId=${requestId}`,
+                      )
                     }
+
                     ack?.(response)
                   },
                 )

@@ -56,8 +56,8 @@ jobs:
       - run: bun --cwd packages/core-worker lint:check
       - run: bun --cwd packages/core-worker tsc:check
 
-  check-core-worker-utils:
-    name: Check @lombokapp/core-worker-utils package
+  check-worker-utils:
+    name: Check @lombokapp/worker-utils package
     runs-on: ubuntu-latest
 
     steps:
@@ -68,9 +68,9 @@ jobs:
         with:
           bun-version: 1.3.2
       - run: bun install
-      - run: bun --cwd packages/core-worker-utils prettier:check
-      - run: bun --cwd packages/core-worker-utils lint:check
-      - run: bun --cwd packages/core-worker-utils tsc:check
+      - run: bun --cwd packages/worker-utils prettier:check
+      - run: bun --cwd packages/worker-utils lint:check
+      - run: bun --cwd packages/worker-utils tsc:check
 
   check-app-browser-sdk:
     name: Check @lombokapp/app-browser-sdk package

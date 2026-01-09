@@ -1,11 +1,11 @@
 import {
   AppTaskConfig,
+  CORE_IDENTIFIER,
+  CoreEvent,
   eventIdentifierSchema,
   FolderPushMessage,
   JsonSerializableObject,
-  PLATFORM_IDENTIFIER,
-  PlatformEvent,
-  TaskScheduleTriggerConfig,
+  ScheduleTaskTriggerConfig,
 } from '@lombokapp/types'
 import {
   forwardRef,
@@ -26,22 +26,23 @@ import {
   ilike,
   or,
   SQL,
-  sql,
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { evalTriggerHandlerCondition } from 'src/event/util/eval-trigger-condition.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import {
-  PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP,
-  PLATFORM_TASKS,
-} from 'src/task/constants/platform-tasks.constants'
+  CORE_EVENT_TRIGGERS_TO_TASKS_MAP,
+  CORE_TASKS,
+} from 'src/task/constants/core-tasks.constants'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
+import { getUtcScheduleBucket } from 'src/task/util/schedule-bucket.util'
+import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -75,21 +76,21 @@ export class EventService {
     return this._appService as AppService
   }
 
-  get platformTaskService(): PlatformTaskService {
-    return this._platformTaskService as PlatformTaskService
+  get coreTaskService(): CoreTaskService {
+    return this._coreTaskService as CoreTaskService
   }
 
   constructor(
     private readonly ormService: OrmService,
-    @Inject(forwardRef(() => PlatformTaskService))
-    private readonly _platformTaskService,
+    @Inject(forwardRef(() => CoreTaskService))
+    private readonly _coreTaskService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
 
-  private getScheduleIntervalMs(scheduleTrigger: TaskScheduleTriggerConfig) {
+  private getScheduleIntervalMs(scheduleTrigger: ScheduleTaskTriggerConfig) {
     if (scheduleTrigger.config.unit === 'minutes') {
       return scheduleTrigger.config.interval * 60 * 1000
     }
@@ -103,16 +104,10 @@ export class EventService {
     handlerType: NewTask['handlerType']
     handlerIdentifier?: NewTask['handlerIdentifier']
   } {
-    if (
-      taskDefinition.handler.type === 'worker' ||
-      taskDefinition.handler.type === 'docker'
-    ) {
-      return {
-        handlerType: taskDefinition.handler.type,
-        handlerIdentifier: taskDefinition.handler.identifier,
-      }
+    return {
+      handlerType: taskDefinition.handler.type,
+      handlerIdentifier: taskDefinition.handler.identifier,
     }
-    return { handlerType: 'external' }
   }
 
   async processScheduledTaskTriggers() {
@@ -126,6 +121,7 @@ export class EventService {
     this.isProcessingScheduleTriggers = true
     try {
       const now = new Date()
+      const nowMs = now.getTime()
       const enabledApps = await this.ormService.db.query.appsTable.findMany({
         where: eq(appsTable.enabled, true),
         columns: {
@@ -146,27 +142,8 @@ export class EventService {
         }
 
         for (const scheduleTrigger of scheduleTriggers) {
-          const earliestAllowed = new Date(
-            now.getTime() - this.getScheduleIntervalMs(scheduleTrigger),
-          )
-
-          const existingTask =
-            await this.ormService.db.query.tasksTable.findFirst({
-              columns: { id: true, createdAt: true },
-              where: and(
-                eq(tasksTable.ownerIdentifier, app.identifier),
-                eq(tasksTable.taskIdentifier, scheduleTrigger.taskIdentifier),
-                sql`(${tasksTable.trigger} ->> 'kind') = 'schedule'`,
-                sql`(${tasksTable.trigger} -> 'config' ->> 'unit') = ${scheduleTrigger.config.unit}`,
-                sql`(${tasksTable.trigger} -> 'config' ->> 'interval')::int = ${scheduleTrigger.config.interval}`,
-                gte(tasksTable.createdAt, earliestAllowed),
-              ),
-              orderBy: desc(tasksTable.createdAt),
-            })
-
-          if (existingTask) {
-            continue
-          }
+          const intervalMs = this.getScheduleIntervalMs(scheduleTrigger)
+          const earliestAllowed = new Date(nowMs - intervalMs)
 
           const taskDefinition = app.config.tasks?.find(
             (task) => task.identifier === scheduleTrigger.taskIdentifier,
@@ -182,17 +159,24 @@ export class EventService {
           const { handlerType, handlerIdentifier } =
             this.resolveTaskHandler(taskDefinition)
 
-          const newTask: NewTask = {
+          const newTask = withTaskIdempotencyKey({
             id: uuidV4(),
-            trigger: {
+            invocation: {
               kind: 'schedule',
-              invokeContext: {},
-              config: {
-                interval: scheduleTrigger.config.interval,
-                unit: scheduleTrigger.config.unit,
+              invokeContext: {
+                timestampBucket: getUtcScheduleBucket(
+                  scheduleTrigger.config,
+                  now,
+                ).bucketStart.toISOString(),
+                name: scheduleTrigger.name,
+                config: {
+                  interval: scheduleTrigger.config.interval,
+                  unit: scheduleTrigger.config.unit,
+                },
               },
             },
             taskIdentifier: taskDefinition.identifier,
+            storageAccessPolicy: [],
             taskDescription: taskDefinition.description,
             data: {},
             ownerIdentifier: app.identifier,
@@ -200,8 +184,23 @@ export class EventService {
             updatedAt: now,
             handlerType,
             handlerIdentifier,
-          }
+          })
 
+          const existingTask =
+            await this.ormService.db.query.tasksTable.findFirst({
+              columns: { id: true, createdAt: true },
+              where: and(
+                eq(tasksTable.ownerIdentifier, app.identifier),
+                eq(tasksTable.taskIdentifier, newTask.taskIdentifier),
+                eq(tasksTable.idempotencyKey, newTask.idempotencyKey),
+                gte(tasksTable.createdAt, earliestAllowed),
+              ),
+              orderBy: desc(tasksTable.createdAt),
+            })
+
+          if (existingTask) {
+            continue
+          }
           tasksToInsert.push(newTask)
         }
       }
@@ -214,8 +213,8 @@ export class EventService {
         await tx.insert(tasksTable).values(tasksToInsert)
 
         for (const task of tasksToInsert) {
-          if (task.handlerType === 'worker' || task.handlerType === 'docker') {
-            await this.emitRunnableTaskEnqueuedEvent(task, { tx })
+          if (task.handlerType === 'runtime' || task.handlerType === 'docker') {
+            await this.emitRunnableTaskEnqueuedEvent(task, tx)
           }
         }
       })
@@ -229,7 +228,7 @@ export class EventService {
     }
   }
 
-  async emitEvent(
+  async _emitEventInTx(
     {
       emitterIdentifier,
       eventIdentifier,
@@ -243,7 +242,7 @@ export class EventService {
       targetLocation?: { folderId: string; objectKey?: string }
       targetUserId?: string
     },
-    _db?: OrmService['db'],
+    tx: OrmService['db'],
   ) {
     if (!eventIdentifierSchema.safeParse(eventIdentifier).success) {
       throw new InternalServerErrorException(
@@ -251,11 +250,10 @@ export class EventService {
       )
     }
 
-    const db = _db ?? this.ormService.db
     const now = new Date()
 
-    const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
-    const appIdentifier = !isPlatformEmitter ? emitterIdentifier : undefined
+    const isCoreEmitter = emitterIdentifier === CORE_IDENTIFIER
+    const appIdentifier = !isCoreEmitter ? emitterIdentifier : undefined
 
     const app = appIdentifier
       ? await this.appService.getApp(appIdentifier.toLowerCase(), {
@@ -299,77 +297,72 @@ export class EventService {
       }
     }
 
-    this.logger.debug('EventService.emitEvent:', {
-      eventIdentifier,
-      emitterIdentifier,
-      data,
-      target: {
-        location: targetLocation,
-        userId: targetUserId,
-      },
-    })
+    this.logger.debug(
+      `EventService.emitEvent identifier=${eventIdentifier} emitterIdentifier=${emitterIdentifier} targetLocation=${JSON.stringify(targetLocation)} targetUserId=${targetUserId}`,
+    )
 
-    await db.transaction(async (tx) => {
-      const events = await tx
-        .insert(eventsTable)
-        .values([
-          {
-            id: uuidV4(),
-            eventIdentifier,
-            emitterIdentifier,
-            targetLocation,
-            targetUserId,
-            createdAt: now,
-            data,
-          },
-        ])
-        .returning()
+    const events = await tx
+      .insert(eventsTable)
+      .values([
+        {
+          id: uuidV4(),
+          eventIdentifier,
+          emitterIdentifier,
+          targetLocationFolderId: targetLocation?.folderId,
+          targetLocationObjectKey: targetLocation?.objectKey,
+          targetUserId,
+          createdAt: now,
+          data,
+        },
+      ])
+      .returning()
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const event = events[0]!
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const event = events[0]!
 
-      // regular event, so we should lookup apps that have subscribed to this event
-      const eventTriggerIdentifier = isPlatformEmitter
-        ? `${PLATFORM_IDENTIFIER}:${eventIdentifier}`
-        : eventIdentifier
+    // regular event, so we should lookup apps that have subscribed to this event
+    const eventTriggerIdentifier = isCoreEmitter
+      ? `${CORE_IDENTIFIER}:${eventIdentifier}`
+      : eventIdentifier
 
-      const subscribedApps = isPlatformEmitter
-        ? await tx.query.appsTable.findMany({
-            where: and(
-              arrayContains(appsTable.subscribedPlatformEvents, [
-                eventTriggerIdentifier,
-              ]),
-              eq(appsTable.enabled, true),
-            ),
-            limit: 100, // TODO: manage this limit somehow
-          })
-        : app
-          ? [app]
-          : []
+    const subscribedApps = isCoreEmitter
+      ? await tx.query.appsTable.findMany({
+          where: and(
+            arrayContains(appsTable.subscribedCoreEvents, [
+              eventTriggerIdentifier,
+            ]),
+            eq(appsTable.enabled, true),
+          ),
+          limit: 100, // TODO: manage this limit somehow
+        })
+      : app
+        ? [app]
+        : []
 
-      const tasks: NewTask[] = []
-      await Promise.all(
-        subscribedApps.map(async (subscribedApp) => {
-          try {
-            if (targetLocation) {
-              await this.appService.validateAppFolderAccess({
-                appIdentifier: subscribedApp.identifier,
-                folderId: targetLocation.folderId,
-              })
-            } else if (targetUserId) {
-              await this.appService.validateAppUserAccess({
-                appIdentifier: subscribedApp.identifier,
-                userId: targetUserId,
-              })
-            }
-          } catch (error) {
-            if (error instanceof UnauthorizedException) {
-              // App is not enabled for this user or folder
-              return Promise.resolve()
-            }
+    const tasks: NewTask[] = []
+    await Promise.all(
+      subscribedApps.map(async (subscribedApp) => {
+        try {
+          if (targetLocation) {
+            await this.appService.validateAppFolderAccess({
+              appIdentifier: subscribedApp.identifier,
+              folderId: targetLocation.folderId,
+            })
+          } else if (targetUserId) {
+            await this.appService.validateAppUserAccess({
+              appIdentifier: subscribedApp.identifier,
+              userId: targetUserId,
+            })
           }
-          return Promise.all(
-            (subscribedApp.config.triggers ?? []).map(async (trigger) => {
+        } catch (error) {
+          if (error instanceof UnauthorizedException) {
+            // App is not enabled for this user or folder
+            return Promise.resolve()
+          }
+        }
+        return Promise.all(
+          (subscribedApp.config.triggers ?? []).map(
+            async (trigger, eventTriggerConfigIndex) => {
               if (
                 trigger.kind === 'event' &&
                 trigger.eventIdentifier === eventTriggerIdentifier
@@ -396,18 +389,17 @@ export class EventService {
                 }
 
                 // Build the base task object
-                const baseTask: NewTask = {
+                const task: NewTask = withTaskIdempotencyKey({
                   id: uuidV4(),
-                  trigger: {
+                  invocation: {
                     ...trigger,
-                    invokeContext: this.buildEventInvocation(event),
+                    invokeContext: this.buildEventInvocation(
+                      event,
+                      eventTriggerConfigIndex,
+                    ),
                   },
-                  targetLocation: targetLocation?.folderId
-                    ? {
-                        folderId: targetLocation.folderId,
-                        objectKey: targetLocation.objectKey,
-                      }
-                    : undefined,
+                  targetLocationFolderId: targetLocation?.folderId,
+                  targetLocationObjectKey: targetLocation?.objectKey,
                   taskDescription: taskDefinition.description,
                   taskIdentifier: taskDefinition.identifier,
                   data: trigger.dataTemplate
@@ -422,11 +414,13 @@ export class EventService {
                         },
                       )
                     : {},
+                  storageAccessPolicy: [],
                   ownerIdentifier: subscribedApp.identifier,
                   systemLog: [
                     {
                       at: new Date(),
-                      payload: { logType: 'started', data: {} },
+                      logType: 'started',
+                      message: 'Task is started',
                     },
                   ],
                   createdAt: now,
@@ -435,94 +429,142 @@ export class EventService {
                   handlerIdentifier: (
                     taskDefinition.handler as { identifier: string } | undefined
                   )?.identifier,
-                }
-                tasks.push(baseTask)
-                if (
-                  taskDefinition.handler.type === 'worker' ||
-                  taskDefinition.handler.type === 'docker'
-                ) {
-                  // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                  await this.emitRunnableTaskEnqueuedEvent(baseTask, {
-                    tx,
-                  })
-                }
+                })
+                tasks.push(task)
+                // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
+                await this.emitRunnableTaskEnqueuedEvent(task, tx)
               }
               return Promise.resolve()
-            }),
-          )
-        }),
-      )
-
-      // Insert platform tasks that are subscribed to this platform emitted event
-      if (isPlatformEmitter) {
-        // Collect platform tasks registered for the platform event that was emitted
-        tasks.push(...this.gatherPlatformTasksForEvent(event, now))
-      }
-
-      if (tasks.length) {
-        await tx.insert(tasksTable).values(tasks)
-        // notify folder rooms of new tasks
-        tasks.forEach((_task) => {
-          if (_task.targetLocation?.folderId) {
-            this.folderSocketService.sendToFolderRoom(
-              _task.targetLocation.folderId,
-              FolderPushMessage.TASK_ADDED,
-              { task: _task },
-            )
-          }
-        })
-      }
-      // Emit EVENT_CREATED to folder room if folderId is present
-      if (targetLocation?.folderId) {
-        this.folderSocketService.sendToFolderRoom(
-          targetLocation.folderId,
-          FolderPushMessage.EVENT_CREATED as FolderPushMessage,
-          { event },
+            },
+          ),
         )
-      }
-    })
-    void this.platformTaskService.drainPlatformTasks()
+      }),
+    )
+
+    // Insert core tasks that are subscribed to this core emitted event
+    if (isCoreEmitter) {
+      // Collect core tasks registered for the core event that was emitted
+      tasks.push(...this.gatherCoreTasksForEvent(event, now))
+    }
+
+    if (tasks.length) {
+      await tx.insert(tasksTable).values(tasks)
+      // notify folder rooms of new tasks
+      tasks.forEach((_task) => {
+        if (_task.targetLocationFolderId) {
+          this.folderSocketService.sendToFolderRoom(
+            _task.targetLocationFolderId,
+            FolderPushMessage.TASK_ADDED,
+            { task: _task },
+          )
+        }
+      })
+    }
+    // Emit EVENT_CREATED to folder room if folderId is present
+    if (targetLocation?.folderId) {
+      this.folderSocketService.sendToFolderRoom(
+        targetLocation.folderId,
+        FolderPushMessage.EVENT_CREATED as FolderPushMessage,
+        { event },
+      )
+    }
+
+    void this.coreTaskService.startDrainCoreTasks()
   }
 
-  private buildEventInvocation(event: Event) {
+  async emitEvent(
+    {
+      emitterIdentifier,
+      eventIdentifier,
+      data,
+      targetLocation,
+      targetUserId,
+    }: {
+      emitterIdentifier: string
+      eventIdentifier: string
+      data: JsonSerializableObject
+      targetLocation?: { folderId: string; objectKey?: string }
+      targetUserId?: string
+    },
+    options: { tx?: OrmService['db'] } = {},
+  ) {
+    const args = {
+      emitterIdentifier,
+      eventIdentifier,
+      data,
+      targetLocation,
+      targetUserId,
+    }
+    if (options.tx) {
+      return this._emitEventInTx(args, options.tx)
+    } else {
+      return this.ormService.db.transaction(async (tx) => {
+        return this._emitEventInTx(args, tx)
+      })
+    }
+  }
+
+  private buildEventInvocation(event: Event, eventTriggerConfigIndex: number) {
     return {
       eventId: event.id,
+      eventTriggerConfigIndex,
       emitterIdentifier: event.emitterIdentifier,
+      eventIdentifier: event.eventIdentifier,
       targetUserId: event.targetUserId ?? undefined,
-      targetLocation: event.targetLocation ?? undefined,
+      targetLocation: event.targetLocationFolderId
+        ? {
+            folderId: event.targetLocationFolderId,
+            objectKey: event.targetLocationObjectKey ?? undefined,
+          }
+        : undefined,
       eventData: event.data ?? {},
     }
   }
 
-  gatherPlatformTasksForEvent(event: Event, timestamp: Date): NewTask[] {
-    if (event.emitterIdentifier !== PLATFORM_IDENTIFIER) {
+  gatherCoreTasksForEvent(event: Event, timestamp: Date): NewTask[] {
+    if (event.emitterIdentifier !== CORE_IDENTIFIER) {
       return []
     }
 
-    const platformTaskDefinitions =
-      PLATFORM_EVENT_TRIGGERS_TO_TASKS_MAP[
-        event.eventIdentifier as PlatformEvent
-      ] ?? []
+    const coreTaskDefinitions =
+      CORE_EVENT_TRIGGERS_TO_TASKS_MAP[event.eventIdentifier as CoreEvent] ?? []
 
-    const platformTasks: NewTask[] = platformTaskDefinitions.map(
-      ({ taskIdentifier, buildData }) => ({
-        id: uuidV4(),
-        trigger: {
-          kind: 'event',
-          eventIdentifier: event.eventIdentifier,
-          invokeContext: this.buildEventInvocation(event),
+    const coreTasks: NewTask[] = coreTaskDefinitions.map(
+      (
+        {
+          taskIdentifier,
+          buildData,
+          buildTargetLocation,
+          calculateDontStartBefore,
         },
-        taskIdentifier,
-        taskDescription: PLATFORM_TASKS[taskIdentifier].description,
-        data: buildData(event),
-        ownerIdentifier: PLATFORM_IDENTIFIER,
-        handlerType: PLATFORM_IDENTIFIER,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      }),
+        eventTriggerConfigIndex,
+      ) => {
+        const targetLocation = buildTargetLocation?.(event)
+        return withTaskIdempotencyKey({
+          id: crypto.randomUUID(),
+          invocation: {
+            kind: 'event',
+            invokeContext: this.buildEventInvocation(
+              event,
+              eventTriggerConfigIndex,
+            ),
+          },
+          storageAccessPolicy: [],
+          taskIdentifier,
+          dontStartBefore: calculateDontStartBefore?.(event),
+          targetLocationFolderId: targetLocation?.folderId ?? null,
+          targetLocationObjectKey: targetLocation?.objectKey ?? null,
+          taskDescription: CORE_TASKS[taskIdentifier].description,
+          data: buildData(event),
+          ownerIdentifier: CORE_IDENTIFIER,
+          handlerType: CORE_IDENTIFIER,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        })
+      },
     )
 
-    return platformTasks
+    return coreTasks
   }
 
   /**
@@ -533,24 +575,27 @@ export class EventService {
    * @param tx - The transaction to use.
    */
   async emitRunnableTaskEnqueuedEvent(
-    task: NewTask,
-    {
-      tx,
-    }: {
-      tx: OrmService['db']
+    task: {
+      id: string
+      handlerType: string
+      handlerIdentifier?: string | null
+      ownerIdentifier: string
+      dontStartBefore?: Date | null
     },
+    tx: OrmService['db'],
   ) {
-    if (task.handlerType === 'worker' || task.handlerType === 'docker') {
+    if (task.handlerType === 'runtime' || task.handlerType === 'docker') {
       const event = {
-        emitterIdentifier: PLATFORM_IDENTIFIER,
+        emitterIdentifier: CORE_IDENTIFIER,
         eventIdentifier:
-          task.handlerType === 'worker'
-            ? PlatformEvent.worker_task_enqueued
-            : PlatformEvent.docker_task_enqueued,
+          task.handlerType === 'runtime'
+            ? CoreEvent.serverless_task_enqueued
+            : CoreEvent.docker_task_enqueued,
         data: {
+          dontStartBefore: task.dontStartBefore?.toISOString() ?? null,
           innerTaskId: task.id,
           appIdentifier: task.ownerIdentifier,
-          ...(task.handlerType === 'worker'
+          ...(task.handlerType === 'runtime'
             ? {
                 workerIdentifier: task.handlerIdentifier ?? null,
               }
@@ -562,7 +607,7 @@ export class EventService {
               }),
         },
       }
-      await this.emitEvent(event, tx)
+      await this.emitEvent(event, { tx })
     }
   }
 
@@ -570,7 +615,6 @@ export class EventService {
     actor: User,
     { folderId, eventId }: { folderId: string; eventId: string },
   ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
-    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const result = await this.ormService.db
@@ -580,8 +624,16 @@ export class EventService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(eventsTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
-      .where(and(eq(targetFolderId, folder.id), eq(eventsTable.id, eventId)))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, eventsTable.targetLocationFolderId),
+      )
+      .where(
+        and(
+          eq(eventsTable.targetLocationFolderId, folder.id),
+          eq(eventsTable.id, eventId),
+        ),
+      )
       .limit(1)
 
     const record = result.at(0)
@@ -593,8 +645,14 @@ export class EventService {
 
     return {
       ...record.event,
+      targetLocation: record.event.targetLocationFolderId
+        ? {
+            folderId: record.event.targetLocationFolderId,
+            objectKey: record.event.targetLocationObjectKey ?? undefined,
+          }
+        : undefined,
       folder:
-        record.event.targetLocation?.folderId &&
+        record.event.targetLocationFolderId &&
         record.folderName &&
         record.folderOwnerId
           ? { name: record.folderName, ownerId: record.folderOwnerId }
@@ -624,7 +682,6 @@ export class EventService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         event: eventsTable,
@@ -632,7 +689,10 @@ export class EventService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(eventsTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, eventsTable.targetLocationFolderId),
+      )
       .where(eq(eventsTable.id, eventId))
       .limit(1)
     const record = result.at(0)
@@ -641,8 +701,14 @@ export class EventService {
     }
     return {
       ...record.event,
+      targetLocation: record.event.targetLocationFolderId
+        ? {
+            folderId: record.event.targetLocationFolderId,
+            objectKey: record.event.targetLocationObjectKey ?? undefined,
+          }
+        : undefined,
       folder:
-        record.event.targetLocation?.folderId &&
+        record.event.targetLocationFolderId &&
         record.folderName &&
         record.folderOwnerId
           ? { name: record.folderName, ownerId: record.folderOwnerId }
@@ -699,11 +765,9 @@ export class EventService {
     limit?: number
     sort?: EventSort[]
   }) {
-    const targetFolderId = sql<string>`(${eventsTable.targetLocation} ->> 'folderId')::uuid`
-    const targetObjectKey = sql<string>`${eventsTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(targetFolderId, folderId))
+      conditions.push(eq(eventsTable.targetLocationFolderId, folderId))
     }
 
     if (search) {
@@ -716,7 +780,7 @@ export class EventService {
     }
 
     if (objectKey) {
-      conditions.push(eq(targetObjectKey, objectKey))
+      conditions.push(eq(eventsTable.targetLocationObjectKey, objectKey))
     }
 
     const events = await this.ormService.db
@@ -728,7 +792,7 @@ export class EventService {
       .from(eventsTable)
       .leftJoin(
         foldersTable,
-        sql`${foldersTable.id} = (${eventsTable.targetLocation} ->> 'folderId')::uuid`,
+        eq(foldersTable.id, eventsTable.targetLocationFolderId),
       )
       .where(conditions.length ? and(...conditions) : undefined)
       .offset(Math.max(0, offset ?? 0))
@@ -750,8 +814,14 @@ export class EventService {
     return {
       result: events.map(({ event, folderName, folderOwnerId }) => ({
         ...event,
+        targetLocation: event.targetLocationFolderId
+          ? {
+              folderId: event.targetLocationFolderId,
+              objectKey: event.targetLocationObjectKey ?? undefined,
+            }
+          : undefined,
         folder:
-          event.targetLocation?.folderId && folderName && folderOwnerId
+          event.targetLocationFolderId && folderName && folderOwnerId
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })),

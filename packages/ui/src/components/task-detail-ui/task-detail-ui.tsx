@@ -327,7 +327,7 @@ export function TaskDetailUI({
                         Trigger
                       </label>
                       <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.trigger.kind}
+                        {taskData.invocation.kind}
                       </p>
                     </div>
                     {taskData.targetLocation?.folderId &&

@@ -1,31 +1,23 @@
 import type {
   AppConfig,
   AppManifest,
+  AppRuntimeWorkersBundle,
   AppUiBundle,
-  AppWorkersBundle,
   ContainerProfileConfig,
+  CoreScopeAppPermissions,
   FolderScopeAppPermissions,
-  PlatformScopeAppPermissions,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
-import {
-  boolean,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 export const appsTable = pgTable('apps', {
   identifier: text('identifier').primaryKey(),
-  installId: uuid('installId').notNull(),
   slug: text('slug').notNull(),
   label: text('label').notNull(),
   publicKey: text('publicKey').notNull(),
   requiresStorage: boolean('requiresStorage').notNull(),
-  subscribedPlatformEvents: text('subscribedPlatformEvents')
+  subscribedCoreEvents: text('subscribedCoreEvents')
     .array()
     .notNull()
     .default(sql`ARRAY[]::text[]`),
@@ -39,17 +31,19 @@ export const appsTable = pgTable('apps', {
   folderScopeEnabledDefault: boolean('folderScopeEnabledDefault').notNull(),
   permissions: jsonb('permissions')
     .$type<{
-      platform: PlatformScopeAppPermissions[]
+      core: CoreScopeAppPermissions[]
       user: UserScopeAppPermissions[]
       folder: FolderScopeAppPermissions[]
     }>()
     .notNull()
     .default({
-      platform: [],
+      core: [],
       user: [],
       folder: [],
     }),
-  workers: jsonb('workers').$type<AppWorkersBundle>().notNull(),
+  runtimeWorkers: jsonb('runtimeWorkers')
+    .$type<AppRuntimeWorkersBundle>()
+    .notNull(),
   ui: jsonb('ui').$type<AppUiBundle>().notNull(),
   database: boolean('database').notNull().default(false),
   manifest: jsonb('manifest').$type<AppManifest>().notNull(),

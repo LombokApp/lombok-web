@@ -17,7 +17,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { StorageProvisionGetResponse } from '../dto/responses/storage-provision-get-response.dto'
 import { StorageProvisionsListResponse } from '../dto/responses/storage-provision-list-response.dto'

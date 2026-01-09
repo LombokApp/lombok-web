@@ -8,6 +8,7 @@ import { eventsTable } from 'src/event/entities/event.entity'
 import { ServerMetricsService } from 'src/server/services/server-metrics.service'
 import type { NewTask } from 'src/task/entities/task.entity'
 import { tasksTable } from 'src/task/entities/task.entity'
+import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import type { TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 import type { User } from 'src/users/entities/user.entity'
@@ -101,43 +102,46 @@ describe('Server Metrics', () => {
     const now = new Date()
     const taskTrigger = {
       kind: 'event',
-      data: {
+      invokeContext: {
+        eventIdentifier: 'metricsevent',
+        eventTriggerConfigIndex: 0,
         eventId: crypto.randomUUID(),
-        eventIdentifier: 'metrics:event',
         emitterIdentifier: 'metrics',
         eventData: {},
       },
-    }
+    } as const
 
     await testModule!.services.ormService.db.insert(tasksTable).values([
-      {
+      withTaskIdempotencyKey({
         id: crypto.randomUUID(),
         ownerIdentifier: 'dummyapp',
         taskIdentifier: 'metrics_task_success',
         taskDescription: 'Successful metrics task',
         data: {},
-        trigger: taskTrigger,
+        invocation: taskTrigger,
+        storageAccessPolicy: [],
         createdAt: now,
         updatedAt: now,
         completedAt: now,
-        handlerType: 'worker',
+        handlerType: 'runtime',
         handlerIdentifier: 'metrics:handler',
         success: true,
-      },
-      {
+      }),
+      withTaskIdempotencyKey({
         id: crypto.randomUUID(),
         ownerIdentifier: 'dummyapp',
         taskIdentifier: 'metrics_task_failure',
         taskDescription: 'Failing metrics task',
         data: {},
-        trigger: taskTrigger,
+        invocation: taskTrigger,
+        storageAccessPolicy: [],
         createdAt: now,
         updatedAt: now,
         completedAt: now,
-        handlerType: 'worker',
+        handlerType: 'runtime',
         handlerIdentifier: 'metrics:handler',
         success: false,
-      },
+      }),
     ] as NewTask[])
 
     await testModule!.services.ormService.db.insert(eventsTable).values([
@@ -146,7 +150,8 @@ describe('Server Metrics', () => {
         eventIdentifier: 'metrics:server_event',
         emitterIdentifier: 'metrics',
         targetUserId: null,
-        targetLocation: null,
+        targetLocationFolderId: null,
+        targetLocationObjectKey: null,
         data: {},
         createdAt: now,
       },
@@ -155,7 +160,8 @@ describe('Server Metrics', () => {
         eventIdentifier: 'metrics:folder_event',
         emitterIdentifier: 'metrics',
         targetUserId: null,
-        targetLocation: { folderId: crypto.randomUUID() },
+        targetLocationFolderId: crypto.randomUUID(),
+        targetLocationObjectKey: null,
         data: {},
         createdAt: now,
       },

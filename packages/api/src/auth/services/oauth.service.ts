@@ -1,6 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
-import nextJsConfig from '@nestjs/config'
-import { platformConfig } from 'src/platform/config'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { GOOGLE_OAUTH_CONFIG } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 
@@ -20,11 +18,6 @@ export class OAuthService {
   private readonly logger = new Logger(OAuthService.name)
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
-
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nextJsConfig.ConfigType<
-      typeof platformConfig
-    >,
   ) {}
 
   private async getGoogleOAuthConfig() {

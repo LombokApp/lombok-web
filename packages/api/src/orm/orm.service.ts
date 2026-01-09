@@ -142,7 +142,7 @@ export class OrmService {
   async ensureAppDbConfig(app: App): Promise<void> {
     await this.ensureAppSchemaAndRole(app.identifier)
     await this.getOrGenerateAppRolePassword(app.identifier)
-    if (app.config.permissions?.platform?.includes('READ_FOLDER_ACL')) {
+    if (app.config.permissions?.core?.includes('READ_FOLDER_ACL')) {
       await this.ensureAppFolderAclSchemaAccess(app.identifier)
     }
   }

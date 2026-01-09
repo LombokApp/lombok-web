@@ -2,15 +2,14 @@ import type { ZodSchema, ZodTypeAny } from 'zod'
 import { z } from 'zod'
 
 import type { AppSocketMessage } from './apps.types'
-import { appManifestSchema, appMessageErrorSchema } from './apps.types'
+import { appMessageErrorSchema } from './apps.types'
 import { metadataEntrySchema } from './content.types'
+import { LogEntryLevel } from './core.types'
 import { eventIdentifierSchema } from './events.types'
-import { jsonSerializableObjectDTOSchema } from './json.types'
-import { LogEntryLevel } from './platform.types'
+import { jsonSerializableObjectSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 import {
   storageAccessPolicySchema,
-  taskDTOSchema,
   taskOnCompleteConfigSchema,
 } from './task.types'
 
@@ -23,10 +22,10 @@ export const logEntrySchema = z.object({
       objectKey: z.string().optional(),
     })
     .optional(),
-  data: jsonSerializableObjectDTOSchema.optional(),
+  data: jsonSerializableObjectSchema.optional(),
 })
 
-export const startContextSchema = jsonSerializableObjectDTOSchema
+export const startContextSchema = jsonSerializableObjectSchema
   .refine((v) => !Object.keys(v).some((key) => key.startsWith('__')))
   .optional()
 
@@ -38,15 +37,6 @@ export const attemptStartHandleTaskSchema = z.object({
 export const attemptStartHandleTaskByIdSchema = z.object({
   taskId: z.string().uuid(),
   startContext: startContextSchema.optional(),
-})
-
-export const getWorkerExecutionDetailsSchema = z.object({
-  appIdentifier: z.string(),
-  workerIdentifier: z.string(),
-})
-
-export const getAppUIbundleSchema = z.object({
-  appIdentifier: z.string(),
 })
 
 export const getAppUserAccessTokenSchema = z.object({
@@ -80,23 +70,6 @@ export const updateMetadataSchema = z.array(
   }),
 )
 
-export const completeHandleTaskSchema = z.discriminatedUnion('success', [
-  z.object({
-    success: z.literal(true),
-    taskId: z.string().uuid(),
-    result: jsonSerializableObjectDTOSchema.optional(),
-  }),
-  z.object({
-    success: z.literal(false),
-    taskId: z.string().uuid(),
-    error: z.object({
-      code: z.string(),
-      message: z.string(),
-      details: jsonSerializableObjectDTOSchema.optional(),
-    }),
-  }),
-])
-
 export const getAppStorageSignedUrlsSchema = z.array(
   z.object({
     objectKey: z.string().min(1),
@@ -112,7 +85,7 @@ export const dbQuerySchema = z.object({
 
 export const emitEventSchema = z.object({
   eventIdentifier: eventIdentifierSchema,
-  data: jsonSerializableObjectDTOSchema,
+  data: jsonSerializableObjectSchema,
 })
 
 export const dbExecSchema = z.object({
@@ -140,13 +113,13 @@ export const authenticateUserSchema = z.object({
 export const executeAppDockerJobSchema = z.object({
   profileIdentifier: z.string(),
   jobIdentifier: z.string(),
-  jobData: jsonSerializableObjectDTOSchema,
+  jobData: jsonSerializableObjectSchema,
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
 export const triggerAppTaskSchema = z.object({
   taskIdentifier: z.string(),
-  inputData: jsonSerializableObjectDTOSchema,
+  inputData: jsonSerializableObjectSchema,
   dontStartBefore: z
     .union([
       z.object({
@@ -164,9 +137,7 @@ export const triggerAppTaskSchema = z.object({
     })
     .optional(),
   targetUserId: z.string().uuid().optional(),
-  onComplete: z
-    .union([taskOnCompleteConfigSchema, taskOnCompleteConfigSchema.array()])
-    .optional(),
+  onComplete: taskOnCompleteConfigSchema.array().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
@@ -178,11 +149,6 @@ export const AppSocketMessageSchemaMap = {
   GET_METADATA_SIGNED_URLS: getMetadataSignedUrlsSchema,
   UPDATE_CONTENT_METADATA: updateMetadataSchema,
   GET_LATEST_DB_CREDENTIALS: z.undefined(),
-  COMPLETE_HANDLE_TASK: completeHandleTaskSchema,
-  ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: attemptStartHandleTaskSchema,
-  ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID: attemptStartHandleTaskByIdSchema,
-  GET_APP_UI_BUNDLE: getAppUIbundleSchema,
-  GET_WORKER_EXECUTION_DETAILS: getWorkerExecutionDetailsSchema,
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
@@ -210,7 +176,7 @@ export const executeAppDockerJobResponseSchema = createResponseSchema(
     z.object({
       jobId: z.string(),
       jobSuccess: z.literal(true),
-      jobResult: jsonSerializableObjectDTOSchema,
+      jobResult: jsonSerializableObjectSchema,
     }),
     z.object({
       jobId: z.string(),
@@ -275,35 +241,6 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   GET_METADATA_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
   UPDATE_CONTENT_METADATA: createResponseSchema(z.null()),
-  COMPLETE_HANDLE_TASK: createResponseSchema(z.null()),
-  ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK: createResponseSchema(
-    z.object({
-      task: taskDTOSchema,
-    }),
-  ),
-  ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID: createResponseSchema(
-    z.object({
-      task: taskDTOSchema,
-    }),
-  ),
-  GET_APP_UI_BUNDLE: createResponseSchema(
-    z.object({
-      installId: z.string(),
-      manifest: appManifestSchema,
-      bundleUrl: z.string(),
-      csp: z.string().optional(),
-    }),
-  ),
-  GET_WORKER_EXECUTION_DETAILS: createResponseSchema(
-    z.object({
-      payloadUrl: z.string(),
-      installId: z.string(),
-      workerToken: z.string(),
-      environmentVariables: z.record(z.string(), z.string()),
-      entrypoint: z.string(),
-      hash: z.string(),
-    }),
-  ),
   GET_APP_STORAGE_SIGNED_URLS: createResponseSchema(z.array(z.string())),
   AUTHENTICATE_USER: createResponseSchema(
     z.object({

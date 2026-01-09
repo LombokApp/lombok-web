@@ -17,7 +17,7 @@ import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { AppUserSettingsCreateInputDTO } from '../dto/app-user-settings-create-input.dto'
 import { AppContributionsResponse } from '../dto/responses/app-contributions-response.dto'

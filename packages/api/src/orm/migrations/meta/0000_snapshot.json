@@ -1,5 +1,5 @@
 {
-  "id": "2e4d3b7f-2f11-442a-8af4-f622a7299dfe",
+  "id": "6466df6d-c6df-4ac4-8454-acd8d4669611",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -252,12 +252,6 @@
           "primaryKey": true,
           "notNull": true
         },
-        "installId": {
-          "name": "installId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "slug": {
           "name": "slug",
           "type": "text",
@@ -282,8 +276,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "subscribedPlatformEvents": {
-          "name": "subscribedPlatformEvents",
+        "subscribedCoreEvents": {
+          "name": "subscribedCoreEvents",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,
@@ -325,10 +319,10 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"platform\":[],\"user\":[],\"folder\":[]}'::jsonb"
+          "default": "'{\"core\":[],\"user\":[],\"folder\":[]}'::jsonb"
         },
-        "workers": {
-          "name": "workers",
+        "runtimeWorkers": {
+          "name": "runtimeWorkers",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
@@ -568,9 +562,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocation": {
-          "name": "targetLocation",
-          "type": "jsonb",
+        "targetLocationFolderId": {
+          "name": "targetLocationFolderId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "targetLocationObjectKey": {
+          "name": "targetLocationObjectKey",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -592,9 +592,9 @@
           "name": "events_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "((\"targetLocation\" ->> 'folderId')::uuid)",
+              "expression": "targetLocationFolderId",
+              "isExpression": false,
               "asc": true,
-              "isExpression": true,
               "nulls": "last"
             }
           ],
@@ -991,9 +991,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "targetLocation": {
-          "name": "targetLocation",
-          "type": "jsonb",
+        "targetLocationFolderId": {
+          "name": "targetLocationFolderId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "targetLocationObjectKey": {
+          "name": "targetLocationObjectKey",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -1021,9 +1027,9 @@
           "name": "log_entries_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "((\"targetLocation\" ->> 'folderId')::uuid)",
+              "expression": "targetLocationFolderId",
+              "isExpression": false,
               "asc": true,
-              "isExpression": true,
               "nulls": "last"
             }
           ],
@@ -1222,9 +1228,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "trigger": {
-          "name": "trigger",
+        "invocation": {
+          "name": "invocation",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotencyKey": {
+          "name": "idempotencyKey",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -1234,9 +1246,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocation": {
-          "name": "targetLocation",
-          "type": "jsonb",
+        "targetLocationFolderId": {
+          "name": "targetLocationFolderId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "targetLocationObjectKey": {
+          "name": "targetLocationObjectKey",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -1246,14 +1264,28 @@
           "primaryKey": false,
           "notNull": false
         },
-        "dontStartBefore": {
-          "name": "dontStartBefore",
+        "completedAt": {
+          "name": "completedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "completedAt": {
-          "name": "completedAt",
+        "attemptCount": {
+          "name": "attemptCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "failureCount": {
+          "name": "failureCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "dontStartBefore": {
+          "name": "dontStartBefore",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -1276,8 +1308,7 @@
           "name": "storageAccessPolicy",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
+          "notNull": true
         },
         "success": {
           "name": "success",
@@ -1328,9 +1359,36 @@
           "name": "tasks_trigger_kind_idx",
           "columns": [
             {
-              "expression": "(\"trigger\" ->> 'kind')",
+              "expression": "(\"invocation\" ->> 'kind')",
               "asc": true,
               "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_idempotency_key_idx": {
+          "name": "tasks_idempotency_key_idx",
+          "columns": [
+            {
+              "expression": "ownerIdentifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "taskIdentifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "idempotencyKey",
+              "isExpression": false,
+              "asc": true,
               "nulls": "last"
             }
           ],
@@ -1343,9 +1401,30 @@
           "name": "tasks_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "((\"targetLocation\" ->> 'folderId')::uuid)",
+              "expression": "targetLocationFolderId",
+              "isExpression": false,
               "asc": true,
-              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_target_location_folder_id_object_key_idx": {
+          "name": "tasks_target_location_folder_id_object_key_idx",
+          "columns": [
+            {
+              "expression": "targetLocationFolderId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "targetLocationObjectKey",
+              "isExpression": false,
+              "asc": true,
               "nulls": "last"
             }
           ],
@@ -1357,7 +1436,15 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "tasks_idempotencyKey_unique": {
+          "name": "tasks_idempotencyKey_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "idempotencyKey"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

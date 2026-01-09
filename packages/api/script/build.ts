@@ -10,7 +10,7 @@ const optionalRequirePackages = [
 
 const alwaysExternalPackages = [
   '@lombokapp/core-worker',
-  '@lombokapp/core-worker-utils',
+  '@lombokapp/worker-utils',
 ]
 
 void (async () => {
@@ -39,11 +39,13 @@ void (async () => {
   })
 
   if (!mainResult.success) {
+    // eslint-disable-next-line no-console
     console.log('Main build failed:', mainResult.logs[0])
     process.exit(1)
   }
 
-  // No longer build core-app-worker inside API; it's resolved from core-worker package
+  // No longer build core-worker inside API; it's resolved from core-worker package
 
+  // eslint-disable-next-line no-console
   console.log('Built successfully!')
 })()

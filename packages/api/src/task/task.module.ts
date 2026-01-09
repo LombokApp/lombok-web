@@ -13,7 +13,7 @@ import { SocketModule } from 'src/socket/socket.module'
 
 import { ServerTasksController } from './controllers/server-tasks.controller'
 import { TasksController } from './controllers/tasks.controller'
-import { PlatformTaskService } from './services/platform-task.service'
+import { CoreTaskService } from './services/core-task.service'
 import { TaskService } from './services/task.service'
 
 @Global()
@@ -24,20 +24,19 @@ import { TaskService } from './services/task.service'
     forwardRef(() => AppModule),
     forwardRef(() => EventModule),
   ],
-  providers: [PlatformTaskService, TaskService],
+  providers: [CoreTaskService, TaskService],
   controllers: [ServerTasksController, TasksController],
-  exports: [PlatformTaskService, TaskService],
+  exports: [CoreTaskService, TaskService],
 })
 export class TaskModule implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    private readonly platformTaskService: PlatformTaskService,
-    private readonly taskService: TaskService,
-  ) {}
+  constructor(private readonly coreTaskService: CoreTaskService) {}
 
   jobs: CronJob[] | undefined = undefined
 
   onModuleDestroy() {
-    this.jobs?.map((job) => job.stop())
+    return Promise.all(
+      this.jobs?.map((job) => job.stop()).filter((p) => p !== undefined) ?? [],
+    )
   }
 
   onModuleInit() {
@@ -45,15 +44,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
     this.jobs = [
       new CronJob(
         '*/5 * * * * *',
-        () => void this.platformTaskService.drainPlatformTasks(),
-        null,
-        true,
-      ),
-
-      // every 5 seconds, broadcast to apps about pendng app tasks
-      new CronJob(
-        '*/5 * * * * *',
-        () => this.taskService.handlePendingTasks(),
+        () => void this.coreTaskService.startDrainCoreTasks(),
         null,
         true,
       ),

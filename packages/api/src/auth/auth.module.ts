@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
 import { count, eq, sql } from 'drizzle-orm'
+import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
 import { usersTable } from 'src/users/entities/user.entity'
 import { UsersModule } from 'src/users/users.module'
@@ -26,7 +26,7 @@ import { SessionService } from './services/session.service'
 @Module({
   imports: [
     ConfigModule.forFeature(authConfig),
-    ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(coreConfig),
     forwardRef(() => UsersModule),
     forwardRef(() => ServerModule),
   ],
@@ -39,25 +39,23 @@ export class AuthModule implements OnModuleInit {
   constructor(
     private readonly authService: AuthService,
     private readonly ormService: OrmService,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestJSConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestJSConfig.ConfigType<typeof coreConfig>,
   ) {}
   onModuleInit() {
     void this.ormService.waitForInit().then(async () => {
-      if (this._platformConfig.initialUser) {
+      if (this._coreConfig.initialUser) {
         const [userCountResult] = await this.ormService.db
           .select({ count: count(sql`*`) })
           .from(usersTable)
         if (userCountResult?.count === 0) {
           this.logger.log(
             'Creating initial user:',
-            this._platformConfig.initialUser,
+            this._coreConfig.initialUser,
           )
           const initialUser = await this.authService.signup({
             password: '0000',
-            username: this._platformConfig.initialUser,
+            username: this._coreConfig.initialUser,
           })
           await this.ormService.db
             .update(usersTable)

@@ -4,16 +4,15 @@ import {
   appContributionsSchema,
   appManifestSchema,
   appMetricsSchema,
+  appRuntimeWorkersBundleSchema,
+  appRuntimeWorkerSocketConnectionSchema,
   appUiBundleSchema,
-  appWorkersBundleSchema,
-  externalAppWorkerSchema,
 } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const adminAppDTOSchema = z.object({
   identifier: z.string(),
   slug: z.string(),
-  installId: z.string(),
   label: z.string(),
   publicKey: z.string(),
   config: appConfigSchema,
@@ -22,8 +21,8 @@ export const adminAppDTOSchema = z.object({
   userScopeEnabledDefault: z.boolean(),
   folderScopeEnabledDefault: z.boolean(),
   manifest: appManifestSchema,
-  externalWorkers: z.array(externalAppWorkerSchema),
-  workers: appWorkersBundleSchema,
+  connectedRuntimeWorkers: z.array(appRuntimeWorkerSocketConnectionSchema),
+  runtimeWorkers: appRuntimeWorkersBundleSchema,
   ui: appUiBundleSchema.nullable(),
   contributions: appContributionsSchema,
   metrics: appMetricsSchema.nullable(),

@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun vite",
-    "build": "bunx --bun vite build --mode production",
-    "package": "bun run build && rm -rf ../../../apps/demo/ui && cp -r dist ../../../apps/demo/ui",
+    "build": "rm -rf ./dist && bunx --bun vite build --mode production",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",

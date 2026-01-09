@@ -1,7 +1,7 @@
-import { CORE_APP_SLUG } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
 const TEST_MODULE_KEY = 'server_apps'
 
@@ -70,6 +70,7 @@ describe('Server Apps', () => {
   })
 
   it(`should get app as admin`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -79,7 +80,7 @@ describe('Server Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
     const getAppResponse = await apiClient(accessToken).GET(
       `/api/v1/server/apps/{appIdentifier}`,
       {
@@ -99,12 +100,13 @@ describe('Server Apps', () => {
     expect(getAppResponse.data.app.identifier).toBe(appIdentifier)
     // Admin app DTO should have admin-only fields
     expect(getAppResponse.data.app.publicKey).toBeDefined()
-    expect(getAppResponse.data.app.externalWorkers).toBeDefined()
+    expect(getAppResponse.data.app.connectedRuntimeWorkers).toBeDefined()
     expect(getAppResponse.data.app.metrics).toBeDefined()
     expect(getAppResponse.data.app.requiresStorage).toBeDefined()
   })
 
   it(`should enable and disable app as admin`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -114,7 +116,7 @@ describe('Server Apps', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
 
     // Enable app
     const enableResponse = await apiClient(accessToken).PUT(

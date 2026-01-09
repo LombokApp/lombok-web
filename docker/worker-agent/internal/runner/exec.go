@@ -45,12 +45,10 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	}
 
 	// Create initial job state
-	now := time.Now().UTC().Format(time.RFC3339)
 	jobState := &types.JobState{
 		JobID:      payload.JobID,
 		JobClass:   payload.JobClass,
-		Status:     "running",
-		StartedAt:  now,
+		Status:     "pending",
 		WorkerKind: "exec_per_job",
 	}
 	if err := state.WriteJobState(jobState); err != nil {
@@ -123,6 +121,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	// Create a worker state file so worker-log --job-class works for exec_per_job
 	// This allows the agent to resolve the worker log identifier from job class
 	// We create this BEFORE starting the command so it exists even if startup fails
+	now := time.Now().UTC().Format(time.RFC3339)
 	workerState := &types.WorkerState{
 		JobClass:      payload.JobClass,
 		Kind:          "exec_per_job",
@@ -140,13 +139,6 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Track worker startup time
 	workerStartTime := time.Now()
-
-	if platformClient != nil {
-		ctx := context.Background()
-		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
-			logs.WriteAgentLog("warning: failed to signal start: %v", err)
-		}
-	}
 
 	// Start the worker process
 	if err := cmd.Start(); err != nil {
@@ -224,9 +216,18 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		return fmt.Errorf("failed to start worker: %w", err)
 	}
 
-	// Record the PID
+	// Record the PID & updated state
 	jobState.WorkerPID = cmd.Process.Pid
+	jobState.Status = "running"
+	jobState.StartedAt = time.Now().UTC().Format(time.RFC3339)
 	state.WriteJobState(jobState)
+
+	if platformClient != nil {
+		ctx := context.Background()
+		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
+			logs.WriteAgentLog("warning: failed to signal start: %v", err)
+		}
+	}
 
 	// Update worker state with PID and running status
 	workerState.PID = cmd.Process.Pid

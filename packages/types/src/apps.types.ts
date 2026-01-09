@@ -1,43 +1,31 @@
 import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
-import { platformPrefixedEventIdentifierSchema } from './events.types'
-import {
-  appIdentifierSchema,
-  slugSchema,
-  taskIdentifierSchema,
-} from './identifiers.types'
-import { jsonSerializableObjectDTOSchema } from './json.types'
+import { CORE_IDENTIFIER } from './core.types'
+import { corePrefixedEventIdentifierSchema } from './events.types'
+import { appIdentifierSchema, appSlugSchema } from './identifiers.types'
+import { jsonSerializableObjectSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 
-export const CORE_APP_SLUG = 'core'
-
 export const AppSocketMessage = z.enum([
   'GET_LATEST_DB_CREDENTIALS',
-  'GET_WORKER_EXECUTION_DETAILS',
   'SAVE_LOG_ENTRY',
   'GET_APP_STORAGE_SIGNED_URLS',
   'GET_CONTENT_SIGNED_URLS',
   'GET_METADATA_SIGNED_URLS',
-  'GET_APP_UI_BUNDLE',
   'GET_APP_USER_ACCESS_TOKEN',
   'UPDATE_CONTENT_METADATA',
-  'ATTEMPT_START_HANDLE_ANY_AVAILABLE_TASK',
-  'ATTEMPT_START_HANDLE_WORKER_TASK_BY_ID',
-  'COMPLETE_HANDLE_TASK',
   'AUTHENTICATE_USER',
   'EMIT_EVENT',
   'EXECUTE_APP_DOCKER_JOB',
   'TRIGGER_APP_TASK',
 ])
 
-export const EXECUTE_SYSTEM_REQUEST_MESSAGE = 'EXECUTE_SYSTEM_REQUEST'
-
 export const appMessageErrorSchema = z.object({
   code: z.union([z.number(), z.string()]),
   message: z.string(),
-  details: jsonSerializableObjectDTOSchema.optional(),
+  details: jsonSerializableObjectSchema.optional(),
 })
 
 export type WorkerApiActor =
@@ -138,10 +126,9 @@ export const appContributionsSchema = z
   })
   .strict()
 
-// Permissions that can be granted to an app for the platform
-export const platformScopeAppPermissionsSchema = z.enum([
+// Permissions that can be granted to an app for the core
+export const coreScopeAppPermissionsSchema = z.enum([
   'READ_FOLDER_ACL', // Read the user <-> folder ACL context
-  'SERVE_APPS', // Serve other apps
 ])
 
 // Permissions that can be granted to an app for a specific user
@@ -162,8 +149,8 @@ export const folderScopeAppPermissionsSchema = z.enum([
   'REINDEX_FOLDER',
 ])
 
-export type PlatformScopeAppPermissions = z.infer<
-  typeof platformScopeAppPermissionsSchema
+export type CoreScopeAppPermissions = z.infer<
+  typeof coreScopeAppPermissionsSchema
 >
 export type UserScopeAppPermissions = z.infer<
   typeof userScopeAppPermissionsSchema
@@ -243,30 +230,29 @@ export const appConfigSchema = z
     requiresStorage: z.boolean().optional(),
     permissions: z
       .object({
-        platform: z.array(platformScopeAppPermissionsSchema).optional(),
+        core: z.array(coreScopeAppPermissionsSchema).optional(),
         user: z.array(userScopeAppPermissionsSchema).optional(),
         folder: z.array(folderScopeAppPermissionsSchema).optional(),
       })
+      .strict()
       .optional(),
-    slug: slugSchema,
+    slug: appSlugSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
-    subscribedPlatformEvents: z
-      .array(platformPrefixedEventIdentifierSchema)
-      .optional(),
+    subscribedCoreEvents: z.array(corePrefixedEventIdentifierSchema).optional(),
     triggers: z.array(taskTriggerConfigSchema).optional(),
-    tasks: z.array(taskConfigSchema).optional(),
+    tasks: z.array(taskConfigSchema.strict()).optional(),
     containerProfiles: z
       .record(appProfileIdentifierSchema, containerProfileConfigSchema)
       .optional(),
-    workers: z
+    runtimeWorkers: z
       .record(
         z
           .string()
           .nonempty()
           .regex(/^[a-z0-9_]+$/)
           .refine((v) => v.toLowerCase() === v),
-        appWorkerConfigSchema,
+        appWorkerConfigSchema.strict(),
       )
       .optional(),
     ui: z
@@ -274,17 +260,19 @@ export const appConfigSchema = z
         enabled: z.literal(true),
         csp: z.string().optional(),
       })
+      .strict()
       .optional(),
     database: z
       .object({
         enabled: z.literal(true),
       })
+      .strict()
       .optional(),
-    contributions: appContributionsSchema.optional(),
+    contributions: appContributionsSchema.strict().optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
-    const workerIdentifiersArray = Object.keys(value.workers ?? {})
+    const workerIdentifiersArray = Object.keys(value.runtimeWorkers ?? {})
     const workerIdentifiers = new Set(workerIdentifiersArray)
     const taskIdentifiersArray = value.tasks?.map((t) => t.identifier) ?? []
     const taskIdentifiers = new Set(taskIdentifiersArray)
@@ -338,7 +326,7 @@ export const appConfigSchema = z
 
     value.tasks?.forEach((task, index) => {
       if (
-        task.handler.type === 'worker' &&
+        task.handler.type === 'runtime' &&
         !workerIdentifiers.has(task.handler.identifier)
       ) {
         ctx.addIssue({
@@ -417,8 +405,8 @@ export const appConfigSchema = z
     ;(value.triggers ?? []).forEach((trigger, index) => {
       if (
         trigger.kind === 'event' &&
-        trigger.eventIdentifier.startsWith('platform:') &&
-        !value.subscribedPlatformEvents?.includes(trigger.eventIdentifier)
+        trigger.eventIdentifier.startsWith(`${CORE_IDENTIFIER}:`) &&
+        !value.subscribedCoreEvents?.includes(trigger.eventIdentifier)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -454,30 +442,32 @@ export const appConfigWithManifestSchema = (
   manifest: Record<string, unknown>,
 ) =>
   appConfigSchema.superRefine((value, ctx) => {
-    if (value.workers) {
-      Object.entries(value.workers).forEach(([workerId, workerConfig]) => {
-        if (!manifest[`/workers/${workerConfig.entrypoint}`]) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Worker "${workerId}" entrypoint "${workerConfig.entrypoint}" does not exist in manifest`,
-            path: ['workers', workerId, 'entrypoint'],
-          })
-        }
-      })
+    if (value.runtimeWorkers) {
+      Object.entries(value.runtimeWorkers).forEach(
+        ([workerId, workerConfig]) => {
+          if (!manifest[`/workers/${workerConfig.entrypoint}`]) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Runtime worker "${workerId}" entrypoint "${workerConfig.entrypoint}" does not exist in manifest`,
+              path: ['runtimeWorkers', workerId, 'entrypoint'],
+            })
+          }
+        },
+      )
     }
   })
 
-export const appWorkerSchema = z.object({
+export const appRuntimeWorkerSchema = z.object({
   description: z.string(),
   environmentVariables: z.record(z.string(), z.string()),
   entrypoint: workerEntrypointSchema,
 })
 
-export const appWorkersBundleSchema = z.object({
+export const appRuntimeWorkersBundleSchema = z.object({
   hash: z.string(),
   size: z.number(),
   manifest: appManifestSchema,
-  definitions: z.record(z.string(), appWorkerSchema),
+  definitions: z.record(z.string(), appRuntimeWorkerSchema),
 })
 
 export const appUiBundleSchema = z.object({
@@ -487,20 +477,26 @@ export const appUiBundleSchema = z.object({
   manifest: appManifestSchema,
 })
 
-export const appWorkersMapSchema = z.record(z.string(), appWorkerSchema)
+export const appRuntimeWorkersMapSchema = z.record(
+  z.string(),
+  appRuntimeWorkerSchema,
+)
 
-export const appWorkerScriptIdentifierSchema = z
+export const appRuntimeWorkerScriptIdentifierSchema = z
   .string()
   .nonempty()
   .regex(/^[a-z_]+$/)
 
-export const externalAppWorkerSchema = z.object({
+export const appRuntimeWorkerSocketConnectionSchema = z.object({
   appIdentifier: appIdentifierSchema,
   workerId: z.string(),
-  handledTaskIdentifiers: z.array(taskIdentifierSchema),
   socketClientId: z.string(),
   ip: z.string(),
 })
+
+export type AppRuntimeWorkerSocketConnection = z.infer<
+  typeof appRuntimeWorkerSocketConnectionSchema
+>
 
 export const appMetricsSchema = z.object({
   tasksExecutedLast24Hours: z.object({
@@ -531,23 +527,21 @@ export type ContainerProfileResourceHints = z.infer<
   typeof containerProfileResourceHintsSchema
 >
 
-export type AppWorkersBundle = z.infer<typeof appWorkersBundleSchema>
+export type AppRuntimeWorkersBundle = z.infer<
+  typeof appRuntimeWorkersBundleSchema
+>
 
 export type AppUILink = z.infer<typeof appUILinkSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 
-export type AppWorker = z.infer<typeof appWorkerSchema>
+export type AppRuntimeWorker = z.infer<typeof appRuntimeWorkerSchema>
 
-export type AppWorkersMap = z.infer<typeof appWorkersMapSchema>
+export type AppRuntimeWorkersMap = z.infer<typeof appRuntimeWorkersMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 
-export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>
-
 export type AppContributions = z.infer<typeof appContributionsSchema>
-
-export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>
 
 export type AppMetrics = z.infer<typeof appMetricsSchema>
 

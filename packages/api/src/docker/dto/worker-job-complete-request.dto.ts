@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { jsonSerializableObjectDTOSchema } from '@lombokapp/types'
+import { jsonSerializableObjectSchema, requeueSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
 export const outputFilesSchema = z.object({
@@ -17,8 +17,11 @@ export const errorResponseSchema = z
   .object({
     success: z.literal(false),
     error: z.object({
+      requeueDelayMs: requeueSchema.optional(),
+      name: z.string().optional(),
       code: z.string(),
       message: z.string(),
+      details: jsonSerializableObjectSchema.optional(),
     }),
   })
   .merge(outputFilesSchema)
@@ -26,17 +29,19 @@ export const errorResponseSchema = z
 export const successResponseSchema = z
   .object({
     success: z.literal(true),
-    result: jsonSerializableObjectDTOSchema,
+    result: jsonSerializableObjectSchema,
   })
   .merge(outputFilesSchema)
 
-const resultSchema = z.discriminatedUnion('success', [
+export const dockerJobResultSchema = z.discriminatedUnion('success', [
   successResponseSchema,
   errorResponseSchema,
 ])
 
-export class WorkerJobCompleteRequestDTO extends createZodDto(resultSchema) {}
+export class WorkerJobCompleteRequestDTO extends createZodDto(
+  dockerJobResultSchema,
+) {}
 
 export type DiscriminatedWorkerJobCompleteRequestDTO = z.infer<
-  typeof resultSchema
+  typeof dockerJobResultSchema
 >

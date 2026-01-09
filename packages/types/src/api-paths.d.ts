@@ -4,353 +4,6 @@
  */
 
 export interface paths {
-    "/api/v1/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Authenticate the user and return access and refresh tokens. */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register a new user. */
-        post: operations["signup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Logout. Kill the current session. */
-        post: operations["logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/{refreshToken}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refresh a session with a refresh token. */
-        post: operations["refreshToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/complete-signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Complete SSO signup by choosing username */
-        post: operations["completeSignup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/initiate/{provider}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Initiate SSO login flow - returns OAuth URL */
-        post: operations["initiateSSO"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/callback/{provider}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Handle OAuth callback from provider */
-        post: operations["handleCallback"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/sso/link-provider": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Link SSO provider to existing account */
-        post: operations["linkProvider"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/viewer": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getViewer"];
-        put: operations["updateViewer"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the users. */
-        get: operations["listUsers"];
-        put?: never;
-        /** Create a user. */
-        post: operations["createUser"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/users/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a user by id. */
-        get: operations["getUser"];
-        put?: never;
-        post?: never;
-        /** Delete a server user by id. */
-        delete: operations["deleteUser"];
-        options?: never;
-        head?: never;
-        /** Update a user. */
-        patch: operations["updateUser"];
-        trace?: never;
-    };
-    "/api/v1/server/users/{userId}/sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listActiveUserSessions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/public/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the public server settings object (no authentication required). */
-        get: operations["getPublicServerSettings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the server settings object. */
-        get: operations["getServerSettings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/settings/{settingKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Set a setting in the server settings objects. */
-        put: operations["setServerSetting"];
-        post?: never;
-        /** Reset a setting in the server settings objects. */
-        delete: operations["resetServerSetting"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/install-local-apps": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Install all apps from disk. */
-        post: operations["installLocalApps"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/metrics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get server metrics including user counts, folder counts, and storage statistics. */
-        get: operations["getServerMetrics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/storage-provisions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the storage provisions. */
-        get: operations["listStorageProvisions"];
-        put?: never;
-        /** Create a new user storage provision. */
-        post: operations["createUserStorageProvision"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/storage-provisions/{storageProvisionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a storage provision by id. */
-        get: operations["getStorageProvision"];
-        /** Update a server provision by id. */
-        put: operations["updateStorageProvision"];
-        post?: never;
-        /** Delete a storage provision by id. */
-        delete: operations["deleteStorageProvision"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/server-storage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the server storage location. */
-        get: operations["getServerStorageLocation"];
-        put?: never;
-        /** Create a new server provision. */
-        post: operations["setServerStorageLocation"];
-        /** Delete any set server storage location. */
-        delete: operations["deleteServerStorageLocation"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/server/apps/install": {
         parameters: {
             query?: never;
@@ -1034,6 +687,131 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the public server settings object (no authentication required). */
+        get: operations["getPublicServerSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the server settings object. */
+        get: operations["getServerSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/settings/{settingKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set a setting in the server settings objects. */
+        put: operations["setServerSetting"];
+        post?: never;
+        /** Reset a setting in the server settings objects. */
+        delete: operations["resetServerSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get server metrics including user counts, folder counts, and storage statistics. */
+        get: operations["getServerMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/storage-provisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the storage provisions. */
+        get: operations["listStorageProvisions"];
+        put?: never;
+        /** Create a new user storage provision. */
+        post: operations["createUserStorageProvision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/storage-provisions/{storageProvisionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a storage provision by id. */
+        get: operations["getStorageProvision"];
+        /** Update a server provision by id. */
+        put: operations["updateStorageProvision"];
+        post?: never;
+        /** Delete a storage provision by id. */
+        delete: operations["deleteStorageProvision"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/server-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the server storage location. */
+        get: operations["getServerStorageLocation"];
+        put?: never;
+        /** Create a new server provision. */
+        post: operations["setServerStorageLocation"];
+        /** Delete any set server storage location. */
+        delete: operations["deleteServerStorageLocation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/tasks/{taskId}": {
         parameters: {
             query?: never;
@@ -1094,6 +872,211 @@ export interface paths {
         };
         /** List tasks. */
         get: operations["listFolderTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Authenticate the user and return access and refresh tokens. */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register a new user. */
+        post: operations["signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout. Kill the current session. */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/{refreshToken}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh a session with a refresh token. */
+        post: operations["refreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sso/complete-signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete SSO signup by choosing username */
+        post: operations["completeSignup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sso/initiate/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Initiate SSO login flow - returns OAuth URL */
+        post: operations["initiateSSO"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sso/callback/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Handle OAuth callback from provider */
+        post: operations["handleCallback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sso/link-provider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link SSO provider to existing account */
+        post: operations["linkProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/viewer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getViewer"];
+        put: operations["updateViewer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the users. */
+        get: operations["listUsers"];
+        put?: never;
+        /** Create a user. */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a user by id. */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        /** Delete a server user by id. */
+        delete: operations["deleteUser"];
+        options?: never;
+        head?: never;
+        /** Update a user. */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/api/v1/server/users/{userId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listActiveUserSessions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1170,352 +1153,23 @@ export interface components {
             code: string;
             message: string;
         };
-        LoginCredentialsDTO: {
-            login: string;
-            password: string;
-        };
-        LoginResponse: {
-            session: {
-                accessToken: string;
-                refreshToken: string;
-                /** Format: date-time */
-                expiresAt: string;
-            };
-        };
-        SignupCredentialsDTO: {
-            username: string;
-            /** Format: email */
-            email?: string;
-            password: string;
-        };
-        SignupResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        TokenRefreshResponse: {
-            session: {
-                accessToken: string;
-                refreshToken: string;
-                /** Format: date-time */
-                expiresAt: string;
-            };
-        };
-        CompleteSSOSignupDTO: {
-            username: string;
-            providerData: {
-                /** @enum {string} */
-                provider: "google";
-                providerUserInfo: {
-                    id: string;
-                    email: string;
-                    name: string;
-                    picture?: string;
-                };
-                /** Format: date-time */
-                expiry: string;
-            };
-            signature: string;
-        };
-        CompleteSSOSignupResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-            accessToken: string;
-            refreshToken: string;
-            /** Format: date-time */
-            expiresAt: string;
-        };
-        InitiateSSOResponse: {
-            /** Format: uri */
-            authUrl: string;
-        };
-        SSOCallbackDTO: {
-            code: string;
-        };
-        SSOCallbackResponse: components["schemas"]["CompleteSSOSignupResponse"] | {
-            /** @enum {boolean} */
-            needsUsername: true;
-            provider: string;
-            providerUserInfo: {
-                id: string;
-                email?: string;
-                name?: string;
-                picture?: string;
-            };
-            suggestedUsername: string;
-            signature: string;
-            /** Format: date-time */
-            expiry: string;
-        };
-        LinkSSOProviderDTO: {
-            provider: string;
-            code: string;
-        };
-        LinkProviderResponse: {
-            success: boolean;
-        };
-        ViewerGetResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        ViewerUpdateInputDTO: {
-            name: string;
-        };
-        UserCreateInputDTO: {
-            name?: string;
-            email?: string;
-            emailVerified?: boolean;
-            isAdmin?: boolean;
-            username: string;
-            password: string;
-            permissions?: string[];
-        };
-        UserGetResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        UserUpdateInputDTO: {
-            name?: string | null;
-            email?: string | null;
-            isAdmin?: boolean;
-            username?: string;
-            password?: string;
-            permissions?: string[];
-        };
-        UserListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        UserSessionListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                /** Format: date-time */
-                expiresAt: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        PublicSettingsGetResponse: {
-            settings: {
-                SIGNUP_ENABLED?: boolean;
-                GOOGLE_OAUTH_ENABLED?: boolean;
-            };
-        };
-        SettingsGetResponse: {
-            settings: {
-                SIGNUP_ENABLED?: boolean;
-                SIGNUP_PERMISSIONS: string[];
-                SERVER_HOSTNAME: string | null;
-                GOOGLE_OAUTH_CONFIG?: {
-                    enabled: boolean;
-                    clientId: string;
-                    clientSecret: string;
-                };
-                STORAGE_PROVISIONS?: unknown[];
-                SERVER_STORAGE?: unknown;
-            };
-        };
-        SetSettingInputDTO: {
-            value?: unknown;
-        };
-        SettingSetResponse: {
-            settingKey: string;
-            settingValue?: unknown;
-        };
-        InstallAppsResponse: {
-            /**
-             * @description Success message
-             * @example Apps installation completed
-             */
-            message: string;
-            /**
-             * Format: date-time
-             * @description Timestamp when the installation was completed
-             * @example 2024-01-01T00:00:00.000Z
-             */
-            timestamp: string;
-        };
-        ServerMetricsResponse: {
-            totalUsers: number;
-            totalFolders: number;
-            usersCreatedPreviousWeek: number;
-            foldersCreatedPreviousWeek: number;
-            totalIndexedSizeBytes: number;
-            sessionsCreatedPreviousWeek: number;
-            sessionsCreatedPrevious24Hours: number;
-            provisionedStorage: {
-                totalCount: number;
-                summary: string;
-            };
-            totalIndexedSizeBytesAcrossStorageProvisions: number;
-            installedApps: {
-                totalCount: number;
-                summary: string;
-            };
-            tasksCreatedPreviousDay: number;
-            tasksCreatedPreviousHour: number;
-            taskErrorsPreviousDay: number;
-            taskErrorsPreviousHour: number;
-            serverEventsEmittedPreviousDay: number;
-            serverEventsEmittedPreviousHour: number;
-            folderEventsEmittedPreviousDay: number;
-            folderEventsEmittedPreviousHour: number;
-        };
-        StorageProvisionsListResponse: {
-            result: {
-                /** Format: uuid */
-                id: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                accessKeyId: string;
-                prefix?: string;
-                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                label: string;
-                description: string;
-            }[];
-        };
-        StorageProvisionGetResponse: {
-            storageProvision: {
-                /** Format: uuid */
-                id: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                accessKeyId: string;
-                prefix?: string;
-                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                label: string;
-                description: string;
-            };
-        };
-        StorageProvisionInputDTO: {
-            label: string;
-            description: string;
-            endpoint: string;
-            bucket: string;
-            region: string;
-            accessKeyId: string;
-            secretAccessKey: string;
-            prefix?: string;
-            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-        };
-        StorageProvisionUpdateDTO: {
-            label?: string;
-            description?: string;
-            endpoint?: string;
-            bucket?: string;
-            region?: string;
-            prefix?: string;
-            provisionTypes?: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-        };
-        ServerStorageLocationGetResponse: {
-            serverStorageLocation?: {
-                accessKeyHashId: string;
-                accessKeyId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix: string | null;
-            };
-        };
-        ServerStorageInputDTO: {
-            accessKeyId: string;
-            secretAccessKey: string;
-            /** Format: uri */
-            endpoint: string;
-            bucket: string;
-            region: string;
-            prefix: string | null;
-        };
         AppInstallResponse: {
             app: {
                 identifier: string;
                 slug: string;
-                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
+                        core?: "READ_FOLDER_ACL"[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -1534,6 +1188,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -1559,15 +1214,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "runtime" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -1602,7 +1250,7 @@ export interface components {
                             })[];
                         };
                     };
-                    workers?: {
+                    runtimeWorkers?: {
                         [key: string]: {
                             entrypoint: string;
                             description: string;
@@ -1652,14 +1300,13 @@ export interface components {
                         mimeType: string;
                     };
                 };
-                externalWorkers: {
+                connectedRuntimeWorkers: {
                     appIdentifier: string;
                     workerId: string;
-                    handledTaskIdentifiers: string[];
                     socketClientId: string;
                     ip: string;
                 }[];
-                workers: {
+                runtimeWorkers: {
                     hash: string;
                     size: number;
                     manifest: {
@@ -1738,20 +1385,19 @@ export interface components {
             result: {
                 identifier: string;
                 slug: string;
-                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
+                        core?: "READ_FOLDER_ACL"[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -1770,6 +1416,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -1795,15 +1442,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "runtime" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -1838,7 +1478,7 @@ export interface components {
                             })[];
                         };
                     };
-                    workers?: {
+                    runtimeWorkers?: {
                         [key: string]: {
                             entrypoint: string;
                             description: string;
@@ -1888,14 +1528,13 @@ export interface components {
                         mimeType: string;
                     };
                 };
-                externalWorkers: {
+                connectedRuntimeWorkers: {
                     appIdentifier: string;
                     workerId: string;
-                    handledTaskIdentifiers: string[];
                     socketClientId: string;
                     ip: string;
                 }[];
-                workers: {
+                runtimeWorkers: {
                     hash: string;
                     size: number;
                     manifest: {
@@ -1974,20 +1613,19 @@ export interface components {
             app: {
                 identifier: string;
                 slug: string;
-                installId: string;
                 label: string;
                 publicKey: string;
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
+                        core?: "READ_FOLDER_ACL"[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -2006,6 +1644,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -2031,15 +1670,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "runtime" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -2074,7 +1706,7 @@ export interface components {
                             })[];
                         };
                     };
-                    workers?: {
+                    runtimeWorkers?: {
                         [key: string]: {
                             entrypoint: string;
                             description: string;
@@ -2124,14 +1756,13 @@ export interface components {
                         mimeType: string;
                     };
                 };
-                externalWorkers: {
+                connectedRuntimeWorkers: {
                     appIdentifier: string;
                     workerId: string;
-                    handledTaskIdentifiers: string[];
                     socketClientId: string;
                     ip: string;
                 }[];
-                workers: {
+                runtimeWorkers: {
                     hash: string;
                     size: number;
                     manifest: {
@@ -2223,14 +1854,14 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
+                        core?: "READ_FOLDER_ACL"[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -2249,6 +1880,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -2274,15 +1906,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "runtime" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -2317,7 +1942,7 @@ export interface components {
                             })[];
                         };
                     };
-                    workers?: {
+                    runtimeWorkers?: {
                         [key: string]: {
                             entrypoint: string;
                             description: string;
@@ -2366,7 +1991,7 @@ export interface components {
                         mimeType: string;
                     };
                 };
-                workers: {
+                runtimeWorkers: {
                     hash: string;
                     size: number;
                     manifest: {
@@ -2431,14 +2056,14 @@ export interface components {
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
-                        platform?: ("READ_FOLDER_ACL" | "SERVE_APPS")[];
+                        core?: "READ_FOLDER_ACL"[];
                         user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
                         folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
                     };
                     slug: string;
                     label: string;
                     description: string;
-                    subscribedPlatformEvents?: string[];
+                    subscribedCoreEvents?: string[];
                     triggers?: ({
                         /** @enum {string} */
                         kind: "event";
@@ -2457,6 +2082,7 @@ export interface components {
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
                         };
+                        name: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: unknown[];
@@ -2482,15 +2108,8 @@ export interface components {
                         description: string;
                         handler: {
                             /** @enum {string} */
-                            type: "worker";
+                            type: "runtime" | "docker";
                             identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "docker";
-                            identifier: string;
-                        } | {
-                            /** @enum {string} */
-                            type: "external";
                         };
                     }[];
                     containerProfiles?: {
@@ -2525,7 +2144,7 @@ export interface components {
                             })[];
                         };
                     };
-                    workers?: {
+                    runtimeWorkers?: {
                         [key: string]: {
                             entrypoint: string;
                             description: string;
@@ -2574,7 +2193,7 @@ export interface components {
                         mimeType: string;
                     };
                 };
-                workers: {
+                runtimeWorkers: {
                     hash: string;
                     size: number;
                     manifest: {
@@ -2658,6 +2277,14 @@ export interface components {
                         iconPath?: string;
                     }[];
                 };
+            };
+        };
+        LoginResponse: {
+            session: {
+                accessToken: string;
+                refreshToken: string;
+                /** Format: date-time */
+                expiresAt: string;
             };
         };
         AppUserSettingsGetResponseDTO: {
@@ -3203,25 +2830,146 @@ export interface components {
                 createdDate?: string;
             }[];
         };
+        PublicSettingsGetResponse: {
+            settings: {
+                SIGNUP_ENABLED?: boolean;
+                GOOGLE_OAUTH_ENABLED?: boolean;
+            };
+        };
+        SettingsGetResponse: {
+            settings: {
+                SIGNUP_ENABLED?: boolean;
+                SIGNUP_PERMISSIONS: string[];
+                SERVER_HOSTNAME: string | null;
+                GOOGLE_OAUTH_CONFIG?: {
+                    enabled: boolean;
+                    clientId: string;
+                    clientSecret: string;
+                };
+                STORAGE_PROVISIONS?: unknown[];
+                SERVER_STORAGE?: unknown;
+            };
+        };
+        SetSettingInputDTO: {
+            value?: unknown;
+        };
+        SettingSetResponse: {
+            settingKey: string;
+            settingValue?: unknown;
+        };
+        ServerMetricsResponse: {
+            totalUsers: number;
+            totalFolders: number;
+            usersCreatedPreviousWeek: number;
+            foldersCreatedPreviousWeek: number;
+            totalIndexedSizeBytes: number;
+            sessionsCreatedPreviousWeek: number;
+            sessionsCreatedPrevious24Hours: number;
+            provisionedStorage: {
+                totalCount: number;
+                summary: string;
+            };
+            totalIndexedSizeBytesAcrossStorageProvisions: number;
+            installedApps: {
+                totalCount: number;
+                summary: string;
+            };
+            tasksCreatedPreviousDay: number;
+            tasksCreatedPreviousHour: number;
+            taskErrorsPreviousDay: number;
+            taskErrorsPreviousHour: number;
+            serverEventsEmittedPreviousDay: number;
+            serverEventsEmittedPreviousHour: number;
+            folderEventsEmittedPreviousDay: number;
+            folderEventsEmittedPreviousHour: number;
+        };
+        StorageProvisionsListResponse: {
+            result: {
+                /** Format: uuid */
+                id: string;
+                accessKeyHashId: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                accessKeyId: string;
+                prefix?: string;
+                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+                label: string;
+                description: string;
+            }[];
+        };
+        StorageProvisionGetResponse: {
+            storageProvision: {
+                /** Format: uuid */
+                id: string;
+                accessKeyHashId: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                accessKeyId: string;
+                prefix?: string;
+                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+                label: string;
+                description: string;
+            };
+        };
+        StorageProvisionInputDTO: {
+            label: string;
+            description: string;
+            endpoint: string;
+            bucket: string;
+            region: string;
+            accessKeyId: string;
+            secretAccessKey: string;
+            prefix?: string;
+            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+        };
+        StorageProvisionUpdateDTO: {
+            label?: string;
+            description?: string;
+            endpoint?: string;
+            bucket?: string;
+            region?: string;
+            prefix?: string;
+            provisionTypes?: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+        };
+        ServerStorageLocationGetResponse: {
+            serverStorageLocation?: {
+                accessKeyHashId: string;
+                accessKeyId: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                prefix: string | null;
+            };
+        };
+        ServerStorageInputDTO: {
+            accessKeyId: string;
+            secretAccessKey: string;
+            /** Format: uri */
+            endpoint: string;
+            bucket: string;
+            region: string;
+            prefix: string | null;
+        };
         TaskGetResponse: {
             task: {
                 /** Format: uuid */
                 id: string;
                 taskIdentifier: string;
                 ownerIdentifier: string;
-                trigger: {
+                invocation: {
                     /** @enum {string} */
                     kind: "event";
-                    eventIdentifier: string;
-                    dataTemplate?: {
-                        [key: string]: unknown;
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
                         emitterIdentifier: string;
+                        eventIdentifier: string;
+                        eventTriggerConfigIndex: number;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
                         /** Format: uuid */
                         targetUserId?: string;
                         targetLocation?: {
@@ -3233,74 +2981,55 @@ export interface components {
                             [key: string]: unknown;
                         };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "schedule";
-                    config: {
-                        interval: number;
-                        /** @enum {string} */
-                        unit: "minutes" | "hours" | "days";
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
-                        [key: string]: unknown;
+                        timestampBucket: string;
+                        name: string;
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "user_action";
-                    scope?: {
-                        user?: {
-                            permissions: string;
-                        };
-                        folder?: {
-                            /** Format: uuid */
-                            folderId: string;
-                        };
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         userId: string;
+                        /** Format: uuid */
+                        requestId: string;
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "app_action";
+                    invokeContext: {
+                        /** Format: uuid */
+                        requestId: string;
+                    };
                     onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "task_child";
                     invokeContext: {
                         parentTask: {
-                            /** @enum {boolean} */
-                            success: true;
-                            result: {
-                                [key: string]: unknown;
-                            };
                             /** Format: uuid */
                             id: string;
                             identifier: string;
-                        } | {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details: {
-                                    [key: string]: unknown;
-                                };
-                            };
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
+                            success: boolean;
                         };
+                        onCompleteHandlerIndex: number;
                     };
                     onComplete?: unknown[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
-                data: {
+                data?: {
                     [key: string]: unknown;
                 };
                 targetLocation?: {
@@ -3319,18 +3048,18 @@ export interface components {
                 systemLog: {
                     /** Format: date-time */
                     at: string;
-                    payload: {
-                        /** @enum {string} */
-                        logType: "started" | "error" | "requeue" | "success";
-                        data?: {
-                            [key: string]: unknown;
-                        };
+                    message: string;
+                    /** @enum {string} */
+                    logType: "started" | "error" | "requeue" | "success";
+                    payload?: {
+                        [key: string]: unknown;
                     };
                 }[];
                 taskLog: {
                     /** Format: date-time */
                     at: string;
                     message: string;
+                    logType: string;
                     payload?: {
                         [key: string]: unknown;
                     };
@@ -3362,19 +3091,18 @@ export interface components {
                 id: string;
                 taskIdentifier: string;
                 ownerIdentifier: string;
-                trigger: {
+                invocation: {
                     /** @enum {string} */
                     kind: "event";
-                    eventIdentifier: string;
-                    dataTemplate?: {
-                        [key: string]: unknown;
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
                         emitterIdentifier: string;
+                        eventIdentifier: string;
+                        eventTriggerConfigIndex: number;
+                        dataTemplate?: {
+                            [key: string]: unknown;
+                        };
                         /** Format: uuid */
                         targetUserId?: string;
                         targetLocation?: {
@@ -3386,112 +3114,258 @@ export interface components {
                             [key: string]: unknown;
                         };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "schedule";
-                    config: {
-                        interval: number;
-                        /** @enum {string} */
-                        unit: "minutes" | "hours" | "days";
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
-                        [key: string]: unknown;
+                        timestampBucket: string;
+                        name: string;
+                        config: {
+                            interval: number;
+                            /** @enum {string} */
+                            unit: "minutes" | "hours" | "days";
+                        };
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "user_action";
-                    scope?: {
-                        user?: {
-                            permissions: string;
-                        };
-                        folder?: {
-                            /** Format: uuid */
-                            folderId: string;
-                        };
-                    };
-                    condition?: string;
-                    onComplete?: unknown[];
                     invokeContext: {
                         /** Format: uuid */
                         userId: string;
+                        /** Format: uuid */
+                        requestId: string;
                     };
+                    onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "app_action";
+                    invokeContext: {
+                        /** Format: uuid */
+                        requestId: string;
+                    };
                     onComplete?: unknown[];
                 } | {
                     /** @enum {string} */
                     kind: "task_child";
                     invokeContext: {
                         parentTask: {
-                            /** @enum {boolean} */
-                            success: true;
-                            result: {
-                                [key: string]: unknown;
-                            };
                             /** Format: uuid */
                             id: string;
                             identifier: string;
-                        } | {
-                            /** @enum {boolean} */
-                            success: false;
-                            error: {
-                                code: string;
-                                message: string;
-                                details: {
-                                    [key: string]: unknown;
-                                };
-                            };
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
+                            success: boolean;
                         };
+                        onCompleteHandlerIndex: number;
                     };
                     onComplete?: unknown[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
-                data: {
-                    [key: string]: unknown;
-                };
                 targetLocation?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
                 };
-                error?: {
-                    code: string;
-                    message: string;
-                    details?: {
-                        [key: string]: unknown;
-                    };
-                };
+                error?: components["schemas"]["ApiErrorResponseDTO"];
                 taskDescription: string;
-                systemLog: {
-                    /** Format: date-time */
-                    at: string;
-                    payload: {
-                        /** @enum {string} */
-                        logType: "started" | "error" | "requeue" | "success";
-                        data?: {
-                            [key: string]: unknown;
-                        };
-                    };
-                }[];
-                taskLog: {
-                    /** Format: date-time */
-                    at: string;
-                    message: string;
-                    payload?: {
-                        [key: string]: unknown;
-                    };
-                }[];
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
                 completedAt?: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                targetLocationContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+            }[];
+        };
+        LoginCredentialsDTO: {
+            login: string;
+            password: string;
+        };
+        SignupCredentialsDTO: {
+            username: string;
+            /** Format: email */
+            email?: string;
+            password: string;
+        };
+        SignupResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        TokenRefreshResponse: {
+            session: {
+                accessToken: string;
+                refreshToken: string;
+                /** Format: date-time */
+                expiresAt: string;
+            };
+        };
+        CompleteSSOSignupDTO: {
+            username: string;
+            providerData: {
+                /** @enum {string} */
+                provider: "google";
+                providerUserInfo: {
+                    id: string;
+                    email: string;
+                    name: string;
+                    picture?: string;
+                };
+                /** Format: date-time */
+                expiry: string;
+            };
+            signature: string;
+        };
+        CompleteSSOSignupResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+            accessToken: string;
+            refreshToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        InitiateSSOResponse: {
+            /** Format: uri */
+            authUrl: string;
+        };
+        SSOCallbackDTO: {
+            code: string;
+        };
+        SSOCallbackResponse: components["schemas"]["CompleteSSOSignupResponse"] | {
+            /** @enum {boolean} */
+            needsUsername: true;
+            provider: string;
+            providerUserInfo: {
+                id: string;
+                email?: string;
+                name?: string;
+                picture?: string;
+            };
+            suggestedUsername: string;
+            signature: string;
+            /** Format: date-time */
+            expiry: string;
+        };
+        LinkSSOProviderDTO: {
+            provider: string;
+            code: string;
+        };
+        LinkProviderResponse: {
+            success: boolean;
+        };
+        ViewerGetResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        ViewerUpdateInputDTO: {
+            name: string;
+        };
+        UserCreateInputDTO: {
+            name?: string;
+            email?: string;
+            emailVerified?: boolean;
+            isAdmin?: boolean;
+            username: string;
+            password: string;
+            permissions?: string[];
+        };
+        UserGetResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        UserUpdateInputDTO: {
+            name?: string | null;
+            email?: string | null;
+            isAdmin?: boolean;
+            username?: string;
+            password?: string;
+            permissions?: string[];
+        };
+        UserListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        UserSessionListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                expiresAt: string;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -3533,7 +3407,15 @@ export interface components {
         } | {
             /** @enum {boolean} */
             success: false;
-            error: components["schemas"]["ApiErrorResponseDTO"];
+            error: {
+                requeueDelayMs?: number;
+                name?: string;
+                code: string;
+                message: string;
+                details?: {
+                    [key: string]: unknown;
+                };
+            };
             outputFiles?: {
                 /** Format: uuid */
                 folderId: string;
@@ -3552,1139 +3434,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginCredentialsDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    signup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SignupCredentialsDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SignupResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": boolean;
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    refreshToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                refreshToken: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenRefreshResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    completeSignup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompleteSSOSignupDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompleteSSOSignupResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    initiateSSO: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InitiateSSOResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    handleCallback: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SSOCallbackDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SSOCallbackResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    linkProvider: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LinkSSOProviderDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LinkProviderResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getViewer: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewerGetResponse"];
-                };
-            };
-        };
-    };
-    updateViewer: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ViewerUpdateInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewerGetResponse"];
-                };
-            };
-        };
-    };
-    listUsers: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-                isAdmin?: boolean;
-                sort?: ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc");
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    createUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserCreateInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserUpdateInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listActiveUserSessions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserSessionListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getPublicServerSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Public server settings */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicSettingsGetResponse"];
-                };
-            };
-        };
-    };
-    getServerSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingsGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    setServerSetting: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                settingKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetSettingInputDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingSetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    resetServerSetting: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                settingKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingSetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    installLocalApps: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InstallAppsResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getServerMetrics: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerMetricsResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    listStorageProvisions: {
-        parameters: {
-            query?: {
-                provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    createUserStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StorageProvisionInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                storageProvisionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    updateStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                storageProvisionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StorageProvisionUpdateDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteStorageProvision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                storageProvisionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    getServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    setServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServerStorageInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    deleteServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
     installAppFromZip: {
         parameters: {
             query?: never;
@@ -6687,6 +5436,496 @@ export interface operations {
             };
         };
     };
+    getPublicServerSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public server settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicSettingsGetResponse"];
+                };
+            };
+        };
+    };
+    getServerSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    setServerSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                settingKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetSettingInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingSetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    resetServerSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                settingKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingSetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getServerMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerMetricsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    listStorageProvisions: {
+        parameters: {
+            query?: {
+                provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    createUserStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StorageProvisionInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storageProvisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageProvisionGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    updateStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storageProvisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StorageProvisionUpdateDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    deleteStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storageProvisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorageProvisionsListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getServerStorageLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    setServerStorageLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerStorageInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    deleteServerStorageLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     getTask: {
         parameters: {
             query?: never;
@@ -6841,6 +6080,612 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginCredentialsDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupCredentialsDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    refreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refreshToken: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenRefreshResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    completeSignup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteSSOSignupDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompleteSSOSignupResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    initiateSSO: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InitiateSSOResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    handleCallback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SSOCallbackDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SSOCallbackResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    linkProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkSSOProviderDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkProviderResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getViewer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerGetResponse"];
+                };
+            };
+        };
+    };
+    updateViewer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewerUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerGetResponse"];
+                };
+            };
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                isAdmin?: boolean;
+                sort?: ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc");
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreateInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    deleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    listActiveUserSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSessionListResponse"];
                 };
             };
             /** @description Server Error */

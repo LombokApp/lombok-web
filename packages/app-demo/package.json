@@ -8,7 +8,8 @@
     "app-demo-workers"
   ],
   "scripts": {
-    "package": "bun --cwd app-demo-ui package && bun --cwd app-demo-workers package && cp config.json ../../apps/demo/config.json && cp .publicKey ../../apps/demo/.publicKey",
+    "build:bundle": "./build-bundle.sh",
+    "dev:install": "./dev-install.sh",
     "lint:check": "bun --cwd app-demo-ui lint:check && bun --cwd app-demo-workers lint:check",
     "prettier:check": "bun --cwd app-demo-ui prettier:check && bun --cwd app-demo-workers prettier:check",
     "tsc:check": "bun --cwd app-demo-ui tsc:check && bun --cwd app-demo-workers tsc:check"

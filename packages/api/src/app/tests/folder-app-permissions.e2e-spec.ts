@@ -1,42 +1,45 @@
-import { CORE_APP_SLUG } from '@lombokapp/types'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestUser,
   testS3Location,
 } from 'src/test/test.util'
-import type { User } from 'src/users/entities/user.entity'
+import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
 const TEST_MODULE_KEY = 'folder_app_permissions'
 
 describe('Folder App Permissions', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
-  let enabledAppsCount = 0
 
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
     })
     apiClient = testModule.apiClient
-    const apps = await testModule.services.appService.listAppsAsAdmin(
-      {
-        id: '1',
-        isAdmin: true,
-      } as User,
-      { enabled: true },
-    )
-    enabledAppsCount = apps.result.length
   })
 
   afterEach(async () => {
     await testModule?.resetAppState()
   })
 
+  beforeEach(async () => {
+    await testModule?.installLocalAppBundles([DUMMY_APP_SLUG])
+  })
+
   // Folder-level app settings tests
   describe('Folder App Settings', () => {
     it(`should get folder app settings with defaults for the single app that is installed and enabled`, async () => {
+      await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -53,7 +56,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -102,11 +105,12 @@ describe('Folder App Permissions', () => {
       expect(getSettingsResponse.response.status).toEqual(200)
       expect(getSettingsResponse.data).toBeDefined()
       expect(Object.keys(getSettingsResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
     })
 
     it(`should bulk update folder app settings (enable app)`, async () => {
+      await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -123,7 +127,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -177,7 +181,7 @@ describe('Folder App Permissions', () => {
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
 
@@ -194,7 +198,7 @@ describe('Folder App Permissions', () => {
       )
 
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
     })
@@ -216,7 +220,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -287,7 +291,7 @@ describe('Folder App Permissions', () => {
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
 
@@ -323,7 +327,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -387,7 +391,7 @@ describe('Folder App Permissions', () => {
       )
 
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
 
@@ -409,7 +413,7 @@ describe('Folder App Permissions', () => {
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
 
       // Verify by fetching
@@ -425,11 +429,12 @@ describe('Folder App Permissions', () => {
       )
 
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
     })
 
     it(`should bulk update multiple apps in folder settings`, async () => {
+      await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -446,7 +451,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -506,7 +511,7 @@ describe('Folder App Permissions', () => {
         expect(updateResponse.data).toBeDefined()
         // Should only have the valid app
         expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
-          enabledAppsCount,
+          await testModule!.getInstalledAppsCount(),
         )
         expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
       } else {
@@ -532,7 +537,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -603,12 +608,13 @@ describe('Folder App Permissions', () => {
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(false)
     })
 
     it(`should require folder edit permission to update folder app settings`, async () => {
+      await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
       const {
         session: { accessToken: ownerToken },
       } = await createTestUser(testModule!, {
@@ -643,7 +649,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -768,7 +774,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -823,7 +829,7 @@ describe('Folder App Permissions', () => {
       expect(updateResponse.response.status).toEqual(200)
       expect(updateResponse.data).toBeDefined()
       expect(Object.keys(updateResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(updateResponse.data?.settings[appIdentifier]?.enabled).toBe(true)
       expect(updateResponse.data?.settings[appIdentifier]?.permissions).toEqual(
@@ -866,7 +872,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -977,7 +983,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1086,7 +1092,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1197,7 +1203,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1244,7 +1250,7 @@ describe('Folder App Permissions', () => {
       )
 
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
 
       // Set folder settings
@@ -1316,7 +1322,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {
@@ -1363,7 +1369,7 @@ describe('Folder App Permissions', () => {
       )
 
       expect(Object.keys(getResponse.data?.settings ?? {}).length).toBe(
-        enabledAppsCount,
+        await testModule!.getInstalledAppsCount(),
       )
       expect(getResponse.data?.settings[appIdentifier]?.enabled).toBe(null)
       expect(
@@ -1388,7 +1394,7 @@ describe('Folder App Permissions', () => {
       })
 
       const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(CORE_APP_SLUG)
+        await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
       await apiClient(adminToken).PUT(
         `/api/v1/server/apps/{appIdentifier}/enabled`,
         {

@@ -2,14 +2,14 @@ import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
-import { CoreAppService } from 'src/app/core-app.service'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
+import { coreConfig } from 'src/core/config'
+import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { LogEntryService } from 'src/log/services/log-entry.service'
-import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
@@ -24,8 +24,9 @@ import { FolderService } from './services/folder.service'
   imports: [
     StorageModule,
     ConfigModule.forFeature(appConfig),
-    ConfigModule.forFeature(platformConfig),
+    ConfigModule.forFeature(coreConfig),
     ConfigModule.forFeature(authConfig),
+    forwardRef(() => CoreWorkerModule),
     forwardRef(() => ServerModule),
     forwardRef(() => TaskModule),
     forwardRef(() => EventModule),
@@ -39,7 +40,6 @@ import { FolderService } from './services/folder.service'
     AppService,
     LogEntryService,
     ReindexFolderProcessor,
-    CoreAppService,
   ],
   exports: [FolderService, ReindexFolderProcessor],
 })

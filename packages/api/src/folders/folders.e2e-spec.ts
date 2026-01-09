@@ -299,14 +299,14 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await testModule?.services.platformTaskService.drainPlatformTasks(true)
+    await testModule!.waitForTasks('completed')
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
       { params: { path: { folderId: testFolder.folder.id } } },
     )
 
-    expect(listObjectsResponse.data?.result.length).toBeGreaterThan(0)
+    expect(listObjectsResponse.data?.result.length ?? 0).toBeGreaterThan(0)
   })
 
   it(`should result in the correct bucket config for a server location backed folder`, async () => {

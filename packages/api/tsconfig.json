@@ -23,11 +23,11 @@
     "noFallthroughCasesInSwitch": false,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@lombokapp/core-worker/core-app-worker.ts": [
-        "../core-worker/core-app-worker.ts"
+      "@lombokapp/core-worker/core-worker.ts": [
+        "../core-worker/core-worker.ts"
       ],
-      "@lombokapp/core-worker-utils": ["../core-worker-utils/src"],
-      "@lombokapp/core-worker-utils/*": ["../core-worker-utils/src/*"],
+      "@lombokapp/worker-utils": ["../worker-utils/src"],
+      "@lombokapp/worker-utils/*": ["../worker-utils/src/*"],
       "@lombokapp/types": ["../types/src"],
       "@lombokapp/types/*": ["../types/src/*"],
       "@lombokapp/utils": ["../utils/src"],

@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core'
+import crypto from 'crypto'
 
-import { PlatformModule } from './platform/platform.module'
+import { CoreModule } from './core/core.module'
 import { appReference, setApp, setAppInitializing } from './shared/app-helper'
 import { HttpExceptionFilter } from './shared/http-exception-filter'
 import { NoPrefixConsoleLogger } from './shared/no-prefix-console-logger'
+import { runWithThreadContext } from './shared/thread-context'
 
 export async function buildApp() {
   if (appReference.app) {
@@ -15,12 +17,12 @@ export async function buildApp() {
     // json: true,
     logLevels:
       process.env.LOG_LEVEL === 'ALL'
-        ? ['log', 'error', 'warn', 'debug', 'verbose']
+        ? ['log', 'error', 'warn', 'debug', 'fatal', 'verbose']
         : process.env.LOG_LEVEL === 'DEBUG'
-          ? ['log', 'error', 'warn', 'debug']
-          : ['log', 'error', 'warn'],
+          ? ['log', 'error', 'warn', 'fatal', 'debug']
+          : ['log', 'error', 'warn', 'fatal'],
   })
-  const creationPromise = NestFactory.create(PlatformModule, {
+  const creationPromise = NestFactory.create(CoreModule, {
     logger,
   })
   // set the app init promise reference
@@ -34,6 +36,11 @@ export async function buildApp() {
   app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks()
   app.enableCors()
+  app.use((req, _res, next) => {
+    const requestId = crypto.randomUUID()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    runWithThreadContext(requestId, next)
+  })
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const httpServer = await app.listen(3000, '0.0.0.0', () => {

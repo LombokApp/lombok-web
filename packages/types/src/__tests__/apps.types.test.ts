@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { PlatformObjectAddedEventTriggerIdentifier } from 'src/events.types'
+import { CoreObjectAddedEventTriggerIdentifier } from 'src/events.types'
 import type { SafeParseReturnType } from 'zod'
 
 import type { AppConfig } from '../apps.types'
@@ -9,25 +9,25 @@ import {
   appContributionsSchema,
   appManifestSchema,
   appMetricsSchema,
+  appRuntimeWorkersBundleSchema,
+  appRuntimeWorkerSchema,
+  appRuntimeWorkerScriptIdentifierSchema,
+  appRuntimeWorkersMapSchema,
+  appRuntimeWorkerSocketConnectionSchema,
   appSocketMessageSchema,
   appUiBundleSchema,
   appUIConfigSchema,
   appUILinkSchema,
   appWorkerConfigSchema,
-  appWorkersBundleSchema,
-  appWorkerSchema,
-  appWorkerScriptIdentifierSchema,
-  appWorkersMapSchema,
   ConfigParamType,
   containerProfileConfigSchema,
   containerProfileResourceHintsSchema,
+  coreScopeAppPermissionsSchema,
   dockerWorkerConfigSchema,
   execJobDefinitionSchema,
-  externalAppWorkerSchema,
   folderScopeAppPermissionsSchema,
   httpJobDefinitionSchema,
   paramConfigSchema,
-  platformScopeAppPermissionsSchema,
   userScopeAppPermissionsSchema,
   workerEntrypointSchema,
 } from '../apps.types'
@@ -142,12 +142,12 @@ describe('apps.types', () => {
             label: 'Task 1',
             description: 'First task',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'script1',
             },
           },
         ],
-        workers: {
+        runtimeWorkers: {
           script1: {
             entrypoint: 'worker1.js',
             description: 'Test script',
@@ -170,7 +170,7 @@ describe('apps.types', () => {
             label: 'Task 1',
             description: 'First task',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'missing_worker',
             },
           },
@@ -204,9 +204,26 @@ describe('apps.types', () => {
       expectZodFailure(result)
     })
 
-    it("should reject app with 'platform' identifier", () => {
+    it("should reject app with 'platform' slug", () => {
       const invalidApp = {
         slug: 'platform',
+        label: 'Test App',
+        description: 'A test application',
+        tasks: [
+          {
+            identifier: 'task_one',
+            label: 'Task 1',
+            description: 'First task',
+          },
+        ],
+      }
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it("should reject app with 'core' slug", () => {
+      const invalidApp = {
+        slug: 'core',
         label: 'Test App',
         description: 'A test application',
         tasks: [
@@ -243,8 +260,8 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        subscribedPlatformEvents: ['platform:worker_task_enqueued'],
-        workers: {
+        subscribedCoreEvents: ['core:worker_task_enqueued'],
+        runtimeWorkers: {
           worker1: {
             entrypoint: 'worker.js',
             description: 'Test worker',
@@ -256,7 +273,7 @@ describe('apps.types', () => {
             label: 'Templated Task',
             description: 'Uses event data interpolation',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'worker1',
             },
           },
@@ -264,7 +281,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:worker_task_enqueued',
+            eventIdentifier: 'core:worker_task_enqueued',
             taskIdentifier: 'templated_task',
             dataTemplate: {
               innerTaskId: '{{event.data.innerTaskId}}',
@@ -284,14 +301,14 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
-        subscribedPlatformEvents: ['platform:object_added'],
+        subscribedCoreEvents: ['core:object_added'],
         tasks: [
           {
             identifier: 'demo_worker_task_on_complete',
             label: 'On Complete Handler',
             description: 'Is run as a completion handler for another task.',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'demo_on_complete_worker',
             },
           },
@@ -300,7 +317,7 @@ describe('apps.types', () => {
             label: 'Demo Object Added Worker',
             description: 'A task that runs for every newly added object.',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'demo_object_added_worker',
             },
           },
@@ -309,12 +326,12 @@ describe('apps.types', () => {
             label: 'Demo Scheduled Worker',
             description: 'A task that runs in response to a schedule event.',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'demo_scheduled_worker',
             },
           },
         ],
-        workers: {
+        runtimeWorkers: {
           demo_object_added_worker: {
             entrypoint: 'demo_object_added_worker/index.ts',
             description: 'Runs for every newly added object.',
@@ -331,7 +348,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'demo_object_added_worker_task',
             onComplete: [
               {
@@ -346,6 +363,7 @@ describe('apps.types', () => {
           },
           {
             kind: 'schedule',
+            name: 'hourly_job',
             config: {
               interval: 1,
               unit: 'hours',
@@ -367,7 +385,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'missing_task',
           },
         ],
@@ -382,19 +400,27 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
+        runtimeWorkers: {
+          myworker: {
+            entrypoint: 'worker.js',
+            description: 'Test worker',
+          },
+        },
         tasks: [
           {
             identifier: 'root_task',
             label: 'Root task',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'myworker',
             },
           },
         ],
         triggers: [
           {
             kind: 'schedule',
+            name: 'hourly_job',
             config: {
               interval: 1,
               unit: 'hours',
@@ -424,7 +450,8 @@ describe('apps.types', () => {
             label: 'Root task',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'myworker',
             },
           },
           {
@@ -432,14 +459,15 @@ describe('apps.types', () => {
             label: 'First onComplete',
             description: 'First onComplete task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'mysecondworker',
             },
           },
         ],
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: 'platform:object_added',
+            eventIdentifier: 'core:object_added',
             taskIdentifier: 'root_task',
             onComplete: [
               {
@@ -464,7 +492,7 @@ describe('apps.types', () => {
     it('should validate trigger with onComplete task chain', () => {
       const result = taskTriggerConfigSchema.safeParse({
         kind: 'event',
-        eventIdentifier: 'platform:object_added',
+        eventIdentifier: 'core:object_added',
         taskIdentifier: 'demo_worker',
         onComplete: [
           {
@@ -488,7 +516,7 @@ describe('apps.types', () => {
     it('should reject trigger without a task identifier', () => {
       const result = taskTriggerConfigSchema.safeParse({
         kind: 'event',
-        eventIdentifier: 'platform:object_added',
+        eventIdentifier: 'core:object_added',
       } as unknown)
 
       expectZodFailure(result)
@@ -498,7 +526,7 @@ describe('apps.types', () => {
       it('should accept valid condition expressions', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: "event.data.mediaType === 'IMAGE'",
         })
@@ -509,7 +537,7 @@ describe('apps.types', () => {
       it('should accept condition with logical operators', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition:
             "event.data.mediaType === 'IMAGE' || event.data.mediaType === 'VIDEO'",
@@ -521,7 +549,7 @@ describe('apps.types', () => {
       it('should reject condition with constructor access', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: 'event.data.constructor.constructor',
         })
@@ -535,7 +563,7 @@ describe('apps.types', () => {
       it('should reject condition with nested constructor access', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: 'event.data.someProperty.constructor',
         })
@@ -546,7 +574,7 @@ describe('apps.types', () => {
       it('should accept condition without constructor access', () => {
         const result = taskTriggerConfigSchema.safeParse({
           kind: 'event',
-          eventIdentifier: 'platform:object_added',
+          eventIdentifier: 'core:object_added',
           taskIdentifier: 'demo_worker',
           condition: 'event.data.mediaType',
         })
@@ -666,12 +694,12 @@ describe('apps.types', () => {
             label: 'Task 1',
             description: 'First task',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'script1',
             },
           },
         ],
-        workers: {
+        runtimeWorkers: {
           script1: {
             entrypoint: 'worker1.js',
             description: 'Test script',
@@ -696,7 +724,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        workers: {
+        runtimeWorkers: {
           script1: {
             entrypoint: 'nonexistent.js',
             description: 'Test script',
@@ -725,16 +753,6 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
-        tasks: [
-          {
-            identifier: 'task_one',
-            label: 'Task 1',
-            description: 'First task',
-            handler: {
-              type: 'external',
-            },
-          },
-        ],
       }
 
       const result = appConfigWithManifestSchema(manifest).safeParse(validApp)
@@ -772,25 +790,26 @@ describe('apps.types', () => {
     })
   })
 
-  describe('externalAppWorkerSchema', () => {
-    it('should validate external app worker', () => {
+  describe('appWorkerSocketConnectionSchema', () => {
+    it('should validate app worker socket connection', () => {
       const validWorker = {
         appIdentifier: 'testapp',
         workerId: 'worker1',
-        handledTaskIdentifiers: ['task', 'task'],
         socketClientId: 'client123',
         ip: '192.168.1.1',
       }
-      const result = externalAppWorkerSchema.safeParse(validWorker)
+      const result =
+        appRuntimeWorkerSocketConnectionSchema.safeParse(validWorker)
       expectZodSuccess(result)
     })
 
-    it('should reject external app worker with missing fields', () => {
+    it('should reject worker socket connection with missing fields', () => {
       const invalidWorker = {
         appIdentifier: 'testapp',
         // missing other required fields
       }
-      const result = externalAppWorkerSchema.safeParse(invalidWorker)
+      const result =
+        appRuntimeWorkerSocketConnectionSchema.safeParse(invalidWorker)
       expectZodFailure(result)
     })
   })
@@ -1134,7 +1153,7 @@ describe('apps.types', () => {
         description: 'A test application',
         requiresStorage: true,
         permissions: {
-          platform: ['READ_FOLDER_ACL'],
+          core: ['READ_FOLDER_ACL'],
           user: ['CREATE_FOLDERS', 'READ_USER'],
           folder: ['READ_OBJECTS', 'REINDEX_FOLDER'],
         },
@@ -1149,6 +1168,75 @@ describe('apps.types', () => {
 
       const result = appConfigSchema.safeParse(validApp)
       expectZodSuccess(result)
+    })
+  })
+
+  describe('appConfigSchema should fail validation with extra keys', () => {
+    it('should validate app config with invalid permissions (platform scope is deprecated)', () => {
+      const validApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        requiresStorage: true,
+        permissions: {
+          platform: ['READ_FOLDER_ACL'], // platform scope is deprecated, so it should fail
+          user: ['CREATE_FOLDERS', 'READ_USER'],
+          folder: ['READ_OBJECTS', 'REINDEX_FOLDER'],
+        },
+        ui: {
+          enabled: true,
+          csp: "default-src 'self'",
+        },
+        database: {
+          enabled: true,
+        },
+      }
+
+      const result = appConfigSchema.safeParse(validApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config with extra keys in ui object', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        ui: {
+          enabled: true,
+          csp: "default-src 'self'",
+          extraKey: 'should be rejected', // extra key should cause validation to fail
+        },
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config with extra keys in database object', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        database: {
+          enabled: true,
+          extraKey: 'should be rejected', // extra key should cause validation to fail
+        },
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
+    })
+
+    it('should reject app config with extra keys at top level', () => {
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        extraTopLevelKey: 'should be rejected', // extra key should cause validation to fail
+      }
+
+      const result = appConfigSchema.safeParse(invalidApp)
+      expectZodFailure(result)
     })
   })
 
@@ -1183,9 +1271,8 @@ describe('apps.types', () => {
   })
 
   describe('platform, user and folder scope permissions schemas', () => {
-    it('should validate platform scope permissions', () => {
-      const result =
-        platformScopeAppPermissionsSchema.safeParse('READ_FOLDER_ACL')
+    it('should validate core scope permissions', () => {
+      const result = coreScopeAppPermissionsSchema.safeParse('READ_FOLDER_ACL')
       expectZodSuccess(result)
     })
 
@@ -1202,7 +1289,7 @@ describe('apps.types', () => {
 
   describe('appWorkerSchema and related schemas', () => {
     it('should validate app worker definition', () => {
-      const result = appWorkerSchema.safeParse({
+      const result = appRuntimeWorkerSchema.safeParse({
         description: 'Test worker',
         environmentVariables: {
           SOME_ENV_VAR: 'value',
@@ -1213,7 +1300,7 @@ describe('apps.types', () => {
     })
 
     it('should reject app worker definition with missing env vars', () => {
-      const result = appWorkerSchema.safeParse({
+      const result = appRuntimeWorkerSchema.safeParse({
         description: 'Test worker',
         entrypoint: 'worker.js',
       })
@@ -1221,7 +1308,7 @@ describe('apps.types', () => {
     })
 
     it('should validate app workers bundle schema', () => {
-      const result = appWorkersBundleSchema.safeParse({
+      const result = appRuntimeWorkersBundleSchema.safeParse({
         hash: 'bundlehash',
         size: 1234,
         manifest: {
@@ -1261,7 +1348,7 @@ describe('apps.types', () => {
     })
 
     it('should validate app workers map schema', () => {
-      const result = appWorkersMapSchema.safeParse({
+      const result = appRuntimeWorkersMapSchema.safeParse({
         worker: {
           description: 'Test worker',
           environmentVariables: {
@@ -1274,7 +1361,8 @@ describe('apps.types', () => {
     })
 
     it('should validate app worker script identifier schema', () => {
-      const result = appWorkerScriptIdentifierSchema.safeParse('worker_id')
+      const result =
+        appRuntimeWorkerScriptIdentifierSchema.safeParse('worker_id')
       expectZodSuccess(result)
     })
   })
@@ -1351,8 +1439,8 @@ describe('apps.types', () => {
         slug: 'ai',
         label: 'Lombok AI',
         requiresStorage: true,
-        subscribedPlatformEvents: ['platform:object_added'],
-        workers: {
+        subscribedCoreEvents: ['core:object_added'],
+        runtimeWorkers: {
           api_worker: {
             entrypoint: 'api-worker-entrypoint.js',
             description: 'The API worker.',
@@ -1378,7 +1466,7 @@ describe('apps.types', () => {
             description:
               'A task that runs for every newly added object and triggers the job to extract metadata and generate embeddings.',
             handler: {
-              type: 'worker',
+              type: 'runtime',
               identifier: 'trigger_extract_content_metadata_worker',
             },
           },
@@ -1396,7 +1484,7 @@ describe('apps.types', () => {
         triggers: [
           {
             kind: 'event',
-            eventIdentifier: PlatformObjectAddedEventTriggerIdentifier,
+            eventIdentifier: CoreObjectAddedEventTriggerIdentifier,
             taskIdentifier: 'trigger_extract_content_metadata',
           },
         ],
@@ -1416,7 +1504,7 @@ describe('apps.types', () => {
           objectDetailViews: [],
         },
         permissions: {
-          platform: ['READ_FOLDER_ACL'],
+          core: ['READ_FOLDER_ACL'],
           folder: [
             'READ_OBJECTS',
             'WRITE_OBJECTS',

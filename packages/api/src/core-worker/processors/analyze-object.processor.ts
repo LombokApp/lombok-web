@@ -1,0 +1,43 @@
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { BaseCoreTaskProcessor } from 'src/task/base.processor'
+import { CoreTaskName } from 'src/task/task.constants'
+
+import { NotReadyAsyncWorkError } from '../../../../worker-utils/src'
+import { CoreWorkerService } from '../core-worker.service'
+
+@Injectable()
+export class AnalyzeObjectProcessor extends BaseCoreTaskProcessor<CoreTaskName.AnalyzeObject> {
+  constructor(private readonly coreWorkerService: CoreWorkerService) {
+    super(CoreTaskName.AnalyzeObject, async (task) => {
+      if (task.invocation.kind !== 'event') {
+        throw new NotFoundException(
+          'AnalyzeObjectProcessor requires event trigger',
+        )
+      }
+      const invokeContext = task.invocation.invokeContext
+      const eventData = invokeContext.eventData as {
+        folderId: string
+        objectKey: string
+      }
+      if (!eventData.folderId || !eventData.objectKey) {
+        throw new NotFoundException(
+          'AnalyzeObjectProcessor requires folderId and objectKey',
+        )
+      }
+
+      if (!this.coreWorkerService.isReady()) {
+        throw new NotReadyAsyncWorkError({
+          name: 'Error',
+          message: 'Executor not ready to accept workloads',
+          code: 'CORE_WORKER_NOT_READY',
+          requeueDelayMs: 10000,
+        })
+      }
+
+      await this.coreWorkerService.analyzeObject({
+        folderId: eventData.folderId,
+        objectKey: eventData.objectKey,
+      })
+    })
+  }
+}

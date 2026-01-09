@@ -14,8 +14,8 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
-import { normalizeSortParam } from 'src/platform/utils/sort.util'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
 import { AccessKeyBucketsListResponseDTO } from '../dto/responses/access-key-buckets-list-response.dto'

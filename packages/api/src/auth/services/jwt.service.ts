@@ -20,14 +20,14 @@ import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
-import { platformConfig } from '../../platform/config'
+import { coreConfig } from '../../core/config'
 
 const ALGORITHM = 'HS256'
 
 export const USER_JWT_SUB_PREFIX = 'user:'
 export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
 export const APP_JWT_SUB_PREFIX = 'app:'
-export const APP_WORKER_JWT_SUB_PREFIX = 'app_worker:'
+export const APP_RUNTIME_WORKER_JWT_SUB_PREFIX = 'app_runtime_worker:'
 
 export const accessTokenType = z.object({
   aud: z.string(),
@@ -110,10 +110,8 @@ export class JWTService {
   constructor(
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
   ) {}
 
@@ -121,10 +119,10 @@ export class JWTService {
   async createAppWorkerToken(appIdentifier: string) {
     return jwt.sign(
       {
-        aud: this._platformConfig.platformHost,
+        aud: this._coreConfig.platformHost,
         jti: `${uuidV4()}`,
         scp: [],
-        sub: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+        sub: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
       },
       this._authConfig.authJwtSecret,
       {
@@ -136,7 +134,7 @@ export class JWTService {
 
   async createSessionAccessToken(session: Session): Promise<string> {
     const payload: AccessTokenJWT = {
-      aud: this._platformConfig.platformHost,
+      aud: this._coreConfig.platformHost,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
       sub: `${USER_JWT_SUB_PREFIX}${session.userId}`,
@@ -165,7 +163,7 @@ export class JWTService {
     appIdentifier: string,
   ): Promise<string> {
     const payload: AccessTokenJWT = {
-      aud: this._platformConfig.platformHost,
+      aud: this._coreConfig.platformHost,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
       sub: `${APP_USER_JWT_SUB_PREFIX}${session.userId}:${appIdentifier}`,
@@ -193,7 +191,7 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._platformConfig.platformHost,
+        audience: this._coreConfig.platformHost,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -255,7 +253,7 @@ export class JWTService {
       throw error
     }
   }
-  verifyAppWorkerToken({
+  verifyAppRuntimeWorkerToken({
     appIdentifier,
     token,
   }: {
@@ -265,8 +263,8 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._platformConfig.platformHost,
-        subject: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+        audience: this._coreConfig.platformHost,
+        subject: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {

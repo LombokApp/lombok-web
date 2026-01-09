@@ -13,68 +13,54 @@ import {
 import nestjsConfig from '@nestjs/config'
 import { and, eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
+import { coreConfig } from 'src/core/config'
+import { waitForTrue, WaitForTrueError } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
-import { waitForTrue, WaitForTrueError } from 'src/platform/utils/wait.util'
 
 import {
   DockerExecuteJobOptions,
   JobExecuteOptions,
 } from './client/docker.schema'
 import { DockerClientService } from './client/docker-client.service'
-import { DockerExecState, DockerStateFunc } from './client/docker-client.types'
+import {
+  DockerError,
+  DockerJobCompletionError,
+  DockerJobSubmissionError,
+  DockerLogAccessError,
+  DockerStateFunc,
+} from './client/docker-client.types'
 import { WorkerJobService } from './worker-job.service'
 
 const DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS = {
   maxRetries: 50,
-  retryPeriod: 250,
+  retryPeriodMs: 250,
 }
 
 const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
   maxRetries: 100,
-  retryPeriod: 250,
+  retryPeriodMs: 250,
 }
 
 /** Labels applied to worker containers for discovery */
 export const DOCKER_LABELS = {
-  PLATFORM: 'lombok.platform',
+  PLATFORM: 'lombok.core',
   PROFILE_ID: 'lombok.profile_id',
   PROFILE_HASH: 'lombok.profile_hash',
 } as const
 
-export class DockerJobSubmissionError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(message)
-    this.name = 'DockerJobSubmissionError'
-  }
-}
-
-export class DockerJobCompletionError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(message)
-    this.name = 'DockerJobCompletionError'
-  }
-}
-
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
+  workerJobService: WorkerJobService
   constructor(
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     private readonly dockerClientService: DockerClientService,
     @Inject(forwardRef(() => WorkerJobService))
-    private readonly workerJobService: WorkerJobService,
+    _workerJobService,
   ) {
+    this.workerJobService = _workerJobService as WorkerJobService
     void this.dockerClientService.testAllHostConnections().then((result) => {
       this.logger.debug('Docker host connection test result:', result)
     })
@@ -227,11 +213,9 @@ export class DockerJobsService {
               },
         platform_url: !jobToken
           ? undefined
-          : `http${this._platformConfig.platformHttps ? 's' : ''}://${this._platformConfig.platformHost}${this._platformConfig.platformPort !== null ? `:${this._platformConfig.platformPort}` : ''}`,
+          : `http${this._coreConfig.platformHttps ? 's' : ''}://${this._coreConfig.platformHost}${this._coreConfig.platformPort !== null ? `:${this._coreConfig.platformPort}` : ''}`,
         output_location: outputLocation,
       }
-
-      this.logger.log('Executing job:', jobExecuteOptions)
 
       // Base64 encode the payload
       const payloadBase64 = Buffer.from(
@@ -245,7 +229,7 @@ export class DockerJobsService {
         `--payload-base64=${payloadBase64}`,
       ]
 
-      const { hostId, containerId, state, output } =
+      const { hostId, containerId, state, output, getError } =
         await this.dockerClientService.execInProfileContainer(profileKey, {
           image: profileSpec.image,
           command: agentCommand,
@@ -254,9 +238,18 @@ export class DockerJobsService {
 
       // Wait for the agent exec call to complete, signifying that the job has been submitted
       try {
-        await this.waitForSubmission(state, output)
+        await this.waitForStarted(
+          jobId,
+          state,
+          getError,
+          output,
+          () => this.getJobState(hostId, containerId, jobId),
+          jobDefinition.kind,
+        )
+        this.logger.debug(`Job ${jobId} submitted successfully`)
       } catch (error) {
         if (error instanceof DockerJobSubmissionError) {
+          this.logger.debug(`Job ${jobId} submission failed: ${error.message}`)
           const submitErrorResult: DockerSubmitResult = {
             jobId,
             submitError: {
@@ -264,25 +257,10 @@ export class DockerJobsService {
               message: error.message,
             },
           }
-          this.logger.warn(
-            'Submission failed. Agent logs:',
-            await this.getAgentLogs(hostId, containerId),
-            'Worker logs:',
-            await this.getWorkerLogs(hostId, containerId, {
-              jobClass: jobIdentifier,
-            }),
-            'Job state:',
-            await this.getJobState(hostId, containerId, jobId),
-          )
           return submitErrorResult as DockerExecResult<T>
         }
         throw error
       }
-
-      this.logger.debug('Job submission output:', {
-        output: await output(),
-        state: await state(),
-      })
 
       if (waitForCompletion) {
         const completionResult = await this.waitForCompletion(
@@ -298,7 +276,7 @@ export class DockerJobsService {
         return submitResult as DockerExecResult<T>
       }
     } catch (error) {
-      this.logger.error('error:', error)
+      this.logger.error('Unexpected error in executeDockerJob:', error)
       throw error
     }
   }
@@ -318,55 +296,69 @@ export class DockerJobsService {
     return Math.abs(hash).toString(16)
   }
 
-  async waitForSubmission(
-    state: DockerStateFunc,
-    output: () => Promise<{ stdout: string; stderr: string }>,
+  async waitForStarted(
+    jobId: string,
+    execState: DockerStateFunc,
+    getError: () => Promise<DockerError>,
+    execOutput: () => { stdout: string; stderr: string },
+    jobState: () => Promise<DockerJobState>,
+    jobKind: 'exec' | 'http',
     {
       maxRetries = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.maxRetries,
-      retryPeriod = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.retryPeriod,
+      retryPeriodMs = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.retryPeriodMs,
     }: {
       maxRetries?: number
-      retryPeriod?: number
+      retryPeriodMs?: number
     } = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS,
   ) {
-    let currentState: DockerExecState = await state()
-    try {
-      await waitForTrue(
-        async () => {
-          currentState = await state()
-          if (
-            !currentState.running &&
-            typeof currentState.exitCode !== 'number'
-          ) {
-            throw new DockerJobSubmissionError(
-              'SUBMISSION_ERROR',
-              `Job submission completed but without exit code. This should never happen.`,
-            )
-          }
-          return !currentState.running
-        },
-        { maxRetries, retryPeriod },
-      )
-    } catch (error) {
-      if (!(error instanceof WaitForTrueError)) {
+    const jobHasStarted = async () => {
+      const currentState = await execState(maxRetries * retryPeriodMs)
+
+      if (!currentState.running && currentState.exitCode !== 0) {
+        const error = await getError()
         throw new DockerJobSubmissionError(
-          'UNKNOWN_ERROR',
-          `Job submission failed with unknown error: ${error instanceof Error ? error.message : String(error)}`,
+          'SUBMISSION_ERROR',
+          `Job submission failed with error: [${error.code}] Message: ${error.message}`,
         )
       }
-      this.logger.warn('Docker job WaitForSubmission timeout')
+
+      if (!currentState.running || jobKind === 'exec') {
+        // For exec jobs this means the job was completed (success or failure), but for http jobs it
+        // just means the initial submit call is completed, but not that the job is even running.
+        const _jobState = await jobState()
+        if (!_jobState.started_at && _jobState.status === 'failed') {
+          const error = new DockerJobSubmissionError(
+            'SUBMISSION_ERROR',
+            `Job submission failed: ${_jobState.error}`,
+          )
+
+          throw error
+        }
+
+        return !!_jobState.started_at
+      }
+      return false
     }
 
-    if (currentState.running) {
-      throw new DockerJobSubmissionError(
-        'SUBMISSION_TIMEOUT',
-        `Job is still submitting after approximately ${maxRetries * retryPeriod}ms`,
-      )
-    } else if (currentState.exitCode !== 0) {
-      const _output = await output()
+    try {
+      await waitForTrue(jobHasStarted, {
+        maxRetries,
+        retryPeriodMs,
+        totalMaxDurationMs: maxRetries * retryPeriodMs,
+      })
+    } catch (error) {
+      if (error instanceof WaitForTrueError && error.code === 'TIMEOUT') {
+        this.logger.warn('Docker job waitForStarted timeout')
+        throw new DockerJobSubmissionError(
+          'SUBMISSION_TIMEOUT',
+          `Job submission timed out after approximately ${maxRetries * retryPeriodMs}ms`,
+        )
+      } else if (error instanceof DockerJobSubmissionError) {
+        throw error
+      }
       throw new DockerJobSubmissionError(
         'SUBMISSION_ERROR',
-        `Job submission failed with exit code ${currentState.exitCode}.\nOutput: ${_output.stdout}\nError: ${_output.stderr}`,
+        `Job submission failed: ${error instanceof Error ? error.message : String(error)}`,
       )
     }
   }
@@ -377,22 +369,28 @@ export class DockerJobsService {
     jobId: string,
     {
       maxRetries = DEFAULT_WAIT_FOR_COMPLETION_OPTIONS.maxRetries,
-      retryPeriod = DEFAULT_WAIT_FOR_COMPLETION_OPTIONS.retryPeriod,
+      retryPeriodMs = DEFAULT_WAIT_FOR_COMPLETION_OPTIONS.retryPeriodMs,
     }: {
       maxRetries?: number
-      retryPeriod?: number
+      retryPeriodMs?: number
     } = DEFAULT_WAIT_FOR_COMPLETION_OPTIONS,
   ): Promise<DockerJobResult> {
     const latestState = () => this.getJobState(hostId, containerId, jobId)
     let currentJobState: DockerJobState = await latestState()
     const hasCompleted = () => !!currentJobState.completed_at
+
     await waitForTrue(
       async () => {
         currentJobState = await latestState()
         return hasCompleted()
       },
-      { maxRetries, retryPeriod },
+      {
+        maxRetries,
+        retryPeriodMs,
+        totalMaxDurationMs: maxRetries * retryPeriodMs,
+      },
     )
+
     if (hasCompleted()) {
       const jobResult = await this.getJobResult(hostId, containerId, jobId)
       if (currentJobState.status === 'success') {
@@ -404,7 +402,7 @@ export class DockerJobsService {
     }
     throw new DockerJobCompletionError(
       'COMPLETION_TIMEOUT',
-      `Job is not completed after approximately ${maxRetries * retryPeriod}ms`,
+      `Job is not completed after approximately ${maxRetries * retryPeriodMs}ms`,
     )
   }
 
@@ -423,19 +421,33 @@ export class DockerJobsService {
       command.push('--tail', options.tail.toString())
     }
 
-    const output =
-      await this.dockerClientService.execInContainerAndReturnOutput(
-        hostId,
-        containerId,
-        command,
-      )
-    if (output.stderr.length > 0) {
-      throw new DockerJobCompletionError(
-        'AGENT_LOG_ERROR',
-        'Error getting agent log: ' + output.stderr,
+    const { output, state } = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      command,
+    )
+
+    await waitForTrue(
+      async () => {
+        const _state = await state(5000)
+        return !_state.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const streamsOutput = output()
+
+    if (streamsOutput.stderr.length > 0) {
+      throw new DockerLogAccessError(
+        'AGENT_LOG_ACCESS_ERROR',
+        'Error getting agent log: ' + streamsOutput.stderr,
       )
     }
-    return output.stdout
+    return streamsOutput.stdout
   }
 
   async getJobState(
@@ -445,20 +457,42 @@ export class DockerJobsService {
   ): Promise<DockerJobState> {
     const command = ['lombok-worker-agent', 'job-state', '--job-id', jobId]
 
-    const rawOutput =
-      await this.dockerClientService.execInContainerAndReturnOutput(
+    const { getError, output, state } =
+      await this.dockerClientService.execInContainer(
         hostId,
         containerId,
         command,
       )
 
-    if (rawOutput.stdout.length === 0) {
+    await waitForTrue(
+      async () => {
+        const _state = await state(5000)
+        return !_state.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const latestState = await state(5000)
+    if (latestState.exitCode !== 0) {
+      throw await getError()
+    }
+
+    const streamsOutput = output()
+
+    if (streamsOutput.stdout.length === 0) {
       throw new DockerJobCompletionError(
         'JOB_STATE_NOT_FOUND',
-        'Job state not found\nError: ' + rawOutput.stderr,
+        'Job state not found\nError: ' +
+          streamsOutput.stderr +
+          '\n' +
+          streamsOutput.stderr,
       )
     }
-    return JSON.parse(rawOutput.stdout) as DockerJobState
+    return JSON.parse(streamsOutput.stdout) as DockerJobState
   }
 
   async getJobResult(
@@ -468,16 +502,29 @@ export class DockerJobsService {
   ): Promise<DockerJobResult> {
     const command = ['lombok-worker-agent', 'job-result', '--job-id', jobId]
 
-    const output =
-      await this.dockerClientService.execInContainerAndReturnOutput(
-        hostId,
-        containerId,
-        command,
-      )
+    const { output, state } = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      command,
+    )
+
+    await waitForTrue(
+      async () => {
+        const _state = await state(5000)
+        return !_state.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const streamsOutput = output()
 
     const agentResponse =
-      output.stdout.length > 0
-        ? (JSON.parse(output.stdout) as DockerJobResultAgent)
+      streamsOutput.stdout.length > 0
+        ? (JSON.parse(streamsOutput.stdout) as DockerJobResultAgent)
         : undefined
 
     return agentResponse
@@ -490,44 +537,10 @@ export class DockerJobsService {
           jobId,
           error: {
             code: 'JOB_RESULT_NOT_FOUND',
-            message: 'Job result not found\nError: ' + output.stderr,
+            message: 'Job result not found\nError: ' + streamsOutput.stderr,
           },
           timing: {},
         }
-  }
-
-  async getWorkerLogs(
-    hostId: string,
-    containerId: string,
-    options: { jobClass: string; tail?: number; err?: boolean },
-  ): Promise<string> {
-    const command = [
-      'lombok-worker-agent',
-      'worker-log',
-      '--job-class',
-      options.jobClass,
-    ]
-
-    if (options.err) {
-      command.push('--err')
-    }
-
-    if (options.tail) {
-      command.push('--tail', options.tail.toString())
-    }
-    const output =
-      await this.dockerClientService.execInContainerAndReturnOutput(
-        hostId,
-        containerId,
-        command,
-      )
-    if (output.stdout.length === 0) {
-      throw new DockerJobCompletionError(
-        'WORKER_LOG_NOT_FOUND',
-        'Worker log not found\nError: ' + output.stderr,
-      )
-    }
-    return output.stdout
   }
 
   async getJobLogs(
@@ -550,19 +563,33 @@ export class DockerJobsService {
       command.push('--tail', options.tail.toString())
     }
 
-    const output =
-      await this.dockerClientService.execInContainerAndReturnOutput(
-        hostId,
-        containerId,
-        command,
-      )
-    if (output.stdout.length === 0) {
-      throw new DockerJobCompletionError(
-        'JOB_LOG_NOT_FOUND',
-        'Job log not found\nError: ' + output.stderr,
+    const { output, state } = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      command,
+    )
+
+    await waitForTrue(
+      async () => {
+        const _state = await state(5000)
+        return !_state.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const streamsOutput = output()
+
+    if (streamsOutput.stderr.length > 0) {
+      throw new DockerLogAccessError(
+        'JOB_LOG_ACCESS_ERROR',
+        'Error getting job log: ' + streamsOutput.stderr,
       )
     }
-    return output.stdout
+    return streamsOutput.stdout
   }
 }
 
@@ -592,11 +619,12 @@ type DockerSubmitResult =
 interface DockerJobState {
   job_id: string
   job_class: string
-  status: string
-  started_at: string
-  completed_at: string
+  status: 'pending' | 'running' | 'success' | 'failed'
+  error?: string
+  started_at?: string
+  completed_at?: string
   worker_kind: string
-  worker_state_pid: number
+  worker_state_pid?: number
 }
 type DockerJobResultAgent =
   | {

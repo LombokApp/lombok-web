@@ -23,7 +23,6 @@ export const propertyOf = <T>(propertyName: string & keyof T): string => {
 
 export type ShapeOf<T> = Record<keyof T, unknown>
 
-// eslint-disable-next-line no-use-before-define
 export type AssertKeysEqual<X extends ShapeOf<Y>, Y extends ShapeOf<X>> = never
 
 export type Concrete<Type> = {

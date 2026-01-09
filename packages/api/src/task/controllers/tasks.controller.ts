@@ -13,14 +13,17 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
-import { normalizeSortParam } from 'src/platform/utils/sort.util'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 import type { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import type { TaskListResponse } from '../dto/responses/task-list-response.dto'
 import { TaskService } from '../services/task.service'
-import { transformTaskToDTO } from '../transforms/task.transforms'
+import {
+  transformTaskSummaryToDTO,
+  transformTaskToDTO,
+} from '../transforms/task.transforms'
 
 @Controller('/api/v1/folders')
 @ApiTags('Tasks')
@@ -74,7 +77,7 @@ export class TasksController {
       },
     )
     return {
-      result: result.map((task) => transformTaskToDTO(task)),
+      result: result.map((task) => transformTaskSummaryToDTO(task)),
       meta,
     }
   }

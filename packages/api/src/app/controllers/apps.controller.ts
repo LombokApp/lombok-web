@@ -21,8 +21,8 @@ import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
-import { normalizeSortParam } from 'src/platform/utils/sort.util'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
@@ -79,14 +79,10 @@ export class AppsController {
       zipFilename: file.originalname ?? 'no filename provided',
       zipFileBuffer: file.buffer,
     })
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedAppWorkers = this.appService.getWorkerConnections()
 
     return {
-      app: transformAppToDTO(
-        app,
-        connectedExternalAppWorkers[app.identifier] ?? [],
-      ),
+      app: transformAppToDTO(app, connectedAppWorkers[app.identifier] ?? []),
     }
   }
 
@@ -108,8 +104,7 @@ export class AppsController {
         enabled: queryParams.enabled,
       },
     )
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     const result = apps.map((app) => {
       return transformAppToDTO(
         app,
@@ -136,8 +131,7 @@ export class AppsController {
       appIdentifier,
       enabled,
     )
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     return {
       app: transformAppToDTO(
         app,
@@ -158,8 +152,7 @@ export class AppsController {
     if (!app) {
       throw new NotFoundException()
     }
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
 
     // Calculate app metrics
     const metrics = await this.appService.calculateAppMetrics(appIdentifier)
@@ -189,8 +182,7 @@ export class AppsController {
       appIdentifier,
       body,
     )
-    const connectedExternalAppWorkers =
-      this.appService.getExternalWorkerConnections()
+    const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     return {
       app: transformAppToDTO(
         app,

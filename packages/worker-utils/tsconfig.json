@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "types": ["bun"],
+    "strict": true,
+    "module": "es2022",
+    "moduleResolution": "node",
+    "declaration": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"],
+      "@lombokapp/utils": ["../utils/src"],
+      "@lombokapp/utils/*": ["../utils/src/*"],
+      "@lombokapp/app-worker-sdk": ["../app-worker-sdk/src"],
+      "@lombokapp/app-worker-sdk/*": ["../app-worker-sdk/src/*"]
+    }
+  },
+  "include": ["src/**/*", "index.ts", "eslint.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

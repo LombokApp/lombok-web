@@ -1,13 +1,11 @@
-import type { OnModuleInit } from '@nestjs/common'
-import { forwardRef, Inject, Module } from '@nestjs/common'
-import nestJSConfig, { ConfigModule } from '@nestjs/config'
-import { AuthModule } from 'src/auth/auth.module'
+import { forwardRef, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { coreConfig } from 'src/core/config'
+import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
-import { OrmService } from 'src/orm/orm.service'
-import { platformConfig } from 'src/platform/config'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
@@ -16,51 +14,23 @@ import { StorageModule } from 'src/storage/storage.module'
 import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
 import { UserAppsController } from './controllers/user-apps.controller'
-import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
 
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
-    ConfigModule.forFeature(platformConfig),
-    forwardRef(() => AuthModule),
+    ConfigModule.forFeature(coreConfig),
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,
+    forwardRef(() => CoreWorkerModule),
     forwardRef(() => SocketModule),
     forwardRef(() => FoldersModule),
     forwardRef(() => DockerModule),
   ],
   controllers: [AppsController, UserAppsController],
-  providers: [
-    AppService,
-    CoreAppService,
-    S3Service,
-    ServerConfigurationService,
-  ],
+  providers: [AppService, S3Service, ServerConfigurationService],
   exports: [AppService],
 })
-export class AppModule implements OnModuleInit {
-  constructor(
-    private readonly coreAppService: CoreAppService,
-    private readonly ormService: OrmService,
-    private readonly appService: AppService,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestJSConfig.ConfigType<
-      typeof platformConfig
-    >,
-  ) {}
-  async onModuleInit() {
-    await this.ormService
-      .waitForInit()
-      .then(() => {
-        if (this._platformConfig.installAppsOnStart) {
-          return this.appService.installAllAppsFromDisk()
-        }
-      })
-      .then(() => this.coreAppService.startCoreAppThread())
-
-    // init app roles
-    await this.ormService.initAppRolesForAllApps()
-  }
-}
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+export class AppModule {}

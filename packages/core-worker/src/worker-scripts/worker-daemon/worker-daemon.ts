@@ -5,28 +5,28 @@ import type {
   TaskHandler,
 } from '@lombokapp/app-worker-sdk'
 import {
+  AppTaskError,
   buildAppClient,
   createLombokAppPgDatabase,
   LombokAppPgClient,
 } from '@lombokapp/app-worker-sdk'
+import { type paths, type TaskDTO } from '@lombokapp/types'
 import type {
   WorkerModuleStartContext,
   WorkerPipeRequest,
   WorkerPipeResponse,
-} from '@lombokapp/core-worker-utils'
+} from '@lombokapp/worker-utils'
 import {
-  serializeWorkerError,
-  WorkerError,
-  WorkerExecutorError,
-  WorkerInvalidError,
-  WorkerRuntimeError,
-} from '@lombokapp/core-worker-utils'
-import type { paths, TaskDTO } from '@lombokapp/types'
+  AsyncWorkDispatchError,
+  AsyncWorkError,
+  buildUnexpectedError,
+} from '@lombokapp/worker-utils'
 import { AsyncLocalStorage } from 'async_hooks'
 import fs from 'fs'
 import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 
+import { getAsyncWorkErrorFromAppTaskError } from './app-error-utils'
 import { PipeReader, PipeWriter } from './pipe-utils'
 
 void (async () => {
@@ -244,10 +244,20 @@ void (async () => {
     logTiming('module_import_failed', moduleImportStartTime, {
       error: err instanceof Error ? err.message : String(err),
     })
-    throw new WorkerRuntimeError(
-      'Error during worker module import',
-      err instanceof Error ? err : new Error(String(err)),
-    )
+    const error = err instanceof Error ? err : new Error(String(err))
+    throw new AsyncWorkError({
+      origin: 'app',
+      name: 'AppWorkerModuleImportError',
+      message: 'Error during app worker module import',
+      code: 'APP_WORKER_MODULE_IMPORT_ERROR',
+      cause: {
+        name: 'AppWorkerModuleImportError',
+        origin: 'app',
+        code: 'APP_WORKER_MODULE_IMPORT_ERROR',
+        message: error.message,
+        ...(error.stack ? { stack: error.stack } : {}),
+      },
+    })
   }
 
   // Verify at least one handler exists - specific handlers will be checked when needed
@@ -255,9 +265,13 @@ void (async () => {
     typeof userModule.handleRequest !== 'function' &&
     typeof userModule.handleTask !== 'function'
   ) {
-    throw new WorkerInvalidError(
-      'App worker module must export either a handleRequest or handleTask function',
-    )
+    throw new AsyncWorkError({
+      name: 'AppWorkerModuleInvalid',
+      origin: 'app',
+      message:
+        'App worker module must export either a handleRequest or handleTask function',
+      code: 'APP_WORKER_MODULE_MISSING_HANDLERS',
+    })
   }
 
   // Function to handle a single request within ALS context
@@ -305,6 +319,7 @@ void (async () => {
           // Authenticate the user if Authorization header is present
           let userId: string | undefined
           let accessToken: string | undefined
+          let actor: Parameters<RequestHandler>[1]['actor']
 
           const authStartTime = Date.now()
           logTiming('authentication_start', authStartTime, {
@@ -312,57 +327,127 @@ void (async () => {
           })
 
           try {
-            const authHeader = request.headers.get('Authorization')
-
-            if (
-              authHeader?.startsWith('Bearer ') &&
-              pipeRequest.appIdentifier
-            ) {
-              const token = authHeader.slice('Bearer '.length)
-
-              const authResult = await serverClient.authenticateUser({
-                token,
-                appIdentifier: pipeRequest.appIdentifier,
-              })
-
-              if ('error' in authResult) {
-                const errorMessage = authResult.error.message
-                logTiming('authentication_failed', authStartTime, {
-                  requestId: pipeRequest.id,
-                  error: errorMessage,
-                  appIdentifier: pipeRequest.appIdentifier,
-                })
-                throw new WorkerRuntimeError(
-                  'Authentication failed',
-                  new Error(errorMessage),
-                )
-              }
-
-              userId = authResult.result.userId
-              accessToken = token
-              logTiming('authentication_complete', authStartTime, {
-                requestId: pipeRequest.id,
-                userId,
-                appIdentifier: pipeRequest.appIdentifier,
-              })
-              console.log(
-                `Authenticated user: ${userId} for app: ${pipeRequest.appIdentifier}`,
-              )
-            } else {
+            if (pipeRequest.isSystemRequest) {
+              actor = { actorType: 'system' }
               logTiming('authentication_skipped', authStartTime, {
                 requestId: pipeRequest.id,
-                reason: authHeader ? 'no_app_identifier' : 'no_auth_header',
+                reason: 'system_request',
               })
+            } else {
+              const authHeader = request.headers.get('Authorization')
+
+              if (
+                authHeader?.startsWith('Bearer ') &&
+                pipeRequest.appIdentifier
+              ) {
+                const token = authHeader.slice('Bearer '.length)
+
+                const authResult = await serverClient.authenticateUser({
+                  token,
+                  appIdentifier: pipeRequest.appIdentifier,
+                })
+
+                if ('error' in authResult) {
+                  const errorMessage = authResult.error.message
+                  logTiming('authentication_failed', authStartTime, {
+                    requestId: pipeRequest.id,
+                    error: errorMessage,
+                    appIdentifier: pipeRequest.appIdentifier,
+                  })
+
+                  throw new AsyncWorkError({
+                    name: 'AuthenticationFailed',
+                    origin: 'internal',
+                    message: authResult.error.message,
+                    code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
+                    stack: new Error().stack,
+                    details: {
+                      id: pipeRequest.id,
+                      timestamp: pipeRequest.timestamp,
+                      request: {
+                        url: request.url,
+                        method: request.method,
+                      },
+                      isSystemRequest: pipeRequest.isSystemRequest,
+                      original: authResult.error,
+                    },
+                  })
+                }
+
+                userId = authResult.result.userId
+                accessToken = token
+                logTiming('authentication_complete', authStartTime, {
+                  requestId: pipeRequest.id,
+                  userId,
+                  appIdentifier: pipeRequest.appIdentifier,
+                })
+                console.log(
+                  `Authenticated user: ${userId} for app: ${pipeRequest.appIdentifier}`,
+                )
+              } else {
+                logTiming('authentication_skipped', authStartTime, {
+                  requestId: pipeRequest.id,
+                  reason: authHeader ? 'no_app_identifier' : 'no_auth_header',
+                })
+              }
             }
           } catch (err) {
             logTiming('authentication_error', authStartTime, {
               requestId: pipeRequest.id,
               error: err instanceof Error ? err.message : String(err),
             })
-            throw new WorkerRuntimeError(
-              'Authentication error',
-              err instanceof Error ? err : new Error(String(err)),
-            )
+            if (err instanceof AsyncWorkError) {
+              throw err
+            }
+
+            const error = err instanceof Error ? err : new Error(String(err))
+
+            throw new AsyncWorkError({
+              origin: 'internal',
+              name: 'UnknownAuthenticationError',
+              message: 'Unknown authentication error',
+              code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
+              stack: error.stack,
+              details: {
+                id: pipeRequest.id,
+                timestamp: pipeRequest.timestamp,
+                request: {
+                  url: request.url,
+                  method: request.method,
+                },
+                isSystemRequest: pipeRequest.isSystemRequest,
+              },
+              cause: new AsyncWorkError({
+                origin: 'internal',
+                name: 'UnknownAuthenticationError',
+                code: 'UNKNOWN_AUTHENTICATION_ERROR',
+                message: 'Unknown authentication error',
+                stack: error.stack,
+                details: {
+                  id: pipeRequest.id,
+                  timestamp: pipeRequest.timestamp,
+                  original: {
+                    name: error.name,
+                    message: error.message,
+                  },
+                },
+              }),
+            })
+          }
+
+          if (!actor && userId) {
+            actor = {
+              actorType: 'user',
+              userId,
+              userApiClient: createFetchClient<paths>({
+                baseUrl: workerModuleStartContext.serverBaseUrl,
+                fetch: async (fetchRequest) => {
+                  const headers = new Headers(fetchRequest.headers)
+                  headers.set('Authorization', `Bearer ${accessToken}`)
+                  return fetch(new Request(fetchRequest, { headers }))
+                },
+              }),
+            }
           }
 
           logTiming('execution_start', executionStartTime, {
@@ -372,30 +457,33 @@ void (async () => {
           })
 
           if (typeof userModule.handleRequest !== 'function') {
-            throw new WorkerInvalidError(
-              'App worker module does not export a handleRequest function',
-            )
+            throw new AsyncWorkError({
+              origin: 'app',
+              name: 'InvalidAppWorkerModule',
+              message:
+                'App worker module does not export a handleRequest function',
+              code: 'INVALID_APP_WORKER_MODULE',
+            })
           }
 
-          response = await userModule.handleRequest(request, {
-            serverClient,
-            dbClient,
-            createDb,
-            actor: userId // Pass the authenticated user to the handler
-              ? {
-                  actorType: 'user',
-                  userId,
-                  userApiClient: createFetchClient<paths>({
-                    baseUrl: workerModuleStartContext.serverBaseUrl,
-                    fetch: async (fetchRequest) => {
-                      const headers = new Headers(fetchRequest.headers)
-                      headers.set('Authorization', `Bearer ${accessToken}`)
-                      return fetch(new Request(fetchRequest, { headers }))
-                    },
-                  }),
-                }
-              : undefined,
-          })
+          try {
+            response = await userModule.handleRequest(request, {
+              serverClient,
+              dbClient,
+              createDb,
+              actor,
+            })
+          } catch (err) {
+            if (err instanceof AppTaskError) {
+              throw err
+            }
+            throw buildUnexpectedError({
+              isAppError: true,
+              code: 'UNEXPECTED_ERROR_DURING_REQUEST_HANDLER_EXECUTION',
+              message: 'Unexpected error during request handler execution',
+              error: err,
+            })
+          }
         } else {
           // Handle task
           logTiming('execution_start', executionStartTime, {
@@ -404,16 +492,33 @@ void (async () => {
           })
 
           if (typeof userModule.handleTask !== 'function') {
-            throw new WorkerInvalidError(
-              'App worker module does not export a handleTask function',
-            )
+            throw new AsyncWorkError({
+              origin: 'app',
+              name: 'InvalidAppWorkerModule',
+              message:
+                'App worker module does not export a handleTask function',
+              code: 'INVALID_APP_WORKER_MODULE',
+            })
           }
 
-          await userModule.handleTask(pipeRequest.data as TaskDTO, {
-            serverClient,
-            dbClient,
-            createDb,
-          })
+          try {
+            await userModule.handleTask(pipeRequest.data as TaskDTO, {
+              serverClient,
+              dbClient,
+              createDb,
+            })
+          } catch (err) {
+            if (err instanceof AppTaskError) {
+              throw err
+            }
+            throw buildUnexpectedError({
+              isAppError: true,
+              code: 'UNEXPECTED_ERROR_DURING_TASK_HANDLER_EXECUTION',
+              message: 'Unexpected error during task handler execution',
+              error: err,
+            })
+          }
+
           // Tasks don't return responses
           response = undefined
         }
@@ -438,9 +543,11 @@ void (async () => {
           totalRequestTime: getElapsedTime(requestStartTime),
         })
       } catch (err) {
+        const normalizedError =
+          err instanceof Error ? err : new Error(String(err))
         logTiming('execution_failed', executionStartTime, {
           requestId: pipeRequest.id,
-          error: err instanceof Error ? err.message : String(err),
+          error: normalizedError,
         })
 
         // Send error response
@@ -448,35 +555,42 @@ void (async () => {
           id: pipeRequest.id,
           timestamp: Date.now(),
           success: false,
-          error: {
-            name: err instanceof Error ? err.name : 'Error',
-            message: err instanceof Error ? err.message : String(err),
-            stack: err instanceof Error ? err.stack : undefined,
-          },
+          error:
+            normalizedError instanceof AppTaskError
+              ? getAsyncWorkErrorFromAppTaskError(
+                  normalizedError,
+                  new Error().stack,
+                ).toEnvelope()
+              : normalizedError instanceof AsyncWorkError
+                ? normalizedError.toEnvelope()
+                : buildUnexpectedError({
+                    code:
+                      pipeRequest.type === 'request'
+                        ? 'UNEXPECTED_ERROR_DURING_REQUEST_HANDLER_EXECUTION'
+                        : 'UNEXPECTED_ERROR_DURING_TASK_HANDLER_EXECUTION',
+                    message:
+                      pipeRequest.type === 'request'
+                        ? 'Unexpected error during request handler execution'
+                        : 'Unexpected error during task handler execution',
+                    error: normalizedError,
+                    details: {
+                      id: pipeRequest.id,
+                      timestamp: pipeRequest.timestamp,
+                      requestType: pipeRequest.type,
+                      ...(pipeRequest.type === 'request'
+                        ? { isSystemRequest: pipeRequest.isSystemRequest }
+                        : {}),
+                    },
+                  }).toEnvelope(),
         }
 
         await responseWriter.writeResponse(pipeResponse)
-
-        // Also write error file to per-request path
-        try {
-          const serialized = serializeWorkerError(
-            err instanceof WorkerError
-              ? (err.innerError ?? err)
-              : new WorkerExecutorError(
-                  'Worker handler error',
-                  err instanceof Error ? err : new Error(String(err)),
-                ),
-          )
-          await fs.promises.writeFile(ctx.errorLogFilepath, serialized)
-        } catch {
-          void 0
-        }
 
         // Emit one more stdout chunk with error summary for visibility
         try {
           await responseWriter.writeStdoutChunk(
             pipeRequest.id,
-            `[ERROR_SUMMARY] ${err instanceof Error ? err.name + ': ' + err.message : String(err)}\n`,
+            `[ERROR_SUMMARY] ${normalizedError.name + ': ' + normalizedError.message}\n`,
           )
         } catch {
           void 0
@@ -574,12 +688,19 @@ void (async () => {
                 id: pipeRequest.id,
                 timestamp: Date.now(),
                 success: false,
-                error: {
-                  name: 'DispatchError',
-                  message:
-                    error instanceof Error ? error.message : String(error),
-                  stack: error instanceof Error ? error.stack : undefined,
-                },
+                error: new AsyncWorkDispatchError({
+                  name: 'AsyncWorkDispatchError',
+                  message: 'Error dispatching request',
+                  cause: {
+                    name: 'AsyncWorkDispatchError',
+                    origin: 'internal',
+                    code: 'DISPATCH_ERROR',
+                    message:
+                      error instanceof Error ? error.message : String(error),
+                    stack:
+                      error instanceof Error ? error.stack : new Error().stack,
+                  },
+                }).toEnvelope(),
               }
               await responseWriter.writeResponse(errorResponse)
             } catch (writeError) {
@@ -638,19 +759,46 @@ void (async () => {
 
     logTiming('worker_daemon_error', daemonStartTime, {
       error: err instanceof Error ? err.message : String(err),
-      errorType: err instanceof WorkerError ? err.constructor.name : 'Unknown',
+      errorType: err instanceof Error ? err.constructor.name : 'Unknown',
       totalDaemonTime: getElapsedTime(daemonStartTime),
       success: false,
     })
 
     // Output error result to stderr
-    const serializedError = serializeWorkerError(
-      err instanceof WorkerError
-        ? (err.innerError ?? err)
-        : new WorkerExecutorError(
-            'Internal server error executing worker daemon',
-            err instanceof Error ? err : new Error(String(err)),
-          ),
+    const serializedError = JSON.stringify(
+      err instanceof AsyncWorkError
+        ? err.toEnvelope()
+        : new AsyncWorkError({
+            name: 'UnexpectedError',
+            origin: 'internal',
+            code: 'UNEXPECTED_ERROR_DURING_WORKER_EXECUTION',
+            message: 'Unexpected error during worker execution',
+            stack: new Error().stack,
+            cause:
+              err instanceof Error
+                ? {
+                    origin: 'internal',
+                    name: 'UnexpectedError',
+                    code: 'UNKNOWN_ERROR',
+                    message: 'Unknown error',
+                    stack: err.stack,
+                    details: {
+                      name: err.name,
+                      message: err.message,
+                      stringifiedCause: String(err.cause),
+                    },
+                  }
+                : {
+                    origin: 'internal',
+                    name: 'UnexpectedError',
+                    code: 'THROWN_NON_ERROR',
+                    message: 'Non-error object thrown',
+                    details: {
+                      stringified: String(err),
+                    },
+                  },
+            details: {},
+          }).toEnvelope(),
     )
 
     try {

@@ -1,6 +1,5 @@
 import { FolderPushMessage } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
-import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { Namespace, Socket } from 'socket.io'
@@ -20,7 +19,7 @@ const UserAuthPayload = z.object({
 })
 
 @Injectable()
-export class FolderSocketService implements OnModuleInit {
+export class FolderSocketService {
   private readonly logger = new Logger(FolderSocketService.name)
   private readonly connectedClients = new Map<string, Socket>()
   private namespace: Namespace | undefined
@@ -98,18 +97,17 @@ export class FolderSocketService implements OnModuleInit {
     return `/folders/${folderId}`
   }
 
-  onModuleInit() {
-    // this.folderService = this.moduleRef.get(FolderService)
-  }
-
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: unknown) {
-    this.logger.debug('sendToFolderRoom:', { folderId, name, msg })
+    this.logger.debug(
+      `FolderSocketService.sendToFolderRoom folderId=${folderId} name=${name}`,
+    )
 
     if (this.namespace) {
       this.namespace.to(this.getRoomId(folderId)).emit(name, msg)
     } else {
-      // eslint-disable-next-line no-console
-      console.log('Namespace not yet set when sending folder room message.')
+      this.logger.warn(
+        'Namespace not yet set when sending folder room message.',
+      )
     }
   }
 }

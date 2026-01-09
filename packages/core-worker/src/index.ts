@@ -1,4 +1,3 @@
-export * from './handlers/analyze-object-task-handler'
-export * from './handlers/run-worker-script/run-worker-script-handler'
-export * from './worker-scripts/run-worker-script'
-export * from './connect-app-worker'
+export * from './analyze-content-worker/analyze-object-handler'
+export * from './app-workers/execute-task/app-worker-task-executor'
+export * from './worker-scripts/run-worker'

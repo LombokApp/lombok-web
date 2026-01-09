@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { platformConfig } from 'src/platform/config'
+import { coreConfig } from 'src/core/config'
 
 import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
 import type { ContainerCreateAndExecuteOptions } from './docker.schema'
@@ -9,6 +9,7 @@ import type {
   ContainerInfo,
   CreateContainerOptions,
   DockerAdapter,
+  DockerError,
   DockerStateFunc,
 } from './docker-client.types'
 
@@ -27,14 +28,11 @@ class DockerClientError extends Error {
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerClientService {
   private readonly logger = new Logger(DockerClientService.name)
-  private readonly dockerHostAdapters: Record<string, DockerAdapter> = {}
 
   constructor(
     private readonly dockerAdapterProvider: DockerAdapterProvider,
-    @Inject(platformConfig.KEY)
-    private readonly _platformConfig: nestjsConfig.ConfigType<
-      typeof platformConfig
-    >,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
   ) {}
 
   /**
@@ -61,7 +59,9 @@ export class DockerClientService {
       string,
       { result: ConnectionTestResult; id: string }
     > = {}
-    for (const hostId of Object.keys(this.dockerHostAdapters)) {
+    for (const hostId of Object.keys(
+      this._coreConfig.dockerHostConfig.hosts ?? {},
+    )) {
       results[hostId] = {
         id: this.getAdapter(hostId).getDescription(),
         result: await this.getAdapter(hostId).testConnection(),
@@ -134,15 +134,16 @@ export class DockerClientService {
     }
   }
 
-  async execInContainerAndReturnOutput(
+  async execInContainer(
     hostId: string,
     containerId: string,
     command: string[],
-  ): Promise<{ stdout: string; stderr: string }> {
-    return this.getAdapter(hostId).execInContainerAndReturnOutput(
-      containerId,
-      command,
-    )
+  ): Promise<{
+    getError: () => Promise<DockerError>
+    state: DockerStateFunc
+    output: () => { stdout: string; stderr: string }
+  }> {
+    return this.getAdapter(hostId).execInContainer(containerId, { command })
   }
 
   resolveDockerHostConfigForProfile(profileKey: string): {
@@ -156,10 +157,8 @@ export class DockerClientService {
     const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
 
     const resolvedHostId =
-      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
-        profileKey
-      ] ??
-      this._platformConfig.dockerHostConfig.profileHostAssignments?.[
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[profileKey] ??
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[
         appSlugProfileKey
       ] ??
       'local'
@@ -167,26 +166,30 @@ export class DockerClientService {
     return {
       hostId: resolvedHostId,
       volumes:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.volumes?.[profileKey] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.volumes?.[appSlugProfileKey],
-      gpus:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
           profileKey
         ] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
+          appSlugProfileKey
+        ],
+      gpus:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
           appSlugProfileKey
         ],
       extraHosts:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.extraHosts?.[profileKey] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.extraHosts?.[appSlugProfileKey],
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          appSlugProfileKey
+        ],
       networkMode:
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
           ?.networkMode?.[profileKey] ??
-        this._platformConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
           ?.networkMode?.[appSlugProfileKey],
     }
   }
@@ -200,13 +203,14 @@ export class DockerClientService {
   ): Promise<{
     containerId: string
     hostId: string
+    getError: () => Promise<DockerError>
     state: DockerStateFunc
-    output: () => Promise<{ stdout: string; stderr: string }>
+    output: () => { stdout: string; stderr: string }
   }> {
     const { hostId, volumes, gpus, extraHosts, networkMode } =
       this.resolveDockerHostConfigForProfile(profileKey)
     // Check if docker host is configured
-    if (!(hostId in (this._platformConfig.dockerHostConfig.hosts ?? {}))) {
+    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
       throw new DockerClientError(
         'DOCKER_NOT_CONFIGURED',
         `Unrecognized Docker host "${hostId}" configured for profile "${profileKey}"`,
@@ -245,11 +249,15 @@ export class DockerClientService {
       labels,
     })
 
-    const { state, output } = await adapter.execInContainer(container.id, {
-      command,
-    })
+    const { getError, state, output } = await adapter.execInContainer(
+      container.id,
+      {
+        command,
+      },
+    )
 
     return {
+      getError,
       hostId,
       containerId: container.id,
       state,

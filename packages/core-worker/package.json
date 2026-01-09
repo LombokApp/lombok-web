@@ -7,14 +7,14 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     },
-    "./core-app-worker": {
-      "types": "./dist/core-app-worker.d.ts",
-      "import": "./dist/core-app-worker.mjs",
-      "default": "./dist/core-app-worker.mjs"
+    "./core-worker": {
+      "types": "./dist/core-worker.d.ts",
+      "import": "./dist/core-worker.mjs",
+      "default": "./dist/core-worker.mjs"
     }
   },
   "scripts": {
-    "build": "rm -rf ./dist && NODE_ENV=production tsup index.ts core-app-worker.ts --format esm --dts --external bun && cp -r ./src/worker-scripts/worker-daemon ./dist/",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup index.ts core-worker.ts --format esm --dts --external bun && cp -r ./src/worker-scripts/worker-daemon ./dist/",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "tsc:check": "tsc --noEmit",
@@ -49,7 +49,7 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/app-worker-sdk": "workspace:*",
-    "@lombokapp/core-worker-utils": "workspace:*",
+    "@lombokapp/worker-utils": "workspace:*",
     "socket.io-client": "catalog:",
     "zod": "catalog:"
   }

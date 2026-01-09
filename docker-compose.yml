@@ -12,7 +12,7 @@ services:
       - /usr/src/app/packages/app-worker-sdk/node_modules
       - /usr/src/app/packages/auth-utils/node_modules
       - /usr/src/app/packages/core-worker/node_modules
-      - /usr/src/app/packages/core-worker-utils/node_modules
+      - /usr/src/app/packages/worker-utils/node_modules
       - /usr/src/app/packages/sdk/node_modules
       - /usr/src/app/packages/types/node_modules
       - /usr/src/app/packages/utils/node_modules

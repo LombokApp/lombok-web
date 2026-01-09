@@ -17,8 +17,6 @@ FROM base AS install
 
 COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
-COPY apps/core /temp/dev/apps/core
-COPY apps/demo /temp/dev/apps/demo
 COPY bunfig.toml /temp/dev/bunfig.toml
 COPY eslint-config /temp/dev/eslint-config
 
@@ -32,7 +30,7 @@ RUN cd /temp/dev && \
   bun --cwd ./packages/utils build && \
   bun --cwd ./packages/auth-utils build && \
   bun --cwd ./packages/sdk build && \
-  bun --cwd ./packages/core-worker-utils build && \
+  bun --cwd ./packages/worker-utils build && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/app-worker-sdk build && \
   bun --cwd ./packages/app-browser-sdk build && \
@@ -55,7 +53,7 @@ RUN cd /temp/dev && \
   rm -rf ./packages/types/src && \
   rm -rf ./packages/utils/src/ && \
   rm -rf ./packages/core-worker/src/ && \
-  rm -rf ./packages/core-worker-utils/src/ && \
+  rm -rf ./packages/worker-utils/src/ && \
   rm -rf ./eslint-config && \
   rm -rf ./node_modules/.bun/swagger-ui-dist* && \
   rm -rf ./node_modules/.bun/bun-types* && \

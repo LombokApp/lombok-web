@@ -1,4 +1,4 @@
-import { type EventDTO, PLATFORM_IDENTIFIER } from '@lombokapp/types'
+import { CORE_IDENTIFIER, type EventDTO } from '@lombokapp/types'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 
@@ -40,7 +40,7 @@ export function configureEventsTableColumns(
           actorIdentifier={row.original.emitterIdentifier}
           title={row.getValue('eventIdentifier')}
           showSubtitle={config.showActorSubtext}
-          subtitle={`emitted by ${row.original.emitterIdentifier === PLATFORM_IDENTIFIER ? 'internal:platform' : `app:${row.original.emitterIdentifier}`}`}
+          subtitle={`emitted by ${row.original.emitterIdentifier === CORE_IDENTIFIER ? 'lombok:core' : `app:${row.original.emitterIdentifier}`}`}
         />
       ),
       enableSorting: true,

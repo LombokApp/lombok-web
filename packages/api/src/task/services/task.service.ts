@@ -1,9 +1,9 @@
 import {
+  CORE_IDENTIFIER,
   JsonSerializableObject,
-  PLATFORM_IDENTIFIER,
-  RequeueConfig,
   StorageAccessPolicy,
   SystemLogEntry,
+  TaskCompletion,
   TaskOnCompleteConfig,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
@@ -18,37 +18,37 @@ import {
 } from '@nestjs/common'
 import {
   and,
-  asc,
   count,
   eq,
   ilike,
-  inArray,
   isNotNull,
   isNull,
-  ne,
   or,
   SQL,
   sql,
 } from 'drizzle-orm'
-import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
+import { dataFromTemplate } from 'src/core/utils/data-template.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
-import { dataFromTemplate } from 'src/platform/utils/data-template.util'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
+import { getThreadId } from 'src/shared/thread-context'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import type { User } from 'src/users/entities/user.entity'
 
 import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
-import type { NewTask, Task } from '../entities/task.entity'
+import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
+import { MAX_TASK_ATTEMPTS } from '../task.constants'
 import {
   evalOnCompleteHandlerCondition,
   OnCompleteConditionTaskContext,
 } from '../util/eval-oncomplete-condition.util'
+import { serializeLogEntry } from '../util/log-encoder.util'
+import { withTaskIdempotencyKey } from '../util/task-idempotency-key.util'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -91,7 +91,6 @@ export class TaskService {
     { folderId, taskId }: { folderId: string; taskId: string },
   ): Promise<Task & { folder?: { name: string; ownerId: string } }> {
     await this.folderService.getFolderAsUser(actor, folderId)
-    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         task: tasksTable,
@@ -99,8 +98,11 @@ export class TaskService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(tasksTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
-      .where(and(eq(tasksTable.id, taskId), eq(targetFolderId, folderId)))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, tasksTable.targetLocationFolderId),
+      )
+      .where(and(eq(tasksTable.id, taskId), eq(foldersTable.id, folderId)))
       .limit(1)
 
     const record = result.at(0)
@@ -141,7 +143,6 @@ export class TaskService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
     const result = await this.ormService.db
       .select({
         task: tasksTable,
@@ -149,7 +150,10 @@ export class TaskService {
         folderOwnerId: foldersTable.ownerId,
       })
       .from(tasksTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, tasksTable.targetLocationFolderId),
+      )
       .where(eq(tasksTable.id, taskId))
       .limit(1)
     const record = result.at(0)
@@ -176,18 +180,20 @@ export class TaskService {
     includeWaiting,
     folderId,
   }: TasksListQueryParamsDTO) {
-    const targetFolderId = sql<string>`(${tasksTable.targetLocation} ->> 'folderId')::uuid`
-    const targetObjectKey = sql<string>`${tasksTable.targetLocation} ->> 'objectKey'`
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(targetFolderId, folderId))
+      conditions.push(eq(tasksTable.targetLocationFolderId, folderId))
     }
 
     if (search) {
       conditions.push(
         or(
+          ilike(sql<string>`${tasksTable.id}::text`, `%${search}%`),
           ilike(tasksTable.taskIdentifier, `%${search}%`),
-          ilike(tasksTable.error, `%${search}%`),
+          ilike(tasksTable.taskDescription, `%${search}%`),
+          ilike(sql<string>`${tasksTable.error} ->> 'details'`, `%${search}%`),
+          ilike(sql<string>`${tasksTable.error} ->> 'message'`, `%${search}%`),
+          ilike(sql<string>`${tasksTable.error} ->> 'code'`, `%${search}%`),
         ),
       )
     }
@@ -224,17 +230,44 @@ export class TaskService {
     }
 
     if (objectKey) {
-      conditions.push(eq(targetObjectKey, objectKey))
+      conditions.push(eq(tasksTable.targetLocationObjectKey, objectKey))
     }
 
     const tasks = await this.ormService.db
       .select({
-        task: tasksTable,
+        task: {
+          id: tasksTable.id,
+          ownerIdentifier: tasksTable.ownerIdentifier,
+          taskIdentifier: tasksTable.taskIdentifier,
+          taskDescription: tasksTable.taskDescription,
+          invocation: tasksTable.invocation,
+          idempotencyKey: tasksTable.idempotencyKey,
+          targetUserId: tasksTable.targetUserId,
+          targetLocationFolderId: tasksTable.targetLocationFolderId,
+          targetLocationObjectKey: tasksTable.targetLocationObjectKey,
+          startedAt: tasksTable.startedAt,
+          dontStartBefore: tasksTable.dontStartBefore,
+          completedAt: tasksTable.completedAt,
+          taskLog: tasksTable.taskLog,
+          storageAccessPolicy: tasksTable.storageAccessPolicy,
+          success: tasksTable.success,
+          userVisible: tasksTable.userVisible,
+          error: tasksTable.error,
+          attemptCount: tasksTable.attemptCount,
+          failureCount: tasksTable.failureCount,
+          createdAt: tasksTable.createdAt,
+          updatedAt: tasksTable.updatedAt,
+          handlerType: tasksTable.handlerType,
+          handlerIdentifier: tasksTable.handlerIdentifier,
+        },
         folderName: foldersTable.name,
         folderOwnerId: foldersTable.ownerId,
       })
       .from(tasksTable)
-      .leftJoin(foldersTable, eq(foldersTable.id, targetFolderId))
+      .leftJoin(
+        foldersTable,
+        eq(foldersTable.id, tasksTable.targetLocationFolderId),
+      )
       .where(conditions.length ? and(...conditions) : undefined)
       .offset(Math.max(0, offset ?? 0))
       .limit(Math.min(100, limit ?? 25))
@@ -255,8 +288,14 @@ export class TaskService {
     return {
       result: tasks.map(({ task, folderName, folderOwnerId }) => ({
         ...task,
+        targetLocation: task.targetLocationFolderId
+          ? {
+              folderId: task.targetLocationFolderId,
+              objectKey: task.targetLocationObjectKey ?? undefined,
+            }
+          : undefined,
         folder:
-          task.targetLocation?.folderId && folderName
+          task.targetLocationFolderId && folderName
             ? { name: folderName, ownerId: folderOwnerId }
             : undefined,
       })),
@@ -265,111 +304,55 @@ export class TaskService {
     }
   }
 
-  async handlePendingTasks() {
-    const pendingTasks = await this.ormService.db
-      .select({
-        taskIdentifier: tasksTable.taskIdentifier,
-        ownerIdentifier: tasksTable.ownerIdentifier,
-        count: sql<number>`cast(count(${tasksTable.id}) as int)`,
-      })
-      .from(tasksTable)
-      .innerJoin(
-        appsTable,
-        eq(tasksTable.ownerIdentifier, appsTable.identifier),
-      )
-      .where(
-        and(
-          isNull(tasksTable.startedAt),
-          eq(tasksTable.handlerType, 'external'),
-          ne(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
-          eq(appsTable.enabled, true),
-        ),
-      )
-      .groupBy(tasksTable.taskIdentifier, tasksTable.ownerIdentifier)
-    const pendingTasksByApp = pendingTasks.reduce<
-      Record<string, Record<string, number>>
-    >((acc, next) => {
-      return {
-        ...acc,
-        [next.ownerIdentifier]: {
-          ...(next.ownerIdentifier in acc ? acc[next.ownerIdentifier] : {}),
-          [next.taskIdentifier]: next.count,
-        },
-      }
-    }, {})
-
-    for (const appIdentifier of Object.keys(pendingTasksByApp)) {
-      for (const taskIdentifier of Object.keys(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        pendingTasksByApp[appIdentifier]!,
-      )) {
-        const pendingTaskCount =
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          pendingTasksByApp[appIdentifier]![taskIdentifier]!
-        this.appSocketService.notifyAppWorkersOfPendingTasks(
-          appIdentifier,
-          taskIdentifier,
-          pendingTaskCount,
-        )
-      }
-    }
-  }
-
   /**
-   * Used to trigger a platform task on request from a user.
+   * Used to trigger a core task on request from a user.
    *
    * @param userId - The user ID triggering the task.
-   * @param taskIdentifier - The identifier of the platform task to trigger.
+   * @param taskIdentifier - The identifier of the core task to trigger.
    * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
    * @param targetUserId - The user ID to relate the task to.
    * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   * @param storageAccessPolicy - The policy regarding governing the storage locations accessible to the task.
    *
    ** @returns The created task record.
    */
-  async triggerPlatformUserActionTask({
+  async triggerCoreUserActionTask({
     userId,
     taskIdentifier,
     taskData,
-    dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy,
+    storageAccessPolicy = [],
   }: {
     userId: string
     taskIdentifier: string
     taskData: JsonSerializableObject
-    dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
     storageAccessPolicy?: StorageAccessPolicy
   }) {
     const now = new Date()
-    const newTask: NewTask = {
+    const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: PLATFORM_IDENTIFIER,
+      ownerIdentifier: CORE_IDENTIFIER,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'user_action',
         invokeContext: {
           userId,
+          requestId: getThreadId(),
         },
       },
-      taskDescription: 'Platform task on user request',
+      taskDescription: 'Core task on user request',
       data: taskData,
-      dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
-            : undefined,
       createdAt: now,
       updatedAt: now,
-      handlerType: 'platform',
+      handlerType: 'core',
       storageAccessPolicy,
-      targetLocation,
-      targetUserId,
-    }
+      targetLocationFolderId: targetLocation?.folderId ?? null,
+      targetLocationObjectKey: targetLocation?.objectKey ?? null,
+      targetUserId: targetUserId ?? null,
+    })
 
     const [task] = await this.ormService.db
       .insert(tasksTable)
@@ -386,9 +369,9 @@ export class TaskService {
    * @param appIdentifier - The identifier of the app that owns the task.
    * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
    * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
    * @param targetUserId - The user ID to relate the task to.
    * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   * @param storageAccessPolicy - The policy regarding governing the storage locations accessible to the task.
    *
    ** @returns The created task record.
    */
@@ -397,16 +380,14 @@ export class TaskService {
     appIdentifier,
     taskIdentifier,
     taskData,
-    dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy,
+    storageAccessPolicy = [],
   }: {
     userId: string
     appIdentifier: string
     taskIdentifier: string
     taskData: JsonSerializableObject
-    dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId: string
     targetLocation?: { folderId: string; objectKey?: string }
     storageAccessPolicy?: StorageAccessPolicy
@@ -426,37 +407,33 @@ export class TaskService {
       )
     }
 
-    const newTask: NewTask = {
+    const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: appIdentifier,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'user_action',
         invokeContext: {
           userId,
+          requestId: getThreadId(),
         },
       },
       taskDescription: taskDefinition.description,
       data: taskData,
-      dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
-            : undefined,
       createdAt: now,
       updatedAt: now,
-      handlerType: 'platform',
+      handlerType: 'core',
       storageAccessPolicy,
-      targetLocation,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
       targetUserId,
-    }
+    })
 
     return this.ormService.db.transaction(async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const task = (await tx.insert(tasksTable).values(newTask).returning())[0]!
 
-      await this.eventService.emitRunnableTaskEnqueuedEvent(task, { tx })
+      await this.eventService.emitRunnableTaskEnqueuedEvent(task, tx)
       return task
     })
   }
@@ -481,7 +458,7 @@ export class TaskService {
     dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy,
+    storageAccessPolicy = [],
     onComplete,
   }: {
     appIdentifier: string
@@ -522,7 +499,7 @@ export class TaskService {
     }
 
     // validate the entire storage access policy if one is provided
-    if (storageAccessPolicy?.length) {
+    if (storageAccessPolicy.length) {
       await this.appService.validateAppStorageAccessPolicy({
         appIdentifier,
         storageAccessPolicy,
@@ -530,39 +507,39 @@ export class TaskService {
     }
 
     const now = new Date()
-
-    const newTask: NewTask = {
+    const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: appIdentifier,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'app_action',
-        ...(onComplete && { onComplete }),
+        invokeContext: {
+          requestId: getThreadId(),
+        },
+        onComplete: onComplete ?? undefined,
       },
       data: taskData,
       handlerType: taskDefinition.handler.type,
-      handlerIdentifier:
-        taskDefinition.handler.type === 'external'
-          ? null
-          : taskDefinition.handler.identifier,
+      handlerIdentifier: taskDefinition.handler.identifier,
       createdAt: now,
       updatedAt: now,
       dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
+        dontStartBefore && 'timestamp' in dontStartBefore
+          ? dontStartBefore.timestamp
+          : dontStartBefore && 'delayMs' in dontStartBefore
+            ? addMs(now, dontStartBefore.delayMs)
             : undefined,
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
       targetUserId,
-      targetLocation,
-    }
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
+    })
 
     return this.ormService.db.transaction(async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const task = (await tx.insert(tasksTable).values(newTask).returning())[0]!
-      await this.eventService.emitRunnableTaskEnqueuedEvent(task, { tx })
+      await this.eventService.emitRunnableTaskEnqueuedEvent(task, tx)
       return task
     })
   }
@@ -588,8 +565,9 @@ export class TaskService {
     targetUserId,
     targetLocation,
     onComplete = [],
-    storageAccessPolicy,
-    tx,
+    storageAccessPolicy = [],
+    handlerIndex,
+    options = {},
   }: {
     parentTaskSuccess: boolean
     parentTask: Task
@@ -600,7 +578,8 @@ export class TaskService {
     targetLocation?: { folderId: string; objectKey?: string }
     onComplete?: TaskOnCompleteConfig[]
     storageAccessPolicy?: StorageAccessPolicy
-    tx?: OrmService['db']
+    handlerIndex: number
+    options: { tx?: OrmService['db'] }
   }) {
     const app = await this.appService.getApp(parentTask.ownerIdentifier, {
       enabled: true,
@@ -621,13 +600,13 @@ export class TaskService {
 
     const parentTaskSuccessLog = parentTask.systemLog
       .reverse()
-      .find((log) => log.payload.logType === 'success')?.payload.data as
+      .find((log) => log.logType === 'success')?.payload as
       | { result: JsonSerializableObject }
       | undefined
 
     const parentTaskErrorLog = parentTask.systemLog
       .reverse()
-      .find((log) => log.payload.logType === 'error')?.payload.data as
+      .find((log) => log.logType === 'error')?.payload as
       | {
           error: {
             code: string
@@ -638,30 +617,19 @@ export class TaskService {
       | undefined
 
     const now = new Date()
-    const newTask: NewTask = {
+    const childTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
       ownerIdentifier: parentTask.ownerIdentifier,
       taskIdentifier,
-      trigger: {
+      invocation: {
         kind: 'task_child',
         invokeContext: {
           parentTask: {
             id: parentTask.id,
             identifier: parentTask.taskIdentifier,
-            ...(parentTaskSuccess
-              ? {
-                  success: true,
-                  result: parentTaskSuccessLog?.result ?? {},
-                }
-              : {
-                  success: false,
-                  error: parentTaskErrorLog?.error ?? {
-                    code: 'UNKNOWN_ERROR',
-                    message: 'Parent task failed',
-                    details: {},
-                  },
-                }),
+            success: parentTaskSuccess,
           },
+          onCompleteHandlerIndex: handlerIndex,
         },
         onComplete: onComplete.length > 0 ? onComplete : undefined,
       },
@@ -672,8 +640,19 @@ export class TaskService {
                 id: parentTask.id,
                 success: true,
                 result: parentTaskSuccessLog?.result ?? {},
-                targetLocation: parentTask.targetLocation ?? {},
+                error: parentTaskErrorLog?.error ?? {},
+                targetLocation: parentTask.targetLocationFolderId
+                  ? {
+                      folderId: parentTask.targetLocationFolderId,
+                      objectKey:
+                        parentTask.targetLocationObjectKey ?? undefined,
+                    }
+                  : {},
                 data: parentTask.data,
+                startedAt: parentTask.startedAt,
+                completedAt: parentTask.completedAt,
+                createdAt: parentTask.createdAt,
+                updatedAt: parentTask.updatedAt,
               },
             },
             functions: {
@@ -685,47 +664,83 @@ export class TaskService {
           })
         : {},
       handlerType: taskDefinition.handler.type,
-      handlerIdentifier:
-        taskDefinition.handler.type === 'external'
-          ? null
-          : taskDefinition.handler.identifier,
+      handlerIdentifier: taskDefinition.handler.identifier,
       createdAt: now,
       updatedAt: now,
       dontStartBefore:
-        dontStartBefore instanceof Date
-          ? dontStartBefore
-          : typeof dontStartBefore === 'number'
-            ? addMs(now, dontStartBefore)
+        dontStartBefore && 'timestamp' in dontStartBefore
+          ? dontStartBefore.timestamp
+          : dontStartBefore && 'delayMs' in dontStartBefore
+            ? addMs(now, dontStartBefore.delayMs)
             : undefined,
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
       targetUserId,
-      targetLocation,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
+    })
+
+    this.logger.debug('onComplete handler task queued', {
+      id: childTask.id,
+      taskIdentifier: childTask.taskIdentifier,
+      ...(childTask.invocation.kind === 'task_child'
+        ? { parent: childTask.invocation.invokeContext.parentTask.id }
+        : {}),
+      onComplete: childTask.invocation.onComplete,
+    })
+
+    if (options.tx) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const task = (
+        await options.tx.insert(tasksTable).values(childTask).returning()
+      )[0]!
+      await this.eventService.emitRunnableTaskEnqueuedEvent(task, options.tx)
+      return task
+    } else {
+      return this.ormService.db.transaction(async (tx) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const task = (
+          await tx.insert(tasksTable).values(childTask).returning()
+        )[0]!
+        await this.eventService.emitRunnableTaskEnqueuedEvent(task, tx)
+        return task
+      })
     }
-
-    const db = tx ?? this.ormService.db
-
-    this.logger.debug('onComplete handler task queued', newTask)
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const task = (await db.insert(tasksTable).values(newTask).returning())[0]!
-
-    await this.eventService.emitRunnableTaskEnqueuedEvent(task, { tx: db })
-    return task
   }
 
   async registerTaskStarted({
     taskId,
     startContext,
-    tx,
+    options = {},
   }: {
     taskId: string
     startContext: {
       __executor: JsonSerializableObject
     } & JsonSerializableObject
-    tx?: OrmService['db']
+    options?: { tx?: OrmService['db'] }
   }) {
-    const db = tx ?? this.ormService.db
-    const task = await db.query.tasksTable.findFirst({
+    const args = { taskId, startContext }
+    if (options.tx) {
+      return this._registerTaskStartedInTx(args, options.tx)
+    }
+    return this.ormService.db.transaction(async (tx) => {
+      return this._registerTaskStartedInTx(args, tx)
+    })
+  }
+
+  async _registerTaskStartedInTx(
+    {
+      taskId,
+      startContext,
+    }: {
+      taskId: string
+      startContext: {
+        __executor: JsonSerializableObject
+      } & JsonSerializableObject
+    },
+    tx: OrmService['db'],
+  ) {
+    const task = await tx.query.tasksTable.findFirst({
       where: eq(tasksTable.id, taskId),
     })
     if (!task) {
@@ -738,211 +753,182 @@ export class TaskService {
 
     const startSystemLog: SystemLogEntry = {
       at: now,
-      payload: {
-        logType: 'started',
-        data: startContext,
-      },
+      logType: 'started',
+      message: 'Task is started',
+      payload: startContext,
     }
 
     const updatedTask = (
-      await db
+      await tx
         .update(tasksTable)
         .set({
           startedAt: now,
           updatedAt: now,
           systemLog: sql<
             SystemLogEntry[]
-          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(startSystemLog)}::jsonb`,
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(serializeLogEntry(startSystemLog))}::jsonb`,
         })
         .where(and(eq(tasksTable.id, task.id), isNull(tasksTable.startedAt)))
         .returning()
     )[0]
 
     if (!updatedTask) {
-      throw new ConflictException('Failed to secure task.')
+      throw new ConflictException(`Failed to secure task: ${taskId}`)
     }
 
     return { task: updatedTask }
   }
 
-  async startAnyAvailableTask({
-    appIdentifier,
-    taskIdentifiers,
-    startContext,
-    maxAttempts = 5,
-    tx = undefined,
-  }: {
-    appIdentifier: string
-    taskIdentifiers: string[]
-    startContext: {
-      __executor: JsonSerializableObject
-    } & JsonSerializableObject
-    maxAttempts?: number
-    tx?: OrmService['db']
-  }) {
-    const db = tx ?? this.ormService.db
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const task = await db.query.tasksTable.findFirst({
-        where: and(
-          eq(tasksTable.ownerIdentifier, appIdentifier),
-          inArray(tasksTable.taskIdentifier, taskIdentifiers),
-          isNull(tasksTable.startedAt),
-        ),
-        orderBy: [asc(tasksTable.createdAt)],
-      })
-      if (!task || task.completedAt || task.startedAt) {
-        break
-      }
-
-      const { task: securedTask } = await this.registerTaskStarted({
-        taskId: task.id,
-        startContext,
-        tx: db,
-      })
-      return { task: securedTask }
-    }
-
-    throw new ConflictException(
-      `Failed to secure a task after ${maxAttempts} attempts.`,
-    )
-  }
-
   async registerTaskCompleted(
     taskId: string,
-    completion:
-      | {
-          success: false
-          requeue?: { delayMs: number }
-          error: {
-            code: string
-            message: string
-            details?: JsonSerializableObject
-          }
-        }
-      | {
-          success: true
-          result?: JsonSerializableObject
-        },
+    completion: TaskCompletion,
     options: { tx?: OrmService['db'] } = { tx: undefined },
   ) {
-    const db = options.tx ?? this.ormService.db
+    const args = { taskId, completion }
+    // If a transaction is already provided, use it directly instead of starting a new one
+    if (options.tx) {
+      return this._registerTaskCompletedInTx(args, options.tx)
+    }
+    return this.ormService.db.transaction(async (tx) => {
+      return this._registerTaskCompletedInTx(args, tx)
+    })
+  }
+
+  private async _registerTaskCompletedInTx(
+    {
+      taskId,
+      completion,
+    }: {
+      taskId: string
+      completion: TaskCompletion
+    },
+    tx: OrmService['db'],
+  ) {
     const now = new Date()
-    return db.transaction(async (tx) => {
-      const task = await tx.query.tasksTable.findFirst({
-        where: and(eq(tasksTable.id, taskId)),
-      })
+    const task = await tx.query.tasksTable.findFirst({
+      where: and(eq(tasksTable.id, taskId)),
+    })
 
-      if (!task) {
-        throw new Error(`Task not found by ID "${taskId}".`)
-      }
+    if (!task) {
+      throw new Error(`Task not found by ID "${taskId}".`)
+    }
 
-      if (!task.startedAt) {
-        throw new Error(`Task "${taskId}" has not been started.`)
-      }
+    if (!task.startedAt) {
+      throw new Error(`Task "${taskId}" has not been started.`)
+    }
 
-      if (task.completedAt) {
-        throw new Error(`Task "${taskId}"  has already been completed.`)
-      }
+    if (task.completedAt) {
+      throw new Error(`Task "${taskId}"  has already been completed.`)
+    }
 
-      // build the task system log
-      const completionSystemLog: SystemLogEntry = {
-        at: now,
-        payload: completion.success
+    // build the task system log
+    const completionSystemLog: SystemLogEntry = {
+      at: now,
+      logType: completion.success ? 'success' : 'error',
+      message: completion.success
+        ? 'Task completed successfully'
+        : 'Task failed',
+      payload:
+        completion.success && completion.result
           ? {
-              logType: 'success',
-              data: completion.result
-                ? {
-                    result: completion.result,
-                  }
-                : undefined,
+              result: completion.result,
             }
-          : {
-              logType: 'error',
-              data: {
+          : !completion.success
+            ? {
                 error: completion.error,
-              },
-            },
-      }
+              }
+            : undefined,
+    }
 
-      const requeueConfig: RequeueConfig =
-        !completion.success && completion.requeue
-          ? ({
-              shouldRequeue: true,
-              delayMs: Math.max(completion.requeue.delayMs, 0),
-              notBefore:
-                completion.requeue.delayMs > 0
-                  ? new Date(now.getTime() + completion.requeue.delayMs)
-                  : undefined,
-            } as const)
-          : { shouldRequeue: false }
-
-      const systemLogs = [completionSystemLog].concat(
-        requeueConfig.shouldRequeue
-          ? [
-              {
-                at: now,
-                payload: {
-                  logType: 'requeue',
-                  data: {
-                    delayMs: requeueConfig.delayMs,
-                    dontStartBefore:
-                      requeueConfig.notBefore?.toISOString() ?? null,
-                  },
+    const requeueRequested =
+      !completion.success && typeof completion.requeueDelayMs !== 'undefined'
+    const hasAlreadyReachedMaxRequeues = task.attemptCount >= MAX_TASK_ATTEMPTS
+    const shouldRequeue =
+      !completion.success && requeueRequested && !hasAlreadyReachedMaxRequeues
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const requeueDelayMs = shouldRequeue ? completion.requeueDelayMs! : 0
+    const requeueTimestamp =
+      requeueDelayMs === 0 ? now : addMs(now, requeueDelayMs)
+    const requeueConfigSystemLog = shouldRequeue
+      ? ({
+          at: now,
+          logType: 'requeue',
+          message: 'Task is requeued',
+          payload: {
+            requeueDelayMs,
+            dontStartBefore: requeueTimestamp.toISOString(),
+          },
+        } as const)
+      : undefined
+    const systemLogs = [completionSystemLog].concat(
+      requeueConfigSystemLog ? [requeueConfigSystemLog] : [],
+    )
+    const updatedTask = (
+      await tx
+        .update(tasksTable)
+        .set({
+          attemptCount: sql<number>`coalesce(${tasksTable.attemptCount}, 0) + 1`,
+          ...(!completion.success
+            ? {
+                failureCount: sql<number>`coalesce(${tasksTable.failureCount}, 0) + 1`,
+              }
+            : {}),
+          updatedAt: now,
+          ...(completion.success
+            ? {
+                success: true,
+                completedAt: now,
+                error: null,
+              }
+            : {
+                error: {
+                  code: completion.error.code,
+                  name: completion.error.name ?? 'Error',
+                  message: completion.error.message,
+                  details: completion.error.details,
                 },
-              },
-            ]
-          : [],
-      )
+                ...(shouldRequeue
+                  ? {
+                      dontStartBefore: requeueTimestamp,
+                      success: null,
+                      completedAt: null,
+                      startedAt: null,
+                    }
+                  : requeueRequested && hasAlreadyReachedMaxRequeues
+                    ? { maxRequeuesReached: true }
+                    : {
+                        success: false,
+                        completedAt: now,
+                      }),
+              }),
+          systemLog: sql<
+            SystemLogEntry[]
+          >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLogs.map(serializeLogEntry))}::jsonb`,
+        })
+        .where(
+          and(
+            eq(tasksTable.id, taskId),
+            isNull(tasksTable.success),
+            isNull(tasksTable.completedAt),
+            isNotNull(tasksTable.startedAt),
+          ),
+        )
+        .returning()
+    )[0]
 
-      const updatedTask = (
-        await tx
-          .update(tasksTable)
-          .set({
-            updatedAt: now,
-            ...(completion.success
-              ? {
-                  success: true,
-                  completedAt: now,
-                  error: null,
-                }
-              : {
-                  success: false,
-                  completedAt: now,
-                  error: {
-                    code: completion.error.code,
-                    message: completion.error.message,
-                    details: completion.error.details,
-                  },
-                  ...(requeueConfig.shouldRequeue
-                    ? {
-                        dontStartBefore: requeueConfig.notBefore,
-                        success: null,
-                        completedAt: null,
-                        startedAt: null,
-                      }
-                    : {}),
-                }),
-            systemLog: sql<
-              SystemLogEntry[]
-            >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify(systemLogs)}::jsonb`,
-          })
-          .where(
-            and(
-              eq(tasksTable.id, taskId),
-              isNull(tasksTable.success),
-              isNull(tasksTable.completedAt),
-              isNotNull(tasksTable.startedAt),
-            ),
-          )
-          .returning()
-      )[0]
-      if (!updatedTask) {
-        throw new ConflictException('Failed to register task completion task.')
-      }
+    if (updatedTask && shouldRequeue) {
+      await this.eventService.emitRunnableTaskEnqueuedEvent(updatedTask, tx)
+    }
 
-      // Enqueue the completion handler task if one was configured for this task
-      for (const onCompleteHandler of task.trigger.onComplete ?? []) {
+    if (!updatedTask) {
+      throw new ConflictException('Failed to register task completion task.')
+    }
+
+    // Enqueue the completion handler task if one was configured for this task
+    if (task.invocation.onComplete?.length) {
+      for (let i = 0; i < task.invocation.onComplete.length; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const onCompleteHandler = task.invocation.onComplete[i]!
         const conditionInput: OnCompleteConditionTaskContext = {
           id: updatedTask.id,
           ...(completion.success
@@ -975,14 +961,19 @@ export class TaskService {
             taskIdentifier: onCompleteHandler.taskIdentifier,
             taskDataTemplate: onCompleteHandler.dataTemplate ?? {},
             targetUserId: updatedTask.targetUserId ?? undefined,
-            targetLocation: updatedTask.targetLocation ?? undefined,
+            targetLocation: updatedTask.targetLocationFolderId
+              ? {
+                  folderId: updatedTask.targetLocationFolderId,
+                  objectKey: updatedTask.targetLocationObjectKey ?? undefined,
+                }
+              : undefined,
             storageAccessPolicy: updatedTask.storageAccessPolicy,
-            tx,
+            handlerIndex: i,
+            options: { tx },
           })
         }
       }
-
-      return updatedTask
-    })
+    }
+    return updatedTask
   }
 }

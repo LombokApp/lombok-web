@@ -30,9 +30,9 @@ import { $api } from '@/src/services/api'
 import { formatTriggerLabel } from '@/src/utils/trigger-utils'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
-import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
+import { serverConnectedAppWorkersTableColumns } from './server-connected-app-workers-table-columns'
 
 const DockerIcon = ({ className }: { className?: string }) => {
   return (
@@ -50,34 +50,18 @@ const DockerIcon = ({ className }: { className?: string }) => {
   )
 }
 
-const ExternalIcon = ({ className }: { className?: string }) => {
+const JSIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       className={className}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  )
-}
-
-const WorkerIcon = ({ className }: { className?: string }) => {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75C23.498 24 24 23.498 24 22.875V1.125C24 .502 23.498 0 22.875 0zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v1.745a5.093 5.093 0 0 0-.643-.306 5.025 5.025 0 0 0-.717-.26 5.067 5.067 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.53.104.156.252.304.443.444s.423.276.696.41c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656a3.033 3.033 0 0 1-1.012 1.085 3.848 3.848 0 0 1-1.487.596c-.566.12-1.163.18-1.79.18a9.916 9.916 0 0 1-1.84-.164 5.544 5.544 0 0 1-1.512-.493v-1.745a5.566 5.566 0 0 0 3.237 1.02c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38a1.023 1.023 0 0 0-.074-1.089 2.12 2.12 0 0 0-.537-.5 5.597 5.597 0 0 0-.807-.444 7.903 7.903 0 0 0-1.01-.436c-.35-.13-.73-.267-1.14-.407-.358-.127-.68-.28-.966-.457a3.476 3.476 0 0 1-.716-.629 2.689 2.689 0 0 1-.422-.808 3.113 3.113 0 0 1-.14-.95c0-.619.125-1.139.373-1.56.249-.422.593-.75 1.033-.985.44-.234.957-.351 1.552-.351zM5.16 7.223h7.314v1.497H6.774v4.823H5.16V7.223zm8.49 0h1.616v9.602h-1.616V7.223z" />
+      <path
+        d="M0 0h24v24H0V0zm22.034 18.276c-.175-.61-.888-2.066-2.966-2.066v1.381h-1.112v-1.381c-1.777 0-2.966 1.381-2.966 2.966 0 1.585 1.189 2.966 2.966 2.966v-1.381h1.112v1.381c2.078 0 2.791-1.456 2.966-2.066h-1.112zm-11.008-9.557h-1.112V7.228h1.112v1.491zm-1.112-1.934h-1.112v-1.491h1.112v1.491zm2.225 0h-1.112v-1.491h1.112v1.491zm-1.112 1.934h-1.112V7.228h1.112v1.491zM9.678 17.61c0 .795-.756 1.38-1.734 1.38V18.276H6.832v.716c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V18.276h1.112v-.716c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44zm4.451 0c0 .795-.756 1.38-1.734 1.38V18.276h-1.112v.716c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V18.276h1.112v-.716c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44zM14.712 8.294c0 .795-.756 1.38-1.734 1.38V8.294h-1.112v1.38c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V8.294h1.112v-1.38c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44zm4.451 0c0 .795-.756 1.38-1.734 1.38V8.294h-1.112v1.38c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V8.294h1.112v-1.38c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44z"
+        fill="currentColor"
+      />
     </svg>
   )
 }
@@ -169,13 +153,7 @@ export function ServerAppDetailScreen({
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
-              <CardDescription>
-                {app?.config.description}
-                <br />
-                <span className="text-muted-foreground/50 text-xs italic">
-                  Install ID: {app?.installId}
-                </span>
-              </CardDescription>
+              <CardDescription>{app?.config.description}</CardDescription>
             </div>
             {!!app && (
               <div className="flex items-center gap-2">
@@ -214,27 +192,25 @@ export function ServerAppDetailScreen({
         </CardContent>
       </Card>
       <Card>
-        <CardHeader>
-          <CardTitle>Workers Bundle</CardTitle>
-        </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-8">
             <Card className="flex-1 border-0 bg-transparent shadow-none">
               <CardHeader className="p-0 pb-4">
-                <CardTitle className="py-0 text-base">
+                <CardTitle className="pt-6">
+                  Runtime Workers
                   <div className="flex flex-col">
-                    <span className="pr-2">Worker scripts</span>
                     <span
                       id="worker-scripts-description"
                       className="text-sm font-normal text-muted-foreground/70"
                     >
-                      Workers included in the app as executable scripts
+                      Javascript workers that Lombok can execute as serverless
+                      functions mode
                     </span>
                   </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                {Object.keys(app?.workers ?? {}).length === 0 ? (
+                {Object.keys(app?.runtimeWorkers ?? {}).length === 0 ? (
                   <EmptyState
                     variant="row-sm"
                     icon={Menu}
@@ -249,12 +225,12 @@ export function ServerAppDetailScreen({
                       'w-1/3',
                       'bg-foreground/[0.02] text-foreground/50',
                     )}
-                    data={Object.entries(app?.workers.definitions ?? {}).map(
-                      ([workerKey, worker]) => ({
-                        identifier: workerKey,
-                        ...worker,
-                      }),
-                    )}
+                    data={Object.entries(
+                      app?.runtimeWorkers.definitions ?? {},
+                    ).map(([workerKey, worker]) => ({
+                      identifier: workerKey,
+                      ...worker,
+                    }))}
                     columns={configureServerAppWorkerScriptTableColumns(
                       appIdentifier,
                       setEnvironmentVariablesMutation,
@@ -270,21 +246,22 @@ export function ServerAppDetailScreen({
                     <span>
                       Manifest{' '}
                       {app?.ui?.size
-                        ? `(${formatBytes(app.workers.size)})`
+                        ? `(${formatBytes(app.runtimeWorkers.size)})`
                         : ''}
                     </span>
                     <span
                       id="folder-object-view-contribution-description"
                       className="text-sm font-normal text-muted-foreground/70"
                     >
-                      All worker files
+                      All runtime worker files
                     </span>
                   </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="flex flex-col gap-8">
-                  {Object.keys(app?.workers.manifest ?? {}).length === 0 ? (
+                  {Object.keys(app?.runtimeWorkers.manifest ?? {}).length ===
+                  0 ? (
                     <EmptyState
                       variant="row-sm"
                       icon={Menu}
@@ -296,12 +273,12 @@ export function ServerAppDetailScreen({
                       headerCellClassName={cn(
                         'bg-foreground/[0.02] text-foreground/50',
                       )}
-                      data={Object.entries(app?.workers.manifest ?? {}).map(
-                        ([path, file]) => ({
-                          path,
-                          ...file,
-                        }),
-                      )}
+                      data={Object.entries(
+                        app?.runtimeWorkers.manifest ?? {},
+                      ).map(([path, file]) => ({
+                        path,
+                        ...file,
+                      }))}
                       columns={serverAppManifestTableColumns}
                     />
                   )}
@@ -312,12 +289,12 @@ export function ServerAppDetailScreen({
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="py-0 text-base">
                   <div className="flex flex-col">
-                    <span className="pr-2">External workers</span>
+                    <span className="pr-2">Runtime Worker Connections</span>
                     <span
-                      id="external-workers-description"
+                      id="connected-workers-description"
                       className="text-sm font-normal text-muted-foreground/70"
                     >
-                      The external app workers currently connected to the server
+                      The runtime workers currently connected to the server
                     </span>
                   </div>
                 </CardTitle>
@@ -331,8 +308,8 @@ export function ServerAppDetailScreen({
                     'w-1/3',
                     'bg-foreground/[0.02] text-foreground/50',
                   )}
-                  data={app?.externalWorkers ?? []}
-                  columns={serverAppExternalWorkerTableColumns}
+                  data={app?.connectedRuntimeWorkers ?? []}
+                  columns={serverConnectedAppWorkersTableColumns}
                 />
               </CardContent>
             </Card>
@@ -374,10 +351,10 @@ export function ServerAppDetailScreen({
                         .join(', ') ?? 'None',
                     handlerType: task.handler.type,
                     handler:
-                      task.handler.type === 'worker' ||
-                      task.handler.type === 'docker'
+                      task.handler.type === 'runtime' ||
+                      task.handler.type === 'docker' // eslint-disable-line @typescript-eslint/no-unnecessary-condition
                         ? task.handler.identifier
-                        : 'external',
+                        : null,
                   })) ?? []
                 }
                 columns={[
@@ -411,11 +388,10 @@ export function ServerAppDetailScreen({
                       <div className="flex items-center gap-2">
                         {row.original.handlerType === 'docker' ? (
                           <DockerIcon className="size-8" />
-                        ) : row.original.handlerType === 'worker' ? (
-                          <WorkerIcon className="size-8" />
-                        ) : (
-                          <ExternalIcon className="size-8" />
-                        )}
+                        ) : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                        row.original.handlerType === 'runtime' ? (
+                          <JSIcon className="size-8" />
+                        ) : null}
                         <div>{row.original.handler}</div>
                       </div>
                     ),

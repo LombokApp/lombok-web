@@ -20,17 +20,22 @@ export function transformEventToDTO(
     emitterIdentifier: event.emitterIdentifier,
     eventIdentifier: event.eventIdentifier,
     data: event.data ?? {},
-    targetLocation: event.targetLocation ?? undefined,
+    targetLocation: event.targetLocationFolderId
+      ? {
+          folderId: event.targetLocationFolderId,
+          objectKey: event.targetLocationObjectKey ?? undefined,
+        }
+      : undefined,
     createdAt: event.createdAt.toISOString(),
   }
 
   // If folder is present, add subjectContext and return EventWithFolderSubjectContextDTO
-  if (event.targetLocation?.folderId && event.folder) {
+  if (event.targetLocationFolderId && event.folder) {
     return {
       ...baseDTO,
       targetLocationContext: {
-        folderId: event.targetLocation.folderId,
-        objectKey: event.targetLocation.objectKey ?? undefined,
+        folderId: event.targetLocationFolderId,
+        objectKey: event.targetLocationObjectKey ?? undefined,
         folderName: event.folder.name,
         folderOwnerId: event.folder.ownerId,
       },

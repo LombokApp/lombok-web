@@ -26,8 +26,8 @@ import {
   AllowedActor,
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
-import { ApiStandardErrorResponses } from 'src/platform/decorators/api-standard-error-responses.decorator'
-import { normalizeSortParam } from 'src/platform/utils/sort.util'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import {
   ContentMetadataEntryDTO,

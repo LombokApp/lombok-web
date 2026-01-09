@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import {
   elaboratedTargetLocationContextDTOSchema,
-  jsonSerializableObjectDTOSchema,
+  jsonSerializableObjectSchema,
   targetLocationContextDTOSchema,
 } from '@lombokapp/types'
 import { z } from 'zod'
@@ -11,7 +11,7 @@ export const eventDTOSchema = z.object({
   eventIdentifier: z.string(),
   emitterIdentifier: z.string(),
   targetLocationContext: elaboratedTargetLocationContextDTOSchema.optional(),
-  data: jsonSerializableObjectDTOSchema,
+  data: jsonSerializableObjectSchema,
   targetLocation: targetLocationContextDTOSchema.optional(),
   createdAt: z.string().datetime(),
 })

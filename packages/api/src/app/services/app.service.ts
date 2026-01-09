@@ -1,12 +1,11 @@
-import { hashLocalFile } from '@lombokapp/core-worker-utils'
 import type {
   AppConfig,
   AppContributions,
   AppManifest,
   AppMetrics,
-  AppWorkersMap,
+  AppRuntimeWorkersMap,
+  AppRuntimeWorkerSocketConnection,
   ExecuteAppDockerJobOptions,
-  ExternalAppWorker,
   FolderScopeAppPermissions,
   JsonSerializableObject,
   StorageAccessPolicy,
@@ -21,12 +20,12 @@ import {
 import { mimeFromExtension } from '@lombokapp/utils'
 import {
   BadRequestException,
-  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
+  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
@@ -39,6 +38,9 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import { readDirRecursive } from 'src/core/utils/fs.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
+import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
 import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -52,25 +54,23 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { logEntriesTable } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
-import { readDirRecursive } from 'src/platform/utils/fs.util'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
 import {
-  APP_WORKER_INFO_CACHE_KEY_PREFIX,
+  APP_RUNTIME_WORKER_SOCKET_STATE,
   AppSocketService,
 } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
 import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
+import { hashLocalFile } from '../../../../worker-utils/src'
 import { appConfig } from '../config'
-import { CoreAppService } from '../core-app.service'
 import { AppFolderSettingsUpdateInputDTO } from '../dto/app-folder-settings-update-input.dto'
 import { AppSort } from '../dto/apps-list-query-params.dto'
 import { AppFolderSettingsGetResponseDTO } from '../dto/responses/app-folder-settings-get-response.dto'
@@ -92,15 +92,13 @@ import { AppMaxFileSizeException } from '../exceptions/app-max-file-size.excepti
 import { AppMaxSizeException } from '../exceptions/app-max-size.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
+import { appConfigSanitize } from '../utils/app-config-sanitize'
 import { generateAppIdentifierSuffix } from '../utils/app-id.util'
 import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
 } from '../utils/resolve-app-settings.utils'
-import {
-  AppRequestByName,
-  handleAppSocketMessage,
-} from './app-socket-message.handler'
+import { handleAppSocketMessage } from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -111,20 +109,8 @@ export type MetadataUploadUrlsResponse = {
   url: string
 }[]
 
-export interface AppDefinition {
-  config: AppConfig
-  ui: Record<string, { size: number; hash: string }>
-  workersScripts: Record<
-    string,
-    {
-      name: string
-      files: Record<string, { size: number; hash: string }>
-    }
-  >
-}
-
 export interface AppInstallBundle
-  extends Omit<NewApp, 'identifier' | 'installId' | 'createdAt' | 'updatedAt'> {
+  extends Omit<NewApp, 'identifier' | 'createdAt' | 'updatedAt'> {
   migrationFiles: { filename: string; content: string }[]
 }
 
@@ -132,9 +118,9 @@ export interface AppInstallBundle
 export class AppService {
   folderService: FolderService
   eventService: EventService
-  coreAppService: CoreAppService
+  serverlessWorkerRunnerService: CoreWorkerService
   taskService: TaskService
-  platformTaskService: PlatformTaskService
+  coreTaskService: CoreTaskService
   private readonly appSocketService: AppSocketService
   private readonly dockerJobsService: DockerJobsService
   private readonly logger = new Logger(AppService.name)
@@ -148,16 +134,17 @@ export class AppService {
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     private readonly s3Service: S3Service,
-    @Inject(forwardRef(() => CoreAppService)) _coreAppService,
-    @Inject(forwardRef(() => PlatformTaskService)) _platformTaskService,
+    @Inject(forwardRef(() => CoreTaskService)) _coreTaskService,
     @Inject(forwardRef(() => TaskService)) _taskService,
     @Inject(forwardRef(() => EventService)) _eventService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     @Inject(forwardRef(() => AppSocketService)) _appSocketService,
     @Inject(forwardRef(() => DockerJobsService)) _dockerJobsService,
+    @Inject(forwardRef(() => CoreWorkerService))
+    _coreWorkerService,
   ) {
-    this.platformTaskService = _platformTaskService as PlatformTaskService
-    this.coreAppService = _coreAppService as CoreAppService
+    this.coreTaskService = _coreTaskService as CoreTaskService
+    this.serverlessWorkerRunnerService = _coreWorkerService as CoreWorkerService
     this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
@@ -192,8 +179,8 @@ export class AppService {
       throw new NotFoundException('Failed to update app enabled status.')
     }
 
-    // update the app install ID mapping in the core app worker
-    void this.coreAppService.updateAppInstallIdMapping()
+    // update the app hash mapping in the core worker
+    void this.serverlessWorkerRunnerService.updateAppHashMapping()
 
     return updated
   }
@@ -331,11 +318,10 @@ export class AppService {
       })
     }
     // get presigned upload URLs for content objects
-    return this._createSignedUrls(requests)
+    return this.createSignedContentUrls(requests)
   }
 
-  async createSignedMetadataUrlsAsApp(
-    requestingAppIdentifier: string,
+  async createSignedMetadataUrls(
     requests: {
       folderId: string
       objectKey: string
@@ -344,12 +330,6 @@ export class AppService {
       metadataHash: string
     }[],
   ) {
-    for (const request of requests) {
-      await this.validateAppFolderAccess({
-        appIdentifier: requestingAppIdentifier,
-        folderId: request.folderId,
-      })
-    }
     const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
@@ -406,6 +386,25 @@ export class AppService {
     return urls
   }
 
+  async createSignedMetadataUrlsAsApp(
+    requestingAppIdentifier: string,
+    requests: {
+      folderId: string
+      objectKey: string
+      contentHash: string
+      method: SignedURLsRequestMethod
+      metadataHash: string
+    }[],
+  ) {
+    for (const request of requests) {
+      await this.validateAppFolderAccess({
+        appIdentifier: requestingAppIdentifier,
+        folderId: request.folderId,
+      })
+    }
+    return this.createSignedMetadataUrls(requests)
+  }
+
   async createSignedAppStorageUrls(
     requestingAppIdentifier: string,
     payload: {
@@ -433,7 +432,7 @@ export class AppService {
     return urls
   }
 
-  async _createSignedUrls(
+  async createSignedContentUrls(
     signedUrlRequests: {
       method: SignedURLsRequestMethod
       folderId: string
@@ -517,37 +516,10 @@ export class AppService {
     }))
   }
 
-  async ensureAppHasServerAppPermission(appIdentifier: string) {
-    const app = await this.getApp(appIdentifier, { enabled: true })
-    if (!app) {
-      throw new UnauthorizedException(`App not found: ${appIdentifier}`)
-    }
-    if (!app.permissions.platform.includes('SERVE_APPS')) {
-      throw new ForbiddenException(
-        'Forbidden without the SERVE_APPS permission.',
-      )
-    }
-  }
-
-  async getWorkerExecutionDetailsAsAppServer(
-    requestingAppIdentifier: string,
-    requestData: { appIdentifier: string; workerIdentifier: string },
-  ) {
-    try {
-      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
-    } catch (error: unknown) {
-      if (error instanceof UnauthorizedException) {
-        return {
-          result: null,
-          error: {
-            code: 403,
-            message: 'Unauthorized.',
-          },
-        }
-      }
-      throw error
-    }
-
+  async getWorkerExecConfig(requestData: {
+    appIdentifier: string
+    workerIdentifier: string
+  }) {
     const workerApp = await this.ormService.db.query.appsTable.findFirst({
       where: and(
         eq(appsTable.identifier, requestData.appIdentifier),
@@ -556,34 +528,28 @@ export class AppService {
     })
 
     if (!workerApp) {
-      return {
-        error: { code: 404, message: 'Worker app not found.' },
-      }
+      throw new NotFoundException('Worker app not found')
     }
 
-    if (!(requestData.workerIdentifier in workerApp.workers.definitions)) {
-      return {
-        error: {
-          code: 404,
-          message: `App worker "${requestData.workerIdentifier}" not found.`,
-        },
-      }
+    if (
+      !(requestData.workerIdentifier in workerApp.runtimeWorkers.definitions)
+    ) {
+      throw new NotFoundException(
+        `Worker not found: ${requestData.workerIdentifier}`,
+      )
     }
 
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorage()
     if (!serverStorageLocation) {
-      return {
-        error: {
-          code: 409,
-          message: 'Server storage location not available.',
-        },
-      }
+      throw new NotImplementedException(
+        'Server storage location not configured',
+      )
     }
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/workers/${workerApp.workers.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/workers/${workerApp.runtimeWorkers.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -593,51 +559,21 @@ export class AppService {
       },
     ])
     return {
-      result: {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      payloadUrl: presignedGetURL[0]!,
+      entrypoint:
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        payloadUrl: presignedGetURL[0]!,
-        installId: workerApp.installId,
-        entrypoint:
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          workerApp.workers.definitions[requestData.workerIdentifier]!
-            .entrypoint,
-        environmentVariables:
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          workerApp.workers.definitions[requestData.workerIdentifier]!
-            .environmentVariables,
-        workerToken: await this.jwtService.createAppWorkerToken(
-          requestData.appIdentifier,
-        ),
-        hash: workerApp.workers.hash,
-      },
+        workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
+          .entrypoint,
+      environmentVariables:
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
+          .environmentVariables,
+      workerToken: await this.jwtService.createAppWorkerToken(
+        requestData.appIdentifier,
+      ),
+      hash: workerApp.runtimeWorkers.hash,
     }
-  }
-
-  async registerTaskCompletedAsApp(
-    requestingAppIdentifier: string,
-    data: AppRequestByName<'COMPLETE_HANDLE_TASK'>['data'],
-  ) {
-    const taskToComplete = await this.ormService.db.query.tasksTable.findFirst({
-      where: eq(tasksTable.id, data.taskId),
-    })
-
-    if (!taskToComplete) {
-      throw new NotFoundException(`Worker task not found: ${data.taskId}`)
-    }
-
-    if (taskToComplete.ownerIdentifier !== requestingAppIdentifier) {
-      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
-      if (taskToComplete.handlerType !== 'worker') {
-        throw new NotFoundException(`Worker task not found: ${data.taskId}`)
-      }
-    }
-
-    await this.taskService.registerTaskCompleted(
-      data.taskId,
-      data.success
-        ? { success: true, result: data.result }
-        : { success: false, error: data.error },
-    )
   }
 
   async startWorkerTaskByIdAsApp(
@@ -653,18 +589,14 @@ export class AppService {
     },
   ) {
     const taskToStart = await this.ormService.db.query.tasksTable.findFirst({
-      where: eq(tasksTable.id, taskId),
+      where: and(
+        eq(tasksTable.id, taskId),
+        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
+      ),
     })
 
     if (!taskToStart) {
       throw new NotFoundException(`Worker task not found: ${taskId}`)
-    }
-
-    if (taskToStart.ownerIdentifier !== requestingAppIdentifier) {
-      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
-      if (taskToStart.handlerType !== 'worker') {
-        throw new NotFoundException(`Worker task not found: ${taskId}`)
-      }
     }
 
     const { task } = await this.taskService.registerTaskStarted({
@@ -674,66 +606,31 @@ export class AppService {
     return task
   }
 
-  async getAppUIbundleAsAppServer(
-    requestingAppIdentifier: string,
-    requestData: { appIdentifier: string },
-  ) {
-    try {
-      await this.ensureAppHasServerAppPermission(requestingAppIdentifier)
-    } catch (error: unknown) {
-      if (error instanceof UnauthorizedException) {
-        return {
-          result: null,
-          error: {
-            code: 403,
-            message: 'Unauthorized.',
-          },
-        }
-      }
-      throw error
-    }
-
-    const workerApp = await this.getApp(requestData.appIdentifier, {
+  async getAppUIbundle(appIdentifier: string) {
+    const app = await this.getApp(appIdentifier, {
       enabled: true,
     })
-    if (!workerApp) {
-      // app by appIdentifier not found
-      return {
-        result: null,
-        error: {
-          code: 404,
-          message: 'App not found.',
-        },
-      }
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
 
-    if (Object.keys(workerApp.ui.manifest).length === 0) {
-      // No UI bundle exists for this app
-      return {
-        result: null,
-        error: {
-          code: 404,
-          message: 'UI bundle not found.',
-        },
-      }
+    if (Object.keys(app.ui.manifest).length === 0) {
+      throw new NotFoundException('UI bundle not found.')
     }
 
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorage()
 
     if (!serverStorageLocation) {
-      return {
-        error: {
-          code: 409,
-          message: 'Server storage location not available.',
-        },
-      }
+      throw new NotImplementedException(
+        'Server storage location not configured',
+      )
     }
 
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${requestData.appIdentifier}/${workerApp.installId}/ui/${workerApp.ui.hash}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-bundle-storage/${appIdentifier}/ui/${app.ui.hash}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -744,13 +641,11 @@ export class AppService {
     ])
 
     return {
-      result: {
-        installId: workerApp.installId,
-        manifest: workerApp.ui.manifest,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        bundleUrl: presignedGetURL[0]!,
-        csp: workerApp.ui.csp,
-      },
+      uiHash: app.ui.hash,
+      manifest: app.ui.manifest,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      bundleUrl: presignedGetURL[0]!,
+      csp: app.ui.csp,
     }
   }
 
@@ -894,7 +789,6 @@ export class AppService {
     if (installedApp && !allowUpdate) {
       throw new AppAlreadyInstalledException()
     }
-    const installId = crypto.randomUUID()
     const appIdentifier =
       installedApp?.identifier ??
       `${app.slug}_${await this.generateUniqueAppIdentifierSuffix(app.slug)}`
@@ -922,7 +816,7 @@ export class AppService {
         const pathPrefix = `/${bundleName}/`
         // Create a temp dir for this bundle
         const bundleDir = await fsPromises.mkdtemp(
-          path.join(os.tmpdir(), `appzip-${installId}-${bundleName}-`),
+          path.join(os.tmpdir(), `appzip-${appIdentifier}-${bundleName}-`),
         )
         const filePaths = assetManifestEntryPaths.filter((filePath) =>
           filePath.startsWith(pathPrefix),
@@ -946,8 +840,8 @@ export class AppService {
         const zipProc = spawn({
           cmd: ['zip', '-r', zipPath, './'],
           cwd: bundleDir,
-          stdout: 'inherit',
-          stderr: 'inherit',
+          stdout: 'ignore',
+          stderr: 'ignore',
         })
         const zipCode = await zipProc.exited
         if (zipCode !== 0) {
@@ -962,7 +856,6 @@ export class AppService {
           serverStorageLocation.prefix?.replace(/\/+$/, '') ?? '',
           'app-bundle-storage',
           appIdentifier,
-          installId,
           bundleName,
           `${zipHash}.zip`,
         ]
@@ -984,7 +877,11 @@ export class AppService {
 
         // Upload the zip file
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await uploadFile(zipPath, url!, 'application/zip')
+        await uploadFile(zipPath, url!, {
+          mimeType: 'application/zip',
+          log: (message: string, ...args: unknown[]) =>
+            this.logger.debug(message, ...args),
+        })
 
         const zipSize = fs.statSync(zipPath).size
         // Clean up temp dir
@@ -1002,9 +899,9 @@ export class AppService {
       }
 
       // Process worker bundles based on app.config.workers
-      if (app.config.workers) {
-        app.workers = {
-          ...app.workers,
+      if (app.config.runtimeWorkers) {
+        app.runtimeWorkers = {
+          ...app.runtimeWorkers,
           ...(await createAndUploadBundle('workers')),
         }
       }
@@ -1015,7 +912,7 @@ export class AppService {
       const installOrUpdateQuery = installedApp
         ? await this.ormService.db
             .update(appsTable)
-            .set({ ...app, installId, updatedAt: now })
+            .set({ ...app, updatedAt: now })
             .where(eq(appsTable.identifier, installedApp.identifier))
             .returning()
         : await this.ormService.db
@@ -1023,7 +920,6 @@ export class AppService {
             .values({
               ...app,
               identifier: appIdentifier,
-              installId,
               createdAt: now,
               updatedAt: now,
             })
@@ -1062,25 +958,49 @@ export class AppService {
       }
     }
 
-    // update the app install ID mapping in the core app worker
-    void this.coreAppService.updateAppInstallIdMapping()
+    // update the app hash mapping in the core worker
+    void this.serverlessWorkerRunnerService.updateAppHashMapping()
 
     return newlyInstalledAppInstance
   }
 
-  public async installAllAppsFromDisk() {
-    // get potential app identifier from the directory structure
-
-    const allPotentialAppDirectoriesEntries =
-      this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
-
+  public async installLocalAppBundles(limitTo?: string[] | null) {
     // for each potential app, attempt to install it (or update it if it's already installed)
-    for (const appInstallDirectoryName of allPotentialAppDirectoriesEntries) {
-      const appRoot = path.join(
-        this._appConfig.appsLocalPath,
-        appInstallDirectoryName,
+    if (!this._appConfig.appBundlesPath) {
+      this.logger.warn(
+        'App bundles path is not set, skipping app bundle installation',
       )
-      await this.handleAppInstall({ appRoot })
+      return
+    }
+    const appBundlesPath = this._appConfig.appBundlesPath
+    const allZips = fs
+      .readdirSync(this._appConfig.appBundlesPath)
+      .filter(
+        (potentialAppBundleFilename) =>
+          !fs
+            .lstatSync(path.join(appBundlesPath, potentialAppBundleFilename))
+            .isDirectory() &&
+          potentialAppBundleFilename.endsWith('.zip') &&
+          (!limitTo ||
+            limitTo.includes(
+              potentialAppBundleFilename.slice(
+                0,
+                potentialAppBundleFilename.length - 4,
+              ),
+            )),
+      )
+      .map((potentialAppBundleFilename) =>
+        path.join(appBundlesPath, potentialAppBundleFilename),
+      )
+    for (const appBundlePath of allZips) {
+      try {
+        await this.handleAppInstall({
+          zipFileBuffer: fs.readFileSync(appBundlePath),
+          zipFilename: path.basename(appBundlePath),
+        })
+      } catch (error) {
+        this.logger.warn(`APP INSTALL ERROR ('${appBundlePath}'):`, error)
+      }
     }
   }
 
@@ -1107,7 +1027,7 @@ export class AppService {
         return await this.installApp(app.definition, appRoot, true)
       } else {
         throw new AppInvalidException(
-          `App config is invalid: ${JSON.stringify(app.validation.error?.errors, null, 2)}`,
+          `App config is invalid (${appInstallIdentifier}): ${JSON.stringify(app.validation.error?.errors, null, 2)}`,
         )
       }
     } catch (error) {
@@ -1135,7 +1055,9 @@ export class AppService {
         )
       }
       if (error instanceof AppBaseInstallException) {
-        throw new BadRequestException(`${error.name}: ${error.message}`)
+        throw new BadRequestException(
+          `App '${appInstallIdentifier}': ${error.name}: ${error.message}`,
+        )
       }
       throw error
     } finally {
@@ -1181,18 +1103,6 @@ export class AppService {
     }
 
     return migrationFiles
-  }
-
-  public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
-    if (!fs.existsSync(appsDirectoryPath)) {
-      this.logger.warn('Apps directory "%s" not found.', appsDirectoryPath)
-      return []
-    }
-    return fs
-      .readdirSync(appsDirectoryPath)
-      .filter((appIdentifier) =>
-        fs.lstatSync(path.join(appsDirectoryPath, appIdentifier)).isDirectory(),
-      )
   }
 
   /**
@@ -1259,9 +1169,9 @@ export class AppService {
       return acc
     }, {})
 
-    const workerScriptDefinitions = Object.entries(
-      config.workers ?? {},
-    ).reduce<AppWorkersMap>((acc, [workerIdentifier, value]) => {
+    const runtimeWorkersDefinitions = Object.entries(
+      config.runtimeWorkers ?? {},
+    ).reduce<AppRuntimeWorkersMap>((acc, [workerIdentifier, value]) => {
       return {
         ...acc,
         [workerIdentifier]: {
@@ -1290,7 +1200,7 @@ export class AppService {
     const migrationFiles = this.discoverMigrationFiles(appRoot)
 
     const parseResult = appConfigWithManifestSchema(manifest).safeParse(config)
-    const workerBundleManifest = Object.keys(manifest)
+    const runtimeWorkersBundleManifest = Object.keys(manifest)
       .filter((filePath) => filePath.startsWith(`/workers/`))
       .reduce<AppManifest>((acc, filePath) => {
         return {
@@ -1312,22 +1222,22 @@ export class AppService {
 
             manifest,
             publicKey,
-            workers: {
-              manifest: workerBundleManifest,
-              definitions: workerScriptDefinitions,
+            runtimeWorkers: {
+              manifest: runtimeWorkersBundleManifest,
+              definitions: runtimeWorkersDefinitions,
               hash: '',
               size: 0,
             },
             permissions: {
-              platform: config.permissions?.platform ?? [],
+              core: config.permissions?.core ?? [],
               user: config.permissions?.user ?? [],
               folder: config.permissions?.folder ?? [],
             },
-            subscribedPlatformEvents: config.subscribedPlatformEvents ?? [],
+            subscribedCoreEvents: config.subscribedCoreEvents ?? [],
             implementedTasks: config.tasks?.map((t) => t.identifier) ?? [],
             requiresStorage:
               Object.keys(uiDefinition).length > 0 ||
-              Object.keys(workerScriptDefinitions).length > 0,
+              Object.keys(runtimeWorkersDefinitions).length > 0,
             ui: uiDefinition,
             config,
             containerProfiles: config.containerProfiles ?? {},
@@ -1340,6 +1250,16 @@ export class AppService {
           }
         : undefined,
     }
+
+    if (app.definition) {
+      const sanitizedConfig = appConfigSanitize.safeParse(app.definition.config)
+      if (!sanitizedConfig.success) {
+        throw new AppInvalidException(
+          `Config is invalid: ${JSON.stringify(sanitizedConfig.error.errors, null, 2)}`,
+        )
+      }
+    }
+
     return app
   }
 
@@ -1393,8 +1313,8 @@ export class AppService {
     // Unzip the file with zip bomb protection
     const unzipProc = spawn({
       cmd: ['unzip', '-q', zipFilePath, '-d', extractDir],
-      stdout: 'inherit',
-      stderr: 'inherit',
+      stdout: 'ignore',
+      stderr: 'ignore',
     })
 
     // Monitor directory size during extraction
@@ -1509,26 +1429,26 @@ export class AppService {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
 
-    if (!app.workers.definitions[workerIdentifier]) {
+    if (!app.runtimeWorkers.definitions[workerIdentifier]) {
       throw new NotFoundException(
         `Worker script not found: ${workerIdentifier}`,
       )
     }
     // Update environmentVariables for the specified worker
-    app.workers.definitions[workerIdentifier] = {
-      ...app.workers.definitions[workerIdentifier],
+    app.runtimeWorkers.definitions[workerIdentifier] = {
+      ...app.runtimeWorkers.definitions[workerIdentifier],
       environmentVariables: { ...environmentVariables },
     }
     // Persist the change
     await this.ormService.db
       .update(appsTable)
-      .set({ workers: app.workers })
+      .set({ runtimeWorkers: app.runtimeWorkers })
       .where(eq(appsTable.identifier, appIdentifier))
 
-    return app.workers.definitions[workerIdentifier].environmentVariables
+    return app.runtimeWorkers.definitions[workerIdentifier].environmentVariables
   }
 
-  getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {
+  getWorkerConnections(): Record<string, AppRuntimeWorkerSocketConnection[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -1537,7 +1457,7 @@ export class AppService {
 
       const scanResult = this.kvService.ops.scan(
         cursor,
-        `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:*`,
+        `${APP_RUNTIME_WORKER_SOCKET_STATE}:*`,
         10000,
       )
       cursor = scanResult[0]
@@ -1548,11 +1468,11 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<Record<string, ExternalAppWorker[]>>(
+          .reduce<Record<string, AppRuntimeWorkerSocketConnection[]>>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(
                 _r ?? 'null',
-              ) as ExternalAppWorker | null
+              ) as AppRuntimeWorkerSocketConnection | null
               if (!parsed) {
                 return acc
               }
@@ -2236,12 +2156,18 @@ export class AppService {
       query,
     }: { appIdentifier: string; workerIdentifier: string; query: string },
   ): Promise<{ vector: number[] }> {
-    await this.appSocketService.executeSynchronousAppRequest(appIdentifier, {
-      url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
-      body: {
-        userId: actor.id,
-        query,
-        // space: 'text-v1',
+    await this.serverlessWorkerRunnerService.executeServerlessRequest({
+      appIdentifier,
+      workerIdentifier,
+      request: {
+        url: `http://__SYSTEM__/worker-api/${workerIdentifier}/search`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: actor.id,
+          query,
+          // space: 'text-v1',
+        }),
       },
     })
 

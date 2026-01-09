@@ -1,16 +1,16 @@
 {
   "description": "The demo app.",
-  "identifier": "demo",
+  "slug": "demo",
   "label": "Demo App",
-  "subscribedPlatformEvents": [
-    "platform:object_added",
-    "platform:object_removed",
-    "platform:object_updated"
+  "subscribedCoreEvents": [
+    "core:object_added",
+    "core:object_removed",
+    "core:object_updated"
   ],
   "triggers": [
     {
       "kind": "event",
-      "eventIdentifier": "platform:object_added",
+      "eventIdentifier": "core:object_added",
       "taskIdentifier": "demo_object_added_worker_task",
       "onComplete": [{
         "taskIdentifier": "demo_worker_task_on_complete",
@@ -23,6 +23,7 @@
     },
     {
       "kind": "schedule",
+      "name": "hourly_job",
       "config": {
         "interval": 1,
         "unit": "hours"
@@ -36,7 +37,7 @@
       "label": "On Complete Handler",
       "description": "Is run as a completion handler for another task.",
       "handler": {
-        "type": "worker",
+        "type": "runtime",
         "identifier": "demo_on_complete_worker"
       }
     },
@@ -45,7 +46,7 @@
       "label": "Demo Object Added Worker",
       "description": "A task that runs for every newly added object.",
       "handler": {
-        "type": "worker",
+        "type": "runtime",
         "identifier": "demo_object_added_worker"
       }
     },
@@ -54,32 +55,32 @@
       "label": "Demo Scheduled Worker",
       "description": "A task that runs in response to a schedule event.",
       "handler": {
-        "type": "worker",
+        "type": "runtime",
         "identifier": "demo_scheduled_worker"
       }
     }
   ],
-  "workers": {
+  "runtimeWorkers": {
     "demo_object_added_worker": {
-      "entrypoint": "demo_object_added_worker/index.ts",
+      "entrypoint": "demo_object_added_worker/index.js",
       "description": "Runs for every newly added object.",
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
       }
     },
     "demo_scheduled_worker": {
-      "entrypoint": "demo_scheduled_worker/index.ts",
+      "entrypoint": "demo_scheduled_worker/index.js",
       "description": "Runs in response to a schedule event.",
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
       }
     },
     "demo_on_complete_worker": {
-      "entrypoint": "demo_on_complete_worker/index.ts",
+      "entrypoint": "demo_on_complete_worker/index.js",
       "description": "Runs as a completion handler for another task."
     },
     "demo_api_request_worker": {
-      "entrypoint": "demo_api_request_worker/index.ts",
+      "entrypoint": "demo_api_request_worker/index.js",
       "description": "Is run to service and incoming API request.",
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
