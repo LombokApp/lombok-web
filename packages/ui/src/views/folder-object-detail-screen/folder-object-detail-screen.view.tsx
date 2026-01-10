@@ -137,7 +137,7 @@ export const FolderObjectDetailScreen = ({
       }
   >()
 
-  const [selectedContrbutedView, setSelectedContrbutedView] =
+  const [selectedContributedView, setSelectedContrbutedView] =
     React.useState<AppPathContribution>()
 
   React.useEffect(() => {
@@ -245,8 +245,8 @@ export const FolderObjectDetailScreen = ({
                           .objectDetailViewContributions.all
                       }
                       value={
-                        selectedContrbutedView
-                          ? selectedContrbutedView.appIdentifier
+                        selectedContributedView
+                          ? selectedContributedView.appIdentifier
                           : 'default'
                       }
                       onSelect={(appIdentifier) =>
@@ -304,16 +304,16 @@ export const FolderObjectDetailScreen = ({
               <div
                 className={'flex max-w-full flex-1 flex-col justify-around'}
                 key={
-                  selectedContrbutedView
-                    ? `contributed_view-${selectedContrbutedView.appIdentifier}-${selectedContrbutedView.path}`
+                  selectedContributedView
+                    ? `contributed_view-${selectedContributedView.appIdentifier}-${selectedContributedView.path}`
                     : `display_mode-${selectedDisplayMode?.type === 'original' ? 'original' : selectedDisplayMode?.metadataKey}`
                 }
               >
-                {selectedContrbutedView ? (
+                {selectedContributedView ? (
                   <AppUI
                     getAccessTokens={getAccessTokens}
-                    appIdentifier={selectedContrbutedView.appIdentifier}
-                    pathAndQuery={`${selectedContrbutedView.path}?folderId=${folderId}&objectKey=${objectKey}`}
+                    appIdentifier={selectedContributedView.appIdentifier}
+                    pathAndQuery={`${selectedContributedView.path}?folderId=${folderId}&objectKey=${objectKey}`}
                     host={API_HOST}
                     scheme={protocol}
                   />
@@ -327,7 +327,7 @@ export const FolderObjectDetailScreen = ({
                       {' '}
                       {selectedDisplayMode && (
                         <Select
-                          disabled={!!selectedContrbutedView}
+                          disabled={!!selectedContributedView}
                           value={
                             selectedDisplayMode.type === 'original'
                               ? 'original'

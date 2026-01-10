@@ -45,6 +45,10 @@ export interface IServerContext {
       all: AppPathContribution[]
       byApp: Record<string, AppPathContribution[]>
     }
+    folderDetailViewContributions: {
+      all: AppPathContribution[]
+      byApp: Record<string, AppPathContribution[]>
+    }
     folderSidebarViewContributions: {
       all: AppPathContribution[]
       byApp: Record<string, AppPathContribution[]>

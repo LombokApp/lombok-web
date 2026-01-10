@@ -1518,6 +1518,7 @@ export class AppService {
             folderSidebarViews: contributions?.folderSidebarViews ?? [],
             objectSidebarViews: contributions?.objectSidebarViews ?? [],
             objectDetailViews: contributions?.objectDetailViews ?? [],
+            folderDetailViews: contributions?.folderDetailViews ?? [],
           },
         },
       }

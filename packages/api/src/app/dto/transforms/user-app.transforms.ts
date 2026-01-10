@@ -17,6 +17,7 @@ export function transformAppToUserDTO(app: App): UserAppDTO {
       folderSidebarViews: [],
       objectSidebarViews: [],
       objectDetailViews: [],
+      folderDetailViews: [],
     },
     ui: app.ui,
     createdAt: app.createdAt.toISOString(),

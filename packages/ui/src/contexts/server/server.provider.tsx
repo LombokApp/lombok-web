@@ -59,6 +59,10 @@ function formatContributions(allContributions: AppContributionsResponse) {
       allContributions,
       'objectDetailViews',
     ),
+    folderDetailViewContributions: formatContributionLinks(
+      allContributions,
+      'folderDetailViews',
+    ),
   }
 }
 

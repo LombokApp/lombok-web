@@ -24,6 +24,7 @@ export function transformAppToDTO(
       folderSidebarViews: [],
       objectSidebarViews: [],
       objectDetailViews: [],
+      folderDetailViews: [],
     },
     ui: app.ui,
     metrics: null,

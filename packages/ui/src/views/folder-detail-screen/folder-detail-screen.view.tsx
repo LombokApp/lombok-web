@@ -33,6 +33,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router'
 import type { DeleteFolderModalData } from '@/src/components/delete-folder-modal/delete-folder-modal'
 import { DeleteFolderModal } from '@/src/components/delete-folder-modal/delete-folder-modal'
 import { EditableTitle } from '@/src/components/editable-title'
+import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
@@ -43,6 +44,8 @@ import {
 } from '@/src/components/upload-modal/upload-modal'
 import { useFolderContext } from '@/src/contexts/folder'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
+import type { AppPathContribution } from '@/src/contexts/server'
+import { useServerContext } from '@/src/contexts/server'
 import { useFocusedFolderObjectContext } from '@/src/pages/folders/focused-folder-object.context'
 import { $api, $apiClient } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
@@ -51,6 +54,7 @@ import {
   readSortingFromSearchParams,
 } from '@/src/utils/tables'
 
+import { AppUI } from '../app-ui/app-ui.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { FolderAppSettingsForm } from './folder-app-settings-form/folder-app-settings-form'
 import { FolderSettingsModal } from './folder-settings-modal/folder-settings-modal'
@@ -58,6 +62,11 @@ import { FolderShareModal } from './folder-share-modal/folder-share-modal'
 import { JustifiedObjectsGrid } from './justified-objects-grid/justified-objects-grid'
 
 const PAGE_SIZE = 50
+
+const protocol = window.location.protocol
+const hostname = window.location.hostname
+const port = window.location.port
+const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
@@ -90,6 +99,7 @@ export const FolderDetailScreen = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const serverContext = useServerContext()
 
   const folderUpdateMutation = $api.useMutation(
     'put',
@@ -150,6 +160,20 @@ export const FolderDetailScreen = () => {
   })
 
   const cursorFromSearchParams = searchParams.get('cursor') ?? undefined
+
+  const [selectedContributedView, setSelectedContrbutedView] =
+    React.useState<AppPathContribution>()
+  const getAccessTokens = (appIdentifier: string) =>
+    $apiClient
+      .POST('/api/v1/user/apps/{appIdentifier}/access-token', {
+        params: { path: { appIdentifier } },
+      })
+      .then((res) => {
+        if (!res.data) {
+          throw new Error('Failed to generate app access token')
+        }
+        return res.data.session
+      })
 
   const handleCursorChange = React.useCallback(
     (newCursor: string) => {
@@ -539,84 +563,115 @@ export const FolderDetailScreen = () => {
                         enableSorting={true}
                       />
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="flex rounded-md border p-2">
-                        <Ellipsis className="size-5 shrink-0" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {folderContext.folderPermissions?.includes(
-                          FolderPermissionEnum.OBJECT_EDIT,
-                        ) && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setUploadModalData({
-                                isOpen: true,
-                                uploadingProgress,
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <CloudUpload className="size-5" />
-                            Upload
-                          </DropdownMenuItem>
-                        )}
-                        {folderContext.folderPermissions?.includes(
-                          FolderPermissionEnum.FOLDER_REINDEX,
-                        ) && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setReindexFolderModalData({
-                                ...reindexFolderModalData,
-                                isOpen: true,
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <FolderSync className="size-5" />
-                            Reindex
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => void handleShareFolder()}
-                          className="gap-2"
-                        >
-                          <Share2 className="size-5" />
-                          Share
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setFolderAppSettingsModalData({
-                              ...folderAppSettingsModalData,
-                              isOpen: true,
-                            })
+                    <div className="flex items-center justify-start gap-2">
+                      {serverContext.appContributions
+                        .folderDetailViewContributions.all.length > 0 ? (
+                        <FolderObjectDetailViewEmbedSelector
+                          options={
+                            serverContext.appContributions
+                              .folderDetailViewContributions.all
                           }
-                          className="gap-2"
-                        >
-                          <Settings className="size-5" />
-                          Settings
-                        </DropdownMenuItem>
-                        {folderContext.folderPermissions?.includes(
-                          FolderPermissionEnum.FOLDER_FORGET,
-                        ) && (
+                          value={
+                            selectedContributedView
+                              ? selectedContributedView.appIdentifier
+                              : 'default'
+                          }
+                          onSelect={(appIdentifier) =>
+                            setSelectedContrbutedView(
+                              serverContext.appContributions.folderDetailViewContributions.all.find(
+                                (o) => o.appIdentifier === appIdentifier,
+                              ),
+                            )
+                          }
+                        />
+                      ) : null}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="flex rounded-md border p-2">
+                          <Ellipsis className="size-5 shrink-0" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.OBJECT_EDIT,
+                          ) && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setUploadModalData({
+                                  isOpen: true,
+                                  uploadingProgress,
+                                })
+                              }
+                              className="gap-2"
+                            >
+                              <CloudUpload className="size-5" />
+                              Upload
+                            </DropdownMenuItem>
+                          )}
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_REINDEX,
+                          ) && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setReindexFolderModalData({
+                                  ...reindexFolderModalData,
+                                  isOpen: true,
+                                })
+                              }
+                              className="gap-2"
+                            >
+                              <FolderSync className="size-5" />
+                              Reindex
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => void handleShareFolder()}
+                            className="gap-2"
+                          >
+                            <Share2 className="size-5" />
+                            Share
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
-                              setForgetFolderConfirmationModelData({
-                                ...forgetFolderConfirmationModelData,
+                              setFolderAppSettingsModalData({
+                                ...folderAppSettingsModalData,
                                 isOpen: true,
                               })
                             }
                             className="gap-2"
                           >
-                            <Trash className="size-5" />
-                            Delete
+                            <Settings className="size-5" />
+                            Settings
                           </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_FORGET,
+                          ) && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setForgetFolderConfirmationModelData({
+                                  ...forgetFolderConfirmationModelData,
+                                  isOpen: true,
+                                })
+                              }
+                              className="gap-2"
+                            >
+                              <Trash className="size-5" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
 
-                {folderContext.folderMetadata?.totalCount === 0 ? (
+                {selectedContributedView ? (
+                  <AppUI
+                    getAccessTokens={getAccessTokens}
+                    appIdentifier={selectedContributedView.appIdentifier}
+                    pathAndQuery={`${selectedContributedView.path}?folderId=${folderId}`}
+                    host={API_HOST}
+                    scheme={protocol}
+                  />
+                ) : folderContext.folderMetadata?.totalCount === 0 ? (
                   <div className="flex size-full items-center justify-center">
                     <div className="flex w-full max-w-md flex-col items-center p-8">
                       <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
