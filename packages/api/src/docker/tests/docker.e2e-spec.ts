@@ -425,7 +425,7 @@ describe('Docker Jobs', () => {
       },
       image: 'dummy-namespace/dummy-image',
       labels: {
-        'lombok.platform': 'lombok',
+        lombok: 'lombok',
         'lombok.profile_hash': '59da6c5f',
         'lombok.profile_id': `lombok:profile_${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile`,
       },
@@ -505,7 +505,7 @@ describe('Docker Jobs', () => {
         driver: 'nvidia',
       },
       labels: {
-        'lombok.platform': 'lombok',
+        lombok: 'lombok',
         'lombok.profile_hash': '59da6c5f',
         'lombok.profile_id': `lombok:profile_${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile`,
       },

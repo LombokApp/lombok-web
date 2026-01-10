@@ -43,7 +43,7 @@ const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
 
 /** Labels applied to worker containers for discovery */
 export const DOCKER_LABELS = {
-  PLATFORM: 'lombok.core',
+  PLATFORM: 'lombok',
   PROFILE_ID: 'lombok.profile_id',
   PROFILE_HASH: 'lombok.profile_hash',
 } as const
