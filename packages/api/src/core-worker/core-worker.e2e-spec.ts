@@ -181,7 +181,7 @@ describe('Core Worker', () => {
         enabled: true,
         csp: '',
       },
-      workers: {
+      runtimeWorkers: {
         [WORKER_IDENTIFIER]: {
           description: 'Test worker',
           entrypoint: WORKER_ENTRYPOINT,
@@ -527,7 +527,7 @@ describe('Core Worker', () => {
     }
   })
 
-  it('records script errors on inner tasks while completing run_serverless_worker', async () => {
+  it('records script errors on inner ta sks while completing run_serverless_worker', async () => {
     await runWithThreadContext(crypto.randomUUID(), async () => {
       const innerTask =
         await testModule!.services.taskService.triggerAppActionTask({
