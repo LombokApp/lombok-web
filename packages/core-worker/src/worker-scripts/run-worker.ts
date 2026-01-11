@@ -1179,6 +1179,7 @@ async function createWorkerProcess(
       `--bindmount_ro=${linkedNodeModulesPath}:/node_modules`,
       ...platformAwareMounts,
       ...environmentVariables.map((v) => `-E${v}`),
+      `-EWORKER_APP_BASE_DIR=/app`,
       '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',
       '-Mo',
       '--iface_no_lo',

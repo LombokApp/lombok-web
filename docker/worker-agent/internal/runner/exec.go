@@ -176,11 +176,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+				HandleCompletionSignalFailure(payload, jobState, err)
 			}
 		}
 
-		// Output result to stdout for the platform to capture
+		// Output result to stdout
 		result := map[string]interface{}{
 			"success":   false,
 			"exit_code": 1,
@@ -225,7 +225,21 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	if platformClient != nil {
 		ctx := context.Background()
 		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
-			logs.WriteAgentLog("warning: failed to signal start: %v", err)
+			// Failed to signal start - this is a critical error
+			// Kill the worker process and record job failure
+			logs.WriteAgentLog("error: failed to signal start: %v", err)
+
+			cancelErr := CancelJob(CancelJobConfig{
+				Payload:         payload,
+				JobState:        jobState,
+				JobStartTime:    jobStartTime,
+				WorkerStartTime: workerStartTime,
+				PlatformClient:  platformClient,
+				ExecCmd:         cmd,
+			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
+
+			os.Exit(1)
+			return cancelErr
 		}
 	}
 
@@ -305,8 +319,6 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	logs.WriteAgentLog("job_id=%s job_execution_time=%.3fs total_time=%.3fs",
 		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds())
 
-	// Extract the worker's result from the last line of stdout if flag is set
-	// Convention: worker outputs JSON result on the last non-empty line
 	var workerResult interface{}
 	var workerResultRaw json.RawMessage
 	workerResult = extractLastLineJSON(stdoutBuf.String())
@@ -316,6 +328,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Handle file uploads and platform completion if configured
 	var outputFiles []types.OutputFileRef
+	var completionSignalFailed bool
 	if platformClient != nil {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
@@ -352,7 +365,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		}
 
 		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-			logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			HandleCompletionSignalFailure(payload, jobState, err)
+			completionSignalFailed = true
 		}
 	}
 
@@ -430,7 +444,10 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		logs.WriteAgentLog("warning: failed to write final job state: %v", err)
 	}
 
-	// Exit with the worker's exit code
+	// Exit with the worker's exit code, or error code if completion signal failed
+	if completionSignalFailed {
+		os.Exit(1)
+	}
 	if exitCode != 0 {
 		os.Exit(exitCode)
 	}

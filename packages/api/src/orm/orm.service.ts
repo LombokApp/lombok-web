@@ -147,57 +147,94 @@ export class OrmService {
     }
   }
 
+  /**
+   * Generate a consistent advisory lock ID from an app identifier
+   * Uses a simple hash to convert the string identifier to a number
+   */
+  private getAdvisoryLockId(appIdentifier: string): number {
+    let hash = 0
+    for (let i = 0; i < appIdentifier.length; i++) {
+      const char = appIdentifier.charCodeAt(i)
+      hash = (hash << 5) - hash + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    // Use a namespace prefix to avoid conflicts with other advisory locks
+    // PostgreSQL advisory locks use 64-bit integers, so we can use a high bit
+    return Math.abs(hash) | 0x40000000
+  }
+
   private async ensureAppRole(appIdentifier: string): Promise<void> {
-    const client = this.client
     const appSchemaName = this.getAppSchemaName(appIdentifier)
     const appRoleName = this.getAppRoleName(appIdentifier)
     const platformRole = this._ormConfig.dbUser
+    const lockId = this.getAdvisoryLockId(appIdentifier)
 
-    const roleExists = await client.query<{ exists: number }>(
-      'SELECT 1 as exists FROM pg_roles WHERE rolname = $1',
-      [appRoleName],
-    )
-
-    if (roleExists.rows.length === 0) {
-      try {
-        await client.query(`CREATE ROLE ${appRoleName} LOGIN`)
-        await client.query(
-          `ALTER ROLE ${appRoleName} SET search_path = ${appSchemaName}, ${EXTENSIONS_SCHEMA}`,
-        )
-        this.logger.log(`Created role ${appRoleName} for app ${appIdentifier}`)
-      } catch (error) {
-        this.logger.error(
-          `Failed to create role ${appRoleName} for app ${appIdentifier}`,
-          error as Error,
-        )
-        throw error
-      }
-    }
+    // Use a dedicated connection from the pool to ensure advisory locks work correctly
+    // Advisory locks are session-scoped, so we need the same connection for lock/unlock
+    const client = await this.client.connect()
 
     try {
-      await client.query(`GRANT ${appRoleName} TO ${platformRole}`)
-      await client.query(
-        `GRANT USAGE, CREATE ON SCHEMA ${appSchemaName} TO ${appRoleName}`,
-      )
-      await client.query(`GRANT USAGE ON SCHEMA extensions TO ${appRoleName}`)
-      await client.query(
-        `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
-      )
-      await client.query(
-        `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
-      )
-      await client.query(
-        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${appSchemaName} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${appRoleName}`,
-      )
-      await client.query(
-        `ALTER DEFAULT PRIVILEGES IN SCHEMA ${appSchemaName} GRANT USAGE, SELECT ON SEQUENCES TO ${appRoleName}`,
-      )
-    } catch (error) {
-      this.logger.error(
-        `Failed to grant privileges for role ${appRoleName} and schema ${appSchemaName}, extensions`,
-        error as Error,
-      )
-      throw error
+      // Acquire advisory lock to prevent concurrent privilege grants
+      await client.query('SELECT pg_advisory_lock($1)', [lockId])
+
+      try {
+        const roleExists = await client.query<{ exists: number }>(
+          'SELECT 1 as exists FROM pg_roles WHERE rolname = $1',
+          [appRoleName],
+        )
+
+        if (roleExists.rows.length === 0) {
+          try {
+            await client.query(`CREATE ROLE ${appRoleName} LOGIN`)
+            await client.query(
+              `ALTER ROLE ${appRoleName} SET search_path = ${appSchemaName}, ${EXTENSIONS_SCHEMA}`,
+            )
+            this.logger.log(
+              `Created role ${appRoleName} for app ${appIdentifier}`,
+            )
+          } catch (error) {
+            this.logger.error(
+              `Failed to create role ${appRoleName} for app ${appIdentifier}`,
+              error as Error,
+            )
+            throw error
+          }
+        }
+
+        try {
+          await client.query(`GRANT ${appRoleName} TO ${platformRole}`)
+          await client.query(
+            `GRANT USAGE, CREATE ON SCHEMA ${appSchemaName} TO ${appRoleName}`,
+          )
+          await client.query(
+            `GRANT USAGE ON SCHEMA extensions TO ${appRoleName}`,
+          )
+          await client.query(
+            `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
+          )
+          await client.query(
+            `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${appSchemaName} TO ${appRoleName}`,
+          )
+          await client.query(
+            `ALTER DEFAULT PRIVILEGES IN SCHEMA ${appSchemaName} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${appRoleName}`,
+          )
+          await client.query(
+            `ALTER DEFAULT PRIVILEGES IN SCHEMA ${appSchemaName} GRANT USAGE, SELECT ON SEQUENCES TO ${appRoleName}`,
+          )
+        } catch (error) {
+          this.logger.error(
+            `Failed to grant privileges for role ${appRoleName} and schema ${appSchemaName}, extensions`,
+            error as Error,
+          )
+          throw error
+        }
+      } finally {
+        // Always release the advisory lock, even if an error occurred
+        await client.query('SELECT pg_advisory_unlock($1)', [lockId])
+      }
+    } finally {
+      // Always release the connection back to the pool
+      client.release()
     }
   }
 
