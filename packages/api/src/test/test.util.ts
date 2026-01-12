@@ -17,7 +17,7 @@ import { waitForTrue } from 'src/core/utils/wait.util'
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from 'src/core-worker/core-worker.constants'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
-import { WorkerJobService } from 'src/docker/services/worker-job.service'
+import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
 import {
   buildMockDockerAdapter,
   MockDockerAdapterProvider,
@@ -151,7 +151,7 @@ export async function buildTestModule({
     coreWorkerService: await app.resolve(CoreWorkerService),
     appService: await app.resolve(AppService),
     serverConfigurationService: await app.resolve(ServerConfigurationService),
-    workerJobService: await app.resolve(WorkerJobService),
+    dockerWorkerHookService: await app.resolve(DockerWorkerHookService),
     coreTaskService: await app.resolve(CoreTaskService),
     eventService: await app.resolve(EventService),
     taskService: await app.resolve(TaskService),

@@ -5602,7 +5602,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WorkerJobUploadUrlsRequestDTO"
+                "$ref": "#/components/schemas/DockerJobPresignedUrlsRequestDTO"
               }
             }
           }
@@ -5613,7 +5613,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkerJobPresignedUrlsResponseDTO"
+                  "$ref": "#/components/schemas/DockerJobPresignedUrlsResponseDTO"
                 }
               }
             }
@@ -5646,7 +5646,7 @@
         ],
         "summary": "Request presigned URLs for file operations",
         "tags": [
-          "WorkerJobs"
+          "DockerWorkerHooks"
         ]
       }
     },
@@ -5666,14 +5666,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkerJobStartedResponseDTO"
-                }
-              }
-            }
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -5703,7 +5696,7 @@
         ],
         "summary": "Signal job start",
         "tags": [
-          "WorkerJobs"
+          "DockerWorkerHooks"
         ]
       }
     },
@@ -5726,21 +5719,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WorkerJobCompleteRequestDTO"
+                "$ref": "#/components/schemas/DockerJobCompleteRequestDTO"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkerJobCompleteResponseDTO"
-                }
-              }
-            }
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -5770,7 +5756,7 @@
         ],
         "summary": "Signal job completion",
         "tags": [
-          "WorkerJobs"
+          "DockerWorkerHooks"
         ]
       }
     }
@@ -15372,7 +15358,7 @@
           "result"
         ]
       },
-      "WorkerJobUploadUrlsRequestDTO": {
+      "DockerJobPresignedUrlsRequestDTO": {
         "type": "array",
         "items": {
           "type": "object",
@@ -15402,7 +15388,7 @@
           ]
         }
       },
-      "WorkerJobPresignedUrlsResponseDTO": {
+      "DockerJobPresignedUrlsResponseDTO": {
         "type": "object",
         "properties": {
           "urls": {
@@ -15444,18 +15430,7 @@
           "urls"
         ]
       },
-      "WorkerJobStartedResponseDTO": {
-        "type": "object",
-        "properties": {
-          "ok": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "ok"
-        ]
-      },
-      "WorkerJobCompleteRequestDTO": {
+      "DockerJobCompleteRequestDTO": {
         "discriminator": {
           "propertyName": "success"
         },
@@ -15560,17 +15535,6 @@
               "error"
             ]
           }
-        ]
-      },
-      "WorkerJobCompleteResponseDTO": {
-        "type": "object",
-        "properties": {
-          "ok": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "ok"
         ]
       }
     }

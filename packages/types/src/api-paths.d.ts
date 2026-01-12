@@ -3468,14 +3468,14 @@ export interface components {
                 updatedAt: string;
             }[];
         };
-        WorkerJobUploadUrlsRequestDTO: {
+        DockerJobPresignedUrlsRequestDTO: {
             /** Format: uuid */
             folderId: string;
             objectKey: string;
             /** @enum {string} */
             method: "PUT" | "DELETE" | "GET" | "HEAD";
         }[];
-        WorkerJobPresignedUrlsResponseDTO: {
+        DockerJobPresignedUrlsResponseDTO: {
             urls: {
                 /** Format: uuid */
                 folderId: string;
@@ -3486,10 +3486,7 @@ export interface components {
                 url: string;
             }[];
         };
-        WorkerJobStartedResponseDTO: {
-            ok: boolean;
-        };
-        WorkerJobCompleteRequestDTO: {
+        DockerJobCompleteRequestDTO: {
             /** @enum {boolean} */
             success: true;
             result: {
@@ -3517,9 +3514,6 @@ export interface components {
                 folderId: string;
                 objectKey: string;
             }[];
-        };
-        WorkerJobCompleteResponseDTO: {
-            ok: boolean;
         };
     };
     responses: never;
@@ -6815,7 +6809,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkerJobUploadUrlsRequestDTO"];
+                "application/json": components["schemas"]["DockerJobPresignedUrlsRequestDTO"];
             };
         };
         responses: {
@@ -6824,7 +6818,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkerJobPresignedUrlsResponseDTO"];
+                    "application/json": components["schemas"]["DockerJobPresignedUrlsResponseDTO"];
                 };
             };
             /** @description Server Error */
@@ -6862,9 +6856,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobStartedResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
@@ -6897,7 +6889,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkerJobCompleteRequestDTO"];
+                "application/json": components["schemas"]["DockerJobCompleteRequestDTO"];
             };
         };
         responses: {
@@ -6905,9 +6897,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobCompleteResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
