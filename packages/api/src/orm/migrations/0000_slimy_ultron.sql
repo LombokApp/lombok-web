@@ -164,7 +164,7 @@ CREATE TABLE "tasks" (
 	"dontStartBefore" timestamp,
 	"systemLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"taskLog" jsonb DEFAULT '[]'::jsonb NOT NULL,
-	"storageAccessPolicy" jsonb NOT NULL,
+	"storageAccessPolicy" jsonb,
 	"success" boolean,
 	"userVisible" boolean DEFAULT true,
 	"error" jsonb,

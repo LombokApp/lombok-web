@@ -99,6 +99,7 @@ export function transformTaskSummaryToDTO(
     updatedAt: task.updatedAt.toISOString(),
     taskIdentifier: task.taskIdentifier,
     taskDescription: task.taskDescription,
+    storageAccessPolicy: task.storageAccessPolicy ?? undefined,
     startedAt: task.startedAt?.toISOString() ?? undefined,
     completedAt: task.completedAt?.toISOString() ?? undefined,
   }

@@ -991,7 +991,6 @@ describe('Task lifecycle', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         data: { raw: 'This is invalid (in data): \u0000' },
-        storageAccessPolicy: [],
         systemLog: [
           {
             at: new Date(),
@@ -1093,7 +1092,6 @@ describe('Task lifecycle', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         data: { raw: 'This is invalid (in data): \u0000' },
-        storageAccessPolicy: [],
         systemLog: [
           {
             at: new Date(),
@@ -1194,7 +1192,6 @@ describe('Task lifecycle', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         data: { raw: 'This is invalid: \u0000' },
-        storageAccessPolicy: [],
         systemLog: [
           {
             at: new Date(),

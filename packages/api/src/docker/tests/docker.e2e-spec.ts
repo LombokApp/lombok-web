@@ -121,7 +121,6 @@ const insertTaskWithEvent = async (testModule: TestModule) => {
       handlerIdentifier: 'testapp:test_job',
       taskIdentifier: 'test_job_task',
       data: {},
-      storageAccessPolicy: [],
       invocation: {
         kind: 'event',
         invokeContext: {
@@ -248,7 +247,7 @@ const triggerAppDockerHandledTask = async (
       ownerIdentifier: CORE_IDENTIFIER,
       taskIdentifier: 'run_docker_worker',
       taskDescription: 'Run a docker worker to execute a task',
-      storageAccessPolicy: [],
+      storageAccessPolicy: null,
       data: {
         appIdentifier,
         jobClassIdentifier,
@@ -646,7 +645,7 @@ describe('Docker Jobs', () => {
 
     expect(claims.jobId).toBe(parsedPayload.jobId)
     expect(claims.taskId).toBe(dockerRunTask.id)
-    expect(claims.storageAccessPolicy).toEqual([])
+    expect(claims.storageAccessPolicy).toBeUndefined()
   })
 
   it('should create an unstarted app task when a docker handled app task is queued', async () => {
@@ -683,7 +682,7 @@ describe('Docker Jobs', () => {
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
-      storageAccessPolicy: [],
+      storageAccessPolicy: null,
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
@@ -775,18 +774,45 @@ describe('Docker Jobs', () => {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
-      storageAccessPolicy: [
-        {
-          folderId: allowedFolderId,
-          methods: [SignedURLsRequestMethod.PUT, SignedURLsRequestMethod.GET],
-          prefix: 'this/is/the/test',
-        },
-        {
-          folderId: allowedFolderId2,
-          methods: [SignedURLsRequestMethod.DELETE],
-          prefix: 'this/is/another/test',
-        },
-      ],
+      storageAccessPolicy: {
+        rules: [
+          {
+            folderId: testFolder.folder.id,
+            methods: [SignedURLsRequestMethod.GET],
+            prefix: 'this/is/the/test',
+          },
+          {
+            folderId: testFolder.folder.id,
+            objectKey: 'object.ext',
+            methods: [SignedURLsRequestMethod.GET],
+          },
+          {
+            folderId: testFolder.folder.id,
+            objectKey: 'specific-file.json',
+            methods: [SignedURLsRequestMethod.PUT],
+          },
+          {
+            folderId: testFolder.folder.id,
+            objectKey: 'readonly.txt',
+            methods: [SignedURLsRequestMethod.GET],
+          },
+          {
+            folderId: testFolder2.folder.id,
+            objectKey: 'delete-me.dat',
+            methods: [SignedURLsRequestMethod.DELETE],
+          },
+          {
+            folderId: testFolder.folder.id,
+            methods: [SignedURLsRequestMethod.PUT],
+            prefix: 'this/is/the/test',
+          },
+          {
+            folderId: testFolder2.folder.id,
+            methods: [SignedURLsRequestMethod.DELETE],
+            prefix: 'this/is/another/test',
+          },
+        ],
+      },
     })
 
     const appIdentifier =
@@ -797,18 +823,45 @@ describe('Docker Jobs', () => {
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
-      storageAccessPolicy: [
-        {
-          folderId: testFolder.folder.id,
-          methods: [SignedURLsRequestMethod.PUT, SignedURLsRequestMethod.GET],
-          prefix: 'this/is/the/test',
-        },
-        {
-          folderId: testFolder2.folder.id,
-          methods: [SignedURLsRequestMethod.DELETE],
-          prefix: 'this/is/another/test',
-        },
-      ],
+      storageAccessPolicy: {
+        rules: [
+          {
+            folderId: testFolder.folder.id,
+            methods: [SignedURLsRequestMethod.GET],
+            prefix: 'this/is/the/test',
+          },
+          {
+            folderId: testFolder.folder.id,
+            objectKey: 'object.ext',
+            methods: [SignedURLsRequestMethod.GET],
+          },
+          {
+            folderId: testFolder.folder.id,
+            objectKey: 'specific-file.json',
+            methods: [SignedURLsRequestMethod.PUT],
+          },
+          {
+            folderId: testFolder.folder.id,
+            objectKey: 'readonly.txt',
+            methods: [SignedURLsRequestMethod.GET],
+          },
+          {
+            folderId: testFolder2.folder.id,
+            objectKey: 'delete-me.dat',
+            methods: [SignedURLsRequestMethod.DELETE],
+          },
+          {
+            folderId: testFolder.folder.id,
+            methods: [SignedURLsRequestMethod.PUT],
+            prefix: 'this/is/the/test',
+          },
+          {
+            folderId: testFolder2.folder.id,
+            methods: [SignedURLsRequestMethod.DELETE],
+            prefix: 'this/is/another/test',
+          },
+        ],
+      },
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
@@ -862,13 +915,6 @@ describe('Docker Jobs', () => {
         folderId: allowedFolderId,
         objectKey: 'test.txt',
         method: SignedURLsRequestMethod.PUT,
-        jobToken,
-        expectedStatus: 403,
-      },
-      {
-        folderId: allowedFolderId,
-        objectKey: 'this/is/the/test/test.txt',
-        method: SignedURLsRequestMethod.DELETE,
         jobToken,
         expectedStatus: 403,
       },
@@ -1119,6 +1165,222 @@ describe('Docker Jobs', () => {
         jobToken: '',
         expectedStatus: 401,
       },
+      // Success cases for objectKey-specific rules
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 200,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'specific-file.json',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 200,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'readonly.txt',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 200,
+      },
+      {
+        folderId: allowedFolderId2,
+        objectKey: 'delete-me.dat',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 200,
+      },
+      // Failure cases for objectKey-specific rules - wrong objectKey
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext2',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object2.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext.bak',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'path/to/object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext/path',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'specific-file2.json',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'specific-file.json.bak',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'readonly.txt.bak',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId2,
+        objectKey: 'delete-me2.dat',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId2,
+        objectKey: 'delete-me.dat.bak',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 403,
+      },
+      // Failure cases for objectKey-specific rules - wrong method
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'specific-file.json',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'specific-file.json',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'readonly.txt',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'readonly.txt',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId2,
+        objectKey: 'delete-me.dat',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId2,
+        objectKey: 'delete-me.dat',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 403,
+      },
+      // Failure cases for objectKey-specific rules - wrong folderId
+      {
+        folderId: deniedFolderId,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId2,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: deniedFolderId,
+        objectKey: 'specific-file.json',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 403,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'delete-me.dat',
+        method: SignedURLsRequestMethod.DELETE,
+        jobToken,
+        expectedStatus: 403,
+      },
+      // Edge cases for objectKey-specific rules
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken: 'invalid-token',
+        expectedStatus: 401,
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken: '',
+        expectedStatus: 401,
+      },
+      // Test that objectKey rules don't match prefix-based paths
+      {
+        folderId: allowedFolderId,
+        objectKey: 'this/is/the/test/object.ext',
+        method: SignedURLsRequestMethod.GET,
+        jobToken,
+        expectedStatus: 200, // This matches the prefix rule, not the objectKey rule
+      },
+      {
+        folderId: allowedFolderId,
+        objectKey: 'this/is/the/test/specific-file.json',
+        method: SignedURLsRequestMethod.PUT,
+        jobToken,
+        expectedStatus: 200, // This matches the prefix rule, not the objectKey rule
+      },
     ]
 
     for (const request of presignedUrlRequests) {
@@ -1144,7 +1406,14 @@ describe('Docker Jobs', () => {
           response,
         )
       }
-
+      if (_responseStatus !== request.expectedStatus) {
+        console.log('request', {
+          request,
+          response,
+          allowedFolderId,
+          deniedFolderId,
+        })
+      }
       expect(_responseStatus).toBe(request.expectedStatus)
       if (_responseStatus === 200) {
         expect(response.data).toEqual({
@@ -1351,13 +1620,15 @@ describe('Docker Jobs', () => {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
-      storageAccessPolicy: [
-        {
-          folderId: testFolder.folder.id,
-          methods: [SignedURLsRequestMethod.GET],
-          prefix: 'valid/prefix',
-        },
-      ],
+      storageAccessPolicy: {
+        rules: [
+          {
+            folderId: testFolder.folder.id,
+            methods: [SignedURLsRequestMethod.GET],
+            prefix: 'valid/prefix',
+          },
+        ],
+      },
       expectRecords: false,
     })
     expect(firstTry.dockerRunTask.error).toBeNull()
@@ -1399,13 +1670,15 @@ describe('Docker Jobs', () => {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
-      storageAccessPolicy: [
-        {
-          folderId: testFolder2.folder.id,
-          methods: [SignedURLsRequestMethod.GET],
-          prefix: 'valid/prefix',
-        },
-      ],
+      storageAccessPolicy: {
+        rules: [
+          {
+            folderId: testFolder2.folder.id,
+            methods: [SignedURLsRequestMethod.GET],
+            prefix: 'valid/prefix',
+          },
+        ],
+      },
       expectRecords: false,
     })
     expect(triggerAppTask).rejects.toThrow(
@@ -1467,7 +1740,9 @@ describe('Docker Jobs', () => {
       appIdentifier: await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG),
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskData: { myTaskData: 'test' },
-      storageAccessPolicy: [storageAccessPolicyRule],
+      storageAccessPolicy: {
+        rules: [storageAccessPolicyRule],
+      },
     })
 
     const appIdentifier =
@@ -1478,7 +1753,9 @@ describe('Docker Jobs', () => {
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
-      storageAccessPolicy: [storageAccessPolicyRule],
+      storageAccessPolicy: {
+        rules: [storageAccessPolicyRule],
+      },
       dontStartBefore: null,
       systemLog: [],
       taskLog: [],
@@ -1515,7 +1792,9 @@ describe('Docker Jobs', () => {
       jobId,
     )
 
-    expect(claims.storageAccessPolicy).toEqual([storageAccessPolicyRule])
+    expect(claims.storageAccessPolicy).toEqual({
+      rules: [storageAccessPolicyRule],
+    })
   })
 
   it('should have docker task started automatically and allow inner task starting via lifecycle endpoints', async () => {

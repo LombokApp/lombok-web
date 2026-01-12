@@ -46,7 +46,7 @@ export interface JobExecuteOptions {
       }
   job_input?: JsonSerializableObject
   output_location?: {
-    folderId: string
+    folder_id: string
     prefix?: string
   }
   platform_url?: string
@@ -57,9 +57,6 @@ export const dockerExecuteJobOptionsSchema = z.object({
   storageAccessPolicy: storageAccessPolicySchema.optional(),
   profileSpec: containerProfileConfigSchema,
   profileKey: z.string(),
-  outputLocation: z
-    .object({ folderId: z.string(), prefix: z.string().optional() })
-    .optional(),
   jobIdentifier: z.string(),
   jobData: jsonSerializableObjectSchema,
 })

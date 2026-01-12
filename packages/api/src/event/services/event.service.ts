@@ -176,7 +176,6 @@ export class EventService {
               },
             },
             taskIdentifier: taskDefinition.identifier,
-            storageAccessPolicy: [],
             taskDescription: taskDefinition.description,
             data: {},
             ownerIdentifier: app.identifier,
@@ -414,7 +413,6 @@ export class EventService {
                         },
                       )
                     : {},
-                  storageAccessPolicy: [],
                   ownerIdentifier: subscribedApp.identifier,
                   systemLog: [
                     {
@@ -549,7 +547,6 @@ export class EventService {
               eventTriggerConfigIndex,
             ),
           },
-          storageAccessPolicy: [],
           taskIdentifier,
           dontStartBefore: calculateDontStartBefore?.(event),
           targetLocationFolderId: targetLocation?.folderId ?? null,

@@ -53,7 +53,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
         profileIdentifier: task.data.profileIdentifier,
         jobIdentifier: task.data.jobClassIdentifier,
         asyncTaskId: task.id,
-        storageAccessPolicy: innerTask.storageAccessPolicy,
+        storageAccessPolicy: innerTask.storageAccessPolicy ?? undefined,
       })
 
       this.logger.debug(`Docker job processor exec complete [${task.id}]:`, {

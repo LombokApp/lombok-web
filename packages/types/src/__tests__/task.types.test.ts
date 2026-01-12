@@ -84,166 +84,324 @@ describe('task.types', () => {
   })
 
   describe('storageAccessPolicySchema', () => {
-    it('accepts an empty array', () => {
-      const result = storageAccessPolicySchema.safeParse([])
+    it('accepts an empty rules array', () => {
+      const result = storageAccessPolicySchema.safeParse({ rules: [] })
       expectZodSuccess(result)
     })
 
     it('accepts a single entry with required fields', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          methods: ['GET'],
-        },
-      ]
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
-    it('accepts a single entry with all fields including prefix', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          prefix: 'path/to/files',
-          methods: ['GET', 'PUT'],
-        },
-      ]
+    it('accepts a single entry with prefix', () => {
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            prefix: 'path/to/files',
+            methods: ['GET', 'PUT'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
-    it('accepts multiple entries', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          methods: ['GET'],
-        },
-        {
-          folderId: 'folder-456',
-          prefix: 'another/path',
-          methods: ['PUT', 'DELETE'],
-        },
-      ]
+    it('accepts a single entry with objectKey', () => {
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            objectKey: 'specific-file.json',
+            methods: ['GET', 'PUT'],
+          },
+        ],
+      }
+      const result = storageAccessPolicySchema.safeParse(valid)
+      expectZodSuccess(result)
+    })
+
+    it('accepts multiple entries with different rule types', () => {
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+          {
+            folderId: 'folder-456',
+            prefix: 'another/path',
+            methods: ['PUT', 'DELETE'],
+          },
+          {
+            folderId: 'folder-789',
+            objectKey: 'exact-file.txt',
+            methods: ['GET'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
     it('accepts all valid method values', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          methods: ['GET', 'PUT', 'DELETE', 'HEAD'],
-        },
-      ]
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET', 'PUT', 'DELETE', 'HEAD'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
     it('accepts prefix without leading slash', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          prefix: 'valid/path',
-          methods: ['GET'],
-        },
-      ]
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            prefix: 'valid/path',
+            methods: ['GET'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
     it('accepts empty prefix string', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          prefix: '',
-          methods: ['GET'],
-        },
-      ]
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            prefix: '',
+            methods: ['GET'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
-    it('rejects missing folderId', () => {
-      const invalid = [
-        {
-          methods: ['GET'],
+    it('accepts outputLocation with folderId only', () => {
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+        ],
+        outputLocation: {
+          folderId: 'output-folder-123',
         },
-      ]
+      }
+      const result = storageAccessPolicySchema.safeParse(valid)
+      expectZodSuccess(result)
+    })
+
+    it('accepts outputLocation with folderId and objectKey', () => {
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+        ],
+        outputLocation: {
+          folderId: 'output-folder-123',
+          objectKey: 'output-file.json',
+        },
+      }
+      const result = storageAccessPolicySchema.safeParse(valid)
+      expectZodSuccess(result)
+    })
+
+    it('accepts outputLocation with folderId and prefix', () => {
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+        ],
+        outputLocation: {
+          folderId: 'output-folder-123',
+          prefix: 'output/path',
+        },
+      }
+      const result = storageAccessPolicySchema.safeParse(valid)
+      expectZodSuccess(result)
+    })
+
+    it('rejects missing rules', () => {
+      const invalid = {
+        outputLocation: {
+          folderId: 'output-folder-123',
+        },
+      }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)
     })
 
-    it('rejects missing methods', () => {
-      const invalid = [
-        {
-          folderId: 'folder-123',
-        },
-      ]
+    it('rejects missing folderId in rule', () => {
+      const invalid = {
+        rules: [
+          {
+            methods: ['GET'],
+          },
+        ],
+      }
+      const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+
+    it('rejects missing methods in rule', () => {
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)
     })
 
     it('accepts empty methods array', () => {
-      const valid = [
-        {
-          folderId: 'folder-123',
-          methods: [],
-        },
-      ]
+      const valid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: [],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(valid)
       expectZodSuccess(result)
     })
 
     it('rejects prefix starting with slash', () => {
-      const invalid = [
-        {
-          folderId: 'folder-123',
-          prefix: '/invalid/path',
-          methods: ['GET'],
-        },
-      ]
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            prefix: '/invalid/path',
+            methods: ['GET'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)
     })
 
     it('rejects invalid method values', () => {
-      const invalid = [
-        {
-          folderId: 'folder-123',
-          methods: ['INVALID_METHOD'],
-        },
-      ]
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['INVALID_METHOD'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)
     })
 
     it('rejects non-string folderId', () => {
-      const invalid = [
-        {
-          folderId: 123,
-          methods: ['GET'],
-        },
-      ]
+      const invalid = {
+        rules: [
+          {
+            folderId: 123,
+            methods: ['GET'],
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)
     })
 
     it('rejects non-array methods', () => {
-      const invalid = [
-        {
-          folderId: 'folder-123',
-          methods: 'GET',
-        },
-      ]
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: 'GET',
+          },
+        ],
+      }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)
     })
 
     it('rejects non-string prefix', () => {
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            prefix: 123,
+            methods: ['GET'],
+          },
+        ],
+      }
+      const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+
+    it('rejects non-string objectKey', () => {
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            objectKey: 123,
+            methods: ['GET'],
+          },
+        ],
+      }
+      const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+
+    it('rejects rule with both prefix and objectKey', () => {
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            prefix: 'path/to/files',
+            objectKey: 'specific-file.json',
+            methods: ['GET'],
+          },
+        ],
+      }
+      const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+
+    it('rejects non-array rules', () => {
+      const invalid = {
+        rules: {
+          folderId: 'folder-123',
+          methods: ['GET'],
+        },
+      }
+      const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+
+    it('rejects array top-level value (old format)', () => {
       const invalid = [
         {
           folderId: 'folder-123',
-          prefix: 123,
           methods: ['GET'],
         },
       ]
@@ -251,10 +409,36 @@ describe('task.types', () => {
       expectZodFailure(result)
     })
 
-    it('rejects non-array top-level value', () => {
+    it('rejects outputLocation prefix starting with slash', () => {
       const invalid = {
-        folderId: 'folder-123',
-        methods: ['GET'],
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+        ],
+        outputLocation: {
+          folderId: 'output-folder-123',
+          prefix: '/invalid/path',
+        },
+      }
+      const result = storageAccessPolicySchema.safeParse(invalid)
+      expectZodFailure(result)
+    })
+
+    it('rejects outputLocation with both prefix and objectKey', () => {
+      const invalid = {
+        rules: [
+          {
+            folderId: 'folder-123',
+            methods: ['GET'],
+          },
+        ],
+        outputLocation: {
+          folderId: 'output-folder-123',
+          prefix: 'path/to/files',
+          objectKey: 'specific-file.json',
+        },
       }
       const result = storageAccessPolicySchema.safeParse(invalid)
       expectZodFailure(result)

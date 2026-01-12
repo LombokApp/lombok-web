@@ -76,9 +76,9 @@ export const tasksTable = pgTable(
     dontStartBefore: timestamp('dontStartBefore'),
     systemLog: logJsonb<SystemLogEntry>('systemLog').notNull().default([]),
     taskLog: logJsonb<TaskLogEntry>('taskLog').notNull().default([]),
-    storageAccessPolicy: jsonbBase64('storageAccessPolicy')
-      .$type<StorageAccessPolicy>()
-      .notNull(),
+    storageAccessPolicy: jsonbBase64(
+      'storageAccessPolicy',
+    ).$type<StorageAccessPolicy>(),
     success: boolean('success'),
     userVisible: boolean('userVisible').default(true),
     error: jsonbBase64('error').$type<{

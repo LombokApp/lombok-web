@@ -14425,6 +14425,146 @@
                 "taskDescription": {
                   "type": "string"
                 },
+                "storageAccessPolicy": {
+                  "type": "object",
+                  "properties": {
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "folderId": {
+                                "type": "string"
+                              },
+                              "methods": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "PUT",
+                                    "DELETE",
+                                    "GET",
+                                    "HEAD"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "folderId",
+                              "methods"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "folderId": {
+                                "type": "string"
+                              },
+                              "objectKey": {
+                                "type": "string"
+                              },
+                              "methods": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "PUT",
+                                    "DELETE",
+                                    "GET",
+                                    "HEAD"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "folderId",
+                              "objectKey",
+                              "methods"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "folderId": {
+                                "type": "string"
+                              },
+                              "prefix": {
+                                "type": "string"
+                              },
+                              "methods": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "PUT",
+                                    "DELETE",
+                                    "GET",
+                                    "HEAD"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "folderId",
+                              "prefix",
+                              "methods"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "outputLocation": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "folderId": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "folderId"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "folderId": {
+                              "type": "string"
+                            },
+                            "objectKey": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "folderId",
+                            "objectKey"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "folderId": {
+                              "type": "string"
+                            },
+                            "prefix": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "folderId",
+                            "prefix"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "rules"
+                  ]
+                },
                 "startedAt": {
                   "type": "string",
                   "format": "date-time"

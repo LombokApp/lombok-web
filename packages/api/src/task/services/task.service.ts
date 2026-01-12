@@ -322,7 +322,7 @@ export class TaskService {
     taskData,
     targetUserId,
     targetLocation,
-    storageAccessPolicy = [],
+    storageAccessPolicy,
   }: {
     userId: string
     taskIdentifier: string
@@ -382,7 +382,7 @@ export class TaskService {
     taskData,
     targetUserId,
     targetLocation,
-    storageAccessPolicy = [],
+    storageAccessPolicy,
   }: {
     userId: string
     appIdentifier: string
@@ -458,7 +458,7 @@ export class TaskService {
     dontStartBefore,
     targetUserId,
     targetLocation,
-    storageAccessPolicy = [],
+    storageAccessPolicy,
     onComplete,
   }: {
     appIdentifier: string
@@ -499,7 +499,7 @@ export class TaskService {
     }
 
     // validate the entire storage access policy if one is provided
-    if (storageAccessPolicy.length) {
+    if (storageAccessPolicy) {
       await this.appService.validateAppStorageAccessPolicy({
         appIdentifier,
         storageAccessPolicy,
@@ -565,7 +565,7 @@ export class TaskService {
     targetUserId,
     targetLocation,
     onComplete = [],
-    storageAccessPolicy = [],
+    storageAccessPolicy,
     handlerIndex,
     options = {},
   }: {
@@ -967,7 +967,7 @@ export class TaskService {
                   objectKey: updatedTask.targetLocationObjectKey ?? undefined,
                 }
               : undefined,
-            storageAccessPolicy: updatedTask.storageAccessPolicy,
+            storageAccessPolicy: updatedTask.storageAccessPolicy ?? undefined,
             handlerIndex: i,
             options: { tx },
           })
