@@ -292,6 +292,13 @@ const handleAnalyzeObject = async (
   return analyzeObject(
     analyzeObjectRequestPayload.folderId,
     analyzeObjectRequestPayload.objectKey,
+    async (request) => {
+      const response = await sendIpcRequest('get_folder_object', request)
+      if (!response.success) {
+        throw new AsyncWorkError(response.error)
+      }
+      return response.result
+    },
     (getContentSignedUrlArgs) =>
       sendIpcRequest(
         'get_content_signed_urls',

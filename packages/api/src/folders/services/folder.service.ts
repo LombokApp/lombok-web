@@ -735,10 +735,20 @@ export class FolderService {
       folderId: string
     },
   ) {
-    const { folder } = await this.getFolderAsUser(actor, folderId)
+    await this.getFolderAsUser(actor, folderId)
+    return this.getFolderObject({ objectKey, folderId })
+  }
+
+  async getFolderObject({
+    objectKey,
+    folderId,
+  }: {
+    objectKey: string
+    folderId: string
+  }) {
     const obj = await this.ormService.db.query.folderObjectsTable.findFirst({
       where: and(
-        eq(folderObjectsTable.folderId, folder.id),
+        eq(folderObjectsTable.folderId, folderId),
         eq(folderObjectsTable.objectKey, objectKey),
       ),
     })

@@ -1,6 +1,7 @@
 import {
   appManifestSchema,
   contentMetadataSchema,
+  folderObjectSchema,
   getContentSignedUrlsSchema,
   getMetadataSignedUrlsSchema,
   taskDTOSchema,
@@ -98,6 +99,13 @@ export const coreWorkerMessagePayloadSchemas = {
       ),
     ),
   },
+  get_folder_object: {
+    request: z.object({
+      folderId: z.string().nonempty(),
+      objectKey: z.string().nonempty(),
+    }),
+    response: createResponseSchema(folderObjectSchema),
+  },
   get_content_signed_urls: {
     request: getContentSignedUrlsSchema,
     response: createResponseSchema(
@@ -176,6 +184,10 @@ export const coreWorkerIncomingResponseMessageSchema = z.discriminatedUnion(
         coreWorkerMessagePayloadSchemas.get_metadata_signed_urls.response,
     }),
     z.object({
+      action: z.literal('get_folder_object'),
+      payload: coreWorkerMessagePayloadSchemas.get_folder_object.response,
+    }),
+    z.object({
       action: z.literal('get_worker_exec_config'),
       payload: coreWorkerMessagePayloadSchemas.get_worker_exec_config.response,
     }),
@@ -248,6 +260,10 @@ export const coreWorkerOutgoingRequestMessageSchema = z.discriminatedUnion(
     z.object({
       action: z.literal('get_metadata_signed_urls'),
       payload: coreWorkerMessagePayloadSchemas.get_metadata_signed_urls.request,
+    }),
+    z.object({
+      action: z.literal('get_folder_object'),
+      payload: coreWorkerMessagePayloadSchemas.get_folder_object.request,
     }),
     z.object({
       action: z.literal('get_content_signed_urls'),

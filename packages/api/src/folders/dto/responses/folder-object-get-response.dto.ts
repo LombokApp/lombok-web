@@ -1,10 +1,9 @@
 import { createZodDto } from '@anatine/zod-nestjs'
+import { folderObjectSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
-import { folderObjectDTOSchema } from '../folder-object.dto'
-
 export const folderObjectGetResponseSchema = z.object({
-  folderObject: folderObjectDTOSchema,
+  folderObject: folderObjectSchema,
 })
 
 export class FolderObjectGetResponse extends createZodDto(

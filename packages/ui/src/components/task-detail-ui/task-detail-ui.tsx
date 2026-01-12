@@ -1,5 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import type { TaskDTO } from '@lombokapp/types'
+import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import {
   CardContent,
@@ -145,9 +145,11 @@ export function TaskDetailUI({
   const statusInfo = getStatusInfo(taskData)
   const errorToDisplay =
     taskData.success === false
-      ? ((taskData.systemLog.reverse().find((log) => log.logType === 'error')
-          ?.payload?.error?.cause ?? {
-          code: 'UNKNONW',
+      ? (((
+          taskData.systemLog.reverse().find((log) => log.logType === 'error')
+            ?.payload?.error as JsonSerializableObject | undefined
+        )?.cause ?? {
+          code: 'UNKNOWN',
           message: 'No message available',
           stack: 'No stacktrace available',
         }) as { code: string; message: string; stack: string })

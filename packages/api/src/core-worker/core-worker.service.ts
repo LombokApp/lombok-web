@@ -12,6 +12,7 @@ import crypto from 'crypto'
 import { Socket } from 'net'
 import { AppService } from 'src/app/services/app.service'
 import { coreConfig } from 'src/core/config'
+import { transformFolderObjectToDTO } from 'src/folders/dto/transforms/folder-object.transforms'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import z from 'zod'
@@ -264,6 +265,27 @@ export class CoreWorkerService {
             message.payload,
           ),
         }
+      }
+      case 'get_folder_object': {
+        return this.folderService
+          .getFolderObject(message.payload)
+          .then(
+            (result) =>
+              ({
+                success: true,
+                result: transformFolderObjectToDTO(result),
+              }) as const,
+          )
+          .catch((error) => {
+            return {
+              success: false,
+              error: buildUnexpectedError({
+                code: 'UNEXPECTED_ERROR_GETTING_FOLDER_OBJECT',
+                message: 'Unexpected error getting folder object',
+                error,
+              }).toEnvelope(),
+            } as const
+          })
       }
       case 'get_content_signed_urls': {
         return {
