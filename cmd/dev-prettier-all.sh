@@ -10,6 +10,9 @@ bun --cwd packages/api prettier:check
 echo "Checking @lombokapp/core-worker..."
 bun --cwd packages/core-worker prettier:check
 
+echo "Checking @lombokapp/worker-utils..."
+bun --cwd packages/worker-utils prettier:check
+
 echo "Checking @lombokapp/auth-utils..."
 bun --cwd packages/auth-utils prettier:check
 
