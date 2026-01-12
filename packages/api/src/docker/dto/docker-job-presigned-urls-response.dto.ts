@@ -2,7 +2,7 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { z } from 'zod'
 
-export const workerJobPresignedUrlsResponseSchema = z.object({
+export const dockerJobPresignedUrlsResponseSchema = z.object({
   urls: z.array(
     z.object({
       folderId: z.string().uuid(),
@@ -13,6 +13,6 @@ export const workerJobPresignedUrlsResponseSchema = z.object({
   ),
 })
 
-export class WorkerJobPresignedUrlsResponseDTO extends createZodDto(
-  workerJobPresignedUrlsResponseSchema,
+export class DockerJobPresignedUrlsResponseDTO extends createZodDto(
+  dockerJobPresignedUrlsResponseSchema,
 ) {}

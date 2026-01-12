@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"lombok-worker-agent/internal/config"
@@ -34,11 +33,6 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	waitForCompletion := payload.WaitForCompletion != nil && *payload.WaitForCompletion
 
-	var platformClient *platform.Client
-	if payload.PlatformURL != "" && payload.JobToken != "" {
-		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
-	}
-
 	// Create job output directory (worker can write files here)
 	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
 		return fmt.Errorf("failed to create job output directory: %w", err)
@@ -53,6 +47,26 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	}
 	if err := state.WriteJobState(jobState); err != nil {
 		return fmt.Errorf("failed to write initial job state: %w", err)
+	}
+
+	// Create job log files (for job-specific output that workers write explicitly)
+	jobOutPath := config.JobOutLogPath(payload.JobID)
+	jobErrPath := config.JobErrLogPath(payload.JobID)
+	if err := touchFile(jobOutPath); err != nil {
+		return fmt.Errorf("failed to create job stdout log: %w", err)
+	}
+	if err := touchFile(jobErrPath); err != nil {
+		return fmt.Errorf("failed to create job stderr log: %w", err)
+	}
+
+	// In async mode, spawn background process and return immediately (same as persistent_http)
+	if !waitForCompletion {
+		return launchExecAsyncCompletion(payload, jobState, jobStartTime)
+	}
+
+	var platformClient *platform.Client
+	if payload.PlatformURL != "" && payload.JobToken != "" {
+		platformClient = platform.NewClient(payload.PlatformURL, payload.JobToken)
 	}
 
 	// Encode job_input as base64 for the worker
@@ -72,23 +86,14 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		return fmt.Errorf("worker_command is empty")
 	}
 
-	// Create job log files (for job-specific output that workers write explicitly)
-	// These are separate from worker stdout/stderr logs
-	jobOutPath := config.JobOutLogPath(payload.JobID)
-	jobErrPath := config.JobErrLogPath(payload.JobID)
-	if err := touchFile(jobOutPath); err != nil {
-		return fmt.Errorf("failed to create job stdout log: %w", err)
-	}
-	if err := touchFile(jobErrPath); err != nil {
-		return fmt.Errorf("failed to create job stderr log: %w", err)
-	}
-
 	// Set environment variables for the worker
+	resultFilePath := config.JobResultPath(payload.JobID)
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("JOB_OUTPUT_DIR=%s", config.JobOutputDir(payload.JobID)),
 		fmt.Sprintf("JOB_ID=%s", payload.JobID),
 		fmt.Sprintf("JOB_LOG_OUT=%s", jobOutPath),
 		fmt.Sprintf("JOB_LOG_ERR=%s", jobErrPath),
+		fmt.Sprintf("JOB_RESULT_FILE=%s", resultFilePath),
 	)
 
 	// Open worker log files for stdout and stderr (same as persistent_http)
@@ -111,11 +116,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Capture stdout to both file and buffer (for extracting result)
 	var stdoutBuf bytes.Buffer
-	if waitForCompletion {
-		cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
-	} else {
-		cmd.Stdout = stdoutFile
-	}
+	cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
 	cmd.Stderr = stderrFile
 
 	// Create a worker state file so worker-log --job-class works for exec_per_job
@@ -176,11 +177,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+				HandleCompletionSignalFailure(payload, jobState, err)
 			}
 		}
 
-		// Output result to stdout for the platform to capture
+		// Output result to stdout
 		result := map[string]interface{}{
 			"success":   false,
 			"exit_code": 1,
@@ -225,7 +226,21 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	if platformClient != nil {
 		ctx := context.Background()
 		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
-			logs.WriteAgentLog("warning: failed to signal start: %v", err)
+			// Failed to signal start - this is a critical error
+			// Kill the worker process and record job failure
+			logs.WriteAgentLog("error: failed to signal start: %v", err)
+
+			cancelErr := CancelJob(CancelJobConfig{
+				Payload:         payload,
+				JobState:        jobState,
+				JobStartTime:    jobStartTime,
+				WorkerStartTime: workerStartTime,
+				PlatformClient:  platformClient,
+				ExecCmd:         cmd,
+			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
+
+			os.Exit(1)
+			return cancelErr
 		}
 	}
 
@@ -240,35 +255,6 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	// Log worker startup time (should be very fast, but log it anyway)
 	workerStartupDuration := time.Since(workerStartTime)
 	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs", payload.JobID, workerStartupDuration.Seconds())
-
-	if !waitForCompletion {
-		// In async mode, return as soon as the worker starts successfully.
-		// Update worker state to reflect that it's running
-		workerState.State = "running"
-		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-		if err := state.WriteWorkerState(workerState); err != nil {
-			logs.WriteAgentLog("warning: failed to update worker state: %v", err)
-		}
-
-		totalJobDuration := time.Since(jobStartTime)
-		timing := map[string]interface{}{
-			"total_time_seconds":          totalJobDuration.Seconds(),
-			"worker_startup_time_seconds": workerStartupDuration.Seconds(),
-		}
-
-		result := map[string]interface{}{
-			"success":    true,
-			"job_id":     payload.JobID,
-			"job_class":  payload.JobClass,
-			"status":     "running",
-			"timing":     timing,
-			"worker_pid": cmd.Process.Pid,
-		}
-
-		resultJSON, _ := json.Marshal(result)
-		fmt.Println(string(resultJSON))
-		return nil
-	}
 
 	// Track job execution time (from worker start to completion)
 	jobExecutionStartTime := time.Now()
@@ -305,17 +291,22 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	logs.WriteAgentLog("job_id=%s job_execution_time=%.3fs total_time=%.3fs",
 		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds())
 
-	// Extract the worker's result from the last line of stdout if flag is set
-	// Convention: worker outputs JSON result on the last non-empty line
 	var workerResult interface{}
 	var workerResultRaw json.RawMessage
-	workerResult = extractLastLineJSON(stdoutBuf.String())
-	if workerResult != nil {
-		workerResultRaw, _ = json.Marshal(workerResult)
+	// Read worker result from result file written by worker to JOB_RESULT_FILE
+	if resultData, err := os.ReadFile(resultFilePath); err == nil {
+		var parsedResult interface{}
+		if err := json.Unmarshal(resultData, &parsedResult); err == nil {
+			workerResult = parsedResult
+			workerResultRaw = resultData
+		}
 	}
 
 	// Handle file uploads and platform completion if configured
 	var outputFiles []types.OutputFileRef
+	var completionSignalFailed bool
+	var uploadFailed bool
+	var uploadError error
 	if platformClient != nil {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
@@ -330,7 +321,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 				uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest, payload.OutputLocation)
 				if err != nil {
-					logs.WriteAgentLog("warning: failed to upload files: %v", err)
+					uploadFailed = true
+					uploadError = err
+					logs.WriteAgentLog("error: failed to upload files: %v", err)
 				} else {
 					outputFiles = uploaded
 				}
@@ -339,8 +332,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 		// Signal completion to platform
 		ctx := context.Background()
+		completionSuccess := exitCode == 0 && !uploadFailed
 		completionReq := &types.CompletionRequest{
-			Success:     exitCode == 0,
+			Success:     completionSuccess,
 			Result:      workerResultRaw,
 			OutputFiles: outputFiles,
 		}
@@ -349,10 +343,16 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				Code:    "WORKER_EXIT_ERROR",
 				Message: fmt.Sprintf("worker exited with code %d", exitCode),
 			}
+		} else if uploadFailed {
+			completionReq.Error = &types.JobError{
+				Code:    "FILE_UPLOAD_ERROR",
+				Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
+			}
 		}
 
 		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-			logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			HandleCompletionSignalFailure(payload, jobState, err)
+			completionSignalFailed = true
 		}
 	}
 
@@ -363,9 +363,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		"worker_startup_time_seconds": workerStartupDuration.Seconds(),
 	}
 
-	// Output result to stdout for the platform to capture
+	// Determine final success status (job fails if worker failed OR upload failed)
+	finalSuccess := exitCode == 0 && !uploadFailed
+
 	result := map[string]interface{}{
-		"success":   exitCode == 0,
+		"success":   finalSuccess,
 		"exit_code": exitCode,
 		"job_id":    payload.JobID,
 		"job_class": payload.JobClass,
@@ -387,6 +389,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			"code":    "WORKER_EXIT_ERROR",
 			"message": fmt.Sprintf("worker exited with code %d", exitCode),
 		}
+	} else if uploadFailed {
+		result["error"] = map[string]interface{}{
+			"code":    "FILE_UPLOAD_ERROR",
+			"message": fmt.Sprintf("failed to upload output files: %v", uploadError),
+		}
 	}
 
 	resultJSON, _ := json.Marshal(result)
@@ -394,7 +401,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Save result to file
 	jobResult := &types.JobResult{
-		Success:     exitCode == 0,
+		Success:     finalSuccess,
 		JobID:       payload.JobID,
 		JobClass:    payload.JobClass,
 		Timing:      timing,
@@ -409,6 +416,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			Code:    "WORKER_EXIT_ERROR",
 			Message: fmt.Sprintf("worker exited with code %d", exitCode),
 		}
+	} else if uploadFailed {
+		jobResult.Error = &types.JobError{
+			Code:    "FILE_UPLOAD_ERROR",
+			Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
+		}
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {
 		logs.WriteAgentLog("warning: failed to write job result: %v", err)
@@ -419,18 +431,25 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	jobState.CompletedAt = completedAt
 	jobState.Meta = &types.JobMeta{ExitCode: exitCode}
 
-	if exitCode == 0 {
+	if finalSuccess {
 		jobState.Status = "success"
 	} else {
 		jobState.Status = "failed"
-		jobState.Error = fmt.Sprintf("worker exited with code %d", exitCode)
+		if exitCode != 0 {
+			jobState.Error = fmt.Sprintf("worker exited with code %d", exitCode)
+		} else if uploadFailed {
+			jobState.Error = fmt.Sprintf("failed to upload output files: %v", uploadError)
+		}
 	}
 
 	if err := state.WriteJobState(jobState); err != nil {
 		logs.WriteAgentLog("warning: failed to write final job state: %v", err)
 	}
 
-	// Exit with the worker's exit code
+	// Exit with the worker's exit code, or error code if upload/completion signal failed
+	if completionSignalFailed || uploadFailed {
+		os.Exit(1)
+	}
 	if exitCode != 0 {
 		os.Exit(exitCode)
 	}
@@ -438,30 +457,53 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	return nil
 }
 
-// extractLastLineJSON finds the last non-empty line in the output
-// and attempts to parse it as JSON. Returns nil if not valid JSON.
-func extractLastLineJSON(output string) interface{} {
-	lines := strings.Split(output, "\n")
-
-	// Find the last non-empty line
-	var lastLine string
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := strings.TrimSpace(lines[i])
-		if line != "" {
-			lastLine = line
-			break
-		}
+// launchExecAsyncCompletion spawns a background agent process to handle the job.
+// Similar to launchAsyncDispatch for persistent_http.
+func launchExecAsyncCompletion(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time) error {
+	waitForCompletion := true
+	payload.WaitForCompletion = &waitForCompletion
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload for async completion: %w", err)
 	}
 
-	if lastLine == "" {
-		return nil
+	payloadB64 := base64.StdEncoding.EncodeToString(payloadJSON)
+
+	cmd := exec.Command(os.Args[0], "run-job", "--payload-base64", payloadB64)
+
+	logPath := config.AgentLogPath()
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open agent log for async completion: %w", err)
+	}
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+
+	if err := cmd.Start(); err != nil {
+		logFile.Close()
+		jobState.Status = "failed"
+		jobState.Error = err.Error()
+		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+		state.WriteJobState(jobState)
+		return fmt.Errorf("failed to start async completion process: %w", err)
+	}
+	logFile.Close()
+
+	totalJobDuration := time.Since(jobStartTime)
+	timing := map[string]interface{}{
+		"total_time_seconds": totalJobDuration.Seconds(),
 	}
 
-	// Try to parse as JSON
-	var parsed interface{}
-	if err := json.Unmarshal([]byte(lastLine), &parsed); err != nil {
-		return nil
+	result := map[string]interface{}{
+		"job_id":    payload.JobID,
+		"job_class": payload.JobClass,
+		"status":    "pending",
+		"timing":    timing,
 	}
 
-	return parsed
+	resultJSON, _ := json.Marshal(result)
+	fmt.Println(string(resultJSON))
+
+	logs.WriteAgentLog("job_id=%s scheduled async completion pid=%d", payload.JobID, cmd.Process.Pid)
+	return nil
 }

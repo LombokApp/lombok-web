@@ -31,9 +31,9 @@ import { TaskService } from 'src/task/services/task.service'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
-import { dockerJobResultSchema } from '../dto/worker-job-complete-request.dto'
-import { WorkerJobUploadUrlsRequestDTO } from '../dto/worker-job-presigned-urls-request.dto'
-import { WorkerJobPresignedUrlsResponseDTO } from '../dto/worker-job-presigned-urls-response.dto'
+import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
+import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
+import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
@@ -44,7 +44,7 @@ const WORKER_JOB_TOKEN_EXPIRY_SECONDS = 30 * 60
 // The permission required for uploading files to a folder
 const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
 
-export interface WorkerJobTokenClaims {
+export interface DockerWorkerJobClaims {
   jobId: string
   executorContext: JsonSerializableObject
   taskId: string
@@ -54,8 +54,8 @@ export interface WorkerJobTokenClaims {
 export type CompleteJobRequest = z.infer<typeof dockerJobResultSchema>
 
 @Injectable()
-export class WorkerJobService {
-  private readonly logger = new Logger(WorkerJobService.name)
+export class DockerWorkerHookService {
+  private readonly logger = new Logger(DockerWorkerHookService.name)
   taskService: TaskService
   coreTaskService: CoreTaskService
   appService: AppService
@@ -181,7 +181,7 @@ export class WorkerJobService {
   /**
    * Create a JWT token for a worker job with specific allowed uploads.
    */
-  createWorkerJobToken(params: {
+  createDockerWorkerJobToken(params: {
     jobId: string
     taskId?: string
     storageAccessPolicy?: StorageAccessPolicy
@@ -204,12 +204,12 @@ export class WorkerJobService {
   }
 
   /**
-   * Verify a worker job token and return the claims
+   * Verify a docker worker job token and return the claims
    */
-  verifyWorkerJobToken(
+  verifyDockerWorkerJobToken(
     token: string,
     expectedJobId: string,
-  ): WorkerJobTokenClaims {
+  ): DockerWorkerJobClaims {
     try {
       const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
@@ -243,9 +243,9 @@ export class WorkerJobService {
    * Request presigned URLs for files
    */
   async requestPresignedStorageUrls(
-    claims: WorkerJobTokenClaims,
-    files: WorkerJobUploadUrlsRequestDTO,
-  ): Promise<WorkerJobPresignedUrlsResponseDTO> {
+    claims: DockerWorkerJobClaims,
+    files: DockerJobPresignedUrlsRequestDTO,
+  ): Promise<DockerJobPresignedUrlsResponseDTO> {
     // Validate all requested uploads are allowed
     const dockerTask = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, claims.taskId),
@@ -329,10 +329,10 @@ export class WorkerJobService {
    *
    */
   async completeJob(
-    claims: WorkerJobTokenClaims,
+    claims: DockerWorkerJobClaims,
     completeJobRequest: CompleteJobRequest,
   ): Promise<void> {
-    this.logger.log('WorkerJobService.completeJob', {
+    this.logger.log('DockerWorkerHookService.completeJob', {
       claims,
       request: { dockerRunTaskId: claims.taskId },
     })
@@ -410,8 +410,8 @@ export class WorkerJobService {
    * task, i.e. the task that is being "handled" by the docker task.
 
    */
-  async startJob(claims: WorkerJobTokenClaims): Promise<void> {
-    this.logger.log('WorkerJobService.startJob', {
+  async startJob(claims: DockerWorkerJobClaims): Promise<void> {
+    this.logger.log('DockerWorkerHookService.startJob', {
       claims,
       request: { dockerRunTaskId: claims.taskId },
     })

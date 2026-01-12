@@ -29,7 +29,7 @@ import {
   DockerLogAccessError,
   DockerStateFunc,
 } from './client/docker-client.types'
-import { WorkerJobService } from './worker-job.service'
+import { DockerWorkerHookService } from './docker-worker-hook.service'
 
 const DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS = {
   maxRetries: 50,
@@ -51,16 +51,17 @@ export const DOCKER_LABELS = {
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
-  workerJobService: WorkerJobService
+  dockerWorkerHookService: DockerWorkerHookService
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
     private readonly dockerClientService: DockerClientService,
-    @Inject(forwardRef(() => WorkerJobService))
-    _workerJobService,
+    @Inject(forwardRef(() => DockerWorkerHookService))
+    _dockerWorkerHookService,
   ) {
-    this.workerJobService = _workerJobService as WorkerJobService
+    this.dockerWorkerHookService =
+      _dockerWorkerHookService as DockerWorkerHookService
     void this.dockerClientService.testAllHostConnections().then((result) => {
       this.logger.debug('Docker host connection test result:', result)
     })
@@ -182,7 +183,7 @@ export class DockerJobsService {
     // create the worker token if one is required
     const jobToken =
       params.asyncTaskId || params.storageAccessPolicy
-        ? this.workerJobService.createWorkerJobToken({
+        ? this.dockerWorkerHookService.createDockerWorkerJobToken({
             jobId,
             ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
             storageAccessPolicy: params.storageAccessPolicy,

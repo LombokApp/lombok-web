@@ -16,30 +16,30 @@ import type { Request } from 'express'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import {
-  DiscriminatedWorkerJobCompleteRequestDTO,
-  WorkerJobCompleteRequestDTO,
-} from '../dto/worker-job-complete-request.dto'
-import { WorkerJobCompleteResponseDTO } from '../dto/worker-job-complete-response.dto'
-import { WorkerJobUploadUrlsRequestDTO } from '../dto/worker-job-presigned-urls-request.dto'
-import { WorkerJobPresignedUrlsResponseDTO } from '../dto/worker-job-presigned-urls-response.dto'
-import { WorkerJobStartedResponseDTO } from '../dto/worker-job-started-response.dto'
-import { WorkerJobGuard } from '../guards/worker-job.guard'
-import { WorkerJobService } from '../services/worker-job.service'
+  DiscriminatedDockerJobCompleteRequestDTO,
+  DockerJobCompleteRequestDTO,
+} from '../dto/docker-job-complete-request.dto'
+import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
+import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
+import { DockerJobGuard } from '../guards/docker-job.guard'
+import { DockerWorkerHookService } from '../services/docker-worker-hook.service'
 
 @Controller('/api/v1/docker/jobs')
-@ApiTags('WorkerJobs')
+@ApiTags('DockerWorkerHooks')
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
 @ApiStandardErrorResponses()
-export class WorkerJobsController {
-  constructor(private readonly workerJobService: WorkerJobService) {}
+export class DockerWorkerHooksController {
+  constructor(
+    private readonly dockerWorkerHooksService: DockerWorkerHookService,
+  ) {}
 
   /**
    * Request presigned URLs for uploading files to S3.
    * Called by the worker agent after a job produces output files.
    */
   @Post('/:jobId/request-presigned-urls')
-  @UseGuards(WorkerJobGuard)
+  @UseGuards(DockerJobGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Request presigned URLs for file operations',
@@ -50,17 +50,18 @@ export class WorkerJobsController {
   async requestPresignedStorageUrls(
     @Req() req: Request,
     @Param('jobId') _jobId: string,
-    @Body() body: WorkerJobUploadUrlsRequestDTO,
-  ): Promise<WorkerJobPresignedUrlsResponseDTO> {
-    const claims = req.workerJobClaims
+    @Body() body: DockerJobPresignedUrlsRequestDTO,
+  ): Promise<DockerJobPresignedUrlsResponseDTO> {
+    const claims = req.dockerWorkerClaims
     if (!claims) {
       throw new BadRequestException('Worker job claims not found')
     }
 
-    const urls = await this.workerJobService.requestPresignedStorageUrls(
-      claims,
-      body,
-    )
+    const urls =
+      await this.dockerWorkerHooksService.requestPresignedStorageUrls(
+        claims,
+        body,
+      )
 
     return urls
   }
@@ -70,25 +71,20 @@ export class WorkerJobsController {
    * Called by the worker agent before job execution.
    */
   @Post('/:jobId/start')
-  @UseGuards(WorkerJobGuard)
+  @UseGuards(DockerJobGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Signal job start',
     description:
       'Marks the associated task as started. The job token must be valid.',
   })
-  async startJob(
-    @Req() req: Request,
-    @Param('jobId') _jobId: string,
-  ): Promise<WorkerJobStartedResponseDTO> {
-    const claims = req.workerJobClaims
+  async startJob(@Req() req: Request, @Param('jobId') _jobId: string) {
+    const claims = req.dockerWorkerClaims
     if (!claims) {
       throw new BadRequestException('Worker job claims not found')
     }
 
-    await this.workerJobService.startJob(claims)
-
-    return { ok: true }
+    await this.dockerWorkerHooksService.startJob(claims)
   }
 
   /**
@@ -96,7 +92,7 @@ export class WorkerJobsController {
    * Called by the worker agent after job execution finishes.
    */
   @Post('/:jobId/complete')
-  @UseGuards(WorkerJobGuard)
+  @UseGuards(DockerJobGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Signal job completion',
@@ -107,16 +103,16 @@ export class WorkerJobsController {
   async completeJob(
     @Req() req: Request,
     @Param('jobId') _jobId: string,
-    @Body() body: WorkerJobCompleteRequestDTO,
-  ): Promise<WorkerJobCompleteResponseDTO> {
-    const claims = req.workerJobClaims
+    @Body() body: DockerJobCompleteRequestDTO,
+  ) {
+    const claims = req.dockerWorkerClaims
     if (!claims) {
       throw new BadRequestException('Worker job claims not found')
     }
 
-    const bodyDiscriminated = body as DiscriminatedWorkerJobCompleteRequestDTO
+    const bodyDiscriminated = body as DiscriminatedDockerJobCompleteRequestDTO
 
-    await this.workerJobService.completeJob(
+    await this.dockerWorkerHooksService.completeJob(
       claims,
       bodyDiscriminated.success
         ? {
@@ -133,7 +129,5 @@ export class WorkerJobsController {
             outputFiles: body.outputFiles,
           },
     )
-
-    return { ok: true }
   }
 }

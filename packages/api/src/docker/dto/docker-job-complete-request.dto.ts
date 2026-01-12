@@ -38,10 +38,10 @@ export const dockerJobResultSchema = z.discriminatedUnion('success', [
   errorResponseSchema,
 ])
 
-export class WorkerJobCompleteRequestDTO extends createZodDto(
+export class DockerJobCompleteRequestDTO extends createZodDto(
   dockerJobResultSchema,
 ) {}
 
-export type DiscriminatedWorkerJobCompleteRequestDTO = z.infer<
+export type DiscriminatedDockerJobCompleteRequestDTO = z.infer<
   typeof dockerJobResultSchema
 >

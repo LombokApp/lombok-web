@@ -10,6 +10,9 @@ bun --cwd packages/api tsc:check
 echo "Checking @lombokapp/core-worker..."
 bun --cwd packages/core-worker tsc:check
 
+echo "Checking @lombokapp/worker-utils..."
+bun --cwd packages/worker-utils tsc:check
+
 echo "Checking @lombokapp/app-browser-sdk..."
 bun --cwd packages/app-browser-sdk tsc:check
 

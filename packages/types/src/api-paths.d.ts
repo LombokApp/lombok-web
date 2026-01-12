@@ -2542,7 +2542,7 @@ export interface components {
         };
         FolderGetMetadataResponse: {
             totalCount: number;
-            totalSizeBytes: number;
+            totalSizeBytes: string;
         };
         FolderListResponse: {
             meta: {
@@ -2700,7 +2700,7 @@ export interface components {
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
                 contentMetadata: {
                     [key: string]: {
-                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
+                        [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
                     };
                 };
             }[];
@@ -2721,7 +2721,7 @@ export interface components {
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
                 contentMetadata: {
                     [key: string]: {
-                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
+                        [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
                     };
                 };
             };
@@ -2913,29 +2913,47 @@ export interface components {
             settingValue?: unknown;
         };
         ServerMetricsResponse: {
+            /** Format: int64 */
             totalUsers: number;
+            /** Format: int64 */
             totalFolders: number;
+            /** Format: int64 */
             usersCreatedPreviousWeek: number;
+            /** Format: int64 */
             foldersCreatedPreviousWeek: number;
+            /** Format: int64 */
             totalIndexedSizeBytes: number;
+            /** Format: int64 */
             sessionsCreatedPreviousWeek: number;
+            /** Format: int64 */
             sessionsCreatedPrevious24Hours: number;
             provisionedStorage: {
+                /** Format: int64 */
                 totalCount: number;
                 summary: string;
             };
+            /** Format: int64 */
             totalIndexedSizeBytesAcrossStorageProvisions: number;
             installedApps: {
+                /** Format: int64 */
                 totalCount: number;
                 summary: string;
             };
+            /** Format: int64 */
             tasksCreatedPreviousDay: number;
+            /** Format: int64 */
             tasksCreatedPreviousHour: number;
+            /** Format: int64 */
             taskErrorsPreviousDay: number;
+            /** Format: int64 */
             taskErrorsPreviousHour: number;
+            /** Format: int64 */
             serverEventsEmittedPreviousDay: number;
+            /** Format: int64 */
             serverEventsEmittedPreviousHour: number;
+            /** Format: int64 */
             folderEventsEmittedPreviousDay: number;
+            /** Format: int64 */
             folderEventsEmittedPreviousHour: number;
         };
         StorageProvisionsListResponse: {
@@ -3450,14 +3468,14 @@ export interface components {
                 updatedAt: string;
             }[];
         };
-        WorkerJobUploadUrlsRequestDTO: {
+        DockerJobPresignedUrlsRequestDTO: {
             /** Format: uuid */
             folderId: string;
             objectKey: string;
             /** @enum {string} */
             method: "PUT" | "DELETE" | "GET" | "HEAD";
         }[];
-        WorkerJobPresignedUrlsResponseDTO: {
+        DockerJobPresignedUrlsResponseDTO: {
             urls: {
                 /** Format: uuid */
                 folderId: string;
@@ -3468,10 +3486,7 @@ export interface components {
                 url: string;
             }[];
         };
-        WorkerJobStartedResponseDTO: {
-            ok: boolean;
-        };
-        WorkerJobCompleteRequestDTO: {
+        DockerJobCompleteRequestDTO: {
             /** @enum {boolean} */
             success: true;
             result: {
@@ -3499,9 +3514,6 @@ export interface components {
                 folderId: string;
                 objectKey: string;
             }[];
-        };
-        WorkerJobCompleteResponseDTO: {
-            ok: boolean;
         };
     };
     responses: never;
@@ -6797,7 +6809,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkerJobUploadUrlsRequestDTO"];
+                "application/json": components["schemas"]["DockerJobPresignedUrlsRequestDTO"];
             };
         };
         responses: {
@@ -6806,7 +6818,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkerJobPresignedUrlsResponseDTO"];
+                    "application/json": components["schemas"]["DockerJobPresignedUrlsResponseDTO"];
                 };
             };
             /** @description Server Error */
@@ -6844,9 +6856,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobStartedResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
@@ -6879,7 +6889,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkerJobCompleteRequestDTO"];
+                "application/json": components["schemas"]["DockerJobCompleteRequestDTO"];
             };
         };
         responses: {
@@ -6887,9 +6897,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkerJobCompleteResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {

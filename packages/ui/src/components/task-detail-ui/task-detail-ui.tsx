@@ -143,32 +143,17 @@ export function TaskDetailUI({
     taskData.targetLocation?.folderId
 
   const statusInfo = getStatusInfo(taskData)
-  const errorDetails = taskData.error
-    ? (taskData.error.details as JsonSerializableObject)
-    : {}
   const errorToDisplay =
     taskData.success === false
-      ? {
-          stacktrace:
-            (taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-              errorDetails.stack &&
-              typeof errorDetails.stack === 'string' &&
-              errorDetails.stack) ??
-            '',
-          message:
-            taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-            errorDetails.message &&
-            typeof errorDetails.message === 'string'
-              ? errorDetails.message
-              : taskData.error?.message,
-          code:
-            taskData.error?.code === 'WORKER_SCRIPT_RUNTIME_ERROR' &&
-            errorDetails.name &&
-            typeof errorDetails.name === 'string'
-              ? errorDetails.name
-              : taskData.error?.code,
-        }
-      : {}
+      ? (((
+          taskData.systemLog.reverse().find((log) => log.logType === 'error')
+            ?.payload?.error as JsonSerializableObject | undefined
+        )?.cause ?? {
+          code: 'UNKNOWN',
+          message: 'No message available',
+          stack: 'No stacktrace available',
+        }) as { code: string; message: string; stack: string })
+      : undefined
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -504,7 +489,7 @@ export function TaskDetailUI({
           </div>
 
           {/* Error Information Card */}
-          {taskData.success === false && (
+          {taskData.success === false && errorToDisplay && (
             <Card className="border-destructive/20 bg-destructive/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-destructive">
@@ -534,11 +519,7 @@ export function TaskDetailUI({
                       Error Code
                     </label>
                     <p className="mt-1 font-mono text-sm text-destructive">
-                      {errorToDisplay.code ??
-                        (errorDetails.code &&
-                          typeof errorDetails.code === 'string' &&
-                          errorDetails.code) ??
-                        'Unknown'}
+                      {errorToDisplay.code}
                     </p>
                   </div>
                   <div>
@@ -564,13 +545,13 @@ export function TaskDetailUI({
                       </p>
                     </div>
                   )}
-                  {errorToDisplay.stacktrace && (
+                  {errorToDisplay.stack && (
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-muted-foreground">
                         Error Stacktrace
                       </label>
                       <span className="mt-1 rounded-md bg-destructive/10 p-3 font-mono text-sm text-destructive">
-                        <pre>{errorToDisplay.stacktrace}</pre>
+                        <pre>{errorToDisplay.stack}</pre>
                       </span>
                     </div>
                   )}

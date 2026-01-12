@@ -102,7 +102,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+				HandleCompletionSignalFailure(payload, jobState, err)
 			}
 		}
 
@@ -145,7 +145,21 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	if platformClient != nil {
 		ctx := context.Background()
 		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
-			logs.WriteAgentLog("warning: failed to signal start: %v", err)
+			// Failed to signal start - this is a critical error
+			// Kill the worker process and record job failure
+			logs.WriteAgentLog("error: failed to signal start: %v", err)
+
+			cancelErr := CancelJob(CancelJobConfig{
+				Payload:         payload,
+				JobState:        jobState,
+				JobStartTime:    jobStartTime,
+				WorkerStartTime: workerStartupStartTime,
+				PlatformClient:  platformClient,
+				WorkerPID:       workerState.PID,
+			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
+
+			os.Exit(1)
+			return cancelErr
 		}
 	}
 
@@ -227,7 +241,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+				HandleCompletionSignalFailure(payload, jobState, err)
 			}
 		}
 
@@ -301,7 +315,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-				logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+				HandleCompletionSignalFailure(payload, jobState, err)
 			}
 		}
 
@@ -345,6 +359,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	// Handle file uploads and platform completion if configured
 	var outputFiles []types.OutputFileRef
+	var completionSignalFailed bool
 	if platformClient != nil {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
@@ -378,7 +393,8 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		}
 
 		if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
-			logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			HandleCompletionSignalFailure(payload, jobState, err)
+			completionSignalFailed = true
 		}
 	}
 
@@ -430,6 +446,10 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	state.WriteJobState(jobState)
 
+	// Exit with error code if completion signal failed or job failed
+	if completionSignalFailed {
+		os.Exit(1)
+	}
 	if jobState.Status == "failed" {
 		os.Exit(1)
 	}

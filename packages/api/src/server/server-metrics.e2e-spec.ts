@@ -53,24 +53,26 @@ describe('Server Metrics', () => {
 
     const metrics = await serverMetricsService.getServerMetrics(adminActor)
 
-    expect(metrics.totalUsers).toEqual(0)
-    expect(metrics.sessionsCreatedPreviousWeek).toEqual(0)
-    expect(metrics.sessionsCreatedPrevious24Hours).toEqual(0)
-    expect(metrics.usersCreatedPreviousWeek).toEqual(0)
-    expect(metrics.totalFolders).toEqual(0)
-    expect(metrics.foldersCreatedPreviousWeek).toEqual(0)
-    expect(metrics.tasksCreatedPreviousDay).toEqual(0)
-    expect(metrics.tasksCreatedPreviousHour).toEqual(0)
-    expect(metrics.taskErrorsPreviousDay).toEqual(0)
-    expect(metrics.taskErrorsPreviousHour).toEqual(0)
-    expect(metrics.serverEventsEmittedPreviousDay).toEqual(0)
-    expect(metrics.serverEventsEmittedPreviousHour).toEqual(0)
-    expect(metrics.folderEventsEmittedPreviousDay).toEqual(0)
-    expect(metrics.folderEventsEmittedPreviousHour).toEqual(0)
-    expect(metrics.totalIndexedSizeBytes).toEqual(0)
-    expect(metrics.totalIndexedSizeBytesAcrossStorageProvisions).toEqual(0)
-    expect(metrics.provisionedStorage.totalCount).toEqual(0)
-    expect(metrics.totalStorageProvisions).toEqual(0)
+    expect(metrics.totalUsers).toEqual(BigInt(0))
+    expect(metrics.sessionsCreatedPreviousWeek).toEqual(BigInt(0))
+    expect(metrics.sessionsCreatedPrevious24Hours).toEqual(BigInt(0))
+    expect(metrics.usersCreatedPreviousWeek).toEqual(BigInt(0))
+    expect(metrics.totalFolders).toEqual(BigInt(0))
+    expect(metrics.foldersCreatedPreviousWeek).toEqual(BigInt(0))
+    expect(metrics.tasksCreatedPreviousDay).toEqual(BigInt(0))
+    expect(metrics.tasksCreatedPreviousHour).toEqual(BigInt(0))
+    expect(metrics.taskErrorsPreviousDay).toEqual(BigInt(0))
+    expect(metrics.taskErrorsPreviousHour).toEqual(BigInt(0))
+    expect(metrics.serverEventsEmittedPreviousDay).toEqual(BigInt(0))
+    expect(metrics.serverEventsEmittedPreviousHour).toEqual(BigInt(0))
+    expect(metrics.folderEventsEmittedPreviousDay).toEqual(BigInt(0))
+    expect(metrics.folderEventsEmittedPreviousHour).toEqual(BigInt(0))
+    expect(metrics.totalIndexedSizeBytes).toEqual(BigInt(0))
+    expect(metrics.totalIndexedSizeBytesAcrossStorageProvisions).toEqual(
+      BigInt(0),
+    )
+    expect(metrics.provisionedStorage.totalCount).toEqual(BigInt(0))
+    expect(metrics.totalStorageProvisions).toEqual(BigInt(0))
   })
 
   it('should aggregate recent metrics data', async () => {
@@ -174,28 +176,30 @@ describe('Server Metrics', () => {
         .from(appsTable)
     )[0]!
 
-    expect(updatedMetrics.totalUsers).toEqual(baselineUsers + 1)
+    expect(updatedMetrics.totalUsers).toEqual(baselineUsers + BigInt(1))
     expect(updatedMetrics.installedApps.totalCount).toEqual(
-      installedAppsCount.count,
+      BigInt(installedAppsCount.count),
     )
     expect(updatedMetrics.usersCreatedPreviousWeek).toEqual(
-      baselineUsersCreatedWeek + 1,
+      baselineUsersCreatedWeek + BigInt(1),
     )
-    expect(updatedMetrics.tasksCreatedPreviousDay).toEqual(baselineTasksDay + 2)
+    expect(updatedMetrics.tasksCreatedPreviousDay).toEqual(
+      baselineTasksDay + BigInt(2),
+    )
     expect(updatedMetrics.tasksCreatedPreviousHour).toEqual(
-      baselineTasksHour + 2,
+      baselineTasksHour + BigInt(2),
     )
     expect(updatedMetrics.taskErrorsPreviousDay).toEqual(
-      baselineTaskErrorsDay + 1,
+      baselineTaskErrorsDay + BigInt(1),
     )
     expect(updatedMetrics.taskErrorsPreviousHour).toEqual(
-      baselineTaskErrorsHour + 1,
+      baselineTaskErrorsHour + BigInt(1),
     )
     expect(updatedMetrics.serverEventsEmittedPreviousHour).toEqual(
-      baselineServerEventsHour + 1,
+      baselineServerEventsHour + BigInt(1),
     )
     expect(updatedMetrics.folderEventsEmittedPreviousHour).toEqual(
-      baselineFolderEventsHour + 1,
+      baselineFolderEventsHour + BigInt(1),
     )
   })
 

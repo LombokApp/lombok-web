@@ -3,9 +3,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { Request } from 'express'
 
 import {
-  WorkerJobService,
-  WorkerJobTokenClaims,
-} from '../services/worker-job.service'
+  DockerWorkerHookService,
+  DockerWorkerJobClaims,
+} from '../services/docker-worker-hook.service'
 
 const BEARER_PREFIX = 'Bearer '
 
@@ -14,8 +14,10 @@ const BEARER_PREFIX = 'Bearer '
  * Validates the job-specific JWT token and attaches the decoded claims to the request.
  */
 @Injectable()
-export class WorkerJobGuard implements CanActivate {
-  constructor(private readonly workerJobService: WorkerJobService) {}
+export class DockerJobGuard implements CanActivate {
+  constructor(
+    private readonly dockerWorkerHookService: DockerWorkerHookService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request: Request = context.switchToHttp().getRequest()
@@ -34,10 +36,13 @@ export class WorkerJobGuard implements CanActivate {
     }
 
     // Verify the token and get claims (this is synchronous - JWT verification)
-    const claims = this.workerJobService.verifyWorkerJobToken(token, jobId)
+    const claims = this.dockerWorkerHookService.verifyDockerWorkerJobToken(
+      token,
+      jobId,
+    )
 
     // Attach claims to request for use in controllers
-    request.workerJobClaims = claims
+    request.dockerWorkerClaims = claims
 
     return true
   }
@@ -48,7 +53,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      workerJobClaims?: WorkerJobTokenClaims
+      dockerWorkerClaims?: DockerWorkerJobClaims
     }
   }
 }

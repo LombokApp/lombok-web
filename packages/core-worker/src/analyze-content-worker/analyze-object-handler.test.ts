@@ -2,6 +2,7 @@ import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   CORE_IDENTIFIER,
   CoreEvent,
+  MediaType,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
@@ -114,13 +115,27 @@ describe('Analyze Object Handler', () => {
     const metadataUpdateParams = await analyzeObject(
       analyzeTask.targetLocation.folderId,
       analyzeTask.targetLocation.objectKey,
+      async (_request) => {
+        return Promise.resolve({
+          url: 'https://example.com/content-upload',
+          folderId: analyzeTask.targetLocation.folderId,
+          objectKey: analyzeTask.targetLocation.objectKey,
+          contentMetadata: {},
+          id: uuidV4(),
+          lastModified: new Date().getTime(),
+          eTag: uuidV4(),
+          sizeBytes: 100,
+          mimeType: 'image/png',
+          mediaType: MediaType.Image,
+        })
+      },
       (requests) => {
         contentUrlRequested = true
         contentUrlParams = requests.requests
         return Promise.resolve([
           {
             url: 'https://example.com/metadata-upload',
-            folderId: testFolderId,
+            folderId: analyzeTask.targetLocation.folderId,
             objectKey: 'metadata.json',
           },
         ])
@@ -131,7 +146,7 @@ describe('Analyze Object Handler', () => {
         return Promise.resolve([
           {
             url: 'https://example.com/metadata-upload',
-            folderId: testFolderId,
+            folderId: analyzeTask.targetLocation.folderId,
             objectKey: 'metadata.json',
           },
         ])

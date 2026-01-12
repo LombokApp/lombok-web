@@ -1,9 +1,11 @@
-import { AppAPIError } from '@lombokapp/app-worker-sdk'
+import type { folderObjectSchema } from '@lombokapp/types'
 import { MediaType, SignedURLsRequestMethod } from '@lombokapp/types'
 import type { Variant } from '@lombokapp/utils'
 import { mediaTypeFromMimeType } from '@lombokapp/utils'
 import type { coreWorkerMessagePayloadSchemas } from '@lombokapp/worker-utils'
 import {
+  AsyncWorkError,
+  buildUnexpectedError,
   downloadFileToDisk,
   hashLocalFile,
   readFileMetadata,
@@ -13,12 +15,17 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
+import type z from 'zod'
 
 import { analyzeContent } from './analyze-content'
 
 export const analyzeObject = async (
   folderId: string,
   objectKey: string,
+  getFolderObject: (request: {
+    folderId: string
+    objectKey: string
+  }) => Promise<z.infer<typeof folderObjectSchema>>,
   getContentSignedUrls: (requests: {
     requests: {
       folderId: string
@@ -65,31 +72,26 @@ export const analyzeObject = async (
       requests: [{ folderId, objectKey, method: SignedURLsRequestMethod.GET }],
     })
 
-    let mimeType = ''
+    const folderObject = await getFolderObject({ folderId, objectKey })
+
     try {
-      const downloadResult = await downloadFileToDisk(
-        contentUrl?.url ?? '',
-        inFilePath,
-      )
-      mimeType = downloadResult.mimeType
-      if (!mimeType) {
-        throw new AppAPIError(
-          'UNRECOGNIZED_MIME_TYPE',
-          `Cannot resolve mimeType for objectKey ${objectKey}`,
-        )
-      }
+      await downloadFileToDisk(contentUrl?.url ?? '', inFilePath)
     } catch (e: unknown) {
-      throw new AppAPIError(
-        'STORAGE_ACCESS_FAILURE',
-        `Failure accessing underlying storage: ${JSON.stringify({
-          folderId,
-          objectKey,
-        })}.\nError: ${e instanceof Error ? e.name : String(e)}`,
-      )
+      if (e instanceof AsyncWorkError) {
+        throw e
+      }
+      throw buildUnexpectedError({
+        code: 'UNEXPECTED_ANALYZE_OBJECT_ERROR',
+        message: `Unexpected error while analyzing object ${objectKey}`,
+        error: e,
+      })
     }
 
     const originalContentHash = await hashLocalFile(inFilePath)
-    const mediaType = mediaTypeFromMimeType(mimeType)
+    const mediaType =
+      folderObject.mediaType !== MediaType.Unknown
+        ? folderObject.mediaType
+        : mediaTypeFromMimeType(folderObject.mimeType)
     const metadataFilePath = path.join(
       metadataOutFileDirectory,
       'metadata.json',
@@ -101,14 +103,14 @@ export const analyzeObject = async (
       inFilePath,
       outFileDirectory: metadataOutFileDirectory,
       mediaType,
-      mimeType,
+      mimeType: folderObject.mimeType,
       metadata: exiv2Metadata,
     })
 
     metadataDescription.mimeType = {
       type: 'inline',
-      sizeBytes: Buffer.from(JSON.stringify(mimeType)).length,
-      content: JSON.stringify(mimeType),
+      sizeBytes: Buffer.from(JSON.stringify(folderObject.mimeType)).length,
+      content: JSON.stringify(folderObject.mimeType),
       mimeType: 'application/json',
     }
     metadataDescription.mediaType = {

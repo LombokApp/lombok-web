@@ -70,3 +70,16 @@ export const contentMetadataByHashSchema = z.record(
 
 export type ContentMetadataType = z.infer<typeof contentMetadataSchema>
 export type ContentMetadataByHash = z.infer<typeof contentMetadataByHashSchema>
+
+export const folderObjectSchema = z.object({
+  id: z.string().uuid(),
+  objectKey: z.string(),
+  folderId: z.string().uuid(),
+  hash: z.string().optional(),
+  lastModified: z.number(),
+  eTag: z.string(),
+  sizeBytes: z.number(),
+  mimeType: z.string(),
+  mediaType: z.nativeEnum(MediaType),
+  contentMetadata: z.record(z.string(), contentMetadataSchema.optional()),
+})

@@ -638,10 +638,11 @@ describe('Docker Jobs', () => {
     const parsedPayload = parseJobPayload(
       execSpy.mock.calls[0]![1].command.at(-1) ?? '',
     )
-    const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
-      parsedPayload.jobToken!,
-      parsedPayload.jobId,
-    )
+    const claims =
+      testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
+        parsedPayload.jobToken!,
+        parsedPayload.jobId,
+      )
 
     expect(claims.jobId).toBe(parsedPayload.jobId)
     expect(claims.taskId).toBe(dockerRunTask.id)
@@ -1787,10 +1788,11 @@ describe('Docker Jobs', () => {
     )
     const jobToken = parsedPayload.jobToken
     const jobId = parsedPayload.jobId
-    const claims = testModule!.services.workerJobService.verifyWorkerJobToken(
-      jobToken ?? '',
-      jobId,
-    )
+    const claims =
+      testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
+        jobToken ?? '',
+        jobId,
+      )
 
     expect(claims.storageAccessPolicy).toEqual({
       rules: [storageAccessPolicyRule],

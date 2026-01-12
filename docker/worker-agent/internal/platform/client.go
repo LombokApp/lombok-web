@@ -14,12 +14,13 @@ import (
 
 const (
 	// API endpoint paths
-	uploadURLsPath = "/api/v1/docker/jobs/%s/request-presigned-urls"
-	startPath      = "/api/v1/docker/jobs/%s/start"
-	completionPath = "/api/v1/docker/jobs/%s/complete"
+	createPresignedURLsPath = "/api/v1/docker/jobs/%s/request-presigned-urls"
+	startPath               = "/api/v1/docker/jobs/%s/start"
+	completionPath          = "/api/v1/docker/jobs/%s/complete"
 
 	// HTTP timeouts
-	requestTimeout = 30 * time.Second
+	requestTimeout       = 30 * time.Second
+	signalRequestTimeout = 5 * time.Second // Timeout for SignalStart and SignalCompletion
 )
 
 // Client handles communication with the platform API
@@ -46,7 +47,7 @@ func (c *Client) RequestUploadURLs(ctx context.Context, jobID string, files []ty
 		return nil, fmt.Errorf("platform client not configured (missing baseURL or token)")
 	}
 
-	url := fmt.Sprintf(c.baseURL+uploadURLsPath, jobID)
+	url := fmt.Sprintf(c.baseURL+createPresignedURLsPath, jobID)
 
 	bodyBytes, err := json.Marshal(files)
 	if err != nil {
@@ -90,6 +91,10 @@ func (c *Client) SignalStart(ctx context.Context, jobID string) error {
 		return fmt.Errorf("platform client not configured (missing baseURL or token)")
 	}
 
+	// Create a context with timeout for this request
+	ctx, cancel := context.WithTimeout(ctx, signalRequestTimeout)
+	defer cancel()
+
 	url := fmt.Sprintf(c.baseURL+startPath, jobID)
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, http.NoBody)
@@ -118,6 +123,10 @@ func (c *Client) SignalCompletion(ctx context.Context, jobID string, req *types.
 	if c.baseURL == "" || c.token == "" {
 		return fmt.Errorf("platform client not configured (missing baseURL or token)")
 	}
+
+	// Create a context with timeout for this request
+	ctx, cancel := context.WithTimeout(ctx, signalRequestTimeout)
+	defer cancel()
 
 	url := fmt.Sprintf(c.baseURL+completionPath, jobID)
 
