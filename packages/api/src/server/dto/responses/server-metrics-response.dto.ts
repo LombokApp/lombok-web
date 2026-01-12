@@ -2,32 +2,32 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const serverMetricsResponseSchema = z.object({
-  totalUsers: z.bigint(),
-  totalFolders: z.bigint(),
-  usersCreatedPreviousWeek: z.bigint(),
-  foldersCreatedPreviousWeek: z.bigint(),
-  totalIndexedSizeBytes: z.bigint(),
-  sessionsCreatedPreviousWeek: z.bigint(),
-  sessionsCreatedPrevious24Hours: z.bigint(),
+  totalUsers: z.string(),
+  totalFolders: z.string(),
+  usersCreatedPreviousWeek: z.string(),
+  foldersCreatedPreviousWeek: z.string(),
+  totalIndexedSizeBytes: z.string(),
+  sessionsCreatedPreviousWeek: z.string(),
+  sessionsCreatedPrevious24Hours: z.string(),
   provisionedStorage: z.object({
-    totalCount: z.bigint(),
+    totalCount: z.string(),
     summary: z.string(),
   }),
-  totalIndexedSizeBytesAcrossStorageProvisions: z.bigint(),
+  totalIndexedSizeBytesAcrossStorageProvisions: z.string(),
   installedApps: z.object({
-    totalCount: z.bigint(),
+    totalCount: z.string(),
     summary: z.string(),
   }),
   // Task metrics
-  tasksCreatedPreviousDay: z.bigint(),
-  tasksCreatedPreviousHour: z.bigint(),
-  taskErrorsPreviousDay: z.bigint(),
-  taskErrorsPreviousHour: z.bigint(),
+  tasksCreatedPreviousDay: z.string(),
+  tasksCreatedPreviousHour: z.string(),
+  taskErrorsPreviousDay: z.string(),
+  taskErrorsPreviousHour: z.string(),
   // Event metrics
-  serverEventsEmittedPreviousDay: z.bigint(),
-  serverEventsEmittedPreviousHour: z.bigint(),
-  folderEventsEmittedPreviousDay: z.bigint(),
-  folderEventsEmittedPreviousHour: z.bigint(),
+  serverEventsEmittedPreviousDay: z.string(),
+  serverEventsEmittedPreviousHour: z.string(),
+  folderEventsEmittedPreviousDay: z.string(),
+  folderEventsEmittedPreviousHour: z.string(),
 })
 
 export class ServerMetricsResponse extends createZodDto(

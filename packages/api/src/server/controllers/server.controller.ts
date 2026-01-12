@@ -21,6 +21,7 @@ import { ServerMetricsResponse } from '../dto/responses/server-metrics-response.
 import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'
 import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
 import { SetSettingInputDTO } from '../dto/set-setting-input.dto'
+import { transformServerMetricsToDTO } from '../dto/transforms/server-metrics.transforms'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 import { ServerMetricsService } from '../services/server-metrics.service'
 
@@ -108,6 +109,7 @@ export class ServerController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    return this.serverMetricsService.getServerMetrics(req.user)
+    const metrics = await this.serverMetricsService.getServerMetrics(req.user)
+    return transformServerMetricsToDTO(metrics)
   }
 }
