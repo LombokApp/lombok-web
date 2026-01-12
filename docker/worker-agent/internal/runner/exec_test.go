@@ -447,7 +447,7 @@ func TestRunExecPerJob_EnvironmentVariables(t *testing.T) {
 	}
 }
 
-func TestRunExecPerJob_JobResultExtraction(t *testing.T) {
+func TestRunExecPerJob_JobResultFile(t *testing.T) {
 	// Skip if running in CI or without proper permissions
 	if os.Getuid() != 0 {
 		if err := config.EnsureAllDirs(); err != nil {
@@ -464,8 +464,6 @@ func TestRunExecPerJob_JobResultExtraction(t *testing.T) {
 	jobInput := json.RawMessage(`{"test": "result"}`)
 	jobInputB64 := base64.StdEncoding.EncodeToString(jobInput)
 
-	// Create a worker that outputs JSON result on the last line
-	workerResult := `{"output": "test result", "value": 42}`
 	var cmd string
 	if _, err := exec.LookPath("sh"); err == nil {
 		cmd = "sh"
@@ -478,7 +476,7 @@ func TestRunExecPerJob_JobResultExtraction(t *testing.T) {
 	payload := &types.JobPayload{
 		JobID:         "test-job-result",
 		JobClass:      "test_class",
-		WorkerCommand: []string{cmd, "-c", "echo 'some output' && echo " + jobInputB64 + " && echo '" + workerResult + "'"},
+		WorkerCommand: []string{cmd, "-c", "echo 'some output' && echo " + jobInputB64},
 		Interface: types.InterfaceConfig{
 			Kind: "exec_per_job",
 		},
@@ -491,7 +489,7 @@ func TestRunExecPerJob_JobResultExtraction(t *testing.T) {
 		t.Fatalf("RunExecPerJob failed: %v", err)
 	}
 
-	// Verify job result file contains the extracted result
+	// Verify job result file exists and contains basic job information
 	jobResultPath := config.JobResultPath(payload.JobID)
 	jobResultContent, err := os.ReadFile(jobResultPath)
 	if err != nil {
@@ -503,96 +501,17 @@ func TestRunExecPerJob_JobResultExtraction(t *testing.T) {
 		t.Fatalf("Failed to parse job result: %v", err)
 	}
 
-	if jobResult.Result == nil {
-		t.Error("Job result should contain extracted result from worker output")
+	// Verify basic result file structure
+	if jobResult.JobID != payload.JobID {
+		t.Errorf("Job result JobID mismatch: expected %s, got %s", payload.JobID, jobResult.JobID)
 	}
-
-	// Verify the result is the JSON from the last line
-	resultBytes, err := json.Marshal(jobResult.Result)
-	if err != nil {
-		t.Fatalf("Failed to marshal result: %v", err)
+	if !jobResult.Success {
+		t.Error("Job result should indicate success")
 	}
-
-	if !strings.Contains(string(resultBytes), "test result") {
-		t.Errorf("Job result should contain extracted JSON, got: %s", string(resultBytes))
+	if jobResult.Timing == nil {
+		t.Error("Job result should contain timing information")
 	}
-}
-
-func TestExtractLastLineJSON(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected interface{}
-	}{
-		{
-			name:     "Valid JSON on last line",
-			input:    "line1\nline2\n{\"key\": \"value\"}",
-			expected: map[string]interface{}{"key": "value"},
-		},
-		{
-			name:     "Valid JSON with trailing newlines",
-			input:    "line1\n{\"key\": \"value\"}\n\n",
-			expected: map[string]interface{}{"key": "value"},
-		},
-		{
-			name:     "Invalid JSON on last line",
-			input:    "line1\nline2\nnot json",
-			expected: nil,
-		},
-		{
-			name:     "Empty string",
-			input:    "",
-			expected: nil,
-		},
-		{
-			name:     "Only whitespace",
-			input:    "   \n\t\n  ",
-			expected: nil,
-		},
-		{
-			name:     "Valid JSON array",
-			input:    "output\n[1, 2, 3]",
-			expected: []interface{}{float64(1), float64(2), float64(3)},
-		},
-		{
-			name:     "Valid JSON number",
-			input:    "output\n42",
-			expected: float64(42),
-		},
-		{
-			name:     "Valid JSON string",
-			input:    "output\n\"hello\"",
-			expected: "hello",
-		},
-		{
-			name:     "Multiple JSON lines, last is valid",
-			input:    "{\"first\": \"line\"}\n{\"last\": \"line\"}",
-			expected: map[string]interface{}{"last": "line"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := extractLastLineJSON(tt.input)
-			if tt.expected == nil {
-				if result != nil {
-					t.Errorf("Expected nil, got %v", result)
-				}
-			} else {
-				if result == nil {
-					t.Errorf("Expected %v, got nil", tt.expected)
-					return
-				}
-
-				// Compare JSON marshaled versions for deep equality
-				expectedJSON, _ := json.Marshal(tt.expected)
-				resultJSON, _ := json.Marshal(result)
-				if string(expectedJSON) != string(resultJSON) {
-					t.Errorf("Expected %s, got %s", string(expectedJSON), string(resultJSON))
-				}
-			}
-		})
-	}
+	// Note: Result field may be nil since we're no longer extracting from stdout
 }
 
 func TestRunExecPerJob_JobStateAndResultFiles(t *testing.T) {

@@ -117,9 +117,17 @@ interface CompletionRequest {
 }
 
 interface MockPlatformServerState {
-  uploadUrlRequests: Array<{ jobId: string; body: UploadURLRequest }>
-  completionRequests: Array<{ jobId: string; body: CompletionRequest }>
-  startRequests: Array<{ jobId: string }>
+  uploadUrlRequests: Array<{
+    jobId: string
+    body: UploadURLRequest
+    timestamp: number
+  }>
+  completionRequests: Array<{
+    jobId: string
+    body: CompletionRequest
+    timestamp: number
+  }>
+  startRequests: Array<{ jobId: string; timestamp: number }>
   outputFiles: Array<{ url: string; contentType: string; body: string }>
 }
 
@@ -233,7 +241,7 @@ const execTestCases: ExecTestCase[] = [
     workerCommand: [
       'sh',
       '-c',
-      'echo "Processing..."; echo "Done"; echo \'{"sum":42,"status":"success"}\'',
+      'echo "Processing..."; echo "Done"; echo \'{"sum":42,"status":"success"}\' > "$JOB_RESULT_FILE"',
     ],
     jobInput: { numbers: [1, 2, 3] },
     expected: {
@@ -253,7 +261,7 @@ const execTestCases: ExecTestCase[] = [
       'INPUT=$(echo $1 | base64 -d); ' +
         "NUMS=$(echo \"$INPUT\" | grep -o '\"numbers\":\\[[0-9,]*\\]' | grep -o '[0-9]*' | tr '\\n' '+' | sed 's/+$//'); " +
         'SUM=$(echo "$NUMS" | bc); ' +
-        'echo "{\\"sum\\":$SUM,\\"computed\\":true}"',
+        'echo "{\\"sum\\":$SUM,\\"computed\\":true}" > "$JOB_RESULT_FILE"',
       'sh',
     ],
     jobInput: { numbers: [10, 20, 30] },
@@ -539,7 +547,11 @@ function startMockPlatformServer(): void {
         const jobId = uploadUrlMatch[1]
         const body = (await req.json()) as UploadURLRequest
 
-        mockPlatformState.uploadUrlRequests.push({ jobId, body })
+        mockPlatformState.uploadUrlRequests.push({
+          jobId,
+          body,
+          timestamp: Date.now(),
+        })
 
         // Generate presigned URLs pointing to mock S3 server
         const response: UploadURLResponse = {
@@ -563,7 +575,7 @@ function startMockPlatformServer(): void {
       const startMatch = path.match(/^\/api\/v1\/docker\/jobs\/([^/]+)\/start$/)
       if (startMatch && req.method === 'POST') {
         const jobId = startMatch[1]
-        mockPlatformState.startRequests.push({ jobId })
+        mockPlatformState.startRequests.push({ jobId, timestamp: Date.now() })
 
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
@@ -579,7 +591,11 @@ function startMockPlatformServer(): void {
         const jobId = completeMatch[1]
         const body = (await req.json()) as CompletionRequest
 
-        mockPlatformState.completionRequests.push({ jobId, body })
+        mockPlatformState.completionRequests.push({
+          jobId,
+          body,
+          timestamp: Date.now(),
+        })
 
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
@@ -1242,7 +1258,7 @@ describe('Platform Agent', () => {
         worker_command: [
           'sh',
           '-c',
-          'echo \'{"message":"hello","value":123}\'',
+          'echo \'{"message":"hello","value":123}\' > "$JOB_RESULT_FILE"',
         ],
         interface: { kind: 'exec_per_job' },
         job_input: { test: true },
@@ -1355,7 +1371,11 @@ describe('Platform Agent', () => {
       const payload: JobPayload = {
         job_id: jobId,
         job_class: 'timing_test',
-        worker_command: ['sh', '-c', 'sleep 0.1 && echo \'{"done":true}\''],
+        worker_command: [
+          'sh',
+          '-c',
+          'sleep 0.1 && echo \'{"done":true}\' > "$JOB_RESULT_FILE"',
+        ],
         interface: { kind: 'exec_per_job' },
         job_input: { test: 'data' },
       }
@@ -2074,7 +2094,11 @@ describe('Platform Agent', () => {
       const payload: JobPayload = {
         job_id: jobId,
         job_class: 'platform_completion_test',
-        worker_command: ['sh', '-c', 'echo \'{"message":"done"}\''],
+        worker_command: [
+          'sh',
+          '-c',
+          'echo \'{"message":"done"}\' > "$JOB_RESULT_FILE"',
+        ],
         interface: { kind: 'exec_per_job' },
         job_input: { test: true },
         job_token: MOCK_JOB_TOKEN,
@@ -2095,6 +2119,7 @@ describe('Platform Agent', () => {
       const completionReq = mockPlatformState.completionRequests[0]
       expect(completionReq.jobId).toBe(jobId)
       expect(completionReq.body.success).toBe(true)
+      // Verify the completion request contains the worker's result
       expect(completionReq.body.result).toEqual({ message: 'done' })
     })
 
@@ -2127,6 +2152,168 @@ describe('Platform Agent', () => {
       expect(completionReq.body.success).toBe(false)
       expect(completionReq.body.error).toBeDefined()
       expect(completionReq.body.error?.code).toBe('WORKER_EXIT_ERROR')
+    })
+
+    test('exec_per_job calls /start endpoint before job completes', async () => {
+      const jobId = generateJobId('platform-start-timing')
+      // Use a job that takes some time to complete
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_start_timing_test',
+        worker_command: [
+          'sh',
+          '-c',
+          'sleep 1 && echo \'{"message":"done"}\' > "$JOB_RESULT_FILE"',
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: { test: true },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const startTime = Date.now()
+      const { jobResult: result } = await runJob(payload)
+
+      expect(result.success).toBe(true)
+
+      // Verify both start and completion were called
+      expect(mockPlatformState.startRequests.length).toBe(1)
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+
+      const startReq = mockPlatformState.startRequests[0]
+      const completionReq = mockPlatformState.completionRequests[0]
+
+      expect(startReq.jobId).toBe(jobId)
+      expect(completionReq.jobId).toBe(jobId)
+
+      // Verify start was called BEFORE completion
+      expect(startReq.timestamp).toBeLessThan(completionReq.timestamp)
+
+      // Verify start was called early (within first 200ms of job start)
+      // This ensures it's called when the job starts, not just before completion
+      const startCallDelay = startReq.timestamp - startTime
+      expect(startCallDelay).toBeLessThan(200)
+
+      // Verify completion was called after the job finished (sleep 1 = ~1000ms)
+      const completionCallDelay = completionReq.timestamp - startTime
+      expect(completionCallDelay).toBeGreaterThan(800) // Should be close to 1000ms
+    })
+
+    test('exec_per_job with wait_for_completion=false returns immediately but still signals completion', async () => {
+      const jobId = generateJobId('platform-exec-async-success')
+      // Use a job that takes some time to complete
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_async_exec_test',
+        worker_command: [
+          'sh',
+          '-c',
+          'sleep 1 && echo \'{"message":"done"}\' > "$JOB_RESULT_FILE"',
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: { test: true },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+        wait_for_completion: false,
+      }
+
+      const startTime = Date.now()
+      const { jobState, exitCode } = await runJob(payload)
+      const elapsed = Date.now() - startTime
+
+      // Verify command returned immediately (should be much less than the job duration)
+      expect(exitCode).toBe(0)
+      expect(elapsed).toBeLessThan(500) // Should return well before the 1 second sleep completes
+
+      // Verify job state is pending or running initially
+      expect(jobState.status).toMatch(/pending|running/)
+
+      // Initially, no completion should have been signaled yet
+      expect(mockPlatformState.completionRequests.length).toBe(0)
+
+      // Verify start was signaled immediately
+      expect(mockPlatformState.startRequests.length).toBe(1)
+      const startReq = mockPlatformState.startRequests[0]
+      expect(startReq.jobId).toBe(jobId)
+      expect(startReq.timestamp - startTime).toBeLessThan(200)
+
+      // Wait for job to complete
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const agentLog = await readAgentLog()
+      // Now verify completion was signaled after the job finished
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(true)
+      // Verify the completion request contains the worker's result from the result file
+      expect(completionReq.body.result).toEqual({ message: 'done' })
+
+      // Verify completion was called after start
+      expect(startReq.timestamp).toBeLessThan(completionReq.timestamp)
+
+      // Verify completion was called after the job finished (sleep 1 = ~1000ms)
+      const completionCallDelay = completionReq.timestamp - startTime
+      expect(completionCallDelay).toBeGreaterThan(800) // Should be close to 1000ms
+
+      // Verify final job state
+      const finalJobState = JSON.parse(
+        await readJobStateViaCLI(jobId).then(({ stdout }) => stdout),
+      )
+      expect(finalJobState.status).toBe('success')
+    })
+
+    test('exec_per_job with wait_for_completion=false signals failure completion on error', async () => {
+      const jobId = generateJobId('platform-exec-async-failure')
+      // Use a job that takes some time then fails
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_async_exec_failure_test',
+        worker_command: ['sh', '-c', 'sleep 1 && exit 42'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+        wait_for_completion: false,
+      }
+
+      const startTime = Date.now()
+      const { jobState, exitCode } = await runJob(payload)
+      const elapsed = Date.now() - startTime
+
+      // Verify command returned immediately
+      expect(exitCode).toBe(0)
+      expect(elapsed).toBeLessThan(500)
+
+      // Verify job state is pending or running initially
+      expect(jobState.status).toMatch(/pending|running/)
+
+      // Initially, no completion should have been signaled yet
+      expect(mockPlatformState.completionRequests.length).toBe(0)
+
+      // Verify start was signaled immediately
+      expect(mockPlatformState.startRequests.length).toBe(1)
+      const startReq = mockPlatformState.startRequests[0]
+      expect(startReq.jobId).toBe(jobId)
+
+      // Wait for job to complete
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Now verify failure completion was signaled after the job finished
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(false)
+      expect(completionReq.body.error).toBeDefined()
+      expect(completionReq.body.error?.code).toBe('WORKER_EXIT_ERROR')
+
+      // Verify completion was called after start
+      expect(startReq.timestamp).toBeLessThan(completionReq.timestamp)
+
+      // Verify final job state
+      const finalJobState = JSON.parse(
+        await readJobStateViaCLI(jobId).then(({ stdout }) => stdout),
+      )
+      expect(finalJobState.status).toBe('failed')
     })
 
     test('persistent_http signals completion to platform', async () => {
@@ -2843,7 +3030,11 @@ describe('Platform Agent', () => {
       const payload: JobPayload = {
         job_id: jobId,
         job_class: 'result_test',
-        worker_command: ['sh', '-c', 'echo \'{"message":"success"}\''],
+        worker_command: [
+          'sh',
+          '-c',
+          'echo \'{"message":"success"}\' > "$JOB_RESULT_FILE"',
+        ],
         interface: { kind: 'exec_per_job' },
         job_input: {},
       }
@@ -2944,7 +3135,11 @@ describe('Platform Agent', () => {
       const payload: JobPayload = {
         job_id: jobId,
         job_class: 'cmd_test',
-        worker_command: ['sh', '-c', 'echo \'{"value":123}\''],
+        worker_command: [
+          'sh',
+          '-c',
+          'echo \'{"value":123}\' > "$JOB_RESULT_FILE"',
+        ],
         interface: { kind: 'exec_per_job' },
         job_input: {},
       }
@@ -3044,7 +3239,11 @@ describe('Platform Agent', () => {
       const payload: JobPayload = {
         job_id: jobId,
         job_class: 'timing_test',
-        worker_command: ['sh', '-c', 'sleep 0.1 && echo \'{"done":true}\''],
+        worker_command: [
+          'sh',
+          '-c',
+          'sleep 0.1 && echo \'{"done":true}\' > "$JOB_RESULT_FILE"',
+        ],
         interface: { kind: 'exec_per_job' },
         job_input: {},
       }
