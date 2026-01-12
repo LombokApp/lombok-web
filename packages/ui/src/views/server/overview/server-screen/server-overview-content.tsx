@@ -21,14 +21,22 @@ import { $api } from '@/src/services/api'
 import { serverLogsTableColumns } from '@/src/views/server/logs/server-logs-screen/server-logs-table-columns'
 
 // Utility function to format bytes to human readable format
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) {
+const formatBytes = (bytes: bigint | number | string): string => {
+  let bytesNum: number
+  if (typeof bytes === 'bigint') {
+    bytesNum = Number(bytes)
+  } else if (typeof bytes === 'string') {
+    bytesNum = Number(bytes)
+  } else {
+    bytesNum = bytes
+  }
+  if (bytesNum === 0 || isNaN(bytesNum)) {
     return '0 B'
   }
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  const i = Math.floor(Math.log(bytesNum) / Math.log(k))
+  return `${parseFloat((bytesNum / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
 
 export function ServerOverviewContent() {

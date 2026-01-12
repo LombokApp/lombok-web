@@ -39,7 +39,7 @@ export interface IndexingJobContext {
 export interface FolderMetadata {
   indexingJobContext?: IndexingJobContext
   totalCount: number
-  totalSizeBytes: number
+  totalSizeBytes: string
 }
 export interface S3Object {
   /**

@@ -1,6 +1,6 @@
 import { StorageProvisionDTO } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { and, count, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -57,13 +57,15 @@ export class ServerMetricsService {
     // Get total users
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const totalUsersResult = (
-      await this.ormService.db.select({ count: count(sql`*`) }).from(usersTable)
+      await this.ormService.db
+        .select({ count: sql<string>`count(*)::text` })
+        .from(usersTable)
     )[0]!
     // Get new users in last week
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const usersPreviousWeekResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(usersTable)
         .where(gte(usersTable.createdAt, oneWeekAgo))
     )[0]!
@@ -72,7 +74,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const sessionsCreatedPreviousWeekResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(sessionsTable)
         .where(gte(sessionsTable.createdAt, oneWeekAgo))
     )[0]!
@@ -81,7 +83,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const sessionsCreatedPrevious24HoursResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(sessionsTable)
         .where(gte(sessionsTable.createdAt, oneDayAgo))
     )[0]!
@@ -90,7 +92,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const totalFoldersResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(foldersTable)
     )[0]!
 
@@ -98,7 +100,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const foldersCreatedLastWeekResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(foldersTable)
         .where(gte(foldersTable.createdAt, oneWeekAgo))
     )[0]!
@@ -108,7 +110,7 @@ export class ServerMetricsService {
       .select({
         identifier: appsTable.identifier,
         label: appsTable.label,
-        totalCount: sql<number>`count(*) over ()::int`,
+        totalCount: sql<string>`count(*) over ()::text`,
       })
       .from(appsTable)
     // Get total indexed size (sum of all folderObject.sizeBytes)
@@ -116,7 +118,7 @@ export class ServerMetricsService {
     const totalIndexedSizeResult = (
       await this.ormService.db
         .select({
-          totalSize: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
+          totalSize: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::text`,
         })
         .from(folderObjectsTable)
     )[0]!
@@ -129,7 +131,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const tasksCreatedPreviousDayResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(tasksTable)
         .where(gte(tasksTable.createdAt, oneDayAgo))
     )[0]!
@@ -138,7 +140,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const tasksCreatedPreviousHourResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(tasksTable)
         .where(gte(tasksTable.createdAt, oneHourAgo))
     )[0]!
@@ -147,7 +149,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const taskErrorsPreviousDayResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(tasksTable)
         .where(
           and(
@@ -161,7 +163,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const taskErrorsPreviousHourResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(tasksTable)
         .where(
           and(
@@ -175,7 +177,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const serverEventsEmittedPreviousDayResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(eventsTable)
         .where(
           and(
@@ -189,7 +191,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const serverEventsEmittedPreviousHourResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(eventsTable)
         .where(
           and(
@@ -203,7 +205,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const folderEventsEmittedPreviousDayResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(eventsTable)
         .where(
           and(
@@ -217,7 +219,7 @@ export class ServerMetricsService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const folderEventsEmittedPreviousHourResult = (
       await this.ormService.db
-        .select({ count: count(sql`*`) })
+        .select({ count: sql<string>`count(*)::text` })
         .from(eventsTable)
         .where(
           and(
@@ -236,7 +238,7 @@ export class ServerMetricsService {
     const totalIndexedAcrossStorageProvisionsResult = (
       await this.ormService.db
         .select({
-          totalSize: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
+          totalSize: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::text`,
         })
         .from(folderObjectsTable)
         .innerJoin(
@@ -251,39 +253,50 @@ export class ServerMetricsService {
     )[0]!
 
     return {
-      totalUsers: totalUsersResult.count,
-      sessionsCreatedPreviousWeek: sessionsCreatedPreviousWeekResult.count,
-      sessionsCreatedPrevious24Hours:
+      totalUsers: BigInt(totalUsersResult.count),
+      sessionsCreatedPreviousWeek: BigInt(
+        sessionsCreatedPreviousWeekResult.count,
+      ),
+      sessionsCreatedPrevious24Hours: BigInt(
         sessionsCreatedPrevious24HoursResult.count,
-      usersCreatedPreviousWeek: usersPreviousWeekResult.count,
-      totalFolders: totalFoldersResult.count,
-      foldersCreatedPreviousWeek: foldersCreatedLastWeekResult.count,
-      totalIndexedSizeBytes: totalIndexedSizeResult.totalSize,
+      ),
+      usersCreatedPreviousWeek: BigInt(usersPreviousWeekResult.count),
+      totalFolders: BigInt(totalFoldersResult.count),
+      foldersCreatedPreviousWeek: BigInt(foldersCreatedLastWeekResult.count),
+      totalIndexedSizeBytes: BigInt(totalIndexedSizeResult.totalSize),
       provisionedStorage: {
-        totalCount: allStorageProvisions.length,
+        totalCount: BigInt(allStorageProvisions.length),
         summary: generateStorageProvisionsSummary(allStorageProvisions),
       },
-      totalStorageProvisions: allStorageProvisions.length,
-      totalIndexedSizeBytesAcrossStorageProvisions:
+      totalStorageProvisions: BigInt(allStorageProvisions.length),
+      totalIndexedSizeBytesAcrossStorageProvisions: BigInt(
         totalIndexedAcrossStorageProvisionsResult.totalSize,
+      ),
       installedApps: {
-        totalCount: installedAppsResult[0]?.totalCount ?? 0,
+        totalCount:
+          installedAppsResult[0]?.totalCount !== undefined
+            ? BigInt(installedAppsResult[0].totalCount)
+            : BigInt(0),
         summary: generateInstalledAppsSummary(installedAppsResult),
       },
       // Task metrics
-      tasksCreatedPreviousDay: tasksCreatedPreviousDayResult.count,
-      tasksCreatedPreviousHour: tasksCreatedPreviousHourResult.count,
-      taskErrorsPreviousDay: taskErrorsPreviousDayResult.count,
-      taskErrorsPreviousHour: taskErrorsPreviousHourResult.count,
+      tasksCreatedPreviousDay: BigInt(tasksCreatedPreviousDayResult.count),
+      tasksCreatedPreviousHour: BigInt(tasksCreatedPreviousHourResult.count),
+      taskErrorsPreviousDay: BigInt(taskErrorsPreviousDayResult.count),
+      taskErrorsPreviousHour: BigInt(taskErrorsPreviousHourResult.count),
       // Event metrics
-      serverEventsEmittedPreviousDay:
+      serverEventsEmittedPreviousDay: BigInt(
         serverEventsEmittedPreviousDayResult.count,
-      serverEventsEmittedPreviousHour:
+      ),
+      serverEventsEmittedPreviousHour: BigInt(
         serverEventsEmittedPreviousHourResult.count,
-      folderEventsEmittedPreviousDay:
+      ),
+      folderEventsEmittedPreviousDay: BigInt(
         folderEventsEmittedPreviousDayResult.count,
-      folderEventsEmittedPreviousHour:
+      ),
+      folderEventsEmittedPreviousHour: BigInt(
         folderEventsEmittedPreviousHourResult.count,
+      ),
     }
   }
 }

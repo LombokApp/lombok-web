@@ -11774,10 +11774,10 @@
         "type": "object",
         "properties": {
           "totalCount": {
-            "type": "number"
+            "type": "integer"
           },
           "totalSizeBytes": {
-            "type": "number"
+            "type": "string"
           }
         },
         "required": [
@@ -12351,7 +12351,17 @@
                   "additionalProperties": {
                     "type": "object",
                     "additionalProperties": {
-                      "$ref": "#/components/schemas/ContentMetadataEntryDTO"
+                      "discriminator": {
+                        "propertyName": "type"
+                      },
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/InlineMetadataEntryDTO"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ExternalMetadataEntryDTO"
+                        }
+                      ]
                     }
                   }
                 }
@@ -12422,7 +12432,17 @@
                 "additionalProperties": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/ContentMetadataEntryDTO"
+                    "discriminator": {
+                      "propertyName": "type"
+                    },
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/InlineMetadataEntryDTO"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ExternalMetadataEntryDTO"
+                      }
+                    ]
                   }
                 }
               }
@@ -13259,31 +13279,39 @@
         "type": "object",
         "properties": {
           "totalUsers": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "totalFolders": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "usersCreatedPreviousWeek": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "foldersCreatedPreviousWeek": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "totalIndexedSizeBytes": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "sessionsCreatedPreviousWeek": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "sessionsCreatedPrevious24Hours": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "provisionedStorage": {
             "type": "object",
             "properties": {
               "totalCount": {
-                "type": "number"
+                "type": "integer",
+                "format": "int64"
               },
               "summary": {
                 "type": "string"
@@ -13295,13 +13323,15 @@
             ]
           },
           "totalIndexedSizeBytesAcrossStorageProvisions": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "installedApps": {
             "type": "object",
             "properties": {
               "totalCount": {
-                "type": "number"
+                "type": "integer",
+                "format": "int64"
               },
               "summary": {
                 "type": "string"
@@ -13313,28 +13343,36 @@
             ]
           },
           "tasksCreatedPreviousDay": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "tasksCreatedPreviousHour": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "taskErrorsPreviousDay": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "taskErrorsPreviousHour": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "serverEventsEmittedPreviousDay": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "serverEventsEmittedPreviousHour": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "folderEventsEmittedPreviousDay": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "folderEventsEmittedPreviousHour": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           }
         },
         "required": [
@@ -14454,7 +14492,8 @@
                             "required": [
                               "folderId",
                               "methods"
-                            ]
+                            ],
+                            "additionalProperties": false
                           },
                           {
                             "type": "object",
@@ -14482,7 +14521,8 @@
                               "folderId",
                               "objectKey",
                               "methods"
-                            ]
+                            ],
+                            "additionalProperties": false
                           },
                           {
                             "type": "object",
@@ -14510,7 +14550,8 @@
                               "folderId",
                               "prefix",
                               "methods"
-                            ]
+                            ],
+                            "additionalProperties": false
                           }
                         ]
                       }
@@ -14526,7 +14567,8 @@
                           },
                           "required": [
                             "folderId"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -14541,7 +14583,8 @@
                           "required": [
                             "folderId",
                             "objectKey"
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -14556,7 +14599,8 @@
                           "required": [
                             "folderId",
                             "prefix"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       ]
                     }

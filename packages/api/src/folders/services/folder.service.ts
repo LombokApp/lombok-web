@@ -711,8 +711,8 @@ export class FolderService {
 
     const folderMetadata = await this.ormService.db
       .select({
-        totalCount: count(sql`*`),
-        totalSizeBytes: sql<number>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::int`,
+        totalCount: sql<string>`count(*)::text`,
+        totalSizeBytes: sql<string>`coalesce(sum(${folderObjectsTable.sizeBytes}), 0)::text`,
       })
       .from(folderObjectsTable)
       .where(eq(folderObjectsTable.folderId, folder.id))
@@ -720,7 +720,7 @@ export class FolderService {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const { totalCount, totalSizeBytes } = folderMetadata[0]!
     return {
-      totalCount,
+      totalCount: Number.parseInt(totalCount, 10),
       totalSizeBytes,
     }
   }

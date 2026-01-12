@@ -2542,7 +2542,7 @@ export interface components {
         };
         FolderGetMetadataResponse: {
             totalCount: number;
-            totalSizeBytes: number;
+            totalSizeBytes: string;
         };
         FolderListResponse: {
             meta: {
@@ -2700,7 +2700,7 @@ export interface components {
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
                 contentMetadata: {
                     [key: string]: {
-                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
+                        [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
                     };
                 };
             }[];
@@ -2721,7 +2721,7 @@ export interface components {
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
                 contentMetadata: {
                     [key: string]: {
-                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
+                        [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
                     };
                 };
             };
@@ -2913,29 +2913,47 @@ export interface components {
             settingValue?: unknown;
         };
         ServerMetricsResponse: {
+            /** Format: int64 */
             totalUsers: number;
+            /** Format: int64 */
             totalFolders: number;
+            /** Format: int64 */
             usersCreatedPreviousWeek: number;
+            /** Format: int64 */
             foldersCreatedPreviousWeek: number;
+            /** Format: int64 */
             totalIndexedSizeBytes: number;
+            /** Format: int64 */
             sessionsCreatedPreviousWeek: number;
+            /** Format: int64 */
             sessionsCreatedPrevious24Hours: number;
             provisionedStorage: {
+                /** Format: int64 */
                 totalCount: number;
                 summary: string;
             };
+            /** Format: int64 */
             totalIndexedSizeBytesAcrossStorageProvisions: number;
             installedApps: {
+                /** Format: int64 */
                 totalCount: number;
                 summary: string;
             };
+            /** Format: int64 */
             tasksCreatedPreviousDay: number;
+            /** Format: int64 */
             tasksCreatedPreviousHour: number;
+            /** Format: int64 */
             taskErrorsPreviousDay: number;
+            /** Format: int64 */
             taskErrorsPreviousHour: number;
+            /** Format: int64 */
             serverEventsEmittedPreviousDay: number;
+            /** Format: int64 */
             serverEventsEmittedPreviousHour: number;
+            /** Format: int64 */
             folderEventsEmittedPreviousDay: number;
+            /** Format: int64 */
             folderEventsEmittedPreviousHour: number;
         };
         StorageProvisionsListResponse: {
