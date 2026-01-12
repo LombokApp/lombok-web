@@ -1,5 +1,5 @@
 {
-  "id": "6466df6d-c6df-4ac4-8454-acd8d4669611",
+  "id": "37d090cd-bd77-4506-a932-a0078f620b85",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1308,7 +1308,7 @@
           "name": "storageAccessPolicy",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "success": {
           "name": "success",

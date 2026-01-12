@@ -43,21 +43,62 @@ export interface TaskLogEntry {
   payload?: JsonSerializableObject
 }
 
-export const storageAccessPolicyEntrySchema = z.object({
-  folderId: z.string(),
-  prefix: z
-    .string()
-    .refine((value) => !value.startsWith('/'), {
-      message: 'Prefix must not start with a slash',
-    })
-    .optional(),
-  methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
-})
+export const prefixSchema = z
+  .string()
+  .refine((value) => !value.startsWith('/'), {
+    message: 'Prefix must not start with a slash',
+  })
 
-export type StorageAccessPolicyEntry = z.infer<
-  typeof storageAccessPolicyEntrySchema
+export const storageAccessPolicyAccessRuleSchema = z.union([
+  z
+    .object({
+      folderId: z.string(),
+      methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
+    })
+    .strict(),
+  z
+    .object({
+      folderId: z.string(),
+      objectKey: z.string(),
+      methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
+    })
+    .strict(),
+  z
+    .object({
+      folderId: z.string(),
+      prefix: prefixSchema,
+      methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
+    })
+    .strict(),
+])
+
+export type StorageAccessPolicyAccessRule = z.infer<
+  typeof storageAccessPolicyAccessRuleSchema
 >
-export const storageAccessPolicySchema = storageAccessPolicyEntrySchema.array()
+export const storageAccessPolicySchema = z.object({
+  rules: storageAccessPolicyAccessRuleSchema.array(),
+  outputLocation: z
+    .union([
+      z
+        .object({
+          folderId: z.string(),
+        })
+        .strict(),
+      z
+        .object({
+          folderId: z.string(),
+          objectKey: z.string(),
+        })
+        .strict(),
+      z
+        .object({
+          folderId: z.string(),
+          prefix: prefixSchema,
+        })
+        .strict(),
+    ])
+    .optional(),
+})
 
 export type StorageAccessPolicy = z.infer<typeof storageAccessPolicySchema>
 

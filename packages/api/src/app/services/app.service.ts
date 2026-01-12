@@ -1870,11 +1870,12 @@ export class AppService {
   }
 
   private getRequiredPermissionsForFolderFromPolicy(
-    storageAccessPolicy: StorageAccessPolicy | undefined,
+    storageAccessPolicy: StorageAccessPolicy,
     folderId: string,
   ): FolderScopeAppPermissions[] {
-    const folderPolicies =
-      storageAccessPolicy?.filter((entry) => entry.folderId === folderId) ?? []
+    const folderPolicies = storageAccessPolicy.rules.filter(
+      (entry) => entry.folderId === folderId,
+    )
     if (folderPolicies.length === 0) {
       return []
     }
@@ -1995,10 +1996,10 @@ export class AppService {
     storageAccessPolicy,
   }: {
     appIdentifier: string
-    storageAccessPolicy?: StorageAccessPolicy
+    storageAccessPolicy: StorageAccessPolicy
   }): Promise<void> {
     const uniqueFolderIds = Array.from(
-      new Set(storageAccessPolicy?.map((entry) => entry.folderId)),
+      new Set(storageAccessPolicy.rules.map((entry) => entry.folderId)),
     )
     if (uniqueFolderIds.length === 0) {
       return
@@ -2103,7 +2104,7 @@ export class AppService {
    * This method validates that the app has the specified profile and job class,
    * then delegates to the DockerJobsService to execute the job.
    *
-   * @param params.asyncId - If provided...
+   * @param params.asyncTaskId - If provided...
    * @param params.appIdentifier - The app's identifier
    * @param params.profileIdentifier - The container profile to use
    * @param params.jobIdentifier - The job class within the profile
@@ -2118,7 +2119,7 @@ export class AppService {
       profileIdentifier,
       jobIdentifier,
       jobData,
-      storageAccessPolicy = [],
+      storageAccessPolicy,
       asyncTaskId,
     } = params
 
@@ -2128,7 +2129,7 @@ export class AppService {
     )
 
     // validate the storage access policy rules if any are provided
-    if (storageAccessPolicy.length) {
+    if (storageAccessPolicy) {
       await this.validateAppStorageAccessPolicy({
         appIdentifier,
         storageAccessPolicy,

@@ -120,6 +120,12 @@ export const executeAppDockerJobSchema = z.object({
 export const triggerAppTaskSchema = z.object({
   taskIdentifier: z.string(),
   inputData: jsonSerializableObjectSchema,
+  outputLocation: z
+    .object({
+      folderId: z.string(),
+      prefix: z.string().optional(),
+    })
+    .optional(),
   dontStartBefore: z
     .union([
       z.object({

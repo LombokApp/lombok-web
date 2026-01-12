@@ -280,13 +280,25 @@ export class WorkerJobService {
     const appIdentifier = innerTask.ownerIdentifier
 
     for (const file of files) {
-      const isAllowed = claims.storageAccessPolicy.some(
+      const isAllowed = claims.storageAccessPolicy.rules.some(
         (storageAccessPolicyRule) => {
+          const wholeFolderAllowed =
+            !('objectKey' in storageAccessPolicyRule) &&
+            !('prefix' in storageAccessPolicyRule)
+          const constrainedByPrefix =
+            'prefix' in storageAccessPolicyRule &&
+            storageAccessPolicyRule.prefix
+          const constrainedByObjectKey =
+            'objectKey' in storageAccessPolicyRule &&
+            storageAccessPolicyRule.objectKey
           return (
             storageAccessPolicyRule.folderId === file.folderId &&
             storageAccessPolicyRule.methods.includes(file.method) &&
-            (!storageAccessPolicyRule.prefix ||
-              file.objectKey.startsWith(storageAccessPolicyRule.prefix))
+            (wholeFolderAllowed ||
+              (!!constrainedByPrefix &&
+                file.objectKey.startsWith(constrainedByPrefix)) ||
+              (constrainedByObjectKey &&
+                file.objectKey === constrainedByObjectKey))
           )
         },
       )

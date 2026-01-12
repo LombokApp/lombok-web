@@ -1,6 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import {
   elaboratedTargetLocationContextDTOSchema,
+  storageAccessPolicySchema,
   targetLocationContextDTOSchema,
   taskInvocationSchema,
 } from '@lombokapp/types'
@@ -21,6 +22,7 @@ export const taskSummaryDTOSchema = z.object({
     })
     .optional(),
   taskDescription: z.string(),
+  storageAccessPolicy: storageAccessPolicySchema.optional(),
   startedAt: z.string().datetime().optional(),
   completedAt: z.string().datetime().optional(),
   createdAt: z.string().datetime(),

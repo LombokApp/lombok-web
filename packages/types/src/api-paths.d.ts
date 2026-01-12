@@ -3224,6 +3224,29 @@ export interface components {
                 };
                 error?: components["schemas"]["ApiErrorResponseDTO"];
                 taskDescription: string;
+                storageAccessPolicy?: {
+                    rules: ({
+                        folderId: string;
+                        methods: ("PUT" | "DELETE" | "GET" | "HEAD")[];
+                    } | {
+                        folderId: string;
+                        objectKey: string;
+                        methods: ("PUT" | "DELETE" | "GET" | "HEAD")[];
+                    } | {
+                        folderId: string;
+                        prefix: string;
+                        methods: ("PUT" | "DELETE" | "GET" | "HEAD")[];
+                    })[];
+                    outputLocation?: {
+                        folderId: string;
+                    } | {
+                        folderId: string;
+                        objectKey: string;
+                    } | {
+                        folderId: string;
+                        prefix: string;
+                    };
+                };
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */

@@ -6,7 +6,6 @@ import type { NewTask } from '../entities/task.entity'
 type TaskIdempotencyKeyInput = Omit<NewTask, 'idempotencyKey'>
 
 const buildTriggerIdempotencyData = (
-  task: TaskIdempotencyKeyInput,
   trigger: TaskInvocation,
 ): JsonSerializableObject => {
   switch (trigger.kind) {
@@ -43,7 +42,7 @@ export const buildTaskIdempotencyKey = (
   const payload = {
     ownerIdentifier: input.ownerIdentifier,
     taskIdentifier: input.taskIdentifier,
-    triggerData: buildTriggerIdempotencyData(input, input.invocation),
+    triggerData: buildTriggerIdempotencyData(input.invocation),
   }
   const serialized = JSON.stringify(payload)
   const hash = hashData(Buffer.from(serialized, 'utf8'))

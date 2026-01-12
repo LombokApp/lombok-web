@@ -159,8 +159,7 @@ export class DockerJobsService {
     params: DockerExecuteJobOptions,
     waitForCompletion: T,
   ): Promise<DockerExecResult<T>> {
-    const { jobIdentifier, jobData, profileKey, profileSpec, outputLocation } =
-      params
+    const { jobIdentifier, jobData, profileKey, profileSpec } = params
 
     // generate a job id to represent this execution
     const jobId = crypto.randomUUID()
@@ -182,7 +181,7 @@ export class DockerJobsService {
 
     // create the worker token if one is required
     const jobToken =
-      params.asyncTaskId || (params.storageAccessPolicy ?? []).length > 0
+      params.asyncTaskId || params.storageAccessPolicy
         ? this.workerJobService.createWorkerJobToken({
             jobId,
             ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
@@ -214,7 +213,20 @@ export class DockerJobsService {
         platform_url: !jobToken
           ? undefined
           : `http${this._coreConfig.platformHttps ? 's' : ''}://${this._coreConfig.platformHost}${this._coreConfig.platformPort !== null ? `:${this._coreConfig.platformPort}` : ''}`,
-        output_location: outputLocation,
+        output_location: params.storageAccessPolicy?.outputLocation
+          ? {
+              folder_id: params.storageAccessPolicy.outputLocation.folderId,
+              ...('prefix' in params.storageAccessPolicy.outputLocation
+                ? { prefix: params.storageAccessPolicy.outputLocation.prefix }
+                : {}),
+              ...('objectKey' in params.storageAccessPolicy.outputLocation
+                ? {
+                    objectKey:
+                      params.storageAccessPolicy.outputLocation.objectKey,
+                  }
+                : {}),
+            }
+          : undefined,
       }
 
       // Base64 encode the payload
