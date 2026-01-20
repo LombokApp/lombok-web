@@ -2,6 +2,7 @@ import { convertUnknownToJsonSerializableObject } from '@lombokapp/types'
 import { convertErrorToAsyncWorkError } from '@lombokapp/worker-utils'
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import { ContainerInspectInfo } from 'dockerode'
 import { coreConfig } from 'src/core/config'
 
 import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
@@ -11,7 +12,11 @@ import {
   type ContainerInfo,
   type CreateContainerOptions,
   type DockerAdapter,
+  type DockerContainerGpuInfo,
+  type DockerContainerStats,
   type DockerError,
+  type DockerHostResources,
+  type DockerLogEntry,
   type DockerStateFunc,
 } from './docker-client.types'
 
@@ -73,6 +78,13 @@ export class DockerClientService {
   }
 
   /**
+   * Get a display-friendly description of a Docker host
+   */
+  getHostDescription(hostId: string): string {
+    return this.getAdapter(hostId).getDescription()
+  }
+
+  /**
    * List containers on a host matching the given labels
    */
   async listContainersByLabels(
@@ -80,6 +92,165 @@ export class DockerClientService {
     labels: Record<string, string>,
   ): Promise<ContainerInfo[]> {
     return this.getAdapter(hostId).listContainersByLabels(labels)
+  }
+
+  async getContainerLogs(
+    hostId: string,
+    containerId: string,
+    options?: { tail?: number; timestamps?: boolean },
+  ): Promise<DockerLogEntry[]> {
+    return this.getAdapter(hostId).getContainerLogs(containerId, options)
+  }
+
+  async getHostResources(hostId: string): Promise<DockerHostResources> {
+    return this.getAdapter(hostId).getHostResources()
+  }
+
+  async getContainerStats(
+    hostId: string,
+    containerId: string,
+  ): Promise<DockerContainerStats> {
+    return this.getAdapter(hostId).getContainerStats(containerId)
+  }
+
+  async getContainerInspect(
+    hostId: string,
+    containerId: string,
+  ): Promise<ContainerInspectInfo> {
+    return this.getAdapter(hostId).getContainerInspect(containerId)
+  }
+
+  async getContainerGpuInfo(
+    hostId: string,
+    containerId: string,
+    inspect?: ContainerInspectInfo,
+  ): Promise<DockerContainerGpuInfo | undefined> {
+    interface InspectShape {
+      HostConfig?: {
+        DeviceRequests?: {
+          Driver?: string
+          Capabilities?: string[][]
+          DeviceIDs?: string[]
+        }[]
+        Devices?: {
+          PathOnHost?: string
+          PathInContainer?: string
+        }[]
+        Runtime?: string
+      }
+      State?: {
+        Running?: boolean
+      }
+    }
+
+    const inspection =
+      inspect ?? (await this.getContainerInspect(hostId, containerId))
+    const inspectData = inspection as InspectShape
+    const deviceRequests = Array.isArray(inspectData.HostConfig?.DeviceRequests)
+      ? inspectData.HostConfig.DeviceRequests
+      : []
+    const devices = Array.isArray(inspectData.HostConfig?.Devices)
+      ? inspectData.HostConfig.Devices
+      : []
+
+    const gpuRequest = deviceRequests.find((request) => {
+      const caps = request.Capabilities
+      return Array.isArray(caps) && caps.some((cap) => cap.includes('gpu'))
+    })
+    const hasNvidiaRequest = deviceRequests.some(
+      (request) => request.Driver === 'nvidia',
+    )
+    const hasNvidiaRuntime = inspectData.HostConfig?.Runtime === 'nvidia'
+    const hasNvidiaDevice = devices.some((device) =>
+      /nvidia/i.test(device.PathOnHost ?? ''),
+    )
+    const hasGpu =
+      Boolean(gpuRequest) ||
+      hasNvidiaDevice ||
+      hasNvidiaRuntime ||
+      hasNvidiaRequest
+    if (!hasGpu) {
+      return undefined
+    }
+
+    const driver =
+      gpuRequest?.Driver ??
+      deviceRequests.find((request) => request.Driver)?.Driver ??
+      (hasNvidiaDevice || hasNvidiaRuntime || hasNvidiaRequest
+        ? 'nvidia'
+        : undefined)
+
+    if (!inspectData.State?.Running) {
+      return {
+        driver,
+        error: 'Container is not running.',
+      }
+    }
+
+    if (driver && driver !== 'nvidia') {
+      return {
+        driver,
+        error: 'GPU introspection is only supported for NVIDIA devices.',
+      }
+    }
+
+    const command = ['nvidia-smi', '-L']
+    try {
+      const exec = await this.execInContainer(hostId, containerId, command)
+      const execState = await exec.state()
+      const { stdout, stderr } = exec.output()
+      if (!execState.running && execState.exitCode === 0) {
+        const output = stdout.trim() || stderr.trim()
+        return {
+          driver: driver ?? 'nvidia',
+          command: command.join(' '),
+          output: output.length ? output : undefined,
+        }
+      }
+
+      let errorMessage = stderr.trim()
+      if (!errorMessage) {
+        try {
+          const execError = await exec.getError()
+          errorMessage = execError.message
+        } catch (error) {
+          errorMessage = error instanceof Error ? error.message : String(error)
+        }
+      }
+
+      return {
+        driver: driver ?? 'nvidia',
+        command: command.join(' '),
+        output: stdout.trim() || undefined,
+        error: errorMessage || 'Failed to run nvidia-smi.',
+      }
+    } catch (error) {
+      return {
+        driver: driver ?? 'nvidia',
+        command: command.join(' '),
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  }
+
+  async startContainer(hostId: string, containerId: string): Promise<void> {
+    await this.getAdapter(hostId).startContainer(containerId)
+  }
+
+  async stopContainer(hostId: string, containerId: string): Promise<void> {
+    await this.getAdapter(hostId).stopContainer(containerId)
+  }
+
+  async restartContainer(hostId: string, containerId: string): Promise<void> {
+    await this.getAdapter(hostId).restartContainer(containerId)
+  }
+
+  async removeContainer(
+    hostId: string,
+    containerId: string,
+    options?: { force?: boolean },
+  ): Promise<void> {
+    await this.getAdapter(hostId).removeContainer(containerId, options)
   }
 
   private async withErrorGuard<T>(

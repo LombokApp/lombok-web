@@ -78,3 +78,4 @@ export const serverStorageSchema = z.object({
 })
 
 export type StorageProvisionDTO = z.infer<typeof storageProvisionSchema>
+export type ServerStorageLocation = z.infer<typeof serverStorageSchema>

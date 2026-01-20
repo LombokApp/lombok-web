@@ -35,23 +35,29 @@ function ScrollBar({
 function ScrollArea({
   className,
   children,
+  viewportClassName,
   type = 'always',
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+  viewportClassName?: string
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn('pr-4 w-[calc(100%+1rem)]', 'min-h-0', className)}
+      className={cn('pr-4 min-w-[calc(100%+1rem)]', 'min-h-0', className)}
       type={type}
       {...props}
     >
-      <div className="relative h-full min-w-fit">
+      <div className="relative size-full min-w-fit">
         <ScrollAreaPrimitive.Viewport
           data-slot="scroll-area-viewport"
           className={cn(
-            'size-full rounded-[inherit] outline-none',
+            'size-full',
+            'rounded-[inherit] outline-none',
             'transition-[color,box-shadow]',
             'focus-visible:outline-1 focus-visible:ring focus-visible:ring-ring/50',
+            '[&>*:first-child]:!flex',
+            viewportClassName,
           )}
         >
           {children}

@@ -105,7 +105,6 @@ export async function handleAppSocketMessage(
       return appService.getApp(requestingAppIdentifier).then((_app) => {
         if (!_app?.database) {
           return {
-            result: { success: false },
             error: { code: 409, message: 'App does not have database access.' },
           }
         }
@@ -132,7 +131,6 @@ export async function handleAppSocketMessage(
         })
         if (!app) {
           return {
-            result: { success: false },
             error: { code: 404, message: 'App not found.' },
           }
         }
@@ -144,7 +142,6 @@ export async function handleAppSocketMessage(
         return { result: { success: true } }
       } catch {
         return {
-          result: { success: false },
           error: { code: 500, message: 'Internal server error.' },
         }
       }

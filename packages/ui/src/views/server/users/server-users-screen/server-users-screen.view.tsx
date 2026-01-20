@@ -181,7 +181,7 @@ export function ServerUsersScreen() {
   }
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
+    <div className={cn('flex flex-1 flex-col items-center h-full')}>
       <div className="flex w-full items-center justify-between">
         <h1 className="pl-2 text-2xl font-bold">Users</h1>
         <Button
@@ -198,23 +198,28 @@ export function ServerUsersScreen() {
           Create User
         </Button>
       </div>
-      <DataTable
-        enableSearch={true}
-        filters={filters}
-        onColumnFiltersChange={onFiltersChange}
-        rowCount={users?.meta.totalCount}
-        data={users?.result ?? []}
-        columns={serverUsersTableColumns}
-        sorting={sorting}
-        pagination={pagination}
-        onPaginationChange={handlePaginationChange}
-        onSortingChange={handleSortingChange}
-      />
-      <ServerUserModal
-        modalData={modalData}
-        setModalData={setModalData}
-        onSubmit={handleSubmit}
-      />
+      <div className="min-h-0 w-full flex-1 grow">
+        <div className="size-full flex-1 pb-4">
+          <DataTable
+            className="size-full max-h-full min-h-0"
+            enableSearch={true}
+            filters={filters}
+            onColumnFiltersChange={onFiltersChange}
+            rowCount={users?.meta.totalCount}
+            data={users?.result ?? []}
+            columns={serverUsersTableColumns}
+            sorting={sorting}
+            pagination={pagination}
+            onPaginationChange={handlePaginationChange}
+            onSortingChange={handleSortingChange}
+          />
+        </div>
+        <ServerUserModal
+          modalData={modalData}
+          setModalData={setModalData}
+          onSubmit={handleSubmit}
+        />
+      </div>
     </div>
   )
 }

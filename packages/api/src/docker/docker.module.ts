@@ -33,6 +33,7 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     DockerJobsService,
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
+    DockerClientService,
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

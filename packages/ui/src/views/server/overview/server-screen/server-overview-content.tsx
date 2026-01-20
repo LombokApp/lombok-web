@@ -57,7 +57,7 @@ export function ServerOverviewContent() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex size-full flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {Array.from({ length: 6 })
             .fill(null)

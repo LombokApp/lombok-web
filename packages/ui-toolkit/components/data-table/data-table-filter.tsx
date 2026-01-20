@@ -38,7 +38,7 @@ export function DataTableFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="border-dashed">
+        <Button variant="outline" size="sm" className="border-dashed h-8">
           <PlusCircledIcon className="mr-2 size-4" />
           {title}
           {selectedValues.size > 0 && (

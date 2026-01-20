@@ -24,8 +24,11 @@ import {
 } from './client/docker.schema'
 import { DockerClientService } from './client/docker-client.service'
 import {
+  ConnectionTestResult,
   DockerError,
+  DockerHostResources,
   DockerLogAccessError,
+  DockerLogEntry,
   DockerStateFunc,
 } from './client/docker-client.types'
 import { DockerWorkerHookService } from './docker-worker-hook.service'
@@ -622,6 +625,155 @@ export class DockerJobsService {
     }
     return streamsOutput.stdout
   }
+
+  async listContainerJobStateFiles(
+    hostId: string,
+    containerId: string,
+  ): Promise<string[]> {
+    const { output, state } = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      [
+        'sh',
+        '-c',
+        'ls -1t /var/lib/lombok-worker-agent/jobs/*.json 2>/dev/null || true',
+      ],
+    )
+
+    await waitForTrue(
+      async () => {
+        const execState = await state(5000)
+        return !execState.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const streamsOutput = output()
+
+    return streamsOutput.stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+  }
+
+  async getContainerJobState(
+    hostId: string,
+    containerId: string,
+    jobId: string,
+  ): Promise<DockerJobState> {
+    return this.getJobState(hostId, containerId, jobId)
+  }
+
+  async getContainerJobLogEntries(
+    hostId: string,
+    containerId: string,
+    jobId: string,
+    tail?: number,
+  ): Promise<{ entries: DockerLogEntry[]; logError?: string }> {
+    const entries: DockerLogEntry[] = []
+    const errors: string[] = []
+
+    try {
+      const stdout = await this.getJobLogs(hostId, containerId, { jobId, tail })
+      if (stdout.length > 0) {
+        entries.push({ stream: 'stdout', text: stdout })
+      }
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error))
+    }
+
+    try {
+      const stderr = await this.getJobLogs(hostId, containerId, {
+        jobId,
+        tail,
+        err: true,
+      })
+      if (stderr.length > 0) {
+        entries.push({ stream: 'stderr', text: stderr })
+      }
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error))
+    }
+
+    return {
+      entries,
+      logError: errors.length > 0 ? errors.join('\n') : undefined,
+    }
+  }
+
+  async getDockerHostState(hostId: string): Promise<DockerHostState> {
+    let connection: ConnectionTestResult
+    try {
+      connection = await this.dockerClientService.testHostConnection(hostId)
+    } catch (error) {
+      connection = {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+
+    let resources: DockerHostResources | undefined
+    if (connection.success) {
+      try {
+        resources = await this.dockerClientService.getHostResources(hostId)
+      } catch {
+        resources = undefined
+      }
+    }
+
+    let containers: DockerHostContainerState[] = []
+    let containersError: string | undefined
+    try {
+      const rawContainers =
+        await this.dockerClientService.listContainersByLabels(hostId, {
+          [DOCKER_LABELS.PLATFORM]: 'lombok',
+        })
+      containers = rawContainers.map((container) => ({
+        ...container,
+        profileId: container.labels[DOCKER_LABELS.PROFILE_ID],
+        profileHash: container.labels[DOCKER_LABELS.PROFILE_HASH],
+      }))
+    } catch (error) {
+      containersError = error instanceof Error ? error.message : String(error)
+    }
+
+    return {
+      id: hostId,
+      description: this.dockerClientService.getHostDescription(hostId),
+      connection,
+      resources,
+      containers,
+      containersError,
+    }
+  }
+
+  async getDockerHostStates(): Promise<DockerHostState[]> {
+    const hostIds = Object.keys(this._coreConfig.dockerHostConfig.hosts ?? {})
+    return Promise.all(hostIds.map((hostId) => this.getDockerHostState(hostId)))
+  }
+}
+
+interface DockerHostContainerState {
+  id: string
+  image: string
+  labels: Record<string, string>
+  state: 'running' | 'exited' | 'paused' | 'created' | 'unknown'
+  createdAt: string
+  profileId?: string
+  profileHash?: string
+}
+
+interface DockerHostState {
+  id: string
+  description: string
+  connection: ConnectionTestResult
+  resources?: DockerHostResources
+  containers: DockerHostContainerState[]
+  containersError?: string
 }
 
 type DockerJobResult =

@@ -8,6 +8,7 @@ import {
   Folders,
   LayoutGrid,
   ListChecks,
+  Server,
   Settings,
   Users,
 } from 'lucide-react'
@@ -72,6 +73,12 @@ export function getMenuList(
                 active: pathname?.startsWith('/server/apps'),
                 label: 'Apps',
                 icon: AppWindow,
+              },
+              {
+                href: '/server/docker',
+                active: pathname?.startsWith('/server/docker'),
+                label: 'Docker',
+                icon: Server,
               },
               {
                 href: '/server/events',

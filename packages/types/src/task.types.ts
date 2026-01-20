@@ -333,3 +333,5 @@ export const taskCompletionSchema = z.discriminatedUnion('success', [
 ])
 
 export type TaskCompletion = z.infer<typeof taskCompletionSchema>
+
+export type TaskDTO = z.infer<typeof taskDTOSchema>

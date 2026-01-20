@@ -1,10 +1,10 @@
-import type { ServerStorageDTO } from '@lombokapp/types'
+import type { ServerStorageLocation } from '@lombokapp/types'
 
 import type { ServerStorageInputDTO } from '../server-storage-input.dto'
 
 export function transformServerStorageToDTO(
-  serverStorageLocation: ServerStorageDTO & ServerStorageInputDTO,
-): ServerStorageDTO {
+  serverStorageLocation: ServerStorageLocation & ServerStorageInputDTO,
+): ServerStorageLocation {
   return {
     accessKeyId: serverStorageLocation.accessKeyId,
     bucket: serverStorageLocation.bucket,

@@ -1,4 +1,5 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
+import type { ContainerInspectInfo } from 'dockerode'
 import type { z } from 'zod'
 
 import type { DockerPullOptions } from './adapters/local.adapter'
@@ -29,6 +30,31 @@ export interface ConnectionTestResult {
   success: boolean
   version?: string
   apiVersion?: string
+  error?: string
+}
+
+export interface DockerLogEntry {
+  stream: 'stdout' | 'stderr'
+  text: string
+}
+
+export interface DockerHostResources {
+  cpuCores?: number
+  memoryBytes?: number
+  info: JsonSerializableObject
+}
+
+export interface DockerContainerStats {
+  cpuPercent?: number
+  memoryBytes?: number
+  memoryLimitBytes?: number
+  memoryPercent?: number
+}
+
+export interface DockerContainerGpuInfo {
+  driver?: string
+  command?: string
+  output?: string
   error?: string
 }
 
@@ -76,6 +102,47 @@ export interface DockerAdapter {
    * Start a stopped container
    */
   startContainer: (containerId: string) => Promise<void>
+
+  /**
+   * Stop a running container
+   */
+  stopContainer: (containerId: string) => Promise<void>
+
+  /**
+   * Restart a container
+   */
+  restartContainer: (containerId: string) => Promise<void>
+
+  /**
+   * Remove a container
+   */
+  removeContainer: (
+    containerId: string,
+    options?: { force?: boolean },
+  ) => Promise<void>
+
+  /**
+   * Get container logs
+   */
+  getContainerLogs: (
+    containerId: string,
+    options?: { tail?: number; timestamps?: boolean },
+  ) => Promise<DockerLogEntry[]>
+
+  /**
+   * Get host resource info
+   */
+  getHostResources: () => Promise<DockerHostResources>
+
+  /**
+   * Get container resource usage
+   */
+  getContainerStats: (containerId: string) => Promise<DockerContainerStats>
+
+  /**
+   * Get container inspection data
+   */
+  getContainerInspect: (containerId: string) => Promise<ContainerInspectInfo>
 
   /**
    * Check if a container is running

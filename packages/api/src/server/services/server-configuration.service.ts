@@ -1,5 +1,5 @@
 import {
-  ServerStorageDTO,
+  ServerStorageLocation,
   StorageProvisionDTO,
   StorageProvisionType,
   StorageProvisionTypeEnum,
@@ -391,7 +391,9 @@ export class ServerConfigurationService {
       : record
   }
 
-  getServerStorageAsAdmin(actor: User): Promise<ServerStorageDTO | undefined> {
+  getServerStorageAsAdmin(
+    actor: User,
+  ): Promise<ServerStorageLocation | undefined> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -400,13 +402,15 @@ export class ServerConfigurationService {
   }
 
   async getServerStorage(): Promise<
-    (ServerStorageDTO & { secretAccessKey: string }) | undefined
+    (ServerStorageLocation & { secretAccessKey: string }) | undefined
   > {
     const savedLocation = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key),
       })
-    )?.value as (ServerStorageDTO & { secretAccessKey: string }) | undefined
+    )?.value as
+      | (ServerStorageLocation & { secretAccessKey: string })
+      | undefined
 
     return savedLocation
   }

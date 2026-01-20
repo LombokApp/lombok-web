@@ -50,7 +50,7 @@ export function DataTableToolbar<TData>({
     <div className="flex flex-row items-center justify-between">
       <div className="flex flex-col items-start xl:flex-row xl:items-center">
         {title && (
-          <div className="pl-2">
+          <div>
             <TypographyH3>{title}</TypographyH3>
           </div>
         )}

@@ -2,7 +2,7 @@ import { S3ServiceException } from '@aws-sdk/client-s3'
 import {
   accessKeyPublicSchema,
   accessKeySchema,
-  ServerStorageDTO,
+  ServerStorageLocation,
   StorageProvisionDTO,
 } from '@lombokapp/types'
 import {
@@ -523,7 +523,9 @@ export class StorageLocationService {
         await tx.query.serverSettingsTable.findFirst({
           where: eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key),
         })
-      type ServerStorageValue = ServerStorageDTO & { secretAccessKey: string }
+      type ServerStorageValue = ServerStorageLocation & {
+        secretAccessKey: string
+      }
       const serverStorageValue = existingServerStorage?.value as
         | ServerStorageValue
         | undefined

@@ -1,6 +1,5 @@
 import type { ServerEventsListRequest } from '@lombokapp/types'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router'
@@ -125,7 +124,7 @@ export function ServerEventsScreen() {
   })
   const events = listServerEventsQuery.data
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
+    <div>
       <DataTable
         title="Events"
         enableSearch={true}

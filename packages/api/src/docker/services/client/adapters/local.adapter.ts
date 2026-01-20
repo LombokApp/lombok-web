@@ -1,4 +1,6 @@
+import { convertUnknownToJsonSerializableObject } from '@lombokapp/types'
 import { Logger } from '@nestjs/common'
+import type { ContainerInspectInfo } from 'dockerode'
 import Docker from 'dockerode'
 import * as fs from 'fs'
 import { PassThrough } from 'stream'
@@ -11,6 +13,9 @@ import {
   type DockerAdapter,
   DockerAdapterError,
   DockerAdapterErrorCode,
+  type DockerContainerStats,
+  type DockerHostResources,
+  type DockerLogEntry,
   type DockerStateFunc,
 } from '../docker-client.types'
 import type {
@@ -201,6 +206,132 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
+  private appendDockerLogEntry(
+    entries: DockerLogEntry[],
+    stream: DockerLogEntry['stream'],
+    chunk: Buffer,
+  ) {
+    if (!chunk.length) {
+      return
+    }
+
+    const text = chunk.toString('utf-8')
+    if (!text) {
+      return
+    }
+
+    const lastEntry = entries[entries.length - 1]
+    if (lastEntry?.stream === stream) {
+      lastEntry.text += text
+      return
+    }
+
+    entries.push({ stream, text })
+  }
+
+  private parseDockerLogBuffer(
+    payload: Buffer,
+    isTty: boolean,
+  ): DockerLogEntry[] {
+    const entries: DockerLogEntry[] = []
+
+    if (isTty) {
+      this.appendDockerLogEntry(entries, 'stdout', payload)
+      return entries
+    }
+
+    let offset = 0
+
+    // Docker multiplexed logs have an 8-byte header per frame.
+    while (offset + 8 <= payload.length) {
+      const streamType = payload[offset]
+      const chunkLength = payload.readUInt32BE(offset + 4)
+      const chunkStart = offset + 8
+      const chunkEnd = chunkStart + chunkLength
+      if (chunkEnd > payload.length) {
+        break
+      }
+
+      const chunk = payload.subarray(chunkStart, chunkEnd)
+      if (streamType === 2) {
+        this.appendDockerLogEntry(entries, 'stderr', chunk)
+      } else {
+        this.appendDockerLogEntry(entries, 'stdout', chunk)
+      }
+
+      offset = chunkEnd
+    }
+
+    if (offset < payload.length) {
+      this.appendDockerLogEntry(entries, 'stdout', payload.subarray(offset))
+    }
+
+    return entries
+  }
+
+  private collectDockerLogEntries(
+    stream: NodeJS.ReadableStream,
+    isTty: boolean,
+  ): Promise<DockerLogEntry[]> {
+    return new Promise((resolve, reject) => {
+      const entries: DockerLogEntry[] = []
+      let pending = Buffer.alloc(0)
+      let settled = false
+
+      const finish = () => {
+        if (settled) {
+          return
+        }
+        settled = true
+
+        if (!isTty && pending.length) {
+          this.appendDockerLogEntry(entries, 'stdout', pending)
+        }
+        resolve(entries)
+      }
+
+      stream.on('error', (error) => {
+        if (settled) {
+          return
+        }
+        settled = true
+        reject(error instanceof Error ? error : new Error(String(error)))
+      })
+
+      stream.on('data', (chunk: Buffer | string) => {
+        const bufferChunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+
+        if (isTty) {
+          this.appendDockerLogEntry(entries, 'stdout', bufferChunk)
+          return
+        }
+
+        pending = Buffer.concat([pending, bufferChunk])
+
+        while (pending.length >= 8) {
+          const streamType = pending[0]
+          const chunkLength = pending.readUInt32BE(4)
+          const frameSize = 8 + chunkLength
+          if (pending.length < frameSize) {
+            break
+          }
+
+          const payload = pending.subarray(8, frameSize)
+          if (streamType === 2) {
+            this.appendDockerLogEntry(entries, 'stderr', payload)
+          } else {
+            this.appendDockerLogEntry(entries, 'stdout', payload)
+          }
+
+          pending = pending.subarray(frameSize)
+        }
+      })
+
+      stream.on('end', finish)
+      stream.on('close', finish)
+    })
+  }
+
   async testConnection(): Promise<ConnectionTestResult> {
     try {
       const versionInfo = await this.docker.version()
@@ -219,6 +350,88 @@ export class LocalDockerAdapter implements DockerAdapter {
             : 'Unknown error connecting to Docker host',
       }
     }
+  }
+
+  async getHostResources(): Promise<DockerHostResources> {
+    return this.withErrorGuard(async () => {
+      const info: unknown = await this.docker.info()
+      const sanitizedInfo = convertUnknownToJsonSerializableObject(info, {
+        mode: 'recursive',
+        throwErrors: false,
+      })
+      if (!sanitizedInfo) {
+        return { info: {} }
+      }
+      return {
+        cpuCores:
+          typeof sanitizedInfo.NCPU === 'number'
+            ? sanitizedInfo.NCPU
+            : undefined,
+        memoryBytes:
+          typeof sanitizedInfo.MemTotal === 'number'
+            ? sanitizedInfo.MemTotal
+            : undefined,
+        info: sanitizedInfo,
+      }
+    })
+  }
+
+  async getContainerStats(containerId: string): Promise<DockerContainerStats> {
+    return this.withErrorGuard(async () => {
+      const container = this.docker.getContainer(containerId)
+      const stats = await container.stats({ stream: false })
+      const cpuStats = stats.cpu_stats
+      const preCpuStats = stats.precpu_stats
+      const cpuDelta =
+        cpuStats.cpu_usage.total_usage && preCpuStats.cpu_usage.total_usage
+          ? cpuStats.cpu_usage.total_usage - preCpuStats.cpu_usage.total_usage
+          : undefined
+      const systemDelta =
+        cpuStats.system_cpu_usage && preCpuStats.system_cpu_usage
+          ? cpuStats.system_cpu_usage - preCpuStats.system_cpu_usage
+          : undefined
+      const cpuCount =
+        typeof cpuStats.online_cpus === 'number'
+          ? cpuStats.online_cpus
+          : cpuStats.cpu_usage.percpu_usage.length
+
+      const cpuPercent =
+        cpuDelta && systemDelta && cpuCount
+          ? (cpuDelta / systemDelta) * cpuCount * 100
+          : undefined
+
+      const memoryStats = stats.memory_stats
+      const rawUsage =
+        typeof memoryStats.usage === 'number' ? memoryStats.usage : undefined
+      const cache =
+        typeof memoryStats.stats.cache === 'number'
+          ? memoryStats.stats.cache
+          : 0
+      const memoryBytes =
+        rawUsage !== undefined ? Math.max(rawUsage - cache, 0) : undefined
+      const memoryLimitBytes =
+        typeof memoryStats.limit === 'number' ? memoryStats.limit : undefined
+      const memoryPercent =
+        memoryBytes !== undefined && memoryLimitBytes
+          ? (memoryBytes / memoryLimitBytes) * 100
+          : undefined
+
+      return {
+        cpuPercent,
+        memoryBytes,
+        memoryLimitBytes,
+        memoryPercent,
+      }
+    })
+  }
+
+  async getContainerInspect(
+    containerId: string,
+  ): Promise<ContainerInspectInfo> {
+    return this.withErrorGuard(async () => {
+      const container = this.docker.getContainer(containerId)
+      return container.inspect()
+    })
   }
 
   async pullImage(image: string, options: DockerPullOptions): Promise<void> {
@@ -306,6 +519,30 @@ export class LocalDockerAdapter implements DockerAdapter {
       state: this.mapContainerState(container.State),
       createdAt: new Date(container.Created * 1000).toISOString(),
     }))
+  }
+
+  async getContainerLogs(
+    containerId: string,
+    options?: { tail?: number; timestamps?: boolean },
+  ): Promise<DockerLogEntry[]> {
+    return this.withErrorGuard(async () => {
+      const container = this.docker.getContainer(containerId)
+      const inspection = await container.inspect()
+      const isTty = Boolean(inspection.Config.Tty)
+      const stream = (await container.logs({
+        stdout: true,
+        stderr: true,
+        follow: false,
+        tail: options?.tail ?? 200,
+        timestamps: options?.timestamps ?? false,
+      })) as NodeJS.ReadableStream | Buffer
+
+      if (Buffer.isBuffer(stream)) {
+        return this.parseDockerLogBuffer(stream, isTty)
+      }
+
+      return this.collectDockerLogEntries(stream, isTty)
+    })
   }
 
   async imageExists(image: string) {
@@ -492,6 +729,29 @@ export class LocalDockerAdapter implements DockerAdapter {
         }
         throw error
       }
+    })
+  }
+
+  async stopContainer(containerId: string): Promise<void> {
+    await this.withErrorGuard(async () => {
+      await this.docker.getContainer(containerId).stop()
+    })
+  }
+
+  async restartContainer(containerId: string): Promise<void> {
+    await this.withErrorGuard(async () => {
+      await this.docker.getContainer(containerId).restart()
+    })
+  }
+
+  async removeContainer(
+    containerId: string,
+    options?: { force?: boolean },
+  ): Promise<void> {
+    await this.withErrorGuard(async () => {
+      await this.docker
+        .getContainer(containerId)
+        .remove({ force: options?.force ?? false })
     })
   }
 
