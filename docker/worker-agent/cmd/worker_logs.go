@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"lombok-worker-agent/internal/config"
+	"lombok-worker-agent/internal/reaper"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -50,6 +51,10 @@ func init() {
 }
 
 func tailWorkerLogs(cmd *cobra.Command, args []string) error {
+	// Enable reaping unregistered zombies for the main worker-logs process
+	// This handles zombies that become children of this process when child agent processes exit
+	reaper.EnableReapUnregisteredZombies()
+
 	if workerLogsPollInterval <= 0 {
 		workerLogsPollInterval = workerLogsDefaultPollInterval
 	}

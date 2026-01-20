@@ -49,8 +49,23 @@ export class AsyncWorkError extends Error {
     }
   }
 
+  resolveHighestLevelAppError(): AsyncWorkError | undefined {
+    return AsyncWorkError.resolveHighestLevelAppError(this)
+  }
+
+  static resolveHighestLevelAppError(
+    _error: AsyncWorkError,
+  ): AsyncWorkError | undefined {
+    if (_error.origin === 'app') {
+      return _error
+    }
+    if (_error.cause) {
+      return AsyncWorkError.resolveHighestLevelAppError(_error.cause)
+    }
+  }
+
   static fromEnvelope(_env: AsyncWorkErrorConstructorArg): AsyncWorkError {
-    throw new Error('Use ErrorRegistry to materialise typed errors')
+    return new AsyncWorkError(_env)
   }
 }
 
@@ -147,6 +162,49 @@ export const convertUnknownThrownToSerializable = (
   thrown: unknown,
 ): JsonSerializableObject => {
   return JSON.parse(stringifyError(thrown)) as JsonSerializableObject
+}
+
+export const convertErrorToAsyncWorkError = (
+  error: Error,
+  wrapper?: {
+    name: string
+    origin?: ErrorOrigin
+    code: string
+    details?: JsonSerializableObject
+    message: string
+    stack?: string
+  },
+): AsyncWorkError => {
+  if (error instanceof AsyncWorkError) {
+    return wrapper
+      ? new AsyncWorkError({
+          ...error,
+          ...wrapper,
+          origin: wrapper.origin ?? 'internal',
+          details: wrapper.details,
+          cause: convertErrorToAsyncWorkError(error),
+        })
+      : error
+  }
+  const errorRepr = {
+    origin: 'internal' as const,
+    code: 'code' in error ? String(error.code) : 'ERROR',
+    name: error.name,
+    message: error.message,
+    stack: error.stack ?? new Error().stack,
+    cause:
+      'cause' in error && error.cause instanceof Error
+        ? convertErrorToAsyncWorkError(error.cause)
+        : undefined,
+  }
+
+  return wrapper
+    ? new AsyncWorkError({
+        ...wrapper,
+        origin: wrapper.origin ?? 'internal',
+        cause: new AsyncWorkError(errorRepr),
+      })
+    : new AsyncWorkError(errorRepr)
 }
 
 export const buildUnexpectedError = ({

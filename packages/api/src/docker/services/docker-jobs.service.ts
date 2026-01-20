@@ -2,6 +2,7 @@ import type {
   ContainerProfileConfig,
   JsonSerializableObject,
 } from '@lombokapp/types'
+import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import {
   forwardRef,
   Inject,
@@ -24,8 +25,6 @@ import {
 import { DockerClientService } from './client/docker-client.service'
 import {
   DockerError,
-  DockerJobCompletionError,
-  DockerJobSubmissionError,
   DockerLogAccessError,
   DockerStateFunc,
 } from './client/docker-client.types'
@@ -98,7 +97,7 @@ export class DockerJobsService {
   /**
    * Validate that the job class exists in the profile spec and return it
    */
-  resolveProfileJobDefinition(
+  private resolveProfileJobDefinition(
     profileSpec: ContainerProfileConfig,
     jobIdentifier: string,
   ) {
@@ -160,42 +159,42 @@ export class DockerJobsService {
     params: DockerExecuteJobOptions,
     waitForCompletion: T,
   ): Promise<DockerExecResult<T>> {
-    const { jobIdentifier, jobData, profileKey, profileSpec } = params
-
-    // generate a job id to represent this execution
-    const jobId = crypto.randomUUID()
-
-    // Generate a hash for the profile to track config drift
-    const profileHash = this.hashProfileSpec(profileSpec)
-    const jobDefinition = this.resolveProfileJobDefinition(
-      profileSpec,
-      jobIdentifier,
-    )
-
-    const containerProfileIdentifier = `lombok:profile_${profileKey}`
-    // Build labels for container discovery
-
-    const labels = this.buildContainerLabels(
-      containerProfileIdentifier,
-      profileHash,
-    )
-
-    // create the worker token if one is required
-    const jobToken =
-      params.asyncTaskId || params.storageAccessPolicy
-        ? this.dockerWorkerHookService.createDockerWorkerJobToken({
-            jobId,
-            ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
-            storageAccessPolicy: params.storageAccessPolicy,
-            executorContext: {
-              profileKey,
-              profileHash,
-              jobIdentifier,
-            },
-          })
-        : undefined
-
     try {
+      const { jobIdentifier, jobData, profileKey, profileSpec } = params
+
+      // generate a job id to represent this execution
+      const jobId = crypto.randomUUID()
+
+      // Generate a hash for the profile to track config drift
+      const profileHash = this.hashProfileSpec(profileSpec)
+      const jobDefinition = this.resolveProfileJobDefinition(
+        profileSpec,
+        jobIdentifier,
+      )
+
+      const containerProfileIdentifier = `lombok:profile_${profileKey}`
+      // Build labels for container discovery
+
+      const labels = this.buildContainerLabels(
+        containerProfileIdentifier,
+        profileHash,
+      )
+
+      // create the worker token if one is required
+      const jobToken =
+        params.asyncTaskId || params.storageAccessPolicy
+          ? this.dockerWorkerHookService.createDockerWorkerJobToken({
+              jobId,
+              ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+              storageAccessPolicy: params.storageAccessPolicy,
+              executorContext: {
+                profileKey,
+                profileHash,
+                jobIdentifier,
+              },
+            })
+          : undefined
+
       const jobExecuteOptions: JobExecuteOptions = {
         job_id: jobId,
         job_class: jobIdentifier,
@@ -261,18 +260,17 @@ export class DockerJobsService {
         )
         this.logger.debug(`Job ${jobId} submitted successfully`)
       } catch (error) {
-        if (error instanceof DockerJobSubmissionError) {
-          this.logger.debug(`Job ${jobId} submission failed: ${error.message}`)
-          const submitErrorResult: DockerSubmitResult = {
-            jobId,
-            submitError: {
-              code: error.code,
-              message: error.message,
-            },
-          }
-          return submitErrorResult as DockerExecResult<T>
+        this.logger.debug(
+          `Job ${jobId} submission failed: ${error instanceof Error ? error.message : String(error)}.`,
+        )
+        if (error instanceof AsyncWorkError) {
+          throw error
         }
-        throw error
+        throw buildUnexpectedError({
+          code: 'UNEXPECTED_ERROR_IN_EXECUTE_DOCKER_JOB',
+          message: 'Unexpected error in executeDockerJob',
+          error,
+        })
       }
 
       if (waitForCompletion) {
@@ -289,15 +287,22 @@ export class DockerJobsService {
         return submitResult as DockerExecResult<T>
       }
     } catch (error) {
+      if (error instanceof AsyncWorkError) {
+        throw error
+      }
       this.logger.error('Unexpected error in executeDockerJob:', error)
-      throw error
+      throw buildUnexpectedError({
+        code: 'UNEXPECTED_ERROR_IN_EXECUTE_DOCKER_JOB',
+        message: 'Unexpected error in executeDockerJob',
+        error,
+      })
     }
   }
 
   /**
    * Generate a simple hash for the profile spec to detect config drift
    */
-  private hashProfileSpec(profileSpec: ContainerProfileConfig): string {
+  public hashProfileSpec(profileSpec: ContainerProfileConfig): string {
     const content = JSON.stringify(profileSpec)
     // Simple hash function - in production you might want something more robust
     let hash = 0
@@ -309,7 +314,7 @@ export class DockerJobsService {
     return Math.abs(hash).toString(16)
   }
 
-  async waitForStarted(
+  private async waitForStarted(
     jobId: string,
     execState: DockerStateFunc,
     getError: () => Promise<DockerError>,
@@ -326,29 +331,34 @@ export class DockerJobsService {
   ) {
     const jobHasStarted = async () => {
       const currentState = await execState(maxRetries * retryPeriodMs)
-
       if (!currentState.running && currentState.exitCode !== 0) {
         const error = await getError()
-        throw new DockerJobSubmissionError(
-          'SUBMISSION_ERROR',
-          `Job submission failed with error: [${error.code}] Message: ${error.message}`,
-        )
+        throw new AsyncWorkError({
+          name: 'DockerWorkerSubmissionError',
+          origin: 'internal',
+          code: error.code,
+          message: `Job submission failed with error: [${error.code}] Message: ${error.message}`,
+        })
       }
 
       if (!currentState.running || jobKind === 'exec') {
         // For exec jobs this means the job was completed (success or failure), but for http jobs it
         // just means the initial submit call is completed, but not that the job is even running.
         const _jobState = await jobState()
-        if (!_jobState.started_at && _jobState.status === 'failed') {
-          const error = new DockerJobSubmissionError(
-            'SUBMISSION_ERROR',
-            `Job submission failed: ${_jobState.error}`,
-          )
+        if (_jobState.status === 'failed') {
+          const error = new AsyncWorkError({
+            name: 'DockerWorkerError',
+            origin: 'internal',
+            code: !_jobState.started_at
+              ? 'DOCKER_JOB_SUBMISSION_ERROR'
+              : 'DOCKER_JOB_EXECUTION_ERROR',
+            message: `Job submission failed: ${_jobState.error}`,
+          })
 
           throw error
         }
-
-        return !!_jobState.started_at
+        // the dispatch exec is no longer running, and there's no reported failure in the job state, so we've officially submitted the job
+        return true
       }
       return false
     }
@@ -362,21 +372,24 @@ export class DockerJobsService {
     } catch (error) {
       if (error instanceof WaitForTrueError && error.code === 'TIMEOUT') {
         this.logger.warn('Docker job waitForStarted timeout')
-        throw new DockerJobSubmissionError(
-          'SUBMISSION_TIMEOUT',
-          `Job submission timed out after approximately ${maxRetries * retryPeriodMs}ms`,
-        )
-      } else if (error instanceof DockerJobSubmissionError) {
+        throw new AsyncWorkError({
+          name: 'DockerWorkerSubmissionError',
+          origin: 'internal',
+          code: 'SUBMISSION_TIMEOUT',
+          message: `Job submission timed out after approximately ${maxRetries * retryPeriodMs}ms`,
+        })
+      } else if (error instanceof AsyncWorkError) {
         throw error
       }
-      throw new DockerJobSubmissionError(
-        'SUBMISSION_ERROR',
-        `Job submission failed: ${error instanceof Error ? error.message : String(error)}`,
-      )
+      throw buildUnexpectedError({
+        code: 'UNEXPECTED_ERROR_IN_EXECUTE_DOCKER_JOB',
+        message: 'Unexpected error in waitForStarted',
+        error,
+      })
     }
   }
 
-  async waitForCompletion(
+  private async waitForCompletion(
     hostId: string,
     containerId: string,
     jobId: string,
@@ -413,13 +426,15 @@ export class DockerJobsService {
         return jobError
       }
     }
-    throw new DockerJobCompletionError(
-      'COMPLETION_TIMEOUT',
-      `Job is not completed after approximately ${maxRetries * retryPeriodMs}ms`,
-    )
+    throw new AsyncWorkError({
+      name: 'DockerWorkerCompletionError',
+      origin: 'internal',
+      code: 'COMPLETION_TIMEOUT',
+      message: `Job is not completed after approximately ${maxRetries * retryPeriodMs}ms`,
+    })
   }
 
-  async getAgentLogs(
+  private async getAgentLogs(
     hostId: string,
     containerId: string,
     options?: { tail?: number; grep?: string },
@@ -463,7 +478,7 @@ export class DockerJobsService {
     return streamsOutput.stdout
   }
 
-  async getJobState(
+  private async getJobState(
     hostId: string,
     containerId: string,
     jobId: string,
@@ -497,18 +512,21 @@ export class DockerJobsService {
     const streamsOutput = output()
 
     if (streamsOutput.stdout.length === 0) {
-      throw new DockerJobCompletionError(
-        'JOB_STATE_NOT_FOUND',
-        'Job state not found\nError: ' +
+      throw new AsyncWorkError({
+        name: 'DockerWorkerStateError',
+        origin: 'internal',
+        code: 'JOB_STATE_NOT_FOUND',
+        message:
+          'Job state not found\nError: ' +
           streamsOutput.stderr +
           '\n' +
           streamsOutput.stderr,
-      )
+      })
     }
     return JSON.parse(streamsOutput.stdout) as DockerJobState
   }
 
-  async getJobResult(
+  private async getJobResult(
     hostId: string,
     containerId: string,
     jobId: string,
@@ -556,7 +574,7 @@ export class DockerJobsService {
         }
   }
 
-  async getJobLogs(
+  private async getJobLogs(
     hostId: string,
     containerId: string,
     options: { jobId: string; tail?: number; err?: boolean },
@@ -620,14 +638,9 @@ type DockerJobResult =
       timing: Record<string, number>
     }
 
-type DockerSubmitResult =
-  | {
-      jobId: string
-    }
-  | {
-      jobId: string
-      submitError: { code: string; message: string }
-    }
+interface DockerSubmitResult {
+  jobId: string
+}
 
 interface DockerJobState {
   job_id: string

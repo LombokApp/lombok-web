@@ -1,6 +1,7 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
 import type { z } from 'zod'
 
+import type { DockerPullOptions } from './adapters/local.adapter'
 import type {
   ContainerExecuteOptions,
   dockerExecutionOptionsSchema,
@@ -45,7 +46,7 @@ export interface DockerAdapter {
   /**
    * Pull an image from a registry
    */
-  pullImage: (image: string) => Promise<void>
+  pullImage: (image: string, options: DockerPullOptions) => Promise<void>
 
   /**
    * List containers matching the given labels
@@ -134,6 +135,30 @@ export interface DockerExecStateExited {
   exitCode: number
 }
 
+export enum DockerAdapterErrorCode {
+  IMAGE_NOT_FOUND = 'IMAGE_NOT_FOUND',
+  IMAGE_PULL_ERROR = 'IMAGE_PULL_ERROR',
+  COMMAND_ARGUMENT_LIST_TOO_LONG = 'COMMAND_ARGUMENT_LIST_TOO_LONG',
+  UNEXPECTED_ERROR = 'UNEXPECTED_ERROR',
+  HOST_CONNECTION_ERROR = 'HOST_CONNECTION_ERROR',
+  HOST_CONNECTION_TIMEOUT = 'HOST_CONNECTION_TIMEOUT',
+  CONTAINER_NOT_FOUND = 'CONTAINER_NOT_FOUND',
+  CONTAINER_NOT_RUNNING = 'CONTAINER_NOT_RUNNING',
+  CONTAINER_START_FAILED = 'CONTAINER_START_FAILED',
+  CONTAINER_START_ERROR = 'CONTAINER_START_ERROR',
+}
+
+export class DockerAdapterError extends Error {
+  constructor(
+    public readonly code: DockerAdapterErrorCode,
+    message: string,
+    public readonly cause?: Error,
+  ) {
+    super(message)
+    this.name = 'DockerAdapterError'
+  }
+}
+
 export class DockerError extends Error {
   constructor(
     public readonly code: string,
@@ -141,43 +166,6 @@ export class DockerError extends Error {
   ) {
     super(message)
     this.name = 'DockerError'
-  }
-}
-
-export class DockerJobExecuteError extends DockerError {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(code, message)
-    this.name = 'DockerJobExecuteError'
-  }
-}
-
-export class DockerJobSubmitError extends DockerError {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(code, message)
-    this.name = 'DockerJobSubmitError'
-  }
-}
-
-export class DockerJobSubmissionError extends DockerJobSubmitError {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(code, message)
-    this.name = 'DockerJobSubmissionError'
-  }
-}
-
-export class DockerJobCompletionError extends DockerJobExecuteError {
-  constructor(code: string, message: string) {
-    super(code, message)
-    this.name = 'DockerJobCompletionError'
   }
 }
 

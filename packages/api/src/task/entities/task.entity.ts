@@ -89,6 +89,7 @@ export const tasksTable = pgTable(
     }>(),
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull(),
+    latestHeartbeatAt: timestamp('latestHeartbeatAt'),
     handlerType: text('handlerType').notNull(),
     handlerIdentifier: text('handlerIdentifier'),
   },

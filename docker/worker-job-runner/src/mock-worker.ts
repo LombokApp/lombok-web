@@ -758,6 +758,51 @@ const server = Bun.serve({
       })
     }
 
+    // POST /job/:id/cancel - cancel a running job (best-effort)
+    if (
+      request.method === 'POST' &&
+      pathname.startsWith('/job/') &&
+      pathname.endsWith('/cancel')
+    ) {
+      const jobId = pathname.slice(5, -'/cancel'.length) // Remove '/job/' prefix and '/cancel' suffix
+      if (!jobId) {
+        return jsonResponse(
+          { error: { code: 'MISSING_JOB_ID', message: 'Job ID required' } },
+          { status: 400 },
+        )
+      }
+
+      const jobState = jobStates.get(jobId)
+      if (!jobState) {
+        return jsonResponse(
+          { error: { code: 'JOB_NOT_FOUND', message: 'Job not found' } },
+          { status: 404 },
+        )
+      }
+
+      // Mark job as failed due to cancellation (worker itself continues running)
+      jobState.status = 'failed'
+      jobState.error = {
+        code: 'JOB_CANCELLED',
+        message: 'Job was cancelled by the agent',
+      }
+      jobStates.set(jobId, jobState)
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `[${new Date().toISOString()}] [job] Cancelled job_id=${jobId} job_class=${
+          jobState.jobClass
+        }`,
+      )
+
+      return jsonResponse({
+        job_id: jobState.jobId,
+        job_class: jobState.jobClass,
+        status: jobState.status,
+        error: jobState.error,
+      })
+    }
+
     // GET /job/:id - get job status (for polling)
     if (request.method === 'GET' && pathname.startsWith('/job/')) {
       const jobId = pathname.slice(5) // Remove '/job/' prefix

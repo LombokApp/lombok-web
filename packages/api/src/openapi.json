@@ -13265,39 +13265,31 @@
         "type": "object",
         "properties": {
           "totalUsers": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "totalFolders": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "usersCreatedPreviousWeek": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "foldersCreatedPreviousWeek": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "totalIndexedSizeBytes": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "sessionsCreatedPreviousWeek": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "sessionsCreatedPrevious24Hours": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "provisionedStorage": {
             "type": "object",
             "properties": {
               "totalCount": {
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               },
               "summary": {
                 "type": "string"
@@ -13309,15 +13301,13 @@
             ]
           },
           "totalIndexedSizeBytesAcrossStorageProvisions": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "installedApps": {
             "type": "object",
             "properties": {
               "totalCount": {
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               },
               "summary": {
                 "type": "string"
@@ -13329,36 +13319,28 @@
             ]
           },
           "tasksCreatedPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "tasksCreatedPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "taskErrorsPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "taskErrorsPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "serverEventsEmittedPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "serverEventsEmittedPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "folderEventsEmittedPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "folderEventsEmittedPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           }
         },
         "required": [

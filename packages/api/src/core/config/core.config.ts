@@ -3,37 +3,11 @@ import {
   appProfileIdentifierSchema,
 } from '@lombokapp/types'
 import { registerAs } from '@nestjs/config'
+import { dockerRegistryAuthenticationSchema } from 'src/docker/services/client/adapters/docker-endpoint-authentication.schema'
 import { z } from 'zod'
 
 import { isBoolean, isInteger, parseEnv } from '../utils/config.util'
 import { isValidDockerHostPathOrHttp } from './docker-host.validator'
-
-// const _conf = {
-//   homelab: {
-//     type: 'docker_endpoint'
-//     host: 'http://10.1.3.20:2375',
-//     gpus: {
-//       'app:content_indexing': {
-//         driver: 'nvidia',
-//         deviceIds: ['0'],
-//       },
-//     },
-//     volumes: {
-//       'app:content_indexing': ["/app/model_cache:/mnt/user/appdata/app__content_indexing__model-cache"],
-//     },
-//     extraHosts: {
-//       'app:content_indexing': ["host-name:10.1.3.20"],
-//     },
-//     environmentVariables: {
-//       'app:content_indexing': {
-//         // PRIVATE_KEY: '___',
-//       },
-//     },
-//   },
-//   local: {
-//     host: 'http://127.0.0.1:2375',
-//   },
-// }
 
 const appAndProfileIdentifierSchema = z
   .string()
@@ -50,6 +24,9 @@ const appAndProfileIdentifierSchema = z
 
 export const dockerHostConfigSchema = z
   .object({
+    registryAuth: z
+      .record(z.string(), dockerRegistryAuthenticationSchema)
+      .optional(),
     hosts: z
       .record(
         z.string(),
@@ -83,6 +60,9 @@ export const dockerHostConfigSchema = z
               )
               .optional(), // the specific GPUs assigned to app container profiles. e.g. {'app:content_indexing': "\"device=0'""}
             volumes: z.record(z.string(), z.string().array()).optional(), // the volumes assigned to app container profiles. e.g. {'app:content_indexing': ["/app/model_cache:/mnt/user/appdata/model-cache"]}
+            environmentVariables: z
+              .record(z.string(), z.record(z.string(), z.string()))
+              .optional(), // the environment variables assigned to app container profiles. e.g. {'app:content_indexing': { 'PRIVATE_KEY': '___' }}
           })
           .strict(),
       )

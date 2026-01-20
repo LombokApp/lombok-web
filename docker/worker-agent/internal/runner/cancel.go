@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"net/http"
 	"os/exec"
 	"time"
 
@@ -16,11 +16,11 @@ import (
 
 // CancelJobConfig contains the information needed to cancel a job
 type CancelJobConfig struct {
-	Payload        *types.JobPayload
-	JobState       *types.JobState
-	JobStartTime   time.Time
+	Payload         *types.JobPayload
+	JobState        *types.JobState
+	JobStartTime    time.Time
 	WorkerStartTime time.Time
-	PlatformClient *platform.Client
+	PlatformClient  *platform.Client
 	// For exec_per_job: the command process to kill
 	ExecCmd *exec.Cmd
 	// For persistent_http: the worker state PID (optional, will be read from jobState if not provided)
@@ -36,14 +36,11 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 		workerKind = config.Payload.Interface.Kind
 	}
 
-	var pid int
-	var killErr error
-
 	switch workerKind {
 	case "exec_per_job":
 		// For exec_per_job, kill the command process directly
 		if config.ExecCmd != nil && config.ExecCmd.Process != nil {
-			pid = config.ExecCmd.Process.Pid
+			var killErr error
 			if killErr = config.ExecCmd.Process.Kill(); killErr != nil {
 				logs.WriteAgentLog("warning: failed to kill exec_per_job worker process: %v", killErr)
 			}
@@ -62,53 +59,47 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 					logs.WriteAgentLog("warning: failed to force kill exec_per_job worker process: %v", killErr)
 				}
 			}
-
-			// Update worker state to reflect failure
-			workerState, readErr := state.ReadWorkerState(config.Payload.WorkerCommand, config.Payload.Interface)
-			if readErr == nil && workerState != nil && workerState.Kind == "exec_per_job" {
-				workerState.State = "stopped"
-				workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-				state.WriteWorkerState(workerState)
-			}
 		} else {
 			logs.WriteAgentLog("warning: exec_per_job command process not available for cancellation")
 		}
 
 	case "persistent_http":
-		// For persistent_http, kill the worker process by PID
-		if config.WorkerPID > 0 {
-			pid = config.WorkerPID
-		} else if config.JobState.WorkerStatePID > 0 {
-			pid = config.JobState.WorkerStatePID
-		} else {
-			// Try to read worker state to get PID
-			workerState, readErr := state.ReadWorkerState(config.Payload.WorkerCommand, config.Payload.Interface)
-			if readErr == nil && workerState != nil && workerState.PID > 0 {
-				pid = workerState.PID
-			}
+		// For persistent_http, attempt a best-effort HTTP cancel on the worker.
+		// IMPORTANT: cancelling a job MUST NOT tear down the persistent worker.
+		if config.Payload.Interface.Port == nil {
+			logs.WriteAgentLog("warning: cannot cancel persistent_http job_id=%s: interface port is nil", config.Payload.JobID)
+			break
 		}
 
-		if pid > 0 {
-			process, err := os.FindProcess(pid)
-			if err != nil {
-				logs.WriteAgentLog("warning: failed to find persistent_http worker process %d: %v", pid, err)
-			} else {
-				if killErr = process.Kill(); killErr != nil {
-					logs.WriteAgentLog("warning: failed to kill persistent_http worker process %d: %v", pid, killErr)
-				} else {
-					logs.WriteAgentLog("killed persistent_http worker process %d", pid)
-				}
+		baseURL := buildBaseURL(*config.Payload.Interface.Port)
+		cancelURL := fmt.Sprintf("%s/job/%s/cancel", baseURL, config.Payload.JobID)
 
-				// Update worker state to reflect failure
-				workerState, readErr := state.ReadWorkerState(config.Payload.WorkerCommand, config.Payload.Interface)
-				if readErr == nil && workerState != nil && workerState.Kind == "persistent_http" {
-					workerState.State = "stopped"
-					workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-					state.WriteWorkerState(workerState)
-				}
-			}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, cancelURL, nil)
+		if err != nil {
+			logs.WriteAgentLog("warning: failed to build cancel request for job_id=%s: %v", config.Payload.JobID, err)
+			break
+		}
+
+		client := &http.Client{
+			Timeout: 5 * time.Second,
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			// Endpoint may not exist yet or worker might not support cancel; log and continue.
+			logs.WriteAgentLog("warning: failed to send cancel request to worker for job_id=%s url=%s: %v", config.Payload.JobID, cancelURL, err)
+			break
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode >= 400 {
+			// Treat non-2xx as best-effort failure; do not kill the worker.
+			logs.WriteAgentLog("warning: cancel request to worker for job_id=%s url=%s returned status=%d", config.Payload.JobID, cancelURL, resp.StatusCode)
 		} else {
-			logs.WriteAgentLog("warning: persistent_http worker PID not available for cancellation")
+			logs.WriteAgentLog("cancel request sent to worker for job_id=%s url=%s status=%d", config.Payload.JobID, cancelURL, resp.StatusCode)
 		}
 
 	default:

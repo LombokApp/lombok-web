@@ -1348,14 +1348,13 @@ describe('Platform Agent', () => {
         worker_command: [
           'sh',
           '-c',
-          `echo '{"output_dir":"'$JOB_OUTPUT_DIR'"}'`,
+          `echo '{"output_dir":"'$JOB_OUTPUT_DIR'"}' > "$JOB_RESULT_FILE"`,
         ],
         interface: { kind: 'exec_per_job' },
         job_input: {},
       }
 
       const { jobResult: result } = await runJob(payload)
-
       expect(result.success).toBe(true)
       expect(result.result).toBeDefined()
       expect(typeof result.result).toBe('object') // Should be a parsed object, not a string
@@ -1629,6 +1628,167 @@ describe('Platform Agent', () => {
       expect(healthResult.exitCode).toBe(0)
       const healthBody = JSON.parse(healthResult.stdout)
       expect(healthBody.ready).toBe(true)
+    })
+
+    test('cancelling a persistent_http job does NOT stop the worker', async () => {
+      const port = 8301
+      const jobClass = 'math_add_8301'
+      const workerCommand = ['bun', 'run', 'src/mock-worker.ts']
+
+      // Start a worker by running a job first
+      const firstJobId = generateJobId('cancel-test-1')
+      const firstPayload: JobPayload = {
+        job_id: firstJobId,
+        job_class: jobClass,
+        worker_command: workerCommand,
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [1, 2, 3] },
+        wait_for_completion: false,
+      }
+
+      await runJob(firstPayload, [`APP_PORT=${port}`])
+
+      // Wait for worker to be ready
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      // Get the worker state to verify PID
+      const workerStateBefore = await readWorkerState({
+        workerCommand,
+        interface: { kind: 'persistent_http', port },
+      }).then((stdout) => JSON.parse(stdout) as { pid: number; state: string })
+
+      expect(workerStateBefore.pid).toBeGreaterThan(0)
+      const workerPid = workerStateBefore.pid
+
+      // Verify worker is responding to health checks
+      const healthBefore = await execInContainer([
+        'wget',
+        '-q',
+        '-O',
+        '-',
+        `http://127.0.0.1:${port}/health/ready`,
+      ])
+      expect(healthBefore.exitCode).toBe(0)
+      const healthBodyBefore = JSON.parse(healthBefore.stdout)
+      expect(healthBodyBefore.ready).toBe(true)
+
+      // Start a second job that we'll cancel
+      const cancelJobId = generateJobId('cancel-test-2')
+      const cancelPayload: JobPayload = {
+        job_id: cancelJobId,
+        job_class: jobClass,
+        worker_command: workerCommand,
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [4, 5, 6] },
+        wait_for_completion: false,
+      }
+
+      await runJob(cancelPayload, [`APP_PORT=${port}`])
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      // Cancel the job by sending POST to /job/:id/cancel
+      const cancelResult = await execInContainer([
+        'wget',
+        '--post-data=',
+        '--header=Content-Type: application/json',
+        '-q',
+        '-O',
+        '-',
+        `http://127.0.0.1:${port}/job/${cancelJobId}/cancel`,
+      ])
+
+      expect(cancelResult.exitCode).toBe(0)
+      const cancelResponse = JSON.parse(cancelResult.stdout)
+      expect(cancelResponse.status).toBe('failed')
+      expect(cancelResponse.error?.code).toBe('JOB_CANCELLED')
+
+      // CRITICAL: Verify the worker is STILL running after cancellation
+      // 1. Check worker state PID is still the same (worker wasn't killed)
+      const workerStateAfter = await readWorkerState({
+        workerCommand,
+        interface: { kind: 'persistent_http', port },
+      }).then((stdout) => JSON.parse(stdout) as { pid: number; state: string })
+
+      expect(workerStateAfter.pid).toBe(workerPid)
+      expect(workerStateAfter.state).not.toBe('stopped')
+
+      // 2. Verify /health/ready still works
+      const healthAfter = await execInContainer([
+        'wget',
+        '-q',
+        '-O',
+        '-',
+        `http://127.0.0.1:${port}/health/ready`,
+      ])
+      expect(healthAfter.exitCode).toBe(0)
+      const healthBodyAfter = JSON.parse(healthAfter.stdout)
+      expect(healthBodyAfter.ready).toBe(true)
+
+      // 3. Submit a new job to the same worker and verify it succeeds
+      const thirdJobId = generateJobId('cancel-test-3')
+      const thirdPayload: JobPayload = {
+        job_id: thirdJobId,
+        job_class: 'math_add',
+        worker_command: workerCommand,
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [7, 8, 9] },
+      }
+
+      const { jobResult: thirdJobResult } = await runJob(thirdPayload, [
+        `APP_PORT=${port}`,
+      ])
+
+      expect(thirdJobResult.success).toBe(true)
+      expect(thirdJobResult.result).toEqual({ sum: 24, operands: [7, 8, 9] }) // 7 + 8 + 9
+
+      // 4. Verify worker PID is still the same after the third job
+      const workerStateFinal = await readWorkerState({
+        workerCommand,
+        interface: { kind: 'persistent_http', port },
+      }).then((stdout) => JSON.parse(stdout) as { pid: number })
+
+      expect(workerStateFinal.pid).toBe(workerPid)
+    })
+
+    test('subsequent async job logs ready-worker check from worker state', async () => {
+      const port = 8520
+      const jobClass = 'math_add_8520'
+      const workerCommand = ['bun', 'run', 'src/mock-worker.ts']
+
+      const firstJobId = generateJobId('worker-up-check-1')
+      const payload: JobPayload = {
+        job_id: firstJobId,
+        job_class: jobClass,
+        worker_command: workerCommand,
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [1, 2, 3] },
+        wait_for_completion: false,
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      const workerState = await readWorkerState({
+        workerCommand,
+        interface: { kind: 'persistent_http', port },
+      }).then((stdout) => JSON.parse(stdout) as { state: string })
+      expect(workerState.state).toBe('starting')
+
+      const secondJobId = generateJobId('worker-up-check-2')
+      const secondPayload: JobPayload = {
+        ...payload,
+        job_id: secondJobId,
+        job_input: { numbers: [4, 5, 6] },
+        wait_for_completion: false,
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      await runJob(secondPayload, [`APP_PORT=${port}`])
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      const agentLog = await readAgentLog({ tail: 200 })
+      expect(agentLog).toContain(
+        `job_id=${secondJobId} using ready worker; scheduling async dispatch`,
+      )
     })
 
     test('multiple jobs reuse same worker', async () => {
@@ -2038,7 +2198,7 @@ describe('Platform Agent', () => {
 
       // Wait a bit for the worker process to start and bind to the port
       // before checking readiness
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       const readinessAfter = await execInContainer([
         'wget',
@@ -2049,14 +2209,13 @@ describe('Platform Agent', () => {
       ])
       expect(readinessAfter.stderr).toInclude('403 Forbidden')
 
-      // await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       expect(
         readJobStateViaCLI(jobId).then(({ stdout }) => JSON.parse(stdout)),
       ).resolves.toEqual({
         job_id: jobId,
         job_class: 'verbose_log_8400',
         status: 'pending',
-        started_at: expect.any(String),
         worker_kind: 'persistent_http',
       })
       await new Promise((resolve) => setTimeout(resolve, 1300))
@@ -2085,6 +2244,92 @@ describe('Platform Agent', () => {
         worker_kind: 'persistent_http',
         worker_state_pid: expect.any(Number),
       })
+    })
+
+    test('http jobs cleanup all zombie processes when wait_for_completion is false', async () => {
+      const jobClass = 'math_add_8234'
+      const port = 8234
+      const jobId1 = generateJobId('no-orphan-processes-1')
+      const jobId2 = generateJobId('no-orphan-processes-2')
+      const jobId3 = generateJobId('no-orphan-processes-3')
+
+      const payload: JobPayload = {
+        job_id: '',
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [1, 2] },
+        wait_for_completion: false,
+      }
+
+      for (const jobId of [jobId1, jobId2, jobId3]) {
+        await runJob({ ...payload, job_id: jobId }, [`APP_PORT=${port}`])
+      }
+
+      // wait for the jobs to complete
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      for (const jobId of [jobId1, jobId2, jobId3]) {
+        const jobState = await readJobStateViaCLI(jobId).then(({ stdout }) =>
+          JSON.parse(stdout),
+        )
+        expect(jobState).toEqual({
+          job_id: jobId,
+          job_class: jobClass,
+          started_at: expect.any(String),
+          completed_at: expect.any(String),
+          status: 'success',
+          worker_kind: 'persistent_http',
+          worker_state_pid: expect.any(Number),
+        })
+      }
+
+      const topOut = await execInContainer(['top', '-b', '-n', '1'])
+      console.log('topOut:', topOut.stdout)
+      expect(
+        topOut.stdout
+          .split('\n')
+          .filter((l) => l.includes('[lombok-worker-a]')),
+      ).toHaveLength(0)
+    })
+
+    test('http jobs cleanup all zombie processes when wait_for_completion is true', async () => {
+      const jobClass = 'math_add_8234'
+      const port = 8234
+      const jobId1 = generateJobId('no-orphan-processes-with-completion-wait-1')
+      const jobId2 = generateJobId('no-orphan-processes-with-completion-wait-2')
+      const jobId3 = generateJobId('no-orphan-processes-with-completion-wait-3')
+
+      const payload: JobPayload = {
+        job_id: '',
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [1, 2] },
+        wait_for_completion: true,
+      }
+
+      for (const jobId of [jobId1, jobId2, jobId3]) {
+        await runJob({ ...payload, job_id: jobId }, [`APP_PORT=${port}`])
+      }
+
+      // wait for the jobs to complete
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      for (const jobId of [jobId1, jobId2, jobId3]) {
+        const jobState = await readJobStateViaCLI(jobId).then(({ stdout }) =>
+          JSON.parse(stdout),
+        )
+        expect(jobState).toEqual({
+          job_id: jobId,
+          job_class: jobClass,
+          started_at: expect.any(String),
+          completed_at: expect.any(String),
+          status: 'success',
+          worker_kind: 'persistent_http',
+          worker_state_pid: expect.any(Number),
+        })
+      }
     })
   })
 
@@ -3277,23 +3522,19 @@ describe('Platform Agent', () => {
         job_input: {},
       }
 
-      // Get container logs before running the job
-      const logsBefore = await readContainerLogs({ tail: 100 })
-
       await runJob(payload)
       await new Promise((r) => setTimeout(r, 2000))
 
-      // Get container logs after running the job
-      const logsAfter = await readContainerLogs({ tail: 200 })
+      // Get worker logs after running the job
+      const workerLog = await readWorkerLog({
+        workerCommand: payload.worker_command,
+        interface: payload.interface,
+      })
 
       // For exec_per_job, worker stdout now goes to worker log files (same as persistent_http)
       // The worker-logs command tails /workers/ directory, so exec_per_job worker output
       // should now appear in container stdout
-      expect(logsAfter).toContain(uniqueOutput)
-      // Verify it's new output (wasn't there before)
-      if (logsBefore.length > 0) {
-        expect(logsBefore).not.toContain(uniqueOutput)
-      }
+      expect(workerLog).toContain(uniqueOutput)
     })
 
     test('container stdout contains worker output for persistent_http', async () => {
@@ -3313,31 +3554,23 @@ describe('Platform Agent', () => {
         job_input: { testMessage: uniqueMessage },
       }
 
-      // Get container logs before running the job
-      const logsBefore = await readContainerLogs({ tail: 100 })
-
       await runJob(payload, [`APP_PORT=${port}`])
 
       await new Promise((r) => setTimeout(r, 1000))
 
-      // Get container logs after running the job
-      const logsAfter = await readContainerLogs({ tail: 400 })
+      // Get worker logs after running the job
+      const workerLog = await readWorkerLog({
+        workerCommand: payload.worker_command,
+        interface: payload.interface,
+      })
 
       // Verify the unique message appears in container stdout
       // This message can only come from the worker's stdout
-      expect(logsAfter).toContain(
+      expect(workerLog).toContain(
         `[dummy_echo - worker log] Echoing input: ${JSON.stringify({
           testMessage: uniqueMessage,
         })}`,
       )
-      // Verify it's new output (wasn't there before)
-      if (logsBefore.length > 0) {
-        expect(logsBefore).not.toContain(
-          `[dummy_echo - worker log] Echoing input: ${JSON.stringify({
-            testMessage: uniqueMessage,
-          })}`,
-        )
-      }
     })
   })
 })

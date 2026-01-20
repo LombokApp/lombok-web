@@ -40,12 +40,12 @@ func JobErrLogPath(jobID string) string {
 
 // WorkerOutLogPath returns the stdout log path for a worker identified by a unique key
 func WorkerOutLogPath(workerCommand []string, iface types.InterfaceConfig) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", WorkerLogIdentifier(workerCommand, iface)))
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", WorkerIdentifier(workerCommand, iface)))
 }
 
 // WorkerErrLogPath returns the stderr log path for a worker identified by a unique key
 func WorkerErrLogPath(workerCommand []string, iface types.InterfaceConfig) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", WorkerLogIdentifier(workerCommand, iface)))
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", WorkerIdentifier(workerCommand, iface)))
 }
 
 // sanitizeFilepathComponent encodes a string to make it safe for use in filepaths while preserving uniqueness.
@@ -74,10 +74,10 @@ func sanitizeFilepathComponent(s string) string {
 	return builder.String()
 }
 
-// WorkerLogIdentifier returns a stable identifier for a worker based on its command and interface configuration.
+// WorkerIdentifier returns a stable identifier for a worker based on its command and interface configuration.
 // This keeps persistent HTTP worker logs unique per listener/command combination.
 // For long commands, it uses a hash to avoid filesystem filename length limits.
-func WorkerLogIdentifier(workerCommand []string, iface types.InterfaceConfig) string {
+func WorkerIdentifier(workerCommand []string, iface types.InterfaceConfig) string {
 	commandPart := strings.Join(workerCommand, " ")
 
 	// If the command is too long (after sanitization it could exceed filesystem limits),
@@ -100,7 +100,7 @@ func WorkerLogIdentifier(workerCommand []string, iface types.InterfaceConfig) st
 	}
 	interfacePart = sanitizeFilepathComponent(interfacePart)
 
-	parts := []string{commandPart, interfacePart}
+	parts := []string{"_", commandPart, interfacePart}
 
 	return strings.Join(parts, "__")
 }
@@ -109,7 +109,7 @@ func WorkerLogIdentifier(workerCommand []string, iface types.InterfaceConfig) st
 
 // WorkerStatePath returns the state file path for a worker by job class
 func WorkerStatePath(workerCommand []string, iface types.InterfaceConfig) string {
-	workerIdentifier := WorkerLogIdentifier(workerCommand, iface)
+	workerIdentifier := WorkerIdentifier(workerCommand, iface)
 	return filepath.Join(StateBaseDir, "workers", fmt.Sprintf("%s.json", workerIdentifier))
 }
 

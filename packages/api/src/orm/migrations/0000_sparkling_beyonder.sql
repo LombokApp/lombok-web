@@ -170,6 +170,7 @@ CREATE TABLE "tasks" (
 	"error" jsonb,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL,
+	"latestHeartbeatAt" timestamp,
 	"handlerType" text NOT NULL,
 	"handlerIdentifier" text,
 	CONSTRAINT "tasks_idempotencyKey_unique" UNIQUE("idempotencyKey")

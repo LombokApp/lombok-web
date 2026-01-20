@@ -9,49 +9,69 @@ import {
   type ContainerInfo,
   type CreateContainerOptions,
   type DockerAdapter,
-  DockerError,
+  DockerAdapterError,
+  DockerAdapterErrorCode,
   type DockerStateFunc,
 } from '../docker-client.types'
-import {
-  type DockerEndpointAuth,
-  DockerEndpointAuthType,
+import type {
+  DockerEndpointAuth,
+  DockerRegistryAuth,
 } from './docker-endpoint-authentication.schema'
+import { DockerEndpointAuthType } from './docker-endpoint-authentication.schema'
+import { parseRegistryFromImage } from './docker-image.utils'
+
+export interface DockerPullOptions {
+  authconfig?: {
+    username: string
+    password: string
+    email?: string
+    serveraddress: string
+  }
+}
 
 export class LocalDockerAdapter implements DockerAdapter {
   private readonly docker: Docker
   private readonly host: string
+  private readonly registryAuth: Record<string, DockerRegistryAuth>
   private readonly logger = new Logger(LocalDockerAdapter.name)
-  constructor(dockerHost: string, dockerEndpointAuth?: DockerEndpointAuth) {
+  constructor(
+    dockerHost: string,
+    options: {
+      dockerEndpointAuth?: DockerEndpointAuth
+      dockerRegistryAuth?: Record<string, DockerRegistryAuth>
+    },
+  ) {
     this.host = dockerHost
-
+    this.registryAuth = options.dockerRegistryAuth ?? {}
     const isHttpEndpoint = /^https?:\/\//i.test(dockerHost)
 
     if (isHttpEndpoint) {
       // Parse the URL to extract host and port
       const url = new URL(dockerHost)
-      const options: Docker.DockerOptions = {
+      const endpointOptions: Docker.DockerOptions = {
         host: url.hostname,
         port: url.port || (url.protocol === 'https:' ? '443' : '2375'),
         protocol: url.protocol === 'https:' ? 'https' : 'http',
+        timeout: 5000,
       }
 
       // Add authentication if provided
-      if (dockerEndpointAuth) {
+      if (options.dockerEndpointAuth) {
         if (
-          dockerEndpointAuth.authenticationType === DockerEndpointAuthType.Basic
+          options.dockerEndpointAuth.authType === DockerEndpointAuthType.Basic
         ) {
-          const credentials = `${dockerEndpointAuth.username}:${dockerEndpointAuth.password}`
-          options.headers = {
+          const credentials = `${options.dockerEndpointAuth.username}:${options.dockerEndpointAuth.password}`
+          endpointOptions.headers = {
             Authorization: `Basic ${Buffer.from(credentials).toString('base64')}`,
           }
         } else {
-          options.headers = {
-            Authorization: `Bearer ${dockerEndpointAuth.apiKey}`,
+          endpointOptions.headers = {
+            Authorization: `Bearer ${options.dockerEndpointAuth.apiKey}`,
           }
         }
       }
 
-      this.docker = new Docker(options)
+      this.docker = new Docker(endpointOptions)
     } else {
       // Unix socket - check permissions first
       const proxySocket = '/tmp/docker-proxy.sock'
@@ -65,6 +85,35 @@ export class LocalDockerAdapter implements DockerAdapter {
 
   getDescription(): string {
     return `[DOCKERODE]: ${this.host}`
+  }
+
+  private async withErrorGuard<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn()
+    } catch (error: unknown) {
+      if (error instanceof DockerAdapterError) {
+        throw error
+      } else if (error instanceof Error) {
+        if (error.message.includes('ECONNREFUSED')) {
+          throw new DockerAdapterError(
+            DockerAdapterErrorCode.HOST_CONNECTION_ERROR,
+            error.message,
+            error,
+          )
+        }
+        if (error.message.includes('ETIMEDOUT')) {
+          throw new DockerAdapterError(
+            DockerAdapterErrorCode.HOST_CONNECTION_TIMEOUT,
+            error.message,
+            error,
+          )
+        }
+      }
+      throw new DockerAdapterError(
+        DockerAdapterErrorCode.UNEXPECTED_ERROR,
+        String(error),
+      )
+    }
   }
 
   /**
@@ -172,32 +221,67 @@ export class LocalDockerAdapter implements DockerAdapter {
     }
   }
 
-  async pullImage(image: string): Promise<void> {
+  async pullImage(image: string, options: DockerPullOptions): Promise<void> {
     this.logger.log(`[Docker] Pulling image: ${image}`)
 
-    const stream = await this.docker.pull(image)
+    await this.withErrorGuard(async () => {
+      try {
+        const stream = await this.docker.pull(image, options)
+        // Wait for the pull to complete by consuming the stream
+        await new Promise<void>((resolve, reject) => {
+          this.docker.modem.followProgress(
+            stream,
+            (err: unknown) => {
+              if (err) {
+                reject(
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  new Error(err instanceof Error ? err.message : String(err)),
+                )
+              } else {
+                this.logger.log(`[Docker] Successfully pulled image: ${image}`)
+                resolve()
+              }
+            },
+            (event: { status?: string; progress?: string }) => {
+              // Optional: log progress updates
+              if (event.status) {
+                this.logger.log(
+                  `[Docker] ${event.status}${event.progress ? `: ${event.progress}` : ''}`,
+                )
+              }
+            },
+          )
+        })
+      } catch (error) {
+        let thrownError: DockerAdapterError
+        if (
+          error &&
+          typeof error === 'object' &&
+          'statusCode' in error &&
+          error.statusCode === 404
+        ) {
+          thrownError = new DockerAdapterError(
+            DockerAdapterErrorCode.IMAGE_NOT_FOUND,
+            error instanceof Error
+              ? `${error.name}: ${error.message}`
+              : // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                String(error),
+            error instanceof Error ? error : undefined,
+          )
+        } else {
+          thrownError = new DockerAdapterError(
+            DockerAdapterErrorCode.IMAGE_PULL_ERROR,
+            error instanceof Error
+              ? `${error.name}: ${error.message}`
+              : error instanceof Error
+                ? error.message
+                : String(error),
+            error instanceof Error ? error : undefined,
+          )
+        }
 
-    // Wait for the pull to complete by consuming the stream
-    await new Promise<void>((resolve, reject) => {
-      this.docker.modem.followProgress(
-        stream,
-        (err: Error | null) => {
-          if (err) {
-            reject(err)
-          } else {
-            this.logger.log(`[Docker] Successfully pulled image: ${image}`)
-            resolve()
-          }
-        },
-        (event: { status?: string; progress?: string }) => {
-          // Optional: log progress updates
-          if (event.status) {
-            this.logger.log(
-              `[Docker] ${event.status}${event.progress ? `: ${event.progress}` : ''}`,
-            )
-          }
-        },
-      )
+        throw thrownError
+      }
     })
   }
 
@@ -208,10 +292,12 @@ export class LocalDockerAdapter implements DockerAdapter {
       ([key, value]) => `${key}=${value}`,
     )
 
-    const containers = await this.docker.listContainers({
-      all: true,
-      filters: { label: labelFilters },
-    })
+    const containers = await this.withErrorGuard(() =>
+      this.docker.listContainers({
+        all: true,
+        filters: { label: labelFilters },
+      }),
+    )
 
     return containers.map((container) => ({
       id: container.Id,
@@ -222,20 +308,32 @@ export class LocalDockerAdapter implements DockerAdapter {
     }))
   }
 
-  imageExists(image: string) {
-    try {
-      const _existingImage = this.docker.getImage(image).inspect()
-      return true
-    } catch {
-      return false
-    }
+  async imageExists(image: string) {
+    return this.withErrorGuard(() =>
+      this.docker.getImage(image).inspect(),
+    ).then(
+      () => true,
+      () => false,
+    )
   }
 
   async createContainer(
     options: CreateContainerOptions,
   ): Promise<ContainerInfo> {
-    if (!this.imageExists(options.image)) {
-      await this.pullImage(options.image)
+    const imageExists = await this.imageExists(options.image)
+    if (!imageExists) {
+      const registryUrl = parseRegistryFromImage(options.image)
+      const registryAuth = this.registryAuth[registryUrl]
+      await this.pullImage(options.image, {
+        authconfig: registryAuth
+          ? {
+              username: registryAuth.username,
+              password: registryAuth.password,
+              email: registryAuth.email,
+              serveraddress: registryAuth.serverAddress,
+            }
+          : undefined,
+      })
     }
 
     const createContainerOptions: Docker.ContainerCreateOptions = {
@@ -276,7 +374,9 @@ export class LocalDockerAdapter implements DockerAdapter {
 
     this.logger.log('createContainerOptions:', createContainerOptions)
 
-    const container = await this.docker.createContainer(createContainerOptions)
+    const container = await this.withErrorGuard(() =>
+      this.docker.createContainer(createContainerOptions),
+    )
 
     await container.start()
 
@@ -293,18 +393,20 @@ export class LocalDockerAdapter implements DockerAdapter {
     containerId: string,
     command: string[],
   ): Promise<{
-    getError: () => Promise<DockerError>
+    getError: () => Promise<DockerAdapterError>
     state: DockerStateFunc
     output: () => { stdout: string; stderr: string }
   }> {
     const container = this.docker.getContainer(containerId)
 
-    const exec = await container.exec({
-      Cmd: command,
-      AttachStdout: true,
-      AttachStderr: true,
-      Tty: false, // must be false to demux
-    })
+    const exec = await this.withErrorGuard(() =>
+      container.exec({
+        Cmd: command,
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: false, // must be false to demux
+      }),
+    )
 
     const stream = await exec.start({ Tty: false })
     const stdoutStream = new PassThrough()
@@ -352,19 +454,22 @@ export class LocalDockerAdapter implements DockerAdapter {
   private resolveError(
     state: Docker.ExecInspectInfo,
     { stderr }: { stdout: string; stderr: string },
-  ): DockerError {
+  ): DockerAdapterError {
     if (state.ExitCode === 0) {
       throw new Error(`getError called for non-failed exec`)
     }
 
     if (stderr.includes('argument list too long')) {
-      return new DockerError(
-        'COMMAND_ARGUMENT_LIST_TOO_LONG',
-        'Error: ' + stderr,
+      return new DockerAdapterError(
+        DockerAdapterErrorCode.COMMAND_ARGUMENT_LIST_TOO_LONG,
+        stderr,
       )
     }
 
-    return new DockerError('UNKNOWN_ERROR', 'Unknown error: ' + stderr)
+    return new DockerAdapterError(
+      DockerAdapterErrorCode.UNEXPECTED_ERROR,
+      stderr,
+    )
   }
 
   async execInContainer(containerId: string, options: ContainerExecuteOptions) {
@@ -373,25 +478,27 @@ export class LocalDockerAdapter implements DockerAdapter {
 
   async startContainer(containerId: string): Promise<void> {
     const container = this.docker.getContainer(containerId)
-    try {
-      await container.start()
-    } catch (error) {
-      // 304 means container is already running, which is fine
-      if (
-        error instanceof Error &&
-        'statusCode' in error &&
-        (error as { statusCode: number }).statusCode === 304
-      ) {
-        return
+    await this.withErrorGuard(async () => {
+      try {
+        await container.start()
+      } catch (error) {
+        // 304 means container is already running, which is fine
+        if (
+          error instanceof Error &&
+          'statusCode' in error &&
+          (error as { statusCode: number }).statusCode === 304
+        ) {
+          return
+        }
+        throw error
       }
-      throw error
-    }
+    })
   }
 
   async isContainerRunning(containerId: string): Promise<boolean> {
     try {
       const container = this.docker.getContainer(containerId)
-      const info = await container.inspect()
+      const info = await this.withErrorGuard(() => container.inspect())
       return info.State.Running
     } catch {
       return false

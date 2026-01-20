@@ -79,19 +79,7 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
                 error,
               })
 
-        const resolveHighestLevelAppError = (
-          _error: AsyncWorkError,
-        ): AsyncWorkError | undefined => {
-          if (_error.origin === 'app') {
-            return _error
-          }
-          if (_error.cause) {
-            return resolveHighestLevelAppError(_error.cause)
-          }
-        }
-
-        const highestLevelAppError =
-          resolveHighestLevelAppError(normalizedError)
+        const highestLevelAppError = normalizedError.resolveHighestLevelAppError()
         const runnerSuccess = !!highestLevelAppError
         innerTaskCompletion = {
           success: false,

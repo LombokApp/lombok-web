@@ -4,6 +4,7 @@ import {
   StorageAccessPolicy,
   SystemLogEntry,
   TaskCompletion,
+  TaskLogEntry,
   TaskOnCompleteConfig,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
@@ -172,7 +173,7 @@ export class TaskService {
     offset,
     limit,
     search,
-    sort = [TaskSort.CreatedAtAsc],
+    sort = [TaskSort.CreatedAtDesc],
     objectKey,
     includeComplete,
     includeFailed,
@@ -247,6 +248,7 @@ export class TaskService {
           targetLocationObjectKey: tasksTable.targetLocationObjectKey,
           startedAt: tasksTable.startedAt,
           dontStartBefore: tasksTable.dontStartBefore,
+          latestHeartbeatAt: tasksTable.latestHeartbeatAt,
           completedAt: tasksTable.completedAt,
           taskLog: tasksTable.taskLog,
           storageAccessPolicy: tasksTable.storageAccessPolicy,
@@ -774,6 +776,93 @@ export class TaskService {
 
     if (!updatedTask) {
       throw new ConflictException(`Failed to secure task: ${taskId}`)
+    }
+
+    return { task: updatedTask }
+  }
+
+  async registerHeartbeat({
+    taskId,
+    heartbeatContext,
+    options = {},
+  }: {
+    taskId: string
+    heartbeatContext?: {
+      message: string
+      payload?: JsonSerializableObject
+    }
+    options?: { tx?: OrmService['db'] }
+  }) {
+    const args = { taskId, heartbeatContext }
+    if (options.tx) {
+      return this._registerHeartbeatInTx(args, options.tx)
+    }
+    return this.ormService.db.transaction(async (tx) => {
+      return this._registerHeartbeatInTx(args, tx)
+    })
+  }
+
+  async _registerHeartbeatInTx(
+    {
+      taskId,
+      heartbeatContext,
+    }: {
+      taskId: string
+      heartbeatContext?: {
+        message: string
+        payload?: JsonSerializableObject
+      }
+    },
+    tx: OrmService['db'],
+  ) {
+    const task = await tx.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+    if (!task) {
+      throw new NotFoundException('Invalid request (no task found by id).')
+    } else if (task.completedAt || !task.startedAt) {
+      throw new ConflictException('Task not in a state to register heartbeat.')
+    }
+
+    const now = new Date()
+
+    const heartbeatLog: TaskLogEntry | undefined = heartbeatContext
+      ? {
+          at: now,
+          logType: 'heartbeat',
+          message: heartbeatContext.message,
+          payload: heartbeatContext.payload,
+        }
+      : undefined
+
+    const updatedTask = (
+      await tx
+        .update(tasksTable)
+        .set({
+          updatedAt: now,
+          latestHeartbeatAt: now,
+          ...(heartbeatLog
+            ? {
+                taskLog: sql<
+                  TaskLogEntry[]
+                >`coalesce(${tasksTable.taskLog}, '[]'::jsonb) || ${JSON.stringify(serializeLogEntry(heartbeatLog))}::jsonb`,
+              }
+            : {}),
+        })
+        .where(
+          and(
+            eq(tasksTable.id, task.id),
+            isNull(tasksTable.completedAt),
+            isNotNull(tasksTable.startedAt),
+          ),
+        )
+        .returning()
+    )[0]
+
+    if (!updatedTask) {
+      throw new ConflictException(
+        `Failed to register heartbeat for task: ${taskId}`,
+      )
     }
 
     return { task: updatedTask }

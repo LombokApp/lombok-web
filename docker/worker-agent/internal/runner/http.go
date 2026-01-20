@@ -3,7 +3,9 @@ package runner
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -69,7 +71,48 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	// Fast path: fire-and-forget when caller does not need completion.
 	if !waitForCompletion {
-		return startAsyncDispatch(payload, jobState, jobStartTime)
+		// Ensure a worker state file exists before handing off to async dispatch.
+		existingState, err := state.ReadWorkerState(payload.WorkerCommand, payload.Interface)
+		if err != nil {
+			return fmt.Errorf("failed to read worker state before async dispatch: %w", err)
+		}
+		if existingState != nil {
+			logs.WriteAgentLog("job_id=%s existing worker state: pid=%d state=%s kind=%s", payload.JobID, existingState.PID, existingState.State, existingState.Kind)
+		} else {
+			logs.WriteAgentLog("job_id=%s no existing worker state found, will create initial state", payload.JobID)
+		}
+
+		// Track whether we created a new "starting" state and should pass a token to the child
+		var starterToken string
+
+		if existingState == nil {
+			// Generate a random token to identify the designated worker starter
+			tokenBytes := make([]byte, 16)
+			if _, err := rand.Read(tokenBytes); err != nil {
+				return fmt.Errorf("failed to generate starter token: %w", err)
+			}
+			starterToken = hex.EncodeToString(tokenBytes)
+
+			now := time.Now().UTC().Format(time.RFC3339)
+			workerState := &types.WorkerState{
+				JobClass:      payload.JobClass,
+				Kind:          "persistent_http",
+				WorkerCommand: payload.WorkerCommand,
+				PID:           0,
+				State:         "starting",
+				Port:          payload.Interface.Port,
+				StartedAt:     now,
+				LastCheckedAt: now,
+				AgentVersion:  config.AgentVersion,
+				StarterToken:  starterToken,
+			}
+
+			if err := state.WriteWorkerState(workerState); err != nil {
+				return fmt.Errorf("failed to write initial worker state before async dispatch: %w", err)
+			}
+		}
+
+		return startAsyncDispatch(payload, jobState, jobStartTime, starterToken)
 	}
 
 	var platformClient *platform.Client
@@ -500,6 +543,28 @@ func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Dura
 		return nil, 0, fmt.Errorf("failed to check worker state: %w", err)
 	}
 
+	// If worker state is "starting" but process isn't alive, check if we're the designated starter
+	if !alive && workerState != nil && workerState.State == "starting" {
+		envToken := os.Getenv("LOMBOK_WORKER_STARTER_TOKEN")
+		isDesignatedStarter := envToken != "" && envToken == workerState.StarterToken
+
+		if isDesignatedStarter {
+			// We are the designated starter - fall through to start the worker
+			logs.WriteAgentLog("job_class=%s this process is the designated worker starter (token match)", payload.JobClass)
+		} else {
+			// Another process is starting the worker, wait for it
+			logs.WriteAgentLog("job_class=%s worker is being started by another process, waiting...", payload.JobClass)
+			waitStart := time.Now()
+			workerState, err = waitForWorkerToStart(payload.WorkerCommand, payload.Interface, readinessTimeout)
+			if err != nil {
+				return nil, 0, fmt.Errorf("timed out waiting for worker to start: %w", err)
+			}
+			alive = true
+			logs.WriteAgentLog("job_class=%s worker started by another process after %.3fs, pid=%d",
+				payload.JobClass, time.Since(waitStart).Seconds(), workerState.PID)
+		}
+	}
+
 	if alive {
 		// Verify the worker is actually responding
 		if checkWorkerReady(*payload.Interface.Port) {
@@ -520,8 +585,9 @@ func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Dura
 		logs.WriteAgentLog("job_class=%s worker_became_ready_time=%.3fs",
 			payload.JobClass, readyDuration.Seconds())
 
-		// Mark as ready
+		// Mark as ready and clear the starter token
 		workerState.State = "ready"
+		workerState.StarterToken = ""
 		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteWorkerState(workerState)
 		return workerState, readyDuration, nil
@@ -548,12 +614,32 @@ func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Dura
 	logs.WriteAgentLog("job_class=%s worker_became_ready_time=%.3fs",
 		payload.JobClass, readyDuration.Seconds())
 
-	// Mark as ready
+	// Mark as ready and clear the starter token
 	workerState.State = "ready"
+	workerState.StarterToken = ""
 	workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
 	state.WriteWorkerState(workerState)
 
 	return workerState, readyDuration, nil
+}
+
+// waitForWorkerToStart polls until a worker that's in "starting" state becomes alive
+func waitForWorkerToStart(workerCommand []string, iface types.InterfaceConfig, timeout time.Duration) (*types.WorkerState, error) {
+	deadline := time.Now().Add(timeout)
+	pollInterval := 100 * time.Millisecond
+
+	for time.Now().Before(deadline) {
+		alive, workerState, err := state.IsWorkerAlive(workerCommand, iface)
+		if err != nil {
+			return nil, err
+		}
+		if alive && workerState != nil {
+			return workerState, nil
+		}
+		time.Sleep(pollInterval)
+	}
+
+	return nil, fmt.Errorf("worker did not start within %s", timeout)
 }
 
 // startWorker starts a new worker process
@@ -593,6 +679,16 @@ func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
 		stdoutFile.Close()
 		stderrFile.Close()
 		return nil, fmt.Errorf("failed to start worker: %w", err)
+	}
+
+	// Give the process a moment to initialize and catch immediate failures
+	time.Sleep(500 * time.Millisecond)
+
+	// Check if process is still alive (catches immediate crashes)
+	if !state.IsProcessAlive(cmd.Process.Pid) {
+		stdoutFile.Close()
+		stderrFile.Close()
+		return nil, fmt.Errorf("worker process exited immediately after start (check logs: %s)", stderrPath)
 	}
 
 	// Don't wait for the worker - it runs in the background
@@ -667,7 +763,8 @@ func buildBaseURL(port int) string {
 }
 
 // startAsyncDispatch persists the job and hands off submission to a background agent process.
-func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time) error {
+// starterToken is passed to the child if this process created the initial "starting" worker state.
+func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time, starterToken string) error {
 	alive, workerState, err := state.IsWorkerAlive(payload.WorkerCommand, payload.Interface)
 	if err != nil {
 		return fmt.Errorf("failed to check worker state: %w", err)
@@ -684,7 +781,7 @@ func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, job
 		logs.WriteAgentLog("job_id=%s scheduling async dispatch; worker not ready yet", payload.JobID)
 	}
 
-	if err := launchAsyncDispatch(payload); err != nil {
+	if err := launchAsyncDispatch(payload, starterToken); err != nil {
 		jobState.Status = "failed"
 		jobState.Error = err.Error()
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
@@ -750,10 +847,15 @@ func touchFile(path string) error {
 }
 
 // launchAsyncDispatch spins up a background agent process to handle readiness and submission.
-func launchAsyncDispatch(payload *types.JobPayload) error {
+// starterToken is passed via env var if this child should be the designated worker starter.
+func launchAsyncDispatch(payload *types.JobPayload, starterToken string) error {
+	// Temporarily set wait_for_completion to true for the child process
+	originalWaitForCompletion := payload.WaitForCompletion
 	waitForCompletion := true
 	payload.WaitForCompletion = &waitForCompletion
 	payloadJSON, err := json.Marshal(payload)
+	payload.WaitForCompletion = originalWaitForCompletion
+
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload for async dispatch: %w", err)
 	}
@@ -761,6 +863,11 @@ func launchAsyncDispatch(payload *types.JobPayload) error {
 	payloadB64 := base64.StdEncoding.EncodeToString(payloadJSON)
 
 	cmd := exec.Command(os.Args[0], "run-job", "--payload-base64", payloadB64)
+
+	// Pass the starter token via env var if this child is the designated worker starter
+	if starterToken != "" {
+		cmd.Env = append(os.Environ(), "LOMBOK_WORKER_STARTER_TOKEN="+starterToken)
+	}
 
 	logPath := config.AgentLogPath()
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
@@ -774,8 +881,11 @@ func launchAsyncDispatch(payload *types.JobPayload) error {
 		logFile.Close()
 		return fmt.Errorf("failed to start async dispatch process: %w", err)
 	}
+
+	pid := cmd.Process.Pid
+
 	logFile.Close()
 
-	logs.WriteAgentLog("job_id=%s scheduled async dispatch pid=%d", payload.JobID, cmd.Process.Pid)
+	logs.WriteAgentLog("job_id=%s scheduled async dispatch pid=%d", payload.JobID, pid)
 	return nil
 }

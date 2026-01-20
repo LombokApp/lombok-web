@@ -2913,48 +2913,30 @@ export interface components {
             settingValue?: unknown;
         };
         ServerMetricsResponse: {
-            /** Format: int64 */
-            totalUsers: number;
-            /** Format: int64 */
-            totalFolders: number;
-            /** Format: int64 */
-            usersCreatedPreviousWeek: number;
-            /** Format: int64 */
-            foldersCreatedPreviousWeek: number;
-            /** Format: int64 */
-            totalIndexedSizeBytes: number;
-            /** Format: int64 */
-            sessionsCreatedPreviousWeek: number;
-            /** Format: int64 */
-            sessionsCreatedPrevious24Hours: number;
+            totalUsers: string;
+            totalFolders: string;
+            usersCreatedPreviousWeek: string;
+            foldersCreatedPreviousWeek: string;
+            totalIndexedSizeBytes: string;
+            sessionsCreatedPreviousWeek: string;
+            sessionsCreatedPrevious24Hours: string;
             provisionedStorage: {
-                /** Format: int64 */
-                totalCount: number;
+                totalCount: string;
                 summary: string;
             };
-            /** Format: int64 */
-            totalIndexedSizeBytesAcrossStorageProvisions: number;
+            totalIndexedSizeBytesAcrossStorageProvisions: string;
             installedApps: {
-                /** Format: int64 */
-                totalCount: number;
+                totalCount: string;
                 summary: string;
             };
-            /** Format: int64 */
-            tasksCreatedPreviousDay: number;
-            /** Format: int64 */
-            tasksCreatedPreviousHour: number;
-            /** Format: int64 */
-            taskErrorsPreviousDay: number;
-            /** Format: int64 */
-            taskErrorsPreviousHour: number;
-            /** Format: int64 */
-            serverEventsEmittedPreviousDay: number;
-            /** Format: int64 */
-            serverEventsEmittedPreviousHour: number;
-            /** Format: int64 */
-            folderEventsEmittedPreviousDay: number;
-            /** Format: int64 */
-            folderEventsEmittedPreviousHour: number;
+            tasksCreatedPreviousDay: string;
+            tasksCreatedPreviousHour: string;
+            taskErrorsPreviousDay: string;
+            taskErrorsPreviousHour: string;
+            serverEventsEmittedPreviousDay: string;
+            serverEventsEmittedPreviousHour: string;
+            folderEventsEmittedPreviousDay: string;
+            folderEventsEmittedPreviousHour: string;
         };
         StorageProvisionsListResponse: {
             result: {

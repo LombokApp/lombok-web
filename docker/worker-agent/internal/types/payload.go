@@ -34,6 +34,7 @@ type WorkerState struct {
 	StartedAt     string   `json:"started_at"`
 	LastCheckedAt string   `json:"last_checked_at"`
 	AgentVersion  string   `json:"agent_version"`
+	StarterToken  string   `json:"starter_token,omitempty"` // Token identifying the designated worker starter
 }
 
 // JobState represents the state of a job execution

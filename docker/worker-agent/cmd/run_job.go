@@ -51,15 +51,12 @@ func runJob(cmd *cobra.Command, args []string) error {
 		payload.JobID, payload.JobClass, payload.Interface.Kind)
 
 	// Dispatch based on interface kind
-	var runErr error
 	switch payload.Interface.Kind {
 	case "exec_per_job":
-		runErr = runner.RunExecPerJob(&payload, jobStartTime)
+		return runner.RunExecPerJob(&payload, jobStartTime)
 	case "persistent_http":
-		runErr = runner.RunPersistentHTTP(&payload, jobStartTime)
+		return runner.RunPersistentHTTP(&payload, jobStartTime)
 	default:
 		return fmt.Errorf("unknown interface kind: %s", payload.Interface.Kind)
 	}
-
-	return runErr
 }

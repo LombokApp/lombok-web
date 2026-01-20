@@ -248,6 +248,7 @@ const triggerAppDockerHandledTask = async (
       taskIdentifier: 'run_docker_worker',
       taskDescription: 'Run a docker worker to execute a task',
       storageAccessPolicy: null,
+      latestHeartbeatAt: null,
       data: {
         appIdentifier,
         jobClassIdentifier,
@@ -368,7 +369,13 @@ describe('Docker Jobs', () => {
       return Promise.resolve({
         getError: () =>
           Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
-        output: () => ({ stdout: '', stderr: '' }),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
         state: () => Promise.resolve({ running: false, exitCode: 0 }),
       })
     })
@@ -466,7 +473,13 @@ describe('Docker Jobs', () => {
       return Promise.resolve({
         getError: () =>
           Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
-        output: () => ({ stdout: '', stderr: '' }),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
         state: () => Promise.resolve({ running: false, exitCode: 0 }),
       })
     })
@@ -518,7 +531,7 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
-    execSpy.mockImplementationOnce(() =>
+    execSpy.mockImplementationOnce((_containerId, _options) =>
       Promise.resolve({
         getError: () =>
           Promise.resolve({
@@ -527,8 +540,11 @@ describe('Docker Jobs', () => {
             name: 'DockerError',
           }),
         output: () => ({
-          stdout: '',
-          stderr: 'unknown interface kind: invalid_kind',
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
         }),
         state: () =>
           Promise.resolve({
@@ -545,14 +561,9 @@ describe('Docker Jobs', () => {
         jobIdentifier: 'test_job',
         jobData: {},
       }),
-    ).resolves.toEqual({
-      jobId: expect.any(String),
-      submitError: {
-        code: 'SUBMISSION_ERROR',
-        message:
-          'Job submission failed with error: [UNKNOWN_INTERFACE_KIND] Message: unknown interface kind: invalid_kind',
-      },
-    })
+    ).rejects.toThrow(
+      'Job submission failed with error: [UNKNOWN_INTERFACE_KIND] Message: unknown interface kind: invalid_kind',
+    )
   })
 
   it('should reject completion when the task has not been started', async () => {
@@ -567,7 +578,13 @@ describe('Docker Jobs', () => {
       return Promise.resolve({
         getError: () =>
           Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
-        output: () => ({ stdout: '', stderr: '' }),
+        output: () => ({
+          stdout:
+            _options.command[1] === 'job-state'
+              ? `{"job_id": "${_options.command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+              : '',
+          stderr: '',
+        }),
         state: () => Promise.resolve({ running: false, exitCode: 0 }),
       })
     })
@@ -644,6 +661,12 @@ describe('Docker Jobs', () => {
         parsedPayload.jobId,
       )
 
+    const innerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerRunTask.data.innerTaskId as string),
+      })
+    expect(innerTask).toBeDefined()
+    expect(innerTask?.latestHeartbeatAt).toBeNull()
     expect(claims.jobId).toBe(parsedPayload.jobId)
     expect(claims.taskId).toBe(dockerRunTask.id)
     expect(claims.storageAccessPolicy).toBeUndefined()
@@ -683,9 +706,23 @@ describe('Docker Jobs', () => {
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
+      latestHeartbeatAt: null,
       storageAccessPolicy: null,
       dontStartBefore: null,
-      systemLog: [],
+      systemLog: [
+        {
+          at: expect.any(Date),
+          logType: 'started',
+          message: 'Task is started',
+          payload: {
+            __executor: {
+              jobIdentifier: 'test_job_other',
+              profileHash: '679f45ae',
+              profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
+            },
+          },
+        },
+      ],
       taskLog: [],
       invocation: {
         kind: 'app_action',
@@ -699,7 +736,7 @@ describe('Docker Jobs', () => {
       targetUserId: null,
       attemptCount: 0,
       failureCount: 0,
-      startedAt: null,
+      startedAt: expect.any(Date),
       completedAt: null,
       userVisible: true,
       success: null,
@@ -823,6 +860,7 @@ describe('Docker Jobs', () => {
       ownerIdentifier: appIdentifier,
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskDescription: 'Task that is handled by a docker worker.',
+      latestHeartbeatAt: null,
       data: { myTaskData: 'test' },
       storageAccessPolicy: {
         rules: [
@@ -864,7 +902,20 @@ describe('Docker Jobs', () => {
         ],
       },
       dontStartBefore: null,
-      systemLog: [],
+      systemLog: [
+        {
+          at: expect.any(Date),
+          logType: 'started',
+          message: 'Task is started',
+          payload: {
+            __executor: {
+              jobIdentifier: 'test_job_other',
+              profileHash: '679f45ae',
+              profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
+            },
+          },
+        },
+      ],
       taskLog: [],
       invocation: {
         kind: 'app_action',
@@ -879,7 +930,7 @@ describe('Docker Jobs', () => {
       targetUserId: null,
       attemptCount: 0,
       failureCount: 0,
-      startedAt: null,
+      startedAt: expect.any(Date),
       completedAt: null,
       success: null,
       error: null,
@@ -1754,11 +1805,25 @@ describe('Docker Jobs', () => {
       taskIdentifier: 'non_triggered_docker_worker_task',
       taskDescription: 'Task that is handled by a docker worker.',
       data: { myTaskData: 'test' },
+      latestHeartbeatAt: null,
       storageAccessPolicy: {
         rules: [storageAccessPolicyRule],
       },
       dontStartBefore: null,
-      systemLog: [],
+      systemLog: [
+        {
+          at: expect.any(Date),
+          logType: 'started',
+          message: 'Task is started',
+          payload: {
+            __executor: {
+              jobIdentifier: 'test_job_other',
+              profileHash: '679f45ae',
+              profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
+            },
+          },
+        },
+      ],
       taskLog: [],
       invocation: {
         kind: 'app_action',
@@ -1773,7 +1838,7 @@ describe('Docker Jobs', () => {
       targetUserId: null,
       attemptCount: 0,
       failureCount: 0,
-      startedAt: null,
+      startedAt: expect.any(Date),
       completedAt: null,
       success: null,
       error: null,

@@ -460,9 +460,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 // launchExecAsyncCompletion spawns a background agent process to handle the job.
 // Similar to launchAsyncDispatch for persistent_http.
 func launchExecAsyncCompletion(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time) error {
+	originalWaitForCompletion := payload.WaitForCompletion
 	waitForCompletion := true
 	payload.WaitForCompletion = &waitForCompletion
 	payloadJSON, err := json.Marshal(payload)
+	payload.WaitForCompletion = originalWaitForCompletion
+
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload for async completion: %w", err)
 	}
