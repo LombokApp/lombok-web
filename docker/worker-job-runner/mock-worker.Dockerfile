@@ -32,7 +32,7 @@ COPY docker/worker-job-runner/src ./src
 
 EXPOSE 8080
 
-CMD ["lombok-worker-agent", "worker-logs", "--include-agent"]
+CMD ["lombok-worker-agent", "start"]
 
 # Example:
 # docker build -f docker/worker-job-runner/mock-worker.Dockerfile -t lombok/mock-worker .

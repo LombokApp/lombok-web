@@ -1,15 +1,9 @@
 package config
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-	"unicode"
-
-	"lombok-worker-agent/internal/types"
 )
 
 const (
@@ -28,89 +22,58 @@ func AgentLogPath() string {
 	return filepath.Join(LogBaseDir, "agent.log")
 }
 
-// JobOutLogPath returns the stdout log path for a specific job
+// UnifiedLogPath returns the path to the unified log file containing all logs
+func UnifiedLogPath() string {
+	return filepath.Join(LogBaseDir, "lombok-worker-agent.log")
+}
+
+// JobLogPath returns the structured log path for a specific job
+func JobLogPath(jobID string) string {
+	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.log", jobID))
+}
+
+// JobOutLogPath returns the stdout log path for a specific job (deprecated, use JobLogPath)
 func JobOutLogPath(jobID string) string {
 	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.out.log", jobID))
 }
 
-// JobErrLogPath returns the stderr log path for a specific job
+// JobErrLogPath returns the stderr log path for a specific job (deprecated, use JobLogPath)
 func JobErrLogPath(jobID string) string {
 	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.err.log", jobID))
 }
 
-// WorkerOutLogPath returns the stdout log path for a worker identified by a unique key
-func WorkerOutLogPath(workerCommand []string, iface types.InterfaceConfig) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", WorkerIdentifier(workerCommand, iface)))
+// WorkerLogPath returns the structured log path for a worker identified by port.
+func WorkerLogPath(port int) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.log", WorkerIdentifier(port)))
 }
 
-// WorkerErrLogPath returns the stderr log path for a worker identified by a unique key
-func WorkerErrLogPath(workerCommand []string, iface types.InterfaceConfig) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", WorkerIdentifier(workerCommand, iface)))
+// WorkerOutLogPath returns the stdout log path for a worker identified by port (deprecated).
+func WorkerOutLogPath(port int) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", WorkerIdentifier(port)))
 }
 
-// sanitizeFilepathComponent encodes a string to make it safe for use in filepaths while preserving uniqueness.
-// Safe characters (alphanumeric, dots, underscores, hyphens) are kept as-is.
-// Unsafe characters are encoded as their hex representation prefixed with an underscore (e.g., '/' becomes '_2F_', space becomes '_20_').
-// This ensures different inputs produce different outputs, avoiding collisions.
-func sanitizeFilepathComponent(s string) string {
-	if s == "" {
-		return ""
-	}
-
-	var builder strings.Builder
-	for _, r := range s {
-		// Keep safe characters as-is
-		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '.' || r == '_' || r == '-' {
-			builder.WriteRune(r)
-		} else {
-			// Encode unsafe characters as hex (e.g., '/' -> '_2F_', ' ' -> '_20_')
-			encoded := hex.EncodeToString([]byte(string(r)))
-			builder.WriteString("_")
-			builder.WriteString(encoded)
-			builder.WriteString("_")
-		}
-	}
-
-	return builder.String()
+// WorkerErrLogPath returns the stderr log path for a worker identified by port (deprecated).
+func WorkerErrLogPath(port int) string {
+	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", WorkerIdentifier(port)))
 }
 
-// WorkerIdentifier returns a stable identifier for a worker based on its command and interface configuration.
-// This keeps persistent HTTP worker logs unique per listener/command combination.
-// For long commands, it uses a hash to avoid filesystem filename length limits.
-func WorkerIdentifier(workerCommand []string, iface types.InterfaceConfig) string {
-	commandPart := strings.Join(workerCommand, " ")
-
-	// If the command is too long (after sanitization it could exceed filesystem limits),
-	// use a hash instead. Most filesystems have a 255-byte limit for filenames.
-	// We'll use a threshold of 200 characters to leave room for the interface part and extensions.
-	const maxCommandLength = 200
-
-	sanitizedCommand := sanitizeFilepathComponent(commandPart)
-	if len(sanitizedCommand) > maxCommandLength {
-		// Hash the command for uniqueness while keeping it short
-		hash := sha256.Sum256([]byte(commandPart))
-		commandPart = hex.EncodeToString(hash[:])[:16] // Use first 16 chars of hash (32 hex chars would be 64 bytes)
-	} else {
-		commandPart = sanitizedCommand
-	}
-
-	interfacePart := iface.Kind
-	if iface.Port != nil {
-		interfacePart = fmt.Sprintf("%s %d", iface.Kind, *iface.Port)
-	}
-	interfacePart = sanitizeFilepathComponent(interfacePart)
-
-	parts := []string{"_", commandPart, interfacePart}
-
-	return strings.Join(parts, "__")
+// WorkerIdentifier returns a stable identifier for a worker port.
+func WorkerIdentifier(port int) string {
+	return fmt.Sprintf("http_%d", port)
 }
 
 // State file paths
 
-// WorkerStatePath returns the state file path for a worker by job class
-func WorkerStatePath(workerCommand []string, iface types.InterfaceConfig) string {
-	workerIdentifier := WorkerIdentifier(workerCommand, iface)
+// WorkerStatePath returns the state file path for a worker.
+func WorkerStatePath(port int) string {
+	workerIdentifier := WorkerIdentifier(port)
 	return filepath.Join(StateBaseDir, "workers", fmt.Sprintf("%s.json", workerIdentifier))
+}
+
+// WorkerStartLockPath returns the lock file path used to guard worker startup.
+func WorkerStartLockPath(port int) string {
+	workerIdentifier := WorkerIdentifier(port)
+	return filepath.Join(StateBaseDir, "workers", fmt.Sprintf("%s.start.lock", workerIdentifier))
 }
 
 // JobStatePath returns the state file path for a specific job

@@ -26,8 +26,11 @@ let n = 0
 const CHECK_INTERVAL = 250
 const interval = setInterval(() => {
   console.log(
-    `[${new Date().toISOString()}] ready check (+${n * CHECK_INTERVAL}ms):`,
-    calculateIsReady(),
+    `DEBUG|${JSON.stringify([
+      `Interval ready check (+${n * CHECK_INTERVAL}ms): ${JSON.stringify(
+        calculateIsReady(),
+      )}`,
+    ])}`,
   )
   if (n > READY_DELAY_MS / CHECK_INTERVAL) {
     clearInterval(interval)
@@ -108,6 +111,7 @@ const createJobLogger = (jobLogOut?: string, jobLogErr?: string): JobLogger => {
 interface JobContext {
   logger: JobLogger
   outputDir?: string
+  jobId?: string // Add jobId to context for structured logging
 }
 
 type JobHandler = (
@@ -176,6 +180,28 @@ const isNumberArray = (val: unknown): val is number[] =>
 const isStringArray = (val: unknown): val is string[] =>
   Array.isArray(val) && val.every((v) => typeof v === 'string')
 
+// Helper function to output structured logs to stdout/stderr
+// Always outputs structured logs when jobId is available
+const outputStructuredLog = (
+  jobId: string | undefined,
+  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG',
+  message: string,
+  data?: unknown,
+) => {
+  if (!jobId) {
+    return // Skip if no jobId
+  }
+  const logArray = data
+    ? JSON.stringify([message, data])
+    : JSON.stringify([message])
+  const logLine = `JOB_ID_${jobId}|${level}|${logArray}\n`
+  if (level === 'ERROR') {
+    process.stderr.write(logLine)
+  } else {
+    process.stdout.write(logLine)
+  }
+}
+
 // Math handlers
 const handleMathAdd: JobHandler = (input, ctx) => {
   if (!isObject(input) || !isNumberArray(input.numbers)) {
@@ -183,8 +209,22 @@ const handleMathAdd: JobHandler = (input, ctx) => {
   }
   const { numbers } = input as unknown as MathAddInput
   ctx.logger.log(`Adding ${numbers.length} numbers: [${numbers.join(', ')}]`)
+
+  // Also output structured log to stdout if jobId is available
+  outputStructuredLog(ctx.jobId, 'INFO', 'Adding numbers', {
+    count: numbers.length,
+    numbers,
+  })
+
   const sum = numbers.reduce((acc, n) => acc + n, 0)
   ctx.logger.log(`Result: ${sum}`)
+
+  // Output result as structured log
+  outputStructuredLog(ctx.jobId, 'INFO', 'Calculation complete', {
+    sum,
+    operands: numbers,
+  })
+
   return { sum, operands: numbers }
 }
 
@@ -437,6 +477,14 @@ interface VerboseLogInput {
   delayMs?: number // Optional delay between steps to simulate long-running job
 }
 
+const handleLogCaptureTest: JobHandler = async (input, ctx) => {
+  ctx.logger.log('=== Starting log capture test ===')
+  outputStructuredLog(ctx.jobId, 'INFO', 'Starting log capture test', {
+    message: 'This is a test of the log capture feature',
+  })
+  return { message: 'Log capture test completed' }
+}
+
 const handleVerboseLog: JobHandler = async (input, ctx) => {
   if (
     !isObject(input) ||
@@ -452,6 +500,13 @@ const handleVerboseLog: JobHandler = async (input, ctx) => {
   } = input as unknown as VerboseLogInput
 
   ctx.logger.log('=== Starting verbose logging job ===')
+  outputStructuredLog(ctx.jobId, 'INFO', 'Starting verbose logging job', {
+    steps,
+    simulateWarning,
+    simulateError,
+    delayMs,
+  })
+
   ctx.logger.log(
     `Configuration: steps=${steps}, simulateWarning=${simulateWarning}, simulateError=${simulateError}, delayMs=${delayMs}`,
   )
@@ -460,12 +515,20 @@ const handleVerboseLog: JobHandler = async (input, ctx) => {
 
   for (let i = 1; i <= steps; i++) {
     ctx.logger.log(`Step ${i}/${steps}: Processing...`)
+    outputStructuredLog(ctx.jobId, 'INFO', 'Processing step', {
+      step: i,
+      totalSteps: steps,
+    })
     results.push(`step_${i}_complete`)
 
     if (simulateWarning && i === Math.floor(steps / 2)) {
       ctx.logger.error(
         `Warning at step ${i}: This is a simulated warning message`,
       )
+      outputStructuredLog(ctx.jobId, 'WARN', 'Simulated warning', {
+        step: i,
+        message: 'This is a simulated warning message',
+      })
     }
 
     // Simulate work with optional delay
@@ -477,10 +540,19 @@ const handleVerboseLog: JobHandler = async (input, ctx) => {
   if (simulateError) {
     ctx.logger.error('Simulated error condition detected')
     ctx.logger.error('This demonstrates error logging to the job error log')
+    outputStructuredLog(ctx.jobId, 'ERROR', 'Simulated error condition', {
+      message: 'This demonstrates error logging to the job error log',
+    })
   }
 
   ctx.logger.log(`=== Completed ${steps} steps successfully ===`)
   ctx.logger.log(`Results: [${results.join(', ')}]`)
+  outputStructuredLog(ctx.jobId, 'INFO', 'Completed verbose logging job', {
+    stepsCompleted: steps,
+    results,
+    hadWarning: simulateWarning ?? false,
+    hadError: simulateError ?? false,
+  })
 
   return {
     stepsCompleted: steps,
@@ -576,6 +648,7 @@ const jobHandlers: Record<string, JobHandler> = {
 
   // Logging demonstration
   verbose_log: handleVerboseLog,
+  log_capture_test: handleLogCaptureTest,
 
   // File output demonstration
   file_output: handleFileOutput,
@@ -729,6 +802,7 @@ const server = Bun.serve({
       const ctx: JobContext = {
         logger: createJobLogger(body.job_log_out, body.job_log_err),
         outputDir: body.job_output_dir,
+        jobId: jobId, // Include jobId for structured logging
       }
 
       // Create initial job state
@@ -843,12 +917,14 @@ const server = Bun.serve({
     if (request.method === 'GET' && pathname === '/health/ready') {
       const { isReady, remainingMs, elapsedMs } = calculateIsReady()
       console.log(
-        `[${new Date().toISOString()}] Received ready check - Current state:`,
-        {
-          isReady,
-          remainingMs,
-          elapsedMs,
-        },
+        `DEBUG|${JSON.stringify([
+          'Received ready check',
+          {
+            isReady,
+            remainingMs,
+            elapsedMs,
+          },
+        ])}`,
       )
       return jsonResponse(
         {
@@ -913,13 +989,20 @@ const server = Bun.serve({
       return jsonResponse({ message: 'All jobs cleared' })
     }
 
+    if (request.method === 'POST' && pathname === '/shutdown') {
+      setTimeout(() => server.stop())
+      return jsonResponse({ message: 'Worker shutting down...' })
+    }
+
     return jsonResponse({ error: 'Not found' }, { status: 404 })
   },
 })
 
 // eslint-disable-next-line no-console
 console.log(
-  `Mock runner listening on port ${server.port} with ${
-    Object.keys(jobHandlers).length
-  } job classes (async protocol)`,
+  `DEBUG|${JSON.stringify([
+    `Mock runner listening on port ${server.port} with ${
+      Object.keys(jobHandlers).length
+    } job classes (async protocol)`,
+  ])}`,
 )

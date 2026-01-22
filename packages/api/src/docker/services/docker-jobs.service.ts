@@ -580,7 +580,7 @@ export class DockerJobsService {
   private async getJobLogs(
     hostId: string,
     containerId: string,
-    options: { jobId: string; tail?: number; err?: boolean },
+    options: { jobId: string; tail?: number },
   ): Promise<string> {
     const command = [
       'lombok-worker-agent',
@@ -588,10 +588,6 @@ export class DockerJobsService {
       '--job-id',
       options.jobId,
     ]
-
-    if (options.err) {
-      command.push('--err')
-    }
 
     if (options.tail) {
       command.push('--tail', options.tail.toString())
@@ -678,22 +674,12 @@ export class DockerJobsService {
     const errors: string[] = []
 
     try {
-      const stdout = await this.getJobLogs(hostId, containerId, { jobId, tail })
-      if (stdout.length > 0) {
-        entries.push({ stream: 'stdout', text: stdout })
-      }
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error))
-    }
-
-    try {
-      const stderr = await this.getJobLogs(hostId, containerId, {
+      const content = await this.getJobLogs(hostId, containerId, {
         jobId,
         tail,
-        err: true,
       })
-      if (stderr.length > 0) {
-        entries.push({ stream: 'stderr', text: stderr })
+      if (content.length > 0) {
+        entries.push({ stream: 'stdout', text: content })
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error))

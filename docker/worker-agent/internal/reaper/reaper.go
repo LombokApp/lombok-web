@@ -10,7 +10,7 @@ import (
 
 var (
 	reaperSetupOnce         sync.Once
-	reapUnregisteredZombies bool // If true, reap all zombies (for main worker-logs process)
+	reapUnregisteredZombies bool // If true, reap all zombies (for main start process)
 	reapUnregisteredMu      sync.Mutex
 )
 
@@ -38,9 +38,9 @@ func setupReaperGoroutines() {
 }
 
 // reapZombies reaps zombie children (non-blocking).
-// Only reaps zombies if reapUnregisteredZombies is enabled (main worker-logs process).
+// Only reaps zombies if reapUnregisteredZombies is enabled (main start process).
 // Child agent processes don't reap zombies - when they exit, their zombie children
-// become orphans and are reparented to PID 1 (worker-logs), which then reaps them.
+// become orphans and are reparented to PID 1 (start), which then reaps them.
 // This prevents interference with exec_per_job workers being explicitly waited on.
 func reapZombies() {
 	reapUnregisteredMu.Lock()
@@ -50,11 +50,11 @@ func reapZombies() {
 	if !shouldReapUnregistered {
 		// In child agent processes, don't reap zombies
 		// When the agent process exits, any zombie children become orphans
-		// and are reparented to PID 1 (worker-logs), which will reap them
+		// and are reparented to PID 1 (start), which will reap them
 		return
 	}
 
-	// In main worker-logs process (PID 1), reap all zombies
+	// In main start process (PID 1), reap all zombies
 	// These are orphans that became children of PID 1 when their parent agent processes exited
 	for {
 		var status syscall.WaitStatus
@@ -67,7 +67,7 @@ func reapZombies() {
 }
 
 // EnableReapUnregisteredZombies enables reaping of unregistered zombie children.
-// This should only be enabled for the main worker-logs process to handle zombies
+// This should only be enabled for the main start process to handle zombies
 // that become children of the main process when child agent processes exit.
 func EnableReapUnregisteredZombies() {
 	reapUnregisteredMu.Lock()

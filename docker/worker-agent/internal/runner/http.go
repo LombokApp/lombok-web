@@ -3,9 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -34,6 +32,9 @@ const (
 	jobPollInterval  = 1 * time.Second
 	jobPollTimeout   = 30 * time.Minute // Max time to wait for a job to complete
 	jobStatusTimeout = 5 * time.Second  // Timeout for each status poll request
+
+	workerStateWaitTimeout  = 1500 * time.Millisecond
+	workerStatePollInterval = 20 * time.Millisecond
 )
 
 // RunPersistentHTTP runs a job using the persistent_http interface
@@ -69,50 +70,17 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		return fmt.Errorf("failed to write initial job state: %w", err)
 	}
 
+	// Create job log file before job execution starts
+	jobLogPath := config.JobLogPath(payload.JobID)
+	jobLogFile, err := os.OpenFile(jobLogPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create job log file: %w", err)
+	}
+	jobLogFile.Close() // Close it immediately - the interceptor will open it when needed
+
 	// Fast path: fire-and-forget when caller does not need completion.
 	if !waitForCompletion {
-		// Ensure a worker state file exists before handing off to async dispatch.
-		existingState, err := state.ReadWorkerState(payload.WorkerCommand, payload.Interface)
-		if err != nil {
-			return fmt.Errorf("failed to read worker state before async dispatch: %w", err)
-		}
-		if existingState != nil {
-			logs.WriteAgentLog("job_id=%s existing worker state: pid=%d state=%s kind=%s", payload.JobID, existingState.PID, existingState.State, existingState.Kind)
-		} else {
-			logs.WriteAgentLog("job_id=%s no existing worker state found, will create initial state", payload.JobID)
-		}
-
-		// Track whether we created a new "starting" state and should pass a token to the child
-		var starterToken string
-
-		if existingState == nil {
-			// Generate a random token to identify the designated worker starter
-			tokenBytes := make([]byte, 16)
-			if _, err := rand.Read(tokenBytes); err != nil {
-				return fmt.Errorf("failed to generate starter token: %w", err)
-			}
-			starterToken = hex.EncodeToString(tokenBytes)
-
-			now := time.Now().UTC().Format(time.RFC3339)
-			workerState := &types.WorkerState{
-				JobClass:      payload.JobClass,
-				Kind:          "persistent_http",
-				WorkerCommand: payload.WorkerCommand,
-				PID:           0,
-				State:         "starting",
-				Port:          payload.Interface.Port,
-				StartedAt:     now,
-				LastCheckedAt: now,
-				AgentVersion:  config.AgentVersion,
-				StarterToken:  starterToken,
-			}
-
-			if err := state.WriteWorkerState(workerState); err != nil {
-				return fmt.Errorf("failed to write initial worker state before async dispatch: %w", err)
-			}
-		}
-
-		return startAsyncDispatch(payload, jobState, jobStartTime, starterToken)
+		return startAsyncDispatch(payload, jobState, jobStartTime)
 	}
 
 	var platformClient *platform.Client
@@ -169,11 +137,6 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	jobState.WorkerStatePID = workerState.PID
 	state.WriteJobState(jobState)
 
-	// Log worker startup time
-	workerStartupDurationActual := time.Since(workerStartupStartTime)
-	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs (to_ready=%.3fs)",
-		payload.JobID, workerStartupDurationActual.Seconds(), workerStartupDuration.Seconds())
-
 	// Build the HTTP client for job submission (short timeout)
 	client := &http.Client{Timeout: jobSubmitTimeout}
 
@@ -190,14 +153,15 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
 			// Failed to signal start - this is a critical error
 			// Kill the worker process and record job failure
-			logs.WriteAgentLog("error: failed to signal start: %v", err)
+			logs.WriteAgentLog(logs.LogLevelError, "Failed to signal start", map[string]any{
+				"error": err.Error(),
+			})
 
 			cancelErr := CancelJob(CancelJobConfig{
 				Payload:         payload,
 				JobState:        jobState,
 				JobStartTime:    jobStartTime,
 				WorkerStartTime: workerStartupStartTime,
-				PlatformClient:  platformClient,
 				WorkerPID:       workerState.PID,
 			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
 
@@ -321,7 +285,9 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		status, err := pollJobStatus(pollClient, statusURL)
 		if err != nil {
 			// Log the error but keep polling
-			logs.WriteAgentLog("poll error: %v", err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Poll error", map[string]any{
+				"error": err.Error(),
+			})
 			time.Sleep(jobPollInterval)
 			continue
 		}
@@ -385,8 +351,12 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	jobExecutionDuration := time.Since(jobExecutionStartTime)
 	totalJobDuration := time.Since(jobStartTime)
 
-	logs.WriteAgentLog("Job finished: job_id=%s job_execution_time=%.3fs total_time=%.3fs status=%s",
-		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds(), finalStatus.Status)
+	logs.WriteAgentLog(logs.LogLevelInfo, "Job finished", map[string]any{
+		"job_id":             payload.JobID,
+		"job_execution_time": jobExecutionDuration.Seconds(),
+		"total_time":         totalJobDuration.Seconds(),
+		"status":             finalStatus.Status,
+	})
 
 	// Update job state with final status
 	jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
@@ -407,17 +377,21 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
 		if err != nil {
-			logs.WriteAgentLog("warning: failed to read manifest: %v", err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to read manifest", map[string]any{
+				"error": err.Error(),
+			})
 		} else if manifest != nil && len(manifest.Files) > 0 {
 			if payload.OutputLocation == nil {
-				logs.WriteAgentLog("warning: output_location not provided; skipping uploads")
+				logs.WriteAgentLog(logs.LogLevelWarn, "Output location not provided; skipping uploads", nil)
 			} else {
 				uploader := upload.NewUploader(platformClient)
 				ctx := context.Background()
 
 				uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest, payload.OutputLocation)
 				if err != nil {
-					logs.WriteAgentLog("warning: failed to upload files: %v", err)
+					logs.WriteAgentLog(logs.LogLevelWarn, "Failed to upload files", map[string]any{
+						"error": err.Error(),
+					})
 				} else {
 					outputFiles = uploaded
 				}
@@ -443,10 +417,9 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 
 	// Build timing information
 	timing := map[string]interface{}{
-		"job_execution_time_seconds":  jobExecutionDuration.Seconds(),
-		"total_time_seconds":          totalJobDuration.Seconds(),
-		"worker_startup_time_seconds": workerStartupDurationActual.Seconds(),
-		"worker_ready_time_seconds":   workerStartupDuration.Seconds(),
+		"job_execution_time_seconds": jobExecutionDuration.Seconds(),
+		"total_time_seconds":         totalJobDuration.Seconds(),
+		"worker_ready_time_seconds":  workerStartupDuration.Seconds(),
 	}
 
 	// Output the final resultLog to stdout for the platform
@@ -484,7 +457,9 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	}
 
 	if err := state.WriteJobResult(jobResult); err != nil {
-		logs.WriteAgentLog("warning: failed to write job result: %v", err)
+		logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job result", map[string]any{
+			"error": err.Error(),
+		})
 	}
 
 	state.WriteJobState(jobState)
@@ -536,100 +511,103 @@ func pollJobStatus(client *http.Client, statusURL string) (*types.HTTPJobStatusR
 // ensureWorkerReady makes sure a worker is running and ready to accept jobs
 // Returns the worker state, the time taken for the worker to become ready, and any error
 func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Duration, error) {
+	if payload.Interface.Port == nil || *payload.Interface.Port <= 0 {
+		return nil, 0, fmt.Errorf("worker port is required")
+	}
+	port := *payload.Interface.Port
 
 	// Check if worker is already running
-	alive, workerState, err := state.IsWorkerAlive(payload.WorkerCommand, payload.Interface)
+	alive, workerState, err := state.IsWorkerAlive(port)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to check worker state: %w", err)
 	}
 
-	// If worker state is "starting" but process isn't alive, check if we're the designated starter
-	if !alive && workerState != nil && workerState.State == "starting" {
-		envToken := os.Getenv("LOMBOK_WORKER_STARTER_TOKEN")
-		isDesignatedStarter := envToken != "" && envToken == workerState.StarterToken
+	startedWorker := false
+	workerStartTime := time.Time{}
 
-		if isDesignatedStarter {
-			// We are the designated starter - fall through to start the worker
-			logs.WriteAgentLog("job_class=%s this process is the designated worker starter (token match)", payload.JobClass)
-		} else {
-			// Another process is starting the worker, wait for it
-			logs.WriteAgentLog("job_class=%s worker is being started by another process, waiting...", payload.JobClass)
-			waitStart := time.Now()
-			workerState, err = waitForWorkerToStart(payload.WorkerCommand, payload.Interface, readinessTimeout)
+	if !alive {
+		if workerState != nil && workerState.Status == "starting" {
+			logs.WriteAgentLog(logs.LogLevelInfo, "Dispatcher waiting for worker start", map[string]any{
+				"job_id":    payload.JobID,
+				"job_class": payload.JobClass,
+			})
+			workerState, err = waitForWorkerToStart(port, readinessTimeout)
 			if err != nil {
 				return nil, 0, fmt.Errorf("timed out waiting for worker to start: %w", err)
 			}
+		} else if workerState == nil || workerState.Status == "unhealthy" || workerState.Status == "stopped" {
+			workerStartTime = time.Now()
+			startedWorker = true
+			logs.WriteAgentLog(logs.LogLevelInfo, "Dispatcher triggering worker start", map[string]any{
+				"job_id":    payload.JobID,
+				"job_class": payload.JobClass,
+			})
+			if err := launchWorkerSupervisor(payload); err != nil {
+				return nil, 0, err
+			}
+
+			workerState, err = waitForWorkerToStart(port, readinessTimeout)
+			if err != nil {
+				return nil, 0, fmt.Errorf("timed out waiting for worker to start: %w", err)
+			}
+		}
+
+		if workerState != nil {
+			logs.WriteAgentLog(logs.LogLevelInfo, "Dispatcher observed worker process start", map[string]any{
+				"job_id":    payload.JobID,
+				"job_class": payload.JobClass,
+				"pid":       workerState.PID,
+			})
 			alive = true
-			logs.WriteAgentLog("job_class=%s worker started by another process after %.3fs, pid=%d",
-				payload.JobClass, time.Since(waitStart).Seconds(), workerState.PID)
 		}
 	}
 
 	if alive {
 		// Verify the worker is actually responding
-		if checkWorkerReady(*payload.Interface.Port) {
+		if checkWorkerReady(port) {
 			// Worker was already ready, so ready time is 0
+			if refreshed, err := state.ReadWorkerState(port); err == nil && refreshed != nil {
+				workerState = refreshed
+			}
+			logs.WriteAgentLog(logs.LogLevelInfo, "Dispatcher observed worker ready", map[string]any{
+				"job_id":            payload.JobID,
+				"job_class":         payload.JobClass,
+				"worker_ready_time": 0.0,
+			})
 			return workerState, 0, nil
 		}
 		// Worker is running but not yet ready; wait for it to become ready
 		waitStart := time.Now()
-		if err := waitForWorkerReady(*payload.Interface.Port, readinessTimeout); err != nil {
-			workerState.State = "unhealthy"
-			state.WriteWorkerState(workerState)
+		if err := waitForWorkerReady(port, readinessTimeout); err != nil {
 			return nil, 0, err
 		}
 
 		readyDuration := time.Since(waitStart)
+		if startedWorker && !workerStartTime.IsZero() {
+			readyDuration = time.Since(workerStartTime)
+		}
 
-		// Log worker startup timing
-		logs.WriteAgentLog("job_class=%s worker_became_ready_time=%.3fs",
-			payload.JobClass, readyDuration.Seconds())
-
-		// Mark as ready and clear the starter token
-		workerState.State = "ready"
-		workerState.StarterToken = ""
-		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-		state.WriteWorkerState(workerState)
+		if refreshed, err := state.ReadWorkerState(port); err == nil && refreshed != nil {
+			workerState = refreshed
+		}
+		logs.WriteAgentLog(logs.LogLevelInfo, "Dispatcher observed worker ready", map[string]any{
+			"job_id":            payload.JobID,
+			"job_class":         payload.JobClass,
+			"worker_ready_time": readyDuration.Seconds(),
+		})
 		return workerState, readyDuration, nil
 	}
 
-	// Need to start (or restart) the worker
-	workerStartTime := time.Now()
-	workerState, err = startWorker(payload)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// Poll for readiness
-	if err := waitForWorkerReady(*payload.Interface.Port, readinessTimeout); err != nil {
-		workerState.State = "unhealthy"
-		state.WriteWorkerState(workerState)
-		return nil, 0, err
-	}
-
-	// Calculate time taken for worker to become ready
-	readyDuration := time.Since(workerStartTime)
-
-	// Log worker startup timing
-	logs.WriteAgentLog("job_class=%s worker_became_ready_time=%.3fs",
-		payload.JobClass, readyDuration.Seconds())
-
-	// Mark as ready and clear the starter token
-	workerState.State = "ready"
-	workerState.StarterToken = ""
-	workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-	state.WriteWorkerState(workerState)
-
-	return workerState, readyDuration, nil
+	return nil, 0, fmt.Errorf("worker is not running")
 }
 
 // waitForWorkerToStart polls until a worker that's in "starting" state becomes alive
-func waitForWorkerToStart(workerCommand []string, iface types.InterfaceConfig, timeout time.Duration) (*types.WorkerState, error) {
+func waitForWorkerToStart(port int, timeout time.Duration) (*types.WorkerState, error) {
 	deadline := time.Now().Add(timeout)
 	pollInterval := 100 * time.Millisecond
 
 	for time.Now().Before(deadline) {
-		alive, workerState, err := state.IsWorkerAlive(workerCommand, iface)
+		alive, workerState, err := state.IsWorkerAlive(port)
 		if err != nil {
 			return nil, err
 		}
@@ -640,84 +618,6 @@ func waitForWorkerToStart(workerCommand []string, iface types.InterfaceConfig, t
 	}
 
 	return nil, fmt.Errorf("worker did not start within %s", timeout)
-}
-
-// startWorker starts a new worker process
-func startWorker(payload *types.JobPayload) (*types.WorkerState, error) {
-	if len(payload.WorkerCommand) == 0 {
-		return nil, fmt.Errorf("worker_command is empty")
-	}
-
-	// Build the command (without payload arg for persistent workers)
-	var cmd *exec.Cmd
-	if len(payload.WorkerCommand) > 1 {
-		cmd = exec.Command(payload.WorkerCommand[0], payload.WorkerCommand[1:]...)
-	} else {
-		cmd = exec.Command(payload.WorkerCommand[0])
-	}
-
-	// Open log files for the worker
-	stdoutPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
-	stderrPath := config.WorkerErrLogPath(payload.WorkerCommand, payload.Interface)
-
-	stdoutFile, err := os.OpenFile(stdoutPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open worker stdout log: %w", err)
-	}
-
-	stderrFile, err := os.OpenFile(stderrPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		stdoutFile.Close()
-		return nil, fmt.Errorf("failed to open worker stderr log: %w", err)
-	}
-
-	cmd.Stdout = stdoutFile
-	cmd.Stderr = stderrFile
-
-	// Start the worker as a background process
-	if err := cmd.Start(); err != nil {
-		stdoutFile.Close()
-		stderrFile.Close()
-		return nil, fmt.Errorf("failed to start worker: %w", err)
-	}
-
-	// Give the process a moment to initialize and catch immediate failures
-	time.Sleep(500 * time.Millisecond)
-
-	// Check if process is still alive (catches immediate crashes)
-	if !state.IsProcessAlive(cmd.Process.Pid) {
-		stdoutFile.Close()
-		stderrFile.Close()
-		return nil, fmt.Errorf("worker process exited immediately after start (check logs: %s)", stderrPath)
-	}
-
-	// Don't wait for the worker - it runs in the background
-	// The log files will be written to by the process
-	go func() {
-		cmd.Wait()
-		stdoutFile.Close()
-		stderrFile.Close()
-	}()
-
-	// Create worker state
-	now := time.Now().UTC().Format(time.RFC3339)
-	workerState := &types.WorkerState{
-		JobClass:      payload.JobClass,
-		Kind:          "persistent_http",
-		WorkerCommand: payload.WorkerCommand,
-		PID:           cmd.Process.Pid,
-		State:         "starting",
-		Port:          payload.Interface.Port,
-		StartedAt:     now,
-		LastCheckedAt: now,
-		AgentVersion:  config.AgentVersion,
-	}
-
-	if err := state.WriteWorkerState(workerState); err != nil {
-		return nil, fmt.Errorf("failed to write worker state: %w", err)
-	}
-
-	return workerState, nil
 }
 
 // waitForWorkerReady polls the worker endpoint until it responds or times out
@@ -763,9 +663,17 @@ func buildBaseURL(port int) string {
 }
 
 // startAsyncDispatch persists the job and hands off submission to a background agent process.
-// starterToken is passed to the child if this process created the initial "starting" worker state.
-func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time, starterToken string) error {
-	alive, workerState, err := state.IsWorkerAlive(payload.WorkerCommand, payload.Interface)
+func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, jobStartTime time.Time) error {
+	if payload.Interface.Port == nil || *payload.Interface.Port <= 0 {
+		jobState.Status = "failed"
+		jobState.Error = "worker port is required"
+		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+		state.WriteJobState(jobState)
+		return fmt.Errorf("worker port is required")
+	}
+	port := *payload.Interface.Port
+
+	alive, workerState, err := state.IsWorkerAlive(port)
 	if err != nil {
 		return fmt.Errorf("failed to check worker state: %w", err)
 	}
@@ -774,19 +682,26 @@ func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, job
 		state.WriteJobState(jobState)
 	}
 
-	// Always dispatch in the background so this call returns immediately.
-	if alive && workerState != nil && workerState.State == "ready" {
-		logs.WriteAgentLog("job_id=%s using ready worker; scheduling async dispatch", payload.JobID)
-	} else {
-		logs.WriteAgentLog("job_id=%s scheduling async dispatch; worker not ready yet", payload.JobID)
-	}
+	logs.WriteAgentLog(logs.LogLevelInfo, "Scheduling async dispatch", map[string]any{
+		"job_id": payload.JobID,
+	})
 
-	if err := launchAsyncDispatch(payload, starterToken); err != nil {
+	if err := launchAsyncDispatch(payload); err != nil {
 		jobState.Status = "failed"
 		jobState.Error = err.Error()
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 		state.WriteJobState(jobState)
 		return err
+	}
+
+	if workerState == nil {
+		if err := waitForWorkerStateFile(port, workerStateWaitTimeout); err != nil {
+			logs.WriteAgentLog(logs.LogLevelWarn, "Worker state not found after async dispatch", map[string]any{
+				"job_id":    payload.JobID,
+				"job_class": payload.JobClass,
+				"error":     err.Error(),
+			})
+		}
 	}
 
 	totalJobDuration := time.Since(jobStartTime)
@@ -810,29 +725,36 @@ func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, job
 	return nil
 }
 
-// prepareHTTPJobRequest creates log/output files and returns the request payload.
+func waitForWorkerStateFile(port int, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+
+	for time.Now().Before(deadline) {
+		workerState, err := state.ReadWorkerState(port)
+		if err != nil {
+			return err
+		}
+		if workerState != nil {
+			return nil
+		}
+		time.Sleep(workerStatePollInterval)
+	}
+
+	return fmt.Errorf("timed out waiting for worker state file")
+}
+
+// prepareHTTPJobRequest creates output directory and returns the request payload.
+// Job log files are now created on-demand when workers output structured log lines.
 func prepareHTTPJobRequest(payload *types.JobPayload) (types.HTTPJobRequest, error) {
 	if err := config.EnsureJobOutputDir(payload.JobID); err != nil {
 		return types.HTTPJobRequest{}, fmt.Errorf("failed to create job output directory: %w", err)
 	}
 
-	jobOutPath := config.JobOutLogPath(payload.JobID)
-	jobErrPath := config.JobErrLogPath(payload.JobID)
 	jobOutputDir := config.JobOutputDir(payload.JobID)
-
-	if err := touchFile(jobOutPath); err != nil {
-		return types.HTTPJobRequest{}, fmt.Errorf("failed to create stdout log: %w", err)
-	}
-	if err := touchFile(jobErrPath); err != nil {
-		return types.HTTPJobRequest{}, fmt.Errorf("failed to create stderr log: %w", err)
-	}
 
 	return types.HTTPJobRequest{
 		JobID:        payload.JobID,
 		JobClass:     payload.JobClass,
 		JobInput:     payload.JobInput,
-		JobLogOut:    jobOutPath,
-		JobLogErr:    jobErrPath,
 		JobOutputDir: jobOutputDir,
 	}, nil
 }
@@ -847,8 +769,7 @@ func touchFile(path string) error {
 }
 
 // launchAsyncDispatch spins up a background agent process to handle readiness and submission.
-// starterToken is passed via env var if this child should be the designated worker starter.
-func launchAsyncDispatch(payload *types.JobPayload, starterToken string) error {
+func launchAsyncDispatch(payload *types.JobPayload) error {
 	// Temporarily set wait_for_completion to true for the child process
 	originalWaitForCompletion := payload.WaitForCompletion
 	waitForCompletion := true
@@ -863,11 +784,6 @@ func launchAsyncDispatch(payload *types.JobPayload, starterToken string) error {
 	payloadB64 := base64.StdEncoding.EncodeToString(payloadJSON)
 
 	cmd := exec.Command(os.Args[0], "run-job", "--payload-base64", payloadB64)
-
-	// Pass the starter token via env var if this child is the designated worker starter
-	if starterToken != "" {
-		cmd.Env = append(os.Environ(), "LOMBOK_WORKER_STARTER_TOKEN="+starterToken)
-	}
 
 	logPath := config.AgentLogPath()
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
@@ -886,6 +802,55 @@ func launchAsyncDispatch(payload *types.JobPayload, starterToken string) error {
 
 	logFile.Close()
 
-	logs.WriteAgentLog("job_id=%s scheduled async dispatch pid=%d", payload.JobID, pid)
+	logs.WriteAgentLog(logs.LogLevelInfo, "Scheduled async dispatch", map[string]any{
+		"job_id": payload.JobID,
+		"pid":    pid,
+	})
+	return nil
+}
+
+type workerSupervisorConfig struct {
+	WorkerCommand []string `json:"worker_command"`
+	Port          int      `json:"port"`
+}
+
+// launchWorkerSupervisor starts a background process that owns the persistent worker's stdout/stderr.
+func launchWorkerSupervisor(payload *types.JobPayload) error {
+	configPayload := workerSupervisorConfig{
+		WorkerCommand: payload.WorkerCommand,
+		Port:          *payload.Interface.Port,
+	}
+
+	configJSON, err := json.Marshal(configPayload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal worker supervisor config: %w", err)
+	}
+
+	configB64 := base64.StdEncoding.EncodeToString(configJSON)
+
+	cmd := exec.Command(os.Args[0], "worker-supervisor", "--worker-config-base64", configB64)
+	cmd.Env = os.Environ()
+
+	logPath := config.AgentLogPath()
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open agent log for worker supervisor: %w", err)
+	}
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+
+	if err := cmd.Start(); err != nil {
+		logFile.Close()
+		return fmt.Errorf("failed to start worker supervisor: %w", err)
+	}
+
+	pid := cmd.Process.Pid
+	logFile.Close()
+
+	logs.WriteAgentLog(logs.LogLevelInfo, "Launched worker supervisor", map[string]any{
+		"worker_command": payload.WorkerCommand,
+		"worker_port":    *payload.Interface.Port,
+		"pid":            pid,
+	})
 	return nil
 }

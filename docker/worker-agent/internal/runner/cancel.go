@@ -42,7 +42,9 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 		if config.ExecCmd != nil && config.ExecCmd.Process != nil {
 			var killErr error
 			if killErr = config.ExecCmd.Process.Kill(); killErr != nil {
-				logs.WriteAgentLog("warning: failed to kill exec_per_job worker process: %v", killErr)
+				logs.WriteAgentLog(logs.LogLevelWarn, "Failed to kill exec_per_job worker process", map[string]any{
+					"error": killErr.Error(),
+				})
 			}
 
 			// Wait for process to exit (with timeout)
@@ -56,18 +58,22 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 			case <-time.After(5 * time.Second):
 				// Force kill if still running after 5 seconds
 				if killErr = config.ExecCmd.Process.Kill(); killErr != nil {
-					logs.WriteAgentLog("warning: failed to force kill exec_per_job worker process: %v", killErr)
+					logs.WriteAgentLog(logs.LogLevelWarn, "Failed to force kill exec_per_job worker process", map[string]any{
+						"error": killErr.Error(),
+					})
 				}
 			}
 		} else {
-			logs.WriteAgentLog("warning: exec_per_job command process not available for cancellation")
+			logs.WriteAgentLog(logs.LogLevelWarn, "exec_per_job command process not available for cancellation", nil)
 		}
 
 	case "persistent_http":
 		// For persistent_http, attempt a best-effort HTTP cancel on the worker.
 		// IMPORTANT: cancelling a job MUST NOT tear down the persistent worker.
 		if config.Payload.Interface.Port == nil {
-			logs.WriteAgentLog("warning: cannot cancel persistent_http job_id=%s: interface port is nil", config.Payload.JobID)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Cannot cancel persistent_http job: interface port is nil", map[string]any{
+				"job_id": config.Payload.JobID,
+			})
 			break
 		}
 
@@ -79,7 +85,10 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, cancelURL, nil)
 		if err != nil {
-			logs.WriteAgentLog("warning: failed to build cancel request for job_id=%s: %v", config.Payload.JobID, err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to build cancel request", map[string]any{
+				"job_id": config.Payload.JobID,
+				"error":  err.Error(),
+			})
 			break
 		}
 
@@ -90,16 +99,28 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 		resp, err := client.Do(req)
 		if err != nil {
 			// Endpoint may not exist yet or worker might not support cancel; log and continue.
-			logs.WriteAgentLog("warning: failed to send cancel request to worker for job_id=%s url=%s: %v", config.Payload.JobID, cancelURL, err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to send cancel request to worker", map[string]any{
+				"job_id": config.Payload.JobID,
+				"url":    cancelURL,
+				"error":  err.Error(),
+			})
 			break
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode >= 400 {
 			// Treat non-2xx as best-effort failure; do not kill the worker.
-			logs.WriteAgentLog("warning: cancel request to worker for job_id=%s url=%s returned status=%d", config.Payload.JobID, cancelURL, resp.StatusCode)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Cancel request to worker returned non-2xx status", map[string]any{
+				"job_id":      config.Payload.JobID,
+				"url":         cancelURL,
+				"status_code": resp.StatusCode,
+			})
 		} else {
-			logs.WriteAgentLog("cancel request sent to worker for job_id=%s url=%s status=%d", config.Payload.JobID, cancelURL, resp.StatusCode)
+			logs.WriteAgentLog(logs.LogLevelInfo, "Cancel request sent to worker", map[string]any{
+				"job_id":      config.Payload.JobID,
+				"url":         cancelURL,
+				"status_code": resp.StatusCode,
+			})
 		}
 
 	default:
@@ -133,7 +154,9 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 			},
 		}
 		if err := config.PlatformClient.SignalCompletion(ctx, config.Payload.JobID, completionReq); err != nil {
-			logs.WriteAgentLog("warning: failed to signal completion: %v", err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to signal completion", map[string]any{
+				"error": err.Error(),
+			})
 		}
 	}
 
@@ -166,7 +189,9 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 		},
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {
-		logs.WriteAgentLog("warning: failed to write job result: %v", err)
+		logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job result", map[string]any{
+			"error": err.Error(),
+		})
 	}
 
 	return fmt.Errorf("%s: %s", errorCode, errorMessage)
@@ -181,14 +206,18 @@ func HandleCompletionSignalFailure(
 	jobState *types.JobState,
 	signalErr error,
 ) {
-	logs.WriteAgentLog("error: failed to signal completion to platform: %v", signalErr)
+	logs.WriteAgentLog(logs.LogLevelError, "Failed to signal completion to platform", map[string]any{
+		"error": signalErr.Error(),
+	})
 
 	// Update job state to reflect the completion signal failure
 	// Note: The job itself completed, but we failed to notify the platform
 	if jobState.Status == "success" {
 		// Job succeeded but completion signal failed - log warning
 		// Don't change status from success, but note the issue
-		logs.WriteAgentLog("warning: job_id=%s completed successfully but failed to signal completion to platform", payload.JobID)
+		logs.WriteAgentLog(logs.LogLevelWarn, "Job completed successfully but failed to signal completion to platform", map[string]any{
+			"job_id": payload.JobID,
+		})
 	} else {
 		// Job already failed, but add note about completion signal failure
 		if jobState.Error != "" {

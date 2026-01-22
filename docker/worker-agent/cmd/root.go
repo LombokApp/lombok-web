@@ -33,10 +33,12 @@ func init() {
 	// Sub-commands are registered in their respective files
 	rootCmd.AddCommand(runJobCmd)
 	rootCmd.AddCommand(agentLogCmd)
-	rootCmd.AddCommand(workerLogsCmd)
+	rootCmd.AddCommand(logsCmd)
+	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(workerLogCmd)
 	rootCmd.AddCommand(jobLogCmd)
 	rootCmd.AddCommand(jobResultCmd)
 	rootCmd.AddCommand(jobStateCmd)
 	rootCmd.AddCommand(workerStateCmd)
+	rootCmd.AddCommand(workerSupervisorCmd)
 }

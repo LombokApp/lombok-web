@@ -6,9 +6,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
+	"strings"
+	"sync"
 	"time"
 
 	"lombok-worker-agent/internal/config"
@@ -23,8 +24,8 @@ import (
 // It spawns a new worker process for each job, passing the job_input as a base64-encoded
 // final argument to the worker command.
 //
-// The worker should output its result as JSON on the last line of stdout.
-// This will be captured and included in the agent's output.
+// The worker should write its result as JSON to the file specified by the JOB_RESULT_FILE
+// environment variable. This will be read and included in the agent's output.
 func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
@@ -49,15 +50,13 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		return fmt.Errorf("failed to write initial job state: %w", err)
 	}
 
-	// Create job log files (for job-specific output that workers write explicitly)
-	jobOutPath := config.JobOutLogPath(payload.JobID)
-	jobErrPath := config.JobErrLogPath(payload.JobID)
-	if err := touchFile(jobOutPath); err != nil {
-		return fmt.Errorf("failed to create job stdout log: %w", err)
+	// Create job log file (structured log for job output)
+	jobLogPath := config.JobLogPath(payload.JobID)
+	jobLogFile, err := os.OpenFile(jobLogPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create job log file: %w", err)
 	}
-	if err := touchFile(jobErrPath); err != nil {
-		return fmt.Errorf("failed to create job stderr log: %w", err)
-	}
+	defer jobLogFile.Close()
 
 	// In async mode, spawn background process and return immediately (same as persistent_http)
 	if !waitForCompletion {
@@ -91,66 +90,23 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("JOB_OUTPUT_DIR=%s", config.JobOutputDir(payload.JobID)),
 		fmt.Sprintf("JOB_ID=%s", payload.JobID),
-		fmt.Sprintf("JOB_LOG_OUT=%s", jobOutPath),
-		fmt.Sprintf("JOB_LOG_ERR=%s", jobErrPath),
 		fmt.Sprintf("JOB_RESULT_FILE=%s", resultFilePath),
 	)
 
-	// Open worker log files for stdout and stderr (same as persistent_http)
-	// Worker stdout/stderr goes here, not to job logs
-	// This allows worker-logs to tail all worker output, regardless of interface type
-	stdoutPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
-	stderrPath := config.WorkerErrLogPath(payload.WorkerCommand, payload.Interface)
+	// Create line-intercepting writers for stdout and stderr
+	// These parse structured log lines and write to the job log
+	stdoutInterceptor := newJobLogInterceptor(payload.JobID, jobLogFile, logs.LogLevelInfo)
+	stderrInterceptor := newJobLogInterceptor(payload.JobID, jobLogFile, logs.LogLevelError)
 
-	stdoutFile, err := os.OpenFile(stdoutPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open worker stdout log: %w", err)
-	}
-	defer stdoutFile.Close()
-
-	stderrFile, err := os.OpenFile(stderrPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open worker stderr log: %w", err)
-	}
-	defer stderrFile.Close()
-
-	// Capture stdout to both file and buffer (for extracting result)
-	var stdoutBuf bytes.Buffer
-	cmd.Stdout = io.MultiWriter(stdoutFile, &stdoutBuf)
-	cmd.Stderr = stderrFile
-
-	// Create a worker state file so worker-log --job-class works for exec_per_job
-	// This allows the agent to resolve the worker log identifier from job class
-	// We create this BEFORE starting the command so it exists even if startup fails
-	now := time.Now().UTC().Format(time.RFC3339)
-	workerState := &types.WorkerState{
-		JobClass:      payload.JobClass,
-		Kind:          "exec_per_job",
-		WorkerCommand: payload.WorkerCommand,
-		PID:           0, // Will be updated if command starts successfully
-		State:         "starting",
-		Port:          payload.Interface.Port,
-		StartedAt:     now,
-		LastCheckedAt: now,
-		AgentVersion:  config.AgentVersion,
-	}
-	if err := state.WriteWorkerState(workerState); err != nil {
-		logs.WriteAgentLog("warning: failed to write worker state: %v", err)
-	}
+	// Capture stdout to interceptor for logging
+	cmd.Stdout = stdoutInterceptor
+	cmd.Stderr = stderrInterceptor
 
 	// Track worker startup time
 	workerStartTime := time.Now()
 
 	// Start the worker process
 	if err := cmd.Start(); err != nil {
-		// Write error to worker log files so they're not empty
-		fmt.Fprintf(stderrFile, "Failed to start worker: %s\n", err.Error())
-
-		// Update worker state to reflect failure
-		workerState.State = "stopped"
-		workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-		state.WriteWorkerState(workerState)
-
 		completedAt := time.Now().UTC().Format(time.RFC3339)
 		jobState.Status = "failed"
 		jobState.Error = fmt.Sprintf("failed to start worker: %s", err.Error())
@@ -210,7 +166,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			},
 		}
 		if err := state.WriteJobResult(jobResult); err != nil {
-			logs.WriteAgentLog("warning: failed to write job result: %v", err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job result", map[string]any{
+				"error": err.Error(),
+			})
 		}
 
 		os.Exit(1)
@@ -228,14 +186,15 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		if err := platformClient.SignalStart(ctx, payload.JobID); err != nil {
 			// Failed to signal start - this is a critical error
 			// Kill the worker process and record job failure
-			logs.WriteAgentLog("error: failed to signal start: %v", err)
+			logs.WriteAgentLog(logs.LogLevelError, "Failed to signal start", map[string]any{
+				"error": err.Error(),
+			})
 
 			cancelErr := CancelJob(CancelJobConfig{
 				Payload:         payload,
 				JobState:        jobState,
 				JobStartTime:    jobStartTime,
 				WorkerStartTime: workerStartTime,
-				PlatformClient:  platformClient,
 				ExecCmd:         cmd,
 			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
 
@@ -244,17 +203,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		}
 	}
 
-	// Update worker state with PID and running status
-	workerState.PID = cmd.Process.Pid
-	workerState.State = "running"
-	workerState.LastCheckedAt = time.Now().UTC().Format(time.RFC3339)
-	if err := state.WriteWorkerState(workerState); err != nil {
-		logs.WriteAgentLog("warning: failed to update worker state: %v", err)
-	}
-
 	// Log worker startup time (should be very fast, but log it anyway)
 	workerStartupDuration := time.Since(workerStartTime)
-	logs.WriteAgentLog("job_id=%s worker_startup_time=%.3fs", payload.JobID, workerStartupDuration.Seconds())
+	logs.WriteAgentLog(logs.LogLevelInfo, "Worker startup completed", map[string]any{
+		"job_id":              payload.JobID,
+		"worker_startup_time": workerStartupDuration.Seconds(),
+	})
 
 	// Track job execution time (from worker start to completion)
 	jobExecutionStartTime := time.Now()
@@ -277,19 +231,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		}
 	}
 
-	// Update worker state to reflect completion (for exec_per_job, worker is done)
-	completedWorkerState, readErr := state.ReadWorkerState(payload.WorkerCommand, payload.Interface)
-	if readErr == nil && completedWorkerState != nil && completedWorkerState.Kind == "exec_per_job" {
-		completedWorkerState.State = "stopped"
-		completedWorkerState.LastCheckedAt = completedAt
-		if err := state.WriteWorkerState(completedWorkerState); err != nil {
-			logs.WriteAgentLog("warning: failed to update worker state: %v", err)
-		}
-	}
-
 	// Log timing information
-	logs.WriteAgentLog("job_id=%s job_execution_time=%.3fs total_time=%.3fs",
-		payload.JobID, jobExecutionDuration.Seconds(), totalJobDuration.Seconds())
+	logs.WriteAgentLog(logs.LogLevelInfo, "Job execution completed", map[string]any{
+		"job_id":             payload.JobID,
+		"job_execution_time": jobExecutionDuration.Seconds(),
+		"total_time":         totalJobDuration.Seconds(),
+	})
 
 	var workerResult interface{}
 	var workerResultRaw json.RawMessage
@@ -311,10 +258,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		// Check for output manifest and upload files
 		manifest, err := upload.ReadManifest(payload.JobID)
 		if err != nil {
-			logs.WriteAgentLog("warning: failed to read manifest: %v", err)
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to read manifest", map[string]any{
+				"error": err.Error(),
+			})
 		} else if manifest != nil && len(manifest.Files) > 0 {
 			if payload.OutputLocation == nil {
-				logs.WriteAgentLog("warning: output_location not provided; skipping uploads")
+				logs.WriteAgentLog(logs.LogLevelWarn, "Output location not provided; skipping uploads", nil)
 			} else {
 				uploader := upload.NewUploader(platformClient)
 				ctx := context.Background()
@@ -323,7 +272,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				if err != nil {
 					uploadFailed = true
 					uploadError = err
-					logs.WriteAgentLog("error: failed to upload files: %v", err)
+					logs.WriteAgentLog(logs.LogLevelError, "Failed to upload files", map[string]any{
+						"error": err.Error(),
+					})
 				} else {
 					outputFiles = uploaded
 				}
@@ -423,7 +374,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		}
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {
-		logs.WriteAgentLog("warning: failed to write job result: %v", err)
+		logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job result", map[string]any{
+			"error": err.Error(),
+		})
 	}
 
 	// Update job state after result is persisted so that a successful status
@@ -443,7 +396,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	}
 
 	if err := state.WriteJobState(jobState); err != nil {
-		logs.WriteAgentLog("warning: failed to write final job state: %v", err)
+		logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write final job state", map[string]any{
+			"error": err.Error(),
+		})
 	}
 
 	// Exit with the worker's exit code, or error code if upload/completion signal failed
@@ -507,6 +462,65 @@ func launchExecAsyncCompletion(payload *types.JobPayload, jobState *types.JobSta
 	resultJSON, _ := json.Marshal(result)
 	fmt.Println(string(resultJSON))
 
-	logs.WriteAgentLog("job_id=%s scheduled async completion pid=%d", payload.JobID, cmd.Process.Pid)
+	logs.WriteAgentLog(logs.LogLevelInfo, "Scheduled async completion", map[string]any{
+		"job_id": payload.JobID,
+		"pid":    cmd.Process.Pid,
+	})
 	return nil
+}
+
+// jobLogInterceptor intercepts output lines, parses structured logs, and writes to job logs.
+type jobLogInterceptor struct {
+	jobID        string
+	jobLogFile   *os.File
+	defaultLevel logs.LogLevel
+	buffer       []byte
+	mu           sync.Mutex
+}
+
+func newJobLogInterceptor(jobID string, jobLogFile *os.File, defaultLevel logs.LogLevel) *jobLogInterceptor {
+	return &jobLogInterceptor{
+		jobID:        jobID,
+		jobLogFile:   jobLogFile,
+		defaultLevel: defaultLevel,
+		buffer:       make([]byte, 0, 4096),
+	}
+}
+
+func (w *jobLogInterceptor) Write(p []byte) (n int, err error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	// Append to buffer
+	w.buffer = append(w.buffer, p...)
+
+	// Process complete lines
+	for {
+		newlineIdx := bytes.IndexByte(w.buffer, '\n')
+		if newlineIdx == -1 {
+			// No complete line yet
+			break
+		}
+
+		// Extract line (including newline)
+		line := w.buffer[:newlineIdx+1]
+		w.buffer = w.buffer[newlineIdx+1:]
+
+		// Process the line
+		w.processLine(strings.TrimSuffix(string(line), "\n"))
+	}
+
+	return len(p), nil
+}
+
+func (w *jobLogInterceptor) processLine(line string) {
+	// Try to parse as structured log
+	level, message, data, ok := logs.ParseStructuredWorkerLogLine(line)
+	if ok {
+		// Successfully parsed as structured log - write to job log with parsed level
+		_ = logs.WriteJobLog(w.jobLogFile, w.jobID, level, message, data)
+	} else {
+		// Not structured - write as default level with entire line as message
+		_ = logs.WriteJobLog(w.jobLogFile, w.jobID, w.defaultLevel, line, nil)
+	}
 }
