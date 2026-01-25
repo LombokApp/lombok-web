@@ -136,8 +136,6 @@ func purgeJobFiles(jobID string) error {
 		config.JobStatePath(jobID),
 		config.JobResultPath(jobID),
 		config.JobLogPath(jobID),
-		config.JobOutLogPath(jobID),
-		config.JobErrLogPath(jobID),
 	}
 
 	for _, path := range paths {

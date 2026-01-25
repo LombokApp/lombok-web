@@ -32,29 +32,9 @@ func JobLogPath(jobID string) string {
 	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.log", jobID))
 }
 
-// JobOutLogPath returns the stdout log path for a specific job (deprecated, use JobLogPath)
-func JobOutLogPath(jobID string) string {
-	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.out.log", jobID))
-}
-
-// JobErrLogPath returns the stderr log path for a specific job (deprecated, use JobLogPath)
-func JobErrLogPath(jobID string) string {
-	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.err.log", jobID))
-}
-
 // WorkerLogPath returns the structured log path for a worker identified by port.
 func WorkerLogPath(port int) string {
 	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.log", WorkerIdentifier(port)))
-}
-
-// WorkerOutLogPath returns the stdout log path for a worker identified by port (deprecated).
-func WorkerOutLogPath(port int) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.out.log", WorkerIdentifier(port)))
-}
-
-// WorkerErrLogPath returns the stderr log path for a worker identified by port (deprecated).
-func WorkerErrLogPath(port int) string {
-	return filepath.Join(LogBaseDir, "workers", fmt.Sprintf("%s.err.log", WorkerIdentifier(port)))
 }
 
 // WorkerIdentifier returns a stable identifier for a worker port.

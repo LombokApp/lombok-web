@@ -576,14 +576,9 @@ func TestRunExecPerJob_JobStateAndResultFiles(t *testing.T) {
 		t.Error("Job result should contain timing information")
 	}
 
-	// Verify job log files were created
-	jobOutPath := config.JobOutLogPath(payload.JobID)
-	jobErrPath := config.JobErrLogPath(payload.JobID)
-
-	if _, err := os.Stat(jobOutPath); err != nil {
-		t.Errorf("Job stdout log file should exist: %v", err)
-	}
-	if _, err := os.Stat(jobErrPath); err != nil {
-		t.Errorf("Job stderr log file should exist: %v", err)
+	// Verify job log file was created
+	jobLogPath := config.JobLogPath(payload.JobID)
+	if _, err := os.Stat(jobLogPath); err != nil {
+		t.Errorf("Job log file should exist: %v", err)
 	}
 }
