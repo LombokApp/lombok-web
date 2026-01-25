@@ -133,3 +133,6 @@ export type SSOCallbackDTO =
 
 export type SSOCallbackResponse =
   paths['/api/v1/auth/sso/callback/{provider}']['post']['responses']['201']['content']['application/json']
+
+export type TaskWithLocationContextDTO =
+  paths['/api/v1/server/tasks/{taskId}']['get']['responses']['200']['content']['application/json']['task']

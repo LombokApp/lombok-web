@@ -2,6 +2,7 @@ import { useAuthContext } from '@lombokapp/auth-utils'
 import type {
   ElaboratedTargetLocationContext,
   JsonSerializableObject,
+  TaskWithLocationContextDTO,
 } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
@@ -32,49 +33,8 @@ import { Link } from 'react-router'
 import { DateDisplay } from '@/src/components/date-display'
 import { copyToClipboard } from '@/src/utils/clipboard'
 
-type TaskDetailTask = {
-  id: string
-  taskIdentifier: string
-  ownerIdentifier: string
-  invocation: {
-    kind: string
-    invokeContext: Record<string, unknown>
-    onComplete?: unknown[]
-  }
-  taskDescription: string
-  handlerIdentifier?: string
-  data?: Record<string, unknown>
-  targetLocation?: {
-    folderId: string
-    objectKey?: string
-  }
-  targetLocationContext?: ElaboratedTargetLocationContext
-  systemLog: Array<{
-    at: string
-    logType: string
-    payload?: Record<string, unknown>
-    message?: string
-  }>
-  taskLog: Array<{
-    at: string
-    logType: string
-    payload?: Record<string, unknown>
-    message?: string
-  }>
-  success?: boolean
-  error?: {
-    code: string
-    message: string
-    details?: Record<string, unknown>
-  }
-  startedAt?: string
-  completedAt?: string
-  createdAt: string
-  updatedAt: string
-}
-
 interface TaskDetailUIProps {
-  taskData: TaskDetailTask | undefined
+  taskData: TaskWithLocationContextDTO | undefined
   isLoading: boolean
   isError: boolean
 }
@@ -565,7 +525,7 @@ export function TaskDetailUI({
   const currentUserId = authContext.viewer?.id
 
   // Get the appropriate color for the status indicator
-  const getStatusColor = (task?: TaskDetailTask) => {
+  const getStatusColor = (task?: TaskWithLocationContextDTO) => {
     if (!task) {
       return 'bg-gray-600'
     }
@@ -582,7 +542,7 @@ export function TaskDetailUI({
   }
 
   // Get the status text and badge variant
-  const getStatusInfo = (task?: TaskDetailTask) => {
+  const getStatusInfo = (task?: TaskWithLocationContextDTO) => {
     if (!task) {
       return { text: 'Unknown', variant: 'secondary' as const }
     }

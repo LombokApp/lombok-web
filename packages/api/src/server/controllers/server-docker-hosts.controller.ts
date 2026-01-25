@@ -334,9 +334,13 @@ export class ServerDockerHostsController {
       throw new UnauthorizedException()
     }
 
-    const result = await this.dockerJobsService.purgeContainerJobs(hostId, containerId, {
-      olderThan: query.olderThan,
-    })
+    const result = await this.dockerJobsService.purgeContainerJobs(
+      hostId,
+      containerId,
+      {
+        olderThan: query.olderThan,
+      },
+    )
 
     return result
   }
