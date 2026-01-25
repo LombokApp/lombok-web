@@ -8,7 +8,6 @@ export const dockerContainerLogsQueryParamsSchema = z.object({
       z.number().int().positive(),
     )
     .optional(),
-  timestamps: z.literal('true').optional(),
 })
 
 export class DockerContainerLogsQueryParamsDTO extends createZodDto(

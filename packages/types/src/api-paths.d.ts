@@ -6430,7 +6430,6 @@ export interface operations {
         parameters: {
             query?: {
                 tail?: number;
-                timestamps?: "true";
             };
             header?: never;
             path: {

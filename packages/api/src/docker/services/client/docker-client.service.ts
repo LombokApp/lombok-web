@@ -97,7 +97,7 @@ export class DockerClientService {
   async getContainerLogs(
     hostId: string,
     containerId: string,
-    options?: { tail?: number; timestamps?: boolean },
+    options?: { tail?: number },
   ): Promise<DockerLogEntry[]> {
     return this.getAdapter(hostId).getContainerLogs(containerId, options)
   }

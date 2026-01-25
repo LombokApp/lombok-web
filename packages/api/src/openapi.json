@@ -4363,17 +4363,6 @@
               "exclusiveMinimum": true,
               "type": "integer"
             }
-          },
-          {
-            "name": "timestamps",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
           }
         ],
         "responses": {

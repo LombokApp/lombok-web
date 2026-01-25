@@ -138,7 +138,6 @@ export class ServerDockerHostsController {
       containerId,
       {
         tail: query.tail ?? 200,
-        timestamps: query.timestamps === 'true',
       },
     )
 

@@ -126,7 +126,7 @@ export interface DockerAdapter {
    */
   getContainerLogs: (
     containerId: string,
-    options?: { tail?: number; timestamps?: boolean },
+    options?: { tail?: number },
   ) => Promise<DockerLogEntry[]>
 
   /**

@@ -523,7 +523,7 @@ export class LocalDockerAdapter implements DockerAdapter {
 
   async getContainerLogs(
     containerId: string,
-    options?: { tail?: number; timestamps?: boolean },
+    options?: { tail?: number },
   ): Promise<DockerLogEntry[]> {
     return this.withErrorGuard(async () => {
       const container = this.docker.getContainer(containerId)
@@ -534,7 +534,6 @@ export class LocalDockerAdapter implements DockerAdapter {
         stderr: true,
         follow: false,
         tail: options?.tail ?? 200,
-        timestamps: options?.timestamps ?? false,
       })) as NodeJS.ReadableStream | Buffer
 
       if (Buffer.isBuffer(stream)) {

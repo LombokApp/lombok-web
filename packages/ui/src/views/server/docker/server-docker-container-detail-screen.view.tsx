@@ -27,7 +27,13 @@ import {
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
 import { Input } from '@lombokapp/ui-toolkit/components/input/input'
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@lombokapp/ui-toolkit/components/select/select'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { formatBytes } from '@lombokapp/utils'
 import { Play, RefreshCcw, RotateCw, Square, Trash2 } from 'lucide-react'
@@ -52,6 +58,7 @@ const LABEL_CLASS =
 const VALUE_CLASS = 'text-sm'
 
 const PURGE_DURATION_OPTIONS = ['1h', '6h', '12h', '24h'] as const
+const LOG_TAIL_OPTIONS = [100, 200, 500, 1000, 2000] as const
 
 const renderStateBadge = (state: DockerHostContainerState['state']) => {
   const variant =
@@ -77,7 +84,6 @@ export function ServerDockerContainerDetailScreen({
 }) {
   const navigate = useNavigate()
   const [tail, setTail] = React.useState(200)
-  const [timestamps, setTimestamps] = React.useState(false)
   const [jobTail, setJobTail] = React.useState(200)
   const [selectedJobId, setSelectedJobId] = React.useState<string | null>(null)
   const [jobDialogOpen, setJobDialogOpen] = React.useState(false)
@@ -108,7 +114,6 @@ export function ServerDockerContainerDetailScreen({
         path: { hostId, containerId },
         query: {
           tail,
-          timestamps: timestamps ? 'true' : undefined,
         },
       },
     },
@@ -905,26 +910,22 @@ export function ServerDockerContainerDetailScreen({
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Tail</span>
-              <Input
-                type="number"
-                min={1}
-                value={tail}
-                onChange={(event) =>
-                  setTail(() => {
-                    const nextValue = Number(event.target.value)
-                    if (!Number.isFinite(nextValue)) {
-                      return tail
-                    }
-                    return Math.max(1, nextValue)
-                  })
-                }
-                className="w-24"
-              />
+              <Select
+                value={tail.toString()}
+                onValueChange={(value) => setTail(Number(value))}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOG_TAIL_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option.toString()}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Switch checked={timestamps} onCheckedChange={setTimestamps} />
-              Show timestamps
-            </label>
             <Button
               variant="outline"
               size="sm"
