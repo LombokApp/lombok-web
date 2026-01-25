@@ -4767,6 +4767,78 @@
         ]
       }
     },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
+      "post": {
+        "operationId": "purgeContainerJobs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "olderThan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerPurgeJobsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Purge completed job files for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
       "get": {
         "operationId": "getDockerContainerJobDetail",
@@ -14898,6 +14970,17 @@
         },
         "required": [
           "jobs"
+        ]
+      },
+      "DockerContainerPurgeJobsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
         ]
       },
       "DockerContainerJobDetailResponse": {

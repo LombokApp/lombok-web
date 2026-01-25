@@ -948,6 +948,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Purge completed job files for a container. */
+        post: operations["purgeContainerJobs"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
         parameters: {
             query?: never;
@@ -3326,6 +3343,9 @@ export interface components {
                 jobId: string;
                 filePath: string;
             }[];
+        };
+        DockerContainerPurgeJobsResponse: {
+            message: string;
         };
         DockerContainerJobDetailResponse: {
             state?: unknown;
@@ -6632,6 +6652,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DockerContainerJobsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    purgeContainerJobs: {
+        parameters: {
+            query?: {
+                olderThan?: string;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerPurgeJobsResponse"];
                 };
             };
             /** @description Server Error */

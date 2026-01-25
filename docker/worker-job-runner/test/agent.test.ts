@@ -4740,6 +4740,80 @@ describe('Platform Agent', () => {
       expect(result.stderr).toContain('job result not found')
     })
 
+    test('purge-jobs removes completed job artifacts', async () => {
+      const jobId = generateJobId('purge-exec-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'purge_exec_job',
+        worker_command: ['sh', '-c', 'echo purge'],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      const statePath = jobStateFilePath(jobId)
+      const resultPath = `/var/lib/lombok-worker-agent/jobs/${jobId}.result.json`
+      const logPath = `/var/log/lombok-worker-agent/jobs/${jobId}.log`
+      const outputDir = `/var/lib/lombok-worker-agent/jobs/${jobId}/output`
+
+      expect(await fileExistsInContainer(statePath)).toBe(true)
+      expect(await fileExistsInContainer(resultPath)).toBe(true)
+
+      await new Promise((resolve) => setTimeout(resolve, 250))
+      const purgeResult = await execInContainer([
+        'lombok-worker-agent',
+        'purge-jobs',
+        '--older-than',
+        '1ms',
+      ])
+
+      expect(purgeResult.exitCode).toBe(0)
+      expect(purgeResult.stdout).toContain('Purged')
+
+      expect(await fileExistsInContainer(statePath)).toBe(false)
+      expect(await fileExistsInContainer(resultPath)).toBe(false)
+      expect(await dirExistsInContainer(outputDir)).toBe(false)
+      if (await fileExistsInContainer(logPath)) {
+        expect(await fileExistsInContainer(logPath)).toBe(false)
+      }
+    })
+
+    test('purge-jobs removes worker job symlinks for HTTP workers', async () => {
+      const port = 8700
+      const jobId = generateJobId('purge-http-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'purge_http_job',
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: { numbers: [1, 2, 3] },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      const workerLinkPath = `/var/lib/lombok-worker-agent/worker-jobs/http_${port}/${jobId}.json`
+      const statePath = jobStateFilePath(jobId)
+
+      const linkCheck = await execInContainer(['test', '-L', workerLinkPath])
+      expect(linkCheck.exitCode).toBe(0)
+
+      await new Promise((resolve) => setTimeout(resolve, 250))
+      const purgeResult = await execInContainer([
+        'lombok-worker-agent',
+        'purge-jobs',
+        '--older-than',
+        '1ms',
+      ])
+
+      expect(purgeResult.exitCode).toBe(0)
+      expect(purgeResult.stdout).toContain('Purged')
+
+      const postLinkCheck = await execInContainer(['test', '-L', workerLinkPath])
+      expect(postLinkCheck.exitCode).not.toBe(0)
+      expect(await fileExistsInContainer(statePath)).toBe(false)
+    })
+
     test('job-result file includes uploaded output files when present', async () => {
       const jobClass = 'file_output_8231'
       const port = 8231

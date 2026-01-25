@@ -23,11 +23,13 @@ import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-er
 import { DockerContainerJobLogsQueryParamsDTO } from '../dto/docker-container-job-logs-query-params.dto'
 import { DockerContainerJobsQueryParamsDTO } from '../dto/docker-container-jobs-query-params.dto'
 import { DockerContainerLogsQueryParamsDTO } from '../dto/docker-container-logs-query-params.dto'
+import { DockerContainerPurgeJobsQueryParamsDTO } from '../dto/docker-container-purge-jobs-query-params.dto'
 import { DockerContainerActionResponse } from '../dto/responses/docker-container-action-response.dto'
 import { DockerContainerInspectResponse } from '../dto/responses/docker-container-inspect-response.dto'
 import { DockerContainerJobDetailResponse } from '../dto/responses/docker-container-job-detail-response.dto'
 import { DockerContainerJobsResponse } from '../dto/responses/docker-container-jobs-response.dto'
 import { DockerContainerLogsResponse } from '../dto/responses/docker-container-logs-response.dto'
+import { DockerContainerPurgeJobsResponse } from '../dto/responses/docker-container-purge-jobs-response.dto'
 import { DockerContainerStatsResponse } from '../dto/responses/docker-container-stats-response.dto'
 import { DockerContainerWorkerDetailResponse } from '../dto/responses/docker-container-worker-detail-response.dto'
 import { DockerContainerWorkersResponse } from '../dto/responses/docker-container-workers-response.dto'
@@ -317,6 +319,27 @@ export class ServerDockerHostsController {
       })
 
     return { jobs }
+  }
+
+  /**
+   * Purge completed job files for a container.
+   */
+  @Post('/:hostId/containers/:containerId/purge-jobs')
+  async purgeContainerJobs(
+    @Req() req: express.Request,
+    @Param('hostId') hostId: string,
+    @Param('containerId') containerId: string,
+    @Query() query: DockerContainerPurgeJobsQueryParamsDTO,
+  ): Promise<DockerContainerPurgeJobsResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const result = await this.dockerJobsService.purgeContainerJobs(hostId, containerId, {
+      olderThan: query.olderThan,
+    })
+
+    return result
   }
 
   /**

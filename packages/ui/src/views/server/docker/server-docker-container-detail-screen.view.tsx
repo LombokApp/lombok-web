@@ -51,6 +51,8 @@ const LABEL_CLASS =
   'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 const VALUE_CLASS = 'text-sm'
 
+const PURGE_DURATION_OPTIONS = ['1h', '6h', '12h', '24h'] as const
+
 const renderStateBadge = (state: DockerHostContainerState['state']) => {
   const variant =
     state === 'running'
@@ -79,10 +81,16 @@ export function ServerDockerContainerDetailScreen({
   const [jobTail, setJobTail] = React.useState(200)
   const [selectedJobId, setSelectedJobId] = React.useState<string | null>(null)
   const [jobDialogOpen, setJobDialogOpen] = React.useState(false)
+  const [startDialogOpen, setStartDialogOpen] = React.useState(false)
+  const [stopDialogOpen, setStopDialogOpen] = React.useState(false)
+  const [restartDialogOpen, setRestartDialogOpen] = React.useState(false)
+  const [purgeDialogOpen, setPurgeDialogOpen] = React.useState(false)
   const [selectedWorkerId, setSelectedWorkerId] = React.useState<string | null>(
     null,
   )
   const [workerDialogOpen, setWorkerDialogOpen] = React.useState(false)
+  const [purgeDuration, setPurgeDuration] = React.useState('6h')
+  const [purgeMessage, setPurgeMessage] = React.useState<string | null>(null)
 
   const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
 
@@ -153,6 +161,11 @@ export function ServerDockerContainerDetailScreen({
     },
   )
 
+  const purgeJobsMutation = $api.useMutation(
+    'post',
+    '/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs',
+  )
+
   const jobsQuery = $api.useQuery(
     'get',
     '/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs',
@@ -191,6 +204,23 @@ export function ServerDockerContainerDetailScreen({
   const handleOpenWorker = (workerId: string) => {
     setSelectedWorkerId(workerId)
     setWorkerDialogOpen(true)
+  }
+
+  const handlePurgeJobs = async () => {
+    setPurgeMessage(null)
+    try {
+      const response = await purgeJobsMutation.mutateAsync({
+        params: {
+          path: { hostId, containerId },
+          query: {
+            olderThan: purgeDuration.trim() || undefined,
+          },
+        },
+      })
+      setPurgeMessage(response?.message ?? 'Purge completed.')
+    } catch (error) {
+      // error displayed via mutation state
+    }
   }
 
   // const jobs = React.useMemo(
@@ -391,33 +421,163 @@ export function ServerDockerContainerDetailScreen({
             </p>
           </div>
           <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={isRunning || startMutation.isPending}
-              onClick={() => void handleAction('start')}
+            <AlertDialog
+              open={startDialogOpen}
+              onOpenChange={setStartDialogOpen}
             >
-              <Play className="mr-2 size-4" />
-              Start
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!isRunning || stopMutation.isPending}
-              onClick={() => void handleAction('stop')}
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={isRunning || startMutation.isPending}
+                >
+                  <Play className="mr-2 size-4" />
+                  Start
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Start container?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Starting will boot the container on host {hostState?.id ?? hostId}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: 'secondary' })}
+                    onClick={() => {
+                      setStartDialogOpen(false)
+                      void handleAction('start')
+                    }}
+                  >
+                    Start
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={stopDialogOpen} onOpenChange={setStopDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!isRunning || stopMutation.isPending}
+                >
+                  <Square className="mr-2 size-4" />
+                  Stop
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Stop container?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Stopping will halt the running container on host {hostState?.id ?? hostId}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: 'outline' })}
+                    onClick={() => {
+                      setStopDialogOpen(false)
+                      void handleAction('stop')
+                    }}
+                  >
+                    Stop
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog
+              open={restartDialogOpen}
+              onOpenChange={setRestartDialogOpen}
             >
-              <Square className="mr-2 size-4" />
-              Stop
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!isRunning || restartMutation.isPending}
-              onClick={() => void handleAction('restart')}
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!isRunning || restartMutation.isPending}
+                >
+                  <RotateCw className="mr-2 size-4" />
+                  Restart
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Restart container?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Restarting will stop and start the container immediately.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: 'outline' })}
+                    onClick={() => {
+                      setRestartDialogOpen(false)
+                      void handleAction('restart')
+                    }}
+                  >
+                    Restart
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog
+              open={purgeDialogOpen}
+              onOpenChange={setPurgeDialogOpen}
             >
-              <RotateCw className="mr-2 size-4" />
-              Restart
-            </Button>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={purgeJobsMutation.isPending}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Purge jobs
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm purge?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Remove logs, state, and outputs for jobs completed before the selected duration.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="mt-4">
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    htmlFor="purge-duration-select"
+                  >
+                    Older than
+                  </label>
+                  <select
+                    id="purge-duration-select"
+                    value={purgeDuration}
+                    onChange={(event) => setPurgeDuration(event.target.value)}
+                    className="mt-1 w-full rounded-md border border-muted/60 bg-background/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    {PURGE_DURATION_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: 'destructive' })}
+                    onClick={() => {
+                      setPurgeDialogOpen(false)
+                      void handlePurgeJobs()
+                    }}
+                  >
+                    Purge
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -450,43 +610,62 @@ export function ServerDockerContainerDetailScreen({
           </div>
         </CardHeader>
         <div className="space-y-0 px-6 pb-6">
-          <div className={ROW_CLASS}>
-            <div className={LABEL_CLASS}>Container ID</div>
-            <div className={cn(VALUE_CLASS, 'col-span-2 font-mono text-xs')}>
-              {containerState.id}
+          {(purgeJobsMutation.isPending ||
+            purgeJobsMutation.isError ||
+            purgeMessage) && (
+            <div className="space-y-1 pb-4 text-sm">
+              {purgeJobsMutation.isPending ? (
+                <div className="text-muted-foreground">Purging...</div>
+              ) : null}
+              {purgeJobsMutation.isError ? (
+                <div className="text-destructive">
+                  {purgeJobsMutation.error?.message ?? 'Failed to purge jobs.'}
+                </div>
+              ) : null}
+              {purgeMessage ? (
+                <div className="text-emerald-500">{purgeMessage}</div>
+              ) : null}
             </div>
-          </div>
-          <div className={ROW_CLASS}>
-            <div className={LABEL_CLASS}>Host</div>
-            <div className={VALUE_CLASS}>{hostState?.id ?? hostId}</div>
-          </div>
-          <div className={ROW_CLASS}>
-            <div className={LABEL_CLASS}>Profile ID</div>
-            <div className={VALUE_CLASS}>
-              {containerState.profileId ?? (
-                <span className="italic opacity-50">Unknown</span>
-              )}
+          )}
+          <div className="space-y-0">
+            <div className={ROW_CLASS}>
+              <div className={LABEL_CLASS}>Container ID</div>
+              <div className={cn(VALUE_CLASS, 'col-span-2 font-mono text-xs')}>
+                {containerState.id}
+              </div>
             </div>
-          </div>
-          <div className={ROW_CLASS}>
-            <div className={LABEL_CLASS}>Profile Hash</div>
-            <div className={VALUE_CLASS}>
-              {containerState.profileHash ?? (
-                <span className="italic opacity-50">Unknown</span>
-              )}
+            <div className={ROW_CLASS}>
+              <div className={LABEL_CLASS}>Host</div>
+              <div className={VALUE_CLASS}>{hostState?.id ?? hostId}</div>
             </div>
-          </div>
-          <div className={ROW_CLASS}>
-            <div className={LABEL_CLASS}>Created</div>
-            <div className={VALUE_CLASS}>
-              {containerState.createdAt ? (
-                <DateDisplay
-                  date={containerState.createdAt}
-                  showTimeSince={true}
-                />
-              ) : (
-                <span className="italic opacity-50">Unknown</span>
-              )}
+            <div className={ROW_CLASS}>
+              <div className={LABEL_CLASS}>Profile ID</div>
+              <div className={VALUE_CLASS}>
+                {containerState.profileId ?? (
+                  <span className="italic opacity-50">Unknown</span>
+                )}
+              </div>
+            </div>
+            <div className={ROW_CLASS}>
+              <div className={LABEL_CLASS}>Profile Hash</div>
+              <div className={VALUE_CLASS}>
+                {containerState.profileHash ?? (
+                  <span className="italic opacity-50">Unknown</span>
+                )}
+              </div>
+            </div>
+            <div className={ROW_CLASS}>
+              <div className={LABEL_CLASS}>Created</div>
+              <div className={VALUE_CLASS}>
+                {containerState.createdAt ? (
+                  <DateDisplay
+                    date={containerState.createdAt}
+                    showTimeSince={true}
+                  />
+                ) : (
+                  <span className="italic opacity-50">Unknown</span>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -41,4 +41,5 @@ func init() {
 	rootCmd.AddCommand(jobStateCmd)
 	rootCmd.AddCommand(workerStateCmd)
 	rootCmd.AddCommand(workerSupervisorCmd)
+	rootCmd.AddCommand(purgeJobsCmd)
 }

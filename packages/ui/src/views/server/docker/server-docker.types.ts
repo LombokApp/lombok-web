@@ -26,6 +26,9 @@ export type DockerContainerWorkerSummary =
 export type DockerContainerWorkerDetailResponse =
   paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}']['get']['responses']['200']['content']['application/json']
 
+export type DockerContainerPurgeJobsResponse =
+  paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs']['post']['responses']['200']['content']['application/json']
+
 export type DockerContainerJobsResponse =
   paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs']['get']['responses']['200']['content']['application/json']
 export type DockerContainerJobSummary = DockerContainerJobsResponse['jobs'][number]

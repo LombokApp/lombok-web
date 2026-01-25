@@ -813,6 +813,51 @@ export class DockerJobsService {
     }
   }
 
+  async purgeContainerJobs(
+    hostId: string,
+    containerId: string,
+    options?: { olderThan?: string },
+  ): Promise<{ message: string }> {
+    const command = ['lombok-worker-agent', 'purge-jobs']
+    if (options?.olderThan) {
+      command.push('--older-than', options.olderThan)
+    }
+
+    const { getError, output, state } =
+      await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        command,
+      )
+
+    await waitForTrue(
+      async () => {
+        const execState = await state(5000)
+        return !execState.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const latestState = await state(5000)
+    if (latestState.exitCode !== 0) {
+      throw await getError()
+    }
+
+    const streamsOutput = output()
+    if (streamsOutput.stderr.length > 0) {
+      throw new DockerLogAccessError(
+        'PURGE_JOBS_ERROR',
+        'Error purging job files: ' + streamsOutput.stderr,
+      )
+    }
+
+    return { message: streamsOutput.stdout.trim() || 'Purge completed.' }
+  }
+
   async getDockerHostState(hostId: string): Promise<DockerHostState> {
     let connection: ConnectionTestResult
     try {
