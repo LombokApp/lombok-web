@@ -5,6 +5,7 @@ import {
   FileText,
   LayoutGrid,
   ListChecks,
+  Server,
   Settings,
   Users,
 } from 'lucide-react'
@@ -87,6 +88,27 @@ export function ServerTabControls({
         <div className="flex items-center gap-2">
           <AppWindow className="size-4" />
           Apps
+        </div>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={serverPage[0] === 'docker'}
+        aria-controls="docker-tab-content"
+        data-state={serverPage[0] === 'docker' ? 'active' : 'inactive'}
+        id="docker-tab-trigger"
+        className={cn(
+          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
+          serverPage[0] === 'docker' &&
+            'bg-background text-foreground shadow-sm',
+        )}
+        tabIndex={-1}
+        data-orientation="horizontal"
+        onClick={() => navigate('/server/docker')}
+      >
+        <div className="flex items-center gap-2">
+          <Server className="size-4" />
+          Docker
         </div>
       </button>
       <button

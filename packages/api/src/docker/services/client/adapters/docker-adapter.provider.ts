@@ -26,7 +26,10 @@ export class DockerAdapterProvider implements IDockerAdapterProvider {
     const hostType = hostConfig.type as string
 
     if (hostType === 'docker_endpoint') {
-      return new LocalDockerAdapter(hostConfig.host)
+      return new LocalDockerAdapter(hostConfig.host, {
+        // dockerEndpointAuth: this._coreConfig.dockerHostConfig.hosts?.[hostId]?.auth,
+        dockerRegistryAuth: this._coreConfig.dockerHostConfig.registryAuth,
+      })
     }
 
     throw new Error(

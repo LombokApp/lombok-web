@@ -47,19 +47,27 @@ func runJob(cmd *cobra.Command, args []string) error {
 	}
 
 	// Log basic info
-	logs.WriteAgentLog("job_id=%s job_class=%s interface=%s",
-		payload.JobID, payload.JobClass, payload.Interface.Kind)
+	if payload.WaitForCompletion != nil && *payload.WaitForCompletion == false {
+		logs.WriteAgentLog(logs.LogLevelInfo, "Job started", map[string]any{
+			"job_id":    payload.JobID,
+			"job_class": payload.JobClass,
+			"interface": payload.Interface.Kind,
+		})
+	} else {
+		logs.WriteAgentLog(logs.LogLevelInfo, "Job received for async dispatch", map[string]any{
+			"job_id":    payload.JobID,
+			"job_class": payload.JobClass,
+			"interface": payload.Interface.Kind,
+		})
+	}
 
 	// Dispatch based on interface kind
-	var runErr error
 	switch payload.Interface.Kind {
 	case "exec_per_job":
-		runErr = runner.RunExecPerJob(&payload, jobStartTime)
+		return runner.RunExecPerJob(&payload, jobStartTime)
 	case "persistent_http":
-		runErr = runner.RunPersistentHTTP(&payload, jobStartTime)
+		return runner.RunPersistentHTTP(&payload, jobStartTime)
 	default:
 		return fmt.Errorf("unknown interface kind: %s", payload.Interface.Kind)
 	}
-
-	return runErr
 }

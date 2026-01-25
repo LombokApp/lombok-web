@@ -25,12 +25,11 @@ type InterfaceConfig struct {
 
 // WorkerState represents the state of a persistent worker process
 type WorkerState struct {
-	JobClass      string   `json:"job_class"`
 	Kind          string   `json:"kind"`
-	WorkerCommand []string `json:"worker_command,omitempty"`
+	WorkerCommand []string `json:"worker_command"`
 	PID           int      `json:"pid"`
-	State         string   `json:"state"` // "starting", "ready", "unhealthy", "stopped"
-	Port          *int     `json:"port,omitempty"`
+	Status        string   `json:"status"` // "starting", "ready", "unhealthy", "stopped"
+	Port          int      `json:"port"`
 	StartedAt     string   `json:"started_at"`
 	LastCheckedAt string   `json:"last_checked_at"`
 	AgentVersion  string   `json:"agent_version"`
@@ -73,8 +72,6 @@ type HTTPJobRequest struct {
 	JobID        string          `json:"job_id"`
 	JobClass     string          `json:"job_class"`
 	JobInput     json.RawMessage `json:"job_input"`
-	JobLogOut    string          `json:"job_log_out,omitempty"`
-	JobLogErr    string          `json:"job_log_err,omitempty"`
 	JobOutputDir string          `json:"job_output_dir,omitempty"` // Directory for output files
 }
 

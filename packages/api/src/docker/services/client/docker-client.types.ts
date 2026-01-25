@@ -1,6 +1,8 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
+import type { ContainerInspectInfo } from 'dockerode'
 import type { z } from 'zod'
 
+import type { DockerPullOptions } from './adapters/local.adapter'
 import type {
   ContainerExecuteOptions,
   dockerExecutionOptionsSchema,
@@ -31,6 +33,31 @@ export interface ConnectionTestResult {
   error?: string
 }
 
+export interface DockerLogEntry {
+  stream: 'stdout' | 'stderr'
+  text: string
+}
+
+export interface DockerHostResources {
+  cpuCores?: number
+  memoryBytes?: number
+  info: JsonSerializableObject
+}
+
+export interface DockerContainerStats {
+  cpuPercent?: number
+  memoryBytes?: number
+  memoryLimitBytes?: number
+  memoryPercent?: number
+}
+
+export interface DockerContainerGpuInfo {
+  driver?: string
+  command?: string
+  output?: string
+  error?: string
+}
+
 export interface DockerAdapter {
   /**
    * Get the description of the underlying docker resource
@@ -45,7 +72,7 @@ export interface DockerAdapter {
   /**
    * Pull an image from a registry
    */
-  pullImage: (image: string) => Promise<void>
+  pullImage: (image: string, options: DockerPullOptions) => Promise<void>
 
   /**
    * List containers matching the given labels
@@ -75,6 +102,47 @@ export interface DockerAdapter {
    * Start a stopped container
    */
   startContainer: (containerId: string) => Promise<void>
+
+  /**
+   * Stop a running container
+   */
+  stopContainer: (containerId: string) => Promise<void>
+
+  /**
+   * Restart a container
+   */
+  restartContainer: (containerId: string) => Promise<void>
+
+  /**
+   * Remove a container
+   */
+  removeContainer: (
+    containerId: string,
+    options?: { force?: boolean },
+  ) => Promise<void>
+
+  /**
+   * Get container logs
+   */
+  getContainerLogs: (
+    containerId: string,
+    options?: { tail?: number },
+  ) => Promise<DockerLogEntry[]>
+
+  /**
+   * Get host resource info
+   */
+  getHostResources: () => Promise<DockerHostResources>
+
+  /**
+   * Get container resource usage
+   */
+  getContainerStats: (containerId: string) => Promise<DockerContainerStats>
+
+  /**
+   * Get container inspection data
+   */
+  getContainerInspect: (containerId: string) => Promise<ContainerInspectInfo>
 
   /**
    * Check if a container is running
@@ -134,6 +202,30 @@ export interface DockerExecStateExited {
   exitCode: number
 }
 
+export enum DockerAdapterErrorCode {
+  IMAGE_NOT_FOUND = 'IMAGE_NOT_FOUND',
+  IMAGE_PULL_ERROR = 'IMAGE_PULL_ERROR',
+  COMMAND_ARGUMENT_LIST_TOO_LONG = 'COMMAND_ARGUMENT_LIST_TOO_LONG',
+  UNEXPECTED_ERROR = 'UNEXPECTED_ERROR',
+  HOST_CONNECTION_ERROR = 'HOST_CONNECTION_ERROR',
+  HOST_CONNECTION_TIMEOUT = 'HOST_CONNECTION_TIMEOUT',
+  CONTAINER_NOT_FOUND = 'CONTAINER_NOT_FOUND',
+  CONTAINER_NOT_RUNNING = 'CONTAINER_NOT_RUNNING',
+  CONTAINER_START_FAILED = 'CONTAINER_START_FAILED',
+  CONTAINER_START_ERROR = 'CONTAINER_START_ERROR',
+}
+
+export class DockerAdapterError extends Error {
+  constructor(
+    public readonly code: DockerAdapterErrorCode,
+    message: string,
+    public readonly cause?: Error,
+  ) {
+    super(message)
+    this.name = 'DockerAdapterError'
+  }
+}
+
 export class DockerError extends Error {
   constructor(
     public readonly code: string,
@@ -141,43 +233,6 @@ export class DockerError extends Error {
   ) {
     super(message)
     this.name = 'DockerError'
-  }
-}
-
-export class DockerJobExecuteError extends DockerError {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(code, message)
-    this.name = 'DockerJobExecuteError'
-  }
-}
-
-export class DockerJobSubmitError extends DockerError {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(code, message)
-    this.name = 'DockerJobSubmitError'
-  }
-}
-
-export class DockerJobSubmissionError extends DockerJobSubmitError {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(code, message)
-    this.name = 'DockerJobSubmissionError'
-  }
-}
-
-export class DockerJobCompletionError extends DockerJobExecuteError {
-  constructor(code: string, message: string) {
-    super(code, message)
-    this.name = 'DockerJobCompletionError'
   }
 }
 

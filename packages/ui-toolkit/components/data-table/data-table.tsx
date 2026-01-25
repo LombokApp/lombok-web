@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className={cn('size-full gap-2 flex flex-col')}>
+    <div className={cn('min-h-0 max-h-full size-full gap-2 flex flex-col')}>
       {(Object.keys(filterOptions).length > 0 || enableSearch) && (
         <DataTableToolbar
           table={table}
@@ -145,29 +145,36 @@ export function DataTable<TData, TValue>({
           onFiltersChange={onColumnFiltersChange}
         />
       )}
-      <div className="size-full min-h-0">
-        <ScrollArea type="always" className="h-full">
-          <div
-            className={cn(
-              'flex flex-1 rounded-md border bg-background',
-              className,
-            )}
-          >
+      <div className="relative max-h-max min-h-0 self-stretch">
+        <div className="absolute inset-x-0 top-0 z-10 h-12 rounded-t-md border bg-background shadow-sm"></div>
+        <ScrollArea
+          type="always"
+          className="h-full"
+          viewportClassName="rounded-md bg-background border"
+        >
+          <div className={cn('flex flex-1', className)}>
             <Table
-              className={cn('w-full max-w-full', fixedLayout && 'table-fixed')}
+              className={cn(
+                'w-full h-full max-w-full',
+                fixedLayout && 'table-fixed',
+              )}
             >
-              <TableHeader
-                className={cn(hideHeader && 'hidden', 'overflow-hidden')}
-              >
+              <TableHeader className={cn(hideHeader && 'hidden')}>
                 {table.getHeaderGroups().map((headerGroup) => {
                   return (
-                    <TableRow key={headerGroup.id}>
+                    <TableRow
+                      key={headerGroup.id}
+                      className="relative border-b-0"
+                    >
                       {headerGroup.headers.map((header) => {
                         return (
                           <TableHead
                             key={header.id}
                             colSpan={header.colSpan}
                             className={cn(
+                              'sticky top-0',
+                              'z-10',
+                              'border-collapse',
                               (
                                 header.column
                                   .columnDef as HideableColumnDef<TData>
@@ -195,8 +202,8 @@ export function DataTable<TData, TValue>({
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
                       className="relative"
+                      data-state={row.getIsSelected() && 'selected'}
                     >
                       {row.getVisibleCells().map((cell) => {
                         return (
@@ -230,7 +237,7 @@ export function DataTable<TData, TValue>({
                     </TableRow>
                   ))
                 ) : (
-                  <TableRow>
+                  <TableRow className="border-x">
                     <TableCell
                       colSpan={columns.length}
                       className={cn('h-24 text-center', bodyCellClassName)}

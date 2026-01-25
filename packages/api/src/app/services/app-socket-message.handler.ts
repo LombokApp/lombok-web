@@ -9,6 +9,7 @@ import {
   AppSocketMessageSchemaMap,
 } from '@lombokapp/types'
 import type { JWTService } from 'src/auth/services/jwt.service'
+import type { DockerSynchronousExecResult } from 'src/docker/services/client/docker-client.types'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
@@ -104,7 +105,6 @@ export async function handleAppSocketMessage(
       return appService.getApp(requestingAppIdentifier).then((_app) => {
         if (!_app?.database) {
           return {
-            result: { success: false },
             error: { code: 409, message: 'App does not have database access.' },
           }
         }
@@ -131,7 +131,6 @@ export async function handleAppSocketMessage(
         })
         if (!app) {
           return {
-            result: { success: false },
             error: { code: 404, message: 'App not found.' },
           }
         }
@@ -143,7 +142,6 @@ export async function handleAppSocketMessage(
         return { result: { success: true } }
       } catch {
         return {
-          result: { success: false },
           error: { code: 500, message: 'Internal server error.' },
         }
       }
@@ -229,13 +227,32 @@ export async function handleAppSocketMessage(
       }
     }
     case 'EXECUTE_APP_DOCKER_JOB': {
-      const execResult = await appService.executeAppDockerJob(
-        {
-          appIdentifier: requestingAppIdentifier,
-          ...parsedRequest.data,
-        },
-        true,
-      )
+      let execResult: DockerSynchronousExecResult | undefined
+      try {
+        execResult = await appService.executeAppDockerJob(
+          {
+            appIdentifier: requestingAppIdentifier,
+            ...parsedRequest.data,
+          },
+          true,
+        )
+      } catch (error: unknown) {
+        execResult = {
+          jobId: '',
+          submitError: {
+            code:
+              error instanceof Error &&
+              'code' in error &&
+              typeof error.code === 'string'
+                ? error.code
+                : 'EXECUTION_ERROR',
+            message:
+              error instanceof Error
+                ? `'Execution error: ${error.message}`
+                : 'Execution error',
+          },
+        }
+      }
       if ('submitError' in execResult) {
         return {
           result: {

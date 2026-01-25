@@ -118,7 +118,7 @@ export interface AppInstallBundle
 export class AppService {
   folderService: FolderService
   eventService: EventService
-  serverlessWorkerRunnerService: CoreWorkerService
+  coreWorkerService: CoreWorkerService
   taskService: TaskService
   coreTaskService: CoreTaskService
   private readonly appSocketService: AppSocketService
@@ -144,7 +144,7 @@ export class AppService {
     _coreWorkerService,
   ) {
     this.coreTaskService = _coreTaskService as CoreTaskService
-    this.serverlessWorkerRunnerService = _coreWorkerService as CoreWorkerService
+    this.coreWorkerService = _coreWorkerService as CoreWorkerService
     this.taskService = _taskService as TaskService
     this.folderService = _folderService as FolderService
     this.eventService = _eventService as EventService
@@ -180,7 +180,7 @@ export class AppService {
     }
 
     // update the app hash mapping in the core worker
-    void this.serverlessWorkerRunnerService.updateAppHashMapping()
+    void this.coreWorkerService.updateAppHashMapping()
 
     return updated
   }
@@ -912,7 +912,12 @@ export class AppService {
       const installOrUpdateQuery = installedApp
         ? await this.ormService.db
             .update(appsTable)
-            .set({ ...app, updatedAt: now })
+            .set({
+              ...app,
+              userScopeEnabledDefault: installedApp.userScopeEnabledDefault,
+              folderScopeEnabledDefault: installedApp.folderScopeEnabledDefault,
+              updatedAt: now,
+            })
             .where(eq(appsTable.identifier, installedApp.identifier))
             .returning()
         : await this.ormService.db
@@ -959,7 +964,7 @@ export class AppService {
     }
 
     // update the app hash mapping in the core worker
-    void this.serverlessWorkerRunnerService.updateAppHashMapping()
+    void this.coreWorkerService.updateAppHashMapping()
 
     return newlyInstalledAppInstance
   }
@@ -2158,7 +2163,7 @@ export class AppService {
       query,
     }: { appIdentifier: string; workerIdentifier: string; query: string },
   ): Promise<{ vector: number[] }> {
-    await this.serverlessWorkerRunnerService.executeServerlessRequest({
+    await this.coreWorkerService.executeServerlessRequest({
       appIdentifier,
       workerIdentifier,
       request: {

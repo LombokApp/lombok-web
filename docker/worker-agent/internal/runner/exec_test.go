@@ -70,17 +70,17 @@ func TestRunExecPerJob_Timing(t *testing.T) {
 		t.Error("Agent log should contain worker_startup_time")
 	}
 
-	// Verify worker output was written to worker log (not job log)
-	workerOutLogPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
-	workerOutLogContent, err := os.ReadFile(workerOutLogPath)
+	// Verify worker output was written to the job log
+	jobLogPath := config.JobLogPath(payload.JobID)
+	jobLogContent, err := os.ReadFile(jobLogPath)
 	if err != nil {
-		t.Fatalf("Failed to read worker stdout log: %v", err)
+		t.Fatalf("Failed to read job log: %v", err)
 	}
 
-	workerLogStr := string(workerOutLogContent)
+	jobLogStr := string(jobLogContent)
 	// Verify the worker's actual output is in the log (the base64 encoded input)
-	if !strings.Contains(workerLogStr, jobInputB64) {
-		t.Error("Worker log should contain worker output")
+	if !strings.Contains(jobLogStr, jobInputB64) {
+		t.Error("Job log should contain worker output")
 	}
 }
 
@@ -201,17 +201,17 @@ func TestRunExecPerJob_WorkerStartupTiming(t *testing.T) {
 		t.Error("Agent log should contain worker_startup_time")
 	}
 
-	// Verify worker output was written to worker log (not job log)
-	workerOutLogPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
-	workerOutLogContent, err := os.ReadFile(workerOutLogPath)
+	// Verify worker output was written to the job log
+	jobLogPath := config.JobLogPath(payload.JobID)
+	jobLogContent, err := os.ReadFile(jobLogPath)
 	if err != nil {
-		t.Fatalf("Failed to read worker stdout log: %v", err)
+		t.Fatalf("Failed to read job log: %v", err)
 	}
 
-	workerLogStr := string(workerOutLogContent)
+	jobLogStr := string(jobLogContent)
 	// Verify the worker's actual output is in the log (the base64 encoded input)
-	if !strings.Contains(workerLogStr, jobInputB64) {
-		t.Error("Worker log should contain worker output")
+	if !strings.Contains(jobLogStr, jobInputB64) {
+		t.Error("Job log should contain worker output")
 	}
 }
 
@@ -372,24 +372,6 @@ func TestRunExecPerJob_AsyncMode(t *testing.T) {
 		t.Error("Job state should have WorkerPID set")
 	}
 
-	// Verify worker state exists
-	workerStatePath := config.WorkerStatePath(payload.WorkerCommand, payload.Interface)
-	workerStateContent, err := os.ReadFile(workerStatePath)
-	if err != nil {
-		t.Fatalf("Failed to read worker state: %v", err)
-	}
-
-	var workerState types.WorkerState
-	if err := json.Unmarshal(workerStateContent, &workerState); err != nil {
-		t.Fatalf("Failed to parse worker state: %v", err)
-	}
-
-	if workerState.State != "running" {
-		t.Errorf("Expected worker state 'running', got '%s'", workerState.State)
-	}
-	if workerState.PID == 0 {
-		t.Error("Worker state should have PID set")
-	}
 }
 
 func TestRunExecPerJob_EnvironmentVariables(t *testing.T) {
@@ -434,16 +416,16 @@ func TestRunExecPerJob_EnvironmentVariables(t *testing.T) {
 	}
 
 	// Verify environment variables were passed to worker
-	workerOutLogPath := config.WorkerOutLogPath(payload.WorkerCommand, payload.Interface)
-	workerOutLogContent, err := os.ReadFile(workerOutLogPath)
+	jobLogPath := config.JobLogPath(payload.JobID)
+	jobLogContent, err := os.ReadFile(jobLogPath)
 	if err != nil {
-		t.Fatalf("Failed to read worker stdout log: %v", err)
+		t.Fatalf("Failed to read job log: %v", err)
 	}
 
-	workerLogStr := string(workerOutLogContent)
+	jobLogStr := string(jobLogContent)
 	expectedOutput := payload.JobID + ":" + payload.JobClass + ":"
-	if !strings.Contains(workerLogStr, expectedOutput) {
-		t.Errorf("Worker output should contain environment variables, got: %s", workerLogStr)
+	if !strings.Contains(jobLogStr, expectedOutput) {
+		t.Errorf("Worker output should contain environment variables, got: %s", jobLogStr)
 	}
 }
 
@@ -594,14 +576,9 @@ func TestRunExecPerJob_JobStateAndResultFiles(t *testing.T) {
 		t.Error("Job result should contain timing information")
 	}
 
-	// Verify job log files were created
-	jobOutPath := config.JobOutLogPath(payload.JobID)
-	jobErrPath := config.JobErrLogPath(payload.JobID)
-
-	if _, err := os.Stat(jobOutPath); err != nil {
-		t.Errorf("Job stdout log file should exist: %v", err)
-	}
-	if _, err := os.Stat(jobErrPath); err != nil {
-		t.Errorf("Job stderr log file should exist: %v", err)
+	// Verify job log file was created
+	jobLogPath := config.JobLogPath(payload.JobID)
+	if _, err := os.Stat(jobLogPath); err != nil {
+		t.Errorf("Job log file should exist: %v", err)
 	}
 }

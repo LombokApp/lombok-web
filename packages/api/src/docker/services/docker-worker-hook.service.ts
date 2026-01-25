@@ -449,9 +449,21 @@ export class DockerWorkerHookService {
         )
       }
 
-      if (innerTask.startedAt || innerTask.completedAt) {
+      if (innerTask.completedAt) {
         throw new ConflictException(
-          `Docker handled task ${innerTask.id} cannot be started because it has already been started`,
+          `Docker handled task ${innerTask.id} initial heartbeat cannot be registered because the task has already been completed`,
+        )
+      }
+
+      if (!innerTask.startedAt) {
+        throw new ConflictException(
+          `Docker handled task ${innerTask.id} initial heartbeat cannot be registered because the task has not been started`,
+        )
+      }
+
+      if (innerTask.latestHeartbeatAt) {
+        throw new ConflictException(
+          `Docker handled task ${innerTask.id} initial heartbeat was already registered`,
         )
       }
 
@@ -467,10 +479,10 @@ export class DockerWorkerHookService {
         )
       }
 
-      await this.taskService.registerTaskStarted({
+      await this.taskService.registerHeartbeat({
         taskId: innerTask.id,
-        startContext: {
-          __executor: claims.executorContext,
+        heartbeatContext: {
+          message: 'Task worker first heartbeat',
         },
         options: { tx },
       })

@@ -128,7 +128,7 @@ export function ServerAppsScreen() {
   const apps = listServerAppsQuery.data
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
+    <div className={cn('flex size-full flex-1 flex-col items-center')}>
       <DataTable
         title="Apps"
         enableSearch={true}

@@ -378,16 +378,6 @@ const handleInit = (
       message: `HTTP server failed to start: ${message}`,
       level: LogEntryLevel.ERROR,
     })
-    try {
-      // sendIpcMessage({
-      //   type: 'core_worker_status',
-      //   status: 'error',
-      //   error: message,
-      //   instanceId: workerData.instanceId,
-      // })
-    } catch {
-      void 0
-    }
     cleanup()
     process.exit(1)
   }

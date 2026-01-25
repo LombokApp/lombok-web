@@ -1,6 +1,5 @@
 import type { ServerTasksListRequest } from '@lombokapp/types'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
@@ -133,7 +132,7 @@ export function ServerTasksScreen() {
   })
   const events = listServerTasksQuery.data
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
+    <div>
       <DataTable
         title="Tasks"
         enableSearch={true}

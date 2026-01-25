@@ -1,5 +1,4 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import { Link } from 'react-router'
@@ -99,54 +98,56 @@ export function ServerSettingsScreen({
   )
 
   return (
-    <div className="flex max-h-max min-h-0 w-full items-start gap-6 pl-4 sm:gap-16">
-      <nav
-        className="flex flex-col gap-4 text-sm text-muted-foreground"
-        x-chunk="dashboard-04-chunk-0"
-      >
-        <Link
-          to="/server/settings"
-          className={cn(tab === 'general' && 'text-primary font-semibold')}
+    <div>
+      <div className="flex max-h-max min-h-0 w-full items-start gap-6 pl-4 sm:gap-16">
+        <nav
+          className="absolute flex flex-col gap-4 text-sm text-muted-foreground"
+          x-chunk="dashboard-04-chunk-0"
         >
-          General
-        </Link>
-        <Link
-          to="/server/settings/storage"
-          className={cn(tab === 'storage' && 'text-primary font-semibold')}
-        >
-          Storage
-        </Link>
-        <div className="flex flex-col gap-1">
           <Link
-            to="/server/settings/apps"
-            className={cn(
-              tab === 'apps' && !appIdentifier && 'text-primary font-semibold',
-            )}
+            to="/server/settings"
+            className={cn(tab === 'general' && 'text-primary font-semibold')}
           >
-            Apps
+            General
           </Link>
-          {appsQuery.data?.result && appsQuery.data.result.length > 0 && (
-            <div className="ml-4 mt-2 flex flex-col gap-1.5 border-l-2 border-muted pl-4">
-              {appsQuery.data.result.map((app) => (
-                <Link
-                  key={app.identifier}
-                  to={`/server/settings/apps/${app.identifier}`}
-                  className={cn(
-                    'text-xs transition-all duration-200 hover:text-foreground hover:translate-x-0.5',
-                    appIdentifier === app.identifier
-                      ? 'text-primary font-medium'
-                      : 'text-muted-foreground',
-                  )}
-                >
-                  {app.label || app.identifier}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </nav>
-      <div className="flex size-full max-h-max min-h-0 flex-1 flex-col gap-8">
-        <ScrollArea>
+          <Link
+            to="/server/settings/storage"
+            className={cn(tab === 'storage' && 'text-primary font-semibold')}
+          >
+            Storage
+          </Link>
+          <div className="flex flex-col gap-1">
+            <Link
+              to="/server/settings/apps"
+              className={cn(
+                tab === 'apps' &&
+                  !appIdentifier &&
+                  'text-primary font-semibold',
+              )}
+            >
+              Apps
+            </Link>
+            {appsQuery.data?.result && appsQuery.data.result.length > 0 && (
+              <div className="ml-4 mt-2 flex flex-col gap-1.5 border-l-2 border-muted pl-4">
+                {appsQuery.data.result.map((app) => (
+                  <Link
+                    key={app.identifier}
+                    to={`/server/settings/apps/${app.identifier}`}
+                    className={cn(
+                      'text-xs transition-all duration-200 hover:text-foreground hover:translate-x-0.5',
+                      appIdentifier === app.identifier
+                        ? 'text-primary font-medium'
+                        : 'text-muted-foreground',
+                    )}
+                  >
+                    {app.label || app.identifier}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </nav>
+        <div className="flex max-h-max min-h-0 flex-1 flex-col gap-8 self-stretch pl-44">
           {tab === 'storage' ? (
             <ServerStorageConfigTab />
           ) : tab === 'general' ? (
@@ -170,7 +171,7 @@ export function ServerSettingsScreen({
           ) : (
             <></>
           )}
-        </ScrollArea>
+        </div>
       </div>
     </div>
   )

@@ -16,7 +16,7 @@ COPY docker/worker-agent/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o lombok-worker-agent .
 
 # Stage 2: Final image with Bun and the agent
-FROM oven/bun:1.3.5-alpine
+FROM oven/bun:1.3.6-alpine
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ COPY docker/worker-job-runner/src ./src
 
 EXPOSE 8080
 
-CMD ["lombok-worker-agent", "worker-logs", "--include-agent"]
+CMD ["lombok-worker-agent", "start"]
 
 # Example:
 # docker build -f docker/worker-job-runner/mock-worker.Dockerfile -t lombok/mock-worker .

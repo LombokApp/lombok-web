@@ -812,6 +812,244 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/docker-hosts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the configured docker hosts. */
+        get: operations["getDockerHostsConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the current runtime state of docker hosts. */
+        get: operations["getDockerHostsState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get logs for a container running on a docker host. */
+        get: operations["getDockerContainerLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get resource usage for a container. */
+        get: operations["getDockerContainerStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get inspection details for a container. */
+        get: operations["getDockerContainerInspect"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List HTTP workers for a container. */
+        get: operations["getDockerContainerWorkers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get worker state and recent jobs for a worker. */
+        get: operations["getDockerContainerWorkerDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent job state files for a container. */
+        get: operations["getDockerContainerJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Purge completed job files for a container. */
+        post: operations["purgeContainerJobs"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get job state and log details for a container job. */
+        get: operations["getDockerContainerJobDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a container. */
+        post: operations["startDockerContainer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop a container. */
+        post: operations["stopDockerContainer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/restart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restart a container. */
+        post: operations["restartDockerContainer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove a container. */
+        post: operations["removeDockerContainer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/tasks/{taskId}": {
         parameters: {
             query?: never;
@@ -2913,48 +3151,30 @@ export interface components {
             settingValue?: unknown;
         };
         ServerMetricsResponse: {
-            /** Format: int64 */
-            totalUsers: number;
-            /** Format: int64 */
-            totalFolders: number;
-            /** Format: int64 */
-            usersCreatedPreviousWeek: number;
-            /** Format: int64 */
-            foldersCreatedPreviousWeek: number;
-            /** Format: int64 */
-            totalIndexedSizeBytes: number;
-            /** Format: int64 */
-            sessionsCreatedPreviousWeek: number;
-            /** Format: int64 */
-            sessionsCreatedPrevious24Hours: number;
+            totalUsers: string;
+            totalFolders: string;
+            usersCreatedPreviousWeek: string;
+            foldersCreatedPreviousWeek: string;
+            totalIndexedSizeBytes: string;
+            sessionsCreatedPreviousWeek: string;
+            sessionsCreatedPrevious24Hours: string;
             provisionedStorage: {
-                /** Format: int64 */
-                totalCount: number;
+                totalCount: string;
                 summary: string;
             };
-            /** Format: int64 */
-            totalIndexedSizeBytesAcrossStorageProvisions: number;
+            totalIndexedSizeBytesAcrossStorageProvisions: string;
             installedApps: {
-                /** Format: int64 */
-                totalCount: number;
+                totalCount: string;
                 summary: string;
             };
-            /** Format: int64 */
-            tasksCreatedPreviousDay: number;
-            /** Format: int64 */
-            tasksCreatedPreviousHour: number;
-            /** Format: int64 */
-            taskErrorsPreviousDay: number;
-            /** Format: int64 */
-            taskErrorsPreviousHour: number;
-            /** Format: int64 */
-            serverEventsEmittedPreviousDay: number;
-            /** Format: int64 */
-            serverEventsEmittedPreviousHour: number;
-            /** Format: int64 */
-            folderEventsEmittedPreviousDay: number;
-            /** Format: int64 */
-            folderEventsEmittedPreviousHour: number;
+            tasksCreatedPreviousDay: string;
+            tasksCreatedPreviousHour: string;
+            taskErrorsPreviousDay: string;
+            taskErrorsPreviousHour: string;
+            serverEventsEmittedPreviousDay: string;
+            serverEventsEmittedPreviousHour: string;
+            folderEventsEmittedPreviousDay: string;
+            folderEventsEmittedPreviousHour: string;
         };
         StorageProvisionsListResponse: {
             result: {
@@ -3024,6 +3244,122 @@ export interface components {
             bucket: string;
             region: string;
             prefix: string | null;
+        };
+        DockerHostsConfigResponse: {
+            profileHostAssignments?: components["schemas"]["StringMapDTO"];
+            hosts: {
+                id: string;
+                host: string;
+                /** @enum {string} */
+                type: "docker_endpoint";
+                assignedProfiles: string[];
+                networkMode?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    [key: string]: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                };
+                volumes?: {
+                    [key: string]: string[];
+                };
+                extraHosts?: {
+                    [key: string]: string[];
+                };
+                environmentVariableKeys?: {
+                    [key: string]: string[];
+                };
+            }[];
+        };
+        DockerHostsStateResponse: {
+            hosts: {
+                id: string;
+                description: string;
+                connection: {
+                    success: boolean;
+                    version?: string;
+                    apiVersion?: string;
+                    error?: string;
+                };
+                resources?: {
+                    cpuCores?: number;
+                    memoryBytes?: number;
+                };
+                containers: {
+                    id: string;
+                    image: string;
+                    labels: components["schemas"]["StringMapDTO"];
+                    /** @enum {string} */
+                    state: "running" | "exited" | "paused" | "created" | "unknown";
+                    createdAt: string;
+                    profileId?: string;
+                    profileHash?: string;
+                }[];
+                containersError?: string;
+            }[];
+        };
+        DockerContainerLogsResponse: {
+            entries: {
+                /** @enum {string} */
+                stream: "stdout" | "stderr";
+                text: string;
+            }[];
+        };
+        DockerContainerStatsResponse: {
+            stats: {
+                cpuPercent?: number;
+                memoryBytes?: number;
+                memoryLimitBytes?: number;
+                memoryPercent?: number;
+            };
+        };
+        DockerContainerInspectResponse: {
+            inspect?: unknown;
+            gpuInfo?: {
+                driver?: string;
+                command?: string;
+                output?: string;
+                error?: string;
+            };
+        };
+        DockerContainerWorkersResponse: {
+            workers: {
+                workerId: string;
+                port: number;
+                filePath: string;
+            }[];
+        };
+        DockerContainerWorkerDetailResponse: {
+            workerState?: unknown;
+            workerStateError?: string;
+            jobs: {
+                jobId: string;
+                filePath: string;
+            }[];
+            jobsError?: string;
+        };
+        DockerContainerJobsResponse: {
+            jobs: {
+                jobId: string;
+                filePath: string;
+            }[];
+        };
+        DockerContainerPurgeJobsResponse: {
+            message: string;
+        };
+        DockerContainerJobDetailResponse: {
+            state?: unknown;
+            stateError?: string;
+            entries?: {
+                /** @enum {string} */
+                stream: "stdout" | "stderr";
+                text: string;
+            }[];
+            logError?: string;
+        };
+        DockerContainerActionResponse: {
+            /** @enum {boolean} */
+            success: true;
         };
         TaskGetResponse: {
             task: {
@@ -5995,6 +6331,572 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerHostsConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostsConfigResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerHostsState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostsStateResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerLogs: {
+        parameters: {
+            query?: {
+                tail?: number;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerLogsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerStatsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerInspect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerInspectResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerWorkers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerWorkersResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerWorkerDetail: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+                workerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerWorkerDetailResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerJobs: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerJobsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    purgeContainerJobs: {
+        parameters: {
+            query?: {
+                olderThan?: string;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerPurgeJobsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerJobDetail: {
+        parameters: {
+            query?: {
+                tail?: number;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerJobDetailResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    startDockerContainer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerActionResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    stopDockerContainer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerActionResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    restartDockerContainer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerActionResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    removeDockerContainer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerActionResponse"];
+                };
             };
             /** @description Server Error */
             "5XX": {

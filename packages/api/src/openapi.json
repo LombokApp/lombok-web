@@ -4240,6 +4240,932 @@
         ]
       }
     },
+    "/api/v1/server/docker-hosts": {
+      "get": {
+        "operationId": "getDockerHostsConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerHostsConfigResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the configured docker hosts.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/state": {
+      "get": {
+        "operationId": "getDockerHostsState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerHostsStateResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current runtime state of docker hosts.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/logs": {
+      "get": {
+        "operationId": "getDockerContainerLogs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerLogsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get logs for a container running on a docker host.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stats": {
+      "get": {
+        "operationId": "getDockerContainerStats",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerStatsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get resource usage for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect": {
+      "get": {
+        "operationId": "getDockerContainerInspect",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerInspectResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get inspection details for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
+      "get": {
+        "operationId": "getDockerContainerWorkers",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerWorkersResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List HTTP workers for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
+      "get": {
+        "operationId": "getDockerContainerWorkerDetail",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerWorkerDetailResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get worker state and recent jobs for a worker.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
+      "get": {
+        "operationId": "getDockerContainerJobs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerJobsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List recent job state files for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
+      "post": {
+        "operationId": "purgeContainerJobs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "olderThan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerPurgeJobsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Purge completed job files for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
+      "get": {
+        "operationId": "getDockerContainerJobDetail",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerJobDetailResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get job state and log details for a container job.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/start": {
+      "post": {
+        "operationId": "startDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stop": {
+      "post": {
+        "operationId": "stopDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/restart": {
+      "post": {
+        "operationId": "restartDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restart a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/remove": {
+      "post": {
+        "operationId": "removeDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
     "/api/v1/server/tasks/{taskId}": {
       "get": {
         "operationId": "getTask",
@@ -13265,39 +14191,31 @@
         "type": "object",
         "properties": {
           "totalUsers": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "totalFolders": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "usersCreatedPreviousWeek": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "foldersCreatedPreviousWeek": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "totalIndexedSizeBytes": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "sessionsCreatedPreviousWeek": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "sessionsCreatedPrevious24Hours": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "provisionedStorage": {
             "type": "object",
             "properties": {
               "totalCount": {
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               },
               "summary": {
                 "type": "string"
@@ -13309,15 +14227,13 @@
             ]
           },
           "totalIndexedSizeBytesAcrossStorageProvisions": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "installedApps": {
             "type": "object",
             "properties": {
               "totalCount": {
-                "type": "integer",
-                "format": "int64"
+                "type": "string"
               },
               "summary": {
                 "type": "string"
@@ -13329,36 +14245,28 @@
             ]
           },
           "tasksCreatedPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "tasksCreatedPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "taskErrorsPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "taskErrorsPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "serverEventsEmittedPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "serverEventsEmittedPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "folderEventsEmittedPreviousDay": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           },
           "folderEventsEmittedPreviousHour": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           }
         },
         "required": [
@@ -13681,6 +14589,435 @@
           "bucket",
           "region",
           "prefix"
+        ]
+      },
+      "DockerHostsConfigResponse": {
+        "type": "object",
+        "properties": {
+          "profileHostAssignments": {
+            "$ref": "#/components/schemas/StringMapDTO"
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "host": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "docker_endpoint"
+                  ]
+                },
+                "assignedProfiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "networkMode": {
+                  "$ref": "#/components/schemas/StringMapDTO"
+                },
+                "gpus": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "driver": {
+                        "type": "string"
+                      },
+                      "deviceIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "driver",
+                      "deviceIds"
+                    ]
+                  }
+                },
+                "volumes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "extraHosts": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "environmentVariableKeys": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "host",
+                "type",
+                "assignedProfiles"
+              ]
+            }
+          }
+        },
+        "required": [
+          "hosts"
+        ]
+      },
+      "DockerHostsStateResponse": {
+        "type": "object",
+        "properties": {
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "connection": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "apiVersion": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                },
+                "resources": {
+                  "type": "object",
+                  "properties": {
+                    "cpuCores": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "memoryBytes": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "containers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "labels": {
+                        "$ref": "#/components/schemas/StringMapDTO"
+                      },
+                      "state": {
+                        "type": "string",
+                        "enum": [
+                          "running",
+                          "exited",
+                          "paused",
+                          "created",
+                          "unknown"
+                        ]
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "profileId": {
+                        "type": "string"
+                      },
+                      "profileHash": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "image",
+                      "labels",
+                      "state",
+                      "createdAt"
+                    ]
+                  }
+                },
+                "containersError": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "description",
+                "connection",
+                "containers"
+              ]
+            }
+          }
+        },
+        "required": [
+          "hosts"
+        ]
+      },
+      "DockerContainerLogsResponse": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stream": {
+                  "type": "string",
+                  "enum": [
+                    "stdout",
+                    "stderr"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "stream",
+                "text"
+              ]
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      },
+      "DockerContainerStatsResponse": {
+        "type": "object",
+        "properties": {
+          "stats": {
+            "type": "object",
+            "properties": {
+              "cpuPercent": {
+                "type": "number"
+              },
+              "memoryBytes": {
+                "type": "number"
+              },
+              "memoryLimitBytes": {
+                "type": "number"
+              },
+              "memoryPercent": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "stats"
+        ]
+      },
+      "DockerContainerInspectResponse": {
+        "type": "object",
+        "properties": {
+          "inspect": {},
+          "gpuInfo": {
+            "type": "object",
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "output": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "DockerContainerWorkersResponse": {
+        "type": "object",
+        "properties": {
+          "workers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "workerId": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                },
+                "filePath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "workerId",
+                "port",
+                "filePath"
+              ]
+            }
+          }
+        },
+        "required": [
+          "workers"
+        ]
+      },
+      "DockerContainerWorkerDetailResponse": {
+        "type": "object",
+        "properties": {
+          "workerState": {},
+          "workerStateError": {
+            "type": "string"
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "jobId": {
+                  "type": "string"
+                },
+                "filePath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "jobId",
+                "filePath"
+              ]
+            }
+          },
+          "jobsError": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jobs"
+        ]
+      },
+      "DockerContainerJobsResponse": {
+        "type": "object",
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "jobId": {
+                  "type": "string"
+                },
+                "filePath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "jobId",
+                "filePath"
+              ]
+            }
+          }
+        },
+        "required": [
+          "jobs"
+        ]
+      },
+      "DockerContainerPurgeJobsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "DockerContainerJobDetailResponse": {
+        "type": "object",
+        "properties": {
+          "state": {},
+          "stateError": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stream": {
+                  "type": "string",
+                  "enum": [
+                    "stdout",
+                    "stderr"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "stream",
+                "text"
+              ]
+            }
+          },
+          "logError": {
+            "type": "string"
+          }
+        }
+      },
+      "DockerContainerActionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "success"
         ]
       },
       "TaskGetResponse": {

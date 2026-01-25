@@ -105,7 +105,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="flex size-full flex-1 flex-col gap-8 overflow-hidden overflow-y-auto">
+    <div className="flex size-full flex-1 flex-col gap-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">

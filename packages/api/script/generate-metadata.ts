@@ -1,5 +1,5 @@
 import { patchNestjsSwagger } from '@anatine/zod-nestjs'
-import { PluginMetadataGenerator } from '@nestjs/cli/lib/compiler/plugins/plugin-metadata-generator'
+import { PluginMetadataPrinter } from '@nestjs/cli/lib/compiler/plugins/plugin-metadata-printer'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import type { OpenAPIObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
@@ -7,8 +7,7 @@ import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import * as path from 'path'
 import { CoreModule } from 'src/core/core.module'
-
-const generator = new PluginMetadataGenerator()
+import ts from 'typescript'
 
 function findMatchingSchema(
   schema: unknown,
@@ -102,21 +101,82 @@ function compressOpenApiDocument(document: OpenAPIObject) {
 }
 
 async function main() {
+  const projectRoot = path.resolve(__dirname, '..')
+  const tsconfigPath = path.join(projectRoot, 'tsconfig-generate-metadata.json')
+  const configFile = ts.readConfigFile(tsconfigPath, (filePath) =>
+    ts.sys.readFile(filePath),
+  )
+  if (configFile.error) {
+    throw new Error(
+      ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n'),
+    )
+  }
+
+  const parsedConfig = ts.parseJsonConfigFileContent(
+    configFile.config,
+    ts.sys,
+    projectRoot,
+  )
+  if (parsedConfig.errors.length > 0) {
+    const formatDiagnosticsHost = {
+      getCanonicalFileName: (filePath: string) => filePath,
+      getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
+      getNewLine: () => ts.sys.newLine,
+    }
+    const message = ts.formatDiagnosticsWithColorAndContext(
+      parsedConfig.errors,
+      formatDiagnosticsHost,
+    )
+    throw new Error(message)
+  }
+
+  const program = ts.createProgram(parsedConfig.fileNames, {
+    ...parsedConfig.options,
+    incremental: false,
+    tsBuildInfoFile: undefined,
+  })
+  const diagnostics = ts.getPreEmitDiagnostics(program)
+  if (diagnostics.length > 0) {
+    const formatDiagnosticsHost = {
+      getCanonicalFileName: (filePath: string) => filePath,
+      getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
+      getNewLine: () => ts.sys.newLine,
+    }
+    const message = ts.formatDiagnosticsWithColorAndContext(
+      diagnostics,
+      formatDiagnosticsHost,
+    )
+    throw new Error(message)
+  }
+
   const app = await NestFactory.create(CoreModule, { preview: true })
 
-  generator.generate({
-    visitors: [
-      new ReadonlyVisitor({
-        introspectComments: true,
-        pathToSource: __dirname,
-        classValidatorShim: false,
-      }),
-    ],
-    outputDir: __dirname,
-    printDiagnostics: true,
-    tsconfigPath: 'tsconfig-generate-metadata.json',
-    filename: '../src/nestjs-metadata.ts',
+  const visitor = new ReadonlyVisitor({
+    introspectComments: true,
+    pathToSource: path.join(projectRoot, 'src'),
+    classValidatorShim: false,
   })
+
+  for (const sourceFile of program.getSourceFiles()) {
+    if (!sourceFile.isDeclarationFile) {
+      visitor.visit(program, sourceFile)
+    }
+  }
+
+  const printer = new PluginMetadataPrinter()
+  const pluginMetadata = {
+    [visitor.key]: visitor.collect(),
+  }
+
+  printer.print(
+    pluginMetadata,
+    visitor.typeImports,
+    {
+      outputDir: __dirname,
+      filename: '../src/nestjs-metadata.ts',
+    },
+    ts,
+  )
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
   const metadata = require('../src/nestjs-metadata').default

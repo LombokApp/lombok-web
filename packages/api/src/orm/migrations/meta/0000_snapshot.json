@@ -1,5 +1,5 @@
 {
-  "id": "37d090cd-bd77-4506-a932-a0078f620b85",
+  "id": "097fa024-5164-45cb-8084-2b71add31f9b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1340,6 +1340,12 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
+        },
+        "latestHeartbeatAt": {
+          "name": "latestHeartbeatAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "handlerType": {
           "name": "handlerType",

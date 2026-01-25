@@ -45,7 +45,7 @@ export const baseTheme = {
     mutedForeground: palette.neutral[400],
     accent: palette.neutral[800],
     accentForeground: palette.neutral[50],
-    destructive: palette.red[900],
+    destructive: palette.red[700],
     destructiveForeground: palette.red[50],
     border: palette.neutral[600],
     input: palette.neutral[800],

@@ -1,6 +1,5 @@
 import type { ServerLogsListRequest } from '@lombokapp/types'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
@@ -127,7 +126,7 @@ export function ServerLogsScreen() {
   })
   const logs = listServerLogsQuery.data
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
+    <div>
       <DataTable
         title="Logs"
         enableSearch={true}

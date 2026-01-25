@@ -181,14 +181,13 @@ This decouples job execution time from HTTP connection lifetime, allowing long-r
 1. Check if worker is already running (via state file + process check)
 2. If not running or unhealthy:
    - Start worker using `worker_command` (without payload argument)
-   - Connect stdout/stderr to per-worker logs:
+   - Connect stdout/stderr to per-worker log:
      ```
-     /var/log/lombok-worker-agent/workers/<worker_id>.out.log
-     /var/log/lombok-worker-agent/workers/<worker_id>.err.log
+     /var/log/lombok-worker-agent/workers/<worker_id>.log
      ```
-     `worker_id` is derived from the worker command, interface kind, and listener (for example:
-     `bun%20run%20src/mock-worker.ts__persistent_http_9000` or `bun%20run%20src/exec_job.ts__exec_per_job`).
-   - Update worker state file to "starting"
+     `worker_id` is derived from the persistent worker port (for example:
+     `http_9000`).
+   - Update worker state file status to "starting"
 3. Poll for readiness via `GET /health/ready` until worker responds with 200 OK
 4. Mark worker as "ready" in state file
 
@@ -301,7 +300,7 @@ Optional endpoints:
 ```
 /var/lib/lombok-worker-agent/
   workers/
-    <job_class>.json           # Per-worker state
+    <worker_id>.json           # Per-worker state
   jobs/
     <job_id>.json              # Per-job state
     <job_id>/output/           # Job output files
@@ -312,8 +311,7 @@ Optional endpoints:
   agent.log                    # Agent logs
   agent.err.log                # Agent error logs
   workers/
-    <worker_id>.out.log        # Worker stdout (persistent_http)
-    <worker_id>.err.log        # Worker stderr (persistent_http)
+    <worker_id>.log            # Worker logs (persistent_http)
   jobs/
     <job_id>.out.log           # Job stdout
     <job_id>.err.log           # Job stderr
@@ -321,7 +319,7 @@ Optional endpoints:
 
 ### Worker State File
 
-`/var/lib/lombok-worker-agent/workers/<job_class>.json`
+`/var/lib/lombok-worker-agent/workers/<worker_id>.json`
 
 ```json
 {
@@ -329,7 +327,7 @@ Optional endpoints:
   "kind": "persistent_http",
   "port": 9000,
   "pid": 1234,
-  "state": "starting" | "ready" | "unhealthy" | "stopped",
+  "status": "starting" | "ready" | "unhealthy" | "stopped",
   "started_at": "2025-11-27T10:10:00Z",
   "last_checked_at": "2025-11-27T10:11:00Z",
   "agent_version": "1.0.0"
@@ -358,6 +356,24 @@ Optional endpoints:
 }
 ```
 
+### Log Rotation
+
+The agent rotates both `/var/log/lombok-worker-agent/agent.log` and
+`/var/log/lombok-worker-agent/lombok-worker-agent.log` once they exceed a configured
+size so disk usage stays bounded.
+
+Configure rotation using these environment variables (defaults listed):
+
+| Variable                              | Description                                   | Default |
+|---------------------------------------|-----------------------------------------------|---------|
+| `LOMBOK_WORKER_AGENT_LOG_ROTATION_MAX_SIZE_MB`            | Max size in MB before rotating a log file     | `50`    |
+| `LOMBOK_WORKER_AGENT_LOG_ROTATION_MAX_FILES`              | Number of rotated archives to retain         | `5`     |
+| `LOMBOK_WORKER_AGENT_LOG_ROTATION_CHECK_INTERVAL_MINUTES` | Poll interval (minutes) for size checks       | `10`    |
+
+Rotation runs in a background checker that acquires the same logging mutex, so
+entries continue without loss while files are swapped. Rotation errors are
+logged to `stderr` and do not disrupt normal logging.
+
 ---
 
 ## 7. Log Access Commands
@@ -374,23 +390,28 @@ docker exec <c> lombok-worker-agent agent-log --grep "job=<job_id>"
 ### Worker Logs
 
 ```bash
-docker exec <c> lombok-worker-agent worker-log --job-class <job_class> --tail 200
-docker exec <c> lombok-worker-agent worker-log --job-class <job_class> --err --tail 200
+docker exec <c> lombok-worker-agent worker-log --port <port> --tail 200
 ```
 
-### Combined Worker Logs (Tail)
+### Combined Worker Logs (Start)
 
 ```bash
-docker exec <c> lombok-worker-agent worker-logs
-docker exec <c> lombok-worker-agent worker-logs --job-class <job_class>
-docker exec <c> lombok-worker-agent worker-logs --include-agent
+docker exec <c> lombok-worker-agent start
+docker exec <c> lombok-worker-agent start --from-start
+```
+
+Warm up workers before tailing logs:
+
+```bash
+docker exec <c> lombok-worker-agent start \
+  --warmup 8080 start-worker.sh arg1 -- --arg2 \
+  --warmup 9000 start-another-worker.sh argX arg2
 ```
 
 ### Job Logs
 
 ```bash
 docker exec <c> lombok-worker-agent job-log --job-id <job_id> --tail 200
-docker exec <c> lombok-worker-agent job-log --job-id <job_id> --err --tail 200
 ```
 
 ---
