@@ -1,0 +1,88 @@
+{
+  "dockerfile": "Dockerfile",
+  "buildContext": ".",
+  "imageName": "my-worker:test",
+  "buildArgs": {
+    "BUILD_ENV": "test"
+  },
+  "build": {
+    "ssh": "user@remote-host",
+    "registry": {
+      "url": "registry.example.com",
+      "username": "myuser",
+      "password": "mypassword",
+      "push": false
+    }
+  },
+  "container": {
+    "dockerHost": "/var/run/docker.sock",
+    "name": "my-worker-test",
+    "environmentVariables": {
+      "ENV": "test",
+      "LOG_LEVEL": "debug"
+    },
+    "volumes": [
+      "/host/path:/container/path"
+    ],
+    "gpus": {
+      "driver": "nvidia",
+      "deviceIds": ["0"]
+    },
+    "networkMode": "bridge",
+    "extraHosts": [
+      "example.com:192.168.1.100"
+    ]
+  },
+  "jobs": [
+    {
+      "id": "test-embedding",
+      "payload": {
+        "job_id": "test-embedding-001",
+        "job_class": "generate_text_embeddings",
+        "wait_for_completion": true,
+        "worker_command": ["./start_worker.sh"],
+        "interface": {
+          "kind": "persistent_http",
+          "port": 8080
+        },
+        "job_input": {
+          "texts": [
+            "hello world",
+            "this is a test"
+          ],
+          "space": "text-v1"
+        },
+        "platform_url": "http://host.docker.internal:3001"
+      },
+      "validate": {
+        "custom": "./validation/embedding-validator.ts"
+      }
+    },
+    {
+      "id": "test-metadata",
+      "payload": {
+        "job_class": "extract_content_metadata",
+        "wait_for_completion": true,
+        "worker_command": ["./start_worker.sh"],
+        "interface": {
+          "kind": "persistent_http",
+          "port": 8080
+        },
+        "job_input": {
+          "folderId": "c27958aa-21cc-425d-974d-be7524f2f628",
+          "objectKey": "sample.pdf",
+          "fileUrl": "http://host.docker.internal:3002/files/sample.pdf"
+        },
+        "platform_url": "http://host.docker.internal:3001"
+      },
+      "validate": {
+        "custom": "./validation/metadata-validator.ts"
+      }
+    }
+  ],
+  "mockServer": {
+    "platformPort": 3001,
+    "fileServerPort": 3002,
+    "fileServerRoot": "./test-files"
+  }
+}

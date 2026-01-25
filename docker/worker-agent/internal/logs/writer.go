@@ -134,6 +134,22 @@ const (
 	LogLevelFatal LogLevel = "FATAL"
 )
 
+const (
+	// maxStructuredPayloadLen is the maximum number of characters we keep for the
+	// combined structured payload (message + data JSON) after the level delimiter.
+	// If the payload exceeds this length, we truncate it before any JSON parsing.
+	maxStructuredPayloadLen = 8192
+)
+
+func isValidLogLevel(level LogLevel) bool {
+	switch level {
+	case LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal:
+		return true
+	default:
+		return false
+	}
+}
+
 // writeAgentLogInternal is the internal implementation that writes a structured log entry.
 // Format: timestamp|LEVEL|["message",{optional_data_object}]
 const logTimestampFormat = "2006-01-02T15:04:05.000Z07:00"
@@ -223,25 +239,26 @@ func ParseStructuredWorkerLogLine(line string) (LogLevel, string, any, bool) {
 	}
 
 	levelStr := strings.TrimSpace(parts[0])
-	jsonPart := strings.TrimSpace(parts[1])
+	payload := strings.TrimSpace(parts[1])
 
 	// Validate level
 	level := LogLevel(levelStr)
-	validLevels := []LogLevel{LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal}
-	valid := false
-	for _, validLevel := range validLevels {
-		if level == validLevel {
-			valid = true
-			break
-		}
-	}
-	if !valid {
+	if !isValidLogLevel(level) {
 		return "", "", nil, false
+	}
+
+	// Enforce a hard character limit on the structured payload (message + data JSON)
+	if len(payload) > maxStructuredPayloadLen {
+		truncated := payload[:maxStructuredPayloadLen] + " [truncated]"
+		// At this point, we intentionally do NOT try to parse JSON anymore, since we've
+		// truncated it arbitrarily. We just treat the truncated payload as the message
+		// at the parsed level, with no structured data.
+		return level, truncated, nil, true
 	}
 
 	// Parse the JSON array: ["message",{optional_data}]
 	var logArray []any
-	if err := json.Unmarshal([]byte(jsonPart), &logArray); err != nil {
+	if err := json.Unmarshal([]byte(payload), &logArray); err != nil {
 		return "", "", nil, false
 	}
 

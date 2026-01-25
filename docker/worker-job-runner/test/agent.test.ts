@@ -242,7 +242,7 @@ const execTestCases: ExecTestCase[] = [
     },
   },
   {
-    name: 'worker JSON result captured from last line',
+    name: 'worker JSON result saved to result file',
     jobClass: 'json_result_job',
     workerCommand: [
       'sh',
@@ -1003,6 +1003,12 @@ interface StructuredLogEntry {
 /**
  * Parses a structured log line into its components
  * Format: timestamp|LEVEL|["message",{optional_data}]
+ *
+ * If the JSON portion has been truncated by the agent-log / job-log reader
+ * (which applies a fixed-length truncation and appends " [truncated]"),
+ * JSON.parse may fail. In that case, if we detect the truncation marker we
+ * still return a StructuredLogEntry treating the truncated JSON segment as
+ * the message, so that truncation-related lines are not silently discarded.
  */
 function parseStructuredLogLine(line: string): StructuredLogEntry | null {
   const trimmed = line.trim()
@@ -1035,6 +1041,19 @@ function parseStructuredLogLine(line: string): StructuredLogEntry | null {
       data,
     }
   } catch (e) {
+    // If the JSON is truncated (e.g. due to the Go reader truncating long
+    // lines and appending " [truncated]"), we still want to surface the line
+    // to tests rather than dropping it entirely. In that case, treat the
+    // truncated JSON segment as the message, with no structured data.
+    if (jsonPart.includes('[truncated]')) {
+      return {
+        timestamp,
+        level,
+        message: jsonPart,
+        data: undefined,
+      }
+    }
+
     return null
   }
 }
@@ -1494,7 +1513,7 @@ describe('Platform Agent', () => {
     test('JOB_OUTPUT_DIR environment variable is set for workers', async () => {
       const jobId = generateJobId('env-output-dir-test')
 
-      // This command echoes the JOB_OUTPUT_DIR value as JSON on the last line
+      // This command echoes the JOB_OUTPUT_DIR value as JSON into the result file
       const payload: JobPayload = {
         job_id: jobId,
         job_class: 'env_test',
@@ -4030,7 +4049,7 @@ describe('Platform Agent', () => {
       // Verify we can find a "Job started" entry with INFO level
       const jobReceivedEntry = findLogEntries(
         jobEntries,
-        (e) => e.message.includes('Job received') && e.level === 'INFO',
+        (e) => e.message.includes('Job started') && e.level === 'INFO',
       )
       expect(jobReceivedEntry.length).toBeGreaterThan(0)
     })
@@ -4064,7 +4083,7 @@ describe('Platform Agent', () => {
 
       // Find "Job started" entry and verify it has structured data
       const jobReceivedEntry = findLogEntries(jobEntries, (e) =>
-        e.message.includes('Job received'),
+        e.message.includes('Job started'),
       )
       expect(jobReceivedEntry.length).toBeGreaterThan(0)
       expect(jobReceivedEntry[0].data).toBeDefined()
@@ -4439,6 +4458,94 @@ describe('Platform Agent', () => {
       expect(plainTextEntries.length).toBeGreaterThan(0)
     })
 
+    test('exec_per_job parses large structured worker output below truncation limit', async () => {
+      const jobId = generateJobId('exec-structured-large-output-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'exec_structured_large_output_test',
+        worker_command: [
+          'sh',
+          '-c',
+          // Generate a reasonably large but still parseable structured log line.
+          // long will be a string of 4000 "a" characters. Include a recognizable
+          // tag in the message so we can filter on it in logs.
+          'long=$(printf "a%.0s" $(seq 1 4000)); printf "INFO|[\\"log line truncation exec test: $long\\",{\\"marker\\":\\"large-structured\\"}]\n"',
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      const jobLogContent = await readJobLog(jobId)
+      const entries = parseJobLogs(jobLogContent)
+
+      expect(entries.length).toBeGreaterThan(0)
+
+      const structuredEntries = findLogEntries(
+        entries,
+        (e) => e.level === 'INFO' && e.data?.marker === 'large-structured',
+      )
+
+      expect(structuredEntries.length).toBeGreaterThan(0)
+      const entry = structuredEntries[0]
+
+      expect(typeof entry.message).toBe('string')
+      // Message should be large but not truncated for this test case.
+      expect(entry.message.length).toBeGreaterThan(1000)
+      expect(entry.message.includes('log line truncation')).toBe(true)
+      expect(entry.message.includes('[truncated]')).toBe(false)
+    })
+
+    test('exec_per_job truncates overly long structured worker output', async () => {
+      const jobId = generateJobId('exec-structured-truncated-output-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'exec_structured_truncated_output_test',
+        worker_command: [
+          'sh',
+          '-c',
+          // Generate a very large structured log payload so the agent-side parser
+          // will truncate the JSON payload before parsing.
+          // long will be a string of 9000 "b" characters, which exceeds the
+          // agent's maxStructuredPayloadLen (8192 characters). Include a
+          // recognizable tag in the message so we can filter on it in logs.
+          'long=$(printf "b%.0s" $(seq 1 9000)); printf "INFO|[\\"log line truncation exec test: $long\\",{\\"marker\\":\\"too-large-structured\\"}]\n"',
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+      }
+
+      await runJob(payload)
+
+      const jobLogContent = await readJobLog(jobId)
+      const entries = parseJobLogs(jobLogContent)
+
+      expect(entries.length).toBeGreaterThan(0)
+
+      // After truncation on the agent side, the job log entry will still be
+      // structured (timestamp|LEVEL|["message",{data?}]), but the message will
+      // contain the truncated JSON payload string, and data will be omitted.
+      const infoEntries = findLogEntries(entries, (e) => e.level === 'INFO')
+      expect(infoEntries.length).toBeGreaterThan(0)
+
+      const entry = infoEntries[0]
+
+      expect(typeof entry.message).toBe('string')
+      // Message should have been truncated and marked accordingly.
+      expect(entry.message.includes('[truncated]')).toBe(true)
+      expect(entry.message.includes('log line truncation')).toBe(true)
+      // The truncation limit on the agent is 8192 characters for the structured
+      // payload, plus the " [truncated]" suffix.
+      const MAX_STRUCTURED_PAYLOAD_LEN = 8192
+      const TRUNCATION_SUFFIX = ' [truncated]'
+      expect(entry.message.length).toBeLessThanOrEqual(
+        MAX_STRUCTURED_PAYLOAD_LEN + TRUNCATION_SUFFIX.length,
+      )
+      // In the truncated case, we no longer preserve the original structured data.
+      expect(entry.data).toBeUndefined()
+    })
+
     test('persistent_http creates job log files on-demand', async () => {
       const jobClass = 'math_add_8303'
       const port = 8303
@@ -4470,6 +4577,94 @@ describe('Platform Agent', () => {
         const jobLogContent = await readJobLog(jobId)
         expect(jobLogContent.length).toBeGreaterThanOrEqual(0)
       }
+    })
+
+    test('persistent_http parses large structured worker output below truncation limit', async () => {
+      const jobClass = 'structured_truncation_test_9100'
+      const port = 9100
+
+      const jobId = generateJobId('http-structured-large-output-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: {
+          mode: 'below',
+          // Let the mock worker pick a default length that is comfortably
+          // below the truncation threshold.
+        },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      const jobLogContent = await readJobLog(jobId)
+      const entries = parseJobLogs(jobLogContent)
+
+      expect(entries.length).toBeGreaterThan(0)
+
+      const structuredEntries = findLogEntries(
+        entries,
+        (e) =>
+          e.level === 'INFO' &&
+          e.data?.marker === 'http-large-structured' &&
+          typeof e.message === 'string' &&
+          e.message.includes('log line truncation'),
+      )
+
+      expect(structuredEntries.length).toBeGreaterThan(0)
+      const entry = structuredEntries[0]
+
+      // Message should be large but not truncated for this test case.
+      expect(entry.message.length).toBeGreaterThan(1000)
+      expect(entry.message.includes('[truncated]')).toBe(false)
+    })
+
+    test('persistent_http truncates overly long structured worker output', async () => {
+      const jobClass = 'structured_truncation_test_9101'
+      const port = 9101
+
+      const jobId = generateJobId('http-structured-truncated-output-test')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: {
+          mode: 'above',
+          // Let the mock worker pick a default length that is comfortably
+          // above the truncation threshold.
+        },
+      }
+
+      await runJob(payload, [`APP_PORT=${port}`])
+
+      const jobLogContent = await readJobLog(jobId)
+      const entries = parseJobLogs(jobLogContent)
+
+      expect(entries.length).toBeGreaterThan(0)
+
+      const infoEntries = findLogEntries(
+        entries,
+        (e) =>
+          e.level === 'INFO' &&
+          typeof e.message === 'string' &&
+          e.message.includes('log line truncation'),
+      )
+
+      expect(infoEntries.length).toBeGreaterThan(0)
+
+      const entry = infoEntries[0]
+
+      // Message should have been truncated and marked accordingly.
+      expect(entry.message.includes('[truncated]')).toBe(true)
+      const MAX_STRUCTURED_PAYLOAD_LEN = 8192
+      const TRUNCATION_SUFFIX = ' [truncated]'
+      expect(entry.message.length).toBeLessThanOrEqual(
+        MAX_STRUCTURED_PAYLOAD_LEN + TRUNCATION_SUFFIX.length,
+      )
+      // In the truncated case, we no longer preserve the original structured data.
+      expect(entry.data).toBeUndefined()
     })
 
     test('persistent_http routes logs to correct job log files', async () => {

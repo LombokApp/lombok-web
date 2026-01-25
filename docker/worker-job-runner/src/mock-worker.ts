@@ -160,6 +160,11 @@ interface StringCountInput {
   substring: string
 }
 
+interface TruncationTestInput {
+  mode: 'below' | 'above'
+  length?: number
+}
+
 // Array operations
 interface ArraySortInput {
   items: number[] | string[]
@@ -417,6 +422,51 @@ const handleStringCount: JobHandler = (input, ctx) => {
   return { count, substring, textLength: text.length }
 }
 
+const handleStructuredTruncationTest: JobHandler = (
+  input: TruncationTestInput,
+  ctx,
+) => {
+  if (!ctx.jobId) {
+    throw new Error('jobId is required for structured truncation test')
+  }
+
+  if (!isObject(input) || input.mode === undefined) {
+    throw new Error(
+      'Invalid input: expected { mode: "below" | "above", length?: number }',
+    )
+  }
+
+  const { mode, length } = input
+  const baseMessage =
+    'log line truncation http test: generating large structured log payload'
+
+  // Choose a default length that is clearly below or above the truncation
+  // threshold used by the agent (8192 characters for the structured payload).
+  const targetLength =
+    length ??
+    (mode === 'below'
+      ? 4000 // comfortably below the limit
+      : 9000) // comfortably above the limit
+
+  const filler = 'x'.repeat(targetLength)
+  const message = `${baseMessage} ${filler}`
+
+  const data = {
+    marker:
+      mode === 'below' ? 'http-large-structured' : 'http-too-large-structured',
+    requestedLength: targetLength,
+  }
+
+  // Emit a structured log line that the agent will parse and potentially
+  // truncate, depending on the payload size.
+  outputStructuredLog(ctx.jobId, 'INFO', message, data)
+
+  return {
+    mode,
+    requestedLength: targetLength,
+  }
+}
+
 // Array handlers
 const handleArraySort: JobHandler = (input, ctx) => {
   if (
@@ -649,6 +699,9 @@ const jobHandlers: Record<string, JobHandler> = {
   // Logging demonstration
   verbose_log: handleVerboseLog,
   log_capture_test: handleLogCaptureTest,
+
+  // Structured log truncation demonstration
+  structured_truncation_test: handleStructuredTruncationTest,
 
   // File output demonstration
   file_output: handleFileOutput,
