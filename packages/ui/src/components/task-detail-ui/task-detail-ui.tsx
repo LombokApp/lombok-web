@@ -1,5 +1,8 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
+import type {
+  ElaboratedTargetLocationContext,
+  JsonSerializableObject,
+} from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
@@ -29,8 +32,49 @@ import { Link } from 'react-router'
 import { DateDisplay } from '@/src/components/date-display'
 import { copyToClipboard } from '@/src/utils/clipboard'
 
+type TaskDetailTask = {
+  id: string
+  taskIdentifier: string
+  ownerIdentifier: string
+  invocation: {
+    kind: string
+    invokeContext: Record<string, unknown>
+    onComplete?: unknown[]
+  }
+  taskDescription: string
+  handlerIdentifier?: string
+  data?: Record<string, unknown>
+  targetLocation?: {
+    folderId: string
+    objectKey?: string
+  }
+  targetLocationContext?: ElaboratedTargetLocationContext
+  systemLog: Array<{
+    at: string
+    logType: string
+    payload?: Record<string, unknown>
+    message?: string
+  }>
+  taskLog: Array<{
+    at: string
+    logType: string
+    payload?: Record<string, unknown>
+    message?: string
+  }>
+  success?: boolean
+  error?: {
+    code: string
+    message: string
+    details?: Record<string, unknown>
+  }
+  startedAt?: string
+  completedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
 interface TaskDetailUIProps {
-  taskData: TaskDTO | undefined
+  taskData: TaskDetailTask | undefined
   isLoading: boolean
   isError: boolean
 }
@@ -46,6 +90,15 @@ const ERROR_CHAIN_LIMIT = 8
 
 const isJsonObject = (value: unknown): value is JsonSerializableObject =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const isElaboratedTargetLocationContext = (
+  value: unknown,
+): value is ElaboratedTargetLocationContext =>
+  isJsonObject(value) &&
+  typeof value.folderId === 'string' &&
+  typeof value.folderName === 'string' &&
+  typeof value.folderOwnerId === 'string' &&
+  (value.objectKey === undefined || typeof value.objectKey === 'string')
 
 const getPrimitiveText = (value: unknown) => {
   if (value === undefined) {
@@ -512,7 +565,7 @@ export function TaskDetailUI({
   const currentUserId = authContext.viewer?.id
 
   // Get the appropriate color for the status indicator
-  const getStatusColor = (task?: TaskDTO) => {
+  const getStatusColor = (task?: TaskDetailTask) => {
     if (!task) {
       return 'bg-gray-600'
     }
@@ -529,7 +582,7 @@ export function TaskDetailUI({
   }
 
   // Get the status text and badge variant
-  const getStatusInfo = (task?: TaskDTO) => {
+  const getStatusInfo = (task?: TaskDetailTask) => {
     if (!task) {
       return { text: 'Unknown', variant: 'secondary' as const }
     }
@@ -617,20 +670,30 @@ export function TaskDetailUI({
   }
 
   // Check if the current user owns the folder
-  const isFolderOwner =
-    currentUserId &&
-    taskData.targetLocationContext?.folderOwnerId &&
-    currentUserId === taskData.targetLocationContext.folderOwnerId
+  let folderName: string | undefined
+  let folderOwnerId: string | undefined
+  const targetContext: unknown = taskData.targetLocationContext
 
-  const folderLabel =
-    taskData.targetLocationContext?.folderName ??
-    taskData.targetLocation?.folderId
+  if (isElaboratedTargetLocationContext(targetContext)) {
+    folderName = targetContext.folderName
+    folderOwnerId = targetContext.folderOwnerId
+  }
+
+  const isFolderOwner = Boolean(
+    currentUserId && folderOwnerId && currentUserId === folderOwnerId,
+  )
+
+  const folderLabel = folderName ?? taskData.targetLocation?.folderId
 
   const statusInfo = getStatusInfo(taskData)
   const errorPayload =
     taskData.success === false
-      ? [...taskData.systemLog].reverse().find((log) => log.logType === 'error')
-          ?.payload?.error
+      ? (() => {
+          const errorLog = [...taskData.systemLog]
+            .reverse()
+            .find((log) => log.logType === 'error')
+          return errorLog?.payload?.error
+        })()
       : undefined
 
   const errorToDisplay =

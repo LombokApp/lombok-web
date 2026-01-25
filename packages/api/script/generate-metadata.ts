@@ -6,8 +6,8 @@ import type { OpenAPIObject } from '@nestjs/swagger/dist/interfaces/open-api-spe
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import * as path from 'path'
-import ts from 'typescript'
 import { CoreModule } from 'src/core/core.module'
+import ts from 'typescript'
 
 function findMatchingSchema(
   schema: unknown,
@@ -103,9 +103,13 @@ function compressOpenApiDocument(document: OpenAPIObject) {
 async function main() {
   const projectRoot = path.resolve(__dirname, '..')
   const tsconfigPath = path.join(projectRoot, 'tsconfig-generate-metadata.json')
-  const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
+  const configFile = ts.readConfigFile(tsconfigPath, (filePath) =>
+    ts.sys.readFile(filePath),
+  )
   if (configFile.error) {
-    throw new Error(ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n'))
+    throw new Error(
+      ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n'),
+    )
   }
 
   const parsedConfig = ts.parseJsonConfigFileContent(
@@ -116,7 +120,7 @@ async function main() {
   if (parsedConfig.errors.length > 0) {
     const formatDiagnosticsHost = {
       getCanonicalFileName: (filePath: string) => filePath,
-      getCurrentDirectory: ts.sys.getCurrentDirectory,
+      getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
       getNewLine: () => ts.sys.newLine,
     }
     const message = ts.formatDiagnosticsWithColorAndContext(
@@ -135,7 +139,7 @@ async function main() {
   if (diagnostics.length > 0) {
     const formatDiagnosticsHost = {
       getCanonicalFileName: (filePath: string) => filePath,
-      getCurrentDirectory: ts.sys.getCurrentDirectory,
+      getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
       getNewLine: () => ts.sys.newLine,
     }
     const message = ts.formatDiagnosticsWithColorAndContext(
@@ -162,20 +166,16 @@ async function main() {
   const printer = new PluginMetadataPrinter()
   const pluginMetadata = {
     [visitor.key]: visitor.collect(),
-  } as unknown as Parameters<PluginMetadataPrinter['print']>[0]
-  const typeImports =
-    visitor.typeImports as unknown as Parameters<
-      PluginMetadataPrinter['print']
-    >[1]
+  }
 
   printer.print(
     pluginMetadata,
-    typeImports,
+    visitor.typeImports,
     {
       outputDir: __dirname,
       filename: '../src/nestjs-metadata.ts',
     },
-    ts as unknown as Parameters<PluginMetadataPrinter['print']>[3],
+    ts,
   )
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access

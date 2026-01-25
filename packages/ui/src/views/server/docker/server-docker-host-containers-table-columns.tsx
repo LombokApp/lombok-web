@@ -1,4 +1,7 @@
-import { Badge, BadgeVariant } from '@lombokapp/ui-toolkit/components/badge/badge'
+import {
+  Badge,
+  BadgeVariant,
+} from '@lombokapp/ui-toolkit/components/badge/badge'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils'

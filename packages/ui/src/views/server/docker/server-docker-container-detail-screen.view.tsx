@@ -85,18 +85,16 @@ export function ServerDockerContainerDetailScreen({
   const navigate = useNavigate()
   const [tail, setTail] = React.useState(200)
   const [jobTail, setJobTail] = React.useState(200)
-  const [selectedJobId, setSelectedJobId] = React.useState<string | null>(null)
+  const [selectedJobId, setSelectedJobId] = React.useState<string>()
   const [jobDialogOpen, setJobDialogOpen] = React.useState(false)
   const [startDialogOpen, setStartDialogOpen] = React.useState(false)
   const [stopDialogOpen, setStopDialogOpen] = React.useState(false)
   const [restartDialogOpen, setRestartDialogOpen] = React.useState(false)
   const [purgeDialogOpen, setPurgeDialogOpen] = React.useState(false)
-  const [selectedWorkerId, setSelectedWorkerId] = React.useState<string | null>(
-    null,
-  )
+  const [selectedWorkerId, setSelectedWorkerId] = React.useState<string>()
   const [workerDialogOpen, setWorkerDialogOpen] = React.useState(false)
   const [purgeDuration, setPurgeDuration] = React.useState('6h')
-  const [purgeMessage, setPurgeMessage] = React.useState<string | null>(null)
+  const [purgeMessage, setPurgeMessage] = React.useState<string>()
 
   const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
 
@@ -212,7 +210,7 @@ export function ServerDockerContainerDetailScreen({
   }
 
   const handlePurgeJobs = async () => {
-    setPurgeMessage(null)
+    setPurgeMessage(undefined)
     try {
       const response = await purgeJobsMutation.mutateAsync({
         params: {
@@ -222,21 +220,27 @@ export function ServerDockerContainerDetailScreen({
           },
         },
       })
-      setPurgeMessage(response?.message ?? 'Purge completed.')
-    } catch (error) {
+      setPurgeMessage(response.message)
+    } catch {
       // error displayed via mutation state
     }
   }
 
-  // const jobs = React.useMemo(
-  //   () => jobsQuery.data?.jobs ?? [],
-  //   [jobsQuery.data?.jobs],
-  // )
+  const purgeJobsErrorMessage = React.useMemo(() => {
+    const error = purgeJobsMutation.error
+    if (error instanceof Error && error.message) {
+      return error.message
+    }
+    if (typeof error === 'string' && (error as string).length) {
+      return error
+    }
+    return 'Failed to purge jobs.'
+  }, [purgeJobsMutation.error])
 
   React.useEffect(() => {
     if (!jobsQuery.data?.jobs.length) {
-      if (selectedJobId !== null) {
-        setSelectedJobId(null)
+      if (typeof selectedJobId !== 'undefined') {
+        setSelectedJobId(undefined)
       }
       if (jobDialogOpen) {
         setJobDialogOpen(false)
@@ -248,14 +252,14 @@ export function ServerDockerContainerDetailScreen({
       !selectedJobId ||
       !jobsQuery.data.jobs.some((job) => job.jobId === selectedJobId)
     ) {
-      setSelectedJobId(jobsQuery.data.jobs[0]?.jobId ?? null)
+      setSelectedJobId(jobsQuery.data.jobs[0]?.jobId)
     }
   }, [jobDialogOpen, jobsQuery.data?.jobs, selectedJobId])
 
   React.useEffect(() => {
     if (!workersQuery.data?.workers.length) {
-      if (selectedWorkerId !== null) {
-        setSelectedWorkerId(null)
+      if (typeof selectedWorkerId !== 'undefined') {
+        setSelectedWorkerId(undefined)
       }
       if (workerDialogOpen) {
         setWorkerDialogOpen(false)
@@ -269,7 +273,7 @@ export function ServerDockerContainerDetailScreen({
         (worker) => worker.workerId === selectedWorkerId,
       )
     ) {
-      setSelectedWorkerId(null)
+      setSelectedWorkerId(undefined)
       setWorkerDialogOpen(false)
     }
   }, [workerDialogOpen, workersQuery.data?.workers, selectedWorkerId])
@@ -444,7 +448,8 @@ export function ServerDockerContainerDetailScreen({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Start container?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Starting will boot the container on host {hostState?.id ?? hostId}.
+                    Starting will boot the container on host{' '}
+                    {hostState?.id ?? hostId}.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -476,7 +481,8 @@ export function ServerDockerContainerDetailScreen({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Stop container?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Stopping will halt the running container on host {hostState?.id ?? hostId}.
+                    Stopping will halt the running container on host{' '}
+                    {hostState?.id ?? hostId}.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -546,7 +552,8 @@ export function ServerDockerContainerDetailScreen({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm purge?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Remove logs, state, and outputs for jobs completed before the selected duration.
+                    Remove logs, state, and outputs for jobs completed before
+                    the selected duration.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="mt-4">
@@ -623,9 +630,7 @@ export function ServerDockerContainerDetailScreen({
                 <div className="text-muted-foreground">Purging...</div>
               ) : null}
               {purgeJobsMutation.isError ? (
-                <div className="text-destructive">
-                  {purgeJobsMutation.error?.message ?? 'Failed to purge jobs.'}
-                </div>
+                <div className="text-destructive">{purgeJobsErrorMessage}</div>
               ) : null}
               {purgeMessage ? (
                 <div className="text-emerald-500">{purgeMessage}</div>

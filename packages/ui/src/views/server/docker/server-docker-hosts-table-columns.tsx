@@ -1,4 +1,7 @@
-import { Badge, BadgeVariant } from '@lombokapp/ui-toolkit/components/badge/badge'
+import {
+  Badge,
+  BadgeVariant,
+} from '@lombokapp/ui-toolkit/components/badge/badge'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils'
@@ -42,7 +45,7 @@ const renderConnection = (connection?: DockerHostConnectionState) => {
         </span>
       ) : connection.error ? (
         <span
-          className="text-xs text-muted-foreground line-clamp-1"
+          className="line-clamp-1 text-xs text-muted-foreground"
           title={connection.error}
         >
           {connection.error}
@@ -98,7 +101,9 @@ export const serverDockerHostsTableColumns: HideableColumnDef<DockerHostListRow>
   [
     {
       id: 'link',
-      cell: ({ row }) => <TableLinkColumn to={`/server/docker/${row.original.id}`} />,
+      cell: ({ row }) => (
+        <TableLinkColumn to={`/server/docker/${row.original.id}`} />
+      ),
       enableSorting: false,
       zeroWidth: true,
     },
@@ -162,7 +167,10 @@ export const serverDockerHostsTableColumns: HideableColumnDef<DockerHostListRow>
         />
       ),
       cell: ({ row }) =>
-        renderContainerSummary(row.original.containers, row.original.containersError),
+        renderContainerSummary(
+          row.original.containers,
+          row.original.containersError,
+        ),
       enableSorting: false,
       enableHiding: true,
     },
