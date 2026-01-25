@@ -1,4 +1,7 @@
-import { Badge, BadgeVariant } from '@lombokapp/ui-toolkit/components/badge/badge'
+import {
+  Badge,
+  BadgeVariant,
+} from '@lombokapp/ui-toolkit/components/badge/badge'
 import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
@@ -9,12 +12,12 @@ import { Server } from 'lucide-react'
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { $api } from '@/src/services/api'
 
-import { createServerDockerHostContainersTableColumns } from './server-docker-host-containers-table-columns'
 import type {
   DockerHostConfigSummary,
   DockerHostConnectionState,
   DockerHostState,
 } from './server-docker.types'
+import { createServerDockerHostContainersTableColumns } from './server-docker-host-containers-table-columns'
 
 const ROW_CLASS =
   'grid grid-cols-1 gap-2 border-b border-muted/30 py-3 last:border-b-0 sm:grid-cols-3'
@@ -30,7 +33,11 @@ const renderInlineList = (items: string[], emptyLabel = 'None') => {
   return (
     <div className="flex flex-wrap gap-2">
       {items.map((item) => (
-        <Badge key={item} variant={BadgeVariant.outline} className="text-xs">
+        <Badge
+          key={item}
+          variant={BadgeVariant.outline}
+          className="truncate text-xs"
+        >
           {item}
         </Badge>
       ))}
@@ -49,12 +56,9 @@ const renderProfileOverrides = <T,>(
   return (
     <div className="flex flex-col gap-2">
       {Object.entries(overrides).map(([profileKey, value]) => (
-        <div key={profileKey} className="text-xs">
+        <div key={profileKey} className="truncate text-xs">
           <span className="font-medium">{profileKey}</span>
-          <span className="text-muted-foreground">
-            {' '}
-            — {formatValue(value)}
-          </span>
+          <span className="text-muted-foreground"> — {formatValue(value)}</span>
         </div>
       ))}
     </div>
@@ -105,8 +109,9 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
 
   const hostConfig: DockerHostConfigSummary | undefined =
     configQuery.data?.hosts.find((host) => host.id === hostId)
-  const hostState: DockerHostState | undefined =
-    stateQuery.data?.hosts.find((host) => host.id === hostId)
+  const hostState: DockerHostState | undefined = stateQuery.data?.hosts.find(
+    (host) => host.id === hostId,
+  )
   const containers = hostState?.containers ?? []
   const runningContainers = containers.filter(
     (container) => container.state === 'running',
@@ -122,11 +127,7 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
 
   if (!hostConfig && !configQuery.isLoading) {
     return (
-      <EmptyState
-        text="Docker host not found"
-        icon={Server}
-        variant="row"
-      />
+      <EmptyState text="Docker host not found" icon={Server} variant="row" />
     )
   }
 

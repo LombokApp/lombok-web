@@ -60,7 +60,7 @@ const renderStateBadge = (state: DockerHostContainerState['state']) => {
         : BadgeVariant.outline
 
   return (
-    <Badge variant={variant} className="capitalize text-xs">
+    <Badge variant={variant} className="text-xs capitalize">
       {state}
     </Badge>
   )
@@ -79,6 +79,10 @@ export function ServerDockerContainerDetailScreen({
   const [jobTail, setJobTail] = React.useState(200)
   const [selectedJobId, setSelectedJobId] = React.useState<string | null>(null)
   const [jobDialogOpen, setJobDialogOpen] = React.useState(false)
+  const [selectedWorkerId, setSelectedWorkerId] = React.useState<string | null>(
+    null,
+  )
+  const [workerDialogOpen, setWorkerDialogOpen] = React.useState(false)
 
   const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
 
@@ -122,6 +126,33 @@ export function ServerDockerContainerDetailScreen({
     },
   )
 
+  const workersQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers',
+    {
+      params: {
+        path: { hostId, containerId },
+      },
+    },
+  )
+
+  const workerDetailQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}',
+    {
+      params: {
+        path: { hostId, containerId, workerId: selectedWorkerId ?? '' },
+        query: {
+          limit: 20,
+        },
+      },
+    },
+    {
+      enabled: workerDialogOpen && !!selectedWorkerId,
+      refetchOnWindowFocus: false,
+    },
+  )
+
   const jobsQuery = $api.useQuery(
     'get',
     '/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs',
@@ -157,6 +188,11 @@ export function ServerDockerContainerDetailScreen({
     setJobDialogOpen(true)
   }
 
+  const handleOpenWorker = (workerId: string) => {
+    setSelectedWorkerId(workerId)
+    setWorkerDialogOpen(true)
+  }
+
   // const jobs = React.useMemo(
   //   () => jobsQuery.data?.jobs ?? [],
   //   [jobsQuery.data?.jobs],
@@ -180,6 +216,28 @@ export function ServerDockerContainerDetailScreen({
       setSelectedJobId(jobsQuery.data.jobs[0]?.jobId ?? null)
     }
   }, [jobDialogOpen, jobsQuery.data?.jobs, selectedJobId])
+
+  React.useEffect(() => {
+    if (!workersQuery.data?.workers.length) {
+      if (selectedWorkerId !== null) {
+        setSelectedWorkerId(null)
+      }
+      if (workerDialogOpen) {
+        setWorkerDialogOpen(false)
+      }
+      return
+    }
+
+    if (
+      selectedWorkerId &&
+      !workersQuery.data.workers.some(
+        (worker) => worker.workerId === selectedWorkerId,
+      )
+    ) {
+      setSelectedWorkerId(null)
+      setWorkerDialogOpen(false)
+    }
+  }, [workerDialogOpen, workersQuery.data?.workers, selectedWorkerId])
 
   const startMutation = $api.useMutation(
     'post',
@@ -235,6 +293,14 @@ export function ServerDockerContainerDetailScreen({
     statsQuery.data?.stats
   const gpuInfo: DockerContainerGpuInfo | undefined = inspectQuery.data?.gpuInfo
   const jobEntries = jobDetailQuery.data?.entries ?? []
+  const workerJobs = workerDetailQuery.data?.jobs ?? []
+  const selectedWorker = React.useMemo(
+    () =>
+      workersQuery.data?.workers.find(
+        (worker) => worker.workerId === selectedWorkerId,
+      ),
+    [selectedWorkerId, workersQuery.data?.workers],
+  )
   const inspectText = React.useMemo(() => {
     if (inspectQuery.isLoading) {
       return 'Loading inspect data...'
@@ -251,6 +317,13 @@ export function ServerDockerContainerDetailScreen({
     }
     return JSON.stringify(jobDetailQuery.data.state, null, 2)
   }, [jobDetailQuery.data?.state])
+
+  const workerStateText = React.useMemo(() => {
+    if (!workerDetailQuery.data?.workerState) {
+      return 'No worker state available.'
+    }
+    return JSON.stringify(workerDetailQuery.data.workerState, null, 2)
+  }, [workerDetailQuery.data?.workerState])
 
   if (stateQuery.isError) {
     return (
@@ -275,7 +348,7 @@ export function ServerDockerContainerDetailScreen({
   }
 
   return (
-    <div className="flex size-full flex-1 flex-col gap-6 overflow-y-auto pb-6">
+    <div className="flex size-full flex-1 flex-col gap-6 overflow-y-auto">
       <div className="rounded-xl border border-muted/40 bg-muted/10 p-5">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -297,7 +370,10 @@ export function ServerDockerContainerDetailScreen({
             <span className="rounded-full border border-muted/40 bg-background/60 px-2 py-1">
               Created:{' '}
               {containerState.createdAt ? (
-                <DateDisplay date={containerState.createdAt} showTimeSince={true} />
+                <DateDisplay
+                  date={containerState.createdAt}
+                  showTimeSince={true}
+                />
               ) : (
                 'Unknown'
               )}
@@ -537,6 +613,62 @@ export function ServerDockerContainerDetailScreen({
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
+              <CardTitle className="text-lg">HTTP Workers</CardTitle>
+              <Badge variant={BadgeVariant.outline} className="text-xs">
+                {workersQuery.data?.workers.length ?? 0}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Persistent HTTP workers discovered in the container.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void workersQuery.refetch()}
+          >
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
+        </CardHeader>
+        <div className="flex flex-col gap-2 px-6 pb-6">
+          {workersQuery.isError ? (
+            <div className="text-sm text-destructive">
+              Failed to load workers.
+            </div>
+          ) : workersQuery.data?.workers.length ? (
+            <div className="flex max-h-64 flex-col gap-2 overflow-y-auto pr-1">
+              {workersQuery.data.workers.map((worker) => (
+                <Button
+                  key={worker.workerId}
+                  variant={
+                    selectedWorkerId === worker.workerId
+                      ? 'secondary'
+                      : 'outline'
+                  }
+                  size="sm"
+                  className="w-full justify-between gap-3 font-mono text-xs"
+                  onClick={() => handleOpenWorker(worker.workerId)}
+                >
+                  <span className="break-all">{worker.workerId}</span>
+                  <span className="text-muted-foreground">:{worker.port}</span>
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              {workersQuery.isLoading
+                ? 'Loading workers...'
+                : 'No HTTP workers found.'}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
               <CardTitle className="text-lg">Recent Jobs</CardTitle>
               <Badge variant={BadgeVariant.outline} className="text-xs">
                 {jobsQuery.data?.jobs.length ?? 0}
@@ -665,6 +797,90 @@ export function ServerDockerContainerDetailScreen({
         </div>
       </Card>
 
+      <Dialog open={workerDialogOpen} onOpenChange={setWorkerDialogOpen}>
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Worker Details</DialogTitle>
+            <DialogDescription>
+              {selectedWorker ? (
+                <span className="font-mono text-xs text-muted-foreground">
+                  {selectedWorker.workerId} :{selectedWorker.port}
+                </span>
+              ) : (
+                'Worker state and recent jobs for the selected worker.'
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2">
+            {!selectedWorkerId ? (
+              <div className="text-sm text-muted-foreground">
+                Select a worker to view details.
+              </div>
+            ) : workerDetailQuery.isError ? (
+              <div className="text-sm text-destructive">
+                Failed to load worker details.
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-3">
+                  <div className="text-sm font-semibold text-muted-foreground">
+                    Worker State
+                  </div>
+                  {workerDetailQuery.data?.workerStateError ? (
+                    <div className="mt-2 text-sm text-destructive">
+                      {workerDetailQuery.data.workerStateError}
+                    </div>
+                  ) : workerDetailQuery.isLoading ? (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      Loading worker state...
+                    </div>
+                  ) : (
+                    <div className="mt-2 rounded-md border border-muted/30 bg-muted/10 p-4">
+                      <pre className="max-h-[320px] overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">
+                        {workerStateText}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold text-muted-foreground">
+                      Recent Jobs
+                    </div>
+                    <Badge variant={BadgeVariant.outline} className="text-xs">
+                      {workerJobs.length}
+                    </Badge>
+                  </div>
+                  {workerDetailQuery.data?.jobsError ? (
+                    <div className="text-sm text-destructive">
+                      {workerDetailQuery.data.jobsError}
+                    </div>
+                  ) : null}
+                  {workerJobs.length ? (
+                    <div className="flex max-h-64 flex-col gap-2 overflow-y-auto pr-1">
+                      {workerJobs.map((job) => (
+                        <div
+                          key={job.jobId}
+                          className="rounded-md border border-muted/30 bg-muted/10 px-3 py-2 font-mono text-xs"
+                        >
+                          <span className="break-all">{job.jobId}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      {workerDetailQuery.isLoading
+                        ? 'Loading jobs...'
+                        : 'No jobs found for this worker.'}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={jobDialogOpen} onOpenChange={setJobDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
@@ -716,7 +932,9 @@ export function ServerDockerContainerDetailScreen({
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Tail</span>
+                      <span className="text-sm text-muted-foreground">
+                        Tail
+                      </span>
                       <Input
                         type="number"
                         min={1}

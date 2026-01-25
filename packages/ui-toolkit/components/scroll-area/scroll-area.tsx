@@ -44,11 +44,11 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn('pr-4 min-w-[calc(100%+1rem)]', 'min-h-0', className)}
+      className={cn('pr-5 min-w-[calc(100%+1.25rem)]', 'min-h-0', className)}
       type={type}
       {...props}
     >
-      <div className="relative size-full min-w-fit">
+      <div className="relative size-full min-w-0 max-w-full">
         <ScrollAreaPrimitive.Viewport
           data-slot="scroll-area-viewport"
           className={cn(
