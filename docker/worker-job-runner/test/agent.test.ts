@@ -30,6 +30,11 @@ const FORCE_REBUILD =
   process.env.REBUILD === 'true' ||
   process.argv.includes('--rebuild')
 
+const CONTAINER_ENV = [
+  'LOMBOK_WORKER_AGENT_LOG_ROTATION_MAX_SIZE_MB=1',
+  'LOMBOK_WORKER_AGENT_LOG_ROTATION_MAX_FILES=2',
+]
+
 // Go up from docker/worker-job-runner/test to repo root
 const REPO_ROOT = path.resolve(import.meta.dir, '..', '..', '..')
 
@@ -747,6 +752,7 @@ async function startContainer(): Promise<void> {
     name: CONTAINER_NAME,
     Tty: false,
     Cmd: ['lombok-worker-agent', 'start'],
+    Env: CONTAINER_ENV,
   })
 
   await container.start()
@@ -1182,6 +1188,27 @@ function makePayloadBase64(payload: JobPayload): string {
 
 function generateJobId(prefix: string): string {
   return `${prefix}-${Date.now()}`
+}
+
+async function appendToAgentLog(lines: number): Promise<void> {
+  await execInContainer([
+    'sh',
+    '-c',
+    `for i in $(seq 1 ${lines}); do printf 'logline %s\\n' "$i"; done >> /var/log/lombok-worker-agent/agent.log`,
+  ])
+}
+
+async function rotateLogsOnce(): Promise<void> {
+  const logPath = '/var/log/lombok-worker-agent/agent.log'
+  const exists = await fileExistsInContainer(logPath)
+  if (!exists) {
+    throw new Error(`expected agent log to exist before rotation at ${logPath}`)
+  }
+
+  const result = await execInContainer(['lombok-worker-agent', 'rotate-logs'])
+  if (result.exitCode !== 0) {
+    throw new Error(`rotate-logs failed: ${result.stderr}`)
+  }
 }
 
 async function shutdownWorker(port: number): Promise<void> {
@@ -4809,7 +4836,11 @@ describe('Platform Agent', () => {
       expect(purgeResult.exitCode).toBe(0)
       expect(purgeResult.stdout).toContain('Purged')
 
-      const postLinkCheck = await execInContainer(['test', '-L', workerLinkPath])
+      const postLinkCheck = await execInContainer([
+        'test',
+        '-L',
+        workerLinkPath,
+      ])
       expect(postLinkCheck.exitCode).not.toBe(0)
       expect(await fileExistsInContainer(statePath)).toBe(false)
     })
@@ -4990,6 +5021,36 @@ describe('Platform Agent', () => {
           parts[2],
         )
       }
+    })
+
+    test('rotate-logs archives agent log when size exceeded', async () => {
+      const rotatedPath = '/var/log/lombok-worker-agent/agent.log.1'
+
+      await appendToAgentLog(90000)
+      await rotateLogsOnce()
+
+      const rotatedExists = await fileExistsInContainer(rotatedPath)
+      expect(rotatedExists).toBe(true)
+    })
+
+    test('rotate-logs respects retention count', async () => {
+      const rotated1 = '/var/log/lombok-worker-agent/agent.log.1'
+      const rotated2 = '/var/log/lombok-worker-agent/agent.log.2'
+      const rotated3 = '/var/log/lombok-worker-agent/agent.log.3'
+
+      await execInContainer(['rm', '-f', rotated1, rotated2, rotated3])
+
+      await appendToAgentLog(90000)
+      await rotateLogsOnce()
+      expect(await fileExistsInContainer(rotated1)).toBe(true)
+
+      await appendToAgentLog(90000)
+      await rotateLogsOnce()
+      expect(await fileExistsInContainer(rotated2)).toBe(true)
+
+      await appendToAgentLog(90000)
+      await rotateLogsOnce()
+      expect(await fileExistsInContainer(rotated3)).toBe(false)
     })
 
     test('unified log contains job logs with JOB_ID_ prefix for exec_per_job', async () => {

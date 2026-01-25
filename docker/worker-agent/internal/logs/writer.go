@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,7 +18,34 @@ var (
 	unifiedLogFile *os.File
 	logMutex       sync.Mutex
 	initialized    bool
+	rotationCtx    context.Context
+	rotationCancel context.CancelFunc
 )
+
+func rotationTargets() []rotationTarget {
+	return []rotationTarget{
+		{
+			name: "agent log",
+			path: config.AgentLogPath(),
+			getFile: func() *os.File {
+				return agentLogFile
+			},
+			setFile: func(f *os.File) {
+				agentLogFile = f
+			},
+		},
+		{
+			name: "unified log",
+			path: config.UnifiedLogPath(),
+			getFile: func() *os.File {
+				return unifiedLogFile
+			},
+			setFile: func(f *os.File) {
+				unifiedLogFile = f
+			},
+		},
+	}
+}
 
 // InitAgentLog initializes the agent log file for writing.
 // It ensures the log directory exists and opens the log file in append mode.
@@ -56,12 +84,20 @@ func InitAgentLog() error {
 	unifiedLogFile = unifiedFile
 	initialized = true
 
+	rotationCfg := config.LoadLogRotationConfig()
+	rotationCtx, rotationCancel = context.WithCancel(context.Background())
+	startRotationChecker(rotationCtx, rotationCfg, &logMutex, rotationTargets())
+
 	return nil
 }
 
 // CloseAgentLog closes the agent log file and unified log file.
 // Should be called during shutdown.
 func CloseAgentLog() error {
+	if rotationCancel != nil {
+		rotationCancel()
+		rotationCancel = nil
+	}
 	logMutex.Lock()
 	defer logMutex.Unlock()
 
@@ -82,6 +118,7 @@ func CloseAgentLog() error {
 	}
 
 	initialized = false
+	rotationCtx = nil
 	return firstErr
 }
 

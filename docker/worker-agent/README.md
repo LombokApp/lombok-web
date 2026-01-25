@@ -356,6 +356,24 @@ Optional endpoints:
 }
 ```
 
+### Log Rotation
+
+The agent rotates both `/var/log/lombok-worker-agent/agent.log` and
+`/var/log/lombok-worker-agent/lombok-worker-agent.log` once they exceed a configured
+size so disk usage stays bounded.
+
+Configure rotation using these environment variables (defaults listed):
+
+| Variable                              | Description                                   | Default |
+|---------------------------------------|-----------------------------------------------|---------|
+| `LOMBOK_WORKER_AGENT_LOG_ROTATION_MAX_SIZE_MB`            | Max size in MB before rotating a log file     | `50`    |
+| `LOMBOK_WORKER_AGENT_LOG_ROTATION_MAX_FILES`              | Number of rotated archives to retain         | `5`     |
+| `LOMBOK_WORKER_AGENT_LOG_ROTATION_CHECK_INTERVAL_MINUTES` | Poll interval (minutes) for size checks       | `10`    |
+
+Rotation runs in a background checker that acquires the same logging mutex, so
+entries continue without loss while files are swapped. Rotation errors are
+logged to `stderr` and do not disrupt normal logging.
+
 ---
 
 ## 7. Log Access Commands
