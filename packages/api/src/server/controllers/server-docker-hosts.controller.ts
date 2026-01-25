@@ -29,6 +29,8 @@ import { DockerContainerJobDetailResponse } from '../dto/responses/docker-contai
 import { DockerContainerJobsResponse } from '../dto/responses/docker-container-jobs-response.dto'
 import { DockerContainerLogsResponse } from '../dto/responses/docker-container-logs-response.dto'
 import { DockerContainerStatsResponse } from '../dto/responses/docker-container-stats-response.dto'
+import { DockerContainerWorkerDetailResponse } from '../dto/responses/docker-container-worker-detail-response.dto'
+import { DockerContainerWorkersResponse } from '../dto/responses/docker-container-workers-response.dto'
 import { DockerHostsConfigResponse } from '../dto/responses/docker-hosts-config-response.dto'
 import { DockerHostsStateResponse } from '../dto/responses/docker-hosts-state-response.dto'
 
@@ -189,6 +191,101 @@ export class ServerDockerHostsController {
   }
 
   /**
+   * List HTTP workers for a container.
+   */
+  @Get('/:hostId/containers/:containerId/workers')
+  async getDockerContainerWorkers(
+    @Req() req: express.Request,
+    @Param('hostId') hostId: string,
+    @Param('containerId') containerId: string,
+  ): Promise<DockerContainerWorkersResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const filePaths =
+      await this.dockerJobsService.listContainerWorkerStateFiles(
+        hostId,
+        containerId,
+      )
+
+    const workers = filePaths
+      .map((filePath) => {
+        const fileName = filePath.split('/').pop() ?? filePath
+        const workerId = fileName.endsWith('.json')
+          ? fileName.slice(0, -'.json'.length)
+          : fileName
+        if (!workerId.startsWith('http_')) {
+          return null
+        }
+        const port = Number.parseInt(workerId.slice('http_'.length), 10)
+        if (!Number.isFinite(port) || port <= 0) {
+          return null
+        }
+        return { workerId, port, filePath }
+      })
+      .filter((worker): worker is NonNullable<typeof worker> => worker !== null)
+
+    return { workers }
+  }
+
+  /**
+   * Get worker state and recent jobs for a worker.
+   */
+  @Get('/:hostId/containers/:containerId/workers/:workerId')
+  async getDockerContainerWorkerDetail(
+    @Req() req: express.Request,
+    @Param('hostId') hostId: string,
+    @Param('containerId') containerId: string,
+    @Param('workerId') workerId: string,
+    @Query() query: DockerContainerJobsQueryParamsDTO,
+  ): Promise<DockerContainerWorkerDetailResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    let workerState: unknown
+    let workerStateError: string | undefined
+    try {
+      workerState = await this.dockerJobsService.getContainerWorkerState(
+        hostId,
+        containerId,
+        workerId,
+      )
+    } catch (error) {
+      workerStateError = error instanceof Error ? error.message : String(error)
+    }
+
+    let jobs: { jobId: string; filePath: string }[] = []
+    let jobsError: string | undefined
+    try {
+      const limit = query.limit ?? 20
+      const filePaths =
+        await this.dockerJobsService.listContainerWorkerJobStateFiles(
+          hostId,
+          containerId,
+          workerId,
+        )
+      jobs = filePaths.slice(0, limit).map((filePath) => {
+        const fileName = filePath.split('/').pop() ?? filePath
+        const jobId = fileName.endsWith('.json')
+          ? fileName.slice(0, -'.json'.length)
+          : fileName
+        return { jobId, filePath }
+      })
+    } catch (error) {
+      jobsError = error instanceof Error ? error.message : String(error)
+    }
+
+    return {
+      workerState,
+      workerStateError,
+      jobs,
+      jobsError,
+    }
+  }
+
+  /**
    * List recent job state files for a container.
    */
   @Get('/:hostId/containers/:containerId/jobs')
@@ -237,7 +334,7 @@ export class ServerDockerHostsController {
       throw new UnauthorizedException()
     }
 
-    let state: unknown | undefined
+    let state: unknown
     let stateError: string | undefined
     try {
       state = await this.dockerJobsService.getContainerJobState(
@@ -341,5 +438,4 @@ export class ServerDockerHostsController {
     })
     return { success: true }
   }
-
 }

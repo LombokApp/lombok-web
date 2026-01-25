@@ -88,6 +88,10 @@ func WriteWorkerState(state *types.WorkerState) error {
 		return fmt.Errorf("worker port is required")
 	}
 
+	if err := config.EnsureWorkerJobsDir(state.Port); err != nil {
+		return err
+	}
+
 	path := config.WorkerStatePath(state.Port)
 	data, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {

@@ -62,6 +62,21 @@ func WorkerIdentifier(port int) string {
 	return fmt.Sprintf("http_%d", port)
 }
 
+// WorkerJobsBaseDir returns the base directory for worker job index symlinks.
+func WorkerJobsBaseDir() string {
+	return filepath.Join(StateBaseDir, "worker-jobs")
+}
+
+// WorkerJobsDir returns the directory for a worker's job index symlinks.
+func WorkerJobsDir(port int) string {
+	return filepath.Join(WorkerJobsBaseDir(), WorkerIdentifier(port))
+}
+
+// WorkerJobStateLinkPath returns the symlink path for a worker job state file.
+func WorkerJobStateLinkPath(port int, jobID string) string {
+	return filepath.Join(WorkerJobsDir(port), fmt.Sprintf("%s.json", jobID))
+}
+
 // State file paths
 
 // WorkerStatePath returns the state file path for a worker.
@@ -128,10 +143,28 @@ func EnsureStateDirs() error {
 		StateBaseDir,
 		filepath.Join(StateBaseDir, "jobs"),
 		filepath.Join(StateBaseDir, "workers"),
+		WorkerJobsBaseDir(),
 	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("failed to create state directory %s: %w", dir, err)
+		}
+	}
+	return nil
+}
+
+// EnsureWorkerJobsDir creates the worker jobs directory for a specific worker.
+func EnsureWorkerJobsDir(port int) error {
+	if port <= 0 {
+		return fmt.Errorf("worker port is required")
+	}
+	dirs := []string{
+		WorkerJobsBaseDir(),
+		WorkerJobsDir(port),
+	}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create worker jobs directory %s: %w", dir, err)
 		}
 	}
 	return nil

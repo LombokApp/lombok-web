@@ -37,6 +37,19 @@ const (
 	workerStatePollInterval = 20 * time.Millisecond
 )
 
+func writeHTTPJobState(jobState *types.JobState, port int) error {
+	return state.WriteHTTPJobState(jobState, port)
+}
+
+func writeHTTPJobStateQuiet(jobState *types.JobState, port int) {
+	if err := writeHTTPJobState(jobState, port); err != nil {
+		logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job state", map[string]any{
+			"job_id": jobState.JobID,
+			"error":  err.Error(),
+		})
+	}
+}
+
 // RunPersistentHTTP runs a job using the persistent_http interface
 // It ensures a persistent worker is running, submits the job, then polls for completion.
 func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error {
@@ -45,6 +58,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	if port == nil {
 		return fmt.Errorf("port is required")
 	}
+	workerPort := *port
 
 	// Ensure directories exist
 	if err := config.EnsureAllDirs(); err != nil {
@@ -66,7 +80,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		Status:     "pending",
 		WorkerKind: "persistent_http",
 	}
-	if err := state.WriteJobState(jobState); err != nil {
+	if err := writeHTTPJobState(jobState, workerPort); err != nil {
 		return fmt.Errorf("failed to write initial job state: %w", err)
 	}
 
@@ -96,7 +110,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	if err != nil {
 		jobState.Status = "failed"
 		jobState.Error = err.Error()
-		state.WriteJobState(jobState)
+		writeHTTPJobStateQuiet(jobState, workerPort)
 
 		// Calculate timing even on error
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
@@ -135,7 +149,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	}
 
 	jobState.WorkerStatePID = workerState.PID
-	state.WriteJobState(jobState)
+	writeHTTPJobStateQuiet(jobState, workerPort)
 
 	// Build the HTTP client for job submission (short timeout)
 	client := &http.Client{Timeout: jobSubmitTimeout}
@@ -146,7 +160,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	}
 
 	// Build the endpoint URL
-	baseURL := buildBaseURL(*payload.Interface.Port)
+	baseURL := buildBaseURL(workerPort)
 
 	if platformClient != nil {
 		ctx := context.Background()
@@ -189,7 +203,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	if err != nil {
 		jobState.Status = "failed"
 		jobState.Error = fmt.Sprintf("job submission failed: %s", err.Error())
-		state.WriteJobState(jobState)
+		writeHTTPJobStateQuiet(jobState, workerPort)
 
 		// Calculate timing even on error
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
@@ -231,7 +245,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		}
 		jobState.Status = "failed"
 		jobState.Error = errMsg
-		state.WriteJobState(jobState)
+		writeHTTPJobStateQuiet(jobState, workerPort)
 
 		// Calculate timing even on error
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
@@ -272,7 +286,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 	// Job submitted successfully, update state to running
 	jobState.Status = "running"
 	jobState.StartedAt = time.Now().UTC().Format(time.RFC3339)
-	state.WriteJobState(jobState)
+	writeHTTPJobStateQuiet(jobState, workerPort)
 
 	// Step 2: Poll for job completion
 	statusURL := fmt.Sprintf("%s/job/%s", baseURL, payload.JobID)
@@ -306,7 +320,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		jobState.Status = "failed"
 		jobState.Error = fmt.Sprintf("job polling timed out after %s", jobPollTimeout)
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
-		state.WriteJobState(jobState)
+		writeHTTPJobStateQuiet(jobState, workerPort)
 
 		// Calculate timing even on timeout
 		jobExecutionDuration := time.Since(jobExecutionStartTime)
@@ -462,7 +476,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		})
 	}
 
-	state.WriteJobState(jobState)
+	writeHTTPJobStateQuiet(jobState, workerPort)
 
 	// Exit with error code if completion signal failed or job failed
 	if completionSignalFailed {
@@ -668,7 +682,12 @@ func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, job
 		jobState.Status = "failed"
 		jobState.Error = "worker port is required"
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
-		state.WriteJobState(jobState)
+		if err := state.WriteJobState(jobState); err != nil {
+			logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job state", map[string]any{
+				"job_id": jobState.JobID,
+				"error":  err.Error(),
+			})
+		}
 		return fmt.Errorf("worker port is required")
 	}
 	port := *payload.Interface.Port
@@ -679,7 +698,7 @@ func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, job
 	}
 	if alive && workerState != nil {
 		jobState.WorkerStatePID = workerState.PID
-		state.WriteJobState(jobState)
+		writeHTTPJobStateQuiet(jobState, port)
 	}
 
 	logs.WriteAgentLog(logs.LogLevelInfo, "Scheduling async dispatch", map[string]any{
@@ -690,7 +709,7 @@ func startAsyncDispatch(payload *types.JobPayload, jobState *types.JobState, job
 		jobState.Status = "failed"
 		jobState.Error = err.Error()
 		jobState.CompletedAt = time.Now().UTC().Format(time.RFC3339)
-		state.WriteJobState(jobState)
+		writeHTTPJobStateQuiet(jobState, port)
 		return err
 	}
 

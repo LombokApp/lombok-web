@@ -18,6 +18,14 @@ export type DockerContainerInspectResponse =
   paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect']['get']['responses']['200']['content']['application/json']
 export type DockerContainerGpuInfo = DockerContainerInspectResponse['gpuInfo']
 
+export type DockerContainerWorkersResponse =
+  paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers']['get']['responses']['200']['content']['application/json']
+export type DockerContainerWorkerSummary =
+  DockerContainerWorkersResponse['workers'][number]
+
+export type DockerContainerWorkerDetailResponse =
+  paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}']['get']['responses']['200']['content']['application/json']
+
 export type DockerContainerJobsResponse =
   paths['/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs']['get']['responses']['200']['content']['application/json']
 export type DockerContainerJobSummary = DockerContainerJobsResponse['jobs'][number]

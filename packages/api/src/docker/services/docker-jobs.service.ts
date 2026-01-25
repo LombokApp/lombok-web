@@ -656,6 +656,128 @@ export class DockerJobsService {
       .filter(Boolean)
   }
 
+  async listContainerWorkerStateFiles(
+    hostId: string,
+    containerId: string,
+  ): Promise<string[]> {
+    const { output, state } = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      [
+        'sh',
+        '-c',
+        'ls -1t /var/lib/lombok-worker-agent/workers/http_*.json 2>/dev/null || true',
+      ],
+    )
+
+    await waitForTrue(
+      async () => {
+        const execState = await state(5000)
+        return !execState.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const streamsOutput = output()
+
+    return streamsOutput.stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+  }
+
+  async listContainerWorkerJobStateFiles(
+    hostId: string,
+    containerId: string,
+    workerId: string,
+  ): Promise<string[]> {
+    const port = this.parseWorkerPort(workerId)
+    const safeWorkerId = `http_${port}`
+
+    const { output, state } = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      [
+        'sh',
+        '-c',
+        `ls -1t /var/lib/lombok-worker-agent/worker-jobs/${safeWorkerId}/*.json 2>/dev/null || true`,
+      ],
+    )
+
+    await waitForTrue(
+      async () => {
+        const execState = await state(5000)
+        return !execState.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const streamsOutput = output()
+
+    return streamsOutput.stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+  }
+
+  async getContainerWorkerState(
+    hostId: string,
+    containerId: string,
+    workerId: string,
+  ): Promise<unknown> {
+    const port = this.parseWorkerPort(workerId)
+    const command = ['lombok-worker-agent', 'worker-state', '--port', `${port}`]
+
+    const { getError, output, state } =
+      await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        command,
+      )
+
+    await waitForTrue(
+      async () => {
+        const _state = await state(5000)
+        return !_state.running
+      },
+      {
+        maxRetries: 10,
+        retryPeriodMs: 100,
+        totalMaxDurationMs: 1000,
+      },
+    )
+
+    const latestState = await state(5000)
+    if (latestState.exitCode !== 0) {
+      throw await getError()
+    }
+
+    const streamsOutput = output()
+
+    if (streamsOutput.stdout.length === 0) {
+      throw new AsyncWorkError({
+        name: 'DockerWorkerStateError',
+        origin: 'internal',
+        code: 'WORKER_STATE_NOT_FOUND',
+        message:
+          'Worker state not found\nError: ' +
+          streamsOutput.stderr +
+          '\n' +
+          streamsOutput.stderr,
+      })
+    }
+
+    return JSON.parse(streamsOutput.stdout)
+  }
+
   async getContainerJobState(
     hostId: string,
     containerId: string,
@@ -740,6 +862,30 @@ export class DockerJobsService {
   async getDockerHostStates(): Promise<DockerHostState[]> {
     const hostIds = Object.keys(this._coreConfig.dockerHostConfig.hosts ?? {})
     return Promise.all(hostIds.map((hostId) => this.getDockerHostState(hostId)))
+  }
+
+  private parseWorkerPort(workerId: string): number {
+    const normalized = workerId.endsWith('.json')
+      ? workerId.slice(0, -'.json'.length)
+      : workerId
+    if (!normalized.startsWith('http_')) {
+      throw new AsyncWorkError({
+        name: 'DockerWorkerStateError',
+        origin: 'internal',
+        code: 'WORKER_STATE_NOT_FOUND',
+        message: `Worker ID must start with "http_": ${workerId}`,
+      })
+    }
+    const port = Number.parseInt(normalized.slice('http_'.length), 10)
+    if (!Number.isFinite(port) || port <= 0) {
+      throw new AsyncWorkError({
+        name: 'DockerWorkerStateError',
+        origin: 'internal',
+        code: 'WORKER_STATE_NOT_FOUND',
+        message: `Invalid worker port in worker ID: ${workerId}`,
+      })
+    }
+    return port
   }
 }
 

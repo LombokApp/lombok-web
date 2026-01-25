@@ -897,6 +897,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List HTTP workers for a container. */
+        get: operations["getDockerContainerWorkers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get worker state and recent jobs for a worker. */
+        get: operations["getDockerContainerWorkerDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
         parameters: {
             query?: never;
@@ -3270,6 +3304,22 @@ export interface components {
                 output?: string;
                 error?: string;
             };
+        };
+        DockerContainerWorkersResponse: {
+            workers: {
+                workerId: string;
+                port: number;
+                filePath: string;
+            }[];
+        };
+        DockerContainerWorkerDetailResponse: {
+            workerState?: unknown;
+            workerStateError?: string;
+            jobs: {
+                jobId: string;
+                filePath: string;
+            }[];
+            jobsError?: string;
         };
         DockerContainerJobsResponse: {
             jobs: {
@@ -6457,6 +6507,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DockerContainerInspectResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerWorkers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerWorkersResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getDockerContainerWorkerDetail: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                hostId: string;
+                containerId: string;
+                workerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerContainerWorkerDetailResponse"];
                 };
             };
             /** @description Server Error */
