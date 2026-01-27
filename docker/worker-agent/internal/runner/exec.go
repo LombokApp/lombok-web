@@ -223,9 +223,11 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	// Determine exit code
 	exitCode := 0
+	exitError := "no message"
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			exitCode = exitErr.ExitCode()
+			exitError = exitErr.Error()
 		} else {
 			exitCode = 1
 		}
@@ -268,6 +270,10 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				uploader := upload.NewUploader(platformClient)
 				ctx := context.Background()
 
+				logs.WriteAgentLog(logs.LogLevelInfo, "Uploading output files", map[string]any{
+					"jobId":       payload.JobID,
+					"uploadCount": len(manifest.Files),
+				})
 				uploaded, err := uploader.UploadFiles(ctx, payload.JobID, manifest, payload.OutputLocation)
 				if err != nil {
 					uploadFailed = true
@@ -276,6 +282,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 						"error": err.Error(),
 					})
 				} else {
+					logs.WriteAgentLog(logs.LogLevelInfo, fmt.Sprintf("Uploaded %d output files", len(uploaded)), map[string]any{
+						"jobId": payload.JobID,
+					})
 					outputFiles = uploaded
 				}
 			}
@@ -292,7 +301,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		if exitCode != 0 {
 			completionReq.Error = &types.JobError{
 				Code:    "WORKER_EXIT_ERROR",
-				Message: fmt.Sprintf("worker exited with code %d", exitCode),
+				Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
 			}
 		} else if uploadFailed {
 			completionReq.Error = &types.JobError{
@@ -338,7 +347,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	if exitCode != 0 {
 		result["error"] = map[string]interface{}{
 			"code":    "WORKER_EXIT_ERROR",
-			"message": fmt.Sprintf("worker exited with code %d", exitCode),
+			"message": fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
 		}
 	} else if uploadFailed {
 		result["error"] = map[string]interface{}{
@@ -365,7 +374,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	if exitCode != 0 {
 		jobResult.Error = &types.JobError{
 			Code:    "WORKER_EXIT_ERROR",
-			Message: fmt.Sprintf("worker exited with code %d", exitCode),
+			Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
 		}
 	} else if uploadFailed {
 		jobResult.Error = &types.JobError{

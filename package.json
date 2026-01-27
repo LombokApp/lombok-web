@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "packages/app-demo/*"
+    "packages/app-demo/*",
+    "docker/worker-test"
   ],
   "scripts": {
     "install:clean": "rm -rf ./node_modules || true && rm -rf ./packages/api/node_modules || true && rm -rf ./packages/ui/node_modules || true && rm -rf ./packages/ui-toolkit/node_modules || true && rm bun.lock || true && bun install",
@@ -31,11 +32,12 @@
     "api:dev:build": "bun --cwd packages/api dev:docker:api:build",
     "api:dev": "bun --cwd packages/api dev:docker:api"
   },
-	"catalog": {
+  "catalog": {
     "@stylistic/eslint-plugin": "5.5.0",
     "@types/eslint-plugin-tailwindcss": "3.17.0",
     "@typescript-eslint/eslint-plugin": "8.46.3",
     "@typescript-eslint/parser": "8.46.3",
+    "dockerode": "4.0.9",
     "eslint": "9.39.1",
     "@eslint/js": "9.39.1",
     "eslint-config-prettier": "10.1.8",
@@ -56,10 +58,10 @@
     "@types/bun": "1.3.6",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.1",
-		"typescript": "5.9.3",
+    "typescript": "5.9.3",
     "typescript-eslint": "8.46.3",
     "prettier": "3.4.2",
-		"vite": "7.2.2",
+    "vite": "7.2.2",
     "tailwindcss": "3.4.17",
     "@vitejs/plugin-react-swc": "4.2.2",
     "drizzle-orm": "0.44.7",
@@ -70,6 +72,7 @@
     "@tanstack/react-query": "5.83.0",
     "@tanstack/table-core": "8.21.3",
     "@tailwindcss/container-queries": "0.1.1",
+    "@types/dockerode": "4.0.1",
     "@types/pg": "8.16.0",
     "openapi-fetch": "0.15.0",
     "openapi-react-query": "0.5.1",
@@ -91,25 +94,27 @@
     "tsconfig-paths": "4.2.0",
     "tsup": "8.5.0",
     "jexpr": "1.0.0-pre.9"
-	},
+  },
   "devDependencies": {
-    "@types/bun": "catalog:",
-    "eslint": "catalog:",
     "@eslint/js": "catalog:",
+    "@stylistic/eslint-plugin": "catalog:",
+    "@types/bun": "catalog:",
     "@types/eslint-plugin-tailwindcss": "catalog:",
-    "eslint-plugin-import": "catalog:",
+    "@types/tar-fs": "2.0.4",
+    "eslint": "catalog:",
     "eslint-plugin-eslint-comments": "catalog:",
-    "eslint-plugin-promise": "catalog:",
-    "eslint-plugin-simple-import-sort": "catalog:",
+    "eslint-plugin-import": "catalog:",
+    "eslint-plugin-jsx-a11y": "catalog:",
     "eslint-plugin-prettier": "catalog:",
+    "eslint-plugin-promise": "catalog:",
     "eslint-plugin-react": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
-    "eslint-plugin-jsx-a11y": "catalog:",
-    "eslint-plugin-tailwindcss": "catalog:",
+    "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-storybook": "catalog:",
-    "@stylistic/eslint-plugin": "catalog:",
-    "typescript-eslint": "catalog:",
+    "eslint-plugin-tailwindcss": "catalog:",
+    "globals": "catalog:",
+    "tar-fs": "3.1.1",
     "typescript": "catalog:",
-    "globals": "catalog:"
+    "typescript-eslint": "catalog:"
   }
 }

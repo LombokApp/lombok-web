@@ -8,6 +8,18 @@ import (
 	"strings"
 )
 
+// maxPrintedLineLen is the maximum number of characters we will output per line.
+// Longer lines are truncated for display to avoid flooding the terminal.
+const maxPrintedLineLen = 8192
+
+func truncateLine(line string) string {
+	if len(line) <= maxPrintedLineLen {
+		return line
+	}
+
+	return line[:maxPrintedLineLen] + " [truncated]"
+}
+
 // ReadOptions configures how to read log files
 type ReadOptions struct {
 	Tail int    // Number of lines from the end (0 = all)
@@ -37,18 +49,24 @@ func ReadLogFile(path string, opts ReadOptions) error {
 // readWithTail reads the file and outputs the last N lines
 func readWithTail(file *os.File, opts ReadOptions) error {
 	var lines []string
-	scanner := bufio.NewScanner(file)
+	reader := bufio.NewReader(file)
 
 	// Read all lines, applying grep filter if specified
-	for scanner.Scan() {
-		line := scanner.Text()
-		if opts.Grep == "" || strings.Contains(line, opts.Grep) {
-			lines = append(lines, line)
+	for {
+		line, err := reader.ReadString('\n')
+		if len(line) > 0 {
+			line = strings.TrimRight(line, "\r\n")
+			if opts.Grep == "" || strings.Contains(line, opts.Grep) {
+				lines = append(lines, truncateLine(line))
+			}
 		}
-	}
 
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading log file: %w", err)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("error reading log file: %w", err)
+		}
 	}
 
 	// Output the last N lines
@@ -66,19 +84,24 @@ func readWithTail(file *os.File, opts ReadOptions) error {
 
 // readAndFilter streams the file, filtering by grep pattern
 func readAndFilter(file *os.File, grep string) error {
-	scanner := bufio.NewScanner(file)
+	reader := bufio.NewReader(file)
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		if grep == "" || strings.Contains(line, grep) {
-			fmt.Println(line)
+	for {
+		line, err := reader.ReadString('\n')
+		if len(line) > 0 {
+			line = strings.TrimRight(line, "\r\n")
+			if grep == "" || strings.Contains(line, grep) {
+				fmt.Println(truncateLine(line))
+			}
+		}
+
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("error reading log file: %w", err)
 		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading log file: %w", err)
-	}
-
 	return nil
 }
 

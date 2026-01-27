@@ -7,6 +7,7 @@ import (
 	"lombok-worker-agent/internal/logs"
 	"lombok-worker-agent/internal/runner"
 	"lombok-worker-agent/internal/types"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -47,19 +48,30 @@ func runJob(cmd *cobra.Command, args []string) error {
 	}
 
 	// Log basic info
-	if payload.WaitForCompletion != nil && *payload.WaitForCompletion == false {
-		logs.WriteAgentLog(logs.LogLevelInfo, "Job started", map[string]any{
-			"job_id":    payload.JobID,
-			"job_class": payload.JobClass,
-			"interface": payload.Interface.Kind,
-		})
-	} else {
-		logs.WriteAgentLog(logs.LogLevelInfo, "Job received for async dispatch", map[string]any{
-			"job_id":    payload.JobID,
-			"job_class": payload.JobClass,
-			"interface": payload.Interface.Kind,
-		})
+	waitForCompletion := payload.WaitForCompletion != nil && *payload.WaitForCompletion == true
+
+	logMessage := "Job received for async dispatch"
+	if waitForCompletion {
+		logMessage = "Job started"
 	}
+
+	interfaceLabel := ""
+	if payload.Interface.Kind == "exec_per_job" {
+		interfaceLabel = payload.Interface.Kind
+	} else if payload.Interface.Kind == "persistent_http" && payload.Interface.Port != nil {
+		interfaceLabel = fmt.Sprintf("%s_%d", payload.Interface.Kind, *payload.Interface.Port)
+	}
+
+	logs.WriteAgentLog(logs.LogLevelInfo, logMessage, map[string]any{
+		"job_id":              payload.JobID,
+		"job_class":           payload.JobClass,
+		"interface":           interfaceLabel,
+		"wait_for_completion": waitForCompletion,
+		"platform_url":        payload.PlatformURL,
+		"job_token_present":   payload.JobToken != "",
+		"output_location":     payload.OutputLocation,
+		"worker_command":      strings.Join(payload.WorkerCommand, " "),
+	})
 
 	// Dispatch based on interface kind
 	switch payload.Interface.Kind {

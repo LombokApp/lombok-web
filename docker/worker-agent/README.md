@@ -704,10 +704,10 @@ Platform                    Agent                      Worker
    |-- docker exec run-job -->|                          |
    |                          |-- spawn process -------->|
    |                          |                          | (executes)
-   |                          |                          | (outputs JSON on last line)
+   |                          |                          |
    |                          |<-- exit code ------------|
    |                          |                          |
-   |                          | (extract result from stdout)
+   |                          |                          |
    |                          | (check for manifest, upload files)
    |                          | (signal completion to platform)
    |<-- JSON result ----------|                          |
