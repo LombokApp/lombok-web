@@ -40,6 +40,7 @@ import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
 import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
 import { AppUI } from '@/src/views/app-ui/app-ui.view'
+import { FolderObjectComments } from '@/src/views/folder-object-comments/folder-object-comments.view'
 import { FolderTasksList } from '@/src/views/folder-tasks-list/folder-tasks-list.view'
 const protocol = window.location.protocol
 const hostname = window.location.hostname
@@ -349,6 +350,11 @@ export const FolderObjectSidebar = ({
                 </CardContent>
               </Card>
             )}
+
+            <FolderObjectComments
+              folderId={folderId}
+              folderObjectId={folderObject.id}
+            />
 
             <FolderTasksList
               folderId={folderId}

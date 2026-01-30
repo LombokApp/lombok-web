@@ -8,7 +8,7 @@ import {
   Injectable,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { and, eq, or } from 'drizzle-orm'
+import { and, eq, or, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
@@ -98,9 +98,10 @@ export class AuthService {
       throw new ConflictException(`User already exists with email "${email}".`)
     }
 
+    // Check for existing username case-insensitively
     const existingByUsername =
       await this.ormService.db.query.usersTable.findFirst({
-        where: eq(usersTable.username, username),
+        where: sql`lower(${usersTable.username}) = ${username.toLowerCase()}`,
       })
 
     if (existingByUsername) {
@@ -136,7 +137,10 @@ export class AuthService {
 
   async login({ login, password }: LoginCredentialsDTO) {
     const user = await this.ormService.db.query.usersTable.findFirst({
-      where: or(eq(usersTable.email, login), eq(usersTable.username, login)),
+      where: or(
+        eq(usersTable.email, login),
+        sql`lower(${usersTable.username}) = ${login.toLowerCase()}`,
+      ),
     })
     const passwordVerificationSuccess =
       user && this.verifyPassword(user, password)
@@ -431,7 +435,7 @@ export class AuthService {
 
   private async usernameExists(username: string): Promise<boolean> {
     const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.username, username),
+      where: sql`lower(${usersTable.username}) = ${username.toLowerCase()}`,
     })
     return !!user
   }

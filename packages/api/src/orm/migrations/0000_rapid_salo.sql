@@ -65,6 +65,41 @@ CREATE TABLE "user_identities" (
 	CONSTRAINT "unique_user_provider" UNIQUE("userId","provider")
 );
 --> statement-breakpoint
+CREATE TABLE "comment_mentions" (
+	"comment_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "comment_mentions_comment_id_user_id_pk" PRIMARY KEY("comment_id","user_id")
+);
+--> statement-breakpoint
+CREATE TABLE "comment_reactions" (
+	"comment_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL,
+	"emoji" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "comment_reactions_comment_id_user_id_emoji_pk" PRIMARY KEY("comment_id","user_id","emoji")
+);
+--> statement-breakpoint
+CREATE TABLE "comments" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"folder_id" uuid NOT NULL,
+	"folder_object_id" uuid NOT NULL,
+	"root_id" uuid,
+	"quote_id" uuid,
+	"author_id" uuid NOT NULL,
+	"content" text NOT NULL,
+	"anchor" jsonb,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp,
+	CONSTRAINT "content_not_empty" CHECK (length(content) > 0),
+	CONSTRAINT "anchor_only_on_root" CHECK (
+      (root_id IS NOT NULL AND anchor IS NULL) OR
+      root_id IS NULL
+    ),
+	CONSTRAINT "no_self_quote" CHECK (quote_id != id)
+);
+--> statement-breakpoint
 CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"eventIdentifier" text NOT NULL,
@@ -187,8 +222,7 @@ CREATE TABLE "users" (
 	"passwordHash" text,
 	"passwordSalt" text,
 	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	CONSTRAINT "users_username_unique" UNIQUE("username")
+	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -196,6 +230,15 @@ ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_appIdentif
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_appIdentifier_apps_identifier_fk" FOREIGN KEY ("appIdentifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comment_mentions" ADD CONSTRAINT "comment_mentions_comment_id_comments_id_fk" FOREIGN KEY ("comment_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comment_mentions" ADD CONSTRAINT "comment_mentions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comment_reactions" ADD CONSTRAINT "comment_reactions_comment_id_comments_id_fk" FOREIGN KEY ("comment_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comment_reactions" ADD CONSTRAINT "comment_reactions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_folder_object_id_folder_objects_id_fk" FOREIGN KEY ("folder_object_id") REFERENCES "public"."folder_objects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_root_id_comments_id_fk" FOREIGN KEY ("root_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_quote_id_comments_id_fk" FOREIGN KEY ("quote_id") REFERENCES "public"."comments"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storage_locations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -205,6 +248,11 @@ CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING 
 CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folderId","appIdentifier");--> statement-breakpoint
 CREATE INDEX "app_user_settings_user_id_idx" ON "app_user_settings" USING btree ("userId");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_user_settings_user_app_unique" ON "app_user_settings" USING btree ("userId","appIdentifier");--> statement-breakpoint
+CREATE INDEX "idx_mentions_user_lookup" ON "comment_mentions" USING btree ("user_id","created_at");--> statement-breakpoint
+CREATE INDEX "idx_reactions_comment_lookup" ON "comment_reactions" USING btree ("comment_id","created_at");--> statement-breakpoint
+CREATE INDEX "idx_comments_folder_object_roots" ON "comments" USING btree ("folder_object_id","created_at") WHERE root_id IS NULL AND deleted_at IS NULL;--> statement-breakpoint
+CREATE INDEX "idx_comments_thread_flat" ON "comments" USING btree ("root_id","created_at") WHERE root_id IS NOT NULL AND deleted_at IS NULL;--> statement-breakpoint
+CREATE INDEX "idx_comments_tombstone_lookup" ON "comments" USING btree ("id","deleted_at","author_id");--> statement-breakpoint
 CREATE INDEX "events_target_location_folder_id_idx" ON "events" USING btree ("targetLocationFolderId");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_size_bytes_idx" ON "folder_objects" USING btree ("folderId","sizeBytes","mediaType");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_idx" ON "folder_objects" USING btree ("folderId","mediaType");--> statement-breakpoint
@@ -215,4 +263,5 @@ CREATE INDEX "log_entries_target_location_folder_id_idx" ON "log_entries" USING 
 CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("invocation" ->> 'kind'));--> statement-breakpoint
 CREATE INDEX "tasks_idempotency_key_idx" ON "tasks" USING btree ("ownerIdentifier","taskIdentifier","idempotencyKey");--> statement-breakpoint
 CREATE INDEX "tasks_target_location_folder_id_idx" ON "tasks" USING btree ("targetLocationFolderId");--> statement-breakpoint
-CREATE INDEX "tasks_target_location_folder_id_object_key_idx" ON "tasks" USING btree ("targetLocationFolderId","targetLocationObjectKey");
+CREATE INDEX "tasks_target_location_folder_id_object_key_idx" ON "tasks" USING btree ("targetLocationFolderId","targetLocationObjectKey");--> statement-breakpoint
+CREATE UNIQUE INDEX "users_username_unique_lower" ON "users" USING btree (lower("username"));

@@ -81,7 +81,7 @@ export const LoginComponent = ({
             Don't have an account?{' '}
             <Button
               variant="link"
-              className="p-0 h-auto text-sm underline"
+              className="h-auto p-0 text-sm underline"
               onClick={onSignup}
             >
               Sign up

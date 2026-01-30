@@ -60,6 +60,125 @@ describe('Users', () => {
     expect(duplicateUserResponse.response.status).toEqual(409)
   })
 
+  it(`should fail to create a user on duplicate username (case-insensitive)`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'TestUser',
+      password: '123',
+      admin: true,
+    })
+
+    // Try to create user with same username but different case
+    const duplicateUserResponse1 = await apiClient(accessToken).POST(
+      '/api/v1/server/users',
+      { body: { ...TEST_USER_INPUT, username: 'testuser' } },
+    )
+    expect(duplicateUserResponse1.response.status).toEqual(409)
+
+    // Try other case variations
+    const duplicateUserResponse2 = await apiClient(accessToken).POST(
+      '/api/v1/server/users',
+      { body: { ...TEST_USER_INPUT, username: 'TESTUSER' } },
+    )
+    expect(duplicateUserResponse2.response.status).toEqual(409)
+
+    const duplicateUserResponse3 = await apiClient(accessToken).POST(
+      '/api/v1/server/users',
+      { body: { ...TEST_USER_INPUT, username: 'TeStUsEr' } },
+    )
+    expect(duplicateUserResponse3.response.status).toEqual(409)
+  })
+
+  it(`should fail to update username to duplicate (case-insensitive)`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'adminuser',
+      password: '123',
+      admin: true,
+    })
+
+    // Create first user
+    const createUserResponse1 = await apiClient(accessToken).POST(
+      '/api/v1/server/users',
+      {
+        body: {
+          ...TEST_USER_INPUT,
+          username: 'OriginalUser',
+        },
+      },
+    )
+    expect(createUserResponse1.response.status).toEqual(201)
+    const userId1 = createUserResponse1.data?.user.id
+    if (!userId1) {
+      throw new Error('Failed to create first user')
+    }
+
+    // Create second user
+    const createUserResponse2 = await apiClient(accessToken).POST(
+      '/api/v1/server/users',
+      {
+        body: {
+          ...TEST_USER_INPUT,
+          username: 'AnotherUser',
+        },
+      },
+    )
+    expect(createUserResponse2.response.status).toEqual(201)
+    const userId2 = createUserResponse2.data?.user.id
+    if (!userId2) {
+      throw new Error('Failed to create second user')
+    }
+
+    // Try to update second user's username to match first user (case-insensitive)
+    const updateResponse = await apiClient(accessToken).PATCH(
+      '/api/v1/server/users/{userId}',
+      {
+        params: { path: { userId: userId2 } },
+        body: { username: 'originaluser' }, // lowercase version of OriginalUser
+      },
+    )
+    expect(updateResponse.response.status).toEqual(409)
+  })
+
+  it(`should fail to signup with duplicate username (case-insensitive)`, async () => {
+    // Create user via signup
+    await createTestUser(testModule!, {
+      username: 'SignupUser',
+      password: '123',
+    })
+
+    // Try to signup with same username but different case
+    const signupResponse1 = await apiClient().POST('/api/v1/auth/signup', {
+      body: {
+        username: 'signupuser',
+        password: '123',
+        email: 'signupuser2@example.com',
+      },
+    })
+    expect(signupResponse1.response.status).toEqual(409)
+
+    // Try other case variations
+    const signupResponse2 = await apiClient().POST('/api/v1/auth/signup', {
+      body: {
+        username: 'SIGNUPUSER',
+        password: '123',
+        email: 'signupuser3@example.com',
+      },
+    })
+    expect(signupResponse2.response.status).toEqual(409)
+
+    const signupResponse3 = await apiClient().POST('/api/v1/auth/signup', {
+      body: {
+        username: 'SiGnUpUsEr',
+        password: '123',
+        email: 'signupuser4@example.com',
+      },
+    })
+    expect(signupResponse3.response.status).toEqual(409)
+  })
+
   it(`should update a user's email only`, async () => {
     const {
       session: { accessToken },

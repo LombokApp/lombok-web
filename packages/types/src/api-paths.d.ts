@@ -1383,6 +1383,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all comments for a folder object */
+        get: operations["listAllComments"];
+        put?: never;
+        /** Create a comment */
+        post: operations["createComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{rootId}/thread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a comment thread */
+        get: operations["getThread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a comment */
+        delete: operations["deleteComment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a reaction to a comment */
+        post: operations["addReaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}/reactions/{emoji}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a reaction from a comment */
+        delete: operations["removeReaction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3850,6 +3936,266 @@ export interface components {
                 folderId: string;
                 objectKey: string;
             }[];
+        };
+        AllCommentsListResponseDTO: {
+            comments: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                folderId: string;
+                /** Format: uuid */
+                folderObjectId: string;
+                /** Format: uuid */
+                rootId: string | null;
+                /** Format: uuid */
+                quoteId: string | null;
+                author: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    name: string | null;
+                    email: string | null;
+                };
+                content: string;
+                anchor: ({
+                    /** @enum {string} */
+                    type: "image_point";
+                    x: number;
+                    y: number;
+                } | {
+                    /** @enum {string} */
+                    type: "video_point";
+                    t: number;
+                    x?: number;
+                    y?: number;
+                } | {
+                    /** @enum {string} */
+                    type: "audio_point";
+                    t: number;
+                }) | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                /** Format: date-time */
+                deletedAt: string | null;
+                quotedComment?: {
+                    /** Format: uuid */
+                    id: string;
+                    author: {
+                        /** Format: uuid */
+                        id: string;
+                        username: string;
+                        name: string | null;
+                        email: string | null;
+                    };
+                    content: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    deletedAt: string | null;
+                } | null;
+                mentions?: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    name: string | null;
+                }[];
+                reactions?: {
+                    emoji: string;
+                    count: number;
+                    users: {
+                        /** Format: uuid */
+                        id: string;
+                        username: string;
+                        name: string | null;
+                        email: string | null;
+                    }[];
+                }[];
+            }[];
+        };
+        CreateCommentDTO: {
+            content: string;
+            anchor?: {
+                /** @enum {string} */
+                type: "image_point";
+                x: number;
+                y: number;
+            } | {
+                /** @enum {string} */
+                type: "video_point";
+                t: number;
+                x?: number;
+                y?: number;
+            } | {
+                /** @enum {string} */
+                type: "audio_point";
+                t: number;
+            };
+            /** Format: uuid */
+            quoteId?: string;
+            /** Format: uuid */
+            rootCommentId?: string;
+        };
+        CreateRootCommentResponseDTO: {
+            comment: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                folderId: string;
+                /** Format: uuid */
+                folderObjectId: string;
+                /** Format: uuid */
+                rootId: string | null;
+                /** Format: uuid */
+                quoteId: string | null;
+                author: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    name: string | null;
+                    email: string | null;
+                };
+                content: string;
+                anchor: ({
+                    /** @enum {string} */
+                    type: "image_point";
+                    x: number;
+                    y: number;
+                } | {
+                    /** @enum {string} */
+                    type: "video_point";
+                    t: number;
+                    x?: number;
+                    y?: number;
+                } | {
+                    /** @enum {string} */
+                    type: "audio_point";
+                    t: number;
+                }) | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                /** Format: date-time */
+                deletedAt: string | null;
+                quotedComment?: {
+                    /** Format: uuid */
+                    id: string;
+                    author: {
+                        /** Format: uuid */
+                        id: string;
+                        username: string;
+                        name: string | null;
+                        email: string | null;
+                    };
+                    content: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    deletedAt: string | null;
+                } | null;
+                mentions?: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    name: string | null;
+                }[];
+                reactions?: {
+                    emoji: string;
+                    count: number;
+                    users: {
+                        /** Format: uuid */
+                        id: string;
+                        username: string;
+                        name: string | null;
+                        email: string | null;
+                    }[];
+                }[];
+            };
+        };
+        ThreadResponseDTO: {
+            comments: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                folderId: string;
+                /** Format: uuid */
+                folderObjectId: string;
+                /** Format: uuid */
+                rootId: string | null;
+                /** Format: uuid */
+                quoteId: string | null;
+                author: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    name: string | null;
+                    email: string | null;
+                };
+                content: string;
+                anchor: ({
+                    /** @enum {string} */
+                    type: "image_point";
+                    x: number;
+                    y: number;
+                } | {
+                    /** @enum {string} */
+                    type: "video_point";
+                    t: number;
+                    x?: number;
+                    y?: number;
+                } | {
+                    /** @enum {string} */
+                    type: "audio_point";
+                    t: number;
+                }) | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                /** Format: date-time */
+                deletedAt: string | null;
+                quotedComment?: {
+                    /** Format: uuid */
+                    id: string;
+                    author: {
+                        /** Format: uuid */
+                        id: string;
+                        username: string;
+                        name: string | null;
+                        email: string | null;
+                    };
+                    content: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    deletedAt: string | null;
+                } | null;
+                mentions?: {
+                    /** Format: uuid */
+                    id: string;
+                    username: string;
+                    name: string | null;
+                }[];
+                reactions?: {
+                    emoji: string;
+                    count: number;
+                    users: {
+                        /** Format: uuid */
+                        id: string;
+                        username: string;
+                        name: string | null;
+                        email: string | null;
+                    }[];
+                }[];
+            }[];
+        };
+        DeleteCommentResponseDTO: {
+            success: boolean;
+        };
+        AddReactionDTO: {
+            emoji: string;
         };
     };
     responses: never;
@@ -7795,6 +8141,261 @@ export interface operations {
             };
         };
         responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    listAllComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                folderObjectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of all comments */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllCommentsListResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    createComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                folderObjectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCommentDTO"];
+            };
+        };
+        responses: {
+            /** @description Comment created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateRootCommentResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getThread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                folderObjectId: string;
+                rootId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comment thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    deleteComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                folderObjectId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comment deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteCommentResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    addReaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                folderObjectId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddReactionDTO"];
+            };
+        };
+        responses: {
+            /** @description Reaction added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    removeReaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                folderObjectId: string;
+                commentId: string;
+                emoji: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reaction removed */
             200: {
                 headers: {
                     [name: string]: unknown;

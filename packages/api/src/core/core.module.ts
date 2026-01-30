@@ -11,6 +11,7 @@ import { TaskModule } from 'src/task/task.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
+import { CommentsModule } from '../comments/comments.module'
 import { EventModule } from '../event/event.module'
 import { FoldersModule } from '../folders/folders.module'
 import { OrmModule } from '../orm/orm.module'
@@ -37,6 +38,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     TaskModule,
     LogModule,
     DockerModule,
+    CommentsModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })
