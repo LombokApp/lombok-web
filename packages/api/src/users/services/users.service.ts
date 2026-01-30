@@ -149,6 +149,21 @@ export class UserService {
       throw new UnauthorizedException()
     }
 
+    // Check for existing username case-insensitively
+    if (userPayload.username) {
+      const existingByUsername = await this.ormService.db
+        .select()
+        .from(usersTable)
+        .where(
+          sql`lower(${usersTable.username}) = ${userPayload.username.toLowerCase()}`,
+        )
+        .limit(1)
+
+      if (existingByUsername[0]) {
+        throw new UserIdentityConflictException()
+      }
+    }
+
     // TODO: input validation
     const now = new Date()
 
@@ -183,8 +198,10 @@ export class UserService {
         'cause' in error &&
         typeof error.cause === 'object' &&
         'constraint' in (error.cause ?? {}) &&
-        (error as { cause: { constraint: string } }).cause.constraint ===
-          'users_username_unique'
+        ((error as { cause: { constraint: string } }).cause.constraint ===
+          'users_username_unique' ||
+          (error as { cause: { constraint: string } }).cause.constraint ===
+            'users_username_unique_lower')
       ) {
         throw new UserIdentityConflictException()
       }
@@ -243,7 +260,20 @@ export class UserService {
     }
 
     if ('username' in updatePayload) {
-      // TOOD: validate username uniqueness before trying to save, or just catch the error and return a nice response
+      // Check for existing username case-insensitively (excluding current user)
+      if (updatePayload.username) {
+        const existingByUsername = await this.ormService.db
+          .select()
+          .from(usersTable)
+          .where(
+            sql`lower(${usersTable.username}) = ${updatePayload.username.toLowerCase()} AND ${usersTable.id} != ${userId}`,
+          )
+          .limit(1)
+
+        if (existingByUsername[0]) {
+          throw new UserIdentityConflictException()
+        }
+      }
       updates.username = updatePayload.username
     }
 

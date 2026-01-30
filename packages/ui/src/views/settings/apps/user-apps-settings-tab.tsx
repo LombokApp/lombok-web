@@ -61,7 +61,7 @@ export function UserAppsSettingsTab() {
           <Link
             key={app.identifier}
             to={`/settings/apps/${app.identifier}`}
-            className="rounded-lg border p-4 transition-colors hover:bg-accent bg-background"
+            className="rounded-lg border bg-background p-4 transition-colors hover:bg-accent"
           >
             <div className="flex items-center justify-between">
               <div>
