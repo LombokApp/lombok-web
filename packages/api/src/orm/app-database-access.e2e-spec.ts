@@ -546,26 +546,26 @@ describe('ORM Schema Isolation', () => {
     })
 
     const aclResult = await ormService.client.query<{
-      folderId: string
-      userId: string
+      folder_id: string
+      user_id: string
       permissions: string[]
-      isOwner: boolean
+      is_owner: boolean
     }>(
       `
-      SELECT "folderId", "userId", "permissions", "isOwner"
+      SELECT "folder_id", "user_id", "permissions", "is_owner"
       FROM ${SHARED_FOLDER_ACL_SCHEMA}.${SHARED_FOLDER_ACL_FOLDER_VIEW}
-      WHERE "folderId" = $1
-      ORDER BY "isOwner" DESC
+      WHERE "folder_id" = $1
+      ORDER BY "is_owner" DESC
     `,
       [folderId],
     )
 
     expect(aclResult.rows).toHaveLength(2)
-    const ownerEntry = aclResult.rows.find((row) => row.isOwner)
-    const memberEntry = aclResult.rows.find((row) => !row.isOwner)
-    expect(ownerEntry?.userId).toBe(owner.id)
+    const ownerEntry = aclResult.rows.find((row) => row.is_owner)
+    const memberEntry = aclResult.rows.find((row) => !row.is_owner)
+    expect(ownerEntry?.user_id).toBe(owner.id)
     expect(ownerEntry?.permissions).toEqual(['owner'])
-    expect(memberEntry?.userId).toBe(member.id)
+    expect(memberEntry?.user_id).toBe(member.id)
     expect(memberEntry?.permissions).toEqual(['FOLDER_REINDEX'])
   })
 

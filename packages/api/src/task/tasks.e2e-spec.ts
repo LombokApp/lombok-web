@@ -1027,13 +1027,13 @@ describe('Task lifecycle', () => {
     ])
 
     const result = await testModule!.services.ormService.client.query<{
-      systemLog: {
+      system_log: {
         at: string
         message: string
         logType: string
         payload: string
       }[]
-      taskLog: {
+      task_log: {
         at: string
         message: string
         logType: string
@@ -1041,10 +1041,10 @@ describe('Task lifecycle', () => {
       }[]
       data: { base64: string }
     }>(
-      `SELECT "systemLog", "taskLog", "data" FROM tasks WHERE "taskIdentifier" = '${APP_ACTION_TASK_ID}'`,
+      `SELECT system_log, task_log, data FROM tasks WHERE task_identifier = '${APP_ACTION_TASK_ID}'`,
     )
 
-    expect(result.rows[0]?.systemLog).toEqual([
+    expect(result.rows[0]?.system_log).toEqual([
       {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         at: expect.any(String),
@@ -1055,7 +1055,7 @@ describe('Task lifecycle', () => {
       },
     ])
 
-    expect(result.rows[0]?.taskLog).toEqual([
+    expect(result.rows[0]?.task_log).toEqual([
       {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         at: expect.any(String),

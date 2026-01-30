@@ -20,20 +20,20 @@ import { appsTable } from './app.entity'
 export const appUserSettingsTable = pgTable(
   'app_user_settings',
   {
-    userId: uuid('userId')
+    userId: uuid('user_id')
       .references(() => usersTable.id)
       .notNull(),
-    appIdentifier: text('appIdentifier')
+    appIdentifier: text('app_identifier')
       .references(() => appsTable.identifier)
       .notNull(),
     enabled: boolean('enabled'),
-    folderScopeEnabledDefault: boolean('folderScopeEnabledDefault'),
-    folderScopePermissionsDefault: jsonb('folderScopePermissionsDefault').$type<
-      FolderScopeAppPermissions[]
-    >(),
+    folderScopeEnabledDefault: boolean('folder_scope_enabled_default'),
+    folderScopePermissionsDefault: jsonb(
+      'folder_scope_permissions_default',
+    ).$type<FolderScopeAppPermissions[]>(),
     permissions: jsonb('permissions').$type<UserScopeAppPermissions[]>(),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull(),
+    createdAt: timestamp('created_at').notNull(),
+    updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
     index('app_user_settings_user_id_idx').on(table.userId),

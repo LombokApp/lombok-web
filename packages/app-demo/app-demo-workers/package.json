@@ -8,7 +8,7 @@
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
-    "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
+    "prettier:fix": "prettier --write \"./**/*.(ts|tsx)\"",
     "tsc:check": "tsc --noEmit"
   },
   "dependencies": {

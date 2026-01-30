@@ -8,30 +8,36 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import { usersTable } from 'src/users/entities/user.entity'
 
 import { foldersTable } from './folder.entity'
 
 export const folderSharesTable = pgTable(
   'folder_shares',
   {
-    folderId: uuid('folderId')
+    folderId: uuid('folder_id')
       .references(() => foldersTable.id)
       .notNull(),
-    userId: uuid('userId').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     permissions: text('permissions')
       .array()
       .notNull()
       .$type<FolderPermissionName[]>(),
-    createdAt: timestamp('createdAt')
+    createdAt: timestamp('created_at')
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp('updatedAt')
+    updatedAt: timestamp('updated_at')
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
   (table) => [
-    index('user_idx').on(table.userId),
-    uniqueIndex('folder_user_unique').on(table.folderId, table.userId),
+    index('folder_shares_user_id_idx').on(table.userId),
+    uniqueIndex('folder_shares_folder_user_unique').on(
+      table.folderId,
+      table.userId,
+    ),
   ],
 )
 

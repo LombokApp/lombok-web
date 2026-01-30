@@ -10,24 +10,28 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { foldersTable } from './folder.entity'
+
 export const folderObjectsTable = pgTable(
   'folder_objects',
   {
     id: uuid('id').primaryKey(),
-    objectKey: text('objectKey').notNull(),
+    objectKey: text('object_key').notNull(),
     filename: text('filename').notNull(),
-    eTag: text('eTag').notNull(),
-    sizeBytes: bigint('sizeBytes', { mode: 'number' }).notNull(),
-    lastModified: bigint('lastModified', { mode: 'number' }).notNull(),
+    eTag: text('e_tag').notNull(),
+    sizeBytes: bigint('size_bytes', { mode: 'number' }).notNull(),
+    lastModified: bigint('last_modified', { mode: 'number' }).notNull(),
     hash: text('hash'),
-    contentMetadata: jsonb('contentMetadata')
+    contentMetadata: jsonb('content_metadata')
       .$type<ContentMetadataByHash>()
       .notNull(),
-    folderId: uuid('folderId').notNull(),
-    mimeType: text('mimeType').notNull(),
-    mediaType: text('mediaType').notNull().$type<MediaType>(),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull(),
+    folderId: uuid('folder_id')
+      .notNull()
+      .references(() => foldersTable.id, { onDelete: 'cascade' }),
+    mimeType: text('mime_type').notNull(),
+    mediaType: text('media_type').notNull().$type<MediaType>(),
+    createdAt: timestamp('created_at').notNull(),
+    updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
     index('folder_objects_folder_id_media_type_size_bytes_idx').on(

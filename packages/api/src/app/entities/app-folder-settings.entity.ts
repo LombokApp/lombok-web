@@ -17,16 +17,16 @@ import { appsTable } from './app.entity'
 export const appFolderSettingsTable = pgTable(
   'app_folder_settings',
   {
-    folderId: uuid('folderId')
+    folderId: uuid('folder_id')
       .references(() => foldersTable.id)
       .notNull(),
-    appIdentifier: text('appIdentifier')
+    appIdentifier: text('app_identifier')
       .references(() => appsTable.identifier)
       .notNull(),
     enabled: boolean('enabled'),
     permissions: jsonb('permissions').$type<FolderScopeAppPermissions[]>(),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull(),
+    createdAt: timestamp('created_at').notNull(),
+    updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
     index('app_folder_settings_folder_id_idx').on(table.folderId),

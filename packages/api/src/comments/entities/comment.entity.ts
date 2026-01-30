@@ -69,6 +69,7 @@ export const commentsTable = pgTable(
       table.deletedAt,
       table.authorId,
     ),
+    index('idx_comments_folder_id').on(table.folderId, table.createdAt),
   ],
 )
 
