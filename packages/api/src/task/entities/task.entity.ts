@@ -60,38 +60,38 @@ export const tasksTable = pgTable(
   'tasks',
   {
     id: uuid('id').primaryKey(),
-    ownerIdentifier: text('ownerIdentifier').notNull(), // core, app:core, app:other, ...
-    taskIdentifier: text('taskIdentifier').notNull(),
-    taskDescription: text('taskDescription').notNull(),
+    ownerIdentifier: text('owner_identifier').notNull(), // core, app:core, app:other, ...
+    taskIdentifier: text('task_identifier').notNull(),
+    taskDescription: text('task_description').notNull(),
     data: jsonbBase64('data').notNull().$type<TaskData>(),
     invocation: jsonbBase64('invocation').$type<TaskInvocation>().notNull(),
-    idempotencyKey: text('idempotencyKey').notNull().unique(),
-    targetUserId: uuid('targetUserId'),
-    targetLocationFolderId: uuid('targetLocationFolderId'),
-    targetLocationObjectKey: text('targetLocationObjectKey'),
-    startedAt: timestamp('startedAt'),
-    completedAt: timestamp('completedAt'),
-    attemptCount: integer('attemptCount').notNull().default(0),
-    failureCount: integer('failureCount').notNull().default(0),
-    dontStartBefore: timestamp('dontStartBefore'),
-    systemLog: logJsonb<SystemLogEntry>('systemLog').notNull().default([]),
-    taskLog: logJsonb<TaskLogEntry>('taskLog').notNull().default([]),
+    idempotencyKey: text('idempotency_key').notNull().unique(),
+    targetUserId: uuid('target_user_id'),
+    targetLocationFolderId: uuid('target_location_folder_id'),
+    targetLocationObjectKey: text('target_location_object_key'),
+    startedAt: timestamp('started_at'),
+    completedAt: timestamp('completed_at'),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    failureCount: integer('failure_count').notNull().default(0),
+    dontStartBefore: timestamp('dont_start_before'),
+    systemLog: logJsonb<SystemLogEntry>('system_log').notNull().default([]),
+    taskLog: logJsonb<TaskLogEntry>('task_log').notNull().default([]),
     storageAccessPolicy: jsonbBase64(
-      'storageAccessPolicy',
+      'storage_access_policy',
     ).$type<StorageAccessPolicy>(),
     success: boolean('success'),
-    userVisible: boolean('userVisible').default(true),
+    userVisible: boolean('user_visible').default(true),
     error: jsonbBase64('error').$type<{
       code: string
       name: string
       message: string
       details?: JsonSerializableObject
     }>(),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull(),
-    latestHeartbeatAt: timestamp('latestHeartbeatAt'),
-    handlerType: text('handlerType').notNull(),
-    handlerIdentifier: text('handlerIdentifier'),
+    createdAt: timestamp('created_at').notNull(),
+    updatedAt: timestamp('updated_at').notNull(),
+    latestHeartbeatAt: timestamp('latest_heartbeat_at'),
+    handlerType: text('handler_type').notNull(),
+    handlerIdentifier: text('handler_identifier'),
   },
   (table) => [
     index('tasks_trigger_kind_idx').on(sql`(${table.invocation} ->> 'kind')`),
@@ -107,6 +107,15 @@ export const tasksTable = pgTable(
       table.targetLocationFolderId,
       table.targetLocationObjectKey,
     ),
+    index('tasks_pending_core_idx')
+      .on(table.ownerIdentifier, table.startedAt)
+      .where(sql`${table.startedAt} IS NULL`),
+    index('tasks_created_at_idx').on(table.createdAt),
+    index('tasks_completed_at_success_idx').on(
+      table.completedAt,
+      table.success,
+    ),
+    index('tasks_target_user_id_idx').on(table.targetUserId),
   ],
 )
 

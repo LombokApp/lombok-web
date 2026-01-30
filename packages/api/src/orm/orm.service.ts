@@ -422,17 +422,17 @@ export class OrmService {
     await this.client.query(`
       CREATE OR REPLACE VIEW ${SHARED_FOLDER_ACL_SCHEMA}.${SHARED_FOLDER_ACL_FOLDER_VIEW} AS
       SELECT
-        f."id" AS "folderId",
-        f."ownerId" AS "userId",
+        f."id" AS "folder_id",
+        f."owner_id" AS "user_id",
         ARRAY['owner']::text[] AS "permissions",
-        TRUE AS "isOwner"
+        TRUE AS "is_owner"
       FROM public."folders" f
       UNION ALL
       SELECT
-        fs."folderId" AS "folderId",
-        fs."userId" AS "userId",
+        fs."folder_id" AS "folder_id",
+        fs."user_id" AS "user_id",
         fs."permissions" AS "permissions",
-        FALSE AS "isOwner"
+        FALSE AS "is_owner"
       FROM public."folder_shares" fs;
     `)
   }

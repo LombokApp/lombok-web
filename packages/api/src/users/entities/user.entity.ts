@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import {
   boolean,
+  index,
   jsonb,
   pgTable,
   text,
@@ -13,22 +14,23 @@ export const usersTable = pgTable(
   'users',
   {
     id: uuid('id').primaryKey(),
-    isAdmin: boolean('isAdmin').default(false).notNull(),
+    isAdmin: boolean('is_admin').default(false).notNull(),
     name: text('name'),
     username: text('username').notNull(),
     email: text('email'),
-    emailVerified: boolean('emailVerified').notNull().default(false),
+    emailVerified: boolean('email_verified').notNull().default(false),
     permissions: jsonb('permissions').$type<string[]>().notNull().default([]),
-    passwordHash: text('passwordHash'),
-    passwordSalt: text('passwordSalt'),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull(),
+    passwordHash: text('password_hash'),
+    passwordSalt: text('password_salt'),
+    createdAt: timestamp('created_at').notNull(),
+    updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
     // Case-insensitive unique index on username
     uniqueIndex('users_username_unique_lower').on(
       sql`lower(${table.username})`,
     ),
+    index('users_email_idx').on(table.email),
   ],
 )
 

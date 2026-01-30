@@ -1,5 +1,5 @@
 {
-  "id": "504d2251-a560-485e-985f-3480ea3ea48a",
+  "id": "d6eab62b-5d8b-4f10-aaec-2946211d54c9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -8,14 +8,14 @@
       "name": "app_folder_settings",
       "schema": "",
       "columns": {
-        "folderId": {
-          "name": "folderId",
+        "folder_id": {
+          "name": "folder_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "appIdentifier": {
-          "name": "appIdentifier",
+        "app_identifier": {
+          "name": "app_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -32,14 +32,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -50,7 +50,7 @@
           "name": "app_folder_settings_folder_id_idx",
           "columns": [
             {
-              "expression": "folderId",
+              "expression": "folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -65,13 +65,13 @@
           "name": "app_folder_settings_folder_app_unique",
           "columns": [
             {
-              "expression": "folderId",
+              "expression": "folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "appIdentifier",
+              "expression": "app_identifier",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -84,12 +84,12 @@
         }
       },
       "foreignKeys": {
-        "app_folder_settings_folderId_folders_id_fk": {
-          "name": "app_folder_settings_folderId_folders_id_fk",
+        "app_folder_settings_folder_id_folders_id_fk": {
+          "name": "app_folder_settings_folder_id_folders_id_fk",
           "tableFrom": "app_folder_settings",
           "tableTo": "folders",
           "columnsFrom": [
-            "folderId"
+            "folder_id"
           ],
           "columnsTo": [
             "id"
@@ -97,12 +97,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "app_folder_settings_appIdentifier_apps_identifier_fk": {
-          "name": "app_folder_settings_appIdentifier_apps_identifier_fk",
+        "app_folder_settings_app_identifier_apps_identifier_fk": {
+          "name": "app_folder_settings_app_identifier_apps_identifier_fk",
           "tableFrom": "app_folder_settings",
           "tableTo": "apps",
           "columnsFrom": [
-            "appIdentifier"
+            "app_identifier"
           ],
           "columnsTo": [
             "identifier"
@@ -121,14 +121,14 @@
       "name": "app_user_settings",
       "schema": "",
       "columns": {
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "appIdentifier": {
-          "name": "appIdentifier",
+        "app_identifier": {
+          "name": "app_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -139,14 +139,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "folderScopeEnabledDefault": {
-          "name": "folderScopeEnabledDefault",
+        "folder_scope_enabled_default": {
+          "name": "folder_scope_enabled_default",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false
         },
-        "folderScopePermissionsDefault": {
-          "name": "folderScopePermissionsDefault",
+        "folder_scope_permissions_default": {
+          "name": "folder_scope_permissions_default",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -157,14 +157,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -175,7 +175,7 @@
           "name": "app_user_settings_user_id_idx",
           "columns": [
             {
-              "expression": "userId",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -190,13 +190,13 @@
           "name": "app_user_settings_user_app_unique",
           "columns": [
             {
-              "expression": "userId",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "appIdentifier",
+              "expression": "app_identifier",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -209,12 +209,12 @@
         }
       },
       "foreignKeys": {
-        "app_user_settings_userId_users_id_fk": {
-          "name": "app_user_settings_userId_users_id_fk",
+        "app_user_settings_user_id_users_id_fk": {
+          "name": "app_user_settings_user_id_users_id_fk",
           "tableFrom": "app_user_settings",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -222,12 +222,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "app_user_settings_appIdentifier_apps_identifier_fk": {
-          "name": "app_user_settings_appIdentifier_apps_identifier_fk",
+        "app_user_settings_app_identifier_apps_identifier_fk": {
+          "name": "app_user_settings_app_identifier_apps_identifier_fk",
           "tableFrom": "app_user_settings",
           "tableTo": "apps",
           "columnsFrom": [
-            "appIdentifier"
+            "app_identifier"
           ],
           "columnsTo": [
             "identifier"
@@ -264,34 +264,34 @@
           "primaryKey": false,
           "notNull": true
         },
-        "publicKey": {
-          "name": "publicKey",
+        "public_key": {
+          "name": "public_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "requiresStorage": {
-          "name": "requiresStorage",
+        "requires_storage": {
+          "name": "requires_storage",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true
         },
-        "subscribedCoreEvents": {
-          "name": "subscribedCoreEvents",
+        "subscribed_core_events": {
+          "name": "subscribed_core_events",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,
           "default": "ARRAY[]::text[]"
         },
-        "implementedTasks": {
-          "name": "implementedTasks",
+        "implemented_tasks": {
+          "name": "implemented_tasks",
           "type": "text[]",
           "primaryKey": false,
           "notNull": true,
           "default": "ARRAY[]::text[]"
         },
-        "contentHash": {
-          "name": "contentHash",
+        "content_hash": {
+          "name": "content_hash",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -302,14 +302,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userScopeEnabledDefault": {
-          "name": "userScopeEnabledDefault",
+        "user_scope_enabled_default": {
+          "name": "user_scope_enabled_default",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true
         },
-        "folderScopeEnabledDefault": {
-          "name": "folderScopeEnabledDefault",
+        "folder_scope_enabled_default": {
+          "name": "folder_scope_enabled_default",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true
@@ -321,8 +321,8 @@
           "notNull": true,
           "default": "'{\"core\":[],\"user\":[],\"folder\":[]}'::jsonb"
         },
-        "runtimeWorkers": {
-          "name": "runtimeWorkers",
+        "runtime_workers": {
+          "name": "runtime_workers",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
@@ -346,8 +346,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "containerProfiles": {
-          "name": "containerProfiles",
+        "container_profiles": {
+          "name": "container_profiles",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
@@ -360,20 +360,51 @@
           "notNull": true,
           "default": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "apps_slug_unique": {
+          "name": "apps_slug_unique",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "apps_enabled_idx": {
+          "name": "apps_enabled_idx",
+          "columns": [
+            {
+              "expression": "enabled",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -397,8 +428,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -409,32 +440,63 @@
           "primaryKey": false,
           "notNull": true
         },
-        "typeDetails": {
-          "name": "typeDetails",
+        "type_details": {
+          "name": "type_details",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "expiresAt": {
-          "name": "expiresAt",
+        "expires_at": {
+          "name": "expires_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "session_user_id_idx": {
+          "name": "session_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "session_expires_at_idx": {
+          "name": "session_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -452,8 +514,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -464,32 +526,32 @@
           "primaryKey": false,
           "notNull": true
         },
-        "providerUserId": {
-          "name": "providerUserId",
+        "provider_user_id": {
+          "name": "provider_user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "providerEmail": {
-          "name": "providerEmail",
+        "provider_email": {
+          "name": "provider_email",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "providerName": {
-          "name": "providerName",
+        "provider_name": {
+          "name": "provider_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -497,12 +559,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "user_identities_userId_users_id_fk": {
-          "name": "user_identities_userId_users_id_fk",
+        "user_identities_user_id_users_id_fk": {
+          "name": "user_identities_user_id_users_id_fk",
           "tableFrom": "user_identities",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -518,14 +580,14 @@
           "nullsNotDistinct": false,
           "columns": [
             "provider",
-            "providerUserId"
+            "provider_user_id"
           ]
         },
         "unique_user_provider": {
           "name": "unique_user_provider",
           "nullsNotDistinct": false,
           "columns": [
-            "userId",
+            "user_id",
             "provider"
           ]
         }
@@ -864,6 +926,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_comments_folder_id": {
+          "name": "idx_comments_folder_id",
+          "columns": [
+            {
+              "expression": "folder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -962,32 +1045,32 @@
           "primaryKey": true,
           "notNull": true
         },
-        "eventIdentifier": {
-          "name": "eventIdentifier",
+        "event_identifier": {
+          "name": "event_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "emitterIdentifier": {
-          "name": "emitterIdentifier",
+        "emitter_identifier": {
+          "name": "emitter_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "targetUserId": {
-          "name": "targetUserId",
+        "target_user_id": {
+          "name": "target_user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocationFolderId": {
-          "name": "targetLocationFolderId",
+        "target_location_folder_id": {
+          "name": "target_location_folder_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocationObjectKey": {
-          "name": "targetLocationObjectKey",
+        "target_location_object_key": {
+          "name": "target_location_object_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -998,8 +1081,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -1010,7 +1093,73 @@
           "name": "events_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "targetLocationFolderId",
+              "expression": "target_location_folder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "events_created_at_idx": {
+          "name": "events_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "events_emitter_identifier_idx": {
+          "name": "events_emitter_identifier_idx",
+          "columns": [
+            {
+              "expression": "emitter_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "events_folder_created_at_idx": {
+          "name": "events_folder_created_at_idx",
+          "columns": [
+            {
+              "expression": "target_location_folder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "events_target_object_key_idx": {
+          "name": "events_target_object_key_idx",
+          "columns": [
+            {
+              "expression": "target_location_object_key",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1039,8 +1188,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "objectKey": {
-          "name": "objectKey",
+        "object_key": {
+          "name": "object_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1051,20 +1200,20 @@
           "primaryKey": false,
           "notNull": true
         },
-        "eTag": {
-          "name": "eTag",
+        "e_tag": {
+          "name": "e_tag",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "sizeBytes": {
-          "name": "sizeBytes",
+        "size_bytes": {
+          "name": "size_bytes",
           "type": "bigint",
           "primaryKey": false,
           "notNull": true
         },
-        "lastModified": {
-          "name": "lastModified",
+        "last_modified": {
+          "name": "last_modified",
           "type": "bigint",
           "primaryKey": false,
           "notNull": true
@@ -1075,38 +1224,38 @@
           "primaryKey": false,
           "notNull": false
         },
-        "contentMetadata": {
-          "name": "contentMetadata",
+        "content_metadata": {
+          "name": "content_metadata",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
-        "folderId": {
-          "name": "folderId",
+        "folder_id": {
+          "name": "folder_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "mimeType": {
-          "name": "mimeType",
+        "mime_type": {
+          "name": "mime_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "mediaType": {
-          "name": "mediaType",
+        "media_type": {
+          "name": "media_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -1117,19 +1266,19 @@
           "name": "folder_objects_folder_id_media_type_size_bytes_idx",
           "columns": [
             {
-              "expression": "folderId",
+              "expression": "folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "sizeBytes",
+              "expression": "size_bytes",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "mediaType",
+              "expression": "media_type",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1144,13 +1293,13 @@
           "name": "folder_objects_folder_id_media_type_idx",
           "columns": [
             {
-              "expression": "folderId",
+              "expression": "folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "mediaType",
+              "expression": "media_type",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1165,95 +1314,13 @@
           "name": "folder_objects_folder_id_object_key_unique",
           "columns": [
             {
-              "expression": "folderId",
+              "expression": "folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "objectKey",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.folder_shares": {
-      "name": "folder_shares",
-      "schema": "",
-      "columns": {
-        "folderId": {
-          "name": "folderId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "userId": {
-          "name": "userId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "permissions": {
-          "name": "permissions",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {
-        "user_idx": {
-          "name": "user_idx",
-          "columns": [
-            {
-              "expression": "userId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "folder_user_unique": {
-          "name": "folder_user_unique",
-          "columns": [
-            {
-              "expression": "folderId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "userId",
+              "expression": "object_key",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1266,17 +1333,126 @@
         }
       },
       "foreignKeys": {
-        "folder_shares_folderId_folders_id_fk": {
-          "name": "folder_shares_folderId_folders_id_fk",
+        "folder_objects_folder_id_folders_id_fk": {
+          "name": "folder_objects_folder_id_folders_id_fk",
+          "tableFrom": "folder_objects",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "folder_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.folder_shares": {
+      "name": "folder_shares",
+      "schema": "",
+      "columns": {
+        "folder_id": {
+          "name": "folder_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "folder_shares_user_id_idx": {
+          "name": "folder_shares_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "folder_shares_folder_user_unique": {
+          "name": "folder_shares_folder_user_unique",
+          "columns": [
+            {
+              "expression": "folder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "folder_shares_folder_id_folders_id_fk": {
+          "name": "folder_shares_folder_id_folders_id_fk",
           "tableFrom": "folder_shares",
           "tableTo": "folders",
           "columnsFrom": [
-            "folderId"
+            "folder_id"
           ],
           "columnsTo": [
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "folder_shares_user_id_users_id_fk": {
+          "name": "folder_shares_user_id_users_id_fk",
+          "tableFrom": "folder_shares",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -1302,51 +1478,97 @@
           "primaryKey": false,
           "notNull": true
         },
-        "contentLocationId": {
-          "name": "contentLocationId",
+        "content_location_id": {
+          "name": "content_location_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "metadataLocationId": {
-          "name": "metadataLocationId",
+        "metadata_location_id": {
+          "name": "metadata_location_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "ownerId": {
-          "name": "ownerId",
+        "owner_id": {
+          "name": "owner_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "accessError": {
-          "name": "accessError",
+        "access_error": {
+          "name": "access_error",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "folders_owner_id_idx": {
+          "name": "folders_owner_id_idx",
+          "columns": [
+            {
+              "expression": "owner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "folders_content_location_id_idx": {
+          "name": "folders_content_location_id_idx",
+          "columns": [
+            {
+              "expression": "content_location_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "folders_metadata_location_id_idx": {
+          "name": "folders_metadata_location_id_idx",
+          "columns": [
+            {
+              "expression": "metadata_location_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
-        "folders_contentLocationId_storage_locations_id_fk": {
-          "name": "folders_contentLocationId_storage_locations_id_fk",
+        "folders_content_location_id_storage_locations_id_fk": {
+          "name": "folders_content_location_id_storage_locations_id_fk",
           "tableFrom": "folders",
           "tableTo": "storage_locations",
           "columnsFrom": [
-            "contentLocationId"
+            "content_location_id"
           ],
           "columnsTo": [
             "id"
@@ -1354,12 +1576,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "folders_metadataLocationId_storage_locations_id_fk": {
-          "name": "folders_metadataLocationId_storage_locations_id_fk",
+        "folders_metadata_location_id_storage_locations_id_fk": {
+          "name": "folders_metadata_location_id_storage_locations_id_fk",
           "tableFrom": "folders",
           "tableTo": "storage_locations",
           "columnsFrom": [
-            "metadataLocationId"
+            "metadata_location_id"
           ],
           "columnsTo": [
             "id"
@@ -1367,12 +1589,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "folders_ownerId_users_id_fk": {
-          "name": "folders_ownerId_users_id_fk",
+        "folders_owner_id_users_id_fk": {
+          "name": "folders_owner_id_users_id_fk",
           "tableFrom": "folders",
           "tableTo": "users",
           "columnsFrom": [
-            "ownerId"
+            "owner_id"
           ],
           "columnsTo": [
             "id"
@@ -1403,20 +1625,20 @@
           "primaryKey": false,
           "notNull": true
         },
-        "emitterIdentifier": {
-          "name": "emitterIdentifier",
+        "emitter_identifier": {
+          "name": "emitter_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "targetLocationFolderId": {
-          "name": "targetLocationFolderId",
+        "target_location_folder_id": {
+          "name": "target_location_folder_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocationObjectKey": {
-          "name": "targetLocationObjectKey",
+        "target_location_object_key": {
+          "name": "target_location_object_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1433,8 +1655,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -1445,7 +1667,88 @@
           "name": "log_entries_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "targetLocationFolderId",
+              "expression": "target_location_folder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "log_entries_created_at_idx": {
+          "name": "log_entries_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "log_entries_emitter_identifier_idx": {
+          "name": "log_entries_emitter_identifier_idx",
+          "columns": [
+            {
+              "expression": "emitter_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "log_entries_folder_created_at_idx": {
+          "name": "log_entries_folder_created_at_idx",
+          "columns": [
+            {
+              "expression": "target_location_folder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "log_entries_level_idx": {
+          "name": "log_entries_level_idx",
+          "columns": [
+            {
+              "expression": "level",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "log_entries_target_object_key_idx": {
+          "name": "log_entries_target_object_key_idx",
+          "columns": [
+            {
+              "expression": "target_location_object_key",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1480,14 +1783,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -1511,14 +1814,14 @@
           "primaryKey": true,
           "notNull": true
         },
-        "accessKeyHashId": {
-          "name": "accessKeyHashId",
+        "access_key_hash_id": {
+          "name": "access_key_hash_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "providerType": {
-          "name": "providerType",
+        "provider_type": {
+          "name": "provider_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1535,8 +1838,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "endpointDomain": {
-          "name": "endpointDomain",
+        "endpoint_domain": {
+          "name": "endpoint_domain",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1547,14 +1850,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "accessKeyId": {
-          "name": "accessKeyId",
+        "access_key_id": {
+          "name": "access_key_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "secretAccessKey": {
-          "name": "secretAccessKey",
+        "secret_access_key": {
+          "name": "secret_access_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1571,33 +1874,106 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "storage_locations_user_id_idx": {
+          "name": "storage_locations_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "storage_locations_access_key_hash_id_idx": {
+          "name": "storage_locations_access_key_hash_id_idx",
+          "columns": [
+            {
+              "expression": "access_key_hash_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "storage_locations_provider_type_idx": {
+          "name": "storage_locations_provider_type_idx",
+          "columns": [
+            {
+              "expression": "provider_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "storage_locations_access_key_user_provider_idx": {
+          "name": "storage_locations_access_key_user_provider_idx",
+          "columns": [
+            {
+              "expression": "access_key_hash_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
-        "storage_locations_userId_users_id_fk": {
-          "name": "storage_locations_userId_users_id_fk",
+        "storage_locations_user_id_users_id_fk": {
+          "name": "storage_locations_user_id_users_id_fk",
           "tableFrom": "storage_locations",
           "tableTo": "users",
           "columnsFrom": [
-            "userId"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -1622,20 +1998,20 @@
           "primaryKey": true,
           "notNull": true
         },
-        "ownerIdentifier": {
-          "name": "ownerIdentifier",
+        "owner_identifier": {
+          "name": "owner_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "taskIdentifier": {
-          "name": "taskIdentifier",
+        "task_identifier": {
+          "name": "task_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "taskDescription": {
-          "name": "taskDescription",
+        "task_description": {
+          "name": "task_description",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1652,78 +2028,78 @@
           "primaryKey": false,
           "notNull": true
         },
-        "idempotencyKey": {
-          "name": "idempotencyKey",
+        "idempotency_key": {
+          "name": "idempotency_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "targetUserId": {
-          "name": "targetUserId",
+        "target_user_id": {
+          "name": "target_user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocationFolderId": {
-          "name": "targetLocationFolderId",
+        "target_location_folder_id": {
+          "name": "target_location_folder_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "targetLocationObjectKey": {
-          "name": "targetLocationObjectKey",
+        "target_location_object_key": {
+          "name": "target_location_object_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "startedAt": {
-          "name": "startedAt",
+        "started_at": {
+          "name": "started_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "completedAt": {
-          "name": "completedAt",
+        "completed_at": {
+          "name": "completed_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "attemptCount": {
-          "name": "attemptCount",
+        "attempt_count": {
+          "name": "attempt_count",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
-        "failureCount": {
-          "name": "failureCount",
+        "failure_count": {
+          "name": "failure_count",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
-        "dontStartBefore": {
-          "name": "dontStartBefore",
+        "dont_start_before": {
+          "name": "dont_start_before",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "systemLog": {
-          "name": "systemLog",
+        "system_log": {
+          "name": "system_log",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'::jsonb"
         },
-        "taskLog": {
-          "name": "taskLog",
+        "task_log": {
+          "name": "task_log",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'::jsonb"
         },
-        "storageAccessPolicy": {
-          "name": "storageAccessPolicy",
+        "storage_access_policy": {
+          "name": "storage_access_policy",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -1734,8 +2110,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "userVisible": {
-          "name": "userVisible",
+        "user_visible": {
+          "name": "user_visible",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -1747,32 +2123,32 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "latestHeartbeatAt": {
-          "name": "latestHeartbeatAt",
+        "latest_heartbeat_at": {
+          "name": "latest_heartbeat_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "handlerType": {
-          "name": "handlerType",
+        "handler_type": {
+          "name": "handler_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "handlerIdentifier": {
-          "name": "handlerIdentifier",
+        "handler_identifier": {
+          "name": "handler_identifier",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1798,19 +2174,19 @@
           "name": "tasks_idempotency_key_idx",
           "columns": [
             {
-              "expression": "ownerIdentifier",
+              "expression": "owner_identifier",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "taskIdentifier",
+              "expression": "task_identifier",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "idempotencyKey",
+              "expression": "idempotency_key",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1825,7 +2201,7 @@
           "name": "tasks_target_location_folder_id_idx",
           "columns": [
             {
-              "expression": "targetLocationFolderId",
+              "expression": "target_location_folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1840,13 +2216,86 @@
           "name": "tasks_target_location_folder_id_object_key_idx",
           "columns": [
             {
-              "expression": "targetLocationFolderId",
+              "expression": "target_location_folder_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "targetLocationObjectKey",
+              "expression": "target_location_object_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_pending_core_idx": {
+          "name": "tasks_pending_core_idx",
+          "columns": [
+            {
+              "expression": "owner_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "started_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"tasks\".\"started_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_created_at_idx": {
+          "name": "tasks_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_completed_at_success_idx": {
+          "name": "tasks_completed_at_success_idx",
+          "columns": [
+            {
+              "expression": "completed_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "success",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_target_user_id_idx": {
+          "name": "tasks_target_user_id_idx",
+          "columns": [
+            {
+              "expression": "target_user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1861,11 +2310,11 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "tasks_idempotencyKey_unique": {
-          "name": "tasks_idempotencyKey_unique",
+        "tasks_idempotency_key_unique": {
+          "name": "tasks_idempotency_key_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "idempotencyKey"
+            "idempotency_key"
           ]
         }
       },
@@ -1883,8 +2332,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "isAdmin": {
-          "name": "isAdmin",
+        "is_admin": {
+          "name": "is_admin",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -1908,8 +2357,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "emailVerified": {
-          "name": "emailVerified",
+        "email_verified": {
+          "name": "email_verified",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -1922,26 +2371,26 @@
           "notNull": true,
           "default": "'[]'::jsonb"
         },
-        "passwordHash": {
-          "name": "passwordHash",
+        "password_hash": {
+          "name": "password_hash",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "passwordSalt": {
-          "name": "passwordSalt",
+        "password_salt": {
+          "name": "password_salt",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
@@ -1959,6 +2408,21 @@
             }
           ],
           "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "users_email_idx": {
+          "name": "users_email_idx",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
