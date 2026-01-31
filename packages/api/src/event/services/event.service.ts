@@ -527,39 +527,41 @@ export class EventService {
     const coreTaskDefinitions =
       CORE_EVENT_TRIGGERS_TO_TASKS_MAP[event.eventIdentifier as CoreEvent] ?? []
 
-    const coreTasks: NewTask[] = coreTaskDefinitions.map(
-      (
-        {
-          taskIdentifier,
-          buildData,
-          buildTargetLocation,
-          calculateDontStartBefore,
-        },
-        eventTriggerConfigIndex,
-      ) => {
-        const targetLocation = buildTargetLocation?.(event)
-        return withTaskIdempotencyKey({
-          id: crypto.randomUUID(),
-          invocation: {
-            kind: 'event',
-            invokeContext: this.buildEventInvocation(
-              event,
-              eventTriggerConfigIndex,
-            ),
+    const coreTasks: NewTask[] = coreTaskDefinitions
+      .filter(({ condition }) => !condition || condition(event))
+      .map(
+        (
+          {
+            taskIdentifier,
+            buildData,
+            buildTargetLocation,
+            calculateDontStartBefore,
           },
-          taskIdentifier,
-          dontStartBefore: calculateDontStartBefore?.(event),
-          targetLocationFolderId: targetLocation?.folderId ?? null,
-          targetLocationObjectKey: targetLocation?.objectKey ?? null,
-          taskDescription: CORE_TASKS[taskIdentifier].description,
-          data: buildData(event),
-          ownerIdentifier: CORE_IDENTIFIER,
-          handlerType: CORE_IDENTIFIER,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        })
-      },
-    )
+          eventTriggerConfigIndex,
+        ) => {
+          const targetLocation = buildTargetLocation?.(event)
+          return withTaskIdempotencyKey({
+            id: crypto.randomUUID(),
+            invocation: {
+              kind: 'event',
+              invokeContext: this.buildEventInvocation(
+                event,
+                eventTriggerConfigIndex,
+              ),
+            },
+            taskIdentifier,
+            dontStartBefore: calculateDontStartBefore?.(event),
+            targetLocationFolderId: targetLocation?.folderId ?? null,
+            targetLocationObjectKey: targetLocation?.objectKey ?? null,
+            taskDescription: CORE_TASKS[taskIdentifier].description,
+            data: buildData(event),
+            ownerIdentifier: CORE_IDENTIFIER,
+            handlerType: CORE_IDENTIFIER,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          })
+        },
+      )
 
     return coreTasks
   }

@@ -32,6 +32,7 @@ export interface IAuthContext {
     signupSSOParams: SSOCallbackDTO,
   ) => ReturnType<Authenticator['handleSSOCallback']>
   logout: () => Promise<void>
+  verifyEmail: (token: string) => Promise<void>
   getAccessToken: () => Promise<string | undefined>
   redirectToLogin: (hard?: boolean) => void
   clearError: () => void
@@ -255,6 +256,11 @@ export const AuthContextProvider = ({
     [],
   )
 
+  const verifyEmail = React.useCallback(
+    (token: string) => authenticator.verifyEmail(token),
+    [],
+  )
+
   const clearError = React.useCallback(() => {
     setAuthError(undefined)
   }, [])
@@ -281,6 +287,7 @@ export const AuthContextProvider = ({
         completeSSOSignup,
         handleSSOCallback,
         logout,
+        verifyEmail,
         authState,
         getAccessToken,
         redirectToLogin,

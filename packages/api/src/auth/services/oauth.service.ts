@@ -89,13 +89,14 @@ export class OAuthService {
       const userInfo = (await userResponse.json()) as {
         id: string
         email: string
+        verified_email: boolean
         name: string
         picture: string
       }
 
       return {
         id: userInfo.id,
-        email: userInfo.email,
+        email: userInfo.verified_email ? userInfo.email : undefined,
         name: userInfo.name,
         picture: userInfo.picture,
       }

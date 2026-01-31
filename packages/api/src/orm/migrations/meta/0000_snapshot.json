@@ -1,5 +1,5 @@
 {
-  "id": "d6eab62b-5d8b-4f10-aaec-2946211d54c9",
+  "id": "d3f01245-aba3-4651-84b4-6d5dfc2ca1cd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2363,6 +2363,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "email_verification_key": {
+          "name": "email_verification_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "permissions": {
           "name": "permissions",

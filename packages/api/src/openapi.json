@@ -5731,6 +5731,51 @@
         ]
       }
     },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "operationId": "verifyEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify email using the token from the verification link.\nReturns 204 No Content on success; infer result from status code.",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/v1/auth/logout": {
       "post": {
         "operationId": "logout",
@@ -12599,11 +12644,16 @@
                         "required": [
                           "apiKey"
                         ]
+                      },
+                      "from": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "required": [
                       "provider",
-                      "config"
+                      "config",
+                      "from"
                     ]
                   },
                   {
@@ -12642,11 +12692,16 @@
                           "username",
                           "password"
                         ]
+                      },
+                      "from": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "required": [
                       "provider",
-                      "config"
+                      "config",
+                      "from"
                     ]
                   }
                 ],
@@ -16591,6 +16646,18 @@
         },
         "required": [
           "user"
+        ]
+      },
+      "VerifyEmailDTO": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "token"
         ]
       },
       "TokenRefreshResponse": {

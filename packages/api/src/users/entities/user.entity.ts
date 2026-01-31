@@ -19,6 +19,7 @@ export const usersTable = pgTable(
     username: text('username').notNull(),
     email: text('email'),
     emailVerified: boolean('email_verified').notNull().default(false),
+    emailVerificationKey: text('email_verification_key'),
     permissions: jsonb('permissions').$type<string[]>().notNull().default([]),
     passwordHash: text('password_hash'),
     passwordSalt: text('password_salt'),

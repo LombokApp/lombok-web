@@ -5,24 +5,26 @@ import { z } from 'zod'
 const EMBEDDED_POSTGRES = process.env.EMBEDDED_POSTGRES === 'true'
 
 export const ormConfig = registerAs('orm', () => {
-  const env = parseEnv({
-    DB_HOST: EMBEDDED_POSTGRES
-      ? z.undefined({
-          message: 'Should not set DB_HOST when EMBEDDED_POSTGRES=true',
-        })
-      : z.string().nonempty(),
-    DB_USER: z.string().nonempty(),
-    DB_PORT: EMBEDDED_POSTGRES
-      ? z.undefined({
-          message: 'Should not set DB_PORT when EMBEDDED_POSTGRES=true',
-        })
-      : z.string().refine(isInteger),
-    DB_NAME: z.string().nonempty(),
-    DB_PASSWORD: z.string().nonempty(),
-    RUN_MIGRATIONS: z.string().refine(isBoolean).optional(),
-    LOG_QUERIES: z.string().refine(isBoolean).optional(),
-    CREATE_DATABASE: z.string().refine(isBoolean).optional(),
-  })
+  const env = parseEnv(
+    z.object({
+      DB_HOST: EMBEDDED_POSTGRES
+        ? z.undefined({
+            message: 'Should not set DB_HOST when EMBEDDED_POSTGRES=true',
+          })
+        : z.string().nonempty(),
+      DB_USER: z.string().nonempty(),
+      DB_PORT: EMBEDDED_POSTGRES
+        ? z.undefined({
+            message: 'Should not set DB_PORT when EMBEDDED_POSTGRES=true',
+          })
+        : z.string().refine(isInteger),
+      DB_NAME: z.string().nonempty(),
+      DB_PASSWORD: z.string().nonempty(),
+      RUN_MIGRATIONS: z.string().refine(isBoolean).optional(),
+      LOG_QUERIES: z.string().refine(isBoolean).optional(),
+      CREATE_DATABASE: z.string().refine(isBoolean).optional(),
+    }),
+  )
   return {
     dbHost: env.DB_HOST ?? 'localhost',
     dbPort: env.DB_PORT ? parseInt(env.DB_PORT, 10) : 5432,

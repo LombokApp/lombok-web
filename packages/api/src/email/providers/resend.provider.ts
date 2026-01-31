@@ -1,3 +1,4 @@
+import { ServiceUnavailableException } from '@nestjs/common'
 import { Resend } from 'resend'
 
 import type { EmailProvider, SendEmailInput, SendEmailResult } from '../types'
@@ -8,7 +9,7 @@ export function createResendProvider(apiKey: string): EmailProvider {
   return {
     async send(input: SendEmailInput): Promise<SendEmailResult> {
       const to = Array.isArray(input.to) ? input.to : [input.to]
-      const { data } = await resend.emails.send({
+      const resendResponse = await resend.emails.send({
         from: input.from,
         to,
         subject: input.subject,
@@ -18,7 +19,14 @@ export function createResendProvider(apiKey: string): EmailProvider {
         cc: input.cc,
         bcc: input.bcc,
       })
-      return { messageId: data?.id }
+      if (resendResponse.error) {
+        const message =
+          typeof resendResponse.error.message === 'string'
+            ? resendResponse.error.message
+            : JSON.stringify(resendResponse.error)
+        throw new ServiceUnavailableException(message)
+      }
+      return { messageId: resendResponse.data?.id }
     },
   }
 }

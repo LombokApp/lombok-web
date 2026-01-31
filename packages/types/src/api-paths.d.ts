@@ -1152,6 +1152,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify email using the token from the verification link.
+         *     Returns 204 No Content on success; infer result from status code. */
+        post: operations["verifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/logout": {
         parameters: {
             query?: never;
@@ -2708,6 +2726,7 @@ export interface components {
                     config: {
                         apiKey: string;
                     };
+                    from: string;
                 } | {
                     /** @enum {string} */
                     provider: "smtp";
@@ -2717,6 +2736,7 @@ export interface components {
                         username: string;
                         password: string;
                     };
+                    from: string;
                 }) | null;
             };
         };
@@ -3746,6 +3766,9 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             };
+        };
+        VerifyEmailDTO: {
+            token: string;
         };
         TokenRefreshResponse: {
             session: {
@@ -7517,6 +7540,45 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SignupResponse"];
                 };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    verifyEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailDTO"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {

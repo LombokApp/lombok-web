@@ -31,20 +31,22 @@ export class CoreTaskService {
   runningTasksCount = 0
   draining: Promise<{ completed: number; pending: number }> | undefined
 
-  get folderSocketService(): FolderSocketService {
-    return this._folderSocketService as FolderSocketService
-  }
-  get appService(): AppService {
-    return this._appService as AppService
-  }
+  folderSocketService: FolderSocketService
+  taskService: TaskService
+  appService: AppService
   constructor(
-    @Inject(forwardRef(() => AppService))
-    private readonly _appService,
-    private readonly taskService: TaskService,
     private readonly ormService: OrmService,
+    @Inject(forwardRef(() => AppService))
+    _appService,
+    @Inject(forwardRef(() => TaskService))
+    _taskService,
     @Inject(forwardRef(() => FolderSocketService))
-    private readonly _folderSocketService,
-  ) {}
+    _folderSocketService,
+  ) {
+    this.folderSocketService = _folderSocketService as FolderSocketService
+    this.taskService = _taskService as TaskService
+    this.appService = _appService as AppService
+  }
 
   async startDrainCoreTasks() {
     const runId = crypto.randomUUID()

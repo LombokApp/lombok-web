@@ -11,9 +11,17 @@ export const smtpConfigSchema = z.object({
   password: z.string().min(1),
 })
 
-export const emailProviderConfigSchema = z.discriminatedUnion('provider', [
-  z.object({ provider: z.literal('resend'), config: resendConfigSchema }),
-  z.object({ provider: z.literal('smtp'), config: smtpConfigSchema }),
+const emailProviderConfigSchema = z.discriminatedUnion('provider', [
+  z.object({
+    provider: z.literal('resend'),
+    config: resendConfigSchema,
+    from: z.string().min(1),
+  }),
+  z.object({
+    provider: z.literal('smtp'),
+    config: smtpConfigSchema,
+    from: z.string().min(1),
+  }),
 ])
 
 export const emailProviderConfigNullableSchema =

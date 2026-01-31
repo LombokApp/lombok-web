@@ -41,7 +41,7 @@ describe('Auth', () => {
     expect(signupResponse.data).toBeDefined()
   })
 
-  it(`POST /api/v1/auth/signup (with conflict)`, async () => {
+  it(`POST /api/v1/auth/signup (with username conflict)`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
       .post('/api/v1/auth/signup')
@@ -57,7 +57,7 @@ describe('Auth', () => {
     await request(testModule?.app.getHttpServer())
       .post('/api/v1/auth/signup')
       .send({
-        username: 'mekpans2',
+        username: 'mekpans',
         email: 'steven@lombokapp.com',
         password: '123',
       })

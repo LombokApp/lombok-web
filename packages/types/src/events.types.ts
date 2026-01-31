@@ -9,6 +9,7 @@ export enum CoreEvent {
   folder_scanned = 'folder_scanned',
   serverless_task_enqueued = 'serverless_task_enqueued',
   docker_task_enqueued = 'docker_task_enqueued',
+  new_user_registered = 'new_user_registered',
 }
 
 export const eventIdentifierSchema = z

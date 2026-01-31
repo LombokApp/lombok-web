@@ -281,6 +281,16 @@ export class Authenticator {
     }
   }
 
+  public async verifyEmail(token: string): Promise<void> {
+    const response = await this.$apiClient.POST('/api/v1/auth/verify-email', {
+      body: { token },
+    })
+    const status = response.response.status
+    if (status < 200 || status >= 300) {
+      throw new Error('Email verification failed.')
+    }
+  }
+
   public async logout() {
     let error: unknown
     let backendLogoutFailed = false

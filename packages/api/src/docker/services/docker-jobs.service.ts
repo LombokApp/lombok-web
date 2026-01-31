@@ -15,6 +15,7 @@ import nestjsConfig from '@nestjs/config'
 import { and, eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { coreConfig } from 'src/core/config'
+import { buildPlatformOrigin } from 'src/core/utils/platform-origin.util'
 import { waitForTrue, WaitForTrueError } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
 
@@ -215,7 +216,7 @@ export class DockerJobsService {
               },
         platform_url: !jobToken
           ? undefined
-          : `http${this._coreConfig.platformHttps ? 's' : ''}://${this._coreConfig.platformHost}${this._coreConfig.platformPort !== null ? `:${this._coreConfig.platformPort}` : ''}`,
+          : buildPlatformOrigin(this._coreConfig),
         output_location: params.storageAccessPolicy?.outputLocation
           ? {
               folder_id: params.storageAccessPolicy.outputLocation.folderId,
