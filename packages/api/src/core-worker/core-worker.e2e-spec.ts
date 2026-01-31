@@ -503,7 +503,7 @@ describe('Core Worker', () => {
         appIdentifier: installedAppIdentifier,
         workerIdentifier: WORKER_IDENTIFIER,
         request: {
-          url: `/${WORKER_IDENTIFIER}/echo`,
+          url: `http://__SYSTEM__/worker-api/${WORKER_IDENTIFIER}/echo`,
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

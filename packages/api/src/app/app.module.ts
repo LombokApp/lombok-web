@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { coreConfig } from 'src/core/config'
 import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
+import { EmailModule } from 'src/email/email.module'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
@@ -20,6 +21,7 @@ import { AppService } from './services/app.service'
   imports: [
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(coreConfig),
+    EmailModule,
     EventModule,
     forwardRef(() => LogModule),
     StorageModule,

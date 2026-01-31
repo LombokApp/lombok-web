@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { serverStorageInputSchema } from '../dto/server-storage-input.dto'
 import { storageProvisionInputSchema } from '../dto/storage-provision-input.dto'
+import { emailProviderConfigNullableSchema } from '../schemas/email-provider-config.schema'
 
 // Google OAuth configuration schema
 export const googleOAuthConfigSchema = z.object({
@@ -24,6 +25,7 @@ export enum ServerConfigKey {
   SIGNUP_PERMISSIONS = 'SIGNUP_PERMISSIONS',
   SERVER_HOSTNAME = 'SERVER_HOSTNAME',
   GOOGLE_OAUTH_CONFIG = 'GOOGLE_OAUTH_CONFIG',
+  EMAIL_PROVIDER_CONFIG = 'EMAIL_PROVIDER_CONFIG',
 }
 
 export const STORAGE_PROVISIONS_CONFIG: ServerConfig<
@@ -78,6 +80,15 @@ export const GOOGLE_OAUTH_CONFIG: ServerConfig<typeof googleOAuthConfigSchema> =
     schema: googleOAuthConfigSchema,
   }
 
+export const EMAIL_PROVIDER_CONFIG: ServerConfig<
+  typeof emailProviderConfigNullableSchema
+> = {
+  key: ServerConfigKey.EMAIL_PROVIDER_CONFIG,
+  private: true,
+  default: null,
+  schema: emailProviderConfigNullableSchema,
+}
+
 export const CONFIGURATION_KEYS = [
   STORAGE_PROVISIONS_CONFIG,
   SERVER_STORAGE_CONFIG,
@@ -85,6 +96,7 @@ export const CONFIGURATION_KEYS = [
   SIGNUP_PERMISSIONS_CONFIG,
   SERVER_HOSTNAME_CONFIG,
   GOOGLE_OAUTH_CONFIG,
+  EMAIL_PROVIDER_CONFIG,
 ]
 
 export const CONFIGURATION_KEYS_MAP = CONFIGURATION_KEYS.reduce<
