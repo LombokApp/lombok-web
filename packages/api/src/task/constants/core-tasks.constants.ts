@@ -20,6 +20,16 @@ export const CORE_TASKS = {
   [CoreTaskName.SendEmailVerificationLink]: {
     description: 'Send email verification link to a newly signed-up user',
   },
+  [CoreTaskName.CreateEventNotifications]: {
+    description: 'Create notification records for an event or group of events',
+  },
+  [CoreTaskName.BuildNotificationDeliveries]: {
+    description:
+      'Create notification delivery records for a unique notification',
+  },
+  [CoreTaskName.SendNotificationEmails]: {
+    description: 'Send batched notification emails to users',
+  },
 }
 
 export const CORE_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
@@ -40,10 +50,8 @@ export const CORE_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
     {
       taskIdentifier: CoreTaskName.AnalyzeObject,
       buildData: (event: Event) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        folderId: event.targetLocationFolderId!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        objectKey: event.targetLocationObjectKey!,
+        folderId: event.targetLocationFolderId ?? null,
+        objectKey: event.targetLocationObjectKey ?? null,
       }),
       buildTargetLocation: (event: Event) => ({
         folderId: event.targetLocationFolderId ?? null,

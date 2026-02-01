@@ -12,6 +12,23 @@ export enum CoreEvent {
   new_user_registered = 'new_user_registered',
 }
 
+export enum EventNotificationAggregationScope {
+  SERVER = 'SERVER',
+  FOLDER = 'FOLDER',
+  FOLDER_OBJECT = 'FOLDER_OBJECT',
+}
+
+export type EventNotificationAggregationConfig =
+  | {
+      notificationsEnabled: false
+    }
+  | {
+      notificationsEnabled: true
+      aggregationScope: EventNotificationAggregationScope
+      debounceSeconds: number
+      maxIntervalSeconds?: number
+    }
+
 export const eventIdentifierSchema = z
   .string()
   .nonempty()

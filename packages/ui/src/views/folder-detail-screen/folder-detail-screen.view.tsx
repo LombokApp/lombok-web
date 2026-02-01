@@ -213,8 +213,14 @@ export const FolderDetailScreen = () => {
     0,
   )
 
+  const prevFiltersAndSortingRef = React.useRef(filtersAndSorting)
   React.useEffect(() => {
-    updateFetchParamsKey()
+    const prevJson = JSON.stringify(prevFiltersAndSortingRef.current)
+    const nextJson = JSON.stringify(filtersAndSorting)
+    if (prevJson !== nextJson) {
+      prevFiltersAndSortingRef.current = filtersAndSorting
+      updateFetchParamsKey()
+    }
   }, [filtersAndSorting])
 
   const messageHandler = React.useCallback(

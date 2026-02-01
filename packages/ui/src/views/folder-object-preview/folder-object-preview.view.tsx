@@ -32,12 +32,15 @@ export type DisplayConfig =
   | { type: 'preview_variant'; variantKey: string } // attempt to render a specific preview variant
   | { type: 'preview_purpose'; purposeType: string }
 
+const EMPTY_CONTENT_METADATA: Record<string, ContentMetadataEntry> = {}
+
 function resolveLatestContentMetadata(
   folderObject: FolderObjectDTO,
-): Record<string, ContentMetadataEntry> | undefined {
+): Record<string, ContentMetadataEntry> {
   return folderObject.hash && folderObject.contentMetadata[folderObject.hash]
-    ? (folderObject.contentMetadata[folderObject.hash] ?? {})
-    : {}
+    ? (folderObject.contentMetadata[folderObject.hash] ??
+        EMPTY_CONTENT_METADATA)
+    : EMPTY_CONTENT_METADATA
 }
 
 export const FolderObjectPreview = ({
@@ -61,10 +64,10 @@ export const FolderObjectPreview = ({
   const { getPresignedDownloadUrl } = useLocalFileCacheContext()
 
   const currentObjectContentMetadata =
-    resolveLatestContentMetadata(folderObject) ?? undefined
+    resolveLatestContentMetadata(folderObject)
 
   const previews = React.useMemo(() => {
-    return currentObjectContentMetadata?.previews?.type === 'inline'
+    return currentObjectContentMetadata.previews?.type === 'inline'
       ? (JSON.parse(currentObjectContentMetadata.previews.content) as Record<
           string,
           PreviewMetadata

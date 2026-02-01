@@ -15,6 +15,7 @@ import type { AppPathContribution } from '@/src/contexts/server'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
+import { NotificationsTrigger } from './notifications-trigger'
 
 interface MenuProps {
   isOpen: boolean | undefined
@@ -25,7 +26,7 @@ interface MenuProps {
 const protocol = window.location.protocol
 const hostname = window.location.hostname
 const port = window.location.port
-const API_HOST = `${hostname}${port ? `:${port}` : ''}`
+const API_HOST = `${hostname}${port && !['80', '443'].includes(port) ? `:${port}` : ''}`
 
 export function Menu({
   onSignOut,
@@ -160,7 +161,8 @@ export function Menu({
           </ul>
         </nav>
       </ScrollArea>
-      <div className="px-3 pb-2">
+      <div className="space-y-1 px-3 pb-2">
+        <NotificationsTrigger isOpen={isOpen} />
         <TooltipProvider disableHoverableContent>
           <Tooltip delayDuration={100}>
             <TooltipTrigger asChild>

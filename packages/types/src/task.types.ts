@@ -208,6 +208,13 @@ export const userActionTaskTriggerConfigSchema = z
 // The invoked task's invocation context
 export const taskInvocationSchema = z.discriminatedUnion('kind', [
   z.object({
+    kind: z.literal('system_action'),
+    invokeContext: z.object({
+      idempotencyData: jsonSerializableObjectSchema.optional(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+  }),
+  z.object({
     kind: z.literal('event'),
     invokeContext: z.object({
       eventId: z.string().uuid(),

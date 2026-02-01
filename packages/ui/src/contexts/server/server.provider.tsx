@@ -1,8 +1,14 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import type { AppContributionsResponse, AppPushMessage } from '@lombokapp/types'
-import { ServerPushMessage } from '@lombokapp/types'
+import type { AppContributionsResponse } from '@lombokapp/types'
+import { ServerPushMessage, UserPushMessage } from '@lombokapp/types'
+import { ToastAction } from '@lombokapp/ui-toolkit/components/toast'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
+import { useQueryClient } from '@tanstack/react-query'
+import { Bell } from 'lucide-react'
 import React from 'react'
+import { Link } from 'react-router'
 
+import { formatNotificationTitle } from '@/src/components/notifications/format-notification'
 import { $api } from '@/src/services/api'
 
 import { useWebsocket } from '../../hooks/use-websocket'
@@ -72,6 +78,8 @@ export const ServerContextProvider = ({
   children: React.ReactNode
 }) => {
   const authContext = useAuthContext()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
   const [appsLoaded, setAppsLoaded] = React.useState(false)
   const appsContributionsQuery = $api.useQuery(
     'get',
@@ -111,14 +119,77 @@ export const ServerContextProvider = ({
   }, [appContributionsResult])
 
   const messageHandler = React.useCallback(
-    (name: AppPushMessage) => {
-      if (ServerPushMessage.APPS_UPDATED === name) {
+    (name: string, payload?: unknown) => {
+      if (
+        ServerPushMessage.APPS_UPDATED ===
+        ServerPushMessage[name as keyof typeof ServerPushMessage]
+      ) {
         void appsContributionsQuery.refetch()
-      } else if (ServerPushMessage.SETTINGS_UPDATED === name) {
+      } else if (
+        ServerPushMessage.SETTINGS_UPDATED ===
+        ServerPushMessage[name as keyof typeof ServerPushMessage]
+      ) {
         void refetchSettings()
+      } else if (
+        UserPushMessage.NOTIFICATION_DELIVERED ===
+        UserPushMessage[name as keyof typeof UserPushMessage]
+      ) {
+        const data =
+          payload != null &&
+          typeof payload === 'object' &&
+          'notification' in payload
+            ? (payload as {
+                notification: {
+                  title?: string
+                  body?: string | null
+                  image?: string | null
+                  path?: string | null
+                  eventType?: string
+                }
+              })
+            : null
+        const notification = data?.notification
+        if (notification) {
+          const notificationTitle =
+            notification.title ??
+            formatNotificationTitle(notification.eventType ?? '')
+          const path = notification.path ?? undefined
+          toast({
+            variant: 'notification',
+            title: (
+              <span className="flex items-center gap-2.5">
+                {notification.image ? (
+                  <img
+                    src={notification.image}
+                    alt=""
+                    className="size-8 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <Bell className="size-4 text-primary" />
+                  </span>
+                )}
+                <span className="font-medium">{notificationTitle}</span>
+              </span>
+            ),
+            description: notification.body ?? undefined,
+            action:
+              path !== undefined ? (
+                <ToastAction altText="View" asChild>
+                  <Link to={path}>View</Link>
+                </ToastAction>
+              ) : undefined,
+          })
+          void queryClient.invalidateQueries({
+            queryKey: ['get', '/api/v1/notifications'],
+          })
+          void queryClient.invalidateQueries({
+            queryKey: ['get', '/api/v1/notifications/unread-count'],
+          })
+        }
       }
     },
-    [appsContributionsQuery, refetchSettings],
+    [appsContributionsQuery, refetchSettings, toast, queryClient],
   )
 
   const { socket } = useWebsocket('user', messageHandler)

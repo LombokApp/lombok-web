@@ -1,11 +1,19 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import type { FolderPushMessage } from '@lombokapp/types'
+import type {
+  FolderPushMessage,
+  ServerPushMessage,
+  UserPushMessage,
+} from '@lombokapp/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
+export type PushMessage =
+  | FolderPushMessage
+  | ServerPushMessage
+  | UserPushMessage
 type MessageCallback = (
-  name: FolderPushMessage,
+  name: PushMessage,
   payload: Record<string, string>,
 ) => void
 

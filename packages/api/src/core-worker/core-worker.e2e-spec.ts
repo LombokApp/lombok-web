@@ -995,8 +995,6 @@ describe('Core Worker', () => {
         },
       )
 
-    await testModule!.waitForTasks('completed')
-
     expect(folderObject?.hash).toBe(expectedContentHash)
     expect(folderObject?.mimeType).toBeDefined()
     expect(folderObject?.mediaType).toBeDefined()

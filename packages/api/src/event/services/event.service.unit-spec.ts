@@ -8,7 +8,10 @@ const baseEvent: Event = {
   id: 'event-id',
   eventIdentifier: 'worker_task_enqueued',
   emitterIdentifier: CORE_IDENTIFIER,
+  aggregationHandledAt: null,
+  aggregationKey: null,
   targetUserId: null,
+  actorUserId: null,
   targetLocationFolderId: null,
   targetLocationObjectKey: null,
   data: {

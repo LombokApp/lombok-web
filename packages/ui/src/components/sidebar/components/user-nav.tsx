@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@lombokapp/ui-toolkit/components/tooltip'
-import { LayoutGrid, LogOut, SettingsIcon } from 'lucide-react'
+import { LayoutGrid, LogOut, UserIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 export function UserNav({
@@ -77,9 +77,9 @@ export function UserNav({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link to="/settings" className="flex items-center">
-              <SettingsIcon className="mr-3 size-4 text-muted-foreground" />
-              Settings
+            <Link to="/account/settings" className="flex items-center">
+              <UserIcon className="mr-3 size-4 text-muted-foreground" />
+              Account
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

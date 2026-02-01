@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -141,7 +142,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     // Get folder objects
     const listObjectsResponse = await apiClient(accessToken).GET(
@@ -212,7 +215,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -288,7 +293,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -364,7 +371,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -438,7 +447,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -545,7 +556,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -639,7 +652,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -765,7 +780,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -871,7 +888,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1002,7 +1021,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1122,7 +1143,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1229,7 +1252,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1373,7 +1398,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken1).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1452,7 +1479,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1516,7 +1545,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1586,7 +1617,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(ownerToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1653,7 +1686,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(ownerToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1733,7 +1768,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(ownerToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -1826,7 +1863,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     // Share folder with user
     await apiClient(ownerToken).POST(
@@ -1923,7 +1962,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     // Share folder with user
     await apiClient(ownerToken).POST(
@@ -2043,7 +2084,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -2224,7 +2267,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -2357,7 +2402,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(ownerToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -2459,7 +2506,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(ownerToken).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -2542,7 +2591,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(user1Token).GET(
       '/api/v1/folders/{folderId}/objects',
@@ -2632,7 +2683,9 @@ describe('Comments', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',

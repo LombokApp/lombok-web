@@ -105,10 +105,19 @@ CREATE TABLE "events" (
 	"event_identifier" text NOT NULL,
 	"emitter_identifier" text NOT NULL,
 	"target_user_id" uuid,
+	"actor_user_id" uuid,
 	"target_location_folder_id" uuid,
 	"target_location_object_key" text,
 	"data" jsonb,
-	"created_at" timestamp NOT NULL
+	"aggregation_key" text,
+	"aggregation_handled_at" timestamp,
+	"created_at" timestamp NOT NULL,
+	CONSTRAINT "anchor_only_on_root" CHECK (
+      (target_user_id IS NOT NULL AND target_location_folder_id IS NULL AND target_location_object_key IS NULL) OR
+      (target_user_id IS NULL AND target_location_folder_id IS NULL AND target_location_object_key IS NULL) OR
+      (target_user_id IS NULL AND target_location_folder_id IS NOT NULL AND target_location_object_key IS NOT NULL) OR
+      (target_user_id IS NULL AND target_location_folder_id IS NOT NULL AND target_location_object_key IS NULL)
+    )
 );
 --> statement-breakpoint
 CREATE TABLE "folder_objects" (
@@ -155,6 +164,49 @@ CREATE TABLE "log_entries" (
 	"level" text NOT NULL,
 	"data" jsonb,
 	"created_at" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "notification_deliveries" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"notification_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL,
+	"read_at" timestamp,
+	"email_status" text,
+	"email_sent_at" timestamp,
+	"email_failed_at" timestamp,
+	"email_error" jsonb,
+	"mobile_status" text,
+	"mobile_sent_at" timestamp,
+	"mobile_failed_at" timestamp,
+	"mobile_error" jsonb,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "notification_settings" (
+	"user_id" uuid NOT NULL,
+	"event_identifier" text NOT NULL,
+	"emitter_identifier" text NOT NULL,
+	"channel" text NOT NULL,
+	"enabled" boolean NOT NULL,
+	"folder_id" uuid,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "notifications" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"event_identifier" text NOT NULL,
+	"emitter_identifier" text NOT NULL,
+	"aggregation_key" text NOT NULL,
+	"target_location_folder_id" uuid,
+	"target_location_object_key" text,
+	"target_user_id" uuid,
+	"event_ids" uuid[] NOT NULL,
+	"title" text NOT NULL,
+	"body" text,
+	"image" text,
+	"path" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "server_settings" (
@@ -246,6 +298,12 @@ ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_user_id_users_id_fk" F
 ALTER TABLE "folders" ADD CONSTRAINT "folders_content_location_id_storage_locations_id_fk" FOREIGN KEY ("content_location_id") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_metadata_location_id_storage_locations_id_fk" FOREIGN KEY ("metadata_location_id") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notification_deliveries" ADD CONSTRAINT "notification_deliveries_notification_id_notifications_id_fk" FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notification_deliveries" ADD CONSTRAINT "notification_deliveries_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notification_settings" ADD CONSTRAINT "notification_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notification_settings" ADD CONSTRAINT "notification_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_target_location_folder_id_folders_id_fk" FOREIGN KEY ("target_location_folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_target_user_id_users_id_fk" FOREIGN KEY ("target_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING btree ("folder_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folder_id","app_identifier");--> statement-breakpoint
@@ -262,10 +320,14 @@ CREATE INDEX "idx_comments_thread_flat" ON "comments" USING btree ("root_id","cr
 CREATE INDEX "idx_comments_tombstone_lookup" ON "comments" USING btree ("id","deleted_at","author_id");--> statement-breakpoint
 CREATE INDEX "idx_comments_folder_id" ON "comments" USING btree ("folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "events_target_location_folder_id_idx" ON "events" USING btree ("target_location_folder_id");--> statement-breakpoint
+CREATE INDEX "events_actor_user_id_idx" ON "events" USING btree ("actor_user_id");--> statement-breakpoint
+CREATE INDEX "events_target_user_id_idx" ON "events" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "events_created_at_idx" ON "events" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "events_emitter_identifier_idx" ON "events" USING btree ("emitter_identifier");--> statement-breakpoint
 CREATE INDEX "events_folder_created_at_idx" ON "events" USING btree ("target_location_folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "events_target_object_key_idx" ON "events" USING btree ("target_location_object_key");--> statement-breakpoint
+CREATE INDEX "events_aggregation_key_idx" ON "events" USING btree ("aggregation_key");--> statement-breakpoint
+CREATE INDEX "events_aggregation_handled_at_idx" ON "events" USING btree ("aggregation_handled_at");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_size_bytes_idx" ON "folder_objects" USING btree ("folder_id","size_bytes","media_type");--> statement-breakpoint
 CREATE INDEX "folder_objects_folder_id_media_type_idx" ON "folder_objects" USING btree ("folder_id","media_type");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_objects_folder_id_object_key_unique" ON "folder_objects" USING btree ("folder_id","object_key");--> statement-breakpoint
@@ -280,6 +342,17 @@ CREATE INDEX "log_entries_emitter_identifier_idx" ON "log_entries" USING btree (
 CREATE INDEX "log_entries_folder_created_at_idx" ON "log_entries" USING btree ("target_location_folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "log_entries_level_idx" ON "log_entries" USING btree ("level");--> statement-breakpoint
 CREATE INDEX "log_entries_target_object_key_idx" ON "log_entries" USING btree ("target_location_object_key");--> statement-breakpoint
+CREATE INDEX "notification_deliveries_notification_id_idx" ON "notification_deliveries" USING btree ("notification_id");--> statement-breakpoint
+CREATE INDEX "notification_deliveries_user_id_idx" ON "notification_deliveries" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "notification_deliveries_notification_user_unique" ON "notification_deliveries" USING btree ("notification_id","user_id");--> statement-breakpoint
+CREATE INDEX "notification_settings_user_id_emitter_identifier_idx" ON "notification_settings" USING btree ("user_id","emitter_identifier","event_identifier");--> statement-breakpoint
+CREATE INDEX "notification_settings_emitter_identifier_idx" ON "notification_settings" USING btree ("emitter_identifier");--> statement-breakpoint
+CREATE INDEX "notification_settings_folder_id_idx" ON "notification_settings" USING btree ("folder_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "notification_settings_user_emitter_identifier_channel_unique" ON "notification_settings" USING btree ("user_id","emitter_identifier","event_identifier","channel");--> statement-breakpoint
+CREATE INDEX "notifications_user_id_created_at_idx" ON "notifications" USING btree ("target_user_id","created_at");--> statement-breakpoint
+CREATE INDEX "notifications_aggregation_key_idx" ON "notifications" USING btree ("aggregation_key");--> statement-breakpoint
+CREATE INDEX "notifications_target_location_folder_id_idx" ON "notifications" USING btree ("target_location_folder_id");--> statement-breakpoint
+CREATE INDEX "notifications_emitter_identifier_idx" ON "notifications" USING btree ("emitter_identifier");--> statement-breakpoint
 CREATE INDEX "storage_locations_user_id_idx" ON "storage_locations" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "storage_locations_access_key_hash_id_idx" ON "storage_locations" USING btree ("access_key_hash_id");--> statement-breakpoint
 CREATE INDEX "storage_locations_provider_type_idx" ON "storage_locations" USING btree ("provider_type");--> statement-breakpoint

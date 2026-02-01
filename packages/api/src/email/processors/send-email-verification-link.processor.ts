@@ -12,6 +12,8 @@ import { BaseCoreTaskProcessor } from 'src/task/base.processor'
 import { CoreTaskName } from 'src/task/task.constants'
 import { usersTable } from 'src/users/entities/user.entity'
 
+import { EmailNotConfiguredException } from '../exceptions/email-not-configured.exception'
+
 @Injectable()
 export class SendEmailVerificationLinkProcessor extends BaseCoreTaskProcessor<CoreTaskName.SendEmailVerificationLink> {
   constructor(
@@ -73,7 +75,12 @@ export class SendEmailVerificationLinkProcessor extends BaseCoreTaskProcessor<Co
           html: `<!DOCTYPE html><html><body><p>Please verify your email by opening this link:</p><p><a href="${verificationUrl}">${verificationUrl}</a></p><p>This link expires in 24 hours.</p></body></html>`,
         })
       } catch (err) {
-        this.logger.warn({ err, userId }, 'Failed to send verification email')
+        if (err instanceof EmailNotConfiguredException) {
+          this.logger.error(
+            { err, userId },
+            'Failed to send verification email because email provider is not configured',
+          )
+        }
         throw err
       }
     })

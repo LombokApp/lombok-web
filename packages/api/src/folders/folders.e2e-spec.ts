@@ -1,5 +1,6 @@
 import { StorageProvisionTypeEnum } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -299,7 +300,9 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     const listObjectsResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/objects',

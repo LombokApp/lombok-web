@@ -1,4 +1,5 @@
 import type { UserDTO } from '@lombokapp/types'
+import { Card, CardContent } from '@lombokapp/ui-toolkit/components/card'
 import type { NullablePartial } from '@lombokapp/utils'
 import React from 'react'
 
@@ -38,13 +39,28 @@ export function UserProfileScreen() {
   )
 
   return (
-    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
-      <div className="container flex flex-1 flex-col">
-        <h1 className="text-3xl font-bold tracking-tight">{user?.username}</h1>
-        <div className="inline-block min-w-full py-2 align-middle">
-          <ProfileUserForm onSubmit={handleSubmitClick} value={userFormState} />
-        </div>
+    <div className="flex h-full max-h-full flex-1 flex-col gap-4">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+        <p className="text-muted-foreground">
+          Manage your profile information.
+        </p>
       </div>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-1 flex-col">
+            <h1 className="text-3xl font-bold tracking-tight">
+              {user?.username}
+            </h1>
+            <div className="inline-block min-w-full py-2 align-middle">
+              <ProfileUserForm
+                onSubmit={handleSubmitClick}
+                value={userFormState}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

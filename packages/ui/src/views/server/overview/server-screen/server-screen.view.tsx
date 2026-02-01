@@ -63,7 +63,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
           <div className="flex min-h-max w-full flex-1 flex-col self-stretch overflow-x-visible">
             <ContainerElement>
               <div className="container mx-auto h-full">
-                <div className="flex size-full flex-col items-center [&>*:first-child]:!h-full [&>*:first-child]:!w-full [&>*:first-child]:pb-8">
+                <div className="flex size-full flex-col items-center [&>*:first-child]:!size-full [&>*:first-child]:pb-8">
                   {isOverviewScreen && <ServerOverviewContent />}
                   {isUsersScreen && <ServerUsersScreen />}
                   {isEventsScreen && <ServerEventsScreen />}

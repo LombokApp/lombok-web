@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -99,7 +100,9 @@ describe('Folder Objects', () => {
       folderId: testFolder.folder.id,
     })
 
-    await testModule!.waitForTasks('completed')
+    await testModule!.waitForTasks('completed', {
+      taskIdentifiers: [CoreTaskName.ReindexFolder],
+    })
 
     // Check initial state
     const initialListObjectsResponse = await apiClient(accessToken).GET(

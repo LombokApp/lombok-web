@@ -20,17 +20,8 @@ import React from 'react'
 
 type EmailProviderKind = 'disabled' | 'resend' | 'smtp'
 
-type EmailProviderConfig =
-  | {
-      from?: string
-      provider: 'resend'
-      config: { apiKey: string }
-    }
-  | {
-      from?: string
-      provider: 'smtp'
-      config: { host: string; port: number; username: string; password: string }
-    }
+export type EmailProviderConfig =
+  | ServerSettingsGetResponse['settings']['EMAIL_PROVIDER_CONFIG']
   | null
 
 interface ServerEmailConfigTabProps {
@@ -47,23 +38,37 @@ function parsePort(portStr: string): number | null {
 }
 
 function configToKind(config: EmailProviderConfig): EmailProviderKind {
-  if (config == null) {
+  if (!config) {
     return 'disabled'
   }
   return config.provider
+}
+
+function stableSerialize(value: unknown): string {
+  return JSON.stringify(value, (_key, val: unknown) => {
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      const ordered: Record<string, unknown> = {}
+      for (const key of Object.keys(val).sort()) {
+        ordered[key] = (val as Record<string, unknown>)[key]
+      }
+      return ordered
+    }
+    return val
+  })
 }
 
 export function ServerEmailConfigTab({
   settings,
   onSaveEmailProviderConfig,
 }: ServerEmailConfigTabProps) {
-  const currentConfig = settings?.EMAIL_PROVIDER_CONFIG ?? null
+  const currentConfig: EmailProviderConfig | null =
+    settings?.EMAIL_PROVIDER_CONFIG ?? null
 
   const [providerKind, setProviderKind] = React.useState<EmailProviderKind>(
-    () => configToKind(currentConfig ?? null),
+    () => configToKind(currentConfig),
   )
   const [from, setFrom] = React.useState(
-    currentConfig && 'from' in currentConfig ? currentConfig.from : '',
+    currentConfig ? currentConfig.from : '',
   )
   const [resendApiKey, setResendApiKey] = React.useState(
     currentConfig?.provider === 'resend' ? currentConfig.config.apiKey : '',
@@ -84,9 +89,10 @@ export function ServerEmailConfigTab({
   )
 
   React.useEffect(() => {
-    const config = settings?.EMAIL_PROVIDER_CONFIG ?? null
+    const config = (settings?.EMAIL_PROVIDER_CONFIG ??
+      null) as EmailProviderConfig
     setProviderKind(configToKind(config))
-    setFrom(config && 'from' in config ? config.from : '')
+    setFrom(config ? config.from : '')
     if (config?.provider === 'resend') {
       setResendApiKey(config.config.apiKey)
     } else {
@@ -125,8 +131,8 @@ export function ServerEmailConfigTab({
         config: { apiKey: resendApiKey.trim() },
       }
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (providerKind === 'smtp' && smtpPort !== null) {
+    // providerKind === 'smtp'
+    if (smtpPort !== null) {
       return {
         from: fromTrimmed,
         provider: 'smtp',
@@ -143,7 +149,7 @@ export function ServerEmailConfigTab({
 
   const newConfig = buildNewConfig()
   const hasChanged =
-    JSON.stringify(newConfig) !== JSON.stringify(currentConfig ?? null)
+    stableSerialize(newConfig) !== stableSerialize(currentConfig)
   const canSave =
     onSaveEmailProviderConfig &&
     (providerKind === 'disabled' ||

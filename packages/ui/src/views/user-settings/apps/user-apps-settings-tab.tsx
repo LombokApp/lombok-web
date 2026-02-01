@@ -1,9 +1,4 @@
-import {
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@lombokapp/ui-toolkit/components/card'
+import { CardContent } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { Link } from 'react-router'
 
@@ -28,15 +23,13 @@ export function UserAppsSettingsTab() {
 
   if (apps.length === 0) {
     return (
-      <div className="grid gap-6">
+      <div className="flex h-full max-h-full flex-1 flex-col gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Apps</h1>
+          <p className="text-muted-foreground">Customize your app settings.</p>
+        </div>
         <Card>
-          <CardHeader>
-            <CardTitle>App Settings</CardTitle>
-            <CardDescription>
-              Configure settings for installed apps.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">
               No enabled apps available for configuration.
             </p>
@@ -47,7 +40,11 @@ export function UserAppsSettingsTab() {
   }
 
   return (
-    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
+    <div className="flex h-full max-h-full flex-1 flex-col gap-4">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">App Settings</h1>
+        <p className="text-muted-foreground">Customize your app settings.</p>
+      </div>
       <div>
         <h1 className="text-3xl font-bold tracking-tight">App Settings</h1>
         <p className="text-muted-foreground">
