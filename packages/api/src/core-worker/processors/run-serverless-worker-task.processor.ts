@@ -1,4 +1,5 @@
 import { TaskCompletion } from '@lombokapp/types'
+import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
@@ -8,10 +9,6 @@ import { TaskService } from 'src/task/services/task.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 
-import {
-  AsyncWorkError,
-  buildUnexpectedError,
-} from '../../../../worker-utils/src'
 import { CoreWorkerService } from '../core-worker.service'
 
 @Injectable()

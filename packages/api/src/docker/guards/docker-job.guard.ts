@@ -1,6 +1,7 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { Request } from 'express'
+import { z } from 'zod'
 
 import {
   DockerWorkerHookService,
@@ -29,9 +30,9 @@ export class DockerJobGuard implements CanActivate {
 
     const token = authHeader.slice(BEARER_PREFIX.length)
 
-    // Get the job ID from the URL params
-    const jobId = request.params.jobId
-    if (!jobId) {
+    // Get the job ID from the URL
+    const jobId = request.url.slice(1).split('/')[0]
+    if (!jobId?.length || !z.string().uuid().safeParse(jobId).success) {
       throw new UnauthorizedException('Missing job ID in request')
     }
 

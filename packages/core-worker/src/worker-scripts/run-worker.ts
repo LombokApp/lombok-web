@@ -493,7 +493,7 @@ if (await fs.promises.exists(cacheRoot)) {
       'Cleaning previous worker cache directory before starting',
     )
   }
-  fs.rmdirSync(cacheRoot, { recursive: true })
+  fs.rmSync(cacheRoot, { recursive: true })
 }
 
 const prepCacheRoot = path.join(os.tmpdir(), 'lombok-worker-prep-cache')
@@ -506,7 +506,7 @@ if (await fs.promises.exists(prepCacheRoot)) {
       'Cleaning previous worker prep cache directory before starting',
     )
   }
-  fs.rmdirSync(prepCacheRoot, { recursive: true })
+  fs.rmSync(prepCacheRoot, { recursive: true })
 }
 
 // Platform-aware mounts below: choose first existing path for each category

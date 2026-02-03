@@ -9,17 +9,16 @@ services:
       PLATFORM_PORT: 8090
       INITIAL_USER: demo
       AUTH_JWT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # replace with a random string
+      AUTH_EMAIL_VERIFICATION_JWT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      AUTH_EMAIL_VERIFICATION_FROM: noreply@lombok.app
       DB_PASSWORD: demodemodemodemodemodemo
       DB_NAME: lombok_demo
       DB_USER: lombok_demo
-      LOG_LEVEL: debug
-      INIT_EVENT_JOBS: true
-      INSTALL_APPS_ON_START: true
+      LOG_LEVEL: DEBUG
       CREATE_DATABASE: true
       RUN_MIGRATIONS: true
-      DISABLE_EMBEDDED_CORE_APP_WORKER: false
-      PRINT_EMBEDDED_CORE_APP_WORKER_OUTPUT: true
-      PRINT_EMBEDDED_CORE_APP_NSJAIL_VERBOSE_OUTPUT: true
+      PRINT_CORE_WORKER_OUTPUT: true
+      PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT: true
     volumes:
       - ./.docker/postgres-standalone/:/var/lib/postgresql/data
     ports:

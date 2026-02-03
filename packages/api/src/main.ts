@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { CoreModule } from './core/core.module'
 import { appReference, setApp, setAppInitializing } from './shared/app-helper'
 import { HttpExceptionFilter } from './shared/http-exception-filter'
+import { getLogLevelsFromMinimum } from './shared/logger-levels.util'
 import { NoPrefixConsoleLogger } from './shared/no-prefix-console-logger'
 import { runWithThreadContext } from './shared/thread-context'
 
@@ -15,12 +16,7 @@ export async function buildApp() {
     colors: true,
     timestamp: true,
     // json: true,
-    logLevels:
-      process.env.LOG_LEVEL === 'ALL'
-        ? ['log', 'error', 'warn', 'debug', 'fatal', 'verbose']
-        : process.env.LOG_LEVEL === 'DEBUG'
-          ? ['log', 'error', 'warn', 'fatal', 'debug']
-          : ['log', 'error', 'warn', 'fatal'],
+    logLevels: getLogLevelsFromMinimum(process.env.LOG_LEVEL ?? 'log'),
   })
   const creationPromise = NestFactory.create(CoreModule, {
     logger,

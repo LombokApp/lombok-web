@@ -1,8 +1,8 @@
+import { NotReadyAsyncWorkError } from '@lombokapp/worker-utils'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { BaseCoreTaskProcessor } from 'src/task/base.processor'
 import { CoreTaskName } from 'src/task/task.constants'
 
-import { NotReadyAsyncWorkError } from '../../../../worker-utils/src'
 import { CoreWorkerService } from '../core-worker.service'
 
 @Injectable()
