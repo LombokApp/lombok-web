@@ -215,7 +215,9 @@ const triggerAppDockerHandledTask = async (
   )
 
   // console.log('events', events)
-  const dockerTaskEnqueuedEvent = events[0]
+  const dockerTaskEnqueuedEvent = events.find(
+    (e) => e.eventIdentifier !== 'new_user_registered',
+  )
 
   if (expectRecords) {
     const profileIdentifier = taskDefinition.handler.identifier.split(':')[0]!
@@ -269,7 +271,7 @@ const triggerAppDockerHandledTask = async (
         invokeContext: {
           eventIdentifier: CoreEvent.docker_task_enqueued,
           eventTriggerConfigIndex: 0,
-          eventId: events[0]!.id,
+          eventId: dockerTaskEnqueuedEvent!.id,
           emitterIdentifier: CORE_IDENTIFIER,
           eventData: {
             innerTaskId: expect.any(String),

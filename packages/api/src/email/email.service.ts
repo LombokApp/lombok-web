@@ -31,7 +31,7 @@ export class EmailService {
     const config = await this.serverConfigurationService.getServerConfig(
       EMAIL_PROVIDER_CONFIG,
     )
-    if (config == null) {
+    if (!config) {
       throw new EmailNotConfiguredException()
     }
     const cacheKey = JSON.stringify(config)

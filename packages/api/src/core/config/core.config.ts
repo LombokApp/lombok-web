@@ -77,35 +77,37 @@ export const dockerHostConfigSchema = z
 export type DockerHostConfig = z.infer<typeof dockerHostConfigSchema>
 
 export const coreConfig = registerAs('core', () => {
-  const env = parseEnv({
-    DOCKER_HOST_CONFIG: z
-      .string()
-      .transform((val) => dockerHostConfigSchema.parse(JSON.parse(val)))
-      .refine(
-        (val) =>
-          val !== undefined &&
-          Object.keys(val.hosts ?? {}).every((key) =>
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            isValidDockerHostPathOrHttp(val.hosts![key]!.host),
-          ),
-        {
-          message: 'DOCKER_HOST_CONFIG must be a valid JSON object',
-        },
-      )
-      .optional(),
-    PLATFORM_HOST: z.string(),
-    PLATFORM_PORT: z.string().refine(isInteger).optional(),
-    PLATFORM_HTTPS: z.literal('false').or(z.literal('0')).optional(),
-    INITIAL_USER: z.string().optional(),
-    DISABLE_CORE_WORKER: z.string().refine(isBoolean).optional(),
-    INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),
-    PRINT_CORE_WORKER_OUTPUT: z.string().refine(isBoolean).optional(),
-    REMOVE_CORE_WORKER_DIRECTORIES: z.string().refine(isBoolean).optional(),
-    PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT: z
-      .string()
-      .refine(isBoolean)
-      .optional(),
-  })
+  const env = parseEnv(
+    z.object({
+      DOCKER_HOST_CONFIG: z
+        .string()
+        .transform((val) => dockerHostConfigSchema.parse(JSON.parse(val)))
+        .refine(
+          (val) =>
+            val !== undefined &&
+            Object.keys(val.hosts ?? {}).every((key) =>
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              isValidDockerHostPathOrHttp(val.hosts![key]!.host),
+            ),
+          {
+            message: 'DOCKER_HOST_CONFIG must be a valid JSON object',
+          },
+        )
+        .optional(),
+      PLATFORM_HOST: z.string(),
+      PLATFORM_PORT: z.string().refine(isInteger).optional(),
+      PLATFORM_HTTPS: z.literal('false').or(z.literal('0')).optional(),
+      INITIAL_USER: z.string().optional(),
+      DISABLE_CORE_WORKER: z.string().refine(isBoolean).optional(),
+      INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),
+      PRINT_CORE_WORKER_OUTPUT: z.string().refine(isBoolean).optional(),
+      REMOVE_CORE_WORKER_DIRECTORIES: z.string().refine(isBoolean).optional(),
+      PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT: z
+        .string()
+        .refine(isBoolean)
+        .optional(),
+    }),
+  )
 
   return {
     dockerHostConfig: env.DOCKER_HOST_CONFIG ?? {},

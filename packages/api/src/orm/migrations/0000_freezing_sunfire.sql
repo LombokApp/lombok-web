@@ -218,6 +218,7 @@ CREATE TABLE "users" (
 	"username" text NOT NULL,
 	"email" text,
 	"email_verified" boolean DEFAULT false NOT NULL,
+	"email_verification_key" text,
 	"permissions" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"password_hash" text,
 	"password_salt" text,

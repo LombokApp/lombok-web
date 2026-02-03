@@ -188,19 +188,19 @@ describe('Server Metrics', () => {
       baselineUsersCreatedWeek + BigInt(1),
     )
     expect(updatedMetrics.tasksCreatedPreviousDay).toEqual(
-      baselineTasksDay + BigInt(2),
+      baselineTasksDay + BigInt(3),
     )
     expect(updatedMetrics.tasksCreatedPreviousHour).toEqual(
-      baselineTasksHour + BigInt(2),
+      baselineTasksHour + BigInt(3),
     )
     expect(updatedMetrics.taskErrorsPreviousDay).toEqual(
-      baselineTaskErrorsDay + BigInt(1),
+      baselineTaskErrorsDay + BigInt(2),
     )
     expect(updatedMetrics.taskErrorsPreviousHour).toEqual(
-      baselineTaskErrorsHour + BigInt(1),
+      baselineTaskErrorsHour + BigInt(2),
     )
     expect(updatedMetrics.serverEventsEmittedPreviousHour).toEqual(
-      baselineServerEventsHour + BigInt(1),
+      baselineServerEventsHour + BigInt(2),
     )
     expect(updatedMetrics.folderEventsEmittedPreviousHour).toEqual(
       baselineFolderEventsHour + BigInt(1),

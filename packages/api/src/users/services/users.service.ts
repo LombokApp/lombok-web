@@ -2,9 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { and, count, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
+import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
+import { getApp } from 'src/shared/app-helper'
 import { v4 as uuidV4 } from 'uuid'
 
+import { CORE_IDENTIFIER, CoreEvent } from '../../../../types'
 import { UserCreateInputDTO } from '../dto/user-create-input.dto'
 import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
 import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
@@ -29,6 +32,18 @@ export enum UserSort {
 @Injectable()
 export class UserService {
   constructor(private readonly ormService: OrmService) {}
+
+  _eventService: EventService | undefined
+  private async eventService() {
+    if (!this._eventService) {
+      const app = await getApp()
+      this._eventService = app?.get(EventService)
+      if (!this._eventService) {
+        throw new Error('EventService not found')
+      }
+    }
+    return this._eventService
+  }
 
   async updateViewer(actor: User, { name }: { name: string }): Promise<User> {
     const [updatedUser] = await this.ormService.db
@@ -189,6 +204,20 @@ export class UserService {
         .values(newUser)
         .returning()
 
+      if (newUser.email) {
+        await (
+          await this.eventService()
+        ).emitEvent({
+          eventIdentifier: CoreEvent.new_user_registered,
+          emitterIdentifier: CORE_IDENTIFIER,
+          targetUserId: newUser.id,
+          data: {
+            userId: newUser.id,
+            userEmail: newUser.email,
+            userEmailVerified: newUser.emailVerified ?? false,
+          },
+        })
+      }
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return createdUser!
     } catch (error: unknown) {

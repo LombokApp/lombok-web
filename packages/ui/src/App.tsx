@@ -32,6 +32,7 @@ import { SettingsIndexPage } from './pages/settings'
 import { Signup } from './pages/signup'
 import { SSOCallbackPage } from './pages/sso-callback'
 import { SSOUsernameSelectionPage } from './pages/sso-username-selection'
+import { VerifyEmailPage } from './pages/verify-email'
 import { sdkInstance } from './services/api'
 
 const queryClient = new QueryClient()
@@ -69,6 +70,10 @@ const Content = ({ authenticated }: { authenticated: boolean }) => {
       <Route
         path="/sso/username-selection"
         element={!authenticated ? <SSOUsernameSelectionPage /> : <></>}
+      />
+      <Route
+        path="/verify-email"
+        element={!authenticated ? <VerifyEmailPage /> : <></>}
       />
     </Routes>
   )

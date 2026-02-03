@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import type {
   JsonWebTokenError,
@@ -23,6 +24,11 @@ import { z } from 'zod'
 import { coreConfig } from '../../core/config'
 
 const ALGORITHM = 'HS256'
+const EMAIL_VERIFY_KID = 'email-verify'
+const EMAIL_VERIFY_AUD = 'email-verify'
+const EMAIL_VERIFY_ISS = 'lombok-api'
+const EMAIL_VERIFY_ALG_RS = 'RS256'
+const EMAIL_VERIFY_ALG_HS = 'HS256'
 
 export const USER_JWT_SUB_PREFIX = 'user:'
 export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
@@ -285,6 +291,106 @@ export class JWTService {
         throw new AuthTokenInvalidError(token)
       }
       return decodedJWT
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new AuthTokenExpiredError(token, error)
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new AuthTokenInvalidError(token, error)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Normalize email for consistent hashing (trim + lowercase).
+   */
+  static normalizeEmail(email: string): string {
+    return email.trim().toLowerCase()
+  }
+
+  /**
+   * eh claim: base64url(SHA-256(normalized_email)).
+   */
+  static emailHash(normalizedEmail: string): string {
+    return crypto
+      .createHash('sha256')
+      .update(normalizedEmail, 'utf8')
+      .digest('base64url')
+  }
+
+  createEmailVerificationToken({
+    userId,
+    email,
+    emailVerifyKey,
+  }: {
+    userId: string
+    email: string
+    emailVerifyKey: string
+  }): string {
+    const isRS = this._authConfig.emailVerificationAlgorithm === 'RS'
+    const signingKey = isRS
+      ? this._authConfig.emailVerificationPrivateKey
+      : this._authConfig.emailVerificationSecret
+    if (!signingKey) {
+      throw new InternalServerErrorException(
+        isRS
+          ? 'Email verification not configured (missing private key)'
+          : 'Email verification not configured (missing secret)',
+      )
+    }
+    const normalizedEmail = JWTService.normalizeEmail(email)
+    const now = Math.floor(Date.now() / 1000)
+    const payload = {
+      iss: EMAIL_VERIFY_ISS,
+      aud: EMAIL_VERIFY_AUD,
+      sub: userId,
+      jti: uuidV4(),
+      iat: now,
+      exp: now + AuthDurationSeconds.EmailVerification,
+      evk: emailVerifyKey,
+      eh: JWTService.emailHash(normalizedEmail),
+    }
+    const algorithm = isRS ? EMAIL_VERIFY_ALG_RS : EMAIL_VERIFY_ALG_HS
+    return jwt.sign(payload, signingKey, {
+      algorithm,
+      ...(isRS ? { keyid: EMAIL_VERIFY_KID } : {}),
+    })
+  }
+
+  verifyEmailVerificationToken(token: string): {
+    sub: string
+    evk: string
+    eh: string
+  } {
+    const isRS = this._authConfig.emailVerificationAlgorithm === 'RS'
+    const verifyKey = isRS
+      ? this._authConfig.emailVerificationPublicKey
+      : this._authConfig.emailVerificationSecret
+    if (!verifyKey) {
+      throw new InternalServerErrorException(
+        isRS
+          ? 'Email verification not configured (missing public key)'
+          : 'Email verification not configured (missing secret)',
+      )
+    }
+    const algorithms: jwt.Algorithm[] = isRS
+      ? [EMAIL_VERIFY_ALG_RS]
+      : [EMAIL_VERIFY_ALG_HS]
+    try {
+      const decoded = jwt.verify(token, verifyKey, {
+        algorithms,
+        audience: EMAIL_VERIFY_AUD,
+        issuer: EMAIL_VERIFY_ISS,
+      }) as JwtPayload & { evk?: string; eh?: string }
+      if (
+        typeof decoded.sub !== 'string' ||
+        typeof decoded.evk !== 'string' ||
+        typeof decoded.eh !== 'string'
+      ) {
+        throw new AuthTokenInvalidError(token)
+      }
+      return { sub: decoded.sub, evk: decoded.evk, eh: decoded.eh }
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthTokenExpiredError(token, error)

@@ -5,6 +5,7 @@ export enum CoreTaskName {
   ReindexFolder = 'reindex_folder',
   RunDockerWorker = 'run_docker_worker',
   RunServerlessWorker = 'run_serverless_worker',
+  SendEmailVerificationLink = 'send_email_verification_link',
 }
 
 export interface CoreTaskData {
@@ -14,6 +15,10 @@ export interface CoreTaskData {
   }
   [CoreTaskName.ReindexFolder]: {
     folderId: string
+  }
+  [CoreTaskName.SendEmailVerificationLink]: {
+    userId: string
+    email: string
   }
   [CoreTaskName.RunDockerWorker]: {
     appIdentifier: string

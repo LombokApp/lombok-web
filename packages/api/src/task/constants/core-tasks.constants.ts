@@ -17,6 +17,9 @@ export const CORE_TASKS = {
   [CoreTaskName.RunServerlessWorker]: {
     description: 'Run a serverless worker to execute a task',
   },
+  [CoreTaskName.SendEmailVerificationLink]: {
+    description: 'Send email verification link to a newly signed-up user',
+  },
 }
 
 export const CORE_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
@@ -25,6 +28,7 @@ export const CORE_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
     {
       taskIdentifier: CoreTaskName
       buildData: (event: Event) => JsonSerializableObject
+      condition?: (event: Event) => boolean
       buildTargetLocation?: (
         event: Event,
       ) => { folderId: string | null; objectKey: string | null } | null
@@ -47,6 +51,18 @@ export const CORE_EVENT_TRIGGERS_TO_TASKS_MAP: Partial<
           ? (event.targetLocationObjectKey ?? null)
           : null,
       }),
+    },
+  ],
+  [CoreEvent.new_user_registered]: [
+    {
+      taskIdentifier: CoreTaskName.SendEmailVerificationLink,
+      buildData: (event: Event) => ({
+        userId: event.data?.userId as string,
+        userEmail: event.data?.userEmail as string,
+      }),
+      condition: (event: Event) => {
+        return !!event.data?.userEmail && event.data.userEmailVerified === false
+      },
     },
   ],
   [CoreEvent.docker_task_enqueued]: [

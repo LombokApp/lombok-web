@@ -15,7 +15,7 @@ const ssoLoginResponseSchema = z.object({
   user: userDTOSchema,
   accessToken: z.string(),
   refreshToken: z.string(),
-  expiresAt: z.string().datetime(),
+  expiresAt: z.date(),
 })
 
 // Response when new user needs to select username
@@ -25,7 +25,7 @@ const ssoUsernameSelectionResponseSchema = z.object({
   providerUserInfo: providerUserInfoSchema,
   suggestedUsername: z.string(),
   signature: z.string(),
-  expiry: z.string().datetime(),
+  expiry: z.date(),
 })
 
 // Union type for the callback response

@@ -1,3 +1,4 @@
+import { CORE_IDENTIFIER, CoreEvent } from '@lombokapp/types'
 import { addMs, earliest, USERNAME_VALIDATORS_COMBINED } from '@lombokapp/utils'
 import {
   BadRequestException,
@@ -9,9 +10,12 @@ import {
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { and, eq, or, sql } from 'drizzle-orm'
+import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
+import { getApp } from 'src/shared/app-helper'
+import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
@@ -31,7 +35,11 @@ import { userIdentitiesTable } from '../entities/user-identity.entity'
 import { LoginInvalidException } from '../exceptions/login-invalid.exception'
 import { SessionInvalidException } from '../exceptions/session-invalid.exception'
 import { authHelper } from '../utils/auth-helper'
-import { JWTService } from './jwt.service'
+import {
+  AuthTokenExpiredError,
+  AuthTokenInvalidError,
+  JWTService,
+} from './jwt.service'
 import type { ProviderUserInfo } from './oauth.service'
 import { OAuthService } from './oauth.service'
 import { SessionService } from './session.service'
@@ -49,6 +57,17 @@ export const sessionExpiresAt = (createdAt: Date) =>
 @Injectable()
 export class AuthService {
   sessionService: SessionService
+  _eventService: EventService | undefined
+  private async eventService() {
+    if (!this._eventService) {
+      const app = await getApp()
+      this._eventService = app?.get(EventService)
+      if (!this._eventService) {
+        throw new Error('EventService not found')
+      }
+    }
+    return this._eventService
+  }
 
   constructor(
     private readonly ormService: OrmService,
@@ -80,23 +99,23 @@ export class AuthService {
     }
 
     const user = await this.createSignup(data)
-    // await this.sendEmailVerification(data.email)
-
+    await (
+      await this.eventService()
+    ).emitEvent({
+      eventIdentifier: CoreEvent.new_user_registered,
+      emitterIdentifier: CORE_IDENTIFIER,
+      targetUserId: user.id,
+      data: {
+        userId: user.id,
+        userEmail: user.email,
+        userEmailVerified: user.emailVerified,
+      },
+    })
     return user
   }
 
   async createSignup(data: SignupCredentialsDTO) {
-    const { username, email } = data
-
-    const existingByEmail = email
-      ? await this.ormService.db.query.usersTable.findFirst({
-          where: eq(usersTable.email, email),
-        })
-      : false
-
-    if (email && existingByEmail) {
-      throw new ConflictException(`User already exists with email "${email}".`)
-    }
+    const { username } = data
 
     // Check for existing username case-insensitively
     const existingByUsername =
@@ -117,6 +136,7 @@ export class AuthService {
       email: data.email,
       isAdmin: false,
       emailVerified: false,
+      emailVerificationKey: data.email ? uuidV4() : null,
       username: data.username,
       passwordHash: authHelper
         .createPasswordHash(data.password, passwordSalt)
@@ -237,7 +257,7 @@ export class AuthService {
         await this.sessionService.createUserSession(user)
 
       return {
-        user,
+        user: transformUserToDTO(user),
         accessToken,
         refreshToken,
         expiresAt: session.expiresAt,
@@ -316,7 +336,7 @@ export class AuthService {
       passwordHash: null, // No password for SSO-only users
       passwordSalt: null,
       isAdmin: false,
-      emailVerified: false,
+      emailVerified: !!providerUserInfo.email,
       permissions: [],
       createdAt: now,
       updatedAt: now,
@@ -453,5 +473,53 @@ export class AuthService {
         .replace(/[^a-z0-9]/g, '')
         .substring(0, 20) || 'user'
     )
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    let payload: { sub: string; evk: string; eh: string }
+    try {
+      payload = this.jwtService.verifyEmailVerificationToken(token)
+    } catch (err: unknown) {
+      if (err instanceof AuthTokenExpiredError) {
+        throw new BadRequestException('Verification link has expired')
+      }
+      if (err instanceof AuthTokenInvalidError) {
+        throw new BadRequestException('Invalid verification link')
+      }
+      throw err
+    }
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, payload.sub),
+    })
+    if (!user?.email || !user.emailVerificationKey) {
+      throw new BadRequestException('Invalid verification link')
+    }
+    const normalizedEmail = JWTService.normalizeEmail(user.email)
+    const expectedEh = JWTService.emailHash(normalizedEmail)
+    if (
+      payload.evk !== user.emailVerificationKey ||
+      payload.eh !== expectedEh
+    ) {
+      throw new BadRequestException('Invalid verification link')
+    }
+    const now = new Date()
+    const updatedUsers = await this.ormService.db
+      .update(usersTable)
+      .set({
+        emailVerified: true,
+        emailVerificationKey: null,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(usersTable.id, user.id),
+          eq(usersTable.emailVerificationKey, payload.evk),
+        ),
+      )
+      .returning()
+
+    if (updatedUsers[0]) {
+      throw new BadRequestException('Invalid verification link')
+    }
   }
 }

@@ -21,8 +21,13 @@ import React from 'react'
 type EmailProviderKind = 'disabled' | 'resend' | 'smtp'
 
 type EmailProviderConfig =
-  | { provider: 'resend'; config: { apiKey: string } }
   | {
+      from?: string
+      provider: 'resend'
+      config: { apiKey: string }
+    }
+  | {
+      from?: string
       provider: 'smtp'
       config: { host: string; port: number; username: string; password: string }
     }
@@ -57,6 +62,9 @@ export function ServerEmailConfigTab({
   const [providerKind, setProviderKind] = React.useState<EmailProviderKind>(
     () => configToKind(currentConfig ?? null),
   )
+  const [from, setFrom] = React.useState(
+    currentConfig && 'from' in currentConfig ? currentConfig.from : '',
+  )
   const [resendApiKey, setResendApiKey] = React.useState(
     currentConfig?.provider === 'resend' ? currentConfig.config.apiKey : '',
   )
@@ -78,6 +86,7 @@ export function ServerEmailConfigTab({
   React.useEffect(() => {
     const config = settings?.EMAIL_PROVIDER_CONFIG ?? null
     setProviderKind(configToKind(config))
+    setFrom(config && 'from' in config ? config.from : '')
     if (config?.provider === 'resend') {
       setResendApiKey(config.config.apiKey)
     } else {
@@ -108,12 +117,18 @@ export function ServerEmailConfigTab({
     if (providerKind === 'disabled') {
       return null
     }
+    const fromTrimmed = from.trim()
     if (providerKind === 'resend') {
-      return { provider: 'resend', config: { apiKey: resendApiKey.trim() } }
+      return {
+        from: fromTrimmed,
+        provider: 'resend',
+        config: { apiKey: resendApiKey.trim() },
+      }
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (providerKind === 'smtp' && smtpPort !== null) {
       return {
+        from: fromTrimmed,
         provider: 'smtp',
         config: {
           host: smtpHost.trim(),
@@ -156,6 +171,22 @@ export function ServerEmailConfigTab({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          <div>
+            <label htmlFor="email-from" className="text-sm font-medium">
+              Default from address
+            </label>
+            <Input
+              id="email-from"
+              type="text"
+              placeholder="noreply@example.com"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="mt-1"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Sender for system emails (e.g. verification). Optional.
+            </p>
+          </div>
           <div>
             <label
               htmlFor="email-provider-select"

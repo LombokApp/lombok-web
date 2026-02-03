@@ -226,6 +226,7 @@ describe('Server - Settings', () => {
     })
 
     const resendConfig = {
+      from: 'test@example.com',
       provider: 'resend' as const,
       config: { apiKey: 're_test_key_123' },
     }
@@ -261,6 +262,7 @@ describe('Server - Settings', () => {
 
     const smtpConfig = {
       provider: 'smtp' as const,
+      from: 'test@example.com',
       config: {
         host: 'smtp.example.com',
         port: 587,
@@ -298,6 +300,7 @@ describe('Server - Settings', () => {
 
     const resendConfig = {
       provider: 'resend' as const,
+      from: 'test@example.com',
       config: { apiKey: 're_test_key' },
     }
 

@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   forwardRef,
+  HttpCode,
+  HttpStatus,
   Inject,
   Param,
   Post,
@@ -17,6 +19,7 @@ import type { LoginResponse } from '../dto/responses/login-response.dto'
 import type { SignupResponse } from '../dto/responses/signup-response.dto'
 import type { TokenRefreshResponse } from '../dto/responses/token-refresh-response.dto'
 import { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
+import { VerifyEmailDTO } from '../dto/verify-email.dto'
 import { AuthService } from '../services/auth.service'
 
 @Controller('/api/v1/auth')
@@ -51,6 +54,16 @@ export class AuthController {
   async signup(@Body() input: SignupCredentialsDTO): Promise<SignupResponse> {
     const user = await this.authService.signup(input)
     return { user: transformUserToDTO(user) }
+  }
+
+  /**
+   * Verify email using the token from the verification link.
+   * Returns 204 No Content on success; infer result from status code.
+   */
+  @Post('/verify-email')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async verifyEmail(@Body() input: VerifyEmailDTO): Promise<void> {
+    await this.authService.verifyEmail(input.token)
   }
 
   /**
