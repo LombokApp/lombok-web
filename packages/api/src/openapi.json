@@ -795,6 +795,1598 @@
         ]
       }
     },
+    "/api/v1/public/settings": {
+      "get": {
+        "operationId": "getPublicServerSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Public server settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSettingsGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the public server settings object (no authentication required).",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/api/v1/server/settings": {
+      "get": {
+        "operationId": "getServerSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the server settings object.",
+        "tags": [
+          "Server"
+        ]
+      }
+    },
+    "/api/v1/server/settings/{settingKey}": {
+      "put": {
+        "operationId": "setServerSetting",
+        "parameters": [
+          {
+            "name": "settingKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSettingInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingSetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a setting in the server settings objects.",
+        "tags": [
+          "Server"
+        ]
+      },
+      "delete": {
+        "operationId": "resetServerSetting",
+        "parameters": [
+          {
+            "name": "settingKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingSetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reset a setting in the server settings objects.",
+        "tags": [
+          "Server"
+        ]
+      }
+    },
+    "/api/v1/server/metrics": {
+      "get": {
+        "operationId": "getServerMetrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerMetricsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get server metrics including user counts, folder counts, and storage statistics.",
+        "tags": [
+          "Server"
+        ]
+      }
+    },
+    "/api/v1/server/storage-provisions": {
+      "get": {
+        "operationId": "listStorageProvisions",
+        "parameters": [
+          {
+            "name": "provisionType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CONTENT",
+                "METADATA",
+                "REDUNDANCY"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the storage provisions.",
+        "tags": [
+          "StorageProvisions"
+        ]
+      },
+      "post": {
+        "operationId": "createUserStorageProvision",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorageProvisionInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new user storage provision.",
+        "tags": [
+          "StorageProvisions"
+        ]
+      }
+    },
+    "/api/v1/server/storage-provisions/{storageProvisionId}": {
+      "get": {
+        "operationId": "getStorageProvision",
+        "parameters": [
+          {
+            "name": "storageProvisionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageProvisionGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a storage provision by id.",
+        "tags": [
+          "StorageProvisions"
+        ]
+      },
+      "put": {
+        "operationId": "updateStorageProvision",
+        "parameters": [
+          {
+            "name": "storageProvisionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorageProvisionUpdateDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a server provision by id.",
+        "tags": [
+          "StorageProvisions"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteStorageProvision",
+        "parameters": [
+          {
+            "name": "storageProvisionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a storage provision by id.",
+        "tags": [
+          "StorageProvisions"
+        ]
+      }
+    },
+    "/api/v1/server/server-storage": {
+      "get": {
+        "operationId": "getServerStorageLocation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the server storage location.",
+        "tags": [
+          "ServerStorage"
+        ]
+      },
+      "post": {
+        "operationId": "setServerStorageLocation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerStorageInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new server provision.",
+        "tags": [
+          "ServerStorage"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteServerStorageLocation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete any set server storage location.",
+        "tags": [
+          "ServerStorage"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts": {
+      "get": {
+        "operationId": "getDockerHostsConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerHostsConfigResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the configured docker hosts.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/state": {
+      "get": {
+        "operationId": "getDockerHostsState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerHostsStateResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current runtime state of docker hosts.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/logs": {
+      "get": {
+        "operationId": "getDockerContainerLogs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerLogsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get logs for a container running on a docker host.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stats": {
+      "get": {
+        "operationId": "getDockerContainerStats",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerStatsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get resource usage for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect": {
+      "get": {
+        "operationId": "getDockerContainerInspect",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerInspectResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get inspection details for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
+      "get": {
+        "operationId": "getDockerContainerWorkers",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerWorkersResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List HTTP workers for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
+      "get": {
+        "operationId": "getDockerContainerWorkerDetail",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerWorkerDetailResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get worker state and recent jobs for a worker.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
+      "get": {
+        "operationId": "getDockerContainerJobs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerJobsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List recent job state files for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
+      "post": {
+        "operationId": "purgeContainerJobs",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "olderThan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerPurgeJobsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Purge completed job files for a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
+      "get": {
+        "operationId": "getDockerContainerJobDetail",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerJobDetailResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get job state and log details for a container job.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/start": {
+      "post": {
+        "operationId": "startDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stop": {
+      "post": {
+        "operationId": "stopDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/restart": {
+      "post": {
+        "operationId": "restartDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restart a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
+    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/remove": {
+      "post": {
+        "operationId": "removeDockerContainer",
+        "parameters": [
+          {
+            "name": "hostId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerContainerActionResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a container.",
+        "tags": [
+          "ServerDockerHosts"
+        ]
+      }
+    },
     "/api/v1/server/events/{eventId}": {
       "get": {
         "operationId": "getEvent",
@@ -3571,1598 +5163,6 @@
         "summary": "List buckets for an access key.",
         "tags": [
           "ServerAccessKeys"
-        ]
-      }
-    },
-    "/api/v1/public/settings": {
-      "get": {
-        "operationId": "getPublicServerSettings",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Public server settings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicSettingsGetResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get the public server settings object (no authentication required).",
-        "tags": [
-          "Public"
-        ]
-      }
-    },
-    "/api/v1/server/settings": {
-      "get": {
-        "operationId": "getServerSettings",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SettingsGetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get the server settings object.",
-        "tags": [
-          "Server"
-        ]
-      }
-    },
-    "/api/v1/server/settings/{settingKey}": {
-      "put": {
-        "operationId": "setServerSetting",
-        "parameters": [
-          {
-            "name": "settingKey",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetSettingInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SettingSetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Set a setting in the server settings objects.",
-        "tags": [
-          "Server"
-        ]
-      },
-      "delete": {
-        "operationId": "resetServerSetting",
-        "parameters": [
-          {
-            "name": "settingKey",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SettingSetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reset a setting in the server settings objects.",
-        "tags": [
-          "Server"
-        ]
-      }
-    },
-    "/api/v1/server/metrics": {
-      "get": {
-        "operationId": "getServerMetrics",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerMetricsResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get server metrics including user counts, folder counts, and storage statistics.",
-        "tags": [
-          "Server"
-        ]
-      }
-    },
-    "/api/v1/server/storage-provisions": {
-      "get": {
-        "operationId": "listStorageProvisions",
-        "parameters": [
-          {
-            "name": "provisionType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CONTENT",
-                "METADATA",
-                "REDUNDANCY"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List the storage provisions.",
-        "tags": [
-          "StorageProvisions"
-        ]
-      },
-      "post": {
-        "operationId": "createUserStorageProvision",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StorageProvisionInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create a new user storage provision.",
-        "tags": [
-          "StorageProvisions"
-        ]
-      }
-    },
-    "/api/v1/server/storage-provisions/{storageProvisionId}": {
-      "get": {
-        "operationId": "getStorageProvision",
-        "parameters": [
-          {
-            "name": "storageProvisionId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionGetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a storage provision by id.",
-        "tags": [
-          "StorageProvisions"
-        ]
-      },
-      "put": {
-        "operationId": "updateStorageProvision",
-        "parameters": [
-          {
-            "name": "storageProvisionId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StorageProvisionUpdateDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update a server provision by id.",
-        "tags": [
-          "StorageProvisions"
-        ]
-      },
-      "delete": {
-        "operationId": "deleteStorageProvision",
-        "parameters": [
-          {
-            "name": "storageProvisionId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionsListResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete a storage provision by id.",
-        "tags": [
-          "StorageProvisions"
-        ]
-      }
-    },
-    "/api/v1/server/server-storage": {
-      "get": {
-        "operationId": "getServerStorageLocation",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get the server storage location.",
-        "tags": [
-          "ServerStorage"
-        ]
-      },
-      "post": {
-        "operationId": "setServerStorageLocation",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ServerStorageInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create a new server provision.",
-        "tags": [
-          "ServerStorage"
-        ]
-      },
-      "delete": {
-        "operationId": "deleteServerStorageLocation",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete any set server storage location.",
-        "tags": [
-          "ServerStorage"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts": {
-      "get": {
-        "operationId": "getDockerHostsConfig",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerHostsConfigResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get the configured docker hosts.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/state": {
-      "get": {
-        "operationId": "getDockerHostsState",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerHostsStateResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get the current runtime state of docker hosts.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/logs": {
-      "get": {
-        "operationId": "getDockerContainerLogs",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tail",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerLogsResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get logs for a container running on a docker host.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stats": {
-      "get": {
-        "operationId": "getDockerContainerStats",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerStatsResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get resource usage for a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect": {
-      "get": {
-        "operationId": "getDockerContainerInspect",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerInspectResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get inspection details for a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
-      "get": {
-        "operationId": "getDockerContainerWorkers",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerWorkersResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List HTTP workers for a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
-      "get": {
-        "operationId": "getDockerContainerWorkerDetail",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "workerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerWorkerDetailResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get worker state and recent jobs for a worker.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
-      "get": {
-        "operationId": "getDockerContainerJobs",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerJobsResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List recent job state files for a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
-      "post": {
-        "operationId": "purgeContainerJobs",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "olderThan",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerPurgeJobsResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Purge completed job files for a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
-      "get": {
-        "operationId": "getDockerContainerJobDetail",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jobId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tail",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerJobDetailResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get job state and log details for a container job.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/start": {
-      "post": {
-        "operationId": "startDockerContainer",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerActionResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Start a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stop": {
-      "post": {
-        "operationId": "stopDockerContainer",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerActionResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Stop a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/restart": {
-      "post": {
-        "operationId": "restartDockerContainer",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerActionResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Restart a container.",
-        "tags": [
-          "ServerDockerHosts"
-        ]
-      }
-    },
-    "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/remove": {
-      "post": {
-        "operationId": "removeDockerContainer",
-        "parameters": [
-          {
-            "name": "hostId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "containerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerContainerActionResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Remove a container.",
-        "tags": [
-          "ServerDockerHosts"
         ]
       }
     },
@@ -12512,6 +12512,1008 @@
           "permissions"
         ]
       },
+      "PublicSettingsGetResponse": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "type": "object",
+            "properties": {
+              "SIGNUP_ENABLED": {
+                "type": "boolean"
+              },
+              "GOOGLE_OAUTH_ENABLED": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "SettingsGetResponse": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "type": "object",
+            "properties": {
+              "SIGNUP_ENABLED": {
+                "type": "boolean"
+              },
+              "SIGNUP_PERMISSIONS": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "SERVER_HOSTNAME": {
+                "type": "string",
+                "nullable": true
+              },
+              "GOOGLE_OAUTH_CONFIG": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "clientId",
+                  "clientSecret"
+                ]
+              },
+              "STORAGE_PROVISIONS": {
+                "type": "array",
+                "items": {}
+              },
+              "SERVER_STORAGE": {},
+              "EMAIL_PROVIDER_CONFIG": {
+                "discriminator": {
+                  "propertyName": "provider"
+                },
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "resend"
+                        ]
+                      },
+                      "config": {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "provider",
+                      "config"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "smtp"
+                        ]
+                      },
+                      "config": {
+                        "type": "object",
+                        "properties": {
+                          "host": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          },
+                          "username": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "password": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "host",
+                          "port",
+                          "username",
+                          "password"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "provider",
+                      "config"
+                    ]
+                  }
+                ],
+                "nullable": true
+              }
+            },
+            "required": [
+              "SIGNUP_PERMISSIONS",
+              "SERVER_HOSTNAME"
+            ]
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "SetSettingInputDTO": {
+        "type": "object",
+        "properties": {
+          "value": {}
+        }
+      },
+      "SettingSetResponse": {
+        "type": "object",
+        "properties": {
+          "settingKey": {
+            "type": "string"
+          },
+          "settingValue": {}
+        },
+        "required": [
+          "settingKey"
+        ]
+      },
+      "ServerMetricsResponse": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "string"
+          },
+          "totalFolders": {
+            "type": "string"
+          },
+          "usersCreatedPreviousWeek": {
+            "type": "string"
+          },
+          "foldersCreatedPreviousWeek": {
+            "type": "string"
+          },
+          "totalIndexedSizeBytes": {
+            "type": "string"
+          },
+          "sessionsCreatedPreviousWeek": {
+            "type": "string"
+          },
+          "sessionsCreatedPrevious24Hours": {
+            "type": "string"
+          },
+          "provisionedStorage": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "totalCount",
+              "summary"
+            ]
+          },
+          "totalIndexedSizeBytesAcrossStorageProvisions": {
+            "type": "string"
+          },
+          "installedApps": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "totalCount",
+              "summary"
+            ]
+          },
+          "tasksCreatedPreviousDay": {
+            "type": "string"
+          },
+          "tasksCreatedPreviousHour": {
+            "type": "string"
+          },
+          "taskErrorsPreviousDay": {
+            "type": "string"
+          },
+          "taskErrorsPreviousHour": {
+            "type": "string"
+          },
+          "serverEventsEmittedPreviousDay": {
+            "type": "string"
+          },
+          "serverEventsEmittedPreviousHour": {
+            "type": "string"
+          },
+          "folderEventsEmittedPreviousDay": {
+            "type": "string"
+          },
+          "folderEventsEmittedPreviousHour": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "totalUsers",
+          "totalFolders",
+          "usersCreatedPreviousWeek",
+          "foldersCreatedPreviousWeek",
+          "totalIndexedSizeBytes",
+          "sessionsCreatedPreviousWeek",
+          "sessionsCreatedPrevious24Hours",
+          "provisionedStorage",
+          "totalIndexedSizeBytesAcrossStorageProvisions",
+          "installedApps",
+          "tasksCreatedPreviousDay",
+          "tasksCreatedPreviousHour",
+          "taskErrorsPreviousDay",
+          "taskErrorsPreviousHour",
+          "serverEventsEmittedPreviousDay",
+          "serverEventsEmittedPreviousHour",
+          "folderEventsEmittedPreviousDay",
+          "folderEventsEmittedPreviousHour"
+        ]
+      },
+      "StorageProvisionsListResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "accessKeyHashId": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                },
+                "bucket": {
+                  "type": "string"
+                },
+                "region": {
+                  "type": "string"
+                },
+                "accessKeyId": {
+                  "type": "string"
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "provisionTypes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "CONTENT",
+                      "METADATA",
+                      "REDUNDANCY"
+                    ]
+                  },
+                  "minItems": 1
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 128
+                }
+              },
+              "required": [
+                "id",
+                "accessKeyHashId",
+                "endpoint",
+                "bucket",
+                "region",
+                "accessKeyId",
+                "provisionTypes",
+                "label",
+                "description"
+              ]
+            }
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "StorageProvisionGetResponse": {
+        "type": "object",
+        "properties": {
+          "storageProvision": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "accessKeyHashId": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string"
+              },
+              "provisionTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "CONTENT",
+                    "METADATA",
+                    "REDUNDANCY"
+                  ]
+                },
+                "minItems": 1
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "id",
+              "accessKeyHashId",
+              "endpoint",
+              "bucket",
+              "region",
+              "accessKeyId",
+              "provisionTypes",
+              "label",
+              "description"
+            ]
+          }
+        },
+        "required": [
+          "storageProvision"
+        ]
+      },
+      "StorageProvisionInputDTO": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "provisionTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CONTENT",
+                "METADATA",
+                "REDUNDANCY"
+              ]
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "label",
+          "description",
+          "endpoint",
+          "bucket",
+          "region",
+          "accessKeyId",
+          "secretAccessKey",
+          "provisionTypes"
+        ]
+      },
+      "StorageProvisionUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "provisionTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CONTENT",
+                "METADATA",
+                "REDUNDANCY"
+              ]
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "ServerStorageLocationGetResponse": {
+        "type": "object",
+        "properties": {
+          "serverStorageLocation": {
+            "type": "object",
+            "properties": {
+              "accessKeyHashId": {
+                "type": "string"
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string",
+                "minLength": 1,
+                "nullable": true
+              }
+            },
+            "required": [
+              "accessKeyHashId",
+              "accessKeyId",
+              "endpoint",
+              "bucket",
+              "region",
+              "prefix"
+            ]
+          }
+        }
+      },
+      "ServerStorageInputDTO": {
+        "type": "object",
+        "properties": {
+          "accessKeyId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "secretAccessKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "bucket": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prefix": {
+            "type": "string",
+            "minLength": 1,
+            "nullable": true
+          }
+        },
+        "required": [
+          "accessKeyId",
+          "secretAccessKey",
+          "endpoint",
+          "bucket",
+          "region",
+          "prefix"
+        ]
+      },
+      "DockerHostsConfigResponse": {
+        "type": "object",
+        "properties": {
+          "profileHostAssignments": {
+            "$ref": "#/components/schemas/StringMapDTO"
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "host": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "docker_endpoint"
+                  ]
+                },
+                "assignedProfiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "networkMode": {
+                  "$ref": "#/components/schemas/StringMapDTO"
+                },
+                "gpus": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "driver": {
+                        "type": "string"
+                      },
+                      "deviceIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "driver",
+                      "deviceIds"
+                    ]
+                  }
+                },
+                "volumes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "extraHosts": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "environmentVariableKeys": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "host",
+                "type",
+                "assignedProfiles"
+              ]
+            }
+          }
+        },
+        "required": [
+          "hosts"
+        ]
+      },
+      "DockerHostsStateResponse": {
+        "type": "object",
+        "properties": {
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "connection": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "apiVersion": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                },
+                "resources": {
+                  "type": "object",
+                  "properties": {
+                    "cpuCores": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "memoryBytes": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "containers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "labels": {
+                        "$ref": "#/components/schemas/StringMapDTO"
+                      },
+                      "state": {
+                        "type": "string",
+                        "enum": [
+                          "running",
+                          "exited",
+                          "paused",
+                          "created",
+                          "unknown"
+                        ]
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "profileId": {
+                        "type": "string"
+                      },
+                      "profileHash": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "image",
+                      "labels",
+                      "state",
+                      "createdAt"
+                    ]
+                  }
+                },
+                "containersError": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "description",
+                "connection",
+                "containers"
+              ]
+            }
+          }
+        },
+        "required": [
+          "hosts"
+        ]
+      },
+      "DockerContainerLogsResponse": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stream": {
+                  "type": "string",
+                  "enum": [
+                    "stdout",
+                    "stderr"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "stream",
+                "text"
+              ]
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      },
+      "DockerContainerStatsResponse": {
+        "type": "object",
+        "properties": {
+          "stats": {
+            "type": "object",
+            "properties": {
+              "cpuPercent": {
+                "type": "number"
+              },
+              "memoryBytes": {
+                "type": "number"
+              },
+              "memoryLimitBytes": {
+                "type": "number"
+              },
+              "memoryPercent": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "stats"
+        ]
+      },
+      "DockerContainerInspectResponse": {
+        "type": "object",
+        "properties": {
+          "inspect": {},
+          "gpuInfo": {
+            "type": "object",
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "output": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "DockerContainerWorkersResponse": {
+        "type": "object",
+        "properties": {
+          "workers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "workerId": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                },
+                "filePath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "workerId",
+                "port",
+                "filePath"
+              ]
+            }
+          }
+        },
+        "required": [
+          "workers"
+        ]
+      },
+      "DockerContainerWorkerDetailResponse": {
+        "type": "object",
+        "properties": {
+          "workerState": {},
+          "workerStateError": {
+            "type": "string"
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "jobId": {
+                  "type": "string"
+                },
+                "filePath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "jobId",
+                "filePath"
+              ]
+            }
+          },
+          "jobsError": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jobs"
+        ]
+      },
+      "DockerContainerJobsResponse": {
+        "type": "object",
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "jobId": {
+                  "type": "string"
+                },
+                "filePath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "jobId",
+                "filePath"
+              ]
+            }
+          }
+        },
+        "required": [
+          "jobs"
+        ]
+      },
+      "DockerContainerPurgeJobsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "DockerContainerJobDetailResponse": {
+        "type": "object",
+        "properties": {
+          "state": {},
+          "stateError": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stream": {
+                  "type": "string",
+                  "enum": [
+                    "stdout",
+                    "stderr"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "stream",
+                "text"
+              ]
+            }
+          },
+          "logError": {
+            "type": "string"
+          }
+        }
+      },
+      "DockerContainerActionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
       "EventGetResponse": {
         "type": "object",
         "properties": {
@@ -14522,930 +15524,6 @@
         },
         "required": [
           "result"
-        ]
-      },
-      "PublicSettingsGetResponse": {
-        "type": "object",
-        "properties": {
-          "settings": {
-            "type": "object",
-            "properties": {
-              "SIGNUP_ENABLED": {
-                "type": "boolean"
-              },
-              "GOOGLE_OAUTH_ENABLED": {
-                "type": "boolean"
-              }
-            }
-          }
-        },
-        "required": [
-          "settings"
-        ]
-      },
-      "SettingsGetResponse": {
-        "type": "object",
-        "properties": {
-          "settings": {
-            "type": "object",
-            "properties": {
-              "SIGNUP_ENABLED": {
-                "type": "boolean"
-              },
-              "SIGNUP_PERMISSIONS": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "SERVER_HOSTNAME": {
-                "type": "string",
-                "nullable": true
-              },
-              "GOOGLE_OAUTH_CONFIG": {
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "type": "boolean"
-                  },
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "enabled",
-                  "clientId",
-                  "clientSecret"
-                ]
-              },
-              "STORAGE_PROVISIONS": {
-                "type": "array",
-                "items": {}
-              },
-              "SERVER_STORAGE": {}
-            },
-            "required": [
-              "SIGNUP_PERMISSIONS",
-              "SERVER_HOSTNAME"
-            ]
-          }
-        },
-        "required": [
-          "settings"
-        ]
-      },
-      "SetSettingInputDTO": {
-        "type": "object",
-        "properties": {
-          "value": {}
-        }
-      },
-      "SettingSetResponse": {
-        "type": "object",
-        "properties": {
-          "settingKey": {
-            "type": "string"
-          },
-          "settingValue": {}
-        },
-        "required": [
-          "settingKey"
-        ]
-      },
-      "ServerMetricsResponse": {
-        "type": "object",
-        "properties": {
-          "totalUsers": {
-            "type": "string"
-          },
-          "totalFolders": {
-            "type": "string"
-          },
-          "usersCreatedPreviousWeek": {
-            "type": "string"
-          },
-          "foldersCreatedPreviousWeek": {
-            "type": "string"
-          },
-          "totalIndexedSizeBytes": {
-            "type": "string"
-          },
-          "sessionsCreatedPreviousWeek": {
-            "type": "string"
-          },
-          "sessionsCreatedPrevious24Hours": {
-            "type": "string"
-          },
-          "provisionedStorage": {
-            "type": "object",
-            "properties": {
-              "totalCount": {
-                "type": "string"
-              },
-              "summary": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "totalCount",
-              "summary"
-            ]
-          },
-          "totalIndexedSizeBytesAcrossStorageProvisions": {
-            "type": "string"
-          },
-          "installedApps": {
-            "type": "object",
-            "properties": {
-              "totalCount": {
-                "type": "string"
-              },
-              "summary": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "totalCount",
-              "summary"
-            ]
-          },
-          "tasksCreatedPreviousDay": {
-            "type": "string"
-          },
-          "tasksCreatedPreviousHour": {
-            "type": "string"
-          },
-          "taskErrorsPreviousDay": {
-            "type": "string"
-          },
-          "taskErrorsPreviousHour": {
-            "type": "string"
-          },
-          "serverEventsEmittedPreviousDay": {
-            "type": "string"
-          },
-          "serverEventsEmittedPreviousHour": {
-            "type": "string"
-          },
-          "folderEventsEmittedPreviousDay": {
-            "type": "string"
-          },
-          "folderEventsEmittedPreviousHour": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "totalUsers",
-          "totalFolders",
-          "usersCreatedPreviousWeek",
-          "foldersCreatedPreviousWeek",
-          "totalIndexedSizeBytes",
-          "sessionsCreatedPreviousWeek",
-          "sessionsCreatedPrevious24Hours",
-          "provisionedStorage",
-          "totalIndexedSizeBytesAcrossStorageProvisions",
-          "installedApps",
-          "tasksCreatedPreviousDay",
-          "tasksCreatedPreviousHour",
-          "taskErrorsPreviousDay",
-          "taskErrorsPreviousHour",
-          "serverEventsEmittedPreviousDay",
-          "serverEventsEmittedPreviousHour",
-          "folderEventsEmittedPreviousDay",
-          "folderEventsEmittedPreviousHour"
-        ]
-      },
-      "StorageProvisionsListResponse": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "accessKeyHashId": {
-                  "type": "string"
-                },
-                "endpoint": {
-                  "type": "string"
-                },
-                "bucket": {
-                  "type": "string"
-                },
-                "region": {
-                  "type": "string"
-                },
-                "accessKeyId": {
-                  "type": "string"
-                },
-                "prefix": {
-                  "type": "string"
-                },
-                "provisionTypes": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "CONTENT",
-                      "METADATA",
-                      "REDUNDANCY"
-                    ]
-                  },
-                  "minItems": 1
-                },
-                "label": {
-                  "type": "string",
-                  "maxLength": 32
-                },
-                "description": {
-                  "type": "string",
-                  "maxLength": 128
-                }
-              },
-              "required": [
-                "id",
-                "accessKeyHashId",
-                "endpoint",
-                "bucket",
-                "region",
-                "accessKeyId",
-                "provisionTypes",
-                "label",
-                "description"
-              ]
-            }
-          }
-        },
-        "required": [
-          "result"
-        ]
-      },
-      "StorageProvisionGetResponse": {
-        "type": "object",
-        "properties": {
-          "storageProvision": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "accessKeyHashId": {
-                "type": "string"
-              },
-              "endpoint": {
-                "type": "string"
-              },
-              "bucket": {
-                "type": "string"
-              },
-              "region": {
-                "type": "string"
-              },
-              "accessKeyId": {
-                "type": "string"
-              },
-              "prefix": {
-                "type": "string"
-              },
-              "provisionTypes": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "CONTENT",
-                    "METADATA",
-                    "REDUNDANCY"
-                  ]
-                },
-                "minItems": 1
-              },
-              "label": {
-                "type": "string",
-                "maxLength": 32
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 128
-              }
-            },
-            "required": [
-              "id",
-              "accessKeyHashId",
-              "endpoint",
-              "bucket",
-              "region",
-              "accessKeyId",
-              "provisionTypes",
-              "label",
-              "description"
-            ]
-          }
-        },
-        "required": [
-          "storageProvision"
-        ]
-      },
-      "StorageProvisionInputDTO": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string",
-            "maxLength": 32
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 128
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "accessKeyId": {
-            "type": "string"
-          },
-          "secretAccessKey": {
-            "type": "string"
-          },
-          "prefix": {
-            "type": "string"
-          },
-          "provisionTypes": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "CONTENT",
-                "METADATA",
-                "REDUNDANCY"
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "label",
-          "description",
-          "endpoint",
-          "bucket",
-          "region",
-          "accessKeyId",
-          "secretAccessKey",
-          "provisionTypes"
-        ]
-      },
-      "StorageProvisionUpdateDTO": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string",
-            "maxLength": 32
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 128
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "prefix": {
-            "type": "string"
-          },
-          "provisionTypes": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "CONTENT",
-                "METADATA",
-                "REDUNDANCY"
-              ]
-            },
-            "minItems": 1
-          }
-        }
-      },
-      "ServerStorageLocationGetResponse": {
-        "type": "object",
-        "properties": {
-          "serverStorageLocation": {
-            "type": "object",
-            "properties": {
-              "accessKeyHashId": {
-                "type": "string"
-              },
-              "accessKeyId": {
-                "type": "string"
-              },
-              "endpoint": {
-                "type": "string"
-              },
-              "bucket": {
-                "type": "string"
-              },
-              "region": {
-                "type": "string"
-              },
-              "prefix": {
-                "type": "string",
-                "minLength": 1,
-                "nullable": true
-              }
-            },
-            "required": [
-              "accessKeyHashId",
-              "accessKeyId",
-              "endpoint",
-              "bucket",
-              "region",
-              "prefix"
-            ]
-          }
-        }
-      },
-      "ServerStorageInputDTO": {
-        "type": "object",
-        "properties": {
-          "accessKeyId": {
-            "type": "string",
-            "minLength": 1
-          },
-          "secretAccessKey": {
-            "type": "string",
-            "minLength": 1
-          },
-          "endpoint": {
-            "type": "string",
-            "format": "uri"
-          },
-          "bucket": {
-            "type": "string",
-            "minLength": 1
-          },
-          "region": {
-            "type": "string",
-            "minLength": 1
-          },
-          "prefix": {
-            "type": "string",
-            "minLength": 1,
-            "nullable": true
-          }
-        },
-        "required": [
-          "accessKeyId",
-          "secretAccessKey",
-          "endpoint",
-          "bucket",
-          "region",
-          "prefix"
-        ]
-      },
-      "DockerHostsConfigResponse": {
-        "type": "object",
-        "properties": {
-          "profileHostAssignments": {
-            "$ref": "#/components/schemas/StringMapDTO"
-          },
-          "hosts": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "host": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "docker_endpoint"
-                  ]
-                },
-                "assignedProfiles": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "networkMode": {
-                  "$ref": "#/components/schemas/StringMapDTO"
-                },
-                "gpus": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "driver": {
-                        "type": "string"
-                      },
-                      "deviceIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "driver",
-                      "deviceIds"
-                    ]
-                  }
-                },
-                "volumes": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "extraHosts": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "environmentVariableKeys": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "required": [
-                "id",
-                "host",
-                "type",
-                "assignedProfiles"
-              ]
-            }
-          }
-        },
-        "required": [
-          "hosts"
-        ]
-      },
-      "DockerHostsStateResponse": {
-        "type": "object",
-        "properties": {
-          "hosts": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "connection": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "version": {
-                      "type": "string"
-                    },
-                    "apiVersion": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                },
-                "resources": {
-                  "type": "object",
-                  "properties": {
-                    "cpuCores": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "memoryBytes": {
-                      "type": "integer",
-                      "minimum": 0
-                    }
-                  }
-                },
-                "containers": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "image": {
-                        "type": "string"
-                      },
-                      "labels": {
-                        "$ref": "#/components/schemas/StringMapDTO"
-                      },
-                      "state": {
-                        "type": "string",
-                        "enum": [
-                          "running",
-                          "exited",
-                          "paused",
-                          "created",
-                          "unknown"
-                        ]
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "profileId": {
-                        "type": "string"
-                      },
-                      "profileHash": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "image",
-                      "labels",
-                      "state",
-                      "createdAt"
-                    ]
-                  }
-                },
-                "containersError": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "description",
-                "connection",
-                "containers"
-              ]
-            }
-          }
-        },
-        "required": [
-          "hosts"
-        ]
-      },
-      "DockerContainerLogsResponse": {
-        "type": "object",
-        "properties": {
-          "entries": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "stream": {
-                  "type": "string",
-                  "enum": [
-                    "stdout",
-                    "stderr"
-                  ]
-                },
-                "text": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "stream",
-                "text"
-              ]
-            }
-          }
-        },
-        "required": [
-          "entries"
-        ]
-      },
-      "DockerContainerStatsResponse": {
-        "type": "object",
-        "properties": {
-          "stats": {
-            "type": "object",
-            "properties": {
-              "cpuPercent": {
-                "type": "number"
-              },
-              "memoryBytes": {
-                "type": "number"
-              },
-              "memoryLimitBytes": {
-                "type": "number"
-              },
-              "memoryPercent": {
-                "type": "number"
-              }
-            }
-          }
-        },
-        "required": [
-          "stats"
-        ]
-      },
-      "DockerContainerInspectResponse": {
-        "type": "object",
-        "properties": {
-          "inspect": {},
-          "gpuInfo": {
-            "type": "object",
-            "properties": {
-              "driver": {
-                "type": "string"
-              },
-              "command": {
-                "type": "string"
-              },
-              "output": {
-                "type": "string"
-              },
-              "error": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "DockerContainerWorkersResponse": {
-        "type": "object",
-        "properties": {
-          "workers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "workerId": {
-                  "type": "string"
-                },
-                "port": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "exclusiveMinimum": true
-                },
-                "filePath": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "workerId",
-                "port",
-                "filePath"
-              ]
-            }
-          }
-        },
-        "required": [
-          "workers"
-        ]
-      },
-      "DockerContainerWorkerDetailResponse": {
-        "type": "object",
-        "properties": {
-          "workerState": {},
-          "workerStateError": {
-            "type": "string"
-          },
-          "jobs": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "jobId": {
-                  "type": "string"
-                },
-                "filePath": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "jobId",
-                "filePath"
-              ]
-            }
-          },
-          "jobsError": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "jobs"
-        ]
-      },
-      "DockerContainerJobsResponse": {
-        "type": "object",
-        "properties": {
-          "jobs": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "jobId": {
-                  "type": "string"
-                },
-                "filePath": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "jobId",
-                "filePath"
-              ]
-            }
-          }
-        },
-        "required": [
-          "jobs"
-        ]
-      },
-      "DockerContainerPurgeJobsResponse": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "message"
-        ]
-      },
-      "DockerContainerJobDetailResponse": {
-        "type": "object",
-        "properties": {
-          "state": {},
-          "stateError": {
-            "type": "string"
-          },
-          "entries": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "stream": {
-                  "type": "string",
-                  "enum": [
-                    "stdout",
-                    "stderr"
-                  ]
-                },
-                "text": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "stream",
-                "text"
-              ]
-            }
-          },
-          "logError": {
-            "type": "string"
-          }
-        }
-      },
-      "DockerContainerActionResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          }
-        },
-        "required": [
-          "success"
         ]
       },
       "TaskGetResponse": {

@@ -124,42 +124,6 @@ const sendIpcMessage = async (message: CoreWorkerOutgoingIpcMessage) => {
   })
 }
 
-// const buildExecutionErrorDetails = (
-//   error: unknown,
-//   action:
-//     | CoreWorkerIncomingRequestMessage['action']
-//     | CoreWorkerOutgoingRequestMessage['action'],
-//   // payload?: JsonSerializableObject,
-// ) => {
-//   const details: Record<string, unknown> = {
-//     action,
-//     // payload,
-//   }
-
-//   if (error instanceof Error) {
-//     details.errorClass = error.constructor.name
-//     details.errorName = error.name
-//     details.errorMessage = error.message
-//     if (error.stack) {
-//       details.errorStack = error.stack
-//     }
-//   } else {
-//     details.errorMessage = String(error)
-//     details.errorType = typeof error
-//   }
-
-//   if (error instanceof ScriptExecutionError) {
-//     details.executionDetails = error.details
-//   } else if (error && typeof error === 'object' && 'details' in error) {
-//     const errorDetails = (error as { details?: unknown }).details
-//     if (errorDetails && typeof errorDetails === 'object') {
-//       details.errorDetails = errorDetails
-//     }
-//   }
-
-//   return details
-// }
-
 const sendIpcRequest = <K extends keyof CoreWorkerMessagePayloadTypes>(
   action: K,
   payload: CoreWorkerMessagePayloadTypes[K]['request'],

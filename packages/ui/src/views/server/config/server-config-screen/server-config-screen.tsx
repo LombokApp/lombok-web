@@ -8,6 +8,7 @@ import { $api } from '@/src/services/api'
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
 import { ServerAppSettingsTab } from './server-app-settings-tab'
 import { ServerAppsConfigTab } from './server-apps-config-tab'
+import { ServerEmailConfigTab } from './server-email-config-tab'
 import { ServerGeneralConfigTab } from './server-general-config-tab'
 
 export function ServerSettingsScreen({
@@ -97,6 +98,38 @@ export function ServerSettingsScreen({
     [updateSettingMutation],
   )
 
+  const handleUpdateEmailProviderConfig = React.useCallback(
+    async (
+      value:
+        | null
+        | {
+            provider: 'resend'
+            config: { apiKey: string }
+          }
+        | {
+            provider: 'smtp'
+            config: {
+              host: string
+              port: number
+              username: string
+              password: string
+            }
+          },
+    ) => {
+      await updateSettingMutation.mutateAsync({
+        params: {
+          path: {
+            settingKey: 'EMAIL_PROVIDER_CONFIG',
+          },
+        },
+        body: {
+          value,
+        },
+      })
+    },
+    [updateSettingMutation],
+  )
+
   return (
     <div>
       <div className="flex max-h-max min-h-0 w-full items-start gap-6 pl-4 sm:gap-16">
@@ -115,6 +148,12 @@ export function ServerSettingsScreen({
             className={cn(tab === 'storage' && 'text-primary font-semibold')}
           >
             Storage
+          </Link>
+          <Link
+            to="/server/settings/email"
+            className={cn(tab === 'email' && 'text-primary font-semibold')}
+          >
+            Email
           </Link>
           <div className="flex flex-col gap-1">
             <Link
@@ -150,6 +189,11 @@ export function ServerSettingsScreen({
         <div className="flex max-h-max min-h-0 flex-1 flex-col gap-8 self-stretch pl-44">
           {tab === 'storage' ? (
             <ServerStorageConfigTab />
+          ) : tab === 'email' ? (
+            <ServerEmailConfigTab
+              settings={data?.settings}
+              onSaveEmailProviderConfig={handleUpdateEmailProviderConfig}
+            />
           ) : tab === 'general' ? (
             <ServerGeneralConfigTab
               settings={

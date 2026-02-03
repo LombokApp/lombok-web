@@ -27,6 +27,9 @@ export enum ServiceErrorKey {
   ServerConfigurationNotFoundError = 'serverConfiguration.notFound',
   ServerConfigurationInvalid = 'serverConfiguration.invalid',
 
+  EmailNotConfigured = 'email.notConfigured',
+  EmailSendFailed = 'email.sendFailed',
+
   StorageProvisionNotFoundError = 'storageProvision.notFound',
 
   LocationNotFoundError = 'location.notFound',
