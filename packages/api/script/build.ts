@@ -11,6 +11,7 @@ const optionalRequirePackages = [
 const alwaysExternalPackages = [
   '@lombokapp/core-worker',
   '@lombokapp/worker-utils',
+  'cpu-features',
 ]
 
 void (async () => {
@@ -43,8 +44,6 @@ void (async () => {
     console.log('Main build failed:', mainResult.logs[0])
     process.exit(1)
   }
-
-  // No longer build core-worker inside API; it's resolved from core-worker package
 
   // eslint-disable-next-line no-console
   console.log('Built successfully!')

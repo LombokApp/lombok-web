@@ -321,7 +321,7 @@ const handleInit = (
 
   if (fs.existsSync(uiBundleCacheRoot)) {
     console.log('Cleaning previous ui bundle cache directory before starting')
-    fs.rmdirSync(uiBundleCacheRoot, { recursive: true })
+    fs.rmSync(uiBundleCacheRoot, { recursive: true })
   }
   fs.mkdirSync(uiBundleCacheWorkerRoot, { recursive: true })
 

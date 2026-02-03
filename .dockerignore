@@ -5,6 +5,10 @@
 /packages/\*/dist
 /packages/build-test
 
+# Dependency directories
+**/node_modules
+**/.bun
+
 # Docker cache
 
 /.data

@@ -4,7 +4,7 @@
   "scripts": {
     "start": "bun dist/src/main.js",
     "dev": "bun --watch src/main.ts",
-    "build": "rm -rf ./dist && NODE_ENV=production bun run script/build.ts",
+    "build": "rm -rf ./dist && NODE_ENV=production bun --bun run script/build.ts",
     "test:unit:watch": "bun test $(find src -type f -name '*.unit-spec.ts' | sed 's|^|./|') --watch",
     "test:unit": "bun test $(find src -type f -name '*.unit-spec.ts' | sed 's|^|./|')",
     "reset:sdk": "(rm -rf ./node_modules/@lombokapp/app-worker-sdk || true)",

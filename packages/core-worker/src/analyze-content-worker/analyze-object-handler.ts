@@ -174,7 +174,7 @@ export const analyzeObject = async (
   } finally {
     // remove the temporary directory
     if (fs.existsSync(tempDir)) {
-      await fs.promises.rmdir(tempDir, { recursive: true })
+      await fs.promises.rm(tempDir, { recursive: true })
     }
   }
 }

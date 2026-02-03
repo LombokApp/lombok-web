@@ -3,6 +3,7 @@ import {
   FolderPushMessage,
   SystemLogEntry,
 } from '@lombokapp/types'
+import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { and, count, eq, isNull, lt, or, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
@@ -11,10 +12,6 @@ import { runWithThreadContext } from 'src/shared/thread-context'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { CoreTaskName, MAX_TASK_ATTEMPTS } from 'src/task/task.constants'
 
-import {
-  AsyncWorkError,
-  buildUnexpectedError,
-} from '../../../../worker-utils/src'
 import type { CoreTask } from '../base.processor'
 import { BaseCoreTaskProcessor } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'
