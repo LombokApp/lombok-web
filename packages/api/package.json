@@ -107,7 +107,7 @@
     "jiti": "catalog:",
     "openapi-typescript": "7.8.0",
     "prettier": "catalog:",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "4.8.1",
     "supertest": "7.0.0",
     "tsconfig-paths": "catalog:",
     "typescript-eslint": "catalog:"
