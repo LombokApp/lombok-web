@@ -14,6 +14,7 @@ import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
+import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { getApp } from 'src/shared/app-helper'
 import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 import type { NewUser, User } from 'src/users/entities/user.entity'
@@ -72,6 +73,7 @@ export class AuthService {
   constructor(
     private readonly ormService: OrmService,
     private readonly oauthService: OAuthService,
+    private readonly serverConfigurationService: ServerConfigurationService,
     private readonly jwtService: JWTService,
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,

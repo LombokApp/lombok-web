@@ -16,6 +16,7 @@ export enum FolderPushMessage {
 export enum UserPushMessage {
   FOLDER_CREATED = 'FOLDER_CREATED',
   FOLDER_DELETED = 'FOLDER_DELETED',
+  NOTIFICATION_DELIVERED = 'NOTIFICATION_DELIVERED',
 }
 
 export enum ServerPushMessage {

@@ -6,4 +6,9 @@ export const UNAUTHENTICATED_PAGES = [
   '/sso/username-selection',
   '/verify-email',
 ]
-export const SIDEBAR_PAGES = ['/settings', '/folders', '/server', '/apps']
+export const SIDEBAR_PAGES = [
+  '/account/settings',
+  '/folders',
+  '/server',
+  '/apps',
+]

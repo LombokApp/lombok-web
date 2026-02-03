@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { coreConfig } from 'src/core/config'
 import { FoldersModule } from 'src/folders/folders.module'
+import { NotificationModule } from 'src/notification/notification.module'
 import { OrmService } from 'src/orm/orm.service'
 
 import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
@@ -16,6 +17,7 @@ import { RunServerlessWorkerTaskProcessor } from './processors/run-serverless-wo
     ConfigModule.forFeature(coreConfig),
     forwardRef(() => AppModule),
     forwardRef(() => FoldersModule),
+    forwardRef(() => NotificationModule),
   ],
   providers: [
     { provide: SHOULD_START_CORE_WORKER_THREAD_KEY, useValue: true },

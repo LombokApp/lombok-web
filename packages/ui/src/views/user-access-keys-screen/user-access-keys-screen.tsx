@@ -74,10 +74,10 @@ export function UserAccessKeysScreen() {
   }, [listAccessKeysQuery])
 
   return (
-    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
+    <div className="flex h-full max-h-full flex-1 flex-col gap-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Access Keys</h1>
-        <p className="text-muted-foreground">Your access keys</p>
+        <p className="text-muted-foreground">Your access keys.</p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col">
         <DataTable

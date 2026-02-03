@@ -5627,6 +5627,480 @@
         ]
       }
     },
+    "/api/v1/notifications/settings": {
+      "get": {
+        "operationId": "getUserSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user's global notification settings.",
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "put": {
+        "operationId": "updateUserSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSettingsUpdateDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update user's global notification settings.",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/settings/folders/{folderId}": {
+      "get": {
+        "operationId": "getFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get folder-specific notification settings.",
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "put": {
+        "operationId": "updateFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSettingsUpdateDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update folder-specific notification settings.",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "listNotifications",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt-asc",
+                "createdAt-desc"
+              ]
+            }
+          },
+          {
+            "name": "read",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "eventIdentifier",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "emitterIdentifier",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationListResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List user's notifications with pagination, filtering, and sorting.",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationUnreadCountResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get count of unread notifications.",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/{notificationId}": {
+      "get": {
+        "operationId": "getNotification",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single notification by ID.",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "patch": {
+        "operationId": "markAsRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a notification as read.",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "login",
@@ -15608,6 +16082,34 @@
                       "kind": {
                         "type": "string",
                         "enum": [
+                          "system_action"
+                        ]
+                      },
+                      "invokeContext": {
+                        "type": "object",
+                        "properties": {
+                          "idempotencyData": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        }
+                      },
+                      "onComplete": {
+                        "type": "array",
+                        "items": {}
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "invokeContext"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
                           "event"
                         ]
                       },
@@ -16061,6 +16563,34 @@
                     "propertyName": "kind"
                   },
                   "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "system_action"
+                          ]
+                        },
+                        "invokeContext": {
+                          "type": "object",
+                          "properties": {
+                            "idempotencyData": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          }
+                        },
+                        "onComplete": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "invokeContext"
+                      ]
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -16549,6 +17079,192 @@
         "required": [
           "meta",
           "result"
+        ]
+      },
+      "NotificationSettingsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "eventIdentifier": {
+                  "type": "string"
+                },
+                "emitterIdentifier": {
+                  "type": "string"
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "web",
+                    "email",
+                    "mobile"
+                  ]
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventIdentifier",
+                "emitterIdentifier",
+                "channel",
+                "enabled"
+              ]
+            }
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "NotificationSettingsUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "eventIdentifier": {
+                  "type": "string"
+                },
+                "emitterIdentifier": {
+                  "type": "string"
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "web",
+                    "email",
+                    "mobile"
+                  ]
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "eventIdentifier",
+                "emitterIdentifier",
+                "channel",
+                "enabled"
+              ]
+            }
+          }
+        },
+        "required": [
+          "settings"
+        ]
+      },
+      "NotificationListResponseDTO": {
+        "type": "object",
+        "properties": {
+          "notifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDTO"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "notifications"
+        ]
+      },
+      "NotificationUnreadCountResponseDTO": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "count"
+        ]
+      },
+      "NotificationDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventIdentifier": {
+            "type": "string"
+          },
+          "emitterIdentifier": {
+            "type": "string"
+          },
+          "aggregationKey": {
+            "type": "string"
+          },
+          "targetLocationFolderId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "targetLocationObjectKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "eventIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "image": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "eventIdentifier",
+          "emitterIdentifier",
+          "aggregationKey",
+          "targetLocationFolderId",
+          "targetLocationObjectKey",
+          "targetUserId",
+          "eventIds",
+          "title",
+          "body",
+          "image",
+          "path",
+          "createdAt",
+          "readAt"
         ]
       },
       "LoginCredentialsDTO": {

@@ -7,6 +7,14 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import * as path from 'path'
 import { Client, Pool, type PoolClient } from 'pg'
 import { KVService } from 'src/cache/kv.service'
+import {
+  notificationDeliveriesRelations,
+  notificationDeliveriesTable,
+  notificationSettingsRelations,
+  notificationSettingsTable,
+  notificationsRelations,
+  notificationsTable,
+} from 'src/notification/entities'
 
 import { App, appsTable } from '../app/entities/app.entity'
 import {
@@ -60,6 +68,12 @@ export const dbSchema = {
   logEntriesTable,
   tasksTable,
   folderSharesTable,
+  notificationsTable,
+  notificationsRelations,
+  notificationDeliveriesTable,
+  notificationDeliveriesRelations,
+  notificationSettingsTable,
+  notificationSettingsRelations,
 }
 
 export const TEST_DB_PREFIX = 'lombok_test__'

@@ -112,7 +112,7 @@ export const CommentItem = ({
                 key={reaction.emoji}
                 variant={hasUserReaction ? 'secondary' : 'outline'}
                 size="sm"
-                className="dark:bg-background dark:text-foreground/75 dark:hover:bg-foreground/10 h-7 gap-1 text-xs"
+                className="h-7 gap-1 text-xs dark:bg-background dark:text-foreground/75 dark:hover:bg-foreground/10"
                 onClick={() => {
                   if (onReaction) {
                     onReaction(comment.id, reaction.emoji)
@@ -135,7 +135,7 @@ export const CommentItem = ({
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="dark:bg-background dark:hover:bg-foreground/10 dark:text-foreground/75 h-7 gap-1 text-xs"
+                    className="h-7 gap-1 text-xs dark:bg-background dark:text-foreground/75 dark:hover:bg-foreground/10"
                   >
                     <SmilePlus className="size-3" />
                   </Button>

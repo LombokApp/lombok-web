@@ -3,6 +3,7 @@ import {
   CORE_IDENTIFIER,
   CoreEvent,
   eventIdentifierSchema,
+  EventNotificationAggregationScope,
   FolderPushMessage,
   JsonSerializableObject,
   ScheduleTaskTriggerConfig,
@@ -33,7 +34,10 @@ import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { evalTriggerHandlerCondition } from 'src/event/util/eval-trigger-condition.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
+import { getCoreEventAggregationConfig } from 'src/notification/config/notification-batching.config'
+import { buildAggregationKey } from 'src/notification/util/aggregation-key.util'
 import { OrmService } from 'src/orm/orm.service'
+import { getUtcTimestampBucket } from 'src/shared/utils/timestamp.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import {
   CORE_EVENT_TRIGGERS_TO_TASKS_MAP,
@@ -41,6 +45,7 @@ import {
 } from 'src/task/constants/core-tasks.constants'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
+import { CoreTaskName } from 'src/task/task.constants'
 import { getUtcScheduleBucket } from 'src/task/util/schedule-bucket.util'
 import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import { User } from 'src/users/entities/user.entity'
@@ -273,7 +278,8 @@ export class EventService {
             appIdentifier,
             folderId: targetLocation.folderId,
           })
-        } else if (targetUserId) {
+        }
+        if (targetUserId) {
           await this.appService.validateAppUserAccess({
             appIdentifier,
             userId: targetUserId,
@@ -300,6 +306,27 @@ export class EventService {
       `EventService.emitEvent identifier=${eventIdentifier} emitterIdentifier=${emitterIdentifier} targetLocation=${JSON.stringify(targetLocation)} targetUserId=${targetUserId}`,
     )
 
+    const aggregationConfig = isCoreEmitter
+      ? getCoreEventAggregationConfig(eventIdentifier as CoreEvent)
+      : undefined // TODO: implement non-core event notifications
+
+    // Check if notifications are enabled and calculate aggregation key
+    const aggregationKey = aggregationConfig?.notificationsEnabled
+      ? buildAggregationKey(
+          emitterIdentifier,
+          eventIdentifier,
+          ...[
+            aggregationConfig.aggregationScope ===
+            EventNotificationAggregationScope.FOLDER
+              ? (targetLocation?.folderId ?? null)
+              : null,
+            aggregationConfig.aggregationScope ===
+            EventNotificationAggregationScope.FOLDER_OBJECT
+              ? (targetLocation?.objectKey ?? null)
+              : null,
+          ],
+        )
+      : undefined
     const events = await tx
       .insert(eventsTable)
       .values([
@@ -312,6 +339,10 @@ export class EventService {
           targetUserId,
           createdAt: now,
           data,
+          aggregationKey: aggregationConfig?.notificationsEnabled
+            ? aggregationKey
+            : null,
+          aggregationHandledAt: null,
         },
       ])
       .returning()
@@ -468,6 +499,42 @@ export class EventService {
     }
 
     void this.coreTaskService.startDrainCoreTasks()
+
+    if (aggregationKey && aggregationConfig?.notificationsEnabled) {
+      const delayMs = 5000
+      const timestampBucket = getUtcTimestampBucket(
+        delayMs / 1000,
+        'seconds',
+        new Date(now.getTime() + delayMs),
+      )
+      const dontStartBefore = new Date(now.getTime() + delayMs + 500)
+      const task: NewTask = withTaskIdempotencyKey({
+        id: crypto.randomUUID(),
+        ownerIdentifier: CORE_IDENTIFIER,
+        taskIdentifier: CoreTaskName.CreateEventNotifications,
+        invocation: {
+          kind: 'system_action',
+          invokeContext: {
+            idempotencyData: {
+              aggregationKey,
+              bucketIndex: timestampBucket.bucketIndex,
+              bucketStart: timestampBucket.bucketStart.toString(),
+            },
+          },
+        },
+        taskDescription: 'Create event notifications',
+        data: { aggregationKey },
+        dontStartBefore,
+        createdAt: now,
+        updatedAt: now,
+        handlerType: 'core',
+      })
+
+      await this.ormService.db
+        .insert(tasksTable)
+        .values(task)
+        .onConflictDoNothing()
+    }
   }
 
   async emitEvent(
@@ -475,23 +542,34 @@ export class EventService {
       emitterIdentifier,
       eventIdentifier,
       data,
-      targetLocation,
-      targetUserId,
+      ...target
     }: {
       emitterIdentifier: string
       eventIdentifier: string
       data: JsonSerializableObject
-      targetLocation?: { folderId: string; objectKey?: string }
-      targetUserId?: string
-    },
+    } & (
+      | {
+          targetLocation: { folderId: string; objectKey?: string }
+        }
+      | {
+          targetUserId: string
+        }
+      | {
+          targetLocation?: undefined
+          targetUserId?: undefined
+        }
+    ),
     options: { tx?: OrmService['db'] } = {},
   ) {
     const args = {
       emitterIdentifier,
       eventIdentifier,
       data,
-      targetLocation,
-      targetUserId,
+      ...('targetLocation' in target
+        ? { targetLocation: target.targetLocation }
+        : 'targetUserId' in target
+          ? { targetUserId: target.targetUserId }
+          : {}),
     }
     if (options.tx) {
       return this._emitEventInTx(args, options.tx)

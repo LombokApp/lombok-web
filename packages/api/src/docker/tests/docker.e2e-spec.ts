@@ -229,6 +229,9 @@ const triggerAppDockerHandledTask = async (
     expect(dockerTaskEnqueuedEvent).toEqual({
       id: expect.any(String),
       eventIdentifier: CoreEvent.docker_task_enqueued,
+      aggregationKey: null,
+      actorUserId: null,
+      aggregationHandledAt: null,
       emitterIdentifier: CORE_IDENTIFIER,
       targetUserId: null,
       targetLocationFolderId: null,

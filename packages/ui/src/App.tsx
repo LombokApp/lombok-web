@@ -46,7 +46,7 @@ const Content = ({ authenticated }: { authenticated: boolean }) => {
         element={authenticated ? <FoldersPage /> : <></>}
       />
       <Route
-        path="/settings/*"
+        path="/account/settings/*"
         element={authenticated ? <SettingsIndexPage /> : <></>}
       />
       <Route

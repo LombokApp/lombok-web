@@ -8,6 +8,7 @@ import { $api } from '@/src/services/api'
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
 import { ServerAppSettingsTab } from './server-app-settings-tab'
 import { ServerAppsConfigTab } from './server-apps-config-tab'
+import type { EmailProviderConfig } from './server-email-config-tab'
 import { ServerEmailConfigTab } from './server-email-config-tab'
 import { ServerGeneralConfigTab } from './server-general-config-tab'
 
@@ -99,23 +100,7 @@ export function ServerSettingsScreen({
   )
 
   const handleUpdateEmailProviderConfig = React.useCallback(
-    async (
-      value:
-        | null
-        | {
-            provider: 'resend'
-            config: { apiKey: string }
-          }
-        | {
-            provider: 'smtp'
-            config: {
-              host: string
-              port: number
-              username: string
-              password: string
-            }
-          },
-    ) => {
+    async (value: EmailProviderConfig) => {
       await updateSettingMutation.mutateAsync({
         params: {
           path: {

@@ -5,8 +5,11 @@ import { evalTriggerHandlerCondition } from './eval-trigger-condition.util'
 
 const event: Event = {
   id: 'd55c783e-c9e6-45ec-ad80-0d3a6e514c41',
+  aggregationKey: null,
+  aggregationHandledAt: null,
   eventIdentifier: 'object_added',
   emitterIdentifier: 'core',
+  actorUserId: null,
   targetUserId: null,
   targetLocationFolderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
   targetLocationObjectKey:

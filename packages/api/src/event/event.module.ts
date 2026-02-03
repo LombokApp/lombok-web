@@ -13,6 +13,7 @@ import { authConfig } from 'src/auth/config'
 import { coreConfig } from 'src/core/config/core.config'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
+import { NotificationModule } from 'src/notification/notification.module'
 import { ServerModule } from 'src/server/server.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
@@ -33,6 +34,7 @@ import { EventService } from './services/event.service'
     forwardRef(() => StorageModule),
     forwardRef(() => LogModule),
     forwardRef(() => ServerModule),
+    forwardRef(() => NotificationModule),
   ],
   controllers: [ServerEventsController, FolderEventsController],
   providers: [EventService],

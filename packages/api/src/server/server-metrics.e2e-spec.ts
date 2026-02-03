@@ -105,6 +105,8 @@ describe('Server Metrics', () => {
       password: '123',
     })
 
+    await testModule!.waitForTasks('completed')
+
     const now = new Date()
     const taskTrigger = {
       kind: 'event',
@@ -188,16 +190,16 @@ describe('Server Metrics', () => {
       baselineUsersCreatedWeek + BigInt(1),
     )
     expect(updatedMetrics.tasksCreatedPreviousDay).toEqual(
-      baselineTasksDay + BigInt(3),
+      baselineTasksDay + BigInt(2),
     )
     expect(updatedMetrics.tasksCreatedPreviousHour).toEqual(
-      baselineTasksHour + BigInt(3),
+      baselineTasksHour + BigInt(2),
     )
     expect(updatedMetrics.taskErrorsPreviousDay).toEqual(
-      baselineTaskErrorsDay + BigInt(2),
+      baselineTaskErrorsDay + BigInt(1),
     )
     expect(updatedMetrics.taskErrorsPreviousHour).toEqual(
-      baselineTaskErrorsHour + BigInt(2),
+      baselineTaskErrorsHour + BigInt(1),
     )
     expect(updatedMetrics.serverEventsEmittedPreviousHour).toEqual(
       baselineServerEventsHour + BigInt(2),

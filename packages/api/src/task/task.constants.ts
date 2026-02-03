@@ -6,6 +6,9 @@ export enum CoreTaskName {
   RunDockerWorker = 'run_docker_worker',
   RunServerlessWorker = 'run_serverless_worker',
   SendEmailVerificationLink = 'send_email_verification_link',
+  CreateEventNotifications = 'create_event_notifications',
+  BuildNotificationDeliveries = 'build_notification_deliveries',
+  SendNotificationEmails = 'send_notification_emails',
 }
 
 export interface CoreTaskData {
@@ -30,5 +33,14 @@ export interface CoreTaskData {
     appIdentifier: string
     workerIdentifier: string
     innerTaskId: string
+  }
+  [CoreTaskName.CreateEventNotifications]: {
+    aggregationKey: string
+  }
+  [CoreTaskName.BuildNotificationDeliveries]: {
+    notificationId: string
+  }
+  [CoreTaskName.SendNotificationEmails]: {
+    bucketIndex: number
   }
 }

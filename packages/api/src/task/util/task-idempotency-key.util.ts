@@ -9,10 +9,16 @@ const buildTriggerIdempotencyData = (
   trigger: TaskInvocation,
 ): JsonSerializableObject => {
   switch (trigger.kind) {
+    case 'system_action':
+      return (
+        trigger.invokeContext.idempotencyData ?? {
+          requestId: crypto.randomUUID(),
+        }
+      )
     case 'event':
       return {
-        eventIdentifier: trigger.invokeContext.emitterIdentifier,
-        emittedIdentifier: trigger.invokeContext.eventIdentifier,
+        eventIdentifier: trigger.invokeContext.eventIdentifier,
+        emitterIdentifier: trigger.invokeContext.emitterIdentifier,
         eventId: trigger.invokeContext.eventId,
         eventTriggerConfigIndex: trigger.invokeContext.eventTriggerConfigIndex,
       }

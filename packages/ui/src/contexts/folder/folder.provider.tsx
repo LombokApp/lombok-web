@@ -2,6 +2,7 @@ import { FolderPushMessage } from '@lombokapp/types'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import React from 'react'
 
+import type { PushMessage } from '../../hooks/use-websocket'
 import { useWebsocket } from '../../hooks/use-websocket'
 import { $api } from '../../services/api'
 import { LogLevel } from '../logging'
@@ -33,14 +34,16 @@ export const FolderContextProvider = ({
   const { toast } = useToast()
 
   const messageHandler = React.useCallback(
-    (message: FolderPushMessage, _payload: Record<string, unknown>) => {
+    (message: PushMessage, _payload: Record<string, unknown>) => {
       if (
-        [
-          FolderPushMessage.OBJECTS_ADDED,
-          FolderPushMessage.OBJECTS_REMOVED,
-          FolderPushMessage.OBJECT_ADDED,
-          FolderPushMessage.OBJECT_REMOVED,
-        ].includes(message)
+        (
+          [
+            FolderPushMessage.OBJECTS_ADDED,
+            FolderPushMessage.OBJECTS_REMOVED,
+            FolderPushMessage.OBJECT_ADDED,
+            FolderPushMessage.OBJECT_REMOVED,
+          ] as PushMessage[]
+        ).includes(message)
       ) {
         void folderQuery.refetch()
         void folderMetadataQuery.refetch()

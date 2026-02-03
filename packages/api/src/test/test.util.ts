@@ -228,13 +228,19 @@ export async function buildTestModule({
     services,
     waitForTasks: async (
       waitType: 'started' | 'completed' | 'attempted',
-      {
-        taskIds,
-        timeoutMs = 5000,
-      }: {
-        taskIds?: string[]
-        timeoutMs?: number
-      } = {
+      options:
+        | undefined
+        | {
+            timeoutMs?: number
+          }
+        | {
+            taskIdentifiers: string[]
+            timeoutMs?: number
+          }
+        | {
+            taskIds: string[]
+            timeoutMs?: number
+          } = {
         timeoutMs: 5000,
       },
     ) => {
@@ -253,24 +259,47 @@ export async function buildTestModule({
               : isNotNull(tasksTable.completedAt)
         )!
 
+      const baseQuery = services.ormService.db
+        .select({
+          count: count(),
+        })
+        .from(tasksTable)
+
+      const taskFilterConditions =
+        'taskIds' in options || 'taskIdentifiers' in options
+          ? [
+              ...('taskIdentifiers' in options
+                ? [inArray(tasksTable.taskIdentifier, options.taskIdentifiers)]
+                : []),
+              ...('taskIds' in options
+                ? [inArray(tasksTable.id, options.taskIds)]
+                : []),
+            ]
+          : []
+
       await waitForTrue(
         async () => {
-          const result = await services.ormService.db
-            .select({
-              count: count(),
-            })
-            .from(tasksTable)
-            .where(
-              taskIds
-                ? and(condition, inArray(tasksTable.id, taskIds))
-                : not(condition),
-            )
-          return result[0]?.count === (taskIds?.length ?? 0)
+          const totalCountResult = await baseQuery.where(
+            !taskFilterConditions.length
+              ? undefined
+              : taskFilterConditions.length === 1
+                ? taskFilterConditions[0]
+                : and(...taskFilterConditions),
+          )
+
+          const totalCount = totalCountResult[0]?.count ?? -1
+
+          const result = await baseQuery.where(
+            taskFilterConditions.length
+              ? and(condition, ...taskFilterConditions)
+              : not(condition),
+          )
+          return result[0]?.count === totalCount
         },
         {
           retryPeriodMs: 100,
-          maxRetries: Math.ceil(timeoutMs / 100),
-          totalMaxDurationMs: timeoutMs,
+          maxRetries: Math.ceil((options.timeoutMs ?? 5000) / 100),
+          totalMaxDurationMs: options.timeoutMs ?? 5000,
         },
       )
     },
@@ -384,7 +413,7 @@ export async function createTestUser(
       body: {
         username,
         password,
-        email: email ?? `${username}@example.com`,
+        email,
       },
     })
 
