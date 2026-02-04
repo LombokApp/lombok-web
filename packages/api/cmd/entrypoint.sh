@@ -70,7 +70,10 @@ if [ "$EMBEDDED_POSTGRES" = "true" ]; then
     # Check if the user exists before creating it
     USER_EXISTS=$(su-exec postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}';")
     if [ "$USER_EXISTS" != "1" ]; then
-        su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';"
+        su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}' CREATEROLE;"
+    else
+        # Ensure existing user has CREATEROLE privilege
+        su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -c "ALTER USER ${DB_USER} WITH CREATEROLE;"
     fi
 
     # Check if the database exists before creating it
@@ -79,6 +82,12 @@ if [ "$EMBEDDED_POSTGRES" = "true" ]; then
         su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
         # su-exec postgres createdb --username postgres --owner=${DB_USER} ${DB_NAME}
     fi
+
+    # Create extensions schema and vector extension as superuser
+    # This is required because extension creation typically needs superuser privileges
+    su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "CREATE SCHEMA IF NOT EXISTS extensions;"
+    su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "GRANT USAGE ON SCHEMA extensions TO ${DB_USER};"
+    su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;"
 
     echo "Database setup complete."
 else
