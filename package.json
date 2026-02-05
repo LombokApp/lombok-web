@@ -86,7 +86,7 @@
     "react-dom": "18.3.1",
     "react-hook-form": "7.54.2",
     "react-dropzone": "14.3.5",
-    "react-router": "7.8.2",
+    "react-router": "7.13.0",
     "lucide-react": "0.525.0",
     "socket.io": "4.8.1",
     "uuid": "13.0.0",

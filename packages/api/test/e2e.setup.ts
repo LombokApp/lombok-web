@@ -449,6 +449,10 @@ const addTestAppDefinition = async (appConfig: AppConfig) => {
   })
 }
 
+if (!fs.existsSync(E2E_TEST_APPS_PATH)) {
+  fs.mkdirSync(E2E_TEST_APPS_PATH, { recursive: true })
+}
+
 await Promise.all(
   testAppDefinitions.map((appDef) => addTestAppDefinition(appDef)),
 )

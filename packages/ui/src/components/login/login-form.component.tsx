@@ -11,7 +11,6 @@ import {
 import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
 import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
-import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -33,19 +32,8 @@ export function LoginForm({
   className?: string
   onSubmit: (values: LoginFormValues) => Promise<void>
 }) {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false)
-
   async function handleSubmit(values: LoginFormValues) {
-    setIsLoading(true)
     return onSubmit(values)
-      .then(() => {
-        setIsLoading(false)
-      })
-      .then(() => {
-        setTimeout(() => {
-          setIsLoading(false)
-        }, 3000)
-      })
   }
 
   const form = useForm<LoginFormValues>({
@@ -73,7 +61,11 @@ export function LoginForm({
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input {...field} autoComplete="username" />
+                  <Input
+                    {...field}
+                    autoComplete="username"
+                    data-testid="login-username-input"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -90,6 +82,7 @@ export function LoginForm({
                     {...field}
                     autoComplete="current-password"
                     type="password"
+                    data-testid="login-password-input"
                   />
                 </FormControl>
                 <FormMessage />
@@ -101,9 +94,10 @@ export function LoginForm({
             <Button
               className="w-full py-1.5"
               type="submit"
-              // disabled={!form.state.valid || isLoading}
+              disabled={!form.formState.isValid || form.formState.isSubmitting}
+              data-testid="login-submit-button"
             >
-              {isLoading && (
+              {form.formState.isSubmitting && (
                 <Icons.spinner className="mr-2 size-4 animate-spin" />
               )}
               Login

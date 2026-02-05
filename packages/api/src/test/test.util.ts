@@ -26,6 +26,7 @@ import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
+import { getLogLevelsFromMinimum } from 'src/shared/logger-levels.util'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
@@ -41,10 +42,10 @@ import { NoPrefixConsoleLogger } from '../shared/no-prefix-console-logger'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
-const MINIO_LOCAL_PATH = '/minio-test-data'
-const MINIO_ACCESS_KEY_ID = 'testaccesskeyid'
-const MINIO_SECRET_ACCESS_KEY = 'testsecretaccesskey'
-const MINIO_ENDPOINT = 'http://miniotest:9000'
+const MINIO_LOCAL_PATH = process.env.MINIODATA ?? ''
+const MINIO_ACCESS_KEY_ID = process.env.MINIO_ROOT_USER ?? ''
+const MINIO_SECRET_ACCESS_KEY = process.env.MINIO_ROOT_PASSWORD ?? ''
+const MINIO_ENDPOINT = 'http://127.0.0.1:9000'
 const MINIO_REGION = 'auto'
 
 const mockDockerAdapter = buildMockDockerAdapter('local')
@@ -105,13 +106,12 @@ export async function buildTestModule({
         value: startCoreWorker,
       },
     ]
-
   const logger = new NoPrefixConsoleLogger({
     colors: true,
     timestamp: true,
     logLevels:
-      debug || process.env.LOG_LEVEL === 'DEBUG'
-        ? ['log', 'error', 'warn', 'debug', 'verbose']
+      (process.env.LOG_LEVEL ?? '').length > 0 || debug
+        ? getLogLevelsFromMinimum(process.env.LOG_LEVEL ?? 'DEBUG')
         : [],
   })
 

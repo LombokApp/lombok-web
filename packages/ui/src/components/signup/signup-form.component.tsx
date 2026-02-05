@@ -92,7 +92,7 @@ export function SignupForm({
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} data-testid="signup-username-input" />
                 </FormControl>
                 <FormDescription>
                   This is your public display name.
@@ -109,7 +109,7 @@ export function SignupForm({
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} data-testid="signup-email-input" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -123,7 +123,11 @@ export function SignupForm({
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input {...field} type="password" />
+                  <Input
+                    {...field}
+                    type="password"
+                    data-testid="signup-password-input"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -137,7 +141,11 @@ export function SignupForm({
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Input {...field} type="password" />
+                  <Input
+                    {...field}
+                    type="password"
+                    data-testid="signup-confirm-password-input"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -145,12 +153,15 @@ export function SignupForm({
           />
 
           <div>
-            <Button className="w-full py-1.5" type="submit">
-              {form.formState.isValid &&
-                !form.formState.isSubmitting &&
-                !form.formState.isSubmitted && (
-                  <Icons.spinner className="mr-2 size-5 animate-spin" />
-                )}
+            <Button
+              className="w-full py-1.5"
+              type="submit"
+              disabled={!form.formState.isValid || form.formState.isSubmitting}
+              data-testid="signup-submit-button"
+            >
+              {form.formState.isSubmitting && (
+                <Icons.spinner className="mr-2 size-5 animate-spin" />
+              )}
               Create your account
             </Button>
           </div>

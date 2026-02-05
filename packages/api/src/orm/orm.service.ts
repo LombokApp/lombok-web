@@ -7,6 +7,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import * as path from 'path'
 import { Client, Pool, type PoolClient } from 'pg'
 import { KVService } from 'src/cache/kv.service'
+import { waitForTrue } from 'src/core/utils/wait.util'
 import {
   notificationDeliveriesRelations,
   notificationDeliveriesTable,
@@ -313,20 +314,21 @@ export class OrmService {
 
   async waitForInit() {
     const maxRetries = 50
-    const retryPeriod = 50
-    await new Promise<void>((resolve, reject) => {
-      let checkCount = 0
-      const interval = setInterval(() => {
-        if (checkCount >= maxRetries) {
-          clearInterval(interval)
-          reject(new Error('Timeout waiting for db to init.'))
-        } else if (this.initialized) {
-          clearInterval(interval)
-          resolve()
-        }
-        checkCount += 1
-      }, retryPeriod)
-    })
+    const retryPeriodMs = 100
+    await waitForTrue(
+      () => this.initialized,
+      {
+        retryPeriodMs,
+        maxRetries,
+        totalMaxDurationMs: maxRetries * retryPeriodMs,
+      },
+      (onTimeoutError) => {
+        this.logger.error('Timeout waiting for db to init.', onTimeoutError)
+        throw new Error('Timeout waiting for db to init.', {
+          cause: onTimeoutError,
+        })
+      },
+    )
   }
 
   async migrate(): Promise<void> {

@@ -204,7 +204,7 @@ describe('Task lifecycle', () => {
     })
     expect(typeof childTask?.data.fileUrl).toBe('string')
     expect(childTask?.data.fileUrl).toStartWith(
-      `http://miniotest:9000/${testFolder.folder.contentLocation.bucket}/file.txt?X-Amz-Expires=3600&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Date=`,
+      `http://127.0.0.1:9000/${testFolder.folder.contentLocation.bucket}/file.txt?X-Amz-Expires=3600&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Date=`,
     )
   })
 
