@@ -73,7 +73,7 @@ services:
       exit 0;
       "
   db:
-    image: postgres
+    image: pgvector/pgvector:pg18
     ports:
       - 5432:${DB_PORT:-0}
     env_file: packages/api/.env
@@ -82,4 +82,4 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     volumes:
-      - ./.docker/postgres/data/:/var/lib/postgresql/data
+      - ./.docker/postgres/data:/var/lib/postgresql

@@ -89,14 +89,14 @@ export const analyzeObject = async (
 
     const originalContentHash = await hashLocalFile(inFilePath)
     const mediaType =
-      folderObject.mediaType !== MediaType.Unknown
+      folderObject.mediaType !== MediaType.UNKNOWN
         ? folderObject.mediaType
         : mediaTypeFromMimeType(folderObject.mimeType)
     const metadataFilePath = path.join(
       metadataOutFileDirectory,
       'metadata.json',
     )
-    const exiv2Metadata = [MediaType.Image, MediaType.Video].includes(mediaType)
+    const exiv2Metadata = [MediaType.IMAGE, MediaType.VIDEO].includes(mediaType)
       ? await readFileMetadata(inFilePath, metadataFilePath)
       : {}
     const [metadataDescription, previews] = await analyzeContent({

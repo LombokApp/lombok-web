@@ -1,5 +1,5 @@
 {
-  "id": "10c1cf8d-e7da-49cd-a872-1996ac957aec",
+  "id": "bf63f14a-8515-4bdb-96b9-804684cd137d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1331,6 +1331,16 @@
           "primaryKey": false,
           "notNull": true
         },
+        "search_vector": {
+          "name": "search_vector",
+          "type": "tsvector",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "setweight(to_tsvector('english', coalesce(\"folder_objects\".\"filename\", '')), 'A') || setweight(to_tsvector('english', coalesce(\"folder_objects\".\"object_key\", '')), 'B')",
+            "type": "stored"
+          }
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1391,6 +1401,37 @@
           "isUnique": false,
           "concurrently": false,
           "method": "btree",
+          "with": {}
+        },
+        "folder_objects_search_vector_idx": {
+          "name": "folder_objects_search_vector_idx",
+          "columns": [
+            {
+              "expression": "search_vector",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        },
+        "folder_objects_object_key_trgm_idx": {
+          "name": "folder_objects_object_key_trgm_idx",
+          "columns": [
+            {
+              "expression": "filename",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "gin_trgm_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
           "with": {}
         },
         "folder_objects_folder_id_object_key_unique": {

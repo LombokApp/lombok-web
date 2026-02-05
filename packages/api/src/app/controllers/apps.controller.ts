@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -209,5 +210,20 @@ export class AppsController {
       })
 
     return savedEnvironmentVariables
+  }
+
+  @Delete('/apps/:appIdentifier')
+  async uninstallApp(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<void> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appService.getApp(appIdentifier)
+    if (!app) {
+      throw new NotFoundException()
+    }
+    await this.appService.uninstallApp(app)
   }
 }

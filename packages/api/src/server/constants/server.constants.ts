@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { searchConfigSchema } from '../dto/search-config.dto'
 import { serverStorageInputSchema } from '../dto/server-storage-input.dto'
 import { storageProvisionInputSchema } from '../dto/storage-provision-input.dto'
 import { emailProviderConfigNullableSchema } from '../schemas/email-provider-config.schema'
@@ -24,6 +25,7 @@ export enum ServerConfigKey {
   SIGNUP_ENABLED = 'SIGNUP_ENABLED',
   SIGNUP_PERMISSIONS = 'SIGNUP_PERMISSIONS',
   SERVER_HOSTNAME = 'SERVER_HOSTNAME',
+  SEARCH_CONFIG = 'SEARCH_CONFIG',
   GOOGLE_OAUTH_CONFIG = 'GOOGLE_OAUTH_CONFIG',
   EMAIL_PROVIDER_CONFIG = 'EMAIL_PROVIDER_CONFIG',
 }
@@ -58,6 +60,13 @@ export const SERVER_HOSTNAME_CONFIG: ServerConfig<z.ZodString> = {
   private: false,
   default: null,
   schema: z.string(),
+}
+
+export const SEARCH_CONFIG: ServerConfig<typeof searchConfigSchema> = {
+  key: ServerConfigKey.SEARCH_CONFIG,
+  private: true,
+  default: { app: null },
+  schema: searchConfigSchema,
 }
 
 export const SIGNUP_PERMISSIONS_CONFIG: ServerConfig<z.ZodArray<z.ZodString>> =
@@ -97,6 +106,7 @@ export const CONFIGURATION_KEYS = [
   SERVER_HOSTNAME_CONFIG,
   GOOGLE_OAUTH_CONFIG,
   EMAIL_PROVIDER_CONFIG,
+  SEARCH_CONFIG,
 ]
 
 export const CONFIGURATION_KEYS_MAP = CONFIGURATION_KEYS.reduce<

@@ -36,6 +36,7 @@ export function configureServerAppWorkerScriptTableColumns(
       ),
       cell: ({ row }) => (
         <div className="flex flex-col">
+          <div className="truncate">{row.original.label}</div>
           <div className="truncate">{row.original.identifier}</div>
         </div>
       ),

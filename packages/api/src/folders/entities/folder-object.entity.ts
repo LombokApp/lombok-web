@@ -1,6 +1,8 @@
 import type { ContentMetadataByHash, MediaType } from '@lombokapp/types'
+import { type SQL, sql } from 'drizzle-orm'
 import {
   bigint,
+  customType,
   index,
   jsonb,
   pgTable,
@@ -11,6 +13,13 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { foldersTable } from './folder.entity'
+
+// Custom type for PostgreSQL tsvector
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector'
+  },
+})
 
 export const folderObjectsTable = pgTable(
   'folder_objects',
@@ -30,6 +39,10 @@ export const folderObjectsTable = pgTable(
       .references(() => foldersTable.id, { onDelete: 'cascade' }),
     mimeType: text('mime_type').notNull(),
     mediaType: text('media_type').notNull().$type<MediaType>(),
+    searchVector: tsvector('search_vector').generatedAlwaysAs(
+      (): SQL =>
+        sql`setweight(to_tsvector('english', coalesce(${folderObjectsTable.filename}, '')), 'A') || setweight(to_tsvector('english', coalesce(${folderObjectsTable.objectKey}, '')), 'B')`,
+    ),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
@@ -42,6 +55,13 @@ export const folderObjectsTable = pgTable(
     index('folder_objects_folder_id_media_type_idx').on(
       table.folderId,
       table.mediaType,
+    ),
+    // GIN index for full-text search on generated search_vector column
+    index('folder_objects_search_vector_idx').using('gin', table.searchVector),
+    // Trigram GIN index for filename similarity search
+    index('folder_objects_object_key_trgm_idx').using(
+      'gin',
+      table.filename.op('gin_trgm_ops'),
     ),
     uniqueIndex('folder_objects_folder_id_object_key_unique').on(
       table.folderId,

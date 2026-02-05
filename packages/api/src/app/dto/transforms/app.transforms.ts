@@ -19,6 +19,10 @@ export function transformAppToDTO(
     userScopeEnabledDefault: app.userScopeEnabledDefault,
     folderScopeEnabledDefault: app.folderScopeEnabledDefault,
     runtimeWorkers: app.runtimeWorkers,
+    systemRequestRuntimeWorkers: {
+      performSearch:
+        app.config.systemRequestRuntimeWorkers?.performSearch ?? [],
+    },
     contributions: app.config.contributions ?? {
       sidebarMenuLinks: [],
       folderSidebarViews: [],

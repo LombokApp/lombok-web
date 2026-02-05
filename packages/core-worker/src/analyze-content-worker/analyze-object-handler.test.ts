@@ -118,6 +118,7 @@ describe('Analyze Object Handler', () => {
       async (_request) => {
         return Promise.resolve({
           url: 'https://example.com/content-upload',
+          filename: 'test-image.png',
           folderId: analyzeTask.targetLocation.folderId,
           objectKey: analyzeTask.targetLocation.objectKey,
           contentMetadata: {},
@@ -126,7 +127,7 @@ describe('Analyze Object Handler', () => {
           eTag: uuidV4(),
           sizeBytes: 100,
           mimeType: 'image/png',
-          mediaType: MediaType.Image,
+          mediaType: MediaType.IMAGE,
         })
       },
       (requests) => {

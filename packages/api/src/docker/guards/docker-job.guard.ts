@@ -31,10 +31,19 @@ export class DockerJobGuard implements CanActivate {
     const token = authHeader.slice(BEARER_PREFIX.length)
 
     // Get the job ID from the URL
-    const jobId = request.url.slice(1).split('/')[0]
-    if (!jobId?.length || !z.string().uuid().safeParse(jobId).success) {
+    const urlParts = request.url.slice(1).split('/')
+
+    if (
+      urlParts[0] !== 'api' ||
+      urlParts[2] !== 'docker' ||
+      urlParts[3] !== 'jobs' ||
+      !urlParts[4]?.length ||
+      !z.string().uuid().safeParse(urlParts[4]).success
+    ) {
       throw new UnauthorizedException('Missing job ID in request')
     }
+
+    const jobId = urlParts[4]
 
     // Verify the token and get claims (this is synchronous - JWT verification)
     const claims = this.dockerWorkerHookService.verifyDockerWorkerJobToken(

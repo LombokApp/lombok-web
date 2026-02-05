@@ -44,7 +44,7 @@ export function ServerSettingsScreen({
   )
 
   const handleUpdateServerHostname = React.useCallback(
-    async (hostname: string) => {
+    async (hostname?: string | null) => {
       if (data?.settings) {
         await updateSettingMutation.mutateAsync({
           params: {
@@ -53,7 +53,7 @@ export function ServerSettingsScreen({
             },
           },
           body: {
-            value: hostname,
+            value: hostname ?? '',
           },
         })
       }
@@ -109,6 +109,24 @@ export function ServerSettingsScreen({
         },
         body: {
           value,
+        },
+      })
+    },
+    [updateSettingMutation],
+  )
+
+  const handleUpdateSearchConfig = React.useCallback(
+    async (config: {
+      app: { identifier: string; workerIdentifier: string } | null
+    }) => {
+      await updateSettingMutation.mutateAsync({
+        params: {
+          path: {
+            settingKey: 'SEARCH_CONFIG',
+          },
+        },
+        body: {
+          value: config,
         },
       })
     },
@@ -181,17 +199,11 @@ export function ServerSettingsScreen({
             />
           ) : tab === 'general' ? (
             <ServerGeneralConfigTab
-              settings={
-                data?.settings
-                  ? {
-                      ...data.settings,
-                      SERVER_HOSTNAME: data.settings.SERVER_HOSTNAME ?? '',
-                    }
-                  : undefined
-              }
+              settings={data?.settings}
               onSaveServerHostname={handleUpdateServerHostname}
               onSaveEnableNewSignups={handleUpdateSignupEnabled}
               onSaveGoogleOAuthConfig={handleUpdateGoogleOAuthConfig}
+              onSaveSearchConfig={handleUpdateSearchConfig}
             />
           ) : tab === 'apps' && appIdentifier ? (
             <ServerAppSettingsTab appIdentifier={appIdentifier} />

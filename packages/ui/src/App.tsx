@@ -13,6 +13,7 @@ import {
 } from 'react-router'
 
 import { Header } from './components/header'
+import { SearchCommandPalette } from './components/search-command-palette/search-command-palette'
 import { Sidebar } from './components/sidebar/sidebar'
 import { useSidebar } from './components/sidebar/use-sidebar'
 import { SIDEBAR_PAGES, UNAUTHENTICATED_PAGES } from './constants'
@@ -148,6 +149,7 @@ const AuthStateRouter = () => {
         <LocalFileCacheContextProvider>
           <ServerContextProvider>
             <AuthenticatedContent />
+            <SearchCommandPalette />
           </ServerContextProvider>
         </LocalFileCacheContextProvider>
       ) : (

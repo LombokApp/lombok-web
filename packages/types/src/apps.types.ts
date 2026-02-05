@@ -1,9 +1,14 @@
 import { z } from 'zod'
 
 import type { LombokApiClient } from './api.types'
+import { folderObjectSchema } from './content.types'
 import { CORE_IDENTIFIER } from './core.types'
 import { corePrefixedEventIdentifierSchema } from './events.types'
-import { appIdentifierSchema, appSlugSchema } from './identifiers.types'
+import {
+  appIdentifierSchema,
+  appSlugSchema,
+  workerIdentifierSchema,
+} from './identifiers.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
@@ -93,17 +98,25 @@ export const workerEntrypointSchema = z
     message: 'Entrypoint cannot contain consecutive slashes "//"',
   })
 
-export const appWorkerConfigSchema = z
-  .object({
-    entrypoint: workerEntrypointSchema,
-    description: z.string(),
-    environmentVariables: z.record(z.string(), z.string()).optional(),
-  })
-  .strict()
-
 export const appUIConfigSchema = z
   .object({
     description: z.string(),
+  })
+  .strict()
+
+export const appRuntimeWorkerConfigSchema = z.object({
+  label: z.string().optional(),
+  description: z.string(),
+  environmentVariables: z.record(z.string(), z.string()).optional(),
+  entrypoint: workerEntrypointSchema,
+})
+
+export const appRuntimeWorkerSchema = z
+  .object({
+    label: z.string(),
+    description: z.string(),
+    environmentVariables: z.record(z.string(), z.string()),
+    entrypoint: workerEntrypointSchema,
   })
   .strict()
 
@@ -226,6 +239,12 @@ export const appProfileIdentifierSchema = z
   .regex(/^[a-z_]+$/)
   .refine((v) => v.toLowerCase() === v)
 
+export const appSystemRequestRuntimeWorkersSchema = z
+  .object({
+    performSearch: workerIdentifierSchema.array(),
+  })
+  .strict()
+
 export const appConfigSchema = z
   .object({
     requiresStorage: z.boolean().optional(),
@@ -247,14 +266,10 @@ export const appConfigSchema = z
       .record(appProfileIdentifierSchema, containerProfileConfigSchema)
       .optional(),
     runtimeWorkers: z
-      .record(
-        z
-          .string()
-          .nonempty()
-          .regex(/^[a-z0-9_]+$/)
-          .refine((v) => v.toLowerCase() === v),
-        appWorkerConfigSchema.strict(),
-      )
+      .record(workerIdentifierSchema, appRuntimeWorkerConfigSchema.strict())
+      .optional(),
+    systemRequestRuntimeWorkers: appSystemRequestRuntimeWorkersSchema
+      .partial()
       .optional(),
     ui: z
       .object({
@@ -324,6 +339,30 @@ export const appConfigSchema = z
         })
       },
     )
+
+    if (value.systemRequestRuntimeWorkers) {
+      for (const key of Object.keys(value.systemRequestRuntimeWorkers)) {
+        const systemRequestWorkerIdentifiers =
+          value.systemRequestRuntimeWorkers[
+            key as keyof typeof value.systemRequestRuntimeWorkers
+          ] ?? []
+        for (const systemRequestWorkerIdentifier of systemRequestWorkerIdentifiers) {
+          if (!workerIdentifiers.has(systemRequestWorkerIdentifier)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Unknown worker "${systemRequestWorkerIdentifier}" in systemRequestRuntimeWorkers.${key}. Must be one of: ${workerIdentifiersArray.length > 0 ? workerIdentifiersArray.join(', ') : '(none)'}`,
+              path: [
+                'systemRequestRuntimeWorkers',
+                key,
+                systemRequestWorkerIdentifiers.indexOf(
+                  systemRequestWorkerIdentifier,
+                ),
+              ],
+            })
+          }
+        }
+      }
+    }
 
     value.tasks?.forEach((task, index) => {
       if (
@@ -458,12 +497,6 @@ export const appConfigWithManifestSchema = (
     }
   })
 
-export const appRuntimeWorkerSchema = z.object({
-  description: z.string(),
-  environmentVariables: z.record(z.string(), z.string()),
-  entrypoint: workerEntrypointSchema,
-})
-
 export const appRuntimeWorkersBundleSchema = z.object({
   hash: z.string(),
   size: z.number(),
@@ -482,6 +515,27 @@ export const appRuntimeWorkersMapSchema = z.record(
   z.string(),
   appRuntimeWorkerSchema,
 )
+
+export const appSearchResultItemSchema = z.object({
+  folderId: z.string().uuid(),
+  objectKey: z.string().nonempty(),
+  similarity: z.number().min(0).max(1),
+  score: z.number().optional(),
+})
+
+export const appSearchResultsSchema = z.array(appSearchResultItemSchema)
+
+export const searchResultItemSchema = appSearchResultItemSchema.extend({
+  folderObject: folderObjectSchema,
+  folderName: z.string(),
+})
+
+export const searchResultsSchema = z.array(searchResultItemSchema)
+
+export type AppSearchResults = z.infer<typeof appSearchResultsSchema>
+export type AppSearchResultItem = z.infer<typeof appSearchResultItemSchema>
+export type SearchResults = z.infer<typeof searchResultsSchema>
+export type SearchResultItem = z.infer<typeof searchResultItemSchema>
 
 export const appRuntimeWorkerScriptIdentifierSchema = z
   .string()

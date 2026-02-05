@@ -167,12 +167,12 @@ export const FolderObjectPreview = ({
   }, [getPresignedDownloadUrl, folderId, objectKey, resolveRenderedVersion])
 
   const isCoverView =
-    displayMode === 'object-cover' || toRender?.mediaType === MediaType.Document
+    displayMode === 'object-cover' || toRender?.mediaType === MediaType.DOCUMENT
   const IconComponent = iconForMediaType(
-    toRender?.mediaType ?? MediaType.Unknown,
+    toRender?.mediaType ?? MediaType.UNKNOWN,
   )
   const overlayLabel = React.useMemo<string | undefined>(() => {
-    if (toRender?.mediaType === MediaType.Document) {
+    if (toRender?.mediaType === MediaType.DOCUMENT) {
       return documentLabelFromMimeType(toRender.mimeType)
     }
     return undefined
@@ -231,7 +231,7 @@ export const FolderObjectPreview = ({
         !canRenderOriginalResult.result &&
         !renderBlockOverriden ? (
           renderEmptyPreview(canRenderOriginalResult.reason)
-        ) : toRender?.srcUrl && toRender.mediaType === MediaType.Image ? (
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.IMAGE ? (
           <div
             className={cn(
               'flex-1 flex flex-col justify-around size-full',
@@ -249,7 +249,7 @@ export const FolderObjectPreview = ({
               src={toRender.srcUrl}
             />
           </div>
-        ) : toRender && toRender.mediaType === MediaType.Video ? (
+        ) : toRender && toRender.mediaType === MediaType.VIDEO ? (
           <div className="flex size-full justify-center">
             <VideoPlayer
               className={cn(
@@ -260,7 +260,7 @@ export const FolderObjectPreview = ({
               src={toRender.srcUrl}
             />
           </div>
-        ) : toRender?.srcUrl && toRender.mediaType === MediaType.Audio ? (
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.AUDIO ? (
           <div className="flex size-full items-center justify-center p-4">
             <AudioPlayer
               width="100%"
@@ -270,7 +270,7 @@ export const FolderObjectPreview = ({
             />
           </div>
         ) : toRender?.srcUrl &&
-          toRender.mediaType === MediaType.Document &&
+          toRender.mediaType === MediaType.DOCUMENT &&
           toRender.isTextRenderableDocument ? (
           <div className="size-full overflow-hidden">
             <pre className="size-full overflow-auto p-4 text-sm">
@@ -278,7 +278,7 @@ export const FolderObjectPreview = ({
             </pre>
           </div>
         ) : toRender?.srcUrl &&
-          toRender.mediaType === MediaType.Document &&
+          toRender.mediaType === MediaType.DOCUMENT &&
           toRender.mimeType === 'application/pdf' ? (
           <React.Suspense fallback={null}>
             <LazyPDFViewer className="size-full" dataURL={toRender.srcUrl} />

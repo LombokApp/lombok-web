@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
-import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
@@ -35,7 +34,6 @@ export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly serverMetricsService: ServerMetricsService,
-    private readonly appService: AppService,
   ) {}
 
   /**

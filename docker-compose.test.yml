@@ -57,7 +57,7 @@ services:
       - ./.test-data/minio:/minio-test-data
     entrypoint: ['bun', '--cwd', './packages/core-worker', 'test:e2e']
   dbtest:
-    image: postgres
+    image: pgvector/pgvector:pg18
     container_name: lombok-db-test
     environment:
       - POSTGRES_USER=lombok_test

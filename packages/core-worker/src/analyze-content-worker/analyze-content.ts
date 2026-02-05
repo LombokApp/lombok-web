@@ -161,9 +161,9 @@ export async function analyzeContent({
     Record<string, PreviewMetadata>,
   ] = [{}, {}]
 
-  if (mediaType === MediaType.Image) {
+  if (mediaType === MediaType.IMAGE) {
     return analyzeImage(inFilePath, outFileDirectory, mimeType, metadata)
-  } else if (mediaType === MediaType.Video) {
+  } else if (mediaType === MediaType.VIDEO) {
     return analyzeVideo(inFilePath, outFileDirectory)
   }
 

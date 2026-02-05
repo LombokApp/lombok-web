@@ -8,6 +8,7 @@ export function transformFolderObjectToDTO(
   return {
     id: folderObject.id,
     objectKey: folderObject.objectKey,
+    filename: folderObject.filename,
     sizeBytes: folderObject.sizeBytes,
     eTag: folderObject.eTag,
     folderId: folderObject.folderId,
