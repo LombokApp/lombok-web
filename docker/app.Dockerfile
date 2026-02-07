@@ -7,10 +7,13 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositori
   echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
   apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail socat
 
-FROM base AS local
 
-# Install Playwright dependencies for UI e2e tests
-# Note: Playwright requires additional system dependencies on Alpine
+FROM base AS test
+
+COPY . .
+# cp the test entrypoint script to 1 dir above the root (to keep it out of the way of local volume mappings)
+COPY packages/api/cmd/test-entrypoint.sh ../test-entrypoint.sh
+
 RUN apk add --no-cache \
   curl \
   chromium \
@@ -24,7 +27,9 @@ RUN apk add --no-cache \
   postgresql-pgvector && \
   rm -rf /var/cache/apk/* && \
   curl -L https://dl.min.io/server/minio/release/linux-amd64/minio -o /usr/local/bin/minio && \
-  chmod +x /usr/local/bin/minio
+  chmod +x /usr/local/bin/minio && \
+  # install all dependencies
+  bun install --frozen-lockfile
 
 ENV MINIO_ROOT_USER=lomboktestadmin \
   MINIO_ROOT_PASSWORD=lomboktestadmin \
@@ -44,6 +49,27 @@ RUN mkdir -p /var/lib/postgresql/data && \
   su-exec postgres initdb -D /var/lib/postgresql/data
 
 ENTRYPOINT ["sh", "../test-entrypoint.sh"]
+
+
+FROM base AS local
+
+# Install Playwright dependencies for UI e2e tests
+# Note: Playwright requires additional system dependencies on Alpine
+RUN apk add --no-cache \
+  curl \
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont \
+  postgresql \
+  postgresql-contrib \
+  postgresql-pgvector && \
+  rm -rf /var/cache/apk/* && \
+  curl -L https://dl.min.io/server/minio/release/linux-amd64/minio -o /usr/local/bin/minio && \
+  chmod +x /usr/local/bin/minio
+
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds
@@ -93,8 +119,7 @@ RUN cd /temp/dev && \
   rm -rf ./node_modules/.bun/bun-types* && \
   rm -rf ./node_modules/.bun/@types+node* && \
   rm -rf ./node_modules/.bun/@microsoft+tsdoc* && \
-  rm -rf ./node_modules/.bun/@babel+runtime* && \
-  mkdir /usr/src/app/apps
+  rm -rf ./node_modules/.bun/@babel+runtime*
 
 FROM base AS release
 

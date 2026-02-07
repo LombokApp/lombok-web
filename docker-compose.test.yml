@@ -4,10 +4,10 @@ services:
     build:
       context: .
       dockerfile: docker/app.Dockerfile
-      target: local
-    volumes:
-      - ./:/usr/src/app
-      - ./.test-data/e2e-test-node-modules:/usr/src/app/node_modules
+      target: test
+    # volumes:
+    #   - ./:/usr/src/app
+    #   - ./.test-data/e2e-test-node-modules:/usr/src/app/node_modules
     privileged: true
   coreworkerutilsunittest:
     container_name: 'lombok-worker-utils-unit-test'
