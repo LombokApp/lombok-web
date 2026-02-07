@@ -65,10 +65,12 @@ async function main() {
     }).exited
   }
 
-  await Bun.spawn(['bun', 'test', ...expandedArgs], {
+  const testResult = await Bun.spawn(['bun', 'test', ...expandedArgs], {
     stdout: 'inherit',
     stderr: 'inherit',
   }).exited
+
+  process.exit(testResult)
 }
 
-void main()
+await main()

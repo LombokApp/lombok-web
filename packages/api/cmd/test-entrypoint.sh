@@ -6,14 +6,6 @@ APP_USER=bun
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/app" || { echo "Error: Cannot cd to $SCRIPT_DIR/app"; exit 1; }
 
-# Ensure node_modules is writable for the bun user (CI bind mounts are often root-owned)
-NODE_MODULES_DIR="/usr/src/app/node_modules"
-mkdir -p "$NODE_MODULES_DIR"
-chown -R "$APP_USER:$APP_USER" "$NODE_MODULES_DIR"
-export BUN_INSTALL_CACHE_DIR="$NODE_MODULES_DIR/.bun-cache"
-mkdir -p "$BUN_INSTALL_CACHE_DIR"
-chown -R "$APP_USER:$APP_USER" "$BUN_INSTALL_CACHE_DIR"
-
 # Database configuration (used for tests and migrations)
 export DB_HOST=localhost
 export DB_USER=lombok_test
