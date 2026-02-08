@@ -1,6 +1,11 @@
 import { FolderPushMessage } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { Namespace, Socket } from 'socket.io'
 import { FolderService } from 'src/folders/services/folder.service'
@@ -19,20 +24,22 @@ const UserAuthPayload = z.object({
 })
 
 @Injectable()
-export class FolderSocketService {
+export class FolderSocketService implements OnModuleInit {
   private readonly logger = new Logger(FolderSocketService.name)
   private readonly connectedClients = new Map<string, Socket>()
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
     this.namespace = namespace
   }
-  private readonly folderService: FolderService
+  private folderService!: FolderService
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
     private readonly userService: UserService,
-  ) {
+  ) {}
+
+  onModuleInit() {
     this.folderService = this.moduleRef.get(FolderService)
   }
 

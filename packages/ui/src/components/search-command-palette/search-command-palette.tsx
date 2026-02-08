@@ -143,6 +143,8 @@ export function SearchCommandPalette() {
             )}
           >
             <CommandInput
+              name="omni-search"
+              data-testid="omni-search-input"
               placeholder="Search files..."
               value={queryInputValue}
               onValueChange={setQueryInputValue}

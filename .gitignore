@@ -49,3 +49,4 @@ docker/worker-agent/.gocache
 packages/app-demo/bundle-dist
 .claude
 .cursor/plans
+test-results

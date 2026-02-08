@@ -109,6 +109,17 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      proxy: {
+        '^/api/': {
+          target: process.env.LOMBOK_BACKEND_HOST,
+        },
+        '^/socket.io/': {
+          target: process.env.LOMBOK_BACKEND_HOST,
+          ws: true,
+        },
+      },
+    },
     server: {
       hmr: {
         overlay: true,

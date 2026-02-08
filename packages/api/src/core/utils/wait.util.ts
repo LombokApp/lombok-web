@@ -15,6 +15,7 @@ export async function waitForTrue(
     maxRetries,
     totalMaxDurationMs,
   }: { retryPeriodMs: number; maxRetries: number; totalMaxDurationMs: number },
+  onTimeout?: (error: WaitForTrueError) => void,
 ): Promise<void> {
   if (!Number.isFinite(retryPeriodMs) || retryPeriodMs < 0) {
     throw new Error(
@@ -141,7 +142,12 @@ export async function waitForTrue(
   })
 
   try {
-    await Promise.race([conditionPromise, timeoutPromise])
+    await Promise.race([conditionPromise, timeoutPromise]).catch((err) => {
+      if (err instanceof WaitForTrueError && err.code === 'TIMEOUT') {
+        onTimeout?.(err)
+      }
+      throw err
+    })
   } finally {
     // Ensures we always tear down timers even if caller cancels/throws mid-await.
     cleanup()
