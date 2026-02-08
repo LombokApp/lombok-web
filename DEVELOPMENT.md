@@ -81,5 +81,5 @@ bun dev:lint-all
 
 ### Run the demo app frontend in dev mode (in [@lombokapp/app-demo](./packages/app-demo))
 
-1. `echo 'SC_APP_FRONTEND_PROXY_HOST_DEV=http://localhost:5175' > ./packages/ui/.env.development.local` -- tell the UI to proxy frontend requests for the `dev` app to `http://localhost:5175`
+1. `echo 'SC_APP_FRONTEND_PROXY_HOST_DEV=http://127.0.0.1:5175' > ./packages/ui/.env.development.local` -- tell the UI to proxy frontend requests for the `dev` app to `http://127.0.0.1:5175`
 2. `bun appuidemo:dev` -- run the demo app frontend

@@ -13,8 +13,8 @@ import {
 import { type paths, type TaskDTO } from '@lombokapp/types'
 import type {
   WorkerModuleStartContext,
-  WorkerPipeRequest,
-  WorkerPipeResponse,
+  WorkerRequest,
+  WorkerResponse,
 } from '@lombokapp/worker-utils'
 import {
   AsyncWorkDispatchError,
@@ -27,7 +27,11 @@ import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 
 import { getAsyncWorkErrorFromAppTaskError } from './app-error-utils'
-import { PipeReader, PipeWriter } from './pipe-utils'
+import {
+  connectToHostSocket,
+  type SocketReader,
+  type SocketWriter,
+} from './socket-utils'
 
 void (async () => {
   // AsyncLocalStorage for request-scoped context
@@ -35,7 +39,7 @@ void (async () => {
     requestId: string
     outputLogFilepath: string
     errorLogFilepath: string
-    responseWriter: PipeWriter
+    responseWriter: SocketWriter
   }
 
   const requestContext = new AsyncLocalStorage<RequestContext>()
@@ -276,10 +280,10 @@ void (async () => {
 
   // Function to handle a single request within ALS context
   const handleRequest = async (
-    pipeRequest: WorkerPipeRequest,
+    pipeRequest: WorkerRequest,
     serverClient: ReturnType<typeof buildAppClient>,
     dbClient: LombokAppPgClient,
-    responseWriter: PipeWriter,
+    responseWriter: SocketWriter,
   ): Promise<void> => {
     const requestStartTime = Date.now()
     logTiming('waiting_for_request', requestStartTime)
@@ -529,7 +533,7 @@ void (async () => {
         })
 
         // Send successful response
-        const pipeResponse: WorkerPipeResponse = {
+        const pipeResponse: WorkerResponse = {
           id: pipeRequest.id,
           timestamp: Date.now(),
           success: true,
@@ -551,7 +555,7 @@ void (async () => {
         })
 
         // Send error response
-        const pipeResponse: WorkerPipeResponse = {
+        const pipeResponse: WorkerResponse = {
           id: pipeRequest.id,
           timestamp: Date.now(),
           success: false,
@@ -611,9 +615,9 @@ void (async () => {
     })
   }
 
-  // Declare pipes outside try block for proper cleanup
-  let requestReader: PipeReader | null = null
-  let responseWriter: PipeWriter | null = null
+  // Declare socket reader/writer outside try block for proper cleanup
+  let requestReader: SocketReader | null = null
+  let responseWriter: SocketWriter | null = null
 
   try {
     const socketStartTime = Date.now()
@@ -654,9 +658,15 @@ void (async () => {
     const dbClient = new LombokAppPgClient(serverClient)
     logTiming('client_setup_complete', clientSetupStartTime)
 
-    // Create pipe readers and writers
-    requestReader = new PipeReader(workerModuleStartContext.requestPipePath)
-    responseWriter = new PipeWriter(workerModuleStartContext.responsePipePath)
+    // Connect to host's Unix domain socket for bidirectional communication
+    // The host creates the socket server before spawning this daemon, so we can connect immediately
+    logTiming('connecting_to_host_socket', Date.now())
+    const { reader, writer } = await connectToHostSocket(
+      workerModuleStartContext.socketPath,
+    )
+    requestReader = reader
+    responseWriter = writer
+    logTiming('host_socket_connected', Date.now())
 
     // Mark daemon as ready
     console.log('Worker daemon ready, waiting for requests...')
@@ -666,25 +676,31 @@ void (async () => {
     while (true) {
       try {
         const requestStartTime = Date.now()
-        logTiming('waiting_for_request', requestStartTime)
-        const pipeRequest: WorkerPipeRequest = await requestReader.readRequest()
+        logTiming('waiting_for_request_in_loop', requestStartTime)
+        const pipeRequest: WorkerRequest = await requestReader.readRequest()
+        logTiming('read_maybe_request', Date.now(), {
+          request: pipeRequest,
+        })
 
         // Dispatch request to concurrent handler (non-blocking)
         void (async () => {
           try {
+            logTiming('acquiring_worker_lock', Date.now())
             await concurrencySemaphore.acquire()
+            logTiming('acquired_worker_lock', Date.now())
             await handleRequest(
               pipeRequest,
               serverClient,
               dbClient,
               responseWriter,
             )
+            logTiming('handled_request', Date.now())
           } catch (error) {
             console.error(`Error handling request ${pipeRequest.id}:`, error)
 
             // Send error response for dispatch-level errors
             try {
-              const errorResponse: WorkerPipeResponse = {
+              const errorResponse: WorkerResponse = {
                 id: pipeRequest.id,
                 timestamp: Date.now(),
                 success: false,
@@ -704,15 +720,19 @@ void (async () => {
               }
               await responseWriter.writeResponse(errorResponse)
             } catch (writeError) {
-              console.error('Failed to write error response:', writeError)
+              logTiming('write_error', Date.now(), {
+                message: 'Failed to write error response',
+                error: writeError,
+              })
             }
           } finally {
             concurrencySemaphore.release()
+            logTiming('worker_lock_released', Date.now())
           }
         })()
       } catch (pipeError) {
         // Error reading from pipe
-        console.error('Pipe communication error:', pipeError)
+        logTiming('pipe_communication_error', Date.now(), { error: pipeError })
 
         // Check if this is a shutdown signal
         if (

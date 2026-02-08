@@ -58,7 +58,7 @@ export const useWebsocket = (
       void authContext.getAccessToken().then((token) => {
         const socketUrl = `${socketBaseURL}/${namespace}`
         const s = io(socketUrl, {
-          transports: ['websocket'],
+          transports: ['polling'],
           auth: {
             userId: authContext.viewer?.id,
             ...authParams,

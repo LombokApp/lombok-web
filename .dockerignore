@@ -1,21 +1,29 @@
 # Build artifacts
-
 /packages/_/build
 /packages/_/builds
 /packages/\*/dist
-/packages/build-test
 
-# Dependency directories
+# Dependency/cache directories
 **/node_modules
 **/.bun
+**/.gocache
+.test-data
+.docker
+.vscode
 
 # Docker cache
+/docker-compose*.yml
 
-/.data
-/docker-compose.yml
-/README.md
+# Test results
+/test-results
+
+# Git
+.git
  
 # Exclude local env files from context
-/packages/ui/.env.*
-/packages/api/.env
-/packages/api/.env.*
+**/.env.*
+**/.env
+
+# Agent config
+.clause
+.cursor

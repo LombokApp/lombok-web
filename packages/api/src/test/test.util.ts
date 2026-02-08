@@ -13,8 +13,7 @@ import { AppService } from 'src/app/services/app.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { CoreModule } from 'src/core/core.module'
-import { waitForTrue } from 'src/core/utils/wait.util'
-import { SHOULD_START_CORE_WORKER_THREAD_KEY } from 'src/core-worker/core-worker.constants'
+import { waitForCondition } from 'src/core/utils/wait.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
 import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
@@ -26,6 +25,7 @@ import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
+import { getLogLevelsFromMinimum } from 'src/shared/logger-levels.util'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
@@ -35,16 +35,17 @@ import { TaskService } from 'src/task/services/task.service'
 import type { User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 
+import { coreConfig } from '../core/config'
 import { ormConfig } from '../orm/config'
 import { setApp, setAppInitializing } from '../shared/app-helper'
 import { NoPrefixConsoleLogger } from '../shared/no-prefix-console-logger'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
-const MINIO_LOCAL_PATH = '/minio-test-data'
-const MINIO_ACCESS_KEY_ID = 'testaccesskeyid'
-const MINIO_SECRET_ACCESS_KEY = 'testsecretaccesskey'
-const MINIO_ENDPOINT = 'http://miniotest:9000'
+const MINIO_LOCAL_PATH = process.env.MINIO_DATA ?? ''
+const MINIO_ACCESS_KEY_ID = process.env.MINIO_ROOT_USER ?? ''
+const MINIO_SECRET_ACCESS_KEY = process.env.MINIO_ROOT_PASSWORD ?? ''
+const MINIO_ENDPOINT = 'http://127.0.0.1:9000'
 const MINIO_REGION = 'auto'
 
 const mockDockerAdapter = buildMockDockerAdapter('local')
@@ -101,8 +102,8 @@ export async function buildTestModule({
         value: { ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` },
       },
       {
-        token: SHOULD_START_CORE_WORKER_THREAD_KEY,
-        value: startCoreWorker,
+        token: coreConfig.KEY,
+        value: { ...coreConfig(), disableCoreWorker: !startCoreWorker },
       },
     ]
 
@@ -110,8 +111,8 @@ export async function buildTestModule({
     colors: true,
     timestamp: true,
     logLevels:
-      debug || process.env.LOG_LEVEL === 'DEBUG'
-        ? ['log', 'error', 'warn', 'debug', 'verbose']
+      (process.env.LOG_LEVEL ?? '').length || debug
+        ? getLogLevelsFromMinimum(process.env.LOG_LEVEL ?? 'DEBUG')
         : [],
   })
 
@@ -277,7 +278,7 @@ export async function buildTestModule({
             ]
           : []
 
-      await waitForTrue(
+      await waitForCondition(
         async () => {
           const totalCountResult = await baseQuery.where(
             !taskFilterConditions.length
@@ -296,6 +297,7 @@ export async function buildTestModule({
           )
           return result[0]?.count === totalCount
         },
+        'Tasks did not match expected count',
         {
           retryPeriodMs: 100,
           maxRetries: Math.ceil((options.timeoutMs ?? 5000) / 100),

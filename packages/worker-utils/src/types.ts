@@ -13,13 +13,12 @@ export interface WorkerModuleStartContext {
   scriptPath: string
   executionId: string
   startTimestamp: number
-  // Bidirectional pipes for long-running worker communication
-  requestPipePath: string
-  responsePipePath: string
+  // Unix domain socket for bidirectional worker communication
+  socketPath: string
 }
 
-// Pipe communication protocol for long-running workers
-export interface WorkerPipeRequest {
+// Worker communication protocol for long-running workers
+export interface WorkerRequest {
   id: string
   type: 'request' | 'task'
   timestamp: number
@@ -42,7 +41,7 @@ export interface SerializableResponse {
   isStreaming?: boolean // Flag to indicate this is a streaming response
 }
 
-export interface WorkerPipeResponse {
+export interface WorkerResponse {
   id: string
   timestamp: number
   success: boolean
@@ -76,7 +75,7 @@ export interface StreamEnd {
   totalChunks: number
 }
 
-export interface WorkerPipeMessage {
+export interface WorkerMessage {
   type:
     | 'request'
     | 'response'
@@ -85,8 +84,8 @@ export interface WorkerPipeMessage {
     | 'stdout_chunk'
     | 'shutdown'
   payload:
-    | WorkerPipeRequest
-    | WorkerPipeResponse
+    | WorkerRequest
+    | WorkerResponse
     | StreamChunk
     | StreamEnd
     | {

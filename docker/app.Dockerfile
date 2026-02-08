@@ -7,9 +7,40 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositori
   echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
   apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail socat
 
-FROM base AS local
 
-WORKDIR /usr/src/app
+FROM base AS test
+
+COPY . .
+# cp the test entrypoint script to 1 dir above the root (to keep it out of the way of local volume mappings)
+COPY packages/api/cmd/test-entrypoint.sh ../test-entrypoint.sh
+
+RUN apk add --no-cache \
+  curl \
+  ca-certificates \
+  chromium \
+  postgresql18 \
+  postgresql18-contrib \
+  postgresql-pgvector && \
+  rm -rf /var/cache/apk/* && \
+  curl -L https://dl.min.io/server/minio/release/linux-amd64/minio -o /usr/local/bin/minio && \
+  chmod +x /usr/local/bin/minio && \
+  # install all dependencies
+  bun install --frozen-lockfile
+
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Set up PostgreSQL data directory
+RUN mkdir -p /var/lib/postgresql/data && \
+  chown -R postgres:postgres /var/lib/postgresql && \
+  mkdir /run/postgresql && \
+  chown -R postgres:postgres /run/postgresql && \
+  su-exec postgres initdb -D /var/lib/postgresql/data
+
+RUN chown -R bun:bun . && \
+  su-exec bun bun --bun install --frozen-lockfile && \
+  su-exec bun bun --bun --cwd packages/ui build
+
+ENTRYPOINT ["sh", "../test-entrypoint.sh"]
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds
@@ -59,8 +90,7 @@ RUN cd /temp/dev && \
   rm -rf ./node_modules/.bun/bun-types* && \
   rm -rf ./node_modules/.bun/@types+node* && \
   rm -rf ./node_modules/.bun/@microsoft+tsdoc* && \
-  rm -rf ./node_modules/.bun/@babel+runtime* && \
-  mkdir /usr/src/app/apps
+  rm -rf ./node_modules/.bun/@babel+runtime*
 
 FROM base AS release
 
@@ -74,7 +104,7 @@ ENTRYPOINT ["sh", "./entrypoint.sh"]
 FROM release AS standalone-release
 
 ENV EMBEDDED_POSTGRES=true
-RUN apk add --no-cache postgresql postgresql-contrib
+RUN apk add --no-cache postgresql18 postgresql18-contrib postgresql-pgvector
 
 # Set up PostgreSQL data directory
 RUN mkdir -p /var/lib/postgresql/data && \

@@ -49,6 +49,7 @@ const Toast = React.forwardRef<
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
+      data-testid="toast"
       {...props}
     />
   )
@@ -80,7 +81,7 @@ const ToastClose = React.forwardRef<
       'text-foreground/50 hover:text-foreground absolute right-2 top-2 rounded-md p-1 opacity-0 transition-opacity focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600',
       className,
     )}
-    toast-close=""
+    data-testid="toast-close-button"
     {...props}
   >
     <X className="size-4" />
@@ -95,6 +96,7 @@ const ToastTitle = React.forwardRef<
   <ToastPrimitives.Title
     ref={ref}
     className={cn('text-sm font-semibold', className)}
+    data-testid="toast-title"
     {...props}
   />
 ))
@@ -107,6 +109,7 @@ const ToastDescription = React.forwardRef<
   <ToastPrimitives.Description
     ref={ref}
     className={cn('text-sm truncate opacity-90', className)}
+    data-testid="toast-description"
     {...props}
   />
 ))

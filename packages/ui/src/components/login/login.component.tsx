@@ -83,6 +83,7 @@ export const LoginComponent = ({
               variant="link"
               className="h-auto p-0 text-sm underline"
               onClick={onSignup}
+              data-testid="login-signup-link"
             >
               Sign up
             </Button>

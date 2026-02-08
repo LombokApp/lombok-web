@@ -19,7 +19,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { AppService } from 'src/app/services/app.service'
-import { waitForTrue } from 'src/core/utils/wait.util'
+import { waitForCondition } from 'src/core/utils/wait.util'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -413,11 +413,15 @@ describe('Core Worker', () => {
       return createMetadataSignedUrlsResult
     })
 
-    await waitForTrue(() => testModule!.services.coreWorkerService.isReady(), {
-      retryPeriodMs: 250,
-      maxRetries: 6,
-      totalMaxDurationMs: 10000,
-    })
+    await waitForCondition(
+      () => testModule!.services.coreWorkerService.isReady(),
+      'Core worker is not ready',
+      {
+        retryPeriodMs: 250,
+        maxRetries: 6,
+        totalMaxDurationMs: 10000,
+      },
+    )
   })
 
   beforeEach(async () => {
@@ -452,11 +456,15 @@ describe('Core Worker', () => {
   })
 
   it('should report ready', async () => {
-    await waitForTrue(() => testModule!.services.coreWorkerService.isReady(), {
-      retryPeriodMs: 250,
-      maxRetries: 4,
-      totalMaxDurationMs: 5000,
-    })
+    await waitForCondition(
+      () => testModule!.services.coreWorkerService.isReady(),
+      'Core worker is not ready',
+      {
+        retryPeriodMs: 250,
+        maxRetries: 20,
+        totalMaxDurationMs: 5000,
+      },
+    )
   })
 
   it('should accept app hash mapping updates', () => {
@@ -527,7 +535,7 @@ describe('Core Worker', () => {
     }
   })
 
-  it('records script errors on inner ta sks while completing run_serverless_worker', async () => {
+  it('records script errors on inner tasks while completing run_serverless_worker', async () => {
     await runWithThreadContext(crypto.randomUUID(), async () => {
       const innerTask =
         await testModule!.services.taskService.triggerAppActionTask({

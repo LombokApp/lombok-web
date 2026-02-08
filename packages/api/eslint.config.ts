@@ -26,7 +26,7 @@ export default [
     },
   },
   {
-    files: ['src/**/*.e2e-spec.ts'],
+    files: ['src/**/*.e2e-spec.ts', 'test/**/*.ui-e2e-spec.ts'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
