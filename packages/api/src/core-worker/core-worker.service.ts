@@ -22,7 +22,6 @@ import {
   NotImplementedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
-import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { Socket } from 'net'
 import { AppService } from 'src/app/services/app.service'
@@ -32,13 +31,12 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import z from 'zod'
 
-import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
 import { createSocketServer, writeSocketMessage } from './socket-utils'
 
 @Injectable()
 export class CoreWorkerService {
   private readonly logger = new Logger(CoreWorkerService.name)
-  private child: ReturnType<typeof spawn> | undefined
+  private child: ReturnType<typeof Bun.spawn> | undefined
   private serverlessWorkerThreadReady = false
   private ipcSocket: Socket | undefined
   private socketCleanup: (() => void) | undefined
@@ -57,8 +55,6 @@ export class CoreWorkerService {
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
-    @Inject(SHOULD_START_CORE_WORKER_THREAD_KEY)
-    private readonly shouldStartThread: boolean,
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
@@ -69,6 +65,10 @@ export class CoreWorkerService {
   ) {
     this.appService = _appService as AppService
     this.folderService = _folderService as FolderService
+  }
+
+  workerIsEnabled() {
+    return !this._coreConfig.disableCoreWorker
   }
 
   async getAppHashMapping() {
@@ -367,7 +367,7 @@ export class CoreWorkerService {
   }
 
   // Ensure spawned worker is terminated when the API process is exiting
-  private setupParentShutdownHooks(child: ReturnType<typeof spawn>) {
+  private setupParentShutdownHooks(child: ReturnType<typeof Bun.spawn>) {
     const terminate = () => {
       try {
         child.kill()
@@ -385,7 +385,7 @@ export class CoreWorkerService {
   }
 
   async startCoreWorkerThread() {
-    if (!this.shouldStartThread || this._coreConfig.disableCoreWorker) {
+    if (!this.workerIsEnabled()) {
       this.logger.warn('Core worker disabled, skipping thread start')
       return
     }
@@ -416,10 +416,10 @@ export class CoreWorkerService {
       const workerEntry = isProduction
         ? require.resolve('@lombokapp/core-worker/core-worker')
         : require.resolve('@lombokapp/core-worker/core-worker.ts')
-      this.child = spawn('bun', [workerEntry], {
-        uid: 1000,
-        gid: 1000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+      this.child = Bun.spawn(['bun', workerEntry], {
+        stdout: 'pipe',
+        stderr: 'pipe',
+        stdin: 'pipe',
         env: {
           ...process.env,
           LOMBOK_CORE_WORKER_SOCKET_PATH: socketPath,
@@ -428,44 +428,96 @@ export class CoreWorkerService {
       this.setupParentShutdownHooks(this.child)
       let hasScheduledRetry = false
 
-      this.child.stdout?.on('data', (chunk: Buffer) => {
-        if (this._coreConfig.printCoreWorkerOutput) {
-          this.logger.debug(`[core-worker stdout] ${chunk.toString()}`)
+      // Read stdout stream
+      const readStdout = async () => {
+        if (!this.child?.stdout) {
+          return
         }
-      })
+        const stdout = this.child.stdout
+        if (typeof stdout === 'number') {
+          return
+        }
+        const reader = stdout.getReader()
+        const decoder = new TextDecoder()
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) {
+              break
+            }
+            if (this._coreConfig.printCoreWorkerOutput) {
+              this.logger.debug(`[core-worker stdout] ${decoder.decode(value)}`)
+            }
+          }
+        } catch {
+          // Stream was closed or errored
+        } finally {
+          reader.releaseLock()
+        }
+      }
 
-      this.child.stderr?.on('data', (chunk: Buffer) => {
-        if (this._coreConfig.printCoreWorkerOutput) {
-          this.logger.error(`[core-worker stderr] ${chunk.toString()}`)
+      // Read stderr stream
+      const readStderr = async () => {
+        if (!this.child?.stderr) {
+          return
         }
-      })
+        const stderr = this.child.stderr
+        if (typeof stderr === 'number') {
+          return
+        }
+        const reader = stderr.getReader()
+        const decoder = new TextDecoder()
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) {
+              break
+            }
+            if (this._coreConfig.printCoreWorkerOutput) {
+              this.logger.error(`[core-worker stderr] ${decoder.decode(value)}`)
+            }
+          }
+        } catch {
+          // Stream was closed or errored
+        } finally {
+          reader.releaseLock()
+        }
+      }
+
+      // Start reading streams in background
+      void readStdout()
+      void readStderr()
 
       // If the child exits unexpectedly, schedule a retry
-      this.child.on('exit', (code) => {
-        this.serverlessWorkerThreadReady = false
-        this.ipcSocket = undefined
-        if (this.socketCleanup) {
-          this.socketCleanup()
-          this.socketCleanup = undefined
-        }
-        if (code && code !== 0) {
-          this.logger.warn(
-            `Embedded core worker exited with code ${String(code)}. Retrying...`,
-          )
-          if (!hasScheduledRetry) {
-            hasScheduledRetry = true
-            setTimeout(() => {
-              void this.startCoreWorkerThread()
-            }, 1000)
+      void this.child.exited
+        .then((exitCode) => {
+          this.serverlessWorkerThreadReady = false
+          this.ipcSocket = undefined
+          if (this.socketCleanup) {
+            this.socketCleanup()
+            this.socketCleanup = undefined
           }
-        }
-      })
-      this.child.on('error', (err) => {
-        this.serverlessWorkerThreadReady = false
-        this.logger.error(
-          `Embedded core worker process error: ${String(err.message)}`,
-        )
-      })
+          if (exitCode !== 0) {
+            this.logger.warn(
+              `Embedded core worker exited with code ${String(exitCode)}. Retrying...`,
+            )
+            if (!hasScheduledRetry) {
+              hasScheduledRetry = true
+              setTimeout(() => {
+                void this.startCoreWorkerThread()
+              }, 1000)
+            }
+          }
+        })
+        .catch((err: unknown) => {
+          this.serverlessWorkerThreadReady = false
+          const errorMessage = err instanceof Error ? err.message : String(err)
+          this.logger.error(
+            `Embedded core worker process error: ${errorMessage}`,
+          )
+        })
 
       setTimeout(() => {
         const executionOptions = {
@@ -487,7 +539,7 @@ export class CoreWorkerService {
           await this.updateAppHashMapping()
           this.serverlessWorkerThreadReady = true
           this.logger.debug(
-            `Serverless worker runner thread started with execution options: ${Object.keys(
+            `Core worker thread started with execution options: ${Object.keys(
               workerDataPayload.executionOptions ?? {},
             )
               .map(

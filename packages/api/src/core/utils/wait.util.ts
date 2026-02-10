@@ -1,21 +1,44 @@
-export class WaitForTrueError extends Error {
+export class WaitForConditionInvocation extends Error {
+  constructor() {
+    super('waitForCondition was invoked here:')
+    this.name = 'WaitForConditionInvocation'
+  }
+}
+
+export class WaitForConditionError extends Error {
   constructor(
     public readonly code: string,
     message: string,
   ) {
     super(message)
-    this.name = 'WaitForTrueError'
+    this.name = 'WaitForConditionError'
   }
 }
 
-export async function waitForTrue(
+export async function waitForCondition(
   condition: (() => boolean) | (() => Promise<boolean>),
+  failureMessage: string,
   {
     retryPeriodMs,
     maxRetries,
     totalMaxDurationMs,
   }: { retryPeriodMs: number; maxRetries: number; totalMaxDurationMs: number },
+  onTimeout?: (error: WaitForConditionError) => void,
 ): Promise<void> {
+  const invocationError = new WaitForConditionInvocation()
+  const invocationStackLines = invocationError.stack?.split('\n')
+  invocationStackLines?.splice(1, 1)
+  invocationError.stack = invocationStackLines?.join('\n')
+  const createTimeoutError = (message: string): WaitForConditionError => {
+    const err = new WaitForConditionError(
+      'TIMEOUT',
+      `${failureMessage} (${message})`,
+    )
+    err.cause = invocationError
+    err.stack = err.stack?.replace(/^Error\n/, `${err.name}: ${err.message}\n`)
+    return err
+  }
+
   if (!Number.isFinite(retryPeriodMs) || retryPeriodMs < 0) {
     throw new Error(
       `retryPeriodMs must be a non-negative finite number; got ${retryPeriodMs}`,
@@ -105,8 +128,7 @@ export async function waitForTrue(
 
       if (attempts >= maxAttempts) {
         finishReject(
-          new WaitForTrueError(
-            'TIMEOUT',
+          createTimeoutError(
             `Timeout waiting for condition to return true after ${attempts} attempt(s).`,
           ),
         )
@@ -132,8 +154,7 @@ export async function waitForTrue(
       }
       cleanup()
       reject(
-        new WaitForTrueError(
-          'TIMEOUT',
+        createTimeoutError(
           `Timeout waiting for condition to return true after ${totalMaxDurationMs}ms.`,
         ),
       )
@@ -141,7 +162,12 @@ export async function waitForTrue(
   })
 
   try {
-    await Promise.race([conditionPromise, timeoutPromise])
+    await Promise.race([conditionPromise, timeoutPromise]).catch((err) => {
+      if (err instanceof WaitForConditionError && err.code === 'TIMEOUT') {
+        onTimeout?.(err)
+      }
+      throw err
+    })
   } finally {
     // Ensures we always tear down timers even if caller cancels/throws mid-await.
     cleanup()

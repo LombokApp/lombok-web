@@ -109,16 +109,27 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      proxy: {
+        '^/api/': {
+          target: process.env.LOMBOK_BACKEND_HOST,
+        },
+        '^/socket.io/': {
+          target: process.env.LOMBOK_BACKEND_HOST,
+          ws: true,
+        },
+      },
+    },
     server: {
       hmr: {
         overlay: true,
       },
       proxy: {
         '^/api/': {
-          target: 'http://localhost:3000',
+          target: 'http://127.0.0.01:3000',
         },
         '^/socket.io/': {
-          target: 'ws://localhost:3000',
+          target: 'ws://127.0.0.1:3000',
           ws: true,
         },
       },

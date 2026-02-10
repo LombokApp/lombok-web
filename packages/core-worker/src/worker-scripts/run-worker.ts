@@ -2,34 +2,234 @@ import { type SerializeableRequest } from '@lombokapp/app-worker-sdk'
 import type { JsonSerializableObject, TaskDTO } from '@lombokapp/types'
 import type {
   ServerlessWorkerExecConfig,
+  WorkerMessage,
   WorkerModuleStartContext,
-  WorkerPipeMessage,
-  WorkerPipeRequest,
-  WorkerPipeResponse,
+  WorkerRequest,
+  WorkerResponse,
 } from '@lombokapp/worker-utils'
 import { AsyncWorkError, downloadFileToDisk } from '@lombokapp/worker-utils'
 import fs from 'fs'
+import { createServer, type Server, type Socket } from 'net'
 import os from 'os'
 import path from 'path'
 
-import {
-  cleanupWorkerPipes,
-  createWorkerPipes,
-  PipeReader,
-  PipeWriter,
-} from './worker-daemon/pipe-utils'
-
-const LOMBOK_PIPE_DEBUG = false as boolean
+const LOMBOK_SOCKET_DEBUG = false as boolean
 const MAX_WORKER_IDLE_TIME = 5 * 60 * 1000 // 5 minutes
 
 /**
- * Message router that handles all pipe messages and routes them to appropriate handlers
+ * Socket-based message writer for host side.
+ * Writes request messages to the connected worker daemon socket.
+ */
+class SocketWriter {
+  private socket: Socket | null = null
+  private writeQueue: Promise<void> = Promise.resolve()
+
+  setSocket(socket: Socket): void {
+    this.socket = socket
+  }
+
+  private async writeMessage(message: WorkerMessage): Promise<void> {
+    if (!this.socket) {
+      throw new Error('Socket not connected')
+    }
+
+    const data = JSON.stringify(message) + '\n'
+
+    const next = this.writeQueue.then(async () => {
+      await this.writeToSocket(data)
+    })
+
+    this.writeQueue = next.catch(() => undefined)
+    return next
+  }
+
+  private writeToSocket(data: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'))
+        return
+      }
+
+      this.socket.write(data, (error?: Error | null) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+  }
+
+  async writeRequest(request: WorkerRequest): Promise<void> {
+    await this.writeMessage({
+      type: 'request',
+      payload: request,
+    })
+  }
+
+  async writeShutdown(): Promise<void> {
+    await this.writeMessage({
+      type: 'shutdown',
+      payload: null,
+    })
+  }
+
+  async close(): Promise<void> {
+    try {
+      await this.writeQueue
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+/**
+ * Socket server for host side that listens for worker daemon connections.
+ */
+class SocketServer {
+  private readonly socketPath: string
+  private server?: Server
+  private clientSocket?: Socket
+  private buffer = ''
+  private connectionPromise?: Promise<Socket>
+  private connectionResolve?: (socket: Socket) => void
+
+  constructor(socketPath: string) {
+    this.socketPath = socketPath
+  }
+
+  private debug(...args: unknown[]): void {
+    if (LOMBOK_SOCKET_DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log('[SocketServer]', ...args)
+    }
+  }
+
+  async start(onMessage: (message: WorkerMessage) => void): Promise<void> {
+    // Remove existing socket file if it exists
+    if (await fs.promises.exists(this.socketPath)) {
+      await fs.promises.unlink(this.socketPath)
+    }
+
+    this.connectionPromise = new Promise((resolve) => {
+      this.connectionResolve = resolve
+    })
+
+    return new Promise((resolve, reject) => {
+      this.server = createServer((socket) => {
+        this.debug('Client connected')
+        this.clientSocket = socket
+
+        if (this.connectionResolve) {
+          this.connectionResolve(socket)
+          this.connectionResolve = undefined
+        }
+
+        socket.on('data', (data: Buffer) => {
+          this.handleData(data, onMessage)
+        })
+
+        socket.on('error', (error: Error) => {
+          this.debug('Client socket error:', error.message)
+        })
+
+        socket.on('close', () => {
+          this.debug('Client socket closed')
+          this.clientSocket = undefined
+        })
+      })
+
+      this.server.on('error', (error: Error) => {
+        this.debug('Server error:', error.message)
+        reject(error)
+      })
+
+      this.server.listen(this.socketPath, () => {
+        this.debug(`Listening on ${this.socketPath}`)
+        // Set permissions for the socket so nsjail process can connect
+        fs.chmodSync(this.socketPath, 0o777)
+        resolve()
+      })
+    })
+  }
+
+  private handleData(
+    data: Buffer,
+    onMessage: (message: WorkerMessage) => void,
+  ): void {
+    this.buffer += data.toString()
+
+    let idx = this.buffer.indexOf('\n')
+    while (idx !== -1) {
+      const line = this.buffer.slice(0, idx)
+      this.buffer = this.buffer.slice(idx + 1)
+
+      if (line.trim()) {
+        try {
+          const message = JSON.parse(line) as WorkerMessage
+          this.debug(`Received message type=${message.type}`)
+          onMessage(message)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('[SocketServer] Failed to parse message:', e)
+        }
+      }
+
+      idx = this.buffer.indexOf('\n')
+    }
+  }
+
+  async waitForConnection(timeoutMs = 30000): Promise<Socket> {
+    if (this.clientSocket) {
+      return this.clientSocket
+    }
+    if (!this.connectionPromise) {
+      throw new Error('Server not started')
+    }
+
+    // eslint-disable-next-line promise/param-names
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Connection timeout')), timeoutMs)
+    })
+
+    return Promise.race([this.connectionPromise, timeoutPromise])
+  }
+
+  getSocket(): Socket | undefined {
+    return this.clientSocket
+  }
+
+  async close(): Promise<void> {
+    if (this.clientSocket) {
+      this.clientSocket.destroy()
+    }
+    if (this.server) {
+      await new Promise<void>((resolve) => {
+        this.server?.close(() => resolve())
+      })
+      this.server = undefined
+    }
+    // Clean up socket file
+    if (await fs.promises.exists(this.socketPath)) {
+      try {
+        await fs.promises.unlink(this.socketPath)
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+/**
+ * Message router that handles all socket messages and routes them to appropriate handlers.
+ * Unlike the old pipe-based version, this receives messages via handleMessage() calls
+ * from the socket server.
  */
 class MessageRouter {
   private readonly responseWaiters = new Map<
     string,
     {
-      resolve: (response: WorkerPipeResponse) => void
+      resolve: (response: WorkerResponse) => void
       reject: (error: Error) => void
     }
   >()
@@ -54,47 +254,30 @@ class MessageRouter {
     string,
     { totalChunks: number }
   >()
-  private readonly reader: PipeReader
-  private isRunning = false
   private stopError: Error | null = null
 
-  constructor(reader: PipeReader) {
-    this.reader = reader
-  }
-
   private debug(...args: unknown[]): void {
-    if (LOMBOK_PIPE_DEBUG) {
+    if (LOMBOK_SOCKET_DEBUG) {
       // eslint-disable-next-line no-console
       console.log('[MessageRouter]', ...args)
     }
   }
 
-  async start(): Promise<void> {
-    if (this.isRunning) {
-      return
+  /**
+   * Handle an incoming message from the socket server.
+   * This replaces the old pipe-reading loop.
+   */
+  handleMessage(message: WorkerMessage): void {
+    if (this.stopError) {
+      return // Ignore messages after stop
     }
-    this.isRunning = true
-
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    while (this.isRunning) {
-      try {
-        const message = await this.reader.readMessage()
-        this.routeMessage(message)
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Message router error:', error)
-        this.abortPendingRequests(
-          error instanceof Error ? error : new Error(String(error)),
-        )
-        break
-      }
-    }
+    this.routeMessage(message)
   }
 
-  private routeMessage(message: WorkerPipeMessage): void {
+  private routeMessage(message: WorkerMessage): void {
     const key =
       (message.payload && 'id' in (message.payload as object)
-        ? (message.payload as WorkerPipeResponse).id
+        ? (message.payload as WorkerResponse).id
         : undefined) ||
       (message.payload && 'requestId' in (message.payload as object)
         ? (message.payload as { requestId: string }).requestId
@@ -103,7 +286,7 @@ class MessageRouter {
 
     switch (message.type) {
       case 'response': {
-        const response = message.payload as WorkerPipeResponse
+        const response = message.payload as WorkerResponse
         const waiter = this.responseWaiters.get(response.id)
         if (waiter) {
           this.responseWaiters.delete(response.id)
@@ -322,7 +505,7 @@ class MessageRouter {
     }
   }
 
-  waitForResponse(requestId: string): Promise<WorkerPipeResponse> {
+  waitForResponse(requestId: string): Promise<WorkerResponse> {
     if (this.stopError) {
       return Promise.reject(this.stopError)
     }
@@ -373,7 +556,6 @@ class MessageRouter {
       console.log(`Processing orphaned stream end for ${requestId}`)
 
       this.processStreamEnd(handler, requestId, orphanedStreamEnd.totalChunks)
-      // Note: processStreamEnd deletes the handler, so we're done
     }
   }
 
@@ -401,7 +583,6 @@ class MessageRouter {
       return
     }
     this.stopError = reason
-    this.isRunning = false
 
     for (const waiter of this.responseWaiters.values()) {
       waiter.reject(reason)
@@ -444,7 +625,7 @@ function handleStreamingResponse(
   onComplete?: () => void,
 ): Response {
   const debug = (...args: unknown[]) => {
-    if (LOMBOK_PIPE_DEBUG) {
+    if (LOMBOK_SOCKET_DEBUG) {
       // eslint-disable-next-line no-console
       console.log('[run-worker-script]', ...args)
     }
@@ -486,7 +667,7 @@ function handleStreamingResponse(
 const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
 if (await fs.promises.exists(cacheRoot)) {
   // Clean previous worker cache directory before starting
-  if (LOMBOK_PIPE_DEBUG) {
+  if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console
     console.log(
       '[run-worker-script]',
@@ -499,7 +680,7 @@ if (await fs.promises.exists(cacheRoot)) {
 const prepCacheRoot = path.join(os.tmpdir(), 'lombok-worker-prep-cache')
 if (await fs.promises.exists(prepCacheRoot)) {
   // Clean previous worker prep cache directory before starting
-  if (LOMBOK_PIPE_DEBUG) {
+  if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console
     console.log(
       '[run-worker-script]',
@@ -869,7 +1050,7 @@ async function parseRequestBody(request: Request): Promise<unknown> {
       return formObject
     } else {
       // Unsupported content type - log warning and try to parse as text
-      if (LOMBOK_PIPE_DEBUG) {
+      if (LOMBOK_SOCKET_DEBUG) {
         // eslint-disable-next-line no-console
         console.warn(
           `Unsupported Content-Type: ${contentType}. Attempting to parse as text.`,
@@ -996,11 +1177,10 @@ const workerProcesses = new Map<
   string,
   {
     process: ReturnType<typeof Bun.spawn>
-    requestWriter: PipeWriter
-    responseReader: PipeReader
+    socketServer: SocketServer
+    requestWriter: SocketWriter
     messageRouter: MessageRouter
-    requestPipePath: string
-    responsePipePath: string
+    socketPath: string
     lastUsed: number
     activeRequests: number
   }
@@ -1010,8 +1190,7 @@ const workerProcesses = new Map<
 const workerCreationPromises = new Map<
   string,
   Promise<{
-    requestWriter: PipeWriter
-    responseReader: PipeReader
+    requestWriter: SocketWriter
     messageRouter: MessageRouter
     workerRootPath: string
     logsDir: string
@@ -1047,9 +1226,10 @@ const cleanupWorkerProcess = async (workerId: string) => {
       }
     }, 1000)
 
-    // Cleanup pipes
-    await cleanupWorkerPipes(worker.requestPipePath, worker.responsePipePath)
+    // Close socket server and clean up socket file
+    await worker.socketServer.close()
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`Error cleaning up worker ${workerId}:`, error)
   }
 }
@@ -1067,8 +1247,7 @@ async function createWorkerProcess(
     printNsjailVerboseOutput?: boolean
   } = {},
 ): Promise<{
-  requestWriter: PipeWriter
-  responseReader: PipeReader
+  requestWriter: SocketWriter
   messageRouter: MessageRouter
   workerRootPath: string
   logsDir: string
@@ -1085,14 +1264,11 @@ async function createWorkerProcess(
   const outLogPath = path.join(logsDir, 'output.log')
   const errOutputPath = path.join(logsDir, 'error.json')
 
-  // Create pipe paths
-  const requestPipePath = path.join(workerTmpDir, 'request.pipe')
-  const responsePipePath = path.join(workerTmpDir, 'response.pipe')
-  if (LOMBOK_PIPE_DEBUG) {
+  // Create socket path for bidirectional communication
+  const socketPath = path.join(workerTmpDir, 'worker.sock')
+  if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console
-    console.log('[run-worker-script]', 'requestPipePath', requestPipePath)
-    // eslint-disable-next-line no-console
-    console.log('[run-worker-script]', 'responsePipePath', responsePipePath)
+    console.log('[run-worker-script]', 'socketPath', socketPath)
   }
 
   const ensureDir = async (dir: string, mode: number) => {
@@ -1118,8 +1294,19 @@ async function createWorkerProcess(
     fs.promises.chmod(errOutputPath, 0o1777),
   ])
 
-  // Create bidirectional pipes
-  await createWorkerPipes(requestPipePath, responsePipePath)
+  // Create message router for this worker (handles incoming messages from socket)
+  const messageRouter = new MessageRouter()
+
+  // Create socket server BEFORE spawning worker
+  const socketServer = new SocketServer(socketPath)
+  await socketServer.start((message) => {
+    messageRouter.handleMessage(message)
+  })
+
+  if (LOMBOK_SOCKET_DEBUG) {
+    // eslint-disable-next-line no-console
+    console.log('[run-worker-script]', 'Socket server started, spawning worker')
+  }
 
   const workerEnvVars = Object.keys(
     workerExecConfig.environmentVariables,
@@ -1150,8 +1337,7 @@ async function createWorkerProcess(
     workerIdentifier,
     serverBaseUrl,
     startTimestamp: Date.now(),
-    requestPipePath: '/worker-tmp/request.pipe',
-    responsePipePath: '/worker-tmp/response.pipe',
+    socketPath: '/worker-tmp/worker.sock',
   }
 
   await Bun.spawn({
@@ -1194,22 +1380,33 @@ async function createWorkerProcess(
     stderr: 'inherit',
   })
 
-  // Create pipe readers/writers
-  const requestWriter = new PipeWriter(requestPipePath)
-  const responseReader = new PipeReader(responsePipePath)
+  // Wait for the worker daemon to connect to our socket server
+  if (LOMBOK_SOCKET_DEBUG) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[run-worker-script]',
+      'Waiting for worker daemon to connect...',
+    )
+  }
 
-  // Create and start message router for this worker
-  const messageRouter = new MessageRouter(responseReader)
-  void messageRouter.start()
+  const clientSocket = await socketServer.waitForConnection(30000)
+
+  if (LOMBOK_SOCKET_DEBUG) {
+    // eslint-disable-next-line no-console
+    console.log('[run-worker-script]', 'Worker daemon connected!')
+  }
+
+  // Create socket writer for sending requests to the worker
+  const requestWriter = new SocketWriter()
+  requestWriter.setSocket(clientSocket)
 
   // Store the worker process
   workerProcesses.set(workerId, {
     process: proc,
+    socketServer,
     requestWriter,
-    responseReader,
     messageRouter,
-    requestPipePath,
-    responsePipePath,
+    socketPath,
     lastUsed: Date.now(),
     activeRequests: 0,
   })
@@ -1223,12 +1420,8 @@ async function createWorkerProcess(
     void cleanupWorkerProcess(workerId)
   })
 
-  // Give the worker a moment to start up
-  await new Promise((resolve) => setTimeout(resolve, 100))
-
   return {
     requestWriter,
-    responseReader,
     messageRouter,
     workerRootPath,
     logsDir,
@@ -1246,7 +1439,7 @@ setInterval(
         continue
       }
       if (now - worker.lastUsed > MAX_WORKER_IDLE_TIME) {
-        if (LOMBOK_PIPE_DEBUG) {
+        if (LOMBOK_SOCKET_DEBUG) {
           // eslint-disable-next-line no-console
           console.log(
             '[run-worker-script]',
@@ -1273,8 +1466,7 @@ async function getOrCreateWorkerProcess(
     printNsjailVerboseOutput?: boolean
   } = {},
 ): Promise<{
-  requestWriter: PipeWriter
-  responseReader: PipeReader
+  requestWriter: SocketWriter
   messageRouter: MessageRouter
   workerRootPath: string
   logsDir: string
@@ -1284,16 +1476,31 @@ async function getOrCreateWorkerProcess(
 
   // Check if we have an existing worker
   const existingWorker = workerProcesses.get(workerId)
-  if (existingWorker && !existingWorker.process.killed) {
+  // Check both killed (kill() was called) and exitCode (process exited on its own)
+  // exitCode is null while the process is still running
+  if (
+    existingWorker &&
+    !existingWorker.process.killed &&
+    existingWorker.process.exitCode === null
+  ) {
     existingWorker.lastUsed = Date.now()
     return {
       requestWriter: existingWorker.requestWriter,
-      responseReader: existingWorker.responseReader,
       messageRouter: existingWorker.messageRouter,
-      workerRootPath: path.dirname(existingWorker.requestPipePath),
-      logsDir: path.join(path.dirname(existingWorker.requestPipePath), 'logs'),
+      workerRootPath: path.dirname(existingWorker.socketPath),
+      logsDir: path.join(path.dirname(existingWorker.socketPath), 'logs'),
       workerId,
     }
+  }
+
+  // Clean up stale worker if it exists but process has exited
+  if (existingWorker) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[run-worker-script] Cleaning up stale worker ${workerId} (killed=${existingWorker.process.killed}, exitCode=${existingWorker.process.exitCode})`,
+    )
+    // Wait for cleanup to complete before creating new worker to avoid race conditions
+    await cleanupWorkerProcess(workerId)
   }
 
   // Check if another request is already creating this worker
@@ -1452,7 +1659,7 @@ export async function runWorker(
     const jailErrLogPath = `/worker-tmp/logs/${requestId}.error.json`
 
     // Create pipe request
-    const pipeRequest: WorkerPipeRequest = {
+    const pipeRequest: WorkerRequest = {
       id: requestId,
       type: requestOrTask instanceof Request ? 'request' : 'task',
       isSystemRequest: 'isSystemRequest' in args ? args.isSystemRequest : false,
@@ -1496,6 +1703,7 @@ export async function runWorker(
 
     // Handle response
     if (!pipeResponse.success) {
+      // eslint-disable-next-line no-console
       console.log(
         `[TIMING] Worker execution failed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
       )
@@ -1516,6 +1724,7 @@ export async function runWorker(
 
     if (!(requestOrTask instanceof Request)) {
       // Task execution completed
+      // eslint-disable-next-line no-console
       console.log(
         `[TIMING] Task execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
       )
@@ -1535,13 +1744,14 @@ export async function runWorker(
       })
     }
 
+    // eslint-disable-next-line no-console
     console.log(
       `[TIMING] Request execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
     )
 
     // Handle different response types
     // Debug-only: received response summary
-    if (LOMBOK_PIPE_DEBUG) {
+    if (LOMBOK_SOCKET_DEBUG) {
       // eslint-disable-next-line no-console
       console.log('[run-worker-script]', 'Received response from worker')
     }
@@ -1554,7 +1764,7 @@ export async function runWorker(
       'isStreaming' in responseData &&
       responseData.isStreaming
     ) {
-      if (LOMBOK_PIPE_DEBUG) {
+      if (LOMBOK_SOCKET_DEBUG) {
         // eslint-disable-next-line no-console
         console.log('[run-worker-script]', 'Handling streaming response')
       }
@@ -1588,7 +1798,7 @@ export async function runWorker(
       'body' in responseData &&
       !('isStreaming' in responseData)
     ) {
-      if (LOMBOK_PIPE_DEBUG) {
+      if (LOMBOK_SOCKET_DEBUG) {
         // eslint-disable-next-line no-console
         console.log(
           '[run-worker-script]',
@@ -1620,10 +1830,11 @@ export async function runWorker(
   } catch (error) {
     const overallEndTime = performance.now()
     const overallTime = overallEndTime - overallStartTime
+    // eslint-disable-next-line no-console
     console.log(
       `[TIMING] Worker execution failed - Overall: ${overallTime.toFixed(2)}ms`,
     )
-    if (LOMBOK_PIPE_DEBUG) {
+    if (LOMBOK_SOCKET_DEBUG) {
       // eslint-disable-next-line no-console
       console.log('[run-worker-script]', error)
     }

@@ -7,7 +7,6 @@ import { FoldersModule } from 'src/folders/folders.module'
 import { NotificationModule } from 'src/notification/notification.module'
 import { OrmService } from 'src/orm/orm.service'
 
-import { SHOULD_START_CORE_WORKER_THREAD_KEY } from './core-worker.constants'
 import { CoreWorkerService } from './core-worker.service'
 import { AnalyzeObjectProcessor } from './processors/analyze-object.processor'
 import { RunServerlessWorkerTaskProcessor } from './processors/run-serverless-worker-task.processor'
@@ -20,7 +19,6 @@ import { RunServerlessWorkerTaskProcessor } from './processors/run-serverless-wo
     forwardRef(() => NotificationModule),
   ],
   providers: [
-    { provide: SHOULD_START_CORE_WORKER_THREAD_KEY, useValue: true },
     CoreWorkerService,
     RunServerlessWorkerTaskProcessor,
     AnalyzeObjectProcessor,

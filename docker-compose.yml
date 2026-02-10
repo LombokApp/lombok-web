@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: docker/app.Dockerfile
-      target: local
+      target: base
     volumes:
       - ./:/usr/src/app:cached
       - /usr/src/app/node_modules
@@ -39,7 +39,7 @@ services:
     userns_mode: host
   minio:
     image: minio/minio
-    command: server /data --address "minio:9000" --console-address ":9001"
+    command: server /data --address "minio:9000"
     volumes:
       - ./.docker/minio/:/data
     ports:

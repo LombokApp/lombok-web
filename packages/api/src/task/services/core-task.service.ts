@@ -46,6 +46,7 @@ export class CoreTaskService {
   }
 
   async startDrainCoreTasks() {
+    await this.ormService.waitForInit()
     const runId = crypto.randomUUID()
     if (this.draining) {
       this.logger.debug('Core task draining called while already running')

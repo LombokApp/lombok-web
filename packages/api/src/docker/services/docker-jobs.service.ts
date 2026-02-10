@@ -16,7 +16,10 @@ import { and, eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { coreConfig } from 'src/core/config'
 import { buildPlatformOrigin } from 'src/core/utils/platform-origin.util'
-import { waitForTrue, WaitForTrueError } from 'src/core/utils/wait.util'
+import {
+  waitForCondition,
+  WaitForConditionError,
+} from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
 
 import {
@@ -368,13 +371,13 @@ export class DockerJobsService {
     }
 
     try {
-      await waitForTrue(jobHasStarted, {
+      await waitForCondition(jobHasStarted, 'Job submission failed', {
         maxRetries,
         retryPeriodMs,
         totalMaxDurationMs: maxRetries * retryPeriodMs,
       })
     } catch (error) {
-      if (error instanceof WaitForTrueError && error.code === 'TIMEOUT') {
+      if (error instanceof WaitForConditionError && error.code === 'TIMEOUT') {
         this.logger.warn('Docker job waitForStarted timeout')
         throw new AsyncWorkError({
           name: 'DockerWorkerSubmissionError',
@@ -409,11 +412,12 @@ export class DockerJobsService {
     let currentJobState: DockerJobState = await latestState()
     const hasCompleted = () => !!currentJobState.completed_at
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         currentJobState = await latestState()
         return hasCompleted()
       },
+      'Job completion timed out',
       {
         maxRetries,
         retryPeriodMs,
@@ -459,11 +463,12 @@ export class DockerJobsService {
       command,
     )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const _state = await state(5000)
         return !_state.running
       },
+      'Agent log access timed out',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -496,11 +501,12 @@ export class DockerJobsService {
         command,
       )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const _state = await state(5000)
         return !_state.running
       },
+      'Job state not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -543,11 +549,12 @@ export class DockerJobsService {
       command,
     )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const _state = await state(5000)
         return !_state.running
       },
+      'Job result not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -600,11 +607,12 @@ export class DockerJobsService {
       command,
     )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const _state = await state(5000)
         return !_state.running
       },
+      'Job log not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -637,11 +645,12 @@ export class DockerJobsService {
       ],
     )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const execState = await state(5000)
         return !execState.running
       },
+      'Job state files not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -671,11 +680,12 @@ export class DockerJobsService {
       ],
     )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const execState = await state(5000)
         return !execState.running
       },
+      'Worker state files not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -709,11 +719,12 @@ export class DockerJobsService {
       ],
     )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const execState = await state(5000)
         return !execState.running
       },
+      'Worker job state files not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -744,11 +755,12 @@ export class DockerJobsService {
         command,
       )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const _state = await state(5000)
         return !_state.running
       },
+      'Worker state not found',
       {
         maxRetries: 10,
         retryPeriodMs: 100,
@@ -831,11 +843,12 @@ export class DockerJobsService {
         command,
       )
 
-    await waitForTrue(
+    await waitForCondition(
       async () => {
         const execState = await state(5000)
         return !execState.running
       },
+      'Purge jobs timed out',
       {
         maxRetries: 10,
         retryPeriodMs: 100,

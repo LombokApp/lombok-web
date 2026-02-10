@@ -55,7 +55,11 @@ const pendingCoreRequests = new Map<
   }
 >()
 
-const cleanup = () => {
+const cleanup = (reason?: string) => {
+  // eslint-disable-next-line no-console
+  console.log(
+    `[core-worker] Running cleanup${reason ? ` (reason: ${reason})` : ''}`,
+  )
   if (staticAppServer) {
     void staticAppServer.stop()
     staticAppServer = undefined
@@ -71,9 +75,9 @@ const cleanup = () => {
   }
 }
 
-process.on('SIGTERM', cleanup)
-process.on('SIGINT', cleanup)
-process.on('exit', cleanup)
+process.on('SIGTERM', () => cleanup('SIGTERM received'))
+process.on('SIGINT', () => cleanup('SIGINT received'))
+process.on('exit', () => cleanup('process exit'))
 
 const appUiHashMapping: Record<string, string> = {}
 const appWorkerHashMapping: Record<string, string> = {}
@@ -342,7 +346,7 @@ const handleInit = (
       message: `HTTP server failed to start: ${message}`,
       level: LogEntryLevel.ERROR,
     })
-    cleanup()
+    cleanup('HTTP server failed to start')
     process.exit(1)
   }
 
@@ -497,11 +501,11 @@ ipcSocket.on('data', (data: Buffer) => {
 
 ipcSocket.on('error', (error: Error) => {
   console.error('IPC socket error:', error.message)
-  cleanup()
+  cleanup(`IPC socket error: ${error.message}`)
   process.exit(1)
 })
 
 ipcSocket.on('close', () => {
-  cleanup()
+  cleanup('IPC socket closed')
   process.exit(0)
 })

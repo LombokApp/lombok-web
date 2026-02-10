@@ -55,17 +55,17 @@ describe('Access Keys', () => {
     expect(listAccessKeysResponse.data.result.length).toEqual(1)
     expect(listAccessKeysResponse.data.result[0]?.accessKeyHashId).toEqual(
       buildAccessKeyHashId({
-        accessKeyId: 'testaccesskeyid',
-        secretAccessKey: 'testsecretaccesskey',
+        accessKeyId: 'lomboktestadmin',
+        secretAccessKey: 'lomboktestadmin',
         region: 'auto',
-        endpoint: 'http://miniotest:9000',
+        endpoint: 'http://127.0.0.1:9000',
       }),
     )
     expect(listAccessKeysResponse.data.result[0]?.accessKeyId).toEqual(
-      'testaccesskeyid',
+      'lomboktestadmin',
     )
     expect(listAccessKeysResponse.data.result[0]?.endpointDomain).toEqual(
-      'miniotest:9000',
+      '127.0.0.1:9000',
     )
     expect(listAccessKeysResponse.data.result[0]?.folderCount).toEqual(1)
   })
