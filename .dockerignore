@@ -9,6 +9,7 @@
 **/.gocache
 .test-data
 .docker
+.github
 .vscode
 
 # Docker cache
