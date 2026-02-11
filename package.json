@@ -2,12 +2,10 @@
   "name": "lombokapp",
   "private": true,
   "workspaces": [
-    "packages/**",
-    "!**/node_modules/**",
-    "!docker/worker-test/**"
+    "**"
   ],
   "scripts": {
-    "install:clean": "rm -rf ./node_modules || true && rm -rf ./packages/api/node_modules || true && rm -rf ./packages/ui/node_modules || true && rm -rf ./packages/ui-toolkit/node_modules || true && rm bun.lock || true && bun install",
+    "install:clean": "sh ./cmd/dev-clean-install.sh",
     "build:standalone": "(cd ./deploy && sh ./build-standalone.sh)",
     "build:separate-db": "(cd ./deploy && sh ./build-separate-db.sh)",
     "generate:openapi": "bun --cwd packages/api generate:openapi",
@@ -55,7 +53,7 @@
     "eslint-plugin-sonarjs": "3.0.1",
     "eslint-plugin-storybook": "10.0.5",
     "eslint-plugin-tailwindcss": "3.18.0",
-    "@types/bun": "1.3.8",
+    "@types/bun": "1.3.9",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.1",
     "typescript": "5.9.3",

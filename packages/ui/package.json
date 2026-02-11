@@ -11,7 +11,7 @@
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:fix": "prettier --write \"./**/*.(ts|tsx)\"",
     "tsc:check": "tsc --noEmit -p tsconfig.app.json",
-    "preview": "vite preview"
+    "preview": "bunx --bun vite preview --port 12005 --strictPort --host 127.0.0.1"
   },
   "dependencies": {
     "@hookform/resolvers": "catalog:",

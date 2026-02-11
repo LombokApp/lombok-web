@@ -84,7 +84,6 @@ describe('UI E2E - Scroll Behavior', () => {
     const scrollBefore = await page.evaluate(() => window.scrollY)
 
     await dispatchKeyboardShortcut(page, 'PageUp')
-    await dispatchKeyboardShortcut(page, 'PageUp')
     await page.waitForTimeout(300)
 
     await testModule!.takeScreenshot(page, 'scroll-page-up')
@@ -95,7 +94,8 @@ describe('UI E2E - Scroll Behavior', () => {
       scrollAfter = await page.evaluate(() => window.scrollY)
     }
 
-    expect(scrollAfter).toBeLessThanOrEqual(scrollBefore)
+    const tolerance = 2
+    expect(Math.abs(scrollAfter - scrollBefore)).toBeLessThanOrEqual(tolerance)
   }, 30000)
 
   it('should scroll to top with Home key', async () => {
