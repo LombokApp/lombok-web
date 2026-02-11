@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { userDTOSchema } from 'src/users/dto/user.dto'
 import { z } from 'zod'
 
@@ -15,7 +15,7 @@ const ssoLoginResponseSchema = z.object({
   user: userDTOSchema,
   accessToken: z.string(),
   refreshToken: z.string(),
-  expiresAt: z.date(),
+  expiresAt: z.iso.datetime(),
 })
 
 // Response when new user needs to select username
@@ -25,7 +25,7 @@ const ssoUsernameSelectionResponseSchema = z.object({
   providerUserInfo: providerUserInfoSchema,
   suggestedUsername: z.string(),
   signature: z.string(),
-  expiry: z.date(),
+  expiry: z.iso.datetime(),
 })
 
 // Union type for the callback response
@@ -34,6 +34,7 @@ export const ssoCallbackResponseSchema = z.union([
   ssoUsernameSelectionResponseSchema,
 ])
 
+// @ts-expect-error - Union type causes TypeScript error with class extension in Zod v4
 export class SSOCallbackResponse extends createZodDto(
   ssoCallbackResponseSchema,
 ) {}

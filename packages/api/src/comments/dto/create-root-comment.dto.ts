@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 const commentAnchorSchema = z.discriminatedUnion('type', [
@@ -22,8 +22,8 @@ const commentAnchorSchema = z.discriminatedUnion('type', [
 export const createCommentDTOSchema = z.object({
   content: z.string().min(1),
   anchor: commentAnchorSchema.optional(),
-  quoteId: z.string().uuid().optional(),
-  rootCommentId: z.string().uuid().optional(),
+  quoteId: z.guid().optional(),
+  rootCommentId: z.guid().optional(),
 })
 
 export class CreateCommentDTO extends createZodDto(createCommentDTOSchema) {}

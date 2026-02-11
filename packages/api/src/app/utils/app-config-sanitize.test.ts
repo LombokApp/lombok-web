@@ -1,6 +1,10 @@
 import { appConfigSchema } from '@lombokapp/types'
 import { describe, expect, it } from 'bun:test'
-import type { SafeParseReturnType } from 'zod'
+import type { z } from 'zod'
+
+type SafeParseReturnType<Input, Output> =
+  | { success: true; data: Output }
+  | { success: false; error: z.ZodError<Input> }
 
 describe('app-config-sanitize', () => {
   describe('appConfigSchema JSONB sanitization integration', () => {

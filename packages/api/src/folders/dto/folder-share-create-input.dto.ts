@@ -1,5 +1,5 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import { FolderPermissionZodEnum } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const folderShareCreateInputSchema = z.object({

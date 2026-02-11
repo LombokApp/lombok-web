@@ -36,3 +36,5 @@ run_checks "@lombokapp/utils" packages/utils
 run_checks "@lombokapp/types" packages/types
 
 run_checks "@lombokapp/ui-toolkit" packages/ui-toolkit
+
+run_checks "@lombokapp/worker-utils" packages/worker-utils

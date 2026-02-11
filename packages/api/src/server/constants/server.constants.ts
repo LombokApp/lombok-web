@@ -12,7 +12,7 @@ export const googleOAuthConfigSchema = z.object({
   clientSecret: z.string(),
 })
 
-export interface ServerConfig<T extends z.ZodSchema = z.ZodSchema> {
+export interface ServerConfig<T extends z.ZodType = z.ZodType> {
   private: boolean
   key: string
   default?: z.infer<T> | null

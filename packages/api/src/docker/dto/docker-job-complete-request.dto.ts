@@ -1,13 +1,13 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import { jsonSerializableObjectSchema, requeueSchema } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const outputFilesSchema = z.object({
   outputFiles: z
     .array(
       z.object({
-        folderId: z.string().uuid(),
-        objectKey: z.string().nonempty(),
+        folderId: z.guid(),
+        objectKey: z.string().min(1),
       }),
     )
     .optional(),
@@ -24,20 +24,21 @@ export const errorResponseSchema = z
       details: jsonSerializableObjectSchema.optional(),
     }),
   })
-  .merge(outputFilesSchema)
+  .extend(outputFilesSchema.shape)
 
 export const successResponseSchema = z
   .object({
     success: z.literal(true),
     result: jsonSerializableObjectSchema,
   })
-  .merge(outputFilesSchema)
+  .extend(outputFilesSchema.shape)
 
 export const dockerJobResultSchema = z.discriminatedUnion('success', [
   successResponseSchema,
   errorResponseSchema,
 ])
 
+// @ts-expect-error - Discriminated union causes TypeScript error with class extension in Zod v4
 export class DockerJobCompleteRequestDTO extends createZodDto(
   dockerJobResultSchema,
 ) {}

@@ -42,7 +42,7 @@ type PermissionValue = (typeof AVAILABLE_PERMISSIONS)[number]['value']
 const shareFormSchema = z.object({
   userId: z.string().nonempty('User ID is required'),
   permissions: z
-    .array(z.nativeEnum(FolderPermissionEnum))
+    .array(z.enum(FolderPermissionEnum))
     .min(1, 'At least one permission is required'),
 })
 

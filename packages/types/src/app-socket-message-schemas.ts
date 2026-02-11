@@ -1,4 +1,3 @@
-import type { ZodSchema, ZodTypeAny } from 'zod'
 import { z } from 'zod'
 
 import type { AppSocketMessage } from './apps.types'
@@ -15,7 +14,7 @@ import {
 
 export const logEntrySchema = z.object({
   message: z.string().max(1024),
-  level: z.nativeEnum(LogEntryLevel),
+  level: z.enum(LogEntryLevel),
   targetLocation: z
     .object({
       folderId: z.string(),
@@ -35,19 +34,19 @@ export const attemptStartHandleTaskSchema = z.object({
 })
 
 export const attemptStartHandleTaskByIdSchema = z.object({
-  taskId: z.string().uuid(),
+  taskId: z.guid(),
   startContext: startContextSchema.optional(),
 })
 
 export const getAppUserAccessTokenSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.guid(),
 })
 
 export const getContentSignedUrlsSchema = z.array(
   z.object({
     folderId: z.string(),
     objectKey: z.string(),
-    method: z.nativeEnum(SignedURLsRequestMethod),
+    method: z.enum(SignedURLsRequestMethod),
   }),
 )
 
@@ -56,7 +55,7 @@ export const getMetadataSignedUrlsSchema = z.array(
     folderId: z.string(),
     objectKey: z.string(),
     contentHash: z.string(),
-    method: z.nativeEnum(SignedURLsRequestMethod),
+    method: z.enum(SignedURLsRequestMethod),
     metadataHash: z.string(),
   }),
 )
@@ -73,7 +72,7 @@ export const updateMetadataSchema = z.array(
 export const getAppStorageSignedUrlsSchema = z.array(
   z.object({
     objectKey: z.string().min(1),
-    method: z.nativeEnum(SignedURLsRequestMethod),
+    method: z.enum(SignedURLsRequestMethod),
   }),
 )
 
@@ -129,7 +128,7 @@ export const triggerAppTaskSchema = z.object({
   dontStartBefore: z
     .union([
       z.object({
-        timestamp: z.string().datetime(),
+        timestamp: z.iso.datetime(),
       }),
       z.object({
         delayMs: z.number(),
@@ -142,7 +141,7 @@ export const triggerAppTaskSchema = z.object({
       objectKey: z.string().optional(),
     })
     .optional(),
-  targetUserId: z.string().uuid().optional(),
+  targetUserId: z.guid().optional(),
   onComplete: taskOnCompleteConfigSchema.array().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
@@ -159,7 +158,7 @@ export const AppSocketMessageSchemaMap = {
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
   TRIGGER_APP_TASK: triggerAppTaskSchema,
-} as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
+} as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
   [K in keyof typeof AppSocketMessageSchemaMap]: z.infer<
@@ -167,7 +166,7 @@ export type AppSocketMessageDataMap = {
   >
 }
 
-export const createResponseSchema = <T extends ZodTypeAny>(resultSchema: T) =>
+export const createResponseSchema = <T extends z.ZodType>(resultSchema: T) =>
   z.union([
     z.object({
       result: resultSchema,
@@ -199,7 +198,7 @@ export const executeAppDockerJobResponseSchema = createResponseSchema(
   ]),
 )
 
-export const buildExecuteAppDockerJobResponseSchema = <T extends ZodSchema>(
+export const buildExecuteAppDockerJobResponseSchema = <T extends z.ZodType>(
   resultSchema: T,
 ) => {
   return createResponseSchema(
@@ -266,7 +265,7 @@ export const AppSocketMessageResponseSchemaMap = {
       port: z.number(),
     }),
   ),
-} as const satisfies Record<z.infer<typeof AppSocketMessage>, ZodTypeAny>
+} as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketResponseError = z.infer<typeof appMessageErrorSchema>
 

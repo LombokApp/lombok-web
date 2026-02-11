@@ -1,21 +1,21 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const notificationDTO = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   eventIdentifier: z.string(),
   emitterIdentifier: z.string(),
   aggregationKey: z.string(),
-  targetLocationFolderId: z.string().uuid().nullable(),
+  targetLocationFolderId: z.guid().nullable(),
   targetLocationObjectKey: z.string().nullable(),
-  targetUserId: z.string().uuid().nullable(),
-  eventIds: z.array(z.string().uuid()),
+  targetUserId: z.guid().nullable(),
+  eventIds: z.array(z.guid()),
   title: z.string(),
   body: z.string().nullable(),
   image: z.string().nullable(),
   path: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  readAt: z.string().datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  readAt: z.iso.datetime().nullable(),
 })
 
 export class NotificationDTO extends createZodDto(notificationDTO) {}

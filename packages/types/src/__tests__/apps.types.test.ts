@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 import { CoreObjectAddedEventTriggerIdentifier } from 'src/events.types'
-import type { SafeParseReturnType } from 'zod'
+import type { z } from 'zod'
 
 import type { AppConfig } from '../apps.types'
+
+type SafeParseReturnType<Input, Output> =
+  | { success: true; data: Output }
+  | { success: false; error: z.ZodError<Input> }
 import {
   appConfigSchema,
   appConfigWithManifestSchema,
@@ -556,7 +560,9 @@ describe('apps.types', () => {
 
         expectZodFailure(result)
         if (!result.success) {
-          expect(result.error.issues[0]?.message).toContain('constructor')
+          expect(result.error.issues[0]?.message).toContain(
+            'Invalid condition expression',
+          )
         }
       })
 
@@ -636,7 +642,9 @@ describe('apps.types', () => {
 
         expectZodFailure(result)
         if (!result.success) {
-          expect(result.error.issues[0]?.message).toContain('constructor')
+          expect(result.error.issues[0]?.message).toContain(
+            'Invalid condition expression',
+          )
         }
       })
 

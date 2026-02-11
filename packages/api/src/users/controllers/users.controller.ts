@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Body,
   Controller,
@@ -15,6 +14,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { SessionService } from 'src/auth/services/session.service'
 import { normalizeSortParam } from 'src/core/utils/sort.util'

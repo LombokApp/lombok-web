@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { folderAppSettingsSchema } from 'src/app/dto/app-folder-settings.dto'
 import { z } from 'zod'
 

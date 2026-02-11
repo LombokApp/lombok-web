@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 import { AccessKeySort } from '../storage-location.service'
@@ -17,8 +17,8 @@ export const accessKeyListQueryParamsSchema = z.object({
     )
     .optional(),
   sort: z
-    .array(z.nativeEnum(AccessKeySort))
-    .or(z.nativeEnum(AccessKeySort).optional())
+    .array(z.enum(AccessKeySort))
+    .or(z.enum(AccessKeySort).optional())
     .optional(),
 })
 

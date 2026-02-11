@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const storageLocationInputDTOSchema = z.union([
@@ -17,15 +17,16 @@ export const storageLocationInputDTOSchema = z.union([
       .optional(),
   }),
   z.object({
-    storageProvisionId: z.string().uuid(),
+    storageProvisionId: z.guid(),
   }),
   z.object({
-    userLocationId: z.string().uuid(),
+    userLocationId: z.guid(),
     userLocationBucketOverride: z.string(),
     userLocationPrefixOverride: z.string().optional(),
   }),
 ])
 
+// @ts-expect-error - Union type causes TypeScript error with class extension in Zod v4
 export class StorageLocationInputDTO extends createZodDto(
   storageLocationInputDTOSchema,
 ) {}

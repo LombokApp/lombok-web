@@ -8,7 +8,7 @@ export function safeZodParse<T extends z.ZodType>(
   return result.success
 }
 
-export type Variant<S extends z.ZodTypeAny, K extends string, V> = Extract<
+export type Variant<S extends z.ZodType, K extends string, V> = Extract<
   z.infer<S>,
   Record<K, V>
 >

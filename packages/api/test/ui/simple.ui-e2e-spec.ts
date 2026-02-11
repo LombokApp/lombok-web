@@ -9,7 +9,6 @@ describe('UI E2E - Simple buildTestModule test', () => {
   let testModule: UITestModule | undefined
 
   beforeAll(async () => {
-    console.log('Building test module directly...')
     testModule = await buildUITestModule({
       testModuleKey: TEST_MODULE_KEY,
       // debug: true,

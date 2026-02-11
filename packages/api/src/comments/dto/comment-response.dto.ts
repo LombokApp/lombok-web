@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 const commentAnchorSchema = z.discriminatedUnion('type', [
@@ -20,7 +20,7 @@ const commentAnchorSchema = z.discriminatedUnion('type', [
 ])
 
 const userDTOSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   username: z.string(),
   name: z.string().nullable(),
   email: z.string().nullable(),
@@ -28,16 +28,16 @@ const userDTOSchema = z.object({
 
 const quotedCommentSchema = z
   .object({
-    id: z.string().uuid(),
+    id: z.guid(),
     author: userDTOSchema,
     content: z.string(),
-    createdAt: z.date(),
-    deletedAt: z.date().nullable(),
+    createdAt: z.iso.datetime(),
+    deletedAt: z.iso.datetime().nullable(),
   })
   .nullable()
 
 const mentionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   username: z.string(),
   name: z.string().nullable(),
 })
@@ -49,17 +49,17 @@ const reactionSchema = z.object({
 })
 
 export const commentResponseDTOSchema = z.object({
-  id: z.string().uuid(),
-  folderId: z.string().uuid(),
-  folderObjectId: z.string().uuid(),
-  rootId: z.string().uuid().nullable(),
-  quoteId: z.string().uuid().nullable(),
+  id: z.guid(),
+  folderId: z.guid(),
+  folderObjectId: z.guid(),
+  rootId: z.guid().nullable(),
+  quoteId: z.guid().nullable(),
   author: userDTOSchema,
   content: z.string(),
   anchor: commentAnchorSchema.nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  deletedAt: z.date().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  deletedAt: z.iso.datetime().nullable(),
   quotedComment: quotedCommentSchema.optional(),
   mentions: z.array(mentionSchema).optional(),
   reactions: z.array(reactionSchema).optional(),

@@ -74,7 +74,12 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
             return
           }
 
-          const sub = jwt.payload.sub as string | undefined
+          if (!jwt.payload || typeof jwt.payload === 'string') {
+            next(this.closeSocketAndReturnUnauthorized(socket))
+            return
+          }
+
+          const sub = jwt.payload.sub
           const isAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
           const isAppRuntimeWorkerToken = sub?.startsWith(
             APP_RUNTIME_WORKER_JWT_SUB_PREFIX,

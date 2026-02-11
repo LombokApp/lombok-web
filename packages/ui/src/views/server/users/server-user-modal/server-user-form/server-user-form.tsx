@@ -19,7 +19,7 @@ export type MutationType = 'CREATE' | 'UPDATE'
 const userFormSchema = z.object({
   username: z.string().nonempty(),
   name: z.string().optional(),
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  email: z.email('Invalid email address').optional().or(z.literal('')),
   isAdmin: z.boolean(),
   permissions: z.array(z.string()),
   password: z

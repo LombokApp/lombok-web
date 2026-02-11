@@ -38,7 +38,7 @@ export class DockerJobGuard implements CanActivate {
       urlParts[2] !== 'docker' ||
       urlParts[3] !== 'jobs' ||
       !urlParts[4]?.length ||
-      !z.string().uuid().safeParse(urlParts[4]).success
+      !z.guid().safeParse(urlParts[4]).success
     ) {
       throw new UnauthorizedException('Missing job ID in request')
     }

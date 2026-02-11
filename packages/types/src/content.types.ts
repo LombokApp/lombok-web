@@ -8,7 +8,7 @@ export enum MediaType {
   UNKNOWN = 'UNKNOWN',
 }
 
-export const mediaTypeSchema = z.nativeEnum(MediaType)
+export const mediaTypeSchema = z.enum(MediaType)
 
 export enum ThumbnailSize {
   Medium = 'medium',
@@ -74,10 +74,10 @@ export type ContentMetadataType = z.infer<typeof contentMetadataSchema>
 export type ContentMetadataByHash = z.infer<typeof contentMetadataByHashSchema>
 
 export const folderObjectSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   filename: z.string(),
   objectKey: z.string(),
-  folderId: z.string().uuid(),
+  folderId: z.guid(),
   hash: z.string().optional(),
   lastModified: z.number(),
   eTag: z.string(),

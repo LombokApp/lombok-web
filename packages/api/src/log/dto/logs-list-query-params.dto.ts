@@ -1,14 +1,11 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 import { LogSort } from '../services/log-entry.service'
 
 export const logsListQueryParamsSchema = z.object({
-  sort: z
-    .array(z.nativeEnum(LogSort))
-    .or(z.nativeEnum(LogSort).optional())
-    .optional(),
-  folderId: z.string().uuid().optional(),
+  sort: z.array(z.enum(LogSort)).or(z.enum(LogSort).optional()).optional(),
+  folderId: z.guid().optional(),
   objectKey: z.string().optional(),
   search: z.string().optional(),
   includeTrace: z.literal('true').optional(),

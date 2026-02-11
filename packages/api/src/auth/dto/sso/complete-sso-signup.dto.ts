@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 const googleSsoProviderDataDTOSchema = z.object({
@@ -9,7 +9,7 @@ const googleSsoProviderDataDTOSchema = z.object({
     name: z.string(),
     picture: z.string().optional(),
   }),
-  expiry: z.coerce.date(),
+  expiry: z.iso.datetime(),
 }) // add more providers here with union types
 
 export const completeSSOSignupDTOSchema = z.object({

@@ -1618,6 +1618,17 @@ export interface components {
             code: string;
             message: string;
         };
+        AppInstallResponse__schema0: string | number | boolean | null | components["schemas"]["AppInstallResponse__schema0"][] | {
+            [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+        };
+        AppInstallResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
+        };
         AppInstallResponse: {
             app: {
                 identifier: string;
@@ -1636,17 +1647,17 @@ export interface components {
                     description: string;
                     subscribedCoreEvents?: string[];
                     triggers?: ({
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "event";
                         eventIdentifier: string;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["AppInstallResponse__schema0"];
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "schedule";
                         config: {
                             interval: number;
@@ -1656,9 +1667,9 @@ export interface components {
                         name: string;
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "user_action";
                         scope?: {
                             user?: {
@@ -1671,7 +1682,7 @@ export interface components {
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -1692,22 +1703,22 @@ export interface components {
                                 cpuCores?: number;
                             };
                             workers: ({
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
                                 maxPerContainer?: number;
-                                /** @enum {boolean} */
+                                /** @constant */
                                 countTowardsGlobalCap?: false;
                                 priority?: number;
                             } | {
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
                                     maxPerContainer?: number;
-                                    /** @enum {boolean} */
+                                    /** @constant */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
                                     identifier: string;
@@ -1727,12 +1738,12 @@ export interface components {
                         performSearch?: string[];
                     };
                     ui?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                         csp?: string;
                     };
                     database?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                     };
                     contributions?: {
@@ -1861,6 +1872,17 @@ export interface components {
                 updatedAt: string;
             };
         };
+        AppListResponse__schema0: string | number | boolean | null | components["schemas"]["AppListResponse__schema0"][] | {
+            [key: string]: components["schemas"]["AppListResponse__schema0"];
+        };
+        AppListResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["AppListResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["AppListResponse__schema1"][];
+        };
         AppListResponse: {
             meta: {
                 totalCount: number;
@@ -1882,17 +1904,17 @@ export interface components {
                     description: string;
                     subscribedCoreEvents?: string[];
                     triggers?: ({
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "event";
                         eventIdentifier: string;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["AppListResponse__schema0"];
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppListResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "schedule";
                         config: {
                             interval: number;
@@ -1902,9 +1924,9 @@ export interface components {
                         name: string;
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppListResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "user_action";
                         scope?: {
                             user?: {
@@ -1917,7 +1939,7 @@ export interface components {
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppListResponse__schema1"][];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -1938,22 +1960,22 @@ export interface components {
                                 cpuCores?: number;
                             };
                             workers: ({
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
                                 maxPerContainer?: number;
-                                /** @enum {boolean} */
+                                /** @constant */
                                 countTowardsGlobalCap?: false;
                                 priority?: number;
                             } | {
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
                                     maxPerContainer?: number;
-                                    /** @enum {boolean} */
+                                    /** @constant */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
                                     identifier: string;
@@ -1973,12 +1995,12 @@ export interface components {
                         performSearch?: string[];
                     };
                     ui?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                         csp?: string;
                     };
                     database?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                     };
                     contributions?: {
@@ -2110,6 +2132,17 @@ export interface components {
         SetAppEnabledInputDTO: {
             enabled: boolean;
         };
+        AppGetResponse__schema0: string | number | boolean | null | components["schemas"]["AppGetResponse__schema0"][] | {
+            [key: string]: components["schemas"]["AppGetResponse__schema0"];
+        };
+        AppGetResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["AppGetResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["AppGetResponse__schema1"][];
+        };
         AppGetResponse: {
             app: {
                 identifier: string;
@@ -2128,17 +2161,17 @@ export interface components {
                     description: string;
                     subscribedCoreEvents?: string[];
                     triggers?: ({
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "event";
                         eventIdentifier: string;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["AppGetResponse__schema0"];
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppGetResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "schedule";
                         config: {
                             interval: number;
@@ -2148,9 +2181,9 @@ export interface components {
                         name: string;
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppGetResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "user_action";
                         scope?: {
                             user?: {
@@ -2163,7 +2196,7 @@ export interface components {
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["AppGetResponse__schema1"][];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -2184,22 +2217,22 @@ export interface components {
                                 cpuCores?: number;
                             };
                             workers: ({
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
                                 maxPerContainer?: number;
-                                /** @enum {boolean} */
+                                /** @constant */
                                 countTowardsGlobalCap?: false;
                                 priority?: number;
                             } | {
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
                                     maxPerContainer?: number;
-                                    /** @enum {boolean} */
+                                    /** @constant */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
                                     identifier: string;
@@ -2219,12 +2252,12 @@ export interface components {
                         performSearch?: string[];
                     };
                     ui?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                         csp?: string;
                     };
                     database?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                     };
                     contributions?: {
@@ -2363,6 +2396,17 @@ export interface components {
         StringMapDTO: {
             [key: string]: string;
         };
+        UserAppListResponse__schema0: string | number | boolean | null | components["schemas"]["UserAppListResponse__schema0"][] | {
+            [key: string]: components["schemas"]["UserAppListResponse__schema0"];
+        };
+        UserAppListResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
+        };
         UserAppListResponse: {
             meta: {
                 totalCount: number;
@@ -2382,17 +2426,17 @@ export interface components {
                     description: string;
                     subscribedCoreEvents?: string[];
                     triggers?: ({
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "event";
                         eventIdentifier: string;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["UserAppListResponse__schema0"];
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "schedule";
                         config: {
                             interval: number;
@@ -2402,9 +2446,9 @@ export interface components {
                         name: string;
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "user_action";
                         scope?: {
                             user?: {
@@ -2417,7 +2461,7 @@ export interface components {
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -2438,22 +2482,22 @@ export interface components {
                                 cpuCores?: number;
                             };
                             workers: ({
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
                                 maxPerContainer?: number;
-                                /** @enum {boolean} */
+                                /** @constant */
                                 countTowardsGlobalCap?: false;
                                 priority?: number;
                             } | {
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
                                     maxPerContainer?: number;
-                                    /** @enum {boolean} */
+                                    /** @constant */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
                                     identifier: string;
@@ -2473,12 +2517,12 @@ export interface components {
                         performSearch?: string[];
                     };
                     ui?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                         csp?: string;
                     };
                     database?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                     };
                     contributions?: {
@@ -2583,6 +2627,17 @@ export interface components {
                 updatedAt: string;
             }[];
         };
+        UserAppGetResponse__schema0: string | number | boolean | null | components["schemas"]["UserAppGetResponse__schema0"][] | {
+            [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
+        };
+        UserAppGetResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
+        };
         UserAppGetResponse: {
             app: {
                 identifier: string;
@@ -2599,17 +2654,17 @@ export interface components {
                     description: string;
                     subscribedCoreEvents?: string[];
                     triggers?: ({
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "event";
                         eventIdentifier: string;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "schedule";
                         config: {
                             interval: number;
@@ -2619,9 +2674,9 @@ export interface components {
                         name: string;
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
                     } | {
-                        /** @enum {string} */
+                        /** @constant */
                         kind: "user_action";
                         scope?: {
                             user?: {
@@ -2634,7 +2689,7 @@ export interface components {
                         };
                         condition?: string;
                         taskIdentifier: string;
-                        onComplete?: unknown[];
+                        onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -2655,22 +2710,22 @@ export interface components {
                                 cpuCores?: number;
                             };
                             workers: ({
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
                                 maxPerContainer?: number;
-                                /** @enum {boolean} */
+                                /** @constant */
                                 countTowardsGlobalCap?: false;
                                 priority?: number;
                             } | {
-                                /** @enum {string} */
+                                /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
                                     maxPerContainer?: number;
-                                    /** @enum {boolean} */
+                                    /** @constant */
                                     countTowardsGlobalCap?: false;
                                     priority?: number;
                                     identifier: string;
@@ -2690,12 +2745,12 @@ export interface components {
                         performSearch?: string[];
                     };
                     ui?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                         csp?: string;
                     };
                     database?: {
-                        /** @enum {boolean} */
+                        /** @constant */
                         enabled: true;
                     };
                     contributions?: {
@@ -2878,14 +2933,14 @@ export interface components {
                 STORAGE_PROVISIONS?: unknown[];
                 SERVER_STORAGE?: unknown;
                 EMAIL_PROVIDER_CONFIG?: ({
-                    /** @enum {string} */
+                    /** @constant */
                     provider: "resend";
                     config: {
                         apiKey: string;
                     };
                     from: string;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     provider: "smtp";
                     config: {
                         host: string;
@@ -2904,11 +2959,11 @@ export interface components {
             };
         };
         SetSettingInputDTO: {
-            value?: unknown;
+            value: unknown;
         };
         SettingSetResponse: {
             settingKey: string;
-            settingValue?: unknown;
+            settingValue: unknown;
         };
         ServerMetricsResponse: {
             totalUsers: string;
@@ -3074,7 +3129,7 @@ export interface components {
             };
         };
         DockerContainerInspectResponse: {
-            inspect?: unknown;
+            inspect: unknown;
             gpuInfo?: {
                 driver?: string;
                 command?: string;
@@ -3118,8 +3173,11 @@ export interface components {
             logError?: string;
         };
         DockerContainerActionResponse: {
-            /** @enum {boolean} */
+            /** @constant */
             success: true;
+        };
+        EventGetResponse__schema0: string | number | boolean | null | components["schemas"]["EventGetResponse__schema0"][] | {
+            [key: string]: components["schemas"]["EventGetResponse__schema0"];
         };
         EventGetResponse: {
             event: {
@@ -3136,7 +3194,7 @@ export interface components {
                     folderOwnerId: string;
                 };
                 data: {
-                    [key: string]: unknown;
+                    [key: string]: components["schemas"]["EventGetResponse__schema0"];
                 };
                 targetLocation?: {
                     /** Format: uuid */
@@ -3146,6 +3204,9 @@ export interface components {
                 /** Format: date-time */
                 createdAt: string;
             };
+        };
+        EventListResponse__schema0: string | number | boolean | null | components["schemas"]["EventListResponse__schema0"][] | {
+            [key: string]: components["schemas"]["EventListResponse__schema0"];
         };
         EventListResponse: {
             meta: {
@@ -3165,7 +3226,7 @@ export interface components {
                     folderOwnerId: string;
                 };
                 data: {
-                    [key: string]: unknown;
+                    [key: string]: components["schemas"]["EventListResponse__schema0"];
                 };
                 targetLocation?: {
                     /** Format: uuid */
@@ -3197,7 +3258,7 @@ export interface components {
                     /** Format: uuid */
                     folderOwnerId: string;
                 };
-                data?: unknown;
+                data: unknown;
                 /** Format: date-time */
                 createdAt: string;
             };
@@ -3223,7 +3284,7 @@ export interface components {
                     /** Format: uuid */
                     folderOwnerId: string;
                 };
-                data?: unknown;
+                data: unknown;
                 /** Format: date-time */
                 createdAt: string;
             }[];
@@ -3232,27 +3293,34 @@ export interface components {
             };
         };
         InlineMetadataEntryDTO: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
+            /** @constant */
             type: "inline";
             mimeType: string;
             sizeBytes: number;
             content: string;
         };
         ExternalMetadataEntryDTO: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
+            /** @constant */
             type: "external";
             storageKey: string;
             mimeType: string;
             sizeBytes: number;
             hash: string;
         };
-        ContentMetadataEntryDTO: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
+        ContentMetadataEntryDTO: {
+            /** @constant */
+            type: "inline";
+            mimeType: string;
+            sizeBytes: number;
+            content: string;
+        } | {
+            /** @constant */
+            type: "external";
+            storageKey: string;
+            mimeType: string;
+            sizeBytes: number;
+            hash: string;
+        };
         FolderGetResponse: {
             folder: {
                 /** Format: uuid */
@@ -3648,6 +3716,17 @@ export interface components {
                 createdDate?: string;
             }[];
         };
+        TaskGetResponse__schema0: string | number | boolean | null | components["schemas"]["TaskGetResponse__schema0"][] | {
+            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+        };
+        TaskGetResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+        };
         TaskGetResponse: {
             task: {
                 /** Format: uuid */
@@ -3655,16 +3734,16 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 invocation: {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "system_action";
                     invokeContext: {
                         idempotencyData?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "event";
                     invokeContext: {
                         /** Format: uuid */
@@ -3673,7 +3752,7 @@ export interface components {
                         eventIdentifier: string;
                         eventTriggerConfigIndex: number;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                         /** Format: uuid */
                         targetUserId?: string;
@@ -3683,12 +3762,12 @@ export interface components {
                             objectKey?: string;
                         };
                         eventData: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "schedule";
                     invokeContext: {
                         timestampBucket: string;
@@ -3699,9 +3778,9 @@ export interface components {
                             unit: "minutes" | "hours" | "days";
                         };
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "user_action";
                     invokeContext: {
                         /** Format: uuid */
@@ -3709,17 +3788,17 @@ export interface components {
                         /** Format: uuid */
                         requestId: string;
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "app_action";
                     invokeContext: {
                         /** Format: uuid */
                         requestId: string;
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "task_child";
                     invokeContext: {
                         parentTask: {
@@ -3730,12 +3809,12 @@ export interface components {
                         };
                         onCompleteHandlerIndex: number;
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
                 data?: {
-                    [key: string]: unknown;
+                    [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                 };
                 targetLocation?: {
                     /** Format: uuid */
@@ -3746,7 +3825,7 @@ export interface components {
                     code: string;
                     message: string;
                     details?: {
-                        [key: string]: unknown;
+                        [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                     };
                 };
                 taskDescription: string;
@@ -3787,6 +3866,17 @@ export interface components {
                 };
             };
         };
+        TaskListResponse__schema0: string | number | boolean | null | components["schemas"]["TaskListResponse__schema0"][] | {
+            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+        };
+        TaskListResponse__schema1: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["TaskListResponse__schema0"];
+            };
+            onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+        };
         TaskListResponse: {
             meta: {
                 totalCount: number;
@@ -3797,16 +3887,16 @@ export interface components {
                 taskIdentifier: string;
                 ownerIdentifier: string;
                 invocation: {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "system_action";
                     invokeContext: {
                         idempotencyData?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "event";
                     invokeContext: {
                         /** Format: uuid */
@@ -3815,7 +3905,7 @@ export interface components {
                         eventIdentifier: string;
                         eventTriggerConfigIndex: number;
                         dataTemplate?: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                         /** Format: uuid */
                         targetUserId?: string;
@@ -3825,12 +3915,12 @@ export interface components {
                             objectKey?: string;
                         };
                         eventData: {
-                            [key: string]: unknown;
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "schedule";
                     invokeContext: {
                         timestampBucket: string;
@@ -3841,9 +3931,9 @@ export interface components {
                             unit: "minutes" | "hours" | "days";
                         };
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "user_action";
                     invokeContext: {
                         /** Format: uuid */
@@ -3851,17 +3941,17 @@ export interface components {
                         /** Format: uuid */
                         requestId: string;
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "app_action";
                     invokeContext: {
                         /** Format: uuid */
                         requestId: string;
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     kind: "task_child";
                     invokeContext: {
                         parentTask: {
@@ -3872,7 +3962,7 @@ export interface components {
                         };
                         onCompleteHandlerIndex: number;
                     };
-                    onComplete?: unknown[];
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
@@ -3955,10 +4045,8 @@ export interface components {
             eventIdentifier: string;
             emitterIdentifier: string;
             aggregationKey: string;
-            /** Format: uuid */
             targetLocationFolderId: string | null;
             targetLocationObjectKey: string | null;
-            /** Format: uuid */
             targetUserId: string | null;
             eventIds: string[];
             title: string;
@@ -3967,7 +4055,6 @@ export interface components {
             path: string | null;
             /** Format: date-time */
             createdAt: string;
-            /** Format: date-time */
             readAt: string | null;
         };
         LoginCredentialsDTO: {
@@ -4010,7 +4097,7 @@ export interface components {
         CompleteSSOSignupDTO: {
             username: string;
             providerData: {
-                /** @enum {string} */
+                /** @constant */
                 provider: "google";
                 providerUserInfo: {
                     id: string;
@@ -4051,7 +4138,7 @@ export interface components {
             code: string;
         };
         SSOCallbackResponse: components["schemas"]["CompleteSSOSignupResponse"] | {
-            /** @enum {boolean} */
+            /** @constant */
             needsUsername: true;
             provider: string;
             providerUserInfo: {
@@ -4176,11 +4263,14 @@ export interface components {
                 url: string;
             }[];
         };
+        DockerJobCompleteRequestDTO__schema0: string | number | boolean | null | components["schemas"]["DockerJobCompleteRequestDTO__schema0"][] | {
+            [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
+        };
         DockerJobCompleteRequestDTO: {
-            /** @enum {boolean} */
+            /** @constant */
             success: true;
             result: {
-                [key: string]: unknown;
+                [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
             };
             outputFiles?: {
                 /** Format: uuid */
@@ -4188,7 +4278,7 @@ export interface components {
                 objectKey: string;
             }[];
         } | {
-            /** @enum {boolean} */
+            /** @constant */
             success: false;
             error: {
                 requeueDelayMs?: number;
@@ -4196,7 +4286,7 @@ export interface components {
                 code: string;
                 message: string;
                 details?: {
-                    [key: string]: unknown;
+                    [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
                 };
             };
             outputFiles?: {
@@ -4213,9 +4303,7 @@ export interface components {
                 folderId: string;
                 /** Format: uuid */
                 folderObjectId: string;
-                /** Format: uuid */
                 rootId: string | null;
-                /** Format: uuid */
                 quoteId: string | null;
                 author: {
                     /** Format: uuid */
@@ -4226,18 +4314,18 @@ export interface components {
                 };
                 content: string;
                 anchor: ({
-                    /** @enum {string} */
+                    /** @constant */
                     type: "image_point";
                     x: number;
                     y: number;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     type: "video_point";
                     t: number;
                     x?: number;
                     y?: number;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     type: "audio_point";
                     t: number;
                 }) | null;
@@ -4245,7 +4333,6 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                /** Format: date-time */
                 deletedAt: string | null;
                 quotedComment?: {
                     /** Format: uuid */
@@ -4260,7 +4347,6 @@ export interface components {
                     content: string;
                     /** Format: date-time */
                     createdAt: string;
-                    /** Format: date-time */
                     deletedAt: string | null;
                 } | null;
                 mentions?: {
@@ -4285,18 +4371,18 @@ export interface components {
         CreateCommentDTO: {
             content: string;
             anchor?: {
-                /** @enum {string} */
+                /** @constant */
                 type: "image_point";
                 x: number;
                 y: number;
             } | {
-                /** @enum {string} */
+                /** @constant */
                 type: "video_point";
                 t: number;
                 x?: number;
                 y?: number;
             } | {
-                /** @enum {string} */
+                /** @constant */
                 type: "audio_point";
                 t: number;
             };
@@ -4313,9 +4399,7 @@ export interface components {
                 folderId: string;
                 /** Format: uuid */
                 folderObjectId: string;
-                /** Format: uuid */
                 rootId: string | null;
-                /** Format: uuid */
                 quoteId: string | null;
                 author: {
                     /** Format: uuid */
@@ -4326,18 +4410,18 @@ export interface components {
                 };
                 content: string;
                 anchor: ({
-                    /** @enum {string} */
+                    /** @constant */
                     type: "image_point";
                     x: number;
                     y: number;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     type: "video_point";
                     t: number;
                     x?: number;
                     y?: number;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     type: "audio_point";
                     t: number;
                 }) | null;
@@ -4345,7 +4429,6 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                /** Format: date-time */
                 deletedAt: string | null;
                 quotedComment?: {
                     /** Format: uuid */
@@ -4360,7 +4443,6 @@ export interface components {
                     content: string;
                     /** Format: date-time */
                     createdAt: string;
-                    /** Format: date-time */
                     deletedAt: string | null;
                 } | null;
                 mentions?: {
@@ -4390,9 +4472,7 @@ export interface components {
                 folderId: string;
                 /** Format: uuid */
                 folderObjectId: string;
-                /** Format: uuid */
                 rootId: string | null;
-                /** Format: uuid */
                 quoteId: string | null;
                 author: {
                     /** Format: uuid */
@@ -4403,18 +4483,18 @@ export interface components {
                 };
                 content: string;
                 anchor: ({
-                    /** @enum {string} */
+                    /** @constant */
                     type: "image_point";
                     x: number;
                     y: number;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     type: "video_point";
                     t: number;
                     x?: number;
                     y?: number;
                 } | {
-                    /** @enum {string} */
+                    /** @constant */
                     type: "audio_point";
                     t: number;
                 }) | null;
@@ -4422,7 +4502,6 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                /** Format: date-time */
                 deletedAt: string | null;
                 quotedComment?: {
                     /** Format: uuid */
@@ -4437,7 +4516,6 @@ export interface components {
                     content: string;
                     /** Format: date-time */
                     createdAt: string;
-                    /** Format: date-time */
                     deletedAt: string | null;
                 } | null;
                 mentions?: {
@@ -6334,11 +6412,16 @@ export interface operations {
                 folderId?: string;
                 objectKey?: string;
                 search?: string;
-                includeTrace?: "true";
-                includeDebug?: "true";
-                includeInfo?: "true";
-                includeWarning?: "true";
-                includeError?: "true";
+                /** @constant */
+                includeTrace?: string;
+                /** @constant */
+                includeDebug?: string;
+                /** @constant */
+                includeInfo?: string;
+                /** @constant */
+                includeWarning?: string;
+                /** @constant */
+                includeError?: string;
                 offset?: number;
                 limit?: number;
             };
@@ -6422,11 +6505,16 @@ export interface operations {
                 sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
                 objectKey?: string;
                 search?: string;
-                includeTrace?: "true";
-                includeDebug?: "true";
-                includeInfo?: "true";
-                includeWarning?: "true";
-                includeError?: "true";
+                /** @constant */
+                includeTrace?: string;
+                /** @constant */
+                includeDebug?: string;
+                /** @constant */
+                includeInfo?: string;
+                /** @constant */
+                includeWarning?: string;
+                /** @constant */
+                includeError?: string;
                 offset?: number;
                 limit?: number;
             };
@@ -6789,11 +6877,16 @@ export interface operations {
                 limit?: number;
                 search?: string;
                 sort?: ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
-                includeImage?: "true";
-                includeVideo?: "true";
-                includeAudio?: "true";
-                includeDocument?: "true";
-                includeUnknown?: "true";
+                /** @constant */
+                includeImage?: string;
+                /** @constant */
+                includeVideo?: string;
+                /** @constant */
+                includeAudio?: string;
+                /** @constant */
+                includeDocument?: string;
+                /** @constant */
+                includeUnknown?: string;
             };
             header?: never;
             path: {
@@ -7647,10 +7740,14 @@ export interface operations {
                 objectKey?: string;
                 sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
-                includeWaiting?: "true";
-                includeRunning?: "true";
-                includeComplete?: "true";
-                includeFailed?: "true";
+                /** @constant */
+                includeWaiting?: string;
+                /** @constant */
+                includeRunning?: string;
+                /** @constant */
+                includeComplete?: string;
+                /** @constant */
+                includeFailed?: string;
                 offset?: number;
                 limit?: number;
                 folderId?: string;
@@ -7735,10 +7832,14 @@ export interface operations {
                 objectKey?: string;
                 sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
-                includeWaiting?: "true";
-                includeRunning?: "true";
-                includeComplete?: "true";
-                includeFailed?: "true";
+                /** @constant */
+                includeWaiting?: string;
+                /** @constant */
+                includeRunning?: string;
+                /** @constant */
+                includeComplete?: string;
+                /** @constant */
+                includeFailed?: string;
                 offset?: number;
                 limit?: number;
             };

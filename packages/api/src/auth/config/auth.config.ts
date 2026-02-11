@@ -13,21 +13,21 @@ const authEmailVerificationEnvSchema = z
     if (data.AUTH_EMAIL_JWT_ALGORITHM === 'RS') {
       if (!data.AUTH_EMAIL_VERIFICATION_JWT_PUBLIC_KEY) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message:
             'AUTH_EMAIL_VERIFICATION_JWT_PUBLIC_KEY is required when AUTH_EMAIL_JWT_ALGORITHM is RS',
         })
       }
       if (!data.AUTH_EMAIL_VERIFICATION_JWT_PRIVATE_KEY) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message:
             'AUTH_EMAIL_VERIFICATION_JWT_PRIVATE_KEY is required when AUTH_EMAIL_JWT_ALGORITHM is RS',
         })
       }
     } else if (!data.AUTH_EMAIL_VERIFICATION_JWT_SECRET) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message:
           'AUTH_EMAIL_VERIFICATION_JWT_SECRET is required when AUTH_EMAIL_JWT_ALGORITHM is HS',
       })

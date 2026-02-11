@@ -1,13 +1,10 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 import { EventSort } from '../services/event.service'
 
 export const eventsListQueryParamsSchema = z.object({
-  sort: z
-    .array(z.nativeEnum(EventSort))
-    .or(z.nativeEnum(EventSort).optional())
-    .optional(),
+  sort: z.array(z.enum(EventSort)).or(z.enum(EventSort).optional()).optional(),
   objectKey: z.string().optional(),
   search: z.string().optional(),
   offset: z

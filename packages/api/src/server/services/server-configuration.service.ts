@@ -229,7 +229,7 @@ export class ServerConfigurationService {
   /**
    * Get the saved server configuration setting or the default value.
    */
-  async getServerConfig<T extends z.ZodSchema>(
+  async getServerConfig<T extends z.ZodType>(
     config: ServerConfig<T>,
   ): Promise<z.infer<T> | undefined> {
     const result = await this.ormService.db.query.serverSettingsTable.findFirst(
@@ -241,12 +241,12 @@ export class ServerConfigurationService {
     if (result) {
       // Validate the stored value against the schema
       if (config.schema.safeParse(result.value).success) {
-        return result.value as T
+        return result.value as z.infer<T>
       }
     }
 
     // No stored value or stored value was invalid, return default
-    return config.default as T
+    return config.default as z.infer<T> | undefined
   }
 
   async createStorageProvisionAsAdmin(
@@ -260,8 +260,7 @@ export class ServerConfigurationService {
 
     for (const provisionType of storageProvision.provisionTypes) {
       if (
-        z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
-        provisionType
+        z.enum(StorageProvisionTypeEnum).parse(provisionType) !== provisionType
       ) {
         throw new ServerConfigurationInvalidException()
       }
@@ -326,7 +325,7 @@ export class ServerConfigurationService {
     if (storageProvision.provisionTypes) {
       for (const provisionType of storageProvision.provisionTypes) {
         if (
-          z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
+          z.enum(StorageProvisionTypeEnum).parse(provisionType) !==
           provisionType
         ) {
           throw new ServerConfigurationInvalidException()

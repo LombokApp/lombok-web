@@ -1,9 +1,9 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import { FolderPermissionZodEnum } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const folderShareSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.guid(),
   permissions: z.array(FolderPermissionZodEnum),
 })
 

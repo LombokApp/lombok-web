@@ -17,7 +17,7 @@ COPY packages/api/cmd/test-entrypoint.sh ../test-entrypoint.sh
 RUN apk add --no-cache \
   curl \
   ca-certificates \
-  chromium \
+  chromium=142.0.7444.59-r0 \
   postgresql18 \
   postgresql18-contrib \
   postgresql-pgvector && \
