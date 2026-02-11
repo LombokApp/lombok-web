@@ -1265,8 +1265,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verify email using the token from the verification link.
-         *     Returns 204 No Content on success; infer result from status code. */
+        /**
+         * Verify email using the token from the verification link.
+         *     Returns 204 No Content on success; infer result from status code.
+         */
         post: operations["verifyEmail"];
         delete?: never;
         options?: never;

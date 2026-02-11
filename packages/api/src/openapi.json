@@ -71,7 +71,8 @@
                       "updatedAt-asc",
                       "updatedAt-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -2513,7 +2514,8 @@
                       "objectKey-asc",
                       "objectKey-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -2704,7 +2706,8 @@
                       "objectKey-asc",
                       "objectKey-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -2886,7 +2889,8 @@
                       "level-asc",
                       "level-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -3132,7 +3136,8 @@
                       "level-asc",
                       "level-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -3599,7 +3604,8 @@
                       "updatedAt-asc",
                       "updatedAt-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -3837,7 +3843,8 @@
                       "updatedAt-asc",
                       "updatedAt-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -4692,7 +4699,8 @@
                       "region-asc",
                       "region-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -4972,7 +4980,8 @@
                       "region-asc",
                       "region-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -5300,7 +5309,8 @@
                       "completedAt-asc",
                       "completedAt-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -5535,7 +5545,8 @@
                       "completedAt-asc",
                       "completedAt-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -6780,7 +6791,8 @@
                       "updatedAt-asc",
                       "updatedAt-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -7727,7 +7739,8 @@
                       "lastModified-asc",
                       "lastModified-desc"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
@@ -7761,7 +7774,8 @@
                       "DOCUMENT",
                       "UNKNOWN"
                     ]
-                  }
+                  },
+                  "isArray": true
                 },
                 {
                   "type": "string",
