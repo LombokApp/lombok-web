@@ -50,3 +50,4 @@ packages/app-demo/bundle-dist
 .claude
 .cursor/plans
 test-results
+packages/api/script/db-seeds/local-*.ts

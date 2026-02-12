@@ -49,7 +49,7 @@ async function main() {
     }
   }
 
-  await Bun.spawn(['bun', '--bun', './test/e2e.setup.ts'], {
+  await Bun.spawn(['bun', './test/e2e.setup.ts'], {
     stdout: 'inherit',
     stderr: 'inherit',
   }).exited
@@ -94,14 +94,11 @@ async function main() {
       // eslint-disable-next-line no-console -- intentional progress output
       console.log(`${c.dim}----------------------------------------${c.reset}`)
 
-      const proc = Bun.spawn(
-        ['bun', '--bun', 'test', '--timeout', '10000', testFile],
-        {
-          stdout: 'pipe',
-          stderr: 'pipe',
-          env: { ...process.env, FORCE_COLOR: '1' },
-        },
-      )
+      const proc = Bun.spawn(['bun', 'test', '--timeout', '10000', testFile], {
+        stdout: 'pipe',
+        stderr: 'pipe',
+        env: { ...process.env, FORCE_COLOR: '1' },
+      })
 
       const stdoutChunks: string[] = []
       const stderrChunks: string[] = []
@@ -230,7 +227,7 @@ async function main() {
 
   // For api mode, run all tests together
   const testResult = await Bun.spawn(
-    ['bun', '--bun', 'test', '--timeout', '10000', ...expandedArgs],
+    ['bun', 'test', '--timeout', '10000', ...expandedArgs],
     {
       stdout: 'inherit',
       stderr: 'inherit',

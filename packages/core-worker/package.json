@@ -20,10 +20,9 @@
     "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "test:e2e": "bun install && bun test $(find src -type f -name '*.e2e-spec.ts' | sed 's|^|./|')",
+    "test:integration:run": "bun install && bun test $(find src -type f -name '*.e2e-spec.ts' | sed 's|^|./|')",
     "test:unit": "bun test",
-    "dev:docker:unit:run": "docker compose -f ../../docker-compose.test.yml up coreworkerunittest",
-    "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml up coreworkere2etest"
+    "test:integration": "docker compose -f ../../docker-compose.test.yml run --rm --entrypoint bun lomboke2e --cwd /usr/src/app/packages/core-worker test:integration:run"
   },
   "devDependencies": {
     "@types/bun": "catalog:",

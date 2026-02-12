@@ -10,7 +10,6 @@ services:
       INITIAL_USER: demo
       AUTH_JWT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # replace with a random string
       AUTH_EMAIL_VERIFICATION_JWT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      AUTH_EMAIL_VERIFICATION_FROM: noreply@lombok.app
       DB_PASSWORD: demodemodemodemodemodemo
       DB_NAME: lombok_demo
       DB_USER: lombok_demo

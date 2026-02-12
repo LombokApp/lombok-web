@@ -1,0 +1,264 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export DOCKER_CLI_HINTS=false
+CONTAINER="lombok-dev"
+
+require_container() {
+  if ! docker container inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
+    echo "Container '$CONTAINER' is not running. Start it with: ./dx up" >&2
+    exit 1
+  fi
+}
+
+# Use -it flags only when stdin is a terminal.
+# Run as user bun via su-exec because the container drops CAP_KILL,
+# so root cannot signal bun-owned processes.
+if [ -t 0 ]; then
+  DOCKER_EXEC="docker exec -it $CONTAINER su-exec bun"
+else
+  DOCKER_EXEC="docker exec $CONTAINER su-exec bun"
+fi
+
+usage() {
+  cat <<'HELP'
+Usage: ./dx <command>
+
+Commands:
+  check all            Run prettier, tsc, and eslint across all packages
+  check lint           Run eslint across all packages
+  check prettier       Run prettier across all packages
+  check tsc            Run tsc across all packages
+  reload api           Reload the NestJS API (triggers bun watch reload)
+  restart api          Restart the NestJS API (triggers restart of the app, which loads new env)
+  restart ui           Restart the Vite frontend dev server
+  db seed              Seed the database with dev data
+  db reset             Drop all tables, re-migrate, and re-seed
+  db purge             Drop all tables and schemas
+  db migrate           Run pending database migrations
+  db migrate new       Generate a new migration
+  unit <package>       Run unit tests for a package
+  e2e api              Run API end-to-end tests
+  e2e ui               Run UI end-to-end tests
+  up [-d]              Start the dev environment (-d for detached/daemon mode)
+  down                 Stop the dev environment (docker compose down)
+  kill                 Force-kill the dev environment (docker compose kill)
+  purge all            Tear down and remove all volumes, images, and orphans
+  purge db             Tear down and remove the Postgres data volume
+  purge minio          Tear down and remove the MinIO data volume
+  generate openapi     Generate the OpenAPI spec
+  generate metadata    Generate NestJS metadata
+  release standalone   Build the standalone release image
+  release separate-db  Build the separate-db release image
+  install              Force-reinstall dependencies on host and in container
+  exec <cmd...>        Run an arbitrary command inside the container
+  logs                 Tail the container logs
+  shell                Open a shell inside the container
+  help                 Show this help message
+HELP
+}
+
+case "${1:-help}" in
+  check)
+    case "${2:-}" in
+      all)
+        sh ./cmd/dev-check-all.sh
+        ;;
+      lint)
+        sh ./cmd/dev-lint-all.sh
+        ;;
+      prettier)
+        sh ./cmd/dev-prettier-all.sh
+        ;;
+      tsc)
+        sh ./cmd/dev-tsc-all.sh
+        ;;
+      *)
+        echo "Usage: ./dx check <all|lint|prettier|tsc>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  restart)
+    require_container
+    case "${2:-}" in
+      api)
+        $DOCKER_EXEC bun --cwd packages/api restart
+        ;;
+      ui)
+        $DOCKER_EXEC sh /usr/src/app/packages/api/cmd/restart-ui.sh
+        ;;
+      *)
+        echo "Usage: ./dx restart api" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  reload)
+    require_container
+    case "${2:-}" in
+      api)
+        $DOCKER_EXEC bun --cwd packages/api reload
+        ;;
+      *)
+        echo "Usage: ./dx reload <api|ui>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  db)
+    require_container
+    case "${2:-}" in
+      seed)
+        $DOCKER_EXEC bun --cwd packages/api db:seed && ./dx reload api
+        ;;
+      reset)
+        $DOCKER_EXEC bun --cwd packages/api db:reset && ./dx reload api
+        ;;
+      purge)
+        $DOCKER_EXEC bun --cwd packages/api db:clean
+        ;;
+      migrate)
+        if [ "${3:-}" = "new" ]; then
+          $DOCKER_EXEC bun --cwd packages/api db:migrate:new
+        else
+          $DOCKER_EXEC bun --cwd packages/api db:migrate && ./dx reload api
+        fi
+        ;;
+      *)
+        echo "Usage: ./dx db <seed|reset|migrate>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  unit)
+    require_container
+    pkg="${2:-}"
+    if [ -z "$pkg" ]; then
+      echo "Usage: ./dx unit <package>" >&2
+      exit 1
+    fi
+    if [ ! -d "packages/$pkg" ]; then
+      echo "Unknown package: $pkg" >&2
+      echo "Available packages: $(ls -m packages/)" >&2
+      exit 1
+    fi
+    if ! grep -q '"test:unit"' "packages/$pkg/package.json" 2>/dev/null; then
+      echo "Package '$pkg' does not have a test:unit script" >&2
+      exit 1
+    fi
+    $DOCKER_EXEC bun --cwd "packages/$pkg" test:unit
+    ;;
+  e2e)
+    case "${2:-}" in
+      api)
+        bun --cwd packages/api e2e:api
+        ;;
+      ui)
+        bun --cwd packages/api e2e:ui
+        ;;
+      core-worker)
+        bun --cwd packages/core-worker e2e
+        ;;
+      *)
+        echo "Usage: ./dx e2e <api|ui>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  integration)
+    case "${2:-}" in
+      core-worker)
+        bun --cwd packages/core-worker test:integration
+        ;;
+      *)
+        echo "Usage: ./dx integration core-worker" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+
+  up)
+    if [ "${2:-}" = "-d" ]; then
+      docker compose up -d
+    else
+      docker compose up
+    fi
+    ;;
+  down)
+    docker compose down
+    ;;
+  kill)
+    docker compose kill
+    ;;
+  purge)
+    case "${2:-}" in
+      all)
+        docker compose down --volumes --rmi all --remove-orphans
+        ;;
+      db)
+        docker compose down && docker volume rm lombok-web_pgdata
+        ;;
+      minio)
+        docker compose down && docker volume rm lombok-web_miniodata
+        ;;
+      *)
+        echo "Usage: ./dx purge <all|db|minio>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  generate)
+    require_container
+    case "${2:-}" in
+      openapi)
+        $DOCKER_EXEC bun --cwd packages/api generate:openapi
+        ;;
+      metadata)
+        $DOCKER_EXEC bun --cwd packages/api generate:metadata
+        ;;
+      *)
+        echo "Usage: ./dx generate <openapi|metadata>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  release)
+    case "${2:-}" in
+      standalone)
+        (cd ./deploy && sh ./build-standalone.sh)
+        ;;
+      separate-db)
+        (cd ./deploy && sh ./build-separate-db.sh)
+        ;;
+      *)
+        echo "Usage: ./dx release <standalone|separate-db>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  install)
+    bun install --force && ./dx exec bun install --force
+    ;;
+  exec)
+    require_container
+    shift
+    $DOCKER_EXEC "$@"
+    ;;
+  logs)
+    require_container
+    docker logs -f "$CONTAINER"
+    ;;
+  shell)
+    require_container
+    $DOCKER_EXEC sh
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $1" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

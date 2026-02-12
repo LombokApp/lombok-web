@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "bun vite",
-    "build": "bunx --bun vite build --mode production",
+    "build": "bunx vite build --mode production",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:fix": "prettier --write \"./**/*.(ts|tsx)\"",
     "tsc:check": "tsc --noEmit -p tsconfig.app.json",
-    "preview": "bunx --bun vite preview --port 12005 --strictPort --host 127.0.0.1"
+    "preview": "bunx vite preview --port 12005 --strictPort --host 127.0.0.1"
   },
   "dependencies": {
     "@hookform/resolvers": "catalog:",

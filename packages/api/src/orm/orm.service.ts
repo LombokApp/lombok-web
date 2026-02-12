@@ -77,6 +77,8 @@ export const dbSchema = {
   notificationSettingsRelations,
 }
 
+export type LombokDatabase = NodePgDatabase<typeof dbSchema>
+
 export const TEST_DB_PREFIX = 'lombok_test__'
 
 @Injectable()

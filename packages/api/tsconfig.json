@@ -39,7 +39,8 @@
     "src/**/*.json",
     "script/*.ts",
     "test/**/*.ts",
-    "eslint.config.ts"
+    "eslint.config.ts",
+    "script/db-seeds/*.ts"
   ],
   "exclude": ["dist"]
 }
