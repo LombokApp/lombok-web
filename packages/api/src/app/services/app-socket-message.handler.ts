@@ -15,7 +15,7 @@ import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
 import type { TaskService } from 'src/task/services/task.service'
-import type { z, ZodTypeAny } from 'zod'
+import { z } from 'zod'
 
 import type { AppService } from './app.service'
 
@@ -42,13 +42,15 @@ export function parseAppSocketRequest(
 ): ParsedRequest | ParseError {
   const parsedMessage = appSocketMessageSchema.safeParse(message)
   if (!parsedMessage.success) {
+    const flattenedError = z.flattenError(parsedMessage.error)
     return {
       error: {
-        fieldErrors: parsedMessage.error.flatten().fieldErrors,
+        fieldErrors: flattenedError.fieldErrors,
+        formErrors: flattenedError.formErrors,
       },
     }
   }
-  const schema: ZodTypeAny | undefined =
+  const schema: z.ZodType | undefined =
     AppSocketMessageSchemaMap[parsedMessage.data.name]
   const parsed = schema.safeParse(parsedMessage.data.data)
 
@@ -60,7 +62,7 @@ export function parseAppSocketRequest(
     error: {
       issues: parsed.error.issues.map((issue) => ({
         code: issue.code,
-        path: issue.path,
+        path: issue.path.map((p) => (typeof p === 'symbol' ? String(p) : p)),
         message: issue.message,
       })),
     },

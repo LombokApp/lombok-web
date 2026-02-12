@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export enum AppSort {
@@ -13,15 +13,14 @@ export enum AppSort {
 }
 
 export const appsListQueryParamsSchema = z.object({
-  sort: z
-    .array(z.nativeEnum(AppSort))
-    .or(z.nativeEnum(AppSort).optional())
-    .optional(),
+  sort: z.array(z.enum(AppSort)).or(z.enum(AppSort).optional()).optional(),
   search: z.string().optional(),
-  enabled: z.preprocess(
-    (a) => (a === undefined ? undefined : a === 'true'),
-    z.boolean().optional(),
-  ),
+  enabled: z
+    .preprocess(
+      (a) => (a === undefined ? undefined : a === 'true'),
+      z.boolean().optional(),
+    )
+    .optional(),
   offset: z
     .preprocess(
       (a) => parseInt(a as string, 10),

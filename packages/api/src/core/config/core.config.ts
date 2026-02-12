@@ -41,13 +41,7 @@ export const dockerHostConfigSchema = z
                 z
                   .literal('host')
                   .or(z.literal('bridge'))
-                  .or(
-                    z.string().startsWith('container:') as z.ZodType<
-                      `container:${string}`,
-                      z.ZodStringDef,
-                      string
-                    >,
-                  ),
+                  .or(z.string().startsWith('container:')),
               )
               .optional(),
             gpus: z

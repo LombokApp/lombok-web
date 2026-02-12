@@ -103,7 +103,7 @@ export const EMAIL_VALIDATION_CONSTRAINTS: Record<
 
 export const NAME_VALIDATORS_COMBINED = Object.keys(
   NAME_VALIDATION_CONSTRAINTS,
-).reduce<z.ZodSchema>((validator, nextName) => {
+).reduce<z.ZodString>((validator, nextName) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const func = NAME_VALIDATION_CONSTRAINTS[nextName]!
 
@@ -116,7 +116,7 @@ export const NAME_VALIDATORS_COMBINED = Object.keys(
 
 export const EMAIL_VALIDATORS_COMBINED = Object.keys(
   EMAIL_VALIDATION_CONSTRAINTS,
-).reduce<z.ZodSchema>((validator, nextName) => {
+).reduce<z.ZodString>((validator, nextName) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const func = EMAIL_VALIDATION_CONSTRAINTS[nextName]!
 
@@ -129,7 +129,7 @@ export const EMAIL_VALIDATORS_COMBINED = Object.keys(
 
 export const USERNAME_VALIDATORS_COMBINED = Object.keys(
   USERNAME_VALIDATION_CONSTRAINTS,
-).reduce<z.ZodSchema>((validator, nextName) => {
+).reduce<z.ZodString>((validator, nextName) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const func = USERNAME_VALIDATION_CONSTRAINTS[nextName]!
   return validator.refine(func, {
@@ -140,7 +140,7 @@ export const USERNAME_VALIDATORS_COMBINED = Object.keys(
 
 export const PASSWORD_VALIDATORS_COMBINED = Object.keys(
   PASSWORD_VALIDATION_CONSTRAINTS,
-).reduce<z.ZodSchema>((validator, nextName) => {
+).reduce<z.ZodString>((validator, nextName) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const func = PASSWORD_VALIDATION_CONSTRAINTS[nextName]!
   return validator.refine(func, {

@@ -1,11 +1,11 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const accessKeyBucketsListResponseSchema = z.object({
   result: z.array(
     z.object({
       name: z.string(),
-      createdDate: z.string().datetime().optional(),
+      createdDate: z.iso.datetime().optional(),
     }),
   ),
 })

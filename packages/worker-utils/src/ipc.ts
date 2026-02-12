@@ -11,7 +11,7 @@ import { z } from 'zod'
 
 import { errorEnvelopeSchema } from './errors/work-errors.types'
 
-export const createResponseSchema = <T extends z.ZodTypeAny>(resultSchema: T) =>
+export const createResponseSchema = <T extends z.ZodType>(resultSchema: T) =>
   z.discriminatedUnion('success', [
     z.object({
       success: z.literal(true),

@@ -57,7 +57,7 @@ export enum ConfigParamType {
 }
 
 export const paramConfigSchema = z.object({
-  type: z.nativeEnum(ConfigParamType),
+  type: z.enum(ConfigParamType),
   default: z.union([z.string(), z.number(), z.boolean()]).optional().nullable(),
 })
 
@@ -197,8 +197,8 @@ export const containerProfileJobDefinitionSchema = z
   .strict()
 
 export const httpJobDefinitionSchema =
-  containerProfileJobDefinitionSchema.merge(
-    z.object({ identifier: dockerWorkerJobIdentifierSchema }),
+  containerProfileJobDefinitionSchema.extend(
+    z.object({ identifier: dockerWorkerJobIdentifierSchema }).shape,
   )
 
 export const execJobDefinitionSchema = z
@@ -207,7 +207,7 @@ export const execJobDefinitionSchema = z
     command: dockerWorkerCommandSchema,
     jobIdentifier: dockerWorkerJobIdentifierSchema,
   })
-  .merge(containerProfileJobDefinitionSchema)
+  .extend(containerProfileJobDefinitionSchema.shape)
 
 export const dockerWorkerConfigSchema = z.discriminatedUnion('kind', [
   execJobDefinitionSchema,
@@ -324,7 +324,7 @@ export const appConfigSchema = z
         jobDefinitions.forEach(({ workerIndex, jobIdentifier }) => {
           if (jobIdentifiers.has(jobIdentifier)) {
             ctx.addIssue({
-              code: z.ZodIssueCode.custom,
+              code: 'custom',
               message: `Duplicate container job name "${jobIdentifier}" in profile "${profileIdentifier}". Each job name within a container profile must be unique.`,
               path: [
                 'containerProfiles',
@@ -349,7 +349,7 @@ export const appConfigSchema = z
         for (const systemRequestWorkerIdentifier of systemRequestWorkerIdentifiers) {
           if (!workerIdentifiers.has(systemRequestWorkerIdentifier)) {
             ctx.addIssue({
-              code: z.ZodIssueCode.custom,
+              code: 'custom',
               message: `Unknown worker "${systemRequestWorkerIdentifier}" in systemRequestRuntimeWorkers.${key}. Must be one of: ${workerIdentifiersArray.length > 0 ? workerIdentifiersArray.join(', ') : '(none)'}`,
               path: [
                 'systemRequestRuntimeWorkers',
@@ -370,7 +370,7 @@ export const appConfigSchema = z
         !workerIdentifiers.has(task.handler.identifier)
       ) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: `Unknown worker "${task.handler.identifier}" in task "${task.identifier}". Must be one of: ${workerIdentifiersArray.length > 0 ? workerIdentifiersArray.join(', ') : '(none)'}`,
           path: ['tasks', index, 'worker'],
         })
@@ -383,7 +383,7 @@ export const appConfigSchema = z
           !containerProfilesKeys.includes(profile)
         ) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             message: `Unknown container profile "${profile}". Must be one of: ${containerProfilesKeys.length > 0 ? containerProfilesKeys.join(', ') : '(none)'}`,
             path: ['tasks', index, 'worker'],
           })
@@ -401,7 +401,7 @@ export const appConfigSchema = z
           )
         ) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             message: `Unknown container job class "${jobIdentifier}". Must be one of: ${profileJobDefinitions.map((jobDefinition) => jobDefinition.jobIdentifier).join(', ')}`,
             path: ['tasks', index, 'worker'],
           })
@@ -422,7 +422,7 @@ export const appConfigSchema = z
           !taskIdentifiers.has(onCompleteConfig.taskIdentifier)
         ) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             message: `Unknown task "${onCompleteConfig.taskIdentifier}" in trigger at index ${triggerIndex}. Must be one of: ${
               taskIdentifiersArray.length > 0
                 ? taskIdentifiersArray.join(', ')
@@ -449,7 +449,7 @@ export const appConfigSchema = z
         !value.subscribedCoreEvents?.includes(trigger.eventIdentifier)
       ) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: `Platform event identifier "${trigger.eventIdentifier}" in trigger at index ${index} is not subscribed to by the app`,
           path: ['triggers', index, 'eventIdentifier'],
         })
@@ -457,7 +457,7 @@ export const appConfigSchema = z
 
       if (!taskIdentifiers.has(trigger.taskIdentifier)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: `Unknown task "${trigger.taskIdentifier}" in trigger at index ${index}. Must be one of: ${
             taskIdentifiersArray.length > 0
               ? taskIdentifiersArray.join(', ')
@@ -487,7 +487,7 @@ export const appConfigWithManifestSchema = (
         ([workerId, workerConfig]) => {
           if (!manifest[`/workers/${workerConfig.entrypoint}`]) {
             ctx.addIssue({
-              code: z.ZodIssueCode.custom,
+              code: 'custom',
               message: `Runtime worker "${workerId}" entrypoint "${workerConfig.entrypoint}" does not exist in manifest`,
               path: ['runtimeWorkers', workerId, 'entrypoint'],
             })
@@ -517,7 +517,7 @@ export const appRuntimeWorkersMapSchema = z.record(
 )
 
 export const appSearchResultItemSchema = z.object({
-  folderId: z.string().uuid(),
+  folderId: z.guid(),
   objectKey: z.string().nonempty(),
   similarity: z.number().min(0).max(1),
   score: z.number().optional(),

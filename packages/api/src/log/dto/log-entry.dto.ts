@@ -1,20 +1,20 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import {
   elaboratedTargetLocationContextDTOSchema,
   LogEntryLevel,
   targetLocationContextDTOSchema,
 } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const logEntrytDTOSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   message: z.string(),
-  level: z.nativeEnum(LogEntryLevel),
+  level: z.enum(LogEntryLevel),
   emitterIdentifier: z.string(),
   targetLocation: targetLocationContextDTOSchema.optional(),
   targetLocationContext: elaboratedTargetLocationContextDTOSchema.optional(),
   data: z.unknown(),
-  createdAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
 })
 
 export class LogEntryDTO extends createZodDto(logEntrytDTOSchema) {}

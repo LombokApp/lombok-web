@@ -47,7 +47,7 @@ export class AuthTokenParseError extends Error {
 
   readonly failureMessage: string
   readonly failureCode: string
-  readonly errors: z.ZodIssue[]
+  readonly errors: z.core.$ZodIssue[]
 
   constructor(
     readonly token: unknown,
@@ -56,7 +56,7 @@ export class AuthTokenParseError extends Error {
     super()
     this.failureCode = failure.name
     this.failureMessage = failure.message
-    this.errors = failure.errors
+    this.errors = failure.issues
   }
 }
 

@@ -1,13 +1,60 @@
-import { patchNestjsSwagger } from '@anatine/zod-nestjs'
 import { PluginMetadataPrinter } from '@nestjs/cli/lib/compiler/plugins/plugin-metadata-printer'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import type { OpenAPIObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
+import { cleanupOpenApiDoc } from 'nestjs-zod'
 import * as path from 'path'
 import { CoreModule } from 'src/core/core.module'
 import ts from 'typescript'
+import { z } from 'zod'
+
+// Look up a DTO class by name from loaded modules. createZodDto() stores
+// the Zod schema as a static `schema` property on the class.
+function findDtoZodSchema(className: string): z.ZodType | undefined {
+  for (const mod of Object.values(require.cache)) {
+    if (!mod?.exports) {
+      continue
+    }
+    const exported = (mod.exports as Record<string, unknown>)[className]
+    if (typeof exported === 'function' && 'schema' in exported) {
+      return (exported as { schema: z.ZodType }).schema
+    }
+  }
+  return undefined
+}
+
+// Auto-detect and patch empty schemas produced by NestJS Swagger for z.record() DTOs.
+// After NestFactory.create() loads all modules, we look up DTO classes from
+// require.cache and regenerate their schemas using z.toJSONSchema().
+function patchEmptyRecordSchemas(document: OpenAPIObject): OpenAPIObject {
+  const schemas = document.components?.schemas
+  if (!schemas) {
+    return document
+  }
+
+  for (const [name, schema] of Object.entries(schemas)) {
+    const s = schema as Record<string, unknown>
+    const props = s.properties
+    if (
+      s.type === 'object' &&
+      typeof props === 'object' &&
+      props !== null &&
+      Object.keys(props).length === 0 &&
+      !s.additionalProperties
+    ) {
+      const zodSchema = findDtoZodSchema(name)
+      if (zodSchema) {
+        const jsonSchema = z.toJSONSchema(zodSchema) as Record<string, unknown>
+        delete jsonSchema.$schema
+        schemas[name] = jsonSchema
+      }
+    }
+  }
+
+  return document
+}
 
 function findMatchingSchema(
   schema: unknown,
@@ -181,10 +228,6 @@ async function main() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
   const metadata = require('../src/nestjs-metadata').default
 
-  // necessary to integrate nestjs-zod with swagger such that
-  // all the zod infered DTOs are included in the openapi spec
-  patchNestjsSwagger()
-
   await SwaggerModule.loadPluginMetadata(
     metadata as unknown as () => Promise<Record<string, unknown>>,
   )
@@ -196,13 +239,20 @@ async function main() {
     .addBearerAuth()
     .build()
 
-  const uncompressedDocument = SwaggerModule.createDocument(app, options, {
+  const rawDocument = SwaggerModule.createDocument(app, options, {
     operationIdFactory: (_controllerKey: string, methodKey: string) =>
       methodKey,
   })
 
+  // necessary to integrate nestjs-zod with swagger such that
+  // all the zod infered DTOs are included in the openapi spec
+  const uncompressedDocument = cleanupOpenApiDoc(rawDocument)
+
+  // Patch z.record() DTOs that NestJS Swagger can't introspect
+  const patchedDocument = patchEmptyRecordSchemas(uncompressedDocument)
+
   // Where possible, replace nested inline duplicate object definitions with references to the top-level definitions
-  const document = compressOpenApiDocument(uncompressedDocument)
+  const document = compressOpenApiDocument(patchedDocument)
 
   const stringifiedDocument = JSON.stringify(document, null, 2)
 

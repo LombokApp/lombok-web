@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Body,
   Controller,
@@ -9,6 +8,7 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 

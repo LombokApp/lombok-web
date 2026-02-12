@@ -417,11 +417,14 @@ export class DockerClientService {
         this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
           appSlugProfileKey
         ],
-      networkMode:
+      networkMode: (this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        ?.networkMode?.[profileKey] ??
         this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.networkMode?.[profileKey] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.networkMode?.[appSlugProfileKey],
+          ?.networkMode?.[appSlugProfileKey]) as
+        | 'host'
+        | 'bridge'
+        | `container:${string}`
+        | undefined,
     }
   }
 

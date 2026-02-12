@@ -1,12 +1,10 @@
-import { createZodDto } from '@anatine/zod-nestjs'
-import { folderObjectSchema } from '@lombokapp/types'
+import { folderObjectSchema, metadataEntrySchema } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
-
-import { mappingExtendedMetadataEntrySchema } from './content-metadata.dto'
 
 export const contentMetadataSchema = z.record(
   z.string(),
-  mappingExtendedMetadataEntrySchema.optional(),
+  metadataEntrySchema.optional(),
 )
 
 export class FolderObjectDTO extends createZodDto(folderObjectSchema) {}

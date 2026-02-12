@@ -13,23 +13,20 @@ export const StorageProvisionTypeZodEnum = z.enum([
   'REDUNDANCY',
 ])
 export type StorageProvisionType = z.infer<typeof StorageProvisionTypeZodEnum>
-export const StorageProvisionTypeEnum = StorageProvisionTypeZodEnum.Enum
+export const StorageProvisionTypeEnum = StorageProvisionTypeZodEnum.enum
 
-export const s3LocationEndpointSchema = z
-  .string()
-  .url()
-  .refine(
-    (e) => {
-      try {
-        return new URL(e).pathname === '/'
-      } catch {
-        return false
-      }
-    },
-    {
-      message: 'Expected hostname.',
-    },
-  )
+export const s3LocationEndpointSchema = z.url().refine(
+  (e) => {
+    try {
+      return new URL(e).pathname === '/'
+    } catch {
+      return false
+    }
+  },
+  {
+    message: 'Expected hostname.',
+  },
+)
 
 export const s3LocationSchema = z.object({
   accessKeyId: z.string().min(1),
@@ -56,7 +53,7 @@ export const accessKeySchema = z
   .extend(accessKeyPublicSchema.shape)
 
 export const storageProvisionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   accessKeyHashId: z.string(),
   endpoint: z.string(),
   bucket: z.string(),

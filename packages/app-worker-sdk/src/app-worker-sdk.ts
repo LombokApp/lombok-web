@@ -16,7 +16,7 @@ import {
 } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import type { Socket } from 'socket.io-client'
-import type { z } from 'zod'
+import { z } from 'zod'
 
 const DEFAULT_SOCKET_RESPONSE_TIMEOUT = 30000
 
@@ -138,8 +138,7 @@ export const buildAppClient = (
           code: 'APP_API_ERROR',
           message: 'Failed to parse response',
           details: {
-            fieldErrors: parsedError.error.flatten().fieldErrors,
-            formErrors: parsedError.error.flatten().formErrors,
+            errors: z.flattenError(parsedError.error).fieldErrors,
           },
         },
       }
@@ -154,8 +153,9 @@ export const buildAppClient = (
           code: 'APP_API_ERROR',
           message: 'Failed to parse response',
           details: {
-            fieldErrors: parsedResponse.error.flatten().fieldErrors,
-            formErrors: parsedResponse.error.flatten().formErrors,
+            errors: z.flattenError(
+              parsedResponse.error as unknown as z.core.$ZodError,
+            ).fieldErrors,
           },
         },
       }

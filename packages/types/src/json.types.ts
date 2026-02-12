@@ -15,7 +15,7 @@ export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
       z.boolean(),
       z.null(),
       z.array(jsonSerializableValueSchema),
-      z.record(jsonSerializableValueSchema),
+      z.record(z.string(), jsonSerializableValueSchema),
     ]),
   )
 

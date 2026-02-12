@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Body,
   Controller,
@@ -14,6 +13,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { AppService } from 'src/app/services/app.service'
 import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'

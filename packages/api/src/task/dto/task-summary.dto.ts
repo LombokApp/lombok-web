@@ -1,14 +1,14 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import {
   elaboratedTargetLocationContextDTOSchema,
   storageAccessPolicySchema,
   targetLocationContextDTOSchema,
   taskInvocationSchema,
 } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const taskSummaryDTOSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   taskIdentifier: z.string(),
   ownerIdentifier: z.string(),
   invocation: taskInvocationSchema,
@@ -23,10 +23,10 @@ export const taskSummaryDTOSchema = z.object({
     .optional(),
   taskDescription: z.string(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
-  startedAt: z.string().datetime().optional(),
-  completedAt: z.string().datetime().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  startedAt: z.iso.datetime().optional(),
+  completedAt: z.iso.datetime().optional(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export const taskSummaryWithTargetLocationContextDTOSchema =

@@ -1059,7 +1059,7 @@ export class AppService {
         return await this.installApp(app.definition, appRoot, true)
       } else {
         throw new AppInvalidException(
-          `App config is invalid (${appInstallIdentifier}): ${JSON.stringify(app.validation.error?.errors, null, 2)}`,
+          `App config is invalid (${appInstallIdentifier}): ${JSON.stringify(app.validation.error?.issues, null, 2)}`,
         )
       }
     } catch (error) {
@@ -1288,7 +1288,7 @@ export class AppService {
       const sanitizedConfig = appConfigSanitize.safeParse(app.definition.config)
       if (!sanitizedConfig.success) {
         throw new AppInvalidException(
-          `Config is invalid: ${JSON.stringify(sanitizedConfig.error.errors, null, 2)}`,
+          `Config is invalid: ${JSON.stringify(sanitizedConfig.error.issues, null, 2)}`,
         )
       }
     }
@@ -2216,7 +2216,7 @@ export class AppService {
         return parsedSearchResults.data
       } else {
         this.logger.error('Failed to parse search results from app:', {
-          errors: parsedSearchResults.error.flatten().fieldErrors,
+          errors: z.flattenError(parsedSearchResults.error).fieldErrors,
           data: parsedJsonBody,
         })
       }

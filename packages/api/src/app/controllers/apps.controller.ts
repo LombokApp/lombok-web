@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   BadRequestException,
   Body,
@@ -20,6 +19,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import express from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { normalizeSortParam } from 'src/core/utils/sort.util'

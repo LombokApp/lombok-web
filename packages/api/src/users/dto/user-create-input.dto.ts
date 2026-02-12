@@ -1,5 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
-import { extendApi } from '@anatine/zod-openapi'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const userCreateInputSchema = z.object({
@@ -12,6 +11,4 @@ export const userCreateInputSchema = z.object({
   permissions: z.array(z.string()).optional(),
 })
 
-export class UserCreateInputDTO extends createZodDto(
-  extendApi(userCreateInputSchema),
-) {}
+export class UserCreateInputDTO extends createZodDto(userCreateInputSchema) {}

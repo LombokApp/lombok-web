@@ -135,6 +135,7 @@ export default [
       '@stylistic/type-annotation-spacing': 'error',
       '@typescript-eslint/typedef': 'error',
       '@typescript-eslint/unified-signatures': 'error',
+      '@typescript-eslint/no-deprecated': 'error',
     },
     plugins: {
       'eslint-comments': eslintComments,

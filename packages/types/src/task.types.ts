@@ -16,14 +16,14 @@ export type TaskData = JsonSerializableObject
 export const taskDataSchema: z.ZodType<TaskData> = jsonSerializableObjectSchema
 
 export const taskSystemLogEntryDTOSchema = z.object({
-  at: z.string().datetime(),
+  at: z.iso.datetime(),
   message: z.string(),
   logType: z.enum(['started', 'error', 'requeue', 'success']),
   payload: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const taskLogEntryDTOSchema = z.object({
-  at: z.string().datetime(),
+  at: z.iso.datetime(),
   message: z.string(),
   logType: z.string().regex(/^[a-z0-9_]+$/),
   payload: z.record(z.string(), z.unknown()).optional(),
@@ -53,21 +53,21 @@ export const storageAccessPolicyAccessRuleSchema = z.union([
   z
     .object({
       folderId: z.string(),
-      methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
+      methods: z.array(z.enum(SignedURLsRequestMethod)),
     })
     .strict(),
   z
     .object({
       folderId: z.string(),
       objectKey: z.string(),
-      methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
+      methods: z.array(z.enum(SignedURLsRequestMethod)),
     })
     .strict(),
   z
     .object({
       folderId: z.string(),
       prefix: prefixSchema,
-      methods: z.array(z.nativeEnum(SignedURLsRequestMethod)),
+      methods: z.array(z.enum(SignedURLsRequestMethod)),
     })
     .strict(),
 ])
@@ -115,17 +115,14 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
       taskIdentifier: taskIdentifierSchema,
       condition: z
         .string()
-        .nonempty()
+        .min(1)
         .refine(
           (value) => {
             const validation = validateConditionExpression(value)
             return validation.valid
           },
-          (value) => {
-            const validation = validateConditionExpression(value)
-            return {
-              message: validation.error ?? 'Invalid condition expression',
-            }
+          {
+            message: 'Invalid condition expression',
           },
         )
         .optional(), // e.g. "task.success"
@@ -137,17 +134,14 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
 const taskTriggerConfigBaseSchema = z.object({
   condition: z
     .string()
-    .nonempty()
+    .min(1)
     .refine(
       (value) => {
         const validation = validateConditionExpression(value)
         return validation.valid
       },
-      (value) => {
-        const validation = validateConditionExpression(value)
-        return {
-          message: validation.error ?? 'Invalid condition expression',
-        }
+      {
+        message: 'Invalid condition expression',
       },
     )
     .optional(),
@@ -169,7 +163,7 @@ export const scheduleTaskTriggerConfigSchema = z
     config: scheduleConfigSchema,
     name: z.string(),
   })
-  .merge(taskTriggerConfigBaseSchema)
+  .extend(taskTriggerConfigBaseSchema.shape)
 
 export type ScheduleTaskTriggerConfig = z.infer<
   typeof scheduleTaskTriggerConfigSchema
@@ -183,7 +177,7 @@ export const eventTaskTriggerConfigSchema = z
     ),
     dataTemplate: jsonSerializableObjectSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
   })
-  .merge(taskTriggerConfigBaseSchema)
+  .extend(taskTriggerConfigBaseSchema.shape)
 
 export const userActionTaskTriggerConfigSchema = z
   .object({
@@ -197,13 +191,13 @@ export const userActionTaskTriggerConfigSchema = z
           .optional(),
         folder: z
           .object({
-            folderId: z.string().uuid(),
+            folderId: z.guid(),
           })
           .optional(),
       })
       .optional(),
   })
-  .merge(taskTriggerConfigBaseSchema)
+  .extend(taskTriggerConfigBaseSchema.shape)
 
 // The invoked task's invocation context
 export const taskInvocationSchema = z.discriminatedUnion('kind', [
@@ -217,14 +211,14 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('event'),
     invokeContext: z.object({
-      eventId: z.string().uuid(),
+      eventId: z.guid(),
       emitterIdentifier: z.string(),
       eventIdentifier: eventIdentifierSchema.or(
         corePrefixedEventIdentifierSchema,
       ),
       eventTriggerConfigIndex: z.number().int(),
       dataTemplate: jsonSerializableObjectSchema.optional(),
-      targetUserId: z.string().uuid().optional(),
+      targetUserId: z.guid().optional(),
       targetLocation: targetLocationContextDTOSchema.optional(),
       eventData: jsonSerializableObjectSchema,
     }),
@@ -245,15 +239,15 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('user_action'),
     invokeContext: z.object({
-      userId: z.string().uuid(),
-      requestId: z.string().uuid(),
+      userId: z.guid(),
+      requestId: z.guid(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
   }),
   z.object({
     kind: z.literal('app_action'),
     invokeContext: z.object({
-      requestId: z.string().uuid(),
+      requestId: z.guid(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
   }),
@@ -261,7 +255,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
     kind: z.literal('task_child'),
     invokeContext: z.object({
       parentTask: z.object({
-        id: z.string().uuid(),
+        id: z.guid(),
         identifier: z.string(),
         success: z.boolean(),
       }),
@@ -292,7 +286,7 @@ export const taskConfigSchema = z
   .strict()
 
 export const taskDTOSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   taskIdentifier: z.string(),
   ownerIdentifier: z.string(),
   invocation: taskInvocationSchema,
@@ -310,10 +304,10 @@ export const taskDTOSchema = z.object({
   taskDescription: z.string(),
   systemLog: z.array(taskSystemLogEntryDTOSchema),
   taskLog: z.array(taskLogEntryDTOSchema),
-  startedAt: z.string().datetime().optional(),
-  completedAt: z.string().datetime().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  startedAt: z.iso.datetime().optional(),
+  completedAt: z.iso.datetime().optional(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export const requeueSchema = z.number().int().min(0)

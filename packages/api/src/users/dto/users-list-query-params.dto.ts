@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 import { UserSort } from '../services/users.service'
@@ -16,11 +16,8 @@ export const usersListQueryParamsSchema = z.object({
       z.number().refine((a) => a > 0),
     )
     .optional(),
-  isAdmin: z.preprocess((a) => a === 'true', z.boolean().optional()),
-  sort: z
-    .array(z.nativeEnum(UserSort))
-    .or(z.nativeEnum(UserSort).optional())
-    .optional(),
+  isAdmin: z.preprocess((a) => a === 'true', z.boolean().optional()).optional(),
+  sort: z.array(z.enum(UserSort)).or(z.enum(UserSort).optional()).optional(),
   search: z.string().optional(),
 })
 

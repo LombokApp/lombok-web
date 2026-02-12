@@ -1,5 +1,5 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import { StorageProvisionTypeZodEnum } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const storageProvisionInputSchema = z.object({

@@ -1,14 +1,14 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const dockerJobPresignedUrlsResponseSchema = z.object({
   urls: z.array(
     z.object({
-      folderId: z.string().uuid(),
+      folderId: z.guid(),
       objectKey: z.string(),
-      method: z.nativeEnum(SignedURLsRequestMethod),
-      url: z.string().url(),
+      method: z.enum(SignedURLsRequestMethod),
+      url: z.url(),
     }),
   ),
 })

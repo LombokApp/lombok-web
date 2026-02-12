@@ -1,5 +1,5 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import { MediaType } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 import { SearchSort } from '../services/search.service'
@@ -19,12 +19,12 @@ export const searchQueryParamsSchema = z.object({
     )
     .optional(),
   sort: z
-    .array(z.nativeEnum(SearchSort))
-    .or(z.nativeEnum(SearchSort).optional())
+    .array(z.enum(SearchSort))
+    .or(z.enum(SearchSort).optional())
     .optional(),
   mediaType: z
-    .array(z.nativeEnum(MediaType))
-    .or(z.nativeEnum(MediaType).optional())
+    .array(z.enum(MediaType))
+    .or(z.enum(MediaType).optional())
     .optional(),
 })
 

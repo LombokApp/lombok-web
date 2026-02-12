@@ -39,9 +39,9 @@ export function transformCommentToDTO(
         },
     content: comment.content,
     anchor: comment.anchor,
-    createdAt: comment.createdAt,
-    updatedAt: comment.updatedAt,
-    deletedAt: comment.deletedAt ?? null,
+    createdAt: comment.createdAt.toISOString(),
+    updatedAt: comment.updatedAt.toISOString(),
+    deletedAt: comment.deletedAt?.toISOString() ?? null,
     quotedComment: comment.quotedComment
       ? {
           id: comment.quotedComment.id,
@@ -59,8 +59,8 @@ export function transformCommentToDTO(
                 email: null,
               },
           content: comment.quotedComment.content,
-          createdAt: comment.quotedComment.createdAt,
-          deletedAt: comment.quotedComment.deletedAt ?? null,
+          createdAt: comment.quotedComment.createdAt.toISOString(),
+          deletedAt: comment.quotedComment.deletedAt?.toISOString() ?? null,
         }
       : null,
     mentions: comment.mentions,

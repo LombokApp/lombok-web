@@ -1,6 +1,5 @@
 import { appConfigSchema } from '@lombokapp/types'
 import { findIllegalJsonChars } from 'src/orm/util/json-sanitize'
-import z from 'zod'
 
 export const appConfigSanitize = appConfigSchema.superRefine((value, ctx) => {
   // Convert JSONPath (e.g., "$.a[0].b") to zod path array (e.g., ["a", 0, "b"])
@@ -68,11 +67,9 @@ export const appConfigSanitize = appConfigSchema.superRefine((value, ctx) => {
         break
     }
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message,
       path: zodPath,
     })
   }
-
-  return value
 })

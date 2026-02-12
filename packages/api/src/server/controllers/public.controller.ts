@@ -1,6 +1,6 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import { Controller, Get, UsePipes } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { ZodValidationPipe } from 'nestjs-zod'
 
 import { PublicSettingsGetResponse } from '../dto/responses/public-settings-get-response.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'

@@ -1,4 +1,3 @@
-import { createZodDto } from '@anatine/zod-nestjs'
 import {
   appConfigSchema,
   appContributionsSchema,
@@ -6,6 +5,7 @@ import {
   appRuntimeWorkersBundleSchema,
   appUiBundleSchema,
 } from '@lombokapp/types'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const userAppDTOSchema = z.object({
@@ -19,8 +19,8 @@ export const userAppDTOSchema = z.object({
   runtimeWorkers: appRuntimeWorkersBundleSchema,
   ui: appUiBundleSchema.nullable(),
   contributions: appContributionsSchema,
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export class UserAppDTO extends createZodDto(userAppDTOSchema) {}

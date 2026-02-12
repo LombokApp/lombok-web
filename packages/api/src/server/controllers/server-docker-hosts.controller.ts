@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Controller,
   Get,
@@ -14,6 +13,7 @@ import {
 import nestjsConfig from '@nestjs/config'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { coreConfig } from 'src/core/config'
 import { DockerClientService } from 'src/docker/services/client/docker-client.service'

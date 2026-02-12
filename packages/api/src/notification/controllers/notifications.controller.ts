@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Controller,
   Get,
@@ -15,6 +14,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { and, eq } from 'drizzle-orm'
 import express from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { OrmService } from 'src/orm/orm.service'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'

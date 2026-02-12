@@ -1,4 +1,4 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const userSessionListResponseDTOSchema = z.object({
@@ -7,10 +7,10 @@ export const userSessionListResponseDTOSchema = z.object({
   }),
   result: z.array(
     z.object({
-      id: z.string().uuid(),
-      expiresAt: z.string().datetime(),
-      createdAt: z.string().datetime(),
-      updatedAt: z.string().datetime(),
+      id: z.guid(),
+      expiresAt: z.iso.datetime(),
+      createdAt: z.iso.datetime(),
+      updatedAt: z.iso.datetime(),
     }),
   ),
 })

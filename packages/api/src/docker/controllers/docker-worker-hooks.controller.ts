@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   BadRequestException,
   Body,
@@ -13,6 +12,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import type { Request } from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
 import {
@@ -126,7 +126,7 @@ export class DockerWorkerHooksController {
               name: 'Error',
               ...bodyDiscriminated.error,
             },
-            outputFiles: body.outputFiles,
+            outputFiles: bodyDiscriminated.outputFiles,
           },
     )
   }

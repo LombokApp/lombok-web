@@ -16,11 +16,7 @@ export const hashedTokenHelper = {
     let [id = '', secret = ''] = refreshToken.split(':')
 
     secret = secret.replace(/-/g, '+').replace(/_/g, '/')
-    if (
-      !id.length ||
-      !secret.length ||
-      !z.string().uuid().safeParse(id).success
-    ) {
+    if (!id.length || !secret.length || !z.guid().safeParse(id).success) {
       throw new UnauthorizedException()
     }
 

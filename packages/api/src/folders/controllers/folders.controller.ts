@@ -1,4 +1,3 @@
-import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import { FolderPermissionEnum } from '@lombokapp/types'
 import {
   Body,
@@ -18,6 +17,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { AppFolderSettingsUpdateInputDTO } from 'src/app/dto/app-folder-settings-update-input.dto'
 import { AppFolderSettingsGetResponseDTO } from 'src/app/dto/responses/app-folder-settings-get-response.dto'
 import { AppService } from 'src/app/services/app.service'

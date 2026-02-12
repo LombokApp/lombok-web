@@ -7,7 +7,7 @@ import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common'
 import type { Controller } from '@nestjs/common/interfaces'
 import type { Observable } from 'rxjs'
 import { map } from 'rxjs'
-import type { ZodArray, ZodObject, ZodTypeAny } from 'zod'
+import type { ZodArray, ZodObject } from 'zod'
 import { z } from 'zod'
 
 import nestJSMetadataLoader from '../../nestjs-metadata'
@@ -75,9 +75,9 @@ export class ZodSerializerInterceptor implements NestInterceptor {
         if (!responseType) {
           return res
         }
-        const schema: ZodObjectAny | ZodArray<ZodTypeAny> | undefined =
+        const schema: ZodObjectAny | ZodArray<z.ZodType> | undefined =
           typeof responseType === 'function' && 'zodSchema' in responseType
-            ? (responseType.zodSchema as ZodObjectAny | ZodArray<ZodTypeAny>)
+            ? (responseType.zodSchema as ZodObjectAny | ZodArray<z.ZodType>)
             : undefined
         if (!schema) {
           return res
@@ -86,7 +86,6 @@ export class ZodSerializerInterceptor implements NestInterceptor {
         try {
           // If schema is an array schema, parse the whole response
           if (schema instanceof z.ZodArray) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return schema.parse(res)
           }
           // If response is an array but schema is an object, map over items

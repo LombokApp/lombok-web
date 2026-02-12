@@ -1,10 +1,10 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { storageLocationDTOSchema } from 'src/storage/dto/storage-location.dto'
 import { z } from 'zod'
 
 export const folderDTOSchema = z.object({
-  id: z.string().uuid(),
-  ownerId: z.string().uuid(),
+  id: z.guid(),
+  ownerId: z.guid(),
   name: z.string(),
   metadataLocation: storageLocationDTOSchema,
   contentLocation: storageLocationDTOSchema,
@@ -14,8 +14,8 @@ export const folderDTOSchema = z.object({
       code: z.string(),
     })
     .nullish(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export class FolderDTO extends createZodDto(folderDTOSchema) {}

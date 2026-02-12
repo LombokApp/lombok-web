@@ -1,11 +1,11 @@
-import { createZodDto } from '@anatine/zod-nestjs'
+import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const tokenRefreshResponseSchema = z.object({
   session: z.object({
     accessToken: z.string(),
     refreshToken: z.string(),
-    expiresAt: z.string().datetime(),
+    expiresAt: z.iso.datetime(),
   }),
 })
 

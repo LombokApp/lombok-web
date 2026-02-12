@@ -100,7 +100,12 @@ export const FolderObjectDetailScreen = ({
   const displayModeOptions = React.useMemo<
     Record<
       string,
-      { key: string; label: string; purpose?: string; icon: () => JSX.Element }
+      {
+        key: string
+        label: string
+        purpose?: string
+        icon: () => React.JSX.Element
+      }
     >
   >(
     () => ({
