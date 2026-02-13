@@ -10,6 +10,10 @@ fi
 
 APP_UI_HOST=${APP_UI_HOST:-"http://127.0.0.1:3001"}
 
+# ── NGINX ──────────────────────────────────────────────────
+echo "================================================"
+echo "NGINX"
+echo "================================================"
 # Copy the NGINX configuration and replace the domain placeholder
 sed -e "s|{{PLATFORM_HOST}}|$PLATFORM_HOST|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST|g" ./packages/api/nginx/nginx.conf > /etc/nginx/http.d/default.conf
 
@@ -24,6 +28,11 @@ else
     nginx
 fi
 
+# ── Docker socket proxy ────────────────────────────────────
+echo ""
+echo "================================================"
+echo "Docker socket proxy"
+echo "================================================"
 PROXY_SOCKET="${PROXY_SOCKET:-/tmp/docker-proxy.sock}"
 if [ -n "$LOCAL_DOCKER_SOCKET" ]; then
   # It's a socket path - check if socket exists and set up proxy
@@ -45,6 +54,11 @@ if [ -n "$LOCAL_DOCKER_SOCKET" ]; then
   fi
 fi
 
+# ── PostgreSQL ──────────────────────────────────────────────
+echo ""
+echo "================================================"
+echo "PostgreSQL"
+echo "================================================"
 if [ "$EMBEDDED_POSTGRES" = "true" ]; then
     export PGDATA='/var/lib/postgresql/data'
     mkdir -p "$PGDATA"
@@ -94,6 +108,10 @@ else
   echo "Skipping embedded postgres setup."
 fi
 
-
+# ── Backend (foreground) ────────────────────────────────────
+echo ""
+echo "================================================"
+echo "Backend (foreground)"
+echo "================================================"
 # Start the backend
-su-exec "$APP_USER" bun --no-env-file --cwd packages/api start
+su-exec "$APP_USER" bun --cwd packages/api start

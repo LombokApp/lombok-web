@@ -1,3 +1,6 @@
+FROM cgr.dev/chainguard/minio:latest AS minio
+FROM cgr.dev/chainguard/minio-client:latest AS mc
+
 FROM oven/bun:1.3.9-alpine AS base
 
 WORKDIR /usr/src/app
@@ -8,37 +11,47 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositori
   apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail socat
 
 
-FROM base AS test
+FROM base AS dev
 
 COPY . .
-# cp the test entrypoint script to 1 dir above the root (to keep it out of the way of local volume mappings)
-COPY packages/api/cmd/test-entrypoint.sh ../test-entrypoint.sh
+
+# cp the dev entrypoint script to 1 dir above the root (to keep it out of the way of local volume mappings)
+COPY packages/api/cmd/dev-entrypoint.sh ../dev-entrypoint.sh
 
 RUN apk add --no-cache \
   curl \
-  ca-certificates \
   chromium=142.0.7444.59-r0 \
   postgresql18 \
   postgresql18-contrib \
   postgresql-pgvector && \
-  rm -rf /var/cache/apk/* && \
-  curl -L https://dl.min.io/server/minio/release/linux-amd64/minio -o /usr/local/bin/minio && \
-  chmod +x /usr/local/bin/minio && \
-  # install all dependencies
-  bun install --frozen-lockfile
+  rm -rf /var/cache/apk/*
 
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+COPY --from=minio /usr/bin/minio /usr/local/bin/minio
+COPY --from=mc /usr/bin/mc /usr/local/bin/mc
 
-# Set up PostgreSQL data directory
+# Set up PostgreSQL
 RUN mkdir -p /var/lib/postgresql/data && \
   chown -R postgres:postgres /var/lib/postgresql && \
   mkdir /run/postgresql && \
   chown -R postgres:postgres /run/postgresql && \
   su-exec postgres initdb -D /var/lib/postgresql/data
 
-RUN chown -R bun:bun . && \
-  su-exec bun bun --bun install --frozen-lockfile && \
-  su-exec bun bun --bun --cwd packages/ui build
+# Set up MinIO data directory
+RUN mkdir -p /var/lib/minio/data && \
+  chown -R bun:bun /var/lib/minio
+
+RUN chown -R bun:bun . && su-exec bun bun install --frozen-lockfile
+
+ENTRYPOINT ["sh", "../dev-entrypoint.sh"]
+
+FROM dev AS test
+
+# cp the test entrypoint script to 1 dir above the root (to keep it out of the way of local volume mappings)
+COPY packages/api/cmd/test-entrypoint.sh ../test-entrypoint.sh
+
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+RUN su-exec bun bun --cwd packages/ui build
 
 ENTRYPOINT ["sh", "../test-entrypoint.sh"]
 

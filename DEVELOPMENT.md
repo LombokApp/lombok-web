@@ -1,85 +1,75 @@
 # Running for development
 
 1. `bun install` -- install dependencies
-2. `cp ./packages/api/.env.example ./packages/api/.env` -- copy the example env file
-3. `bun minio:dev` -- run the dev minio container
-4. `bun db:dev` -- run the db
-5. `bun api:dev` -- run the backend
-6. `bun ui:dev` -- run the ui
-7. Add `lombok.localhost` and `minio` to your /etc/hosts file (pointing at 127.0.0.1)
-8. Visit http://lombok.localhost:5173
+2. `./dx up` -- build and start the dev container (includes backend, frontend, PostgreSQL, and MinIO)
+3. Add `lombok.localhost` to your /etc/hosts file (pointing at 127.0.0.1)
+4. Visit <http://localhost:5173>
 
-## Other helpful commands
+Everything runs inside a single Docker container. The dev entrypoint automatically starts PostgreSQL, MinIO, the Vite frontend dev server (port 5173), and the NestJS backend (port 3000).
 
-### Backend
+After the first build, `./dx up` starts without rebuilding.
 
-#### Run the API container after a fresh docker build
+## Dev CLI (`./dx`)
+
+Run `./dx` or `./dx help` to see all available commands. Most commands execute inside the running container.
 
 ```
-bun api:dev:build
+./dx reload api           # Reload the NestJS API (triggers bun watch reload)
+./dx restart api          # Fully restart the NestJS API (loads new env)
+./dx restart ui           # Restart the Vite frontend dev server
+./dx db seed              # Seed the database with dev data
+./dx db reset             # Drop all tables, re-migrate, and re-seed
+./dx db purge             # Drop all tables and schemas
+./dx db migrate           # Run pending database migrations
+./dx db migrate new       # Generate a new migration
+./dx unit <package>       # Run unit tests for a package
+./dx e2e api              # Run API end-to-end tests
+./dx e2e ui               # Run UI end-to-end tests
+./dx generate openapi     # Generate the OpenAPI spec
+./dx generate metadata    # Generate NestJS metadata
+./dx shell                # Open a shell inside the container
+./dx logs                 # Tail the container logs
+./dx exec <cmd...>        # Run an arbitrary command inside the container
 ```
 
-#### Clean the db and restart the app
+## Container lifecycle
 
 ```
-bun dev:restart:api:clean
+./dx up                   # Start the dev environment (docker compose up)
+./dx up -d                # Start in detached/daemon mode
+./dx down                 # Stop the dev environment (docker compose down)
+./dx kill                 # Force-kill the dev environment
+./dx install              # Force-reinstall deps on host and in container
+./dx purge db             # Tear down and remove the Postgres data volume
+./dx purge minio          # Tear down and remove the MinIO data volume
+./dx purge all            # Tear down and remove all volumes, images, and orphans
 ```
 
-#### Regenerate [openapi.json](packages/api/src/openapi.json) & [api-paths.d.ts](packages/types/src/api-paths.d.ts)
+## Code checks
 
 ```
-bun generate:openapi
+./dx check all            # Run prettier, tsc, and eslint across all packages
+./dx check lint           # Run eslint across all packages
+./dx check prettier       # Run prettier across all packages
+./dx check tsc            # Run tsc across all packages
 ```
 
-#### Run E2E tests
+## Environment
 
-##### Start the db + minio
+Dev environment variables are defined inline in `docker-compose.yml`. No `.env` file is needed for the standard dev setup.
 
-```
-bun --cwd ./packages/api dev:docker:e2e:services
-```
+The `DEV_SEED_FILE` env var controls which seed file runs on first startup (default: `default.ts`). Set it to `none` to skip seeding. Seed files live in `packages/api/script/db-seeds/`.
 
-##### Clean the tests db
+## Building release images
 
-```
-bun --cwd ./packages/api dev:docker:e2e:down
-```
-
-##### Run all e2e tests
+### Standalone image (includes postgres)
 
 ```
-bun --cwd ./packages/api dev:docker:e2e:run
+./dx release standalone
 ```
 
-#### Building docker images
-
-##### Standalone image (includes postgres)
+### Separate DB image (does not include postgres)
 
 ```
-bun build:standalone
+./dx release separate-db
 ```
-
-##### Separate DB image (does not include postgres)
-
-```
-bun build:separate-db
-```
-
-### Run linting/prettier/tsc checks
-
-```
-bun dev:tsc-all
-```
-
-```
-bun dev:prettier-all
-```
-
-```
-bun dev:lint-all
-```
-
-### Run the demo app frontend in dev mode (in [@lombokapp/app-demo](./packages/app-demo))
-
-1. `echo 'SC_APP_FRONTEND_PROXY_HOST_DEV=http://127.0.0.1:5175' > ./packages/ui/.env.development.local` -- tell the UI to proxy frontend requests for the `dev` app to `http://127.0.0.1:5175`
-2. `bun appuidemo:dev` -- run the demo app frontend

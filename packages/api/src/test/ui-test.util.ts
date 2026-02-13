@@ -214,7 +214,6 @@ export async function buildUITestModule({
   const previewProcess = Bun.spawn({
     cmd: [
       'bunx',
-      '--bun',
       'vite',
       'preview',
       '--port',

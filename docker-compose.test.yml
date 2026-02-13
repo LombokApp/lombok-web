@@ -20,28 +20,6 @@ services:
       - /usr/src/app/packages/sdk/node_modules
       - /usr/src/app/packages/types/node_modules
     privileged: true
-  coreworkerutilsunittest:
-    container_name: 'lombok-worker-utils-unit-test'
-    build:
-      context: .
-      dockerfile: docker/app.Dockerfile
-      target: test
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
-    entrypoint: ['bun', '--cwd', './packages/worker-utils', 'test:unit']
-    privileged: true
-  coreworkerunittest:
-    container_name: 'lombok-core-worker-unit-test'
-    build:
-      context: .
-      dockerfile: docker/app.Dockerfile
-      target: test
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
-    entrypoint: ['bun', '--cwd', './packages/core-worker', 'test:unit']
-    privileged: true
   coreworkere2etest:
     container_name: 'lombok-core-worker-e2e-test'
     build:

@@ -1,10 +1,37 @@
 services:
   api:
-    container_name: lombok-api
+    container_name: lombok-dev
     build:
       context: .
       dockerfile: docker/app.Dockerfile
-      target: base
+      target: dev
+    environment:
+      - DEV_SEED_FILE=${DEV_SEED_FILE:-default.ts}
+      - PLATFORM_HOST=${PLATFORM_HOST:-lombok.localhost}
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_NAME=lombok_dev
+      - DB_USER=lombokuser_dev
+      - DB_PASSWORD=${DB_PASSWORD:-XXXXXXXX}
+      - PLATFORM_HTTPS=false
+      - PLATFORM_PORT=3000
+      - AUTH_JWT_SECRET=00000000000000000000000000000000
+      - AUTH_EMAIL_VERIFICATION_JWT_SECRET=00000000000000000000000000000000
+      - LOCAL_DOCKER_SOCKET=${DOCKER_HOST_CONFIG}
+      - DOCKER_HOST_CONFIG=${DOCKER_HOST_CONFIG:-{}}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - CREATE_DATABASE=true
+      - RUN_MIGRATIONS=true
+      - INITIAL_USER=${INITIAL_USER:-dev}
+      - DEV_S3_ACCESS_KEY_ID=${DEV_S3_ACCESS_KEY_ID:-lombokdevaccesskey}
+      - DEV_S3_SECRET_ACCESS_KEY=${DEV_S3_SECRET_ACCESS_KEY:-lombokdevsecretaccesskey}
+      - DEV_S3_BUCKET_NAME=${DEV_S3_BUCKET_NAME:-lombokdevbucket}
+      - DEV_S3_PREFIX=${DEV_S3_PREFIX:-dev-local}
+      - DEV_S3_REGION=${DEV_S3_REGION:-auto}
+      - DEV_S3_ENDPOINT=${DEV_S3_ENDPOINT:-http://127.0.0.1:9000}
+      - DEV_S3_LABEL=${DEV_S3_LABEL:-MinioDEV}
+      - PRINT_CORE_WORKER_OUTPUT=${PRINT_CORE_WORKER_OUTPUT:-true}
+      - PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT=${PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT:-true}
     volumes:
       - ./:/usr/src/app:cached
       - /usr/src/app/node_modules
@@ -16,14 +43,18 @@ services:
       - /usr/src/app/packages/sdk/node_modules
       - /usr/src/app/packages/types/node_modules
       - /usr/src/app/packages/utils/node_modules
+      - /usr/src/app/packages/ui/node_modules
+      - /usr/src/app/packages/ui-toolkit/node_modules
+      - /usr/src/app/packages/app-demo
       - /var/run/docker.sock:/var/run/docker.sock
-    env_file: packages/api/.env
-    environment:
-      WAIT_HOSTS: db:${DB_PORT:-0}
-    command: ['sh', './packages/api/cmd/dev-entrypoint.sh']
+      - ${PGDATA_DIR:-pgdata}:/var/lib/postgresql/data
+      - ${MINIO_DATA_DIR:-miniodata}:/var/lib/minio/data
     ports:
       - 3000:3000
-      - 3001:3001
+      - 5432:${HOST_DB_PORT:-5432}
+      - 5173:5173
+      - 9000:9000
+      - 9001:9001
     cap_drop: [ALL]
     cap_add:
       - SETUID
@@ -37,49 +68,7 @@ services:
       - no-new-privileges:false
       - apparmor=unconfined
     userns_mode: host
-  minio:
-    image: minio/minio
-    command: server /data --address "minio:9000"
-    volumes:
-      - ./.docker/minio/:/data
-    ports:
-      - 9001:${MINIO_CONSOLE_PORT:-9001}
-      - 9000:9000
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://minio:9000/minio/health/live']
-      interval: 3s
-      timeout: 2s
-      retries: 10
-    environment:
-      - MINIO_DOMAIN=minio:9000
-  minioclient:
-    image: minio/mc
-    depends_on:
-      minio:
-        condition: service_healthy
-    restart: on-failure
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
 
-      /usr/bin/mc rm -r --force myminio/lombok-dev;
-      /usr/bin/mc mb myminio/lombok-dev;
-
-      /usr/bin/mc admin user add myminio ${DEV_S3_ACCESS_KEY_ID} ${DEV_S3_SECRET_ACCESS_KEY};
-      /usr/bin/mc admin policy attach myminio readwrite --user ${DEV_S3_ACCESS_KEY_ID};
-
-      /usr/bin/mc admin trace --debug myminio
-
-      exit 0;
-      "
-  db:
-    image: pgvector/pgvector:pg18
-    ports:
-      - 5432:${DB_PORT:-0}
-    env_file: packages/api/.env
-    environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
-    volumes:
-      - ./.docker/postgres/data:/var/lib/postgresql
+volumes:
+  pgdata:
+  miniodata:

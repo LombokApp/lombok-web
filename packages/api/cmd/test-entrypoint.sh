@@ -36,6 +36,10 @@ fi
 
 APP_UI_HOST=${APP_UI_HOST:-"http://127.0.0.1:3001"}
 
+# ── NGINX ──────────────────────────────────────────────────
+echo "================================================"
+echo "NGINX"
+echo "================================================"
 # Copy the NGINX configuration and replace the domain placeholder
 sed -e "s|{{PLATFORM_HOST}}|$PLATFORM_HOST|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST|g" ./packages/api/nginx/nginx.conf > /etc/nginx/http.d/default.conf
 
@@ -50,6 +54,11 @@ else
     nginx
 fi
 
+# ── PostgreSQL ──────────────────────────────────────────────
+echo ""
+echo "================================================"
+echo "PostgreSQL"
+echo "================================================"
 export PGDATA='/var/lib/postgresql/data'
 mkdir -p "$PGDATA"
 chown -R postgres:postgres "$PGDATA"
@@ -95,6 +104,18 @@ su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c 
 
 echo "Database setup complete."
 
+echo ""
+echo "================================================"
+echo "Environment variables"
+echo "================================================"
+printenv
+echo ""
+
+# ── MinIO ───────────────────────────────────────────────────
+echo ""
+echo "================================================"
+echo "MinIO"
+echo "================================================"
 export MINIO_DATA='/var/lib/minio/data'
 export MINIO_BROWSER='off'
 export MINIO_ROOT_USER=lomboktestadmin
@@ -112,5 +133,10 @@ until curl -sf http://127.0.0.1:9000/minio/health/live; do
 done
 echo "MinIO is ready."
 
+# ── Tests ───────────────────────────────────────────────────
+echo ""
+echo "================================================"
+echo "Tests"
+echo "================================================"
 # Start the tests
-su-exec "$APP_USER" bun --bun --env --cwd packages/api ./test/e2e.run.ts "$@"
+su-exec "$APP_USER" bun --env --cwd packages/api ./test/e2e.run.ts "$@"

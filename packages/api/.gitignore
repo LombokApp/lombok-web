@@ -1,1 +1,1 @@
-.env
+./script/db-seeds/local-*.ts
