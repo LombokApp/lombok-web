@@ -7,6 +7,7 @@ import { UserService } from 'src/users/services/users.service'
 import { McpTokenService } from './services/mcp-token.service'
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       mcpSession?: Session

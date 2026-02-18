@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { and, desc, eq } from 'drizzle-orm'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { hashedTokenHelper } from 'src/auth/utils/hashed-token-helper'
@@ -53,12 +57,12 @@ export class McpTokenService {
   }
 
   async listMcpTokens(userId: string): Promise<
-    Array<{
+    {
       id: string
       clientName: string
       createdAt: Date
       lastUsedAt: string | null
-    }>
+    }[]
   > {
     const sessions = await this.ormService.db
       .select()

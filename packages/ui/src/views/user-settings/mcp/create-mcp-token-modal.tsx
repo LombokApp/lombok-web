@@ -63,14 +63,20 @@ export function CreateMcpTokenModal({
   const createMutation = $api.useMutation('post', '/api/v1/user/mcp/tokens')
 
   const handleSubmit = async (values: FormValues) => {
-    const result = await createMutation.mutateAsync({
-      body: { clientName: values.clientName },
-    })
-    setCreatedToken({
-      tokenId: result.tokenId,
-      rawToken: result.rawToken,
-      clientName: result.clientName,
-    })
+    await createMutation.mutateAsync(
+      {
+        body: { clientName: values.clientName },
+      },
+      {
+        onSuccess: (result) => {
+          setCreatedToken({
+            tokenId: result.tokenId,
+            rawToken: result.rawToken,
+            clientName: result.clientName,
+          })
+        },
+      },
+    )
   }
 
   const mcpConfig = createdToken
@@ -174,10 +180,7 @@ export function CreateMcpTokenModal({
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={form.formState.isSubmitting}
-                >
+                <Button type="submit" disabled={form.formState.isSubmitting}>
                   {form.formState.isSubmitting ? 'Creating...' : 'Create Token'}
                 </Button>
               </div>
@@ -235,10 +238,7 @@ export function CreateMcpTokenModal({
             </div>
 
             <div className="flex justify-end">
-              <Button
-                type="button"
-                onClick={() => handleClose(false)}
-              >
+              <Button type="button" onClick={() => handleClose(false)}>
                 Done
               </Button>
             </div>

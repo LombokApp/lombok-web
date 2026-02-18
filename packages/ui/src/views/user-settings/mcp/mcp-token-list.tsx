@@ -61,7 +61,7 @@ export function McpTokenList() {
     )
   }
 
-  const tokens = tokensQuery.data
+  const tokens = tokensQuery.data.tokens
 
   if (tokens.length === 0) {
     return (
@@ -87,17 +87,17 @@ export function McpTokenList() {
         <tbody>
           {tokens.map((token) => (
             <tr key={token.id} className="border-b last:border-0">
-              <td className="px-3 py-3 align-middle">
+              <td className="p-3 align-middle">
                 <span className="font-medium">{token.clientName}</span>
               </td>
-              <td className="px-3 py-3 align-middle text-muted-foreground">
+              <td className="p-3 align-middle text-muted-foreground">
                 {new Date(token.createdAt).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })}
               </td>
-              <td className="px-3 py-3 align-middle text-muted-foreground">
+              <td className="p-3 align-middle text-muted-foreground">
                 {token.lastUsedAt != null
                   ? new Date(token.lastUsedAt).toLocaleDateString(undefined, {
                       year: 'numeric',
@@ -106,7 +106,7 @@ export function McpTokenList() {
                     })
                   : 'Never'}
               </td>
-              <td className="px-3 py-3 text-right align-middle">
+              <td className="p-3 text-right align-middle">
                 <Button
                   variant="destructive"
                   size="sm"

@@ -27,14 +27,6 @@ import {
   appUserSettingsTable,
 } from '../app/entities/app-user-settings.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
-import {
-  mcpFolderSettingsRelations,
-  mcpFolderSettingsTable,
-} from '../mcp/entities/mcp-folder-settings.entity'
-import {
-  mcpUserSettingsRelations,
-  mcpUserSettingsTable,
-} from '../mcp/entities/mcp-user-settings.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
 import { eventsTable } from '../event/entities/event.entity'
 import {
@@ -47,6 +39,14 @@ import {
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
 import { logEntriesTable } from '../log/entities/log-entry.entity'
+import {
+  mcpFolderSettingsRelations,
+  mcpFolderSettingsTable,
+} from '../mcp/entities/mcp-folder-settings.entity'
+import {
+  mcpUserSettingsRelations,
+  mcpUserSettingsTable,
+} from '../mcp/entities/mcp-user-settings.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { tasksTable } from '../task/entities/task.entity'

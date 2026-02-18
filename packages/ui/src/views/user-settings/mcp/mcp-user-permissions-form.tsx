@@ -1,8 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import {
-  CardContent,
-  CardHeader,
-} from '@lombokapp/ui-toolkit/components/card'
+import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
 import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
@@ -27,8 +23,7 @@ const PERMISSION_FIELDS: {
   {
     key: 'canRead',
     label: 'Allow Read',
-    description:
-      'List folders, list objects, and download files via MCP.',
+    description: 'List folders, list objects, and download files via MCP.',
   },
   {
     key: 'canWrite',

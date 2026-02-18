@@ -20,10 +20,12 @@ export class McpToolsService {
 
   registerTools(server: McpServer, user: User): void {
     // 1. list_folders
-    server.tool(
+    server.registerTool(
       'list_folders',
-      'List all folders accessible to the user',
-      {},
+      {
+        description: 'List all folders accessible to the user',
+        inputSchema: {},
+      },
       async () => {
         try {
           const { result } = await this.folderService.listFoldersAsUser(
@@ -57,12 +59,14 @@ export class McpToolsService {
     )
 
     // 2. list_objects
-    server.tool(
+    server.registerTool(
       'list_objects',
-      'List objects in a folder',
       {
-        folder_id: z.uuid(),
-        prefix: z.string().optional(),
+        description: 'List objects in a folder',
+        inputSchema: {
+          folder_id: z.uuid(),
+          prefix: z.string().optional(),
+        },
       },
       async ({ folder_id, prefix: _prefix }) => {
         try {
@@ -121,12 +125,14 @@ export class McpToolsService {
     )
 
     // 3. download_file
-    server.tool(
+    server.registerTool(
       'download_file',
-      'Get a presigned URL to download a file',
       {
-        folder_id: z.uuid(),
-        object_key: z.string(),
+        description: 'Get a presigned URL to download a file',
+        inputSchema: {
+          folder_id: z.uuid(),
+          object_key: z.string(),
+        },
       },
       async ({ folder_id, object_key }) => {
         try {
@@ -190,13 +196,15 @@ export class McpToolsService {
     )
 
     // 4. upload_file
-    server.tool(
+    server.registerTool(
       'upload_file',
-      'Get a presigned URL to upload a file',
       {
-        folder_id: z.uuid(),
-        object_key: z.string(),
-        content_type: z.string().optional(),
+        description: 'Get a presigned URL to upload a file',
+        inputSchema: {
+          folder_id: z.uuid(),
+          object_key: z.string(),
+          content_type: z.string().optional(),
+        },
       },
       async ({ folder_id, object_key }) => {
         try {
@@ -260,12 +268,14 @@ export class McpToolsService {
     )
 
     // 5. delete_object
-    server.tool(
+    server.registerTool(
       'delete_object',
-      'Delete an object from a folder',
       {
-        folder_id: z.uuid(),
-        object_key: z.string(),
+        description: 'Delete an object from a folder',
+        inputSchema: {
+          folder_id: z.uuid(),
+          object_key: z.string(),
+        },
       },
       async ({ folder_id, object_key }) => {
         try {
@@ -314,14 +324,16 @@ export class McpToolsService {
     )
 
     // 6. move_object
-    server.tool(
+    server.registerTool(
       'move_object',
-      'Move or rename an object within or between folders',
       {
-        folder_id: z.uuid(),
-        source_key: z.string(),
-        destination_key: z.string(),
-        destination_folder_id: z.uuid().optional(),
+        description: 'Move or rename an object within or between folders',
+        inputSchema: {
+          folder_id: z.uuid(),
+          source_key: z.string(),
+          destination_key: z.string(),
+          destination_folder_id: z.uuid().optional(),
+        },
       },
       async ({
         folder_id,
@@ -380,7 +392,6 @@ export class McpToolsService {
               ? `${sourcePrefix}${sourcePrefix.endsWith('/') ? '' : '/'}${source_key}`
               : source_key
 
-          let absoluteDestKey: string
           let destLocation = sourceLocation
 
           if (destFolderId !== folder_id) {
@@ -390,7 +401,7 @@ export class McpToolsService {
           }
 
           const destPrefix = destLocation.prefix
-          absoluteDestKey =
+          const absoluteDestKey =
             destPrefix && destPrefix.length > 0
               ? `${destPrefix}${destPrefix.endsWith('/') ? '' : '/'}${destination_key}`
               : destination_key
