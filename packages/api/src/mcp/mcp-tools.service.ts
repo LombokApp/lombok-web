@@ -1,7 +1,7 @@
 import { CopyObjectCommand } from '@aws-sdk/client-s3'
+import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { Injectable } from '@nestjs/common'
-import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
@@ -20,51 +20,75 @@ export class McpToolsService {
 
   registerTools(server: McpServer, user: User): void {
     // 1. list_folders
-    server.tool('list_folders', 'List all folders accessible to the user', {}, async () => {
-      try {
-        const { result } = await this.folderService.listFoldersAsUser(user, {})
-        const folders = result.map(({ folder }) => ({
-          id: folder.id,
-          name: folder.name,
-          ownerId: folder.ownerId,
-          createdAt: folder.createdAt,
-          updatedAt: folder.updatedAt,
-        }))
-        return {
-          content: [{ type: 'text' as const, text: JSON.stringify(folders, null, 2) }],
+    server.tool(
+      'list_folders',
+      'List all folders accessible to the user',
+      {},
+      async () => {
+        try {
+          const { result } = await this.folderService.listFoldersAsUser(
+            user,
+            {},
+          )
+          const folders = result.map(({ folder }) => ({
+            id: folder.id,
+            name: folder.name,
+            ownerId: folder.ownerId,
+            createdAt: folder.createdAt,
+            updatedAt: folder.updatedAt,
+          }))
+          return {
+            content: [
+              { type: 'text' as const, text: JSON.stringify(folders, null, 2) },
+            ],
+          }
+        } catch (e: unknown) {
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${e instanceof Error ? e.message : String(e)}`,
+              },
+            ],
+            isError: true,
+          }
         }
-      } catch (e: unknown) {
-        return {
-          content: [{ type: 'text' as const, text: `Error: ${e instanceof Error ? e.message : String(e)}` }],
-          isError: true,
-        }
-      }
-    })
+      },
+    )
 
     // 2. list_objects
     server.tool(
       'list_objects',
       'List objects in a folder',
       {
-        folder_id: z.string().uuid(),
+        folder_id: z.uuid(),
         prefix: z.string().optional(),
       },
       async ({ folder_id, prefix: _prefix }) => {
         try {
-          const permissions = await this.mcpPermissionsService.resolveEffectivePermissions(
-            user.id,
-            folder_id,
-          )
+          const permissions =
+            await this.mcpPermissionsService.resolveEffectivePermissions(
+              user.id,
+              folder_id,
+            )
           if (!permissions.canRead) {
             return {
-              content: [{ type: 'text' as const, text: 'Permission denied: read not allowed for this folder' }],
+              content: [
+                {
+                  type: 'text' as const,
+                  text: 'Permission denied: read not allowed for this folder',
+                },
+              ],
               isError: true,
             }
           }
 
-          const { result } = await this.folderService.listFolderObjectsAsUser(user, {
-            folderId: folder_id,
-          })
+          const { result } = await this.folderService.listFolderObjectsAsUser(
+            user,
+            {
+              folderId: folder_id,
+            },
+          )
 
           const objects = result.map((obj) => ({
             objectKey: obj.objectKey,
@@ -78,11 +102,18 @@ export class McpToolsService {
           }))
 
           return {
-            content: [{ type: 'text' as const, text: JSON.stringify(objects, null, 2) }],
+            content: [
+              { type: 'text' as const, text: JSON.stringify(objects, null, 2) },
+            ],
           }
         } catch (e: unknown) {
           return {
-            content: [{ type: 'text' as const, text: `Error: ${e instanceof Error ? e.message : String(e)}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${e instanceof Error ? e.message : String(e)}`,
+              },
+            ],
             isError: true,
           }
         }
@@ -94,29 +125,39 @@ export class McpToolsService {
       'download_file',
       'Get a presigned URL to download a file',
       {
-        folder_id: z.string().uuid(),
+        folder_id: z.uuid(),
         object_key: z.string(),
       },
       async ({ folder_id, object_key }) => {
         try {
-          const permissions = await this.mcpPermissionsService.resolveEffectivePermissions(
-            user.id,
-            folder_id,
-          )
+          const permissions =
+            await this.mcpPermissionsService.resolveEffectivePermissions(
+              user.id,
+              folder_id,
+            )
           if (!permissions.canRead) {
             return {
-              content: [{ type: 'text' as const, text: 'Permission denied: read not allowed for this folder' }],
+              content: [
+                {
+                  type: 'text' as const,
+                  text: 'Permission denied: read not allowed for this folder',
+                },
+              ],
               isError: true,
             }
           }
 
-          const { folder } = await this.folderService.getFolderAsUser(user, folder_id)
+          const { folder } = await this.folderService.getFolderAsUser(
+            user,
+            folder_id,
+          )
           const contentLocation = folder.contentLocation
 
           const prefix = contentLocation.prefix
-          const absoluteObjectKey = prefix && prefix.length > 0
-            ? `${prefix}${prefix.endsWith('/') ? '' : '/'}${object_key}`
-            : object_key
+          const absoluteObjectKey =
+            prefix && prefix.length > 0
+              ? `${prefix}${prefix.endsWith('/') ? '' : '/'}${object_key}`
+              : object_key
 
           const [url] = createS3PresignedUrls([
             {
@@ -136,7 +177,12 @@ export class McpToolsService {
           }
         } catch (e: unknown) {
           return {
-            content: [{ type: 'text' as const, text: `Error: ${e instanceof Error ? e.message : String(e)}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${e instanceof Error ? e.message : String(e)}`,
+              },
+            ],
             isError: true,
           }
         }
@@ -148,30 +194,40 @@ export class McpToolsService {
       'upload_file',
       'Get a presigned URL to upload a file',
       {
-        folder_id: z.string().uuid(),
+        folder_id: z.uuid(),
         object_key: z.string(),
         content_type: z.string().optional(),
       },
       async ({ folder_id, object_key }) => {
         try {
-          const permissions = await this.mcpPermissionsService.resolveEffectivePermissions(
-            user.id,
-            folder_id,
-          )
+          const permissions =
+            await this.mcpPermissionsService.resolveEffectivePermissions(
+              user.id,
+              folder_id,
+            )
           if (!permissions.canWrite) {
             return {
-              content: [{ type: 'text' as const, text: 'Permission denied: write not allowed for this folder' }],
+              content: [
+                {
+                  type: 'text' as const,
+                  text: 'Permission denied: write not allowed for this folder',
+                },
+              ],
               isError: true,
             }
           }
 
-          const { folder } = await this.folderService.getFolderAsUser(user, folder_id)
+          const { folder } = await this.folderService.getFolderAsUser(
+            user,
+            folder_id,
+          )
           const contentLocation = folder.contentLocation
 
           const prefix = contentLocation.prefix
-          const absoluteObjectKey = prefix && prefix.length > 0
-            ? `${prefix}${prefix.endsWith('/') ? '' : '/'}${object_key}`
-            : object_key
+          const absoluteObjectKey =
+            prefix && prefix.length > 0
+              ? `${prefix}${prefix.endsWith('/') ? '' : '/'}${object_key}`
+              : object_key
 
           const [url] = createS3PresignedUrls([
             {
@@ -191,7 +247,12 @@ export class McpToolsService {
           }
         } catch (e: unknown) {
           return {
-            content: [{ type: 'text' as const, text: `Error: ${e instanceof Error ? e.message : String(e)}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${e instanceof Error ? e.message : String(e)}`,
+              },
+            ],
             isError: true,
           }
         }
@@ -203,18 +264,24 @@ export class McpToolsService {
       'delete_object',
       'Delete an object from a folder',
       {
-        folder_id: z.string().uuid(),
+        folder_id: z.uuid(),
         object_key: z.string(),
       },
       async ({ folder_id, object_key }) => {
         try {
-          const permissions = await this.mcpPermissionsService.resolveEffectivePermissions(
-            user.id,
-            folder_id,
-          )
+          const permissions =
+            await this.mcpPermissionsService.resolveEffectivePermissions(
+              user.id,
+              folder_id,
+            )
           if (!permissions.canDelete) {
             return {
-              content: [{ type: 'text' as const, text: 'Permission denied: delete not allowed for this folder' }],
+              content: [
+                {
+                  type: 'text' as const,
+                  text: 'Permission denied: delete not allowed for this folder',
+                },
+              ],
               isError: true,
             }
           }
@@ -225,11 +292,21 @@ export class McpToolsService {
           })
 
           return {
-            content: [{ type: 'text' as const, text: `Successfully deleted object: ${object_key}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Successfully deleted object: ${object_key}`,
+              },
+            ],
           }
         } catch (e: unknown) {
           return {
-            content: [{ type: 'text' as const, text: `Error: ${e instanceof Error ? e.message : String(e)}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${e instanceof Error ? e.message : String(e)}`,
+              },
+            ],
             isError: true,
           }
         }
@@ -241,61 +318,82 @@ export class McpToolsService {
       'move_object',
       'Move or rename an object within or between folders',
       {
-        folder_id: z.string().uuid(),
+        folder_id: z.uuid(),
         source_key: z.string(),
         destination_key: z.string(),
-        destination_folder_id: z.string().uuid().optional(),
+        destination_folder_id: z.uuid().optional(),
       },
-      async ({ folder_id, source_key, destination_key, destination_folder_id }) => {
+      async ({
+        folder_id,
+        source_key,
+        destination_key,
+        destination_folder_id,
+      }) => {
         try {
           const destFolderId = destination_folder_id ?? folder_id
 
           // Check move permission on source folder
-          const sourcePermissions = await this.mcpPermissionsService.resolveEffectivePermissions(
-            user.id,
-            folder_id,
-          )
+          const sourcePermissions =
+            await this.mcpPermissionsService.resolveEffectivePermissions(
+              user.id,
+              folder_id,
+            )
           if (!sourcePermissions.canMove) {
             return {
-              content: [{ type: 'text' as const, text: 'Permission denied: move not allowed for source folder' }],
+              content: [
+                {
+                  type: 'text' as const,
+                  text: 'Permission denied: move not allowed for source folder',
+                },
+              ],
               isError: true,
             }
           }
 
           // Check write permission on destination folder if different
           if (destFolderId !== folder_id) {
-            const destPermissions = await this.mcpPermissionsService.resolveEffectivePermissions(
-              user.id,
-              destFolderId,
-            )
+            const destPermissions =
+              await this.mcpPermissionsService.resolveEffectivePermissions(
+                user.id,
+                destFolderId,
+              )
             if (!destPermissions.canWrite) {
               return {
-                content: [{ type: 'text' as const, text: 'Permission denied: write not allowed for destination folder' }],
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: 'Permission denied: write not allowed for destination folder',
+                  },
+                ],
                 isError: true,
               }
             }
           }
 
-          const { folder: sourceFolder } = await this.folderService.getFolderAsUser(user, folder_id)
+          const { folder: sourceFolder } =
+            await this.folderService.getFolderAsUser(user, folder_id)
           const sourceLocation = sourceFolder.contentLocation
 
           const sourcePrefix = sourceLocation.prefix
-          const absoluteSourceKey = sourcePrefix && sourcePrefix.length > 0
-            ? `${sourcePrefix}${sourcePrefix.endsWith('/') ? '' : '/'}${source_key}`
-            : source_key
+          const absoluteSourceKey =
+            sourcePrefix && sourcePrefix.length > 0
+              ? `${sourcePrefix}${sourcePrefix.endsWith('/') ? '' : '/'}${source_key}`
+              : source_key
 
           let absoluteDestKey: string
           let destLocation = sourceLocation
 
           if (destFolderId !== folder_id) {
-            const { folder: destFolder } = await this.folderService.getFolderAsUser(user, destFolderId)
+            const { folder: destFolder } =
+              await this.folderService.getFolderAsUser(user, destFolderId)
             destLocation = destFolder.contentLocation
           }
 
           const destPrefix = destLocation.prefix
-          absoluteDestKey = destPrefix && destPrefix.length > 0
-            ? `${destPrefix}${destPrefix.endsWith('/') ? '' : '/'}${destination_key}`
-            : destination_key
+          absoluteDestKey =
+            destPrefix && destPrefix.length > 0
+              ? `${destPrefix}${destPrefix.endsWith('/') ? '' : '/'}${destination_key}`
+              : destination_key
 
           // Copy object to destination
           const s3Client = configureS3Client({
@@ -324,11 +422,21 @@ export class McpToolsService {
           })
 
           return {
-            content: [{ type: 'text' as const, text: `Successfully moved ${source_key} to ${destination_key}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Successfully moved ${source_key} to ${destination_key}`,
+              },
+            ],
           }
         } catch (e: unknown) {
           return {
-            content: [{ type: 'text' as const, text: `Error: ${e instanceof Error ? e.message : String(e)}` }],
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${e instanceof Error ? e.message : String(e)}`,
+              },
+            ],
             isError: true,
           }
         }

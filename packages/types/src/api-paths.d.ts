@@ -1610,6 +1610,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["handleMcp_get"];
+        put: operations["handleMcp_put"];
+        post: operations["handleMcp_post"];
+        delete: operations["handleMcp_delete"];
+        options: operations["handleMcp_options"];
+        head: operations["handleMcp_head"];
+        patch: operations["handleMcp_patch"];
+        trace?: never;
+    };
+    "/api/v1/user/mcp/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listTokens"];
+        put?: never;
+        post: operations["createToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/mcp/tokens/{tokenId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["revokeToken"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/mcp/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getUserSettings"];
+        put: operations["updateUserSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/mcp/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getFolderSettings"];
+        put: operations["updateFolderSettings"];
+        post?: never;
+        delete: operations["deleteFolderSettings"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3308,18 +3388,8 @@ export interface components {
             hash: string;
         };
         ContentMetadataEntryDTO: {
-            /** @constant */
-            type: "inline";
-            mimeType: string;
-            sizeBytes: number;
-            content: string;
-        } | {
-            /** @constant */
-            type: "external";
-            storageKey: string;
-            mimeType: string;
-            sizeBytes: number;
-            hash: string;
+            /** @description Present only so this class has instance shape; validation uses static schema. */
+            _schemaCarrier: Record<string, never>;
         };
         FolderGetResponse: {
             folder: {
@@ -3664,20 +3734,20 @@ export interface components {
             };
         };
         AppFolderSettingsUpdateInputDTO: {
-            [key: string]: (((({
+            [key: string]: {
                 enabled: boolean | null;
                 permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
             } | {
                 enabled: boolean;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-            }) | {
-                enabled: boolean;
                 permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-            }) | {
+            } | {
+                enabled: boolean;
                 permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-            }) | {
+            } | {
+                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+            } | {
                 enabled: boolean | null;
-            }) | null;
+            } | null;
         };
         AccessKeyListResponse: {
             meta: {
@@ -4575,6 +4645,21 @@ export interface components {
             meta: {
                 totalCount: number;
             };
+        };
+        CreateMcpTokenInputDTO: {
+            clientName: string;
+        };
+        McpUserSettingsInputDTO: {
+            canRead?: boolean | null;
+            canWrite?: boolean | null;
+            canDelete?: boolean | null;
+            canMove?: boolean | null;
+        };
+        McpFolderSettingsInputDTO: {
+            canRead?: boolean | null;
+            canWrite?: boolean | null;
+            canDelete?: boolean | null;
+            canMove?: boolean | null;
         };
     };
     responses: never;
@@ -6412,16 +6497,11 @@ export interface operations {
                 folderId?: string;
                 objectKey?: string;
                 search?: string;
-                /** @constant */
-                includeTrace?: string;
-                /** @constant */
-                includeDebug?: string;
-                /** @constant */
-                includeInfo?: string;
-                /** @constant */
-                includeWarning?: string;
-                /** @constant */
-                includeError?: string;
+                includeTrace?: "true";
+                includeDebug?: "true";
+                includeInfo?: "true";
+                includeWarning?: "true";
+                includeError?: "true";
                 offset?: number;
                 limit?: number;
             };
@@ -6505,16 +6585,11 @@ export interface operations {
                 sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
                 objectKey?: string;
                 search?: string;
-                /** @constant */
-                includeTrace?: string;
-                /** @constant */
-                includeDebug?: string;
-                /** @constant */
-                includeInfo?: string;
-                /** @constant */
-                includeWarning?: string;
-                /** @constant */
-                includeError?: string;
+                includeTrace?: "true";
+                includeDebug?: "true";
+                includeInfo?: "true";
+                includeWarning?: "true";
+                includeError?: "true";
                 offset?: number;
                 limit?: number;
             };
@@ -6877,16 +6952,11 @@ export interface operations {
                 limit?: number;
                 search?: string;
                 sort?: ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("sizeBytes-asc" | "sizeBytes-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
-                /** @constant */
-                includeImage?: string;
-                /** @constant */
-                includeVideo?: string;
-                /** @constant */
-                includeAudio?: string;
-                /** @constant */
-                includeDocument?: string;
-                /** @constant */
-                includeUnknown?: string;
+                includeImage?: "true";
+                includeVideo?: "true";
+                includeAudio?: "true";
+                includeDocument?: "true";
+                includeUnknown?: "true";
             };
             header?: never;
             path: {
@@ -7740,14 +7810,10 @@ export interface operations {
                 objectKey?: string;
                 sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
-                /** @constant */
-                includeWaiting?: string;
-                /** @constant */
-                includeRunning?: string;
-                /** @constant */
-                includeComplete?: string;
-                /** @constant */
-                includeFailed?: string;
+                includeWaiting?: "true";
+                includeRunning?: "true";
+                includeComplete?: "true";
+                includeFailed?: "true";
                 offset?: number;
                 limit?: number;
                 folderId?: string;
@@ -7832,14 +7898,10 @@ export interface operations {
                 objectKey?: string;
                 sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc");
                 search?: string;
-                /** @constant */
-                includeWaiting?: string;
-                /** @constant */
-                includeRunning?: string;
-                /** @constant */
-                includeComplete?: string;
-                /** @constant */
-                includeFailed?: string;
+                includeWaiting?: "true";
+                includeRunning?: "true";
+                includeComplete?: "true";
+                includeFailed?: "true";
                 offset?: number;
                 limit?: number;
             };
@@ -9250,6 +9312,495 @@ export interface operations {
                 };
             };
             /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    handleMcp_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleMcp_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleMcp_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleMcp_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleMcp_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleMcp_head: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleMcp_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMcpTokenInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revokeToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tokenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getUserSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateUserSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpUserSettingsInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFolderSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateFolderSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpFolderSettingsInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteFolderSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMcpTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        clientName: string;
+                        createdAt: string;
+                        lastUsedAt: string | null;
+                    }[];
+                };
+            };
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    createMcpToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    clientName: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tokenId: string;
+                        rawToken: string;
+                        clientName: string;
+                        createdAt: string;
+                    };
+                };
+            };
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    revokeMcpToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tokenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                    };
+                };
+            };
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    getUserMcpSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        canRead: boolean | null;
+                        canWrite: boolean | null;
+                        canDelete: boolean | null;
+                        canMove: boolean | null;
+                    };
+                };
+            };
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    updateUserMcpSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    canRead?: boolean | null;
+                    canWrite?: boolean | null;
+                    canDelete?: boolean | null;
+                    canMove?: boolean | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        canRead: boolean | null;
+                        canWrite: boolean | null;
+                        canDelete: boolean | null;
+                        canMove: boolean | null;
+                    };
+                };
+            };
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
             "4XX": {
                 headers: {
                     [name: string]: unknown;

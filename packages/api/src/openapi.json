@@ -2935,45 +2935,45 @@
             "name": "includeTrace",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeDebug",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeInfo",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeWarning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeError",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -3162,45 +3162,45 @@
             "name": "includeTrace",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeDebug",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeInfo",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeWarning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeError",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -3843,45 +3843,45 @@
             "name": "includeImage",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeVideo",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeAudio",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeDocument",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeUnknown",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           }
         ],
@@ -5302,36 +5302,36 @@
             "name": "includeWaiting",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeRunning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeComplete",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeFailed",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -5530,36 +5530,36 @@
             "name": "includeWaiting",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeRunning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeComplete",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeFailed",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -7776,6 +7776,274 @@
           "Search"
         ]
       }
+    },
+    "/api/mcp": {
+      "get": {
+        "operationId": "handleMcp_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "post": {
+        "operationId": "handleMcp_post",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "put": {
+        "operationId": "handleMcp_put",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "delete": {
+        "operationId": "handleMcp_delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "patch": {
+        "operationId": "handleMcp_patch",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "options": {
+        "operationId": "handleMcp_options",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "head": {
+        "operationId": "handleMcp_head",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      },
+      "search": {
+        "operationId": "handleMcp_search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      }
+    },
+    "/api/v1/user/mcp/tokens": {
+      "post": {
+        "operationId": "createToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMcpTokenInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      },
+      "get": {
+        "operationId": "listTokens",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      }
+    },
+    "/api/v1/user/mcp/tokens/{tokenId}": {
+      "delete": {
+        "operationId": "revokeToken",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      }
+    },
+    "/api/v1/user/mcp/settings": {
+      "get": {
+        "operationId": "getUserSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      },
+      "put": {
+        "operationId": "updateUserSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpUserSettingsInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/mcp/settings": {
+      "get": {
+        "operationId": "getFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      },
+      "put": {
+        "operationId": "updateFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpFolderSettingsInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "McpApi"
+        ]
+      }
     }
   },
   "info": {
@@ -8249,8 +8517,7 @@
                                   "kind",
                                   "command",
                                   "jobIdentifier"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
                                 "type": "object",
@@ -8295,7 +8562,8 @@
                                       },
                                       "required": [
                                         "identifier"
-                                      ]
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   }
                                 },
@@ -9432,8 +9700,7 @@
                                     "kind",
                                     "command",
                                     "jobIdentifier"
-                                  ],
-                                  "additionalProperties": false
+                                  ]
                                 },
                                 {
                                   "type": "object",
@@ -9478,7 +9745,8 @@
                                         },
                                         "required": [
                                           "identifier"
-                                        ]
+                                        ],
+                                        "additionalProperties": false
                                       }
                                     }
                                   },
@@ -10615,8 +10883,7 @@
                                   "kind",
                                   "command",
                                   "jobIdentifier"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
                                 "type": "object",
@@ -10661,7 +10928,8 @@
                                       },
                                       "required": [
                                         "identifier"
-                                      ]
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   }
                                 },
@@ -11827,8 +12095,7 @@
                                     "kind",
                                     "command",
                                     "jobIdentifier"
-                                  ],
-                                  "additionalProperties": false
+                                  ]
                                 },
                                 {
                                   "type": "object",
@@ -11873,7 +12140,8 @@
                                         },
                                         "required": [
                                           "identifier"
-                                        ]
+                                        ],
+                                        "additionalProperties": false
                                       }
                                     }
                                   },
@@ -12877,8 +13145,7 @@
                                   "kind",
                                   "command",
                                   "jobIdentifier"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
                                 "type": "object",
@@ -12923,7 +13190,8 @@
                                       },
                                       "required": [
                                         "identifier"
-                                      ]
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   }
                                 },
@@ -13649,8 +13917,7 @@
             "appLabel",
             "appIdentifier",
             "contributions"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "LoginResponse": {
@@ -15441,61 +15708,15 @@
         ]
       },
       "ContentMetadataEntryDTO": {
-        "oneOf": [
-          {
+        "type": "object",
+        "properties": {
+          "_schemaCarrier": {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "inline"
-              },
-              "mimeType": {
-                "type": "string"
-              },
-              "sizeBytes": {
-                "type": "number"
-              },
-              "content": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "mimeType",
-              "sizeBytes",
-              "content"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "external"
-              },
-              "storageKey": {
-                "type": "string"
-              },
-              "mimeType": {
-                "type": "string"
-              },
-              "sizeBytes": {
-                "type": "number"
-              },
-              "hash": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "storageKey",
-              "mimeType",
-              "sizeBytes",
-              "hash"
-            ],
-            "additionalProperties": false
+            "description": "Present only so this class has instance shape; validation uses static schema."
           }
+        },
+        "required": [
+          "_schemaCarrier"
         ]
       },
       "FolderGetResponse": {
@@ -16433,7 +16654,6 @@
       },
       "FolderCreateSignedUrlInputDTO": {
         "type": "array",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "items": {
           "type": "object",
           "properties": {
@@ -16913,161 +17133,140 @@
           "type": "string"
         },
         "additionalProperties": {
-          "anyOf": [
+          "oneOf": [
             {
-              "anyOf": [
-                {
+              "type": "object",
+              "properties": {
+                "enabled": {
                   "anyOf": [
                     {
-                      "anyOf": [
-                        {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "enabled": {
-                                  "anyOf": [
-                                    {
-                                      "type": "boolean"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "permissions": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "enum": [
-                                      "READ_OBJECTS",
-                                      "WRITE_OBJECTS",
-                                      "WRITE_OBJECTS_METADATA",
-                                      "WRITE_FOLDER_METADATA",
-                                      "REINDEX_FOLDER"
-                                    ]
-                                  }
-                                }
-                              },
-                              "required": [
-                                "enabled",
-                                "permissions"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "enabled": {
-                                  "type": "boolean"
-                                },
-                                "permissions": {
-                                  "anyOf": [
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string",
-                                        "enum": [
-                                          "READ_OBJECTS",
-                                          "WRITE_OBJECTS",
-                                          "WRITE_OBJECTS_METADATA",
-                                          "WRITE_FOLDER_METADATA",
-                                          "REINDEX_FOLDER"
-                                        ]
-                                      }
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "enabled",
-                                "permissions"
-                              ],
-                              "additionalProperties": false
-                            }
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "permissions": {
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "enum": [
-                                  "READ_OBJECTS",
-                                  "WRITE_OBJECTS",
-                                  "WRITE_OBJECTS_METADATA",
-                                  "WRITE_FOLDER_METADATA",
-                                  "REINDEX_FOLDER"
-                                ]
-                              }
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "permissions"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
+                      "type": "boolean"
                     },
                     {
-                      "type": "object",
-                      "properties": {
-                        "permissions": {
-                          "anyOf": [
-                            {
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "enum": [
-                                  "READ_OBJECTS",
-                                  "WRITE_OBJECTS",
-                                  "WRITE_OBJECTS_METADATA",
-                                  "WRITE_FOLDER_METADATA",
-                                  "REINDEX_FOLDER"
-                                ]
-                              }
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "required": [
-                        "permissions"
-                      ],
-                      "additionalProperties": false
+                      "type": "null"
                     }
                   ]
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "anyOf": [
-                        {
-                          "type": "boolean"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "enabled"
-                  ],
-                  "additionalProperties": false
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
                 }
+              },
+              "required": [
+                "enabled",
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "enabled",
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "permissions": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "READ_OBJECTS",
+                          "WRITE_OBJECTS",
+                          "WRITE_OBJECTS_METADATA",
+                          "WRITE_FOLDER_METADATA",
+                          "REINDEX_FOLDER"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enabled",
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "READ_OBJECTS",
+                          "WRITE_OBJECTS",
+                          "WRITE_OBJECTS_METADATA",
+                          "WRITE_FOLDER_METADATA",
+                          "REINDEX_FOLDER"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enabled"
               ]
             },
             {
@@ -18714,7 +18913,6 @@
           },
           "email": {
             "type": "string",
-            "minLength": 1,
             "format": "email",
             "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
@@ -19014,7 +19212,6 @@
         ]
       },
       "SSOCallbackResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "anyOf": [
           {
             "$ref": "#/components/schemas/CompleteSSOSignupResponse"
@@ -19481,7 +19678,6 @@
       },
       "DockerJobPresignedUrlsRequestDTO": {
         "type": "array",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "items": {
           "type": "object",
           "properties": {
@@ -19586,7 +19782,6 @@
         ]
       },
       "DockerJobCompleteRequestDTO": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "oneOf": [
           {
             "type": "object",
@@ -21075,6 +21270,109 @@
           "result",
           "meta"
         ]
+      },
+      "CreateMcpTokenInputDTO": {
+        "type": "object",
+        "properties": {
+          "clientName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "clientName"
+        ]
+      },
+      "McpUserSettingsInputDTO": {
+        "type": "object",
+        "properties": {
+          "canRead": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canDelete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canMove": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "McpFolderSettingsInputDTO": {
+        "type": "object",
+        "properties": {
+          "canRead": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canDelete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canMove": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
       }
     }
   }
