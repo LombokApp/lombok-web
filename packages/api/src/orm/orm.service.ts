@@ -27,6 +27,14 @@ import {
   appUserSettingsTable,
 } from '../app/entities/app-user-settings.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
+import {
+  mcpFolderSettingsRelations,
+  mcpFolderSettingsTable,
+} from '../mcp/entities/mcp-folder-settings.entity'
+import {
+  mcpUserSettingsRelations,
+  mcpUserSettingsTable,
+} from '../mcp/entities/mcp-user-settings.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
 import { eventsTable } from '../event/entities/event.entity'
 import {
@@ -75,6 +83,10 @@ export const dbSchema = {
   notificationDeliveriesRelations,
   notificationSettingsTable,
   notificationSettingsRelations,
+  mcpUserSettingsTable,
+  mcpUserSettingsRelations,
+  mcpFolderSettingsTable,
+  mcpFolderSettingsRelations,
 }
 
 export type LombokDatabase = NodePgDatabase<typeof dbSchema>
