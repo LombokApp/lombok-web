@@ -39,6 +39,7 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/utils": "workspace:*",
     "@lombokapp/worker-utils": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@nestjs/common": "11.1.13",
     "@nestjs/config": "4.0.3",
     "@nestjs/core": "11.1.13",
