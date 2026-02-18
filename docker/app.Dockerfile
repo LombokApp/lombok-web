@@ -63,6 +63,8 @@ COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
 COPY bunfig.toml /temp/dev/bunfig.toml
 COPY eslint-config /temp/dev/eslint-config
+COPY docker/worker-job-runner/test/package.json /temp/dev/docker/worker-job-runner/test/package.json
+COPY docker/worker-test/package.json /temp/dev/docker/worker-test/package.json
 
 RUN cd /temp/dev && \
   # cp the entrypoint script to the root
