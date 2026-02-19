@@ -1,5 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lombokapp/ui-toolkit/components/tabs/tabs'
-import React from 'react'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@lombokapp/ui-toolkit/components/tabs/tabs'
 
 import { FolderAppConfigTab } from './folder-app-config-tab'
 import { FolderMcpSettingsTab } from './folder-mcp-settings-tab'
@@ -12,7 +16,9 @@ export function FolderSettingsScreen({ folderId }: FolderSettingsScreenProps) {
   return (
     <div className="flex size-full flex-col gap-6 py-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Folder Settings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Folder Settings
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Configure per-folder settings and permissions.
         </p>

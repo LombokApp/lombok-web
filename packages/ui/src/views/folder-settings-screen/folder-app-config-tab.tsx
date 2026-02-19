@@ -8,7 +8,8 @@ export function FolderAppConfigTab({ folderId }: FolderAppConfigTabProps) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        Configure which apps have access to this folder and adjust folder-level app settings.
+        Configure which apps have access to this folder and adjust folder-level
+        app settings.
       </p>
       <FolderAppSettingsForm folderId={folderId} />
     </div>

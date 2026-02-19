@@ -21,9 +21,7 @@ export const mcpUserSettingsTable = pgTable(
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
-  (table) => [
-    uniqueIndex('mcp_user_settings_user_id_unique').on(table.userId),
-  ],
+  (table) => [uniqueIndex('mcp_user_settings_user_id_unique').on(table.userId)],
 )
 
 export const mcpUserSettingsRelations = relations(

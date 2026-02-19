@@ -1125,12 +1125,9 @@ describe('MCP', () => {
 
       const toolNames = tools.map((t) => t.name).sort()
       expect(toolNames).toEqual([
-        'delete_object',
         'download_file',
         'list_folders',
         'list_objects',
-        'move_object',
-        'upload_file',
       ])
     })
 

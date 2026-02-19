@@ -51,7 +51,8 @@ function FolderRootInner() {
 
   const isEventListPage = pathParts.length === 2 && pathParts[1] === 'events'
   const isEventDetailPage = pathParts.length === 3 && pathParts[1] === 'events'
-  const isFolderSettingsPage = pathParts.length === 2 && pathParts[1] === 'settings'
+  const isFolderSettingsPage =
+    pathParts.length === 2 && pathParts[1] === 'settings'
 
   const folderContext = useFolderContext()
   const extraBreadcrumbs: { label: string; href: string }[] = []

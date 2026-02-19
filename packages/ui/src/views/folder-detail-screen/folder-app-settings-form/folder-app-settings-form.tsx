@@ -1,4 +1,3 @@
-import type { AppDTO } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   Select,
@@ -42,13 +41,7 @@ export const FolderAppSettingsForm = ({
       enabled: folderId.length > 0,
     },
   )
-  const enabledAppsQuery = $api.useQuery('get', '/api/v1/user/apps', {
-    params: {
-      query: {
-        enabled: true,
-      },
-    },
-  })
+  const enabledAppsQuery = $api.useQuery('get', '/api/v1/user/apps')
 
   const { toast } = useToast()
 
@@ -68,14 +61,17 @@ export const FolderAppSettingsForm = ({
   )
 
   const allEnabledApps = React.useMemo(() => {
-    return (
-      enabledAppsQuery.data?.result.reduce<Record<string, AppDTO>>(
-        (acc, app) => ({
-          ...acc,
-          [app.identifier]: app,
-        }),
-        {},
-      ) ?? {}
+    const result = enabledAppsQuery.data?.result
+    if (!result) {
+      return {}
+    }
+    type UserAppItem = (typeof result)[number]
+    return result.reduce<Record<string, UserAppItem>>(
+      (acc, app) => ({
+        ...acc,
+        [app.identifier]: app,
+      }),
+      {},
     )
   }, [enabledAppsQuery.data])
 

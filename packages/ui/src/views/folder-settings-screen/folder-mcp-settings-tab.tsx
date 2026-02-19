@@ -40,7 +40,9 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
     '/api/v1/folders/{folderId}/mcp/settings',
   )
 
-  const serverPermissions = settingsQuery.data as FolderMcpPermissions | undefined
+  const serverPermissions = settingsQuery.data as
+    | FolderMcpPermissions
+    | undefined
 
   const [permissions, setPermissions] = React.useState<FolderMcpPermissions>({
     canRead: null,
@@ -80,7 +82,11 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
       },
     })
     await queryClient.invalidateQueries({
-      queryKey: ['get', '/api/v1/folders/{folderId}/mcp/settings', { params: { path: { folderId } } }],
+      queryKey: [
+        'get',
+        '/api/v1/folders/{folderId}/mcp/settings',
+        { params: { path: { folderId } } },
+      ],
     })
     toast({
       title: 'MCP settings saved',
@@ -106,7 +112,11 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
     })
     setInitialized(false)
     await queryClient.invalidateQueries({
-      queryKey: ['get', '/api/v1/folders/{folderId}/mcp/settings', { params: { path: { folderId } } }],
+      queryKey: [
+        'get',
+        '/api/v1/folders/{folderId}/mcp/settings',
+        { params: { path: { folderId } } },
+      ],
     })
     toast({
       title: 'MCP overrides cleared',
@@ -134,11 +144,16 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
 
   const isBusy = updateMutation.isPending || deleteMutation.isPending
 
-  const permissionRows: { key: keyof FolderMcpPermissions; label: string; description: string }[] = [
+  const permissionRows: {
+    key: keyof FolderMcpPermissions
+    label: string
+    description: string
+  }[] = [
     {
       key: 'canRead',
       label: 'Allow Read',
-      description: 'Allow MCP clients to list and download files in this folder.',
+      description:
+        'Allow MCP clients to list and download files in this folder.',
     },
     {
       key: 'canWrite',
@@ -160,8 +175,8 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm text-muted-foreground">
-        These permissions override your account-level MCP defaults for this folder. Clear overrides
-        to use your account defaults.
+        These permissions override your account-level MCP defaults for this
+        folder. Clear overrides to use your account defaults.
       </p>
 
       <div className="flex flex-col gap-4">
@@ -172,7 +187,9 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
           >
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium">{label}</span>
-              <span className="text-xs text-muted-foreground">{description}</span>
+              <span className="text-xs text-muted-foreground">
+                {description}
+              </span>
             </div>
             <Switch
               checked={permissions[key] !== false}
@@ -191,10 +208,7 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
         >
           {deleteMutation.isPending ? 'Clearing...' : 'Clear Overrides'}
         </Button>
-        <Button
-          onClick={() => void handleSave()}
-          disabled={isBusy}
-        >
+        <Button onClick={() => void handleSave()} disabled={isBusy}>
           {updateMutation.isPending ? 'Saving...' : 'Save'}
         </Button>
       </div>
