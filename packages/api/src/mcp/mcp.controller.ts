@@ -1,17 +1,20 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { All, Controller, Req, Res, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common'
 import type { Request, Response } from 'express'
 
 import { McpTokenGuard } from './mcp-token.guard'
 import { McpToolsService } from './mcp-tools.service'
+
+const MCP_PATH = '/api/mcp'
 
 @Controller()
 @UseGuards(McpTokenGuard)
 export class McpController {
   constructor(private readonly mcpToolsService: McpToolsService) {}
 
-  @All('api/mcp')
+  @Post(MCP_PATH)
+  @Get(MCP_PATH)
   async handleMcp(@Req() req: Request, @Res() res: Response): Promise<void> {
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
