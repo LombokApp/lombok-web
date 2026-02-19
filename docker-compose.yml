@@ -1,3 +1,5 @@
+name: lombok-dev
+
 services:
   api:
     container_name: lombok-dev

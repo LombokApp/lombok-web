@@ -13,18 +13,23 @@ After the first build, `./dx up` starts without rebuilding.
 
 Run `./dx` or `./dx help` to see all available commands. Most commands execute inside the running container.
 
-```
+```bash
 ./dx reload api           # Reload the NestJS API (triggers bun watch reload)
 ./dx restart api          # Fully restart the NestJS API (loads new env)
 ./dx restart ui           # Restart the Vite frontend dev server
 ./dx db seed              # Seed the database with dev data
-./dx db reset             # Drop all tables, re-migrate, and re-seed
+./dx db reset             # Drop all tables and re-migrate
+./dx db reset:seed        # Drop all tables, re-migrate, and re-seed
 ./dx db purge             # Drop all tables and schemas
 ./dx db migrate           # Run pending database migrations
-./dx db migrate new       # Generate a new migration
+./dx db migrate:new       # Generate a new migration
 ./dx unit <package>       # Run unit tests for a package
 ./dx e2e api              # Run API end-to-end tests
 ./dx e2e ui               # Run UI end-to-end tests
+./dx e2e core-worker      # Run core worker end-to-end tests
+./dx e2e down             # Stop the e2e container (docker compose down)
+./dx e2e kill             # Force-kill the e2e container
+./dx e2e purge            # Tear down and remove all e2e docker resources
 ./dx generate openapi     # Generate the OpenAPI spec
 ./dx generate metadata    # Generate NestJS metadata
 ./dx shell                # Open a shell inside the container
@@ -32,9 +37,9 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ./dx exec <cmd...>        # Run an arbitrary command inside the container
 ```
 
-## Container lifecycle
+## App Container lifecycle
 
-```
+```bash
 ./dx up                   # Start the dev environment (docker compose up)
 ./dx up -d                # Start in detached/daemon mode
 ./dx down                 # Stop the dev environment (docker compose down)
@@ -47,7 +52,7 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 
 ## Code checks
 
-```
+```bash
 ./dx check all            # Run prettier, tsc, and eslint across all packages
 ./dx check lint           # Run eslint across all packages
 ./dx check prettier       # Run prettier across all packages
@@ -56,7 +61,7 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 
 ## Environment
 
-Dev environment variables are defined inline in `docker-compose.yml`. No `.env` file is needed for the standard dev setup.
+Dev environment variables are defined inline in `docker-compose.yml`. No `.env` file is needed for the standard dev setup, but one can be used to override specific env vars in the docker compose (check that file to see which ones).
 
 The `DEV_SEED_FILE` env var controls which seed file runs on first startup (default: `default.ts`). Set it to `none` to skip seeding. Seed files live in `packages/api/script/db-seeds/`.
 
@@ -64,12 +69,12 @@ The `DEV_SEED_FILE` env var controls which seed file runs on first startup (defa
 
 ### Standalone image (includes postgres)
 
-```
+```bash
 ./dx release standalone
 ```
 
 ### Separate DB image (does not include postgres)
 
-```
+```bash
 ./dx release separate-db
 ```

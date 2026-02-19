@@ -1,3 +1,5 @@
+name: lombok-e2e
+
 services:
   lomboke2e:
     container_name: 'lomboke2e'
@@ -20,14 +22,3 @@ services:
       - /usr/src/app/packages/sdk/node_modules
       - /usr/src/app/packages/types/node_modules
     privileged: true
-  coreworkere2etest:
-    container_name: 'lombok-core-worker-e2e-test'
-    build:
-      context: .
-      dockerfile: docker/app.Dockerfile
-      target: test
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
-      - ./.test-data/minio:/minio-test-data
-    entrypoint: ['bun', '--cwd', './packages/core-worker', 'test:e2e']

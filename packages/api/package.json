@@ -22,7 +22,7 @@
     "e2e:build": "docker build -f ../../docker/app.Dockerfile --target test -t lomboke2e ../../",
     "e2e:ui": "bun install && bun --cwd ../ui build && docker compose -f ../../docker-compose.test.yml run --rm lomboke2e -- ui",
     "e2e:api": "bun install && docker compose -f ../../docker-compose.test.yml run --rm lomboke2e -- api",
-    "e2e:clean": "docker compose -f ../../docker-compose.test.yml kill && docker image rm -f lombok-web-lomboke2e",
+    "e2e:clean": "docker compose -f ../../docker-compose.test.yml kill && docker image rm -f lombok-e2e-lomboke2e",
     "restart": "bun ./script/dev-restart.ts",
     "reload": "bun ./script/dev-reload.ts",
     "enableapps": "bun ./script/dev-enable-apps.ts",
