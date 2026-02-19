@@ -3,7 +3,7 @@
   "paths": {
     "/api/v1/server/apps/install": {
       "post": {
-        "operationId": "installAppFromZip",
+        "operationId": "Apps_installAppFromZip",
         "parameters": [],
         "responses": {
           "201": {
@@ -49,7 +49,7 @@
     },
     "/api/v1/server/apps": {
       "get": {
-        "operationId": "listApps",
+        "operationId": "Apps_listApps",
         "parameters": [
           {
             "name": "sort",
@@ -166,7 +166,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}/enabled": {
       "put": {
-        "operationId": "setAppEnabled",
+        "operationId": "Apps_setAppEnabled",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -231,7 +231,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}": {
       "get": {
-        "operationId": "getApp",
+        "operationId": "Apps_getApp",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -284,7 +284,7 @@
         ]
       },
       "delete": {
-        "operationId": "uninstallApp",
+        "operationId": "Apps_uninstallApp",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -332,7 +332,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}/access-settings": {
       "put": {
-        "operationId": "updateAppAccessSettings",
+        "operationId": "Apps_updateAppAccessSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -397,7 +397,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
       "put": {
-        "operationId": "setWorkerEnvironmentVariables",
+        "operationId": "Apps_setWorkerEnvironmentVariables",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -470,7 +470,7 @@
     },
     "/api/v1/user/apps": {
       "get": {
-        "operationId": "listApps",
+        "operationId": "UserApps_listApps",
         "parameters": [],
         "responses": {
           "200": {
@@ -517,7 +517,7 @@
     },
     "/api/v1/user/apps/{appIdentifier}": {
       "get": {
-        "operationId": "getApp",
+        "operationId": "UserApps_getApp",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -573,7 +573,7 @@
     },
     "/api/v1/user/app-contributions": {
       "get": {
-        "operationId": "getAppContributions",
+        "operationId": "UserApps_getAppContributions",
         "parameters": [],
         "responses": {
           "200": {
@@ -620,7 +620,7 @@
     },
     "/api/v1/user/apps/{appIdentifier}/access-token": {
       "post": {
-        "operationId": "generateAppUserAccessToken",
+        "operationId": "UserApps_generateAppUserAccessToken",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -676,7 +676,7 @@
     },
     "/api/v1/user/apps/{appIdentifier}/settings": {
       "get": {
-        "operationId": "getAppUserSettings",
+        "operationId": "UserApps_getAppUserSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -730,7 +730,7 @@
         ]
       },
       "post": {
-        "operationId": "upsertAppUserSettings",
+        "operationId": "UserApps_upsertAppUserSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -794,7 +794,7 @@
         ]
       },
       "delete": {
-        "operationId": "removeAppUserSettings",
+        "operationId": "UserApps_removeAppUserSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -843,7 +843,7 @@
     },
     "/api/v1/public/settings": {
       "get": {
-        "operationId": "getPublicServerSettings",
+        "operationId": "Public_getPublicServerSettings",
         "parameters": [],
         "responses": {
           "200": {
@@ -865,7 +865,7 @@
     },
     "/api/v1/server/settings": {
       "get": {
-        "operationId": "getServerSettings",
+        "operationId": "Server_getServerSettings",
         "parameters": [],
         "responses": {
           "200": {
@@ -912,7 +912,7 @@
     },
     "/api/v1/server/settings/{settingKey}": {
       "put": {
-        "operationId": "setServerSetting",
+        "operationId": "Server_setServerSetting",
         "parameters": [
           {
             "name": "settingKey",
@@ -976,7 +976,7 @@
         ]
       },
       "delete": {
-        "operationId": "resetServerSetting",
+        "operationId": "Server_resetServerSetting",
         "parameters": [
           {
             "name": "settingKey",
@@ -1032,7 +1032,7 @@
     },
     "/api/v1/server/metrics": {
       "get": {
-        "operationId": "getServerMetrics",
+        "operationId": "Server_getServerMetrics",
         "parameters": [],
         "responses": {
           "200": {
@@ -1079,7 +1079,7 @@
     },
     "/api/v1/server/storage-provisions": {
       "get": {
-        "operationId": "listStorageProvisions",
+        "operationId": "StorageProvisions_listStorageProvisions",
         "parameters": [
           {
             "name": "provisionType",
@@ -1138,7 +1138,7 @@
         ]
       },
       "post": {
-        "operationId": "createUserStorageProvision",
+        "operationId": "StorageProvisions_createUserStorageProvision",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1195,7 +1195,7 @@
     },
     "/api/v1/server/storage-provisions/{storageProvisionId}": {
       "get": {
-        "operationId": "getStorageProvision",
+        "operationId": "StorageProvisions_getStorageProvision",
         "parameters": [
           {
             "name": "storageProvisionId",
@@ -1249,7 +1249,7 @@
         ]
       },
       "put": {
-        "operationId": "updateStorageProvision",
+        "operationId": "StorageProvisions_updateStorageProvision",
         "parameters": [
           {
             "name": "storageProvisionId",
@@ -1313,7 +1313,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteStorageProvision",
+        "operationId": "StorageProvisions_deleteStorageProvision",
         "parameters": [
           {
             "name": "storageProvisionId",
@@ -1369,7 +1369,7 @@
     },
     "/api/v1/server/server-storage": {
       "get": {
-        "operationId": "getServerStorageLocation",
+        "operationId": "ServerStorage_getServerStorageLocation",
         "parameters": [],
         "responses": {
           "200": {
@@ -1414,7 +1414,7 @@
         ]
       },
       "post": {
-        "operationId": "setServerStorageLocation",
+        "operationId": "ServerStorage_setServerStorageLocation",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1469,7 +1469,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteServerStorageLocation",
+        "operationId": "ServerStorage_deleteServerStorageLocation",
         "parameters": [],
         "responses": {
           "200": {
@@ -1509,7 +1509,7 @@
     },
     "/api/v1/server/docker-hosts": {
       "get": {
-        "operationId": "getDockerHostsConfig",
+        "operationId": "ServerDockerHosts_getDockerHostsConfig",
         "parameters": [],
         "responses": {
           "200": {
@@ -1556,7 +1556,7 @@
     },
     "/api/v1/server/docker-hosts/state": {
       "get": {
-        "operationId": "getDockerHostsState",
+        "operationId": "ServerDockerHosts_getDockerHostsState",
         "parameters": [],
         "responses": {
           "200": {
@@ -1603,7 +1603,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/logs": {
       "get": {
-        "operationId": "getDockerContainerLogs",
+        "operationId": "ServerDockerHosts_getDockerContainerLogs",
         "parameters": [
           {
             "name": "hostId",
@@ -1677,7 +1677,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stats": {
       "get": {
-        "operationId": "getDockerContainerStats",
+        "operationId": "ServerDockerHosts_getDockerContainerStats",
         "parameters": [
           {
             "name": "hostId",
@@ -1741,7 +1741,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect": {
       "get": {
-        "operationId": "getDockerContainerInspect",
+        "operationId": "ServerDockerHosts_getDockerContainerInspect",
         "parameters": [
           {
             "name": "hostId",
@@ -1805,7 +1805,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
       "get": {
-        "operationId": "getDockerContainerWorkers",
+        "operationId": "ServerDockerHosts_getDockerContainerWorkers",
         "parameters": [
           {
             "name": "hostId",
@@ -1869,7 +1869,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
       "get": {
-        "operationId": "getDockerContainerWorkerDetail",
+        "operationId": "ServerDockerHosts_getDockerContainerWorkerDetail",
         "parameters": [
           {
             "name": "hostId",
@@ -1951,7 +1951,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
       "get": {
-        "operationId": "getDockerContainerJobs",
+        "operationId": "ServerDockerHosts_getDockerContainerJobs",
         "parameters": [
           {
             "name": "hostId",
@@ -2025,7 +2025,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
       "post": {
-        "operationId": "purgeContainerJobs",
+        "operationId": "ServerDockerHosts_purgeContainerJobs",
         "parameters": [
           {
             "name": "hostId",
@@ -2097,7 +2097,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
       "get": {
-        "operationId": "getDockerContainerJobDetail",
+        "operationId": "ServerDockerHosts_getDockerContainerJobDetail",
         "parameters": [
           {
             "name": "hostId",
@@ -2179,7 +2179,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/start": {
       "post": {
-        "operationId": "startDockerContainer",
+        "operationId": "ServerDockerHosts_startDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2243,7 +2243,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stop": {
       "post": {
-        "operationId": "stopDockerContainer",
+        "operationId": "ServerDockerHosts_stopDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2307,7 +2307,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/restart": {
       "post": {
-        "operationId": "restartDockerContainer",
+        "operationId": "ServerDockerHosts_restartDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2371,7 +2371,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/remove": {
       "post": {
-        "operationId": "removeDockerContainer",
+        "operationId": "ServerDockerHosts_removeDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2435,7 +2435,7 @@
     },
     "/api/v1/server/events/{eventId}": {
       "get": {
-        "operationId": "getEvent",
+        "operationId": "ServerEvents_getEvent",
         "parameters": [
           {
             "name": "eventId",
@@ -2491,7 +2491,7 @@
     },
     "/api/v1/server/events": {
       "get": {
-        "operationId": "listEvents",
+        "operationId": "ServerEvents_listEvents",
         "parameters": [
           {
             "name": "sort",
@@ -2619,7 +2619,7 @@
     },
     "/api/v1/folders/{folderId}/events/{eventId}": {
       "get": {
-        "operationId": "getFolderEvent",
+        "operationId": "FolderEvents_getFolderEvent",
         "parameters": [
           {
             "name": "folderId",
@@ -2683,7 +2683,7 @@
     },
     "/api/v1/folders/{folderId}/events": {
       "get": {
-        "operationId": "listFolderEvents",
+        "operationId": "FolderEvents_listFolderEvents",
         "parameters": [
           {
             "name": "sort",
@@ -2809,7 +2809,7 @@
     },
     "/api/v1/server/logs/{logId}": {
       "get": {
-        "operationId": "getLog",
+        "operationId": "ServerLogs_getLog",
         "parameters": [
           {
             "name": "logId",
@@ -2865,7 +2865,7 @@
     },
     "/api/v1/server/logs": {
       "get": {
-        "operationId": "listLogs",
+        "operationId": "ServerLogs_listLogs",
         "parameters": [
           {
             "name": "sort",
@@ -2935,45 +2935,45 @@
             "name": "includeTrace",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeDebug",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeInfo",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeWarning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeError",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -3038,7 +3038,7 @@
     },
     "/api/v1/folders/{folderId}/logs/{logId}": {
       "get": {
-        "operationId": "getFolderLog",
+        "operationId": "FolderLogs_getFolderLog",
         "parameters": [
           {
             "name": "folderId",
@@ -3102,7 +3102,7 @@
     },
     "/api/v1/folders/{folderId}/logs": {
       "get": {
-        "operationId": "listFolderLogs",
+        "operationId": "FolderLogs_listFolderLogs",
         "parameters": [
           {
             "name": "sort",
@@ -3162,45 +3162,45 @@
             "name": "includeTrace",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeDebug",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeInfo",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeWarning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeError",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -3273,7 +3273,7 @@
     },
     "/api/v1/folders/{folderId}": {
       "get": {
-        "operationId": "getFolder",
+        "operationId": "Folders_getFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3327,7 +3327,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteFolder",
+        "operationId": "Folders_deleteFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3374,7 +3374,7 @@
         ]
       },
       "put": {
-        "operationId": "updateFolder",
+        "operationId": "Folders_updateFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3440,7 +3440,7 @@
     },
     "/api/v1/folders/{folderId}/check-access": {
       "post": {
-        "operationId": "checkFolderAccess",
+        "operationId": "Folders_checkFolderAccess",
         "parameters": [
           {
             "name": "folderId",
@@ -3489,7 +3489,7 @@
     },
     "/api/v1/folders/{folderId}/metadata": {
       "get": {
-        "operationId": "getFolderMetadata",
+        "operationId": "Folders_getFolderMetadata",
         "parameters": [
           {
             "name": "folderId",
@@ -3545,7 +3545,7 @@
     },
     "/api/v1/folders": {
       "get": {
-        "operationId": "listFolders",
+        "operationId": "Folders_listFolders",
         "parameters": [
           {
             "name": "offset",
@@ -3649,7 +3649,7 @@
         ]
       },
       "post": {
-        "operationId": "createFolder",
+        "operationId": "Folders_createFolder",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -3706,7 +3706,7 @@
     },
     "/api/v1/folders/{folderId}/reindex": {
       "post": {
-        "operationId": "reindexFolder",
+        "operationId": "Folders_reindexFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3755,7 +3755,7 @@
     },
     "/api/v1/folders/{folderId}/objects": {
       "get": {
-        "operationId": "listFolderObjects",
+        "operationId": "Folders_listFolderObjects",
         "parameters": [
           {
             "name": "folderId",
@@ -3843,45 +3843,45 @@
             "name": "includeImage",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeVideo",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeAudio",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeDocument",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeUnknown",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           }
         ],
@@ -3930,7 +3930,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{objectKey}": {
       "get": {
-        "operationId": "getFolderObject",
+        "operationId": "Folders_getFolderObject",
         "parameters": [
           {
             "name": "folderId",
@@ -3992,7 +3992,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteFolderObject",
+        "operationId": "Folders_deleteFolderObject",
         "parameters": [
           {
             "name": "folderId",
@@ -4049,7 +4049,7 @@
     },
     "/api/v1/folders/{folderId}/presigned-urls": {
       "post": {
-        "operationId": "createPresignedUrls",
+        "operationId": "Folders_createPresignedUrls",
         "parameters": [
           {
             "name": "folderId",
@@ -4115,7 +4115,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{objectKey}/refresh": {
       "post": {
-        "operationId": "refreshFolderObjectS3Metadata",
+        "operationId": "Folders_refreshFolderObjectS3Metadata",
         "parameters": [
           {
             "name": "folderId",
@@ -4179,7 +4179,7 @@
     },
     "/api/v1/folders/{folderId}/shares/{userId}": {
       "get": {
-        "operationId": "getFolderShares",
+        "operationId": "Folders_getFolderShares",
         "parameters": [
           {
             "name": "folderId",
@@ -4241,7 +4241,7 @@
         ]
       },
       "post": {
-        "operationId": "upsertFolderShare",
+        "operationId": "Folders_upsertFolderShare",
         "parameters": [
           {
             "name": "folderId",
@@ -4313,7 +4313,7 @@
         ]
       },
       "delete": {
-        "operationId": "removeFolderShare",
+        "operationId": "Folders_removeFolderShare",
         "parameters": [
           {
             "name": "folderId",
@@ -4370,7 +4370,7 @@
     },
     "/api/v1/folders/{folderId}/shares": {
       "get": {
-        "operationId": "listFolderShares",
+        "operationId": "Folders_listFolderShares",
         "parameters": [
           {
             "name": "folderId",
@@ -4426,7 +4426,7 @@
     },
     "/api/v1/folders/{folderId}/user-share-options": {
       "get": {
-        "operationId": "listFolderShareUsers",
+        "operationId": "Folders_listFolderShareUsers",
         "parameters": [
           {
             "name": "folderId",
@@ -4506,7 +4506,7 @@
     },
     "/api/v1/folders/{folderId}/app-settings": {
       "get": {
-        "operationId": "getFolderAppSettings",
+        "operationId": "Folders_getFolderAppSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -4560,7 +4560,7 @@
         ]
       },
       "patch": {
-        "operationId": "updateFolderAppSettings",
+        "operationId": "Folders_updateFolderAppSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -4626,7 +4626,7 @@
     },
     "/api/v1/access-keys": {
       "get": {
-        "operationId": "listAccessKeys",
+        "operationId": "AccessKeys_listAccessKeys",
         "parameters": [
           {
             "name": "offset",
@@ -4728,7 +4728,7 @@
     },
     "/api/v1/access-keys/{accessKeyHashId}": {
       "get": {
-        "operationId": "getAccessKey",
+        "operationId": "AccessKeys_getAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -4784,7 +4784,7 @@
     },
     "/api/v1/access-keys/{accessKeyHashId}/rotate": {
       "post": {
-        "operationId": "rotateAccessKey",
+        "operationId": "AccessKeys_rotateAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -4850,7 +4850,7 @@
     },
     "/api/v1/access-keys/{accessKeyHashId}/buckets": {
       "get": {
-        "operationId": "listAccessKeyBuckets",
+        "operationId": "AccessKeys_listAccessKeyBuckets",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -4906,7 +4906,7 @@
     },
     "/api/v1/server/access-keys": {
       "get": {
-        "operationId": "listServerAccessKeys",
+        "operationId": "ServerAccessKeys_listServerAccessKeys",
         "parameters": [
           {
             "name": "offset",
@@ -5008,7 +5008,7 @@
     },
     "/api/v1/server/access-keys/{accessKeyHashId}": {
       "get": {
-        "operationId": "getServerAccessKey",
+        "operationId": "ServerAccessKeys_getServerAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -5064,7 +5064,7 @@
     },
     "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
       "post": {
-        "operationId": "rotateServerAccessKey",
+        "operationId": "ServerAccessKeys_rotateServerAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -5130,7 +5130,7 @@
     },
     "/api/v1/server/access-keys/{accessKeyHashId}/buckets": {
       "get": {
-        "operationId": "listServerAccessKeyBuckets",
+        "operationId": "ServerAccessKeys_listServerAccessKeyBuckets",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -5186,7 +5186,7 @@
     },
     "/api/v1/server/tasks/{taskId}": {
       "get": {
-        "operationId": "getTask",
+        "operationId": "ServerTasks_getTask",
         "parameters": [
           {
             "name": "taskId",
@@ -5242,7 +5242,7 @@
     },
     "/api/v1/server/tasks": {
       "get": {
-        "operationId": "listTasks",
+        "operationId": "ServerTasks_listTasks",
         "parameters": [
           {
             "name": "objectKey",
@@ -5302,36 +5302,36 @@
             "name": "includeWaiting",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeRunning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeComplete",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeFailed",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -5406,7 +5406,7 @@
     },
     "/api/v1/folders/{folderId}/tasks/{taskId}": {
       "get": {
-        "operationId": "getFolderTask",
+        "operationId": "Tasks_getFolderTask",
         "parameters": [
           {
             "name": "folderId",
@@ -5470,7 +5470,7 @@
     },
     "/api/v1/folders/{folderId}/tasks": {
       "get": {
-        "operationId": "listFolderTasks",
+        "operationId": "Tasks_listFolderTasks",
         "parameters": [
           {
             "name": "objectKey",
@@ -5530,36 +5530,36 @@
             "name": "includeWaiting",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeRunning",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeComplete",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
             "name": "includeFailed",
             "required": false,
             "in": "query",
-            "const": "true",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "const": "true"
             }
           },
           {
@@ -5632,7 +5632,7 @@
     },
     "/api/v1/notifications/settings": {
       "get": {
-        "operationId": "getUserSettings",
+        "operationId": "NotificationSettings_getUserSettings",
         "parameters": [],
         "responses": {
           "200": {
@@ -5677,7 +5677,7 @@
         ]
       },
       "put": {
-        "operationId": "updateUserSettings",
+        "operationId": "NotificationSettings_updateUserSettings",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -5734,7 +5734,7 @@
     },
     "/api/v1/notifications/settings/folders/{folderId}": {
       "get": {
-        "operationId": "getFolderSettings",
+        "operationId": "NotificationSettings_getFolderSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -5788,7 +5788,7 @@
         ]
       },
       "put": {
-        "operationId": "updateFolderSettings",
+        "operationId": "NotificationSettings_updateFolderSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -5854,7 +5854,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "operationId": "listNotifications",
+        "operationId": "Notifications_listNotifications",
         "parameters": [
           {
             "name": "cursor",
@@ -5954,7 +5954,7 @@
     },
     "/api/v1/notifications/unread-count": {
       "get": {
-        "operationId": "getUnreadCount",
+        "operationId": "Notifications_getUnreadCount",
         "parameters": [],
         "responses": {
           "200": {
@@ -6001,7 +6001,7 @@
     },
     "/api/v1/notifications/{notificationId}": {
       "get": {
-        "operationId": "getNotification",
+        "operationId": "Notifications_getNotification",
         "parameters": [
           {
             "name": "notificationId",
@@ -6057,7 +6057,7 @@
     },
     "/api/v1/notifications/{id}/read": {
       "patch": {
-        "operationId": "markAsRead",
+        "operationId": "Notifications_markAsRead",
         "parameters": [
           {
             "name": "id",
@@ -6106,7 +6106,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "operationId": "login",
+        "operationId": "Auth_login",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6158,7 +6158,7 @@
     },
     "/api/v1/auth/signup": {
       "post": {
-        "operationId": "signup",
+        "operationId": "Auth_signup",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6210,7 +6210,7 @@
     },
     "/api/v1/auth/verify-email": {
       "post": {
-        "operationId": "verifyEmail",
+        "operationId": "Auth_verifyEmail",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6255,7 +6255,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "operationId": "logout",
+        "operationId": "Auth_logout",
         "parameters": [],
         "responses": {
           "201": {
@@ -6302,7 +6302,7 @@
     },
     "/api/v1/auth/{refreshToken}": {
       "post": {
-        "operationId": "refreshToken",
+        "operationId": "Auth_refreshToken",
         "parameters": [
           {
             "name": "refreshToken",
@@ -6353,7 +6353,7 @@
     },
     "/api/v1/auth/sso/complete-signup": {
       "post": {
-        "operationId": "completeSignup",
+        "operationId": "SSO_completeSignup",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6405,7 +6405,7 @@
     },
     "/api/v1/auth/sso/initiate/{provider}": {
       "post": {
-        "operationId": "initiateSSO",
+        "operationId": "SSO_initiateSSO",
         "parameters": [
           {
             "name": "provider",
@@ -6456,7 +6456,7 @@
     },
     "/api/v1/auth/sso/callback/{provider}": {
       "post": {
-        "operationId": "handleCallback",
+        "operationId": "SSO_handleCallback",
         "parameters": [
           {
             "name": "provider",
@@ -6517,7 +6517,7 @@
     },
     "/api/v1/auth/sso/link-provider": {
       "post": {
-        "operationId": "linkProvider",
+        "operationId": "SSO_linkProvider",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6574,7 +6574,7 @@
     },
     "/api/v1/viewer": {
       "get": {
-        "operationId": "getViewer",
+        "operationId": "Viewer_getViewer",
         "parameters": [],
         "responses": {
           "200": {
@@ -6598,7 +6598,7 @@
         ]
       },
       "put": {
-        "operationId": "updateViewer",
+        "operationId": "Viewer_updateViewer",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6634,7 +6634,7 @@
     },
     "/api/v1/server/users": {
       "post": {
-        "operationId": "createUser",
+        "operationId": "Users_createUser",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6689,7 +6689,7 @@
         ]
       },
       "get": {
-        "operationId": "listUsers",
+        "operationId": "Users_listUsers",
         "parameters": [
           {
             "name": "offset",
@@ -6811,7 +6811,7 @@
     },
     "/api/v1/server/users/{userId}": {
       "patch": {
-        "operationId": "updateUser",
+        "operationId": "Users_updateUser",
         "parameters": [
           {
             "name": "userId",
@@ -6875,7 +6875,7 @@
         ]
       },
       "get": {
-        "operationId": "getUser",
+        "operationId": "Users_getUser",
         "parameters": [
           {
             "name": "userId",
@@ -6929,7 +6929,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteUser",
+        "operationId": "Users_deleteUser",
         "parameters": [
           {
             "name": "userId",
@@ -6978,7 +6978,7 @@
     },
     "/api/v1/server/users/{userId}/sessions": {
       "get": {
-        "operationId": "listActiveUserSessions",
+        "operationId": "Users_listActiveUserSessions",
         "parameters": [
           {
             "name": "userId",
@@ -7034,7 +7034,7 @@
     "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
       "post": {
         "description": "Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.",
-        "operationId": "requestPresignedStorageUrls",
+        "operationId": "DockerWorkerHooks_requestPresignedStorageUrls",
         "parameters": [
           {
             "name": "jobId",
@@ -7101,7 +7101,7 @@
     "/api/v1/docker/jobs/{jobId}/start": {
       "post": {
         "description": "Marks the associated task as started. The job token must be valid.",
-        "operationId": "startJob",
+        "operationId": "DockerWorkerHooks_startJob",
         "parameters": [
           {
             "name": "jobId",
@@ -7151,7 +7151,7 @@
     "/api/v1/docker/jobs/{jobId}/complete": {
       "post": {
         "description": "Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.",
-        "operationId": "completeJob",
+        "operationId": "DockerWorkerHooks_completeJob",
         "parameters": [
           {
             "name": "jobId",
@@ -7210,7 +7210,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
       "get": {
-        "operationId": "listAllComments",
+        "operationId": "Comments_listAllComments",
         "parameters": [
           {
             "name": "folderId",
@@ -7231,7 +7231,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of all comments",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7272,7 +7272,7 @@
         ]
       },
       "post": {
-        "operationId": "createComment",
+        "operationId": "Comments_createComment",
         "parameters": [
           {
             "name": "folderId",
@@ -7303,7 +7303,7 @@
         },
         "responses": {
           "201": {
-            "description": "Comment created",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7346,7 +7346,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{rootId}/thread": {
       "get": {
-        "operationId": "getThread",
+        "operationId": "Comments_getThread",
         "parameters": [
           {
             "name": "folderId",
@@ -7375,7 +7375,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Comment thread",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7418,7 +7418,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}": {
       "delete": {
-        "operationId": "deleteComment",
+        "operationId": "Comments_deleteComment",
         "parameters": [
           {
             "name": "folderId",
@@ -7447,7 +7447,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Comment deleted",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7490,7 +7490,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}/reactions": {
       "post": {
-        "operationId": "addReaction",
+        "operationId": "Comments_addReaction",
         "parameters": [
           {
             "name": "folderId",
@@ -7529,7 +7529,7 @@
         },
         "responses": {
           "201": {
-            "description": "Reaction added"
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -7565,7 +7565,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}/reactions/{emoji}": {
       "delete": {
-        "operationId": "removeReaction",
+        "operationId": "Comments_removeReaction",
         "parameters": [
           {
             "name": "folderId",
@@ -7602,7 +7602,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Reaction removed"
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -7638,7 +7638,7 @@
     },
     "/api/v1/search": {
       "get": {
-        "operationId": "search",
+        "operationId": "Search_search",
         "parameters": [
           {
             "name": "q",
@@ -7774,6 +7774,446 @@
         "summary": "Perform a search query.",
         "tags": [
           "Search"
+        ]
+      }
+    },
+    "/api/mcp": {
+      "post": {
+        "operationId": "Mcp_handleMcp",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Mcp"
+        ]
+      }
+    },
+    "/api/v1/user/mcp/tokens": {
+      "post": {
+        "operationId": "McpApi_createToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMcpTokenInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateMcpTokenResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      },
+      "get": {
+        "operationId": "McpApi_listTokens",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpTokenListResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      }
+    },
+    "/api/v1/user/mcp/tokens/{tokenId}": {
+      "delete": {
+        "operationId": "McpApi_revokeToken",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSuccessResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      }
+    },
+    "/api/v1/user/mcp/settings": {
+      "get": {
+        "operationId": "McpApi_getUserMcpSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      },
+      "put": {
+        "operationId": "McpApi_updateUserMcpSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpUserSettingsInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/mcp/settings": {
+      "get": {
+        "operationId": "McpApi_getFolderMcpSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      },
+      "put": {
+        "operationId": "McpApi_updateFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpFolderSettingsInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSettingsResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
+        ]
+      },
+      "delete": {
+        "operationId": "McpApi_deleteFolderSettings",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSuccessResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "MCP"
         ]
       }
     }
@@ -8249,8 +8689,7 @@
                                   "kind",
                                   "command",
                                   "jobIdentifier"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
                                 "type": "object",
@@ -8295,7 +8734,8 @@
                                       },
                                       "required": [
                                         "identifier"
-                                      ]
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   }
                                 },
@@ -9432,8 +9872,7 @@
                                     "kind",
                                     "command",
                                     "jobIdentifier"
-                                  ],
-                                  "additionalProperties": false
+                                  ]
                                 },
                                 {
                                   "type": "object",
@@ -9478,7 +9917,8 @@
                                         },
                                         "required": [
                                           "identifier"
-                                        ]
+                                        ],
+                                        "additionalProperties": false
                                       }
                                     }
                                   },
@@ -10615,8 +11055,7 @@
                                   "kind",
                                   "command",
                                   "jobIdentifier"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
                                 "type": "object",
@@ -10661,7 +11100,8 @@
                                       },
                                       "required": [
                                         "identifier"
-                                      ]
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   }
                                 },
@@ -11827,8 +12267,7 @@
                                     "kind",
                                     "command",
                                     "jobIdentifier"
-                                  ],
-                                  "additionalProperties": false
+                                  ]
                                 },
                                 {
                                   "type": "object",
@@ -11873,7 +12312,8 @@
                                         },
                                         "required": [
                                           "identifier"
-                                        ]
+                                        ],
+                                        "additionalProperties": false
                                       }
                                     }
                                   },
@@ -12877,8 +13317,7 @@
                                   "kind",
                                   "command",
                                   "jobIdentifier"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
                                 "type": "object",
@@ -12923,7 +13362,8 @@
                                       },
                                       "required": [
                                         "identifier"
-                                      ]
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   }
                                 },
@@ -13649,8 +14089,7 @@
             "appLabel",
             "appIdentifier",
             "contributions"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "LoginResponse": {
@@ -15441,61 +15880,15 @@
         ]
       },
       "ContentMetadataEntryDTO": {
-        "oneOf": [
-          {
+        "type": "object",
+        "properties": {
+          "_schemaCarrier": {
             "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "inline"
-              },
-              "mimeType": {
-                "type": "string"
-              },
-              "sizeBytes": {
-                "type": "number"
-              },
-              "content": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "mimeType",
-              "sizeBytes",
-              "content"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "external"
-              },
-              "storageKey": {
-                "type": "string"
-              },
-              "mimeType": {
-                "type": "string"
-              },
-              "sizeBytes": {
-                "type": "number"
-              },
-              "hash": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "storageKey",
-              "mimeType",
-              "sizeBytes",
-              "hash"
-            ],
-            "additionalProperties": false
+            "description": "Present only so this class has instance shape; validation uses static schema."
           }
+        },
+        "required": [
+          "_schemaCarrier"
         ]
       },
       "FolderGetResponse": {
@@ -16433,7 +16826,6 @@
       },
       "FolderCreateSignedUrlInputDTO": {
         "type": "array",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "items": {
           "type": "object",
           "properties": {
@@ -16913,161 +17305,140 @@
           "type": "string"
         },
         "additionalProperties": {
-          "anyOf": [
+          "oneOf": [
             {
-              "anyOf": [
-                {
+              "type": "object",
+              "properties": {
+                "enabled": {
                   "anyOf": [
                     {
-                      "anyOf": [
-                        {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "enabled": {
-                                  "anyOf": [
-                                    {
-                                      "type": "boolean"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "permissions": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "enum": [
-                                      "READ_OBJECTS",
-                                      "WRITE_OBJECTS",
-                                      "WRITE_OBJECTS_METADATA",
-                                      "WRITE_FOLDER_METADATA",
-                                      "REINDEX_FOLDER"
-                                    ]
-                                  }
-                                }
-                              },
-                              "required": [
-                                "enabled",
-                                "permissions"
-                              ],
-                              "additionalProperties": false
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "enabled": {
-                                  "type": "boolean"
-                                },
-                                "permissions": {
-                                  "anyOf": [
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string",
-                                        "enum": [
-                                          "READ_OBJECTS",
-                                          "WRITE_OBJECTS",
-                                          "WRITE_OBJECTS_METADATA",
-                                          "WRITE_FOLDER_METADATA",
-                                          "REINDEX_FOLDER"
-                                        ]
-                                      }
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "enabled",
-                                "permissions"
-                              ],
-                              "additionalProperties": false
-                            }
-                          ]
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "permissions": {
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "enum": [
-                                  "READ_OBJECTS",
-                                  "WRITE_OBJECTS",
-                                  "WRITE_OBJECTS_METADATA",
-                                  "WRITE_FOLDER_METADATA",
-                                  "REINDEX_FOLDER"
-                                ]
-                              }
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "permissions"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
+                      "type": "boolean"
                     },
                     {
-                      "type": "object",
-                      "properties": {
-                        "permissions": {
-                          "anyOf": [
-                            {
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "enum": [
-                                  "READ_OBJECTS",
-                                  "WRITE_OBJECTS",
-                                  "WRITE_OBJECTS_METADATA",
-                                  "WRITE_FOLDER_METADATA",
-                                  "REINDEX_FOLDER"
-                                ]
-                              }
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "required": [
-                        "permissions"
-                      ],
-                      "additionalProperties": false
+                      "type": "null"
                     }
                   ]
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "anyOf": [
-                        {
-                          "type": "boolean"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "enabled"
-                  ],
-                  "additionalProperties": false
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
                 }
+              },
+              "required": [
+                "enabled",
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "enabled",
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "permissions": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "READ_OBJECTS",
+                          "WRITE_OBJECTS",
+                          "WRITE_OBJECTS_METADATA",
+                          "WRITE_FOLDER_METADATA",
+                          "REINDEX_FOLDER"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enabled",
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "READ_OBJECTS",
+                          "WRITE_OBJECTS",
+                          "WRITE_OBJECTS_METADATA",
+                          "WRITE_FOLDER_METADATA",
+                          "REINDEX_FOLDER"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "permissions"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enabled"
               ]
             },
             {
@@ -18714,7 +19085,6 @@
           },
           "email": {
             "type": "string",
-            "minLength": 1,
             "format": "email",
             "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
@@ -19014,7 +19384,6 @@
         ]
       },
       "SSOCallbackResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "anyOf": [
           {
             "$ref": "#/components/schemas/CompleteSSOSignupResponse"
@@ -19481,7 +19850,6 @@
       },
       "DockerJobPresignedUrlsRequestDTO": {
         "type": "array",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "items": {
           "type": "object",
           "properties": {
@@ -19586,7 +19954,6 @@
         ]
       },
       "DockerJobCompleteRequestDTO": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "oneOf": [
           {
             "type": "object",
@@ -21075,6 +21442,245 @@
           "result",
           "meta"
         ]
+      },
+      "CreateMcpTokenInputDTO": {
+        "type": "object",
+        "properties": {
+          "clientName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "clientName"
+        ]
+      },
+      "CreateMcpTokenResponseDTO": {
+        "type": "object",
+        "properties": {
+          "tokenId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "rawToken": {
+            "type": "string"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "tokenId",
+          "rawToken",
+          "clientName",
+          "createdAt"
+        ]
+      },
+      "McpTokenListResponseDTO": {
+        "type": "object",
+        "properties": {
+          "tokens": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "clientName": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                },
+                "lastUsedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "clientName",
+                "createdAt",
+                "lastUsedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "tokens"
+        ]
+      },
+      "McpSuccessResponseDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "McpSettingsResponseDTO": {
+        "type": "object",
+        "properties": {
+          "canRead": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canDelete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canMove": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "canRead",
+          "canWrite",
+          "canDelete",
+          "canMove"
+        ]
+      },
+      "McpUserSettingsInputDTO": {
+        "type": "object",
+        "properties": {
+          "canRead": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canDelete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canMove": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "McpFolderSettingsInputDTO": {
+        "type": "object",
+        "properties": {
+          "canRead": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canDelete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canMove": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
       }
     }
   }

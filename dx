@@ -33,10 +33,11 @@ Commands:
   restart api          Restart the NestJS API (triggers restart of the app, which loads new env)
   restart ui           Restart the Vite frontend dev server
   db seed              Seed the database with dev data
-  db reset             Drop all tables, re-migrate, and re-seed
+  db reset             Drop all tables and re-migrate
+  db reset:seed        Drop all tables, re-migrate, and re-seed
   db purge             Drop all tables and schemas
   db migrate           Run pending database migrations
-  db migrate new       Generate a new migration
+  db migrate:new       Generate a new migration
   unit <package>       Run unit tests for a package
   e2e api              Run API end-to-end tests
   e2e ui               Run UI end-to-end tests
@@ -115,15 +116,17 @@ case "${1:-help}" in
       reset)
         $DOCKER_EXEC bun --cwd packages/api db:reset && ./dx reload api
         ;;
+      reset:seed)
+        $DOCKER_EXEC bun --cwd packages/api db:reset && ./dx db seed
+        ;;
       purge)
         $DOCKER_EXEC bun --cwd packages/api db:clean
         ;;
       migrate)
-        if [ "${3:-}" = "new" ]; then
-          $DOCKER_EXEC bun --cwd packages/api db:migrate:new
-        else
-          $DOCKER_EXEC bun --cwd packages/api db:migrate && ./dx reload api
-        fi
+          $DOCKER_EXEC bun --cwd packages/api db:migrate
+        ;;
+      migrate:new)
+        $DOCKER_EXEC bun --cwd packages/api db:migrate:new
         ;;
       *)
         echo "Usage: ./dx db <seed|reset|migrate>" >&2
@@ -160,8 +163,17 @@ case "${1:-help}" in
       core-worker)
         bun --cwd packages/core-worker e2e
         ;;
+      down)
+        docker compose -f docker-compose.test.yml down
+        ;;
+      kill)
+        docker compose -f docker-compose.test.yml kill
+        ;;
+      purge)
+        docker compose -f docker-compose.test.yml down --volumes --rmi local --remove-orphans
+        ;;
       *)
-        echo "Usage: ./dx e2e <api|ui>" >&2
+        echo "Usage: ./dx e2e <api|ui|down|kill|purge>" >&2
         exit 1
         ;;
     esac
@@ -194,7 +206,7 @@ case "${1:-help}" in
   purge)
     case "${2:-}" in
       all)
-        docker compose down --volumes --rmi all --remove-orphans
+        docker compose down --volumes --rmi local --remove-orphans
         ;;
       db)
         docker compose down && docker volume rm lombok-web_pgdata

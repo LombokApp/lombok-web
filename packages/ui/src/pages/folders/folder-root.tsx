@@ -7,6 +7,7 @@ import { FolderDetailScreen } from '../../views/folder-detail-screen/folder-deta
 import { FolderEventDetailScreen } from '../../views/folder-event-detail-screen/folder-event-detail-screen.view'
 import { FolderEventsScreen } from '../../views/folder-events-screen/folder-events-screen.view'
 import { FolderObjectDetailScreen } from '../../views/folder-object-detail-screen/folder-object-detail-screen.view'
+import { FolderSettingsScreen } from '../../views/folder-settings-screen/folder-settings-screen'
 import { FolderTaskDetailScreen } from '../../views/folder-task-detail-screen/folder-task-detail-screen.view'
 import { FolderTasksScreen } from '../../views/folder-tasks-screen/folder-tasks-screen.view'
 import { FocusedFolderObjectContextProvider } from './focused-folder-object.context'
@@ -50,6 +51,8 @@ function FolderRootInner() {
 
   const isEventListPage = pathParts.length === 2 && pathParts[1] === 'events'
   const isEventDetailPage = pathParts.length === 3 && pathParts[1] === 'events'
+  const isFolderSettingsPage =
+    pathParts.length === 2 && pathParts[1] === 'settings'
 
   const folderContext = useFolderContext()
   const extraBreadcrumbs: { label: string; href: string }[] = []
@@ -66,6 +69,11 @@ function FolderRootInner() {
     extraBreadcrumbs.push({
       label: pathParts[2] ?? '',
       href: pathParts[2] ?? '',
+    })
+  } else if (isFolderSettingsPage) {
+    extraBreadcrumbs.push({
+      label: 'Settings',
+      href: '',
     })
   } else if (isTaskListPage) {
     extraBreadcrumbs.push({
@@ -101,6 +109,8 @@ function FolderRootInner() {
       <div className="flex size-full">
         {focusedFolderObjectKey ? (
           <FolderObjectRootInner />
+        ) : isFolderSettingsPage ? (
+          <FolderSettingsScreen folderId={folderContext.folderId} />
         ) : isFolderDetailPage ? (
           <FolderDetailScreen />
         ) : isTaskListPage ? (

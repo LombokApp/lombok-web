@@ -15,6 +15,7 @@ import { AuthModule } from '../auth/auth.module'
 import { CommentsModule } from '../comments/comments.module'
 import { EventModule } from '../event/event.module'
 import { FoldersModule } from '../folders/folders.module'
+import { McpModule } from '../mcp/mcp.module'
 import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
@@ -41,6 +42,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     DockerModule,
     CommentsModule,
     SearchModule,
+    McpModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })

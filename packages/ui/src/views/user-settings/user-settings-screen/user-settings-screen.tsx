@@ -7,6 +7,7 @@ import { ProfilePage } from '../../../pages/settings/profile'
 import { UserAccessKeysScreen } from '../../user-access-keys-screen/user-access-keys-screen'
 import { UserAppSettingsTab } from '../apps/user-app-settings-tab'
 import { UserAppsSettingsTab } from '../apps/user-apps-settings-tab'
+import { UserMcpAccessTab } from '../mcp/user-mcp-access-tab'
 import { UserNotificationSettingsTab } from '../user-notification-settings-tab'
 
 export function UserSettingsScreen({
@@ -48,6 +49,12 @@ export function UserSettingsScreen({
           >
             Notifications
           </Link>
+          <Link
+            to="/account/settings/mcp"
+            className={cn(tab === 'mcp' && 'text-primary font-semibold')}
+          >
+            MCP Access
+          </Link>
           <div className="flex flex-col gap-1">
             <Link
               to="/account/settings/apps"
@@ -87,6 +94,8 @@ export function UserSettingsScreen({
               <ProfilePage />
             ) : tab === 'notifications' ? (
               <UserNotificationSettingsTab />
+            ) : tab === 'mcp' ? (
+              <UserMcpAccessTab />
             ) : tab === 'apps' && appIdentifier ? (
               <UserAppSettingsTab appIdentifier={appIdentifier} />
             ) : tab === 'apps' ? (

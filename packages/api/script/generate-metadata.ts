@@ -241,7 +241,7 @@ async function main() {
 
   const rawDocument = SwaggerModule.createDocument(app, options, {
     operationIdFactory: (_controllerKey: string, methodKey: string) =>
-      methodKey,
+      `${_controllerKey.replace('Controller', '')}_${methodKey}`,
   })
 
   // necessary to integrate nestjs-zod with swagger such that
