@@ -8253,16 +8253,16 @@
       "AppInstallResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -9133,54 +9133,50 @@
                 ]
               },
               "ui": {
-                "anyOf": [
-                  {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "csp": {
+                    "type": "string"
+                  },
+                  "manifest": {
                     "type": "object",
-                    "properties": {
-                      "hash": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      },
-                      "csp": {
-                        "type": "string"
-                      },
-                      "manifest": {
-                        "type": "object",
-                        "propertyNames": {
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "hash": {
                           "type": "string"
                         },
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "hash": {
-                              "type": "string"
-                            },
-                            "size": {
-                              "type": "number"
-                            },
-                            "mimeType": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "hash",
-                            "size",
-                            "mimeType"
-                          ]
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
                         }
-                      }
-                    },
-                    "required": [
-                      "hash",
-                      "size",
-                      "manifest"
-                    ]
-                  },
-                  {
-                    "type": "null"
+                      },
+                      "required": [
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
+                    }
                   }
+                },
+                "required": [
+                  "hash",
+                  "size",
+                  "manifest"
                 ]
               },
               "contributions": {
@@ -9322,65 +9318,61 @@
                 "additionalProperties": false
               },
               "metrics": {
-                "anyOf": [
-                  {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "tasksExecutedLast24Hours": {
                     "type": "object",
                     "properties": {
-                      "tasksExecutedLast24Hours": {
-                        "type": "object",
-                        "properties": {
-                          "completed": {
-                            "type": "number"
-                          },
-                          "failed": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "completed",
-                          "failed"
-                        ]
+                      "completed": {
+                        "type": "number"
                       },
-                      "errorsLast24Hours": {
-                        "type": "object",
-                        "properties": {
-                          "total": {
-                            "type": "number"
-                          },
-                          "last10Minutes": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "total",
-                          "last10Minutes"
-                        ]
-                      },
-                      "eventsEmittedLast24Hours": {
-                        "type": "object",
-                        "properties": {
-                          "total": {
-                            "type": "number"
-                          },
-                          "last10Minutes": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "total",
-                          "last10Minutes"
-                        ]
+                      "failed": {
+                        "type": "number"
                       }
                     },
                     "required": [
-                      "tasksExecutedLast24Hours",
-                      "errorsLast24Hours",
-                      "eventsEmittedLast24Hours"
+                      "completed",
+                      "failed"
                     ]
                   },
-                  {
-                    "type": "null"
+                  "errorsLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
+                  },
+                  "eventsEmittedLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
                   }
+                },
+                "required": [
+                  "tasksExecutedLast24Hours",
+                  "errorsLast24Hours",
+                  "eventsEmittedLast24Hours"
                 ]
               },
               "createdAt": {
@@ -9423,16 +9415,16 @@
       "AppListResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -10316,54 +10308,50 @@
                   ]
                 },
                 "ui": {
-                  "anyOf": [
-                    {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "csp": {
+                      "type": "string"
+                    },
+                    "manifest": {
                       "type": "object",
-                      "properties": {
-                        "hash": {
-                          "type": "string"
-                        },
-                        "size": {
-                          "type": "number"
-                        },
-                        "csp": {
-                          "type": "string"
-                        },
-                        "manifest": {
-                          "type": "object",
-                          "propertyNames": {
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "hash": {
                             "type": "string"
                           },
-                          "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                              "hash": {
-                                "type": "string"
-                              },
-                              "size": {
-                                "type": "number"
-                              },
-                              "mimeType": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "hash",
-                              "size",
-                              "mimeType"
-                            ]
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
                           }
-                        }
-                      },
-                      "required": [
-                        "hash",
-                        "size",
-                        "manifest"
-                      ]
-                    },
-                    {
-                      "type": "null"
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
+                      }
                     }
+                  },
+                  "required": [
+                    "hash",
+                    "size",
+                    "manifest"
                   ]
                 },
                 "contributions": {
@@ -10505,65 +10493,61 @@
                   "additionalProperties": false
                 },
                 "metrics": {
-                  "anyOf": [
-                    {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "tasksExecutedLast24Hours": {
                       "type": "object",
                       "properties": {
-                        "tasksExecutedLast24Hours": {
-                          "type": "object",
-                          "properties": {
-                            "completed": {
-                              "type": "number"
-                            },
-                            "failed": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "completed",
-                            "failed"
-                          ]
+                        "completed": {
+                          "type": "number"
                         },
-                        "errorsLast24Hours": {
-                          "type": "object",
-                          "properties": {
-                            "total": {
-                              "type": "number"
-                            },
-                            "last10Minutes": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "total",
-                            "last10Minutes"
-                          ]
-                        },
-                        "eventsEmittedLast24Hours": {
-                          "type": "object",
-                          "properties": {
-                            "total": {
-                              "type": "number"
-                            },
-                            "last10Minutes": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "total",
-                            "last10Minutes"
-                          ]
+                        "failed": {
+                          "type": "number"
                         }
                       },
                       "required": [
-                        "tasksExecutedLast24Hours",
-                        "errorsLast24Hours",
-                        "eventsEmittedLast24Hours"
+                        "completed",
+                        "failed"
                       ]
                     },
-                    {
-                      "type": "null"
+                    "errorsLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "last10Minutes": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "last10Minutes"
+                      ]
+                    },
+                    "eventsEmittedLast24Hours": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "last10Minutes": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "last10Minutes"
+                      ]
                     }
+                  },
+                  "required": [
+                    "tasksExecutedLast24Hours",
+                    "errorsLast24Hours",
+                    "eventsEmittedLast24Hours"
                   ]
                 },
                 "createdAt": {
@@ -10619,16 +10603,16 @@
       "AppGetResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -11499,54 +11483,50 @@
                 ]
               },
               "ui": {
-                "anyOf": [
-                  {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "csp": {
+                    "type": "string"
+                  },
+                  "manifest": {
                     "type": "object",
-                    "properties": {
-                      "hash": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      },
-                      "csp": {
-                        "type": "string"
-                      },
-                      "manifest": {
-                        "type": "object",
-                        "propertyNames": {
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "hash": {
                           "type": "string"
                         },
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "hash": {
-                              "type": "string"
-                            },
-                            "size": {
-                              "type": "number"
-                            },
-                            "mimeType": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "hash",
-                            "size",
-                            "mimeType"
-                          ]
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
                         }
-                      }
-                    },
-                    "required": [
-                      "hash",
-                      "size",
-                      "manifest"
-                    ]
-                  },
-                  {
-                    "type": "null"
+                      },
+                      "required": [
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
+                    }
                   }
+                },
+                "required": [
+                  "hash",
+                  "size",
+                  "manifest"
                 ]
               },
               "contributions": {
@@ -11688,65 +11668,61 @@
                 "additionalProperties": false
               },
               "metrics": {
-                "anyOf": [
-                  {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "tasksExecutedLast24Hours": {
                     "type": "object",
                     "properties": {
-                      "tasksExecutedLast24Hours": {
-                        "type": "object",
-                        "properties": {
-                          "completed": {
-                            "type": "number"
-                          },
-                          "failed": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "completed",
-                          "failed"
-                        ]
+                      "completed": {
+                        "type": "number"
                       },
-                      "errorsLast24Hours": {
-                        "type": "object",
-                        "properties": {
-                          "total": {
-                            "type": "number"
-                          },
-                          "last10Minutes": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "total",
-                          "last10Minutes"
-                        ]
-                      },
-                      "eventsEmittedLast24Hours": {
-                        "type": "object",
-                        "properties": {
-                          "total": {
-                            "type": "number"
-                          },
-                          "last10Minutes": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "total",
-                          "last10Minutes"
-                        ]
+                      "failed": {
+                        "type": "number"
                       }
                     },
                     "required": [
-                      "tasksExecutedLast24Hours",
-                      "errorsLast24Hours",
-                      "eventsEmittedLast24Hours"
+                      "completed",
+                      "failed"
                     ]
                   },
-                  {
-                    "type": "null"
+                  "errorsLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
+                  },
+                  "eventsEmittedLast24Hours": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "number"
+                      },
+                      "last10Minutes": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "last10Minutes"
+                    ]
                   }
+                },
+                "required": [
+                  "tasksExecutedLast24Hours",
+                  "errorsLast24Hours",
+                  "eventsEmittedLast24Hours"
                 ]
               },
               "createdAt": {
@@ -11824,16 +11800,16 @@
       "UserAppListResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -12663,54 +12639,50 @@
                   ]
                 },
                 "ui": {
-                  "anyOf": [
-                    {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "hash": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "csp": {
+                      "type": "string"
+                    },
+                    "manifest": {
                       "type": "object",
-                      "properties": {
-                        "hash": {
-                          "type": "string"
-                        },
-                        "size": {
-                          "type": "number"
-                        },
-                        "csp": {
-                          "type": "string"
-                        },
-                        "manifest": {
-                          "type": "object",
-                          "propertyNames": {
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "hash": {
                             "type": "string"
                           },
-                          "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                              "hash": {
-                                "type": "string"
-                              },
-                              "size": {
-                                "type": "number"
-                              },
-                              "mimeType": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "hash",
-                              "size",
-                              "mimeType"
-                            ]
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
                           }
-                        }
-                      },
-                      "required": [
-                        "hash",
-                        "size",
-                        "manifest"
-                      ]
-                    },
-                    {
-                      "type": "null"
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
+                      }
                     }
+                  },
+                  "required": [
+                    "hash",
+                    "size",
+                    "manifest"
                   ]
                 },
                 "contributions": {
@@ -12887,16 +12859,16 @@
       "UserAppGetResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -13713,54 +13685,50 @@
                 ]
               },
               "ui": {
-                "anyOf": [
-                  {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "csp": {
+                    "type": "string"
+                  },
+                  "manifest": {
                     "type": "object",
-                    "properties": {
-                      "hash": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      },
-                      "csp": {
-                        "type": "string"
-                      },
-                      "manifest": {
-                        "type": "object",
-                        "propertyNames": {
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "hash": {
                           "type": "string"
                         },
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "hash": {
-                              "type": "string"
-                            },
-                            "size": {
-                              "type": "number"
-                            },
-                            "mimeType": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "hash",
-                            "size",
-                            "mimeType"
-                          ]
+                        "size": {
+                          "type": "number"
+                        },
+                        "mimeType": {
+                          "type": "string"
                         }
-                      }
-                    },
-                    "required": [
-                      "hash",
-                      "size",
-                      "manifest"
-                    ]
-                  },
-                  {
-                    "type": "null"
+                      },
+                      "required": [
+                        "hash",
+                        "size",
+                        "mimeType"
+                      ]
+                    }
                   }
+                },
+                "required": [
+                  "hash",
+                  "size",
+                  "manifest"
                 ]
               },
               "contributions": {
@@ -14150,64 +14118,48 @@
                 }
               },
               "enabled": {
-                "anyOf": [
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "boolean",
+                  "null"
                 ]
               },
               "folderScopeEnabledDefault": {
-                "anyOf": [
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "boolean",
+                  "null"
                 ]
               },
               "folderScopePermissionsDefault": {
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "READ_OBJECTS",
-                        "WRITE_OBJECTS",
-                        "WRITE_OBJECTS_METADATA",
-                        "WRITE_FOLDER_METADATA",
-                        "REINDEX_FOLDER"
-                      ]
-                    }
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "READ_OBJECTS",
+                    "WRITE_OBJECTS",
+                    "WRITE_OBJECTS_METADATA",
+                    "WRITE_FOLDER_METADATA",
+                    "REINDEX_FOLDER"
+                  ]
+                }
               },
               "permissions": {
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "CREATE_FOLDERS",
-                        "READ_FOLDERS",
-                        "UPDATE_FOLDERS",
-                        "DELETE_FOLDERS",
-                        "READ_USER"
-                      ]
-                    }
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "CREATE_FOLDERS",
+                    "READ_FOLDERS",
+                    "UPDATE_FOLDERS",
+                    "DELETE_FOLDERS",
+                    "READ_USER"
+                  ]
+                }
               }
             },
             "required": [
@@ -14230,64 +14182,48 @@
         "type": "object",
         "properties": {
           "enabled": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "folderScopeEnabledDefault": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "folderScopePermissionsDefault": {
-            "anyOf": [
-              {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "READ_OBJECTS",
-                    "WRITE_OBJECTS",
-                    "WRITE_OBJECTS_METADATA",
-                    "WRITE_FOLDER_METADATA",
-                    "REINDEX_FOLDER"
-                  ]
-                }
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "READ_OBJECTS",
+                "WRITE_OBJECTS",
+                "WRITE_OBJECTS_METADATA",
+                "WRITE_FOLDER_METADATA",
+                "REINDEX_FOLDER"
+              ]
+            }
           },
           "permissions": {
-            "anyOf": [
-              {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "CREATE_FOLDERS",
-                    "READ_FOLDERS",
-                    "UPDATE_FOLDERS",
-                    "DELETE_FOLDERS",
-                    "READ_USER"
-                  ]
-                }
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "CREATE_FOLDERS",
+                "READ_FOLDERS",
+                "UPDATE_FOLDERS",
+                "DELETE_FOLDERS",
+                "READ_USER"
+              ]
+            }
           }
         },
         "required": [
@@ -14332,13 +14268,9 @@
                 }
               },
               "SERVER_HOSTNAME": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "GOOGLE_OAUTH_CONFIG": {
@@ -14448,7 +14380,9 @@
                     ]
                   },
                   {
-                    "type": "null"
+                    "type": [
+                      "null"
+                    ]
                   }
                 ]
               },
@@ -14456,29 +14390,25 @@
                 "type": "object",
                 "properties": {
                   "app": {
-                    "anyOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "identifier": {
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "^[a-z0-9_]+$"
-                          },
-                          "workerIdentifier": {
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "^[a-z0-9_]+$"
-                          }
-                        },
-                        "required": [
-                          "identifier",
-                          "workerIdentifier"
-                        ]
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "identifier": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
                       },
-                      {
-                        "type": "null"
+                      "workerIdentifier": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
                       }
+                    },
+                    "required": [
+                      "identifier",
+                      "workerIdentifier"
                     ]
                   }
                 },
@@ -14871,15 +14801,11 @@
                 "type": "string"
               },
               "prefix": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
               }
             },
             "required": [
@@ -14917,15 +14843,11 @@
             "minLength": 1
           },
           "prefix": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
           }
         },
         "required": [
@@ -15384,16 +15306,16 @@
       "EventGetResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -15502,16 +15424,16 @@
       "EventListResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -16017,25 +15939,21 @@
                 ]
               },
               "accessError": {
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      },
-                      "code": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message",
-                      "code"
-                    ]
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string"
                   },
-                  {
-                    "type": "null"
+                  "code": {
+                    "type": "string"
                   }
+                },
+                "required": [
+                  "message",
+                  "code"
                 ]
               },
               "createdAt": {
@@ -16250,25 +16168,21 @@
                       ]
                     },
                     "accessError": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "message": {
-                              "type": "string"
-                            },
-                            "code": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "message",
-                            "code"
-                          ]
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "message": {
+                          "type": "string"
                         },
-                        {
-                          "type": "null"
+                        "code": {
+                          "type": "string"
                         }
+                      },
+                      "required": [
+                        "message",
+                        "code"
                       ]
                     },
                     "createdAt": {
@@ -16580,25 +16494,21 @@
                 ]
               },
               "accessError": {
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      },
-                      "code": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message",
-                      "code"
-                    ]
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string"
                   },
-                  {
-                    "type": "null"
+                  "code": {
+                    "type": "string"
                   }
+                },
+                "required": [
+                  "message",
+                  "code"
                 ]
               },
               "createdAt": {
@@ -17145,25 +17055,21 @@
                 ]
               },
               "accessError": {
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      },
-                      "code": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message",
-                      "code"
-                    ]
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string"
                   },
-                  {
-                    "type": "null"
+                  "code": {
+                    "type": "string"
                   }
+                },
+                "required": [
+                  "message",
+                  "code"
                 ]
               },
               "createdAt": {
@@ -17255,34 +17161,26 @@
                   ]
                 },
                 "enabled": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "null"
-                    }
+                  "type": [
+                    "boolean",
+                    "null"
                   ]
                 },
                 "permissions": {
-                  "anyOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "READ_OBJECTS",
-                          "WRITE_OBJECTS",
-                          "WRITE_OBJECTS_METADATA",
-                          "WRITE_FOLDER_METADATA",
-                          "REINDEX_FOLDER"
-                        ]
-                      }
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -17307,16 +17205,15 @@
         "additionalProperties": {
           "oneOf": [
             {
-              "type": "object",
+              "type": [
+                "object",
+                "null"
+              ],
               "properties": {
                 "enabled": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "null"
-                    }
+                  "type": [
+                    "boolean",
+                    "null"
                   ]
                 },
                 "permissions": {
@@ -17370,24 +17267,20 @@
                   "type": "boolean"
                 },
                 "permissions": {
-                  "anyOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "READ_OBJECTS",
-                          "WRITE_OBJECTS",
-                          "WRITE_OBJECTS_METADATA",
-                          "WRITE_FOLDER_METADATA",
-                          "REINDEX_FOLDER"
-                        ]
-                      }
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -17399,24 +17292,20 @@
               "type": "object",
               "properties": {
                 "permissions": {
-                  "anyOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "READ_OBJECTS",
-                          "WRITE_OBJECTS",
-                          "WRITE_OBJECTS_METADATA",
-                          "WRITE_FOLDER_METADATA",
-                          "REINDEX_FOLDER"
-                        ]
-                      }
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "READ_OBJECTS",
+                      "WRITE_OBJECTS",
+                      "WRITE_OBJECTS_METADATA",
+                      "WRITE_FOLDER_METADATA",
+                      "REINDEX_FOLDER"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -17427,22 +17316,15 @@
               "type": "object",
               "properties": {
                 "enabled": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "null"
-                    }
+                  "type": [
+                    "boolean",
+                    "null"
                   ]
                 }
               },
               "required": [
                 "enabled"
               ]
-            },
-            {
-              "type": "null"
             }
           ]
         }
@@ -17596,16 +17478,16 @@
       "TaskGetResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -18182,16 +18064,16 @@
       "TaskListResponse__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -18951,38 +18833,26 @@
             "type": "string"
           },
           "targetLocationFolderId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid",
-                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
           },
           "targetLocationObjectKey": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
             ]
           },
           "targetUserId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid",
-                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
           },
           "eventIds": {
             "type": "array",
@@ -18996,33 +18866,21 @@
             "type": "string"
           },
           "body": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
             ]
           },
           "image": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
             ]
           },
           "path": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
             ]
           },
           "createdAt": {
@@ -19031,16 +18889,12 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
           },
           "readAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
           }
         },
         "required": [
@@ -19110,23 +18964,15 @@
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "email": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "emailVerified": {
@@ -19284,23 +19130,15 @@
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "email": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "emailVerified": {
@@ -19479,23 +19317,15 @@
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "email": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "emailVerified": {
@@ -19599,23 +19429,15 @@
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "email": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "string",
+                  "null"
                 ]
               },
               "emailVerified": {
@@ -19665,26 +19487,18 @@
         "type": "object",
         "properties": {
           "name": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
           },
           "email": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
           },
           "isAdmin": {
             "type": "boolean"
@@ -19730,23 +19544,15 @@
                   "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "name": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
+                  "type": [
+                    "string",
+                    "null"
                   ]
                 },
                 "email": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
+                  "type": [
+                    "string",
+                    "null"
                   ]
                 },
                 "emailVerified": {
@@ -19925,16 +19731,16 @@
       "DockerJobCompleteRequestDTO__schema0": {
         "anyOf": [
           {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           {
             "type": "number"
           },
           {
             "type": "boolean"
-          },
-          {
-            "type": "null"
           },
           {
             "type": "array",
@@ -20090,28 +19896,20 @@
                   "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "rootId": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "quoteId": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "author": {
                   "type": "object",
@@ -20125,23 +19923,15 @@
                       "type": "string"
                     },
                     "name": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "string",
+                        "null"
                       ]
                     },
                     "email": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "string",
+                        "null"
                       ]
                     }
                   },
@@ -20220,7 +20010,9 @@
                       ]
                     },
                     {
-                      "type": "null"
+                      "type": [
+                        "null"
+                      ]
                     }
                   ]
                 },
@@ -20235,20 +20027,25 @@
                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 },
                 "deletedAt": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 },
                 "quotedComment": {
-                  "anyOf": [
-                    {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                    },
+                    "author": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -20256,77 +20053,52 @@
                           "format": "uuid",
                           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                         },
-                        "author": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "uuid",
-                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                            },
-                            "username": {
-                              "type": "string"
-                            },
-                            "name": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "email": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "username",
-                            "name",
-                            "email"
-                          ]
-                        },
-                        "content": {
+                        "username": {
                           "type": "string"
                         },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
-                        "deletedAt": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "format": "date-time",
-                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                            },
-                            {
-                              "type": "null"
-                            }
+                        "email": {
+                          "type": [
+                            "string",
+                            "null"
                           ]
                         }
                       },
                       "required": [
                         "id",
-                        "author",
-                        "content",
-                        "createdAt",
-                        "deletedAt"
+                        "username",
+                        "name",
+                        "email"
                       ]
                     },
-                    {
-                      "type": "null"
+                    "content": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    },
+                    "deletedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                     }
+                  },
+                  "required": [
+                    "id",
+                    "author",
+                    "content",
+                    "createdAt",
+                    "deletedAt"
                   ]
                 },
                 "mentions": {
@@ -20343,13 +20115,9 @@
                         "type": "string"
                       },
                       "name": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
+                        "type": [
+                          "string",
+                          "null"
                         ]
                       }
                     },
@@ -20385,23 +20153,15 @@
                               "type": "string"
                             },
                             "name": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
+                              "type": [
+                                "string",
+                                "null"
                               ]
                             },
                             "email": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
+                              "type": [
+                                "string",
+                                "null"
                               ]
                             }
                           },
@@ -20558,28 +20318,20 @@
                 "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "rootId": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "quoteId": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
               },
               "author": {
                 "type": "object",
@@ -20593,23 +20345,15 @@
                     "type": "string"
                   },
                   "name": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
+                    "type": [
+                      "string",
+                      "null"
                     ]
                   },
                   "email": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
+                    "type": [
+                      "string",
+                      "null"
                     ]
                   }
                 },
@@ -20688,7 +20432,9 @@
                     ]
                   },
                   {
-                    "type": "null"
+                    "type": [
+                      "null"
+                    ]
                   }
                 ]
               },
@@ -20703,20 +20449,25 @@
                 "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
               },
               "deletedAt": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
               },
               "quotedComment": {
-                "anyOf": [
-                  {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                  },
+                  "author": {
                     "type": "object",
                     "properties": {
                       "id": {
@@ -20724,77 +20475,52 @@
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                       },
-                      "author": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "uuid",
-                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                          },
-                          "username": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "email": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "username",
-                          "name",
-                          "email"
-                        ]
-                      },
-                      "content": {
+                      "username": {
                         "type": "string"
                       },
-                      "createdAt": {
-                        "type": "string",
-                        "format": "date-time",
-                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
                       },
-                      "deletedAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                          },
-                          {
-                            "type": "null"
-                          }
+                      "email": {
+                        "type": [
+                          "string",
+                          "null"
                         ]
                       }
                     },
                     "required": [
                       "id",
-                      "author",
-                      "content",
-                      "createdAt",
-                      "deletedAt"
+                      "username",
+                      "name",
+                      "email"
                     ]
                   },
-                  {
-                    "type": "null"
+                  "content": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                  },
+                  "deletedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                   }
+                },
+                "required": [
+                  "id",
+                  "author",
+                  "content",
+                  "createdAt",
+                  "deletedAt"
                 ]
               },
               "mentions": {
@@ -20811,13 +20537,9 @@
                       "type": "string"
                     },
                     "name": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "string",
+                        "null"
                       ]
                     }
                   },
@@ -20853,23 +20575,15 @@
                             "type": "string"
                           },
                           "name": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
+                            "type": [
+                              "string",
+                              "null"
                             ]
                           },
                           "email": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
+                            "type": [
+                              "string",
+                              "null"
                             ]
                           }
                         },
@@ -20933,28 +20647,20 @@
                   "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "rootId": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "quoteId": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                 },
                 "author": {
                   "type": "object",
@@ -20968,23 +20674,15 @@
                       "type": "string"
                     },
                     "name": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "string",
+                        "null"
                       ]
                     },
                     "email": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "string",
+                        "null"
                       ]
                     }
                   },
@@ -21063,7 +20761,9 @@
                       ]
                     },
                     {
-                      "type": "null"
+                      "type": [
+                        "null"
+                      ]
                     }
                   ]
                 },
@@ -21078,20 +20778,25 @@
                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 },
                 "deletedAt": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 },
                 "quotedComment": {
-                  "anyOf": [
-                    {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                    },
+                    "author": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -21099,77 +20804,52 @@
                           "format": "uuid",
                           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                         },
-                        "author": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "uuid",
-                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-                            },
-                            "username": {
-                              "type": "string"
-                            },
-                            "name": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "email": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "username",
-                            "name",
-                            "email"
-                          ]
-                        },
-                        "content": {
+                        "username": {
                           "type": "string"
                         },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
-                        "deletedAt": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "format": "date-time",
-                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                            },
-                            {
-                              "type": "null"
-                            }
+                        "email": {
+                          "type": [
+                            "string",
+                            "null"
                           ]
                         }
                       },
                       "required": [
                         "id",
-                        "author",
-                        "content",
-                        "createdAt",
-                        "deletedAt"
+                        "username",
+                        "name",
+                        "email"
                       ]
                     },
-                    {
-                      "type": "null"
+                    "content": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    },
+                    "deletedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                     }
+                  },
+                  "required": [
+                    "id",
+                    "author",
+                    "content",
+                    "createdAt",
+                    "deletedAt"
                   ]
                 },
                 "mentions": {
@@ -21186,13 +20866,9 @@
                         "type": "string"
                       },
                       "name": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
+                        "type": [
+                          "string",
+                          "null"
                         ]
                       }
                     },
@@ -21228,23 +20904,15 @@
                               "type": "string"
                             },
                             "name": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
+                              "type": [
+                                "string",
+                                "null"
                               ]
                             },
                             "email": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
+                              "type": [
+                                "string",
+                                "null"
                               ]
                             }
                           },
@@ -21505,16 +21173,12 @@
                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 },
                 "lastUsedAt": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 }
               },
               "required": [
@@ -21545,43 +21209,27 @@
         "type": "object",
         "properties": {
           "canRead": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canWrite": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canDelete": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canMove": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           }
         },
@@ -21596,43 +21244,27 @@
         "type": "object",
         "properties": {
           "canRead": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canWrite": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canDelete": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canMove": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           }
         }
@@ -21641,43 +21273,27 @@
         "type": "object",
         "properties": {
           "canRead": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canWrite": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canDelete": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "canMove": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           }
         }

@@ -1698,7 +1698,7 @@ export interface components {
             code: string;
             message: string;
         };
-        AppInstallResponse__schema0: string | number | boolean | null | components["schemas"]["AppInstallResponse__schema0"][] | {
+        AppInstallResponse__schema0: (string | null) | number | boolean | components["schemas"]["AppInstallResponse__schema0"][] | {
             [key: string]: components["schemas"]["AppInstallResponse__schema0"];
         };
         AppInstallResponse__schema1: {
@@ -1952,7 +1952,7 @@ export interface components {
                 updatedAt: string;
             };
         };
-        AppListResponse__schema0: string | number | boolean | null | components["schemas"]["AppListResponse__schema0"][] | {
+        AppListResponse__schema0: (string | null) | number | boolean | components["schemas"]["AppListResponse__schema0"][] | {
             [key: string]: components["schemas"]["AppListResponse__schema0"];
         };
         AppListResponse__schema1: {
@@ -2212,7 +2212,7 @@ export interface components {
         SetAppEnabledInputDTO: {
             enabled: boolean;
         };
-        AppGetResponse__schema0: string | number | boolean | null | components["schemas"]["AppGetResponse__schema0"][] | {
+        AppGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["AppGetResponse__schema0"][] | {
             [key: string]: components["schemas"]["AppGetResponse__schema0"];
         };
         AppGetResponse__schema1: {
@@ -2476,7 +2476,7 @@ export interface components {
         StringMapDTO: {
             [key: string]: string;
         };
-        UserAppListResponse__schema0: string | number | boolean | null | components["schemas"]["UserAppListResponse__schema0"][] | {
+        UserAppListResponse__schema0: (string | null) | number | boolean | components["schemas"]["UserAppListResponse__schema0"][] | {
             [key: string]: components["schemas"]["UserAppListResponse__schema0"];
         };
         UserAppListResponse__schema1: {
@@ -2707,7 +2707,7 @@ export interface components {
                 updatedAt: string;
             }[];
         };
-        UserAppGetResponse__schema0: string | number | boolean | null | components["schemas"]["UserAppGetResponse__schema0"][] | {
+        UserAppGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["UserAppGetResponse__schema0"][] | {
             [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
         };
         UserAppGetResponse__schema1: {
@@ -3256,7 +3256,7 @@ export interface components {
             /** @constant */
             success: true;
         };
-        EventGetResponse__schema0: string | number | boolean | null | components["schemas"]["EventGetResponse__schema0"][] | {
+        EventGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["EventGetResponse__schema0"][] | {
             [key: string]: components["schemas"]["EventGetResponse__schema0"];
         };
         EventGetResponse: {
@@ -3285,7 +3285,7 @@ export interface components {
                 createdAt: string;
             };
         };
-        EventListResponse__schema0: string | number | boolean | null | components["schemas"]["EventListResponse__schema0"][] | {
+        EventListResponse__schema0: (string | null) | number | boolean | components["schemas"]["EventListResponse__schema0"][] | {
             [key: string]: components["schemas"]["EventListResponse__schema0"];
         };
         EventListResponse: {
@@ -3734,10 +3734,10 @@ export interface components {
             };
         };
         AppFolderSettingsUpdateInputDTO: {
-            [key: string]: {
+            [key: string]: ({
                 enabled: boolean | null;
                 permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-            } | {
+            } | null) | {
                 enabled: boolean;
                 permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
             } | {
@@ -3747,7 +3747,7 @@ export interface components {
                 permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
             } | {
                 enabled: boolean | null;
-            } | null;
+            };
         };
         AccessKeyListResponse: {
             meta: {
@@ -3786,7 +3786,7 @@ export interface components {
                 createdDate?: string;
             }[];
         };
-        TaskGetResponse__schema0: string | number | boolean | null | components["schemas"]["TaskGetResponse__schema0"][] | {
+        TaskGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["TaskGetResponse__schema0"][] | {
             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
         };
         TaskGetResponse__schema1: {
@@ -3936,7 +3936,7 @@ export interface components {
                 };
             };
         };
-        TaskListResponse__schema0: string | number | boolean | null | components["schemas"]["TaskListResponse__schema0"][] | {
+        TaskListResponse__schema0: (string | null) | number | boolean | components["schemas"]["TaskListResponse__schema0"][] | {
             [key: string]: components["schemas"]["TaskListResponse__schema0"];
         };
         TaskListResponse__schema1: {
@@ -4115,8 +4115,10 @@ export interface components {
             eventIdentifier: string;
             emitterIdentifier: string;
             aggregationKey: string;
+            /** Format: uuid */
             targetLocationFolderId: string | null;
             targetLocationObjectKey: string | null;
+            /** Format: uuid */
             targetUserId: string | null;
             eventIds: string[];
             title: string;
@@ -4125,6 +4127,7 @@ export interface components {
             path: string | null;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
             readAt: string | null;
         };
         LoginCredentialsDTO: {
@@ -4333,7 +4336,7 @@ export interface components {
                 url: string;
             }[];
         };
-        DockerJobCompleteRequestDTO__schema0: string | number | boolean | null | components["schemas"]["DockerJobCompleteRequestDTO__schema0"][] | {
+        DockerJobCompleteRequestDTO__schema0: (string | null) | number | boolean | components["schemas"]["DockerJobCompleteRequestDTO__schema0"][] | {
             [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
         };
         DockerJobCompleteRequestDTO: {
@@ -4373,7 +4376,9 @@ export interface components {
                 folderId: string;
                 /** Format: uuid */
                 folderObjectId: string;
+                /** Format: uuid */
                 rootId: string | null;
+                /** Format: uuid */
                 quoteId: string | null;
                 author: {
                     /** Format: uuid */
@@ -4403,6 +4408,7 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                /** Format: date-time */
                 deletedAt: string | null;
                 quotedComment?: {
                     /** Format: uuid */
@@ -4417,6 +4423,7 @@ export interface components {
                     content: string;
                     /** Format: date-time */
                     createdAt: string;
+                    /** Format: date-time */
                     deletedAt: string | null;
                 } | null;
                 mentions?: {
@@ -4469,7 +4476,9 @@ export interface components {
                 folderId: string;
                 /** Format: uuid */
                 folderObjectId: string;
+                /** Format: uuid */
                 rootId: string | null;
+                /** Format: uuid */
                 quoteId: string | null;
                 author: {
                     /** Format: uuid */
@@ -4499,6 +4508,7 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                /** Format: date-time */
                 deletedAt: string | null;
                 quotedComment?: {
                     /** Format: uuid */
@@ -4513,6 +4523,7 @@ export interface components {
                     content: string;
                     /** Format: date-time */
                     createdAt: string;
+                    /** Format: date-time */
                     deletedAt: string | null;
                 } | null;
                 mentions?: {
@@ -4542,7 +4553,9 @@ export interface components {
                 folderId: string;
                 /** Format: uuid */
                 folderObjectId: string;
+                /** Format: uuid */
                 rootId: string | null;
+                /** Format: uuid */
                 quoteId: string | null;
                 author: {
                     /** Format: uuid */
@@ -4572,6 +4585,7 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                /** Format: date-time */
                 deletedAt: string | null;
                 quotedComment?: {
                     /** Format: uuid */
@@ -4586,6 +4600,7 @@ export interface components {
                     content: string;
                     /** Format: date-time */
                     createdAt: string;
+                    /** Format: date-time */
                     deletedAt: string | null;
                 } | null;
                 mentions?: {
@@ -4664,6 +4679,7 @@ export interface components {
                 clientName: string;
                 /** Format: date-time */
                 createdAt: string;
+                /** Format: date-time */
                 lastUsedAt: string | null;
             }[];
         };

@@ -1,7 +1,11 @@
 import { PluginMetadataPrinter } from '@nestjs/cli/lib/compiler/plugins/plugin-metadata-printer'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import type { OpenAPIObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import type {
+  OpenAPIObject,
+  ReferenceObject,
+  SchemaObject,
+} from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import { cleanupOpenApiDoc } from 'nestjs-zod'
@@ -78,9 +82,9 @@ function deduplicateNestedSchemas(
   schemas: Record<string, unknown>,
   topLevelKey: string,
   isRoot = false,
-): unknown {
+): SchemaObject | ReferenceObject {
   if (typeof schema !== 'object' || schema == null) {
-    return schema
+    return schema as SchemaObject | ReferenceObject
   }
   if ((schema as Record<string, unknown>).$ref) {
     return schema
@@ -131,9 +135,77 @@ function deduplicateNestedSchemas(
   return result
 }
 
-function compressOpenApiDocument(document: OpenAPIObject) {
+// Convert standalone {"type": "null"} entries in anyOf/oneOf to type-array form
+// for Swift OpenAPI Generator compatibility. Swift tooling doesn't handle
+// {"type": "null"} but does handle {"type": ["string", "null"]}.
+function transformNullTypes(node: unknown): void {
+  if (typeof node !== 'object' || node === null) {
+    return
+  }
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      transformNullTypes(item)
+    }
+    return
+  }
+
+  const obj = node as Record<string, unknown>
+
+  // Recurse into children first so nested structures are handled bottom-up
+  for (const value of Object.values(obj)) {
+    transformNullTypes(value)
+  }
+
+  // Handle anyOf/oneOf arrays containing { "type": "null" }
+  for (const compositionKey of ['anyOf', 'oneOf'] as const) {
+    if (!Array.isArray(obj[compositionKey])) {
+      continue
+    }
+
+    const arr = obj[compositionKey] as Record<string, unknown>[]
+    const nullIdx = arr.findIndex(
+      (item) => Object.keys(item).length === 1 && item.type === 'null',
+    )
+
+    if (nullIdx === -1) {
+      continue
+    }
+
+    // Remove the standalone { "type": "null" } entry
+    arr.splice(nullIdx, 1)
+
+    // Find an entry with a string `type` to merge "null" into as an array
+    const mergeTarget = arr.find((item) => typeof item.type === 'string')
+
+    if (mergeTarget) {
+      mergeTarget.type = [mergeTarget.type, 'null']
+    } else {
+      // No string type to merge into (e.g. $ref or nested oneOf) — add array form
+      arr.push({ type: ['null'] })
+    }
+
+    // Unwrap single-entry anyOf/oneOf when no $ref (simplifies the schema)
+    const firstEntry = arr[0]
+    if (arr.length === 1 && firstEntry && !('$ref' in firstEntry)) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete obj[compositionKey]
+      Object.assign(obj, firstEntry)
+    }
+  }
+}
+
+function convertNullTypesForSwiftCompat(
+  document: OpenAPIObject,
+): OpenAPIObject {
+  const json = JSON.parse(JSON.stringify(document)) as OpenAPIObject
+  transformNullTypes(json)
+  return json
+}
+
+function compressOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
   const schemas = document.components?.schemas || {}
-  const dedupedSchemas: Record<string, unknown> = {}
+  const dedupedSchemas: Record<string, SchemaObject | ReferenceObject> = {}
   for (const [key, schema] of Object.entries(schemas)) {
     // Do not deduplicate the top-level schema itself, only its children
     dedupedSchemas[key] = deduplicateNestedSchemas(schema, schemas, key, true)
@@ -252,7 +324,10 @@ async function main() {
   const patchedDocument = patchEmptyRecordSchemas(uncompressedDocument)
 
   // Where possible, replace nested inline duplicate object definitions with references to the top-level definitions
-  const document = compressOpenApiDocument(patchedDocument)
+  const compressedDocument = compressOpenApiDocument(patchedDocument)
+
+  // Convert {"type": "null"} to type-array form for Swift OpenAPI Generator compat
+  const document = convertNullTypesForSwiftCompat(compressedDocument)
 
   const stringifiedDocument = JSON.stringify(document, null, 2)
 
