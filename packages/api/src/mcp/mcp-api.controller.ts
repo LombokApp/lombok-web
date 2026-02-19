@@ -11,12 +11,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -49,10 +44,6 @@ export class McpApiController {
   // --- Token endpoints ---
 
   @Post('user/mcp/tokens')
-  @ApiCreatedResponse({
-    description: 'MCP token created',
-    type: CreateMcpTokenResponseDTO,
-  })
   async createToken(
     @Req() req: express.Request,
     @Body() input: CreateMcpTokenInputDTO,
@@ -73,10 +64,6 @@ export class McpApiController {
   }
 
   @Get('user/mcp/tokens')
-  @ApiOkResponse({
-    description: 'List of active MCP tokens',
-    type: McpTokenListResponseDTO,
-  })
   async listTokens(
     @Req() req: express.Request,
   ): Promise<McpTokenListResponseDTO> {
@@ -95,10 +82,6 @@ export class McpApiController {
   }
 
   @Delete('user/mcp/tokens/:tokenId')
-  @ApiOkResponse({
-    description: 'MCP token revoked',
-    type: McpSuccessResponseDTO,
-  })
   async revokeToken(
     @Req() req: express.Request,
     @Param('tokenId') tokenId: string,
@@ -113,11 +96,7 @@ export class McpApiController {
   // --- User MCP settings endpoints ---
 
   @Get('user/mcp/settings')
-  @ApiOkResponse({
-    description: 'User MCP permission settings',
-    type: McpSettingsResponseDTO,
-  })
-  async getUserSettings(
+  async getUserMcpSettings(
     @Req() req: express.Request,
   ): Promise<McpSettingsResponseDTO> {
     if (!req.user) {
@@ -133,11 +112,7 @@ export class McpApiController {
   }
 
   @Put('user/mcp/settings')
-  @ApiOkResponse({
-    description: 'Updated user MCP permission settings',
-    type: McpSettingsResponseDTO,
-  })
-  async updateUserSettings(
+  async updateUserMcpSettings(
     @Req() req: express.Request,
     @Body() input: McpUserSettingsInputDTO,
   ): Promise<McpSettingsResponseDTO> {
@@ -159,11 +134,7 @@ export class McpApiController {
   // --- Folder MCP settings endpoints ---
 
   @Get('folders/:folderId/mcp/settings')
-  @ApiOkResponse({
-    description: 'Folder MCP permission settings',
-    type: McpSettingsResponseDTO,
-  })
-  async getFolderSettings(
+  async getFolderMcpSettings(
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
   ): Promise<McpSettingsResponseDTO> {
@@ -183,10 +154,6 @@ export class McpApiController {
   }
 
   @Put('folders/:folderId/mcp/settings')
-  @ApiOkResponse({
-    description: 'Updated folder MCP permission settings',
-    type: McpSettingsResponseDTO,
-  })
   async updateFolderSettings(
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
@@ -209,10 +176,6 @@ export class McpApiController {
   }
 
   @Delete('folders/:folderId/mcp/settings')
-  @ApiOkResponse({
-    description: 'Folder MCP settings cleared',
-    type: McpSuccessResponseDTO,
-  })
   async deleteFolderSettings(
     @Req() req: express.Request,
     @Param('folderId') folderId: string,

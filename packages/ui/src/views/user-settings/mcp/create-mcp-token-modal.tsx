@@ -138,7 +138,7 @@ export function CreateMcpTokenModal({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
-        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0 sm:max-w-lg"
+        className="top-0 mt-[50%] min-w-fit sm:top-1/2 sm:mt-0 sm:max-w-lg"
         aria-description="Create a new MCP token for an AI assistant"
       >
         <DialogHeader>

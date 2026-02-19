@@ -11,13 +11,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -57,10 +51,6 @@ export class CommentsController {
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
   @ApiOperation({ summary: 'List all comments for a folder object' })
-  @ApiOkResponse({
-    description: 'List of all comments',
-    type: AllCommentsListResponseDTO,
-  })
   async listAllComments(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -123,10 +113,6 @@ export class CommentsController {
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
   @ApiOperation({ summary: 'Create a comment' })
-  @ApiCreatedResponse({
-    description: 'Comment created',
-    type: CreateRootCommentResponseDTO,
-  })
   async createComment(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -232,10 +218,6 @@ export class CommentsController {
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
   @ApiOperation({ summary: 'Get a comment thread' })
-  @ApiOkResponse({
-    description: 'Comment thread',
-    type: ThreadResponseDTO,
-  })
   async getThread(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -293,10 +275,6 @@ export class CommentsController {
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
   @ApiOperation({ summary: 'Delete a comment' })
-  @ApiOkResponse({
-    description: 'Comment deleted',
-    type: DeleteCommentResponseDTO,
-  })
   async deleteComment(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -323,9 +301,6 @@ export class CommentsController {
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
   @ApiOperation({ summary: 'Add a reaction to a comment' })
-  @ApiCreatedResponse({
-    description: 'Reaction added',
-  })
   async addReaction(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -357,9 +332,6 @@ export class CommentsController {
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
   @ApiOperation({ summary: 'Remove a reaction from a comment' })
-  @ApiOkResponse({
-    description: 'Reaction removed',
-  })
   async removeReaction(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,

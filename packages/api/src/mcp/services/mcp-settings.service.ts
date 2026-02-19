@@ -113,10 +113,7 @@ export class McpSettingsService {
     return result!
   }
 
-  async deleteFolderSettings(
-    userId: string,
-    folderId: string,
-  ): Promise<void> {
+  async deleteFolderSettings(userId: string, folderId: string): Promise<void> {
     await this.ormService.db
       .delete(mcpFolderSettingsTable)
       .where(

@@ -13,7 +13,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["installAppFromZip"];
+        post: operations["AppsController__installAppFromZip"];
         delete?: never;
         options?: never;
         head?: never;
@@ -27,7 +27,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["listApps"];
+        get: operations["AppsController__listApps"];
         put?: never;
         post?: never;
         delete?: never;
@@ -44,7 +44,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["setAppEnabled"];
+        put: operations["AppsController__setAppEnabled"];
         post?: never;
         delete?: never;
         options?: never;
@@ -59,10 +59,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getApp"];
+        get: operations["AppsController__getApp"];
         put?: never;
         post?: never;
-        delete: operations["uninstallApp"];
+        delete: operations["AppsController__uninstallApp"];
         options?: never;
         head?: never;
         patch?: never;
@@ -76,7 +76,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["updateAppAccessSettings"];
+        put: operations["AppsController__updateAppAccessSettings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -92,7 +92,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["setWorkerEnvironmentVariables"];
+        put: operations["AppsController__setWorkerEnvironmentVariables"];
         post?: never;
         delete?: never;
         options?: never;
@@ -108,7 +108,7 @@ export interface paths {
             cookie?: never;
         };
         /** List enabled apps available for the current user */
-        get: operations["listApps"];
+        get: operations["UserAppsController__listApps"];
         put?: never;
         post?: never;
         delete?: never;
@@ -125,7 +125,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get an enabled app by identifier for the current user */
-        get: operations["getApp"];
+        get: operations["UserAppsController__getApp"];
         put?: never;
         post?: never;
         delete?: never;
@@ -142,7 +142,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get app contributions */
-        get: operations["getAppContributions"];
+        get: operations["UserAppsController__getAppContributions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -161,7 +161,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Generate app user access token */
-        post: operations["generateAppUserAccessToken"];
+        post: operations["UserAppsController__generateAppUserAccessToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -176,12 +176,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get app user settings for the current user */
-        get: operations["getAppUserSettings"];
+        get: operations["UserAppsController__getAppUserSettings"];
         put?: never;
         /** Create or update app user settings for the current user */
-        post: operations["upsertAppUserSettings"];
+        post: operations["UserAppsController__upsertAppUserSettings"];
         /** Remove app user settings for the current user */
-        delete: operations["removeAppUserSettings"];
+        delete: operations["UserAppsController__removeAppUserSettings"];
         options?: never;
         head?: never;
         patch?: never;
@@ -195,7 +195,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get the public server settings object (no authentication required). */
-        get: operations["getPublicServerSettings"];
+        get: operations["PublicController__getPublicServerSettings"];
         put?: never;
         post?: never;
         delete?: never;
@@ -212,7 +212,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get the server settings object. */
-        get: operations["getServerSettings"];
+        get: operations["ServerController__getServerSettings"];
         put?: never;
         post?: never;
         delete?: never;
@@ -230,10 +230,10 @@ export interface paths {
         };
         get?: never;
         /** Set a setting in the server settings objects. */
-        put: operations["setServerSetting"];
+        put: operations["ServerController__setServerSetting"];
         post?: never;
         /** Reset a setting in the server settings objects. */
-        delete: operations["resetServerSetting"];
+        delete: operations["ServerController__resetServerSetting"];
         options?: never;
         head?: never;
         patch?: never;
@@ -247,7 +247,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get server metrics including user counts, folder counts, and storage statistics. */
-        get: operations["getServerMetrics"];
+        get: operations["ServerController__getServerMetrics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -264,10 +264,10 @@ export interface paths {
             cookie?: never;
         };
         /** List the storage provisions. */
-        get: operations["listStorageProvisions"];
+        get: operations["StorageProvisionsController__listStorageProvisions"];
         put?: never;
         /** Create a new user storage provision. */
-        post: operations["createUserStorageProvision"];
+        post: operations["StorageProvisionsController__createUserStorageProvision"];
         delete?: never;
         options?: never;
         head?: never;
@@ -282,12 +282,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get a storage provision by id. */
-        get: operations["getStorageProvision"];
+        get: operations["StorageProvisionsController__getStorageProvision"];
         /** Update a server provision by id. */
-        put: operations["updateStorageProvision"];
+        put: operations["StorageProvisionsController__updateStorageProvision"];
         post?: never;
         /** Delete a storage provision by id. */
-        delete: operations["deleteStorageProvision"];
+        delete: operations["StorageProvisionsController__deleteStorageProvision"];
         options?: never;
         head?: never;
         patch?: never;
@@ -301,12 +301,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get the server storage location. */
-        get: operations["getServerStorageLocation"];
+        get: operations["ServerStorageController__getServerStorageLocation"];
         put?: never;
         /** Create a new server provision. */
-        post: operations["setServerStorageLocation"];
+        post: operations["ServerStorageController__setServerStorageLocation"];
         /** Delete any set server storage location. */
-        delete: operations["deleteServerStorageLocation"];
+        delete: operations["ServerStorageController__deleteServerStorageLocation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -320,7 +320,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get the configured docker hosts. */
-        get: operations["getDockerHostsConfig"];
+        get: operations["ServerDockerHostsController__getDockerHostsConfig"];
         put?: never;
         post?: never;
         delete?: never;
@@ -337,7 +337,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get the current runtime state of docker hosts. */
-        get: operations["getDockerHostsState"];
+        get: operations["ServerDockerHostsController__getDockerHostsState"];
         put?: never;
         post?: never;
         delete?: never;
@@ -354,7 +354,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get logs for a container running on a docker host. */
-        get: operations["getDockerContainerLogs"];
+        get: operations["ServerDockerHostsController__getDockerContainerLogs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -371,7 +371,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get resource usage for a container. */
-        get: operations["getDockerContainerStats"];
+        get: operations["ServerDockerHostsController__getDockerContainerStats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -388,7 +388,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get inspection details for a container. */
-        get: operations["getDockerContainerInspect"];
+        get: operations["ServerDockerHostsController__getDockerContainerInspect"];
         put?: never;
         post?: never;
         delete?: never;
@@ -405,7 +405,7 @@ export interface paths {
             cookie?: never;
         };
         /** List HTTP workers for a container. */
-        get: operations["getDockerContainerWorkers"];
+        get: operations["ServerDockerHostsController__getDockerContainerWorkers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -422,7 +422,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get worker state and recent jobs for a worker. */
-        get: operations["getDockerContainerWorkerDetail"];
+        get: operations["ServerDockerHostsController__getDockerContainerWorkerDetail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -439,7 +439,7 @@ export interface paths {
             cookie?: never;
         };
         /** List recent job state files for a container. */
-        get: operations["getDockerContainerJobs"];
+        get: operations["ServerDockerHostsController__getDockerContainerJobs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -458,7 +458,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Purge completed job files for a container. */
-        post: operations["purgeContainerJobs"];
+        post: operations["ServerDockerHostsController__purgeContainerJobs"];
         delete?: never;
         options?: never;
         head?: never;
@@ -473,7 +473,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get job state and log details for a container job. */
-        get: operations["getDockerContainerJobDetail"];
+        get: operations["ServerDockerHostsController__getDockerContainerJobDetail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -492,7 +492,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Start a container. */
-        post: operations["startDockerContainer"];
+        post: operations["ServerDockerHostsController__startDockerContainer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -509,7 +509,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stop a container. */
-        post: operations["stopDockerContainer"];
+        post: operations["ServerDockerHostsController__stopDockerContainer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -526,7 +526,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Restart a container. */
-        post: operations["restartDockerContainer"];
+        post: operations["ServerDockerHostsController__restartDockerContainer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -543,7 +543,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Remove a container. */
-        post: operations["removeDockerContainer"];
+        post: operations["ServerDockerHostsController__removeDockerContainer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -558,7 +558,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get an event by id. */
-        get: operations["getEvent"];
+        get: operations["ServerEventsController__getEvent"];
         put?: never;
         post?: never;
         delete?: never;
@@ -575,7 +575,7 @@ export interface paths {
             cookie?: never;
         };
         /** List events. */
-        get: operations["listEvents"];
+        get: operations["ServerEventsController__listEvents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -592,7 +592,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a folder event by id. */
-        get: operations["getFolderEvent"];
+        get: operations["FolderEventsController__getFolderEvent"];
         put?: never;
         post?: never;
         delete?: never;
@@ -609,7 +609,7 @@ export interface paths {
             cookie?: never;
         };
         /** List tasks. */
-        get: operations["listFolderEvents"];
+        get: operations["FolderEventsController__listFolderEvents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -626,7 +626,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a log entry by id. */
-        get: operations["getLog"];
+        get: operations["ServerLogsController__getLog"];
         put?: never;
         post?: never;
         delete?: never;
@@ -643,7 +643,7 @@ export interface paths {
             cookie?: never;
         };
         /** List log entries. */
-        get: operations["listLogs"];
+        get: operations["ServerLogsController__listLogs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -660,7 +660,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a folder log entry by id. */
-        get: operations["getFolderLog"];
+        get: operations["FolderLogsController__getFolderLog"];
         put?: never;
         post?: never;
         delete?: never;
@@ -677,7 +677,7 @@ export interface paths {
             cookie?: never;
         };
         /** List folder log entries. */
-        get: operations["listFolderLogs"];
+        get: operations["FolderLogsController__listFolderLogs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -694,12 +694,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get a folder by id. */
-        get: operations["getFolder"];
+        get: operations["FoldersController__getFolder"];
         /** Update a folder by id. */
-        put: operations["updateFolder"];
+        put: operations["FoldersController__updateFolder"];
         post?: never;
         /** Delete a folder by id. */
-        delete: operations["deleteFolder"];
+        delete: operations["FoldersController__deleteFolder"];
         options?: never;
         head?: never;
         patch?: never;
@@ -715,7 +715,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Check S3 access and update folder accessError */
-        post: operations["checkFolderAccess"];
+        post: operations["FoldersController__checkFolderAccess"];
         delete?: never;
         options?: never;
         head?: never;
@@ -730,7 +730,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get the metadata for a folder by id. */
-        get: operations["getFolderMetadata"];
+        get: operations["FoldersController__getFolderMetadata"];
         put?: never;
         post?: never;
         delete?: never;
@@ -747,10 +747,10 @@ export interface paths {
             cookie?: never;
         };
         /** List folders. */
-        get: operations["listFolders"];
+        get: operations["FoldersController__listFolders"];
         put?: never;
         /** Create a folder. */
-        post: operations["createFolder"];
+        post: operations["FoldersController__createFolder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -767,7 +767,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Scan the underlying S3 location and update our local representation of it. */
-        post: operations["reindexFolder"];
+        post: operations["FoldersController__reindexFolder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -782,7 +782,7 @@ export interface paths {
             cookie?: never;
         };
         /** List folder objects by folderId. */
-        get: operations["listFolderObjects"];
+        get: operations["FoldersController__listFolderObjects"];
         put?: never;
         post?: never;
         delete?: never;
@@ -799,11 +799,11 @@ export interface paths {
             cookie?: never;
         };
         /** Get a folder object by folderId and objectKey. */
-        get: operations["getFolderObject"];
+        get: operations["FoldersController__getFolderObject"];
         put?: never;
         post?: never;
         /** Delete a folder object by folderId and objectKey. */
-        delete: operations["deleteFolderObject"];
+        delete: operations["FoldersController__deleteFolderObject"];
         options?: never;
         head?: never;
         patch?: never;
@@ -819,7 +819,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create presigned urls for objects in a folder. */
-        post: operations["createPresignedUrls"];
+        post: operations["FoldersController__createPresignedUrls"];
         delete?: never;
         options?: never;
         head?: never;
@@ -836,7 +836,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Scan the object again in the underlying storage, and update its state in our db. */
-        post: operations["refreshFolderObjectS3Metadata"];
+        post: operations["FoldersController__refreshFolderObjectS3Metadata"];
         delete?: never;
         options?: never;
         head?: never;
@@ -851,12 +851,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get folder share for a user */
-        get: operations["getFolderShares"];
+        get: operations["FoldersController__getFolderShares"];
         put?: never;
         /** Add or update a folder share */
-        post: operations["upsertFolderShare"];
+        post: operations["FoldersController__upsertFolderShare"];
         /** Remove a folder share */
-        delete: operations["removeFolderShare"];
+        delete: operations["FoldersController__removeFolderShare"];
         options?: never;
         head?: never;
         patch?: never;
@@ -870,7 +870,7 @@ export interface paths {
             cookie?: never;
         };
         /** List folder shares */
-        get: operations["listFolderShares"];
+        get: operations["FoldersController__listFolderShares"];
         put?: never;
         post?: never;
         delete?: never;
@@ -887,7 +887,7 @@ export interface paths {
             cookie?: never;
         };
         /** List prospective folder share users */
-        get: operations["listFolderShareUsers"];
+        get: operations["FoldersController__listFolderShareUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -904,14 +904,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get all app settings for a folder */
-        get: operations["getFolderAppSettings"];
+        get: operations["FoldersController__getFolderAppSettings"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Bulk update app settings for a folder */
-        patch: operations["updateFolderAppSettings"];
+        patch: operations["FoldersController__updateFolderAppSettings"];
         trace?: never;
     };
     "/api/v1/access-keys": {
@@ -922,7 +922,7 @@ export interface paths {
             cookie?: never;
         };
         /** List access keys. */
-        get: operations["listAccessKeys"];
+        get: operations["AccessKeysController__listAccessKeys"];
         put?: never;
         post?: never;
         delete?: never;
@@ -939,7 +939,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get an access key by id. */
-        get: operations["getAccessKey"];
+        get: operations["AccessKeysController__getAccessKey"];
         put?: never;
         post?: never;
         delete?: never;
@@ -958,7 +958,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Rotate an access key. */
-        post: operations["rotateAccessKey"];
+        post: operations["AccessKeysController__rotateAccessKey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -973,7 +973,7 @@ export interface paths {
             cookie?: never;
         };
         /** List buckets for an access key. */
-        get: operations["listAccessKeyBuckets"];
+        get: operations["AccessKeysController__listAccessKeyBuckets"];
         put?: never;
         post?: never;
         delete?: never;
@@ -990,7 +990,7 @@ export interface paths {
             cookie?: never;
         };
         /** List server access keys. */
-        get: operations["listServerAccessKeys"];
+        get: operations["ServerAccessKeysController__listServerAccessKeys"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1007,7 +1007,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get server access key by id. */
-        get: operations["getServerAccessKey"];
+        get: operations["ServerAccessKeysController__getServerAccessKey"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1026,7 +1026,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Rotate a server access key. */
-        post: operations["rotateServerAccessKey"];
+        post: operations["ServerAccessKeysController__rotateServerAccessKey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1041,7 +1041,7 @@ export interface paths {
             cookie?: never;
         };
         /** List buckets for an access key. */
-        get: operations["listServerAccessKeyBuckets"];
+        get: operations["ServerAccessKeysController__listServerAccessKeyBuckets"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1058,7 +1058,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a task by id. */
-        get: operations["getTask"];
+        get: operations["ServerTasksController__getTask"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1075,7 +1075,7 @@ export interface paths {
             cookie?: never;
         };
         /** List tasks. */
-        get: operations["listTasks"];
+        get: operations["ServerTasksController__listTasks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1092,7 +1092,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a folder task by id. */
-        get: operations["getFolderTask"];
+        get: operations["TasksController__getFolderTask"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1109,7 +1109,7 @@ export interface paths {
             cookie?: never;
         };
         /** List tasks. */
-        get: operations["listFolderTasks"];
+        get: operations["TasksController__listFolderTasks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1126,9 +1126,9 @@ export interface paths {
             cookie?: never;
         };
         /** Get user's global notification settings. */
-        get: operations["getUserSettings"];
+        get: operations["NotificationSettingsController__getUserSettings"];
         /** Update user's global notification settings. */
-        put: operations["updateUserSettings"];
+        put: operations["NotificationSettingsController__updateUserSettings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1144,9 +1144,9 @@ export interface paths {
             cookie?: never;
         };
         /** Get folder-specific notification settings. */
-        get: operations["getFolderSettings"];
+        get: operations["NotificationSettingsController__getFolderSettings"];
         /** Update folder-specific notification settings. */
-        put: operations["updateFolderSettings"];
+        put: operations["NotificationSettingsController__updateFolderSettings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1162,7 +1162,7 @@ export interface paths {
             cookie?: never;
         };
         /** List user's notifications with pagination, filtering, and sorting. */
-        get: operations["listNotifications"];
+        get: operations["NotificationsController__listNotifications"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1179,7 +1179,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get count of unread notifications. */
-        get: operations["getUnreadCount"];
+        get: operations["NotificationsController__getUnreadCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1196,7 +1196,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single notification by ID. */
-        get: operations["getNotification"];
+        get: operations["NotificationsController__getNotification"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1219,7 +1219,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** Mark a notification as read. */
-        patch: operations["markAsRead"];
+        patch: operations["NotificationsController__markAsRead"];
         trace?: never;
     };
     "/api/v1/auth/login": {
@@ -1232,7 +1232,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Authenticate the user and return access and refresh tokens. */
-        post: operations["login"];
+        post: operations["AuthController__login"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1249,7 +1249,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Register a new user. */
-        post: operations["signup"];
+        post: operations["AuthController__signup"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1269,7 +1269,7 @@ export interface paths {
          * Verify email using the token from the verification link.
          *     Returns 204 No Content on success; infer result from status code.
          */
-        post: operations["verifyEmail"];
+        post: operations["AuthController__verifyEmail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1286,7 +1286,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Logout. Kill the current session. */
-        post: operations["logout"];
+        post: operations["AuthController__logout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1303,7 +1303,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Refresh a session with a refresh token. */
-        post: operations["refreshToken"];
+        post: operations["AuthController__refreshToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1320,7 +1320,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Complete SSO signup by choosing username */
-        post: operations["completeSignup"];
+        post: operations["SSOController__completeSignup"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1337,7 +1337,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Initiate SSO login flow - returns OAuth URL */
-        post: operations["initiateSSO"];
+        post: operations["SSOController__initiateSSO"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1354,7 +1354,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Handle OAuth callback from provider */
-        post: operations["handleCallback"];
+        post: operations["SSOController__handleCallback"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1371,7 +1371,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Link SSO provider to existing account */
-        post: operations["linkProvider"];
+        post: operations["SSOController__linkProvider"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1385,8 +1385,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getViewer"];
-        put: operations["updateViewer"];
+        get: operations["ViewerController__getViewer"];
+        put: operations["ViewerController__updateViewer"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1402,10 +1402,10 @@ export interface paths {
             cookie?: never;
         };
         /** List the users. */
-        get: operations["listUsers"];
+        get: operations["UsersController__listUsers"];
         put?: never;
         /** Create a user. */
-        post: operations["createUser"];
+        post: operations["UsersController__createUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1420,15 +1420,15 @@ export interface paths {
             cookie?: never;
         };
         /** Get a user by id. */
-        get: operations["getUser"];
+        get: operations["UsersController__getUser"];
         put?: never;
         post?: never;
         /** Delete a server user by id. */
-        delete: operations["deleteUser"];
+        delete: operations["UsersController__deleteUser"];
         options?: never;
         head?: never;
         /** Update a user. */
-        patch: operations["updateUser"];
+        patch: operations["UsersController__updateUser"];
         trace?: never;
     };
     "/api/v1/server/users/{userId}/sessions": {
@@ -1438,7 +1438,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["listActiveUserSessions"];
+        get: operations["UsersController__listActiveUserSessions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1460,7 +1460,7 @@ export interface paths {
          * Request presigned URLs for file operations
          * @description Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.
          */
-        post: operations["requestPresignedStorageUrls"];
+        post: operations["DockerWorkerHooksController__requestPresignedStorageUrls"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1480,7 +1480,7 @@ export interface paths {
          * Signal job start
          * @description Marks the associated task as started. The job token must be valid.
          */
-        post: operations["startJob"];
+        post: operations["DockerWorkerHooksController__startJob"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1500,7 +1500,7 @@ export interface paths {
          * Signal job completion
          * @description Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.
          */
-        post: operations["completeJob"];
+        post: operations["DockerWorkerHooksController__completeJob"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1515,10 +1515,10 @@ export interface paths {
             cookie?: never;
         };
         /** List all comments for a folder object */
-        get: operations["listAllComments"];
+        get: operations["CommentsController__listAllComments"];
         put?: never;
         /** Create a comment */
-        post: operations["createComment"];
+        post: operations["CommentsController__createComment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1533,7 +1533,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a comment thread */
-        get: operations["getThread"];
+        get: operations["CommentsController__getThread"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1553,7 +1553,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete a comment */
-        delete: operations["deleteComment"];
+        delete: operations["CommentsController__deleteComment"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1569,7 +1569,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Add a reaction to a comment */
-        post: operations["addReaction"];
+        post: operations["CommentsController__addReaction"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1587,7 +1587,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Remove a reaction from a comment */
-        delete: operations["removeReaction"];
+        delete: operations["CommentsController__removeReaction"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1601,7 +1601,7 @@ export interface paths {
             cookie?: never;
         };
         /** Perform a search query. */
-        get: operations["search"];
+        get: operations["SearchController__search"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1617,13 +1617,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["handleMcp_get"];
-        put: operations["handleMcp_put"];
-        post: operations["handleMcp_post"];
-        delete: operations["handleMcp_delete"];
-        options: operations["handleMcp_options"];
-        head: operations["handleMcp_head"];
-        patch: operations["handleMcp_patch"];
+        get: operations["McpController__handleMcp_get"];
+        put: operations["McpController__handleMcp_put"];
+        post: operations["McpController__handleMcp_post"];
+        delete: operations["McpController__handleMcp_delete"];
+        options: operations["McpController__handleMcp_options"];
+        head: operations["McpController__handleMcp_head"];
+        patch: operations["McpController__handleMcp_patch"];
         trace?: never;
     };
     "/api/v1/user/mcp/tokens": {
@@ -1633,9 +1633,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["listTokens"];
+        get: operations["McpApiController__listTokens"];
         put?: never;
-        post: operations["createToken"];
+        post: operations["McpApiController__createToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1652,7 +1652,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["revokeToken"];
+        delete: operations["McpApiController__revokeToken"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1665,8 +1665,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getUserSettings"];
-        put: operations["updateUserSettings"];
+        get: operations["McpApiController__getUserMcpSettings"];
+        put: operations["McpApiController__updateUserMcpSettings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1681,10 +1681,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getFolderSettings"];
-        put: operations["updateFolderSettings"];
+        get: operations["McpApiController__getFolderMcpSettings"];
+        put: operations["McpApiController__updateFolderSettings"];
         post?: never;
-        delete: operations["deleteFolderSettings"];
+        delete: operations["McpApiController__deleteFolderSettings"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4697,7 +4697,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    installAppFromZip: {
+    AppsController__installAppFromZip: {
         parameters: {
             query?: never;
             header?: never;
@@ -4734,7 +4734,7 @@ export interface operations {
             };
         };
     };
-    listApps: {
+    AppsController__listApps: {
         parameters: {
             query?: {
                 sort?: ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
@@ -4777,7 +4777,7 @@ export interface operations {
             };
         };
     };
-    setAppEnabled: {
+    AppsController__setAppEnabled: {
         parameters: {
             query?: never;
             header?: never;
@@ -4820,7 +4820,7 @@ export interface operations {
             };
         };
     };
-    getApp: {
+    AppsController__getApp: {
         parameters: {
             query?: never;
             header?: never;
@@ -4859,7 +4859,7 @@ export interface operations {
             };
         };
     };
-    uninstallApp: {
+    AppsController__uninstallApp: {
         parameters: {
             query?: never;
             header?: never;
@@ -4896,7 +4896,7 @@ export interface operations {
             };
         };
     };
-    updateAppAccessSettings: {
+    AppsController__updateAppAccessSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -4939,7 +4939,7 @@ export interface operations {
             };
         };
     };
-    setWorkerEnvironmentVariables: {
+    AppsController__setWorkerEnvironmentVariables: {
         parameters: {
             query?: never;
             header?: never;
@@ -4983,7 +4983,7 @@ export interface operations {
             };
         };
     };
-    listApps: {
+    UserAppsController__listApps: {
         parameters: {
             query?: never;
             header?: never;
@@ -5020,7 +5020,7 @@ export interface operations {
             };
         };
     };
-    getApp: {
+    UserAppsController__getApp: {
         parameters: {
             query?: never;
             header?: never;
@@ -5059,7 +5059,7 @@ export interface operations {
             };
         };
     };
-    getAppContributions: {
+    UserAppsController__getAppContributions: {
         parameters: {
             query?: never;
             header?: never;
@@ -5096,7 +5096,7 @@ export interface operations {
             };
         };
     };
-    generateAppUserAccessToken: {
+    UserAppsController__generateAppUserAccessToken: {
         parameters: {
             query?: never;
             header?: never;
@@ -5135,7 +5135,7 @@ export interface operations {
             };
         };
     };
-    getAppUserSettings: {
+    UserAppsController__getAppUserSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -5174,7 +5174,7 @@ export interface operations {
             };
         };
     };
-    upsertAppUserSettings: {
+    UserAppsController__upsertAppUserSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -5217,7 +5217,7 @@ export interface operations {
             };
         };
     };
-    removeAppUserSettings: {
+    UserAppsController__removeAppUserSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -5254,7 +5254,7 @@ export interface operations {
             };
         };
     };
-    getPublicServerSettings: {
+    PublicController__getPublicServerSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -5274,7 +5274,7 @@ export interface operations {
             };
         };
     };
-    getServerSettings: {
+    ServerController__getServerSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -5311,7 +5311,7 @@ export interface operations {
             };
         };
     };
-    setServerSetting: {
+    ServerController__setServerSetting: {
         parameters: {
             query?: never;
             header?: never;
@@ -5354,7 +5354,7 @@ export interface operations {
             };
         };
     };
-    resetServerSetting: {
+    ServerController__resetServerSetting: {
         parameters: {
             query?: never;
             header?: never;
@@ -5393,7 +5393,7 @@ export interface operations {
             };
         };
     };
-    getServerMetrics: {
+    ServerController__getServerMetrics: {
         parameters: {
             query?: never;
             header?: never;
@@ -5430,7 +5430,7 @@ export interface operations {
             };
         };
     };
-    listStorageProvisions: {
+    StorageProvisionsController__listStorageProvisions: {
         parameters: {
             query?: {
                 provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
@@ -5469,7 +5469,7 @@ export interface operations {
             };
         };
     };
-    createUserStorageProvision: {
+    StorageProvisionsController__createUserStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
@@ -5510,7 +5510,7 @@ export interface operations {
             };
         };
     };
-    getStorageProvision: {
+    StorageProvisionsController__getStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
@@ -5549,7 +5549,7 @@ export interface operations {
             };
         };
     };
-    updateStorageProvision: {
+    StorageProvisionsController__updateStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
@@ -5592,7 +5592,7 @@ export interface operations {
             };
         };
     };
-    deleteStorageProvision: {
+    StorageProvisionsController__deleteStorageProvision: {
         parameters: {
             query?: never;
             header?: never;
@@ -5631,7 +5631,7 @@ export interface operations {
             };
         };
     };
-    getServerStorageLocation: {
+    ServerStorageController__getServerStorageLocation: {
         parameters: {
             query?: never;
             header?: never;
@@ -5668,7 +5668,7 @@ export interface operations {
             };
         };
     };
-    setServerStorageLocation: {
+    ServerStorageController__setServerStorageLocation: {
         parameters: {
             query?: never;
             header?: never;
@@ -5709,7 +5709,7 @@ export interface operations {
             };
         };
     };
-    deleteServerStorageLocation: {
+    ServerStorageController__deleteServerStorageLocation: {
         parameters: {
             query?: never;
             header?: never;
@@ -5744,7 +5744,7 @@ export interface operations {
             };
         };
     };
-    getDockerHostsConfig: {
+    ServerDockerHostsController__getDockerHostsConfig: {
         parameters: {
             query?: never;
             header?: never;
@@ -5781,7 +5781,7 @@ export interface operations {
             };
         };
     };
-    getDockerHostsState: {
+    ServerDockerHostsController__getDockerHostsState: {
         parameters: {
             query?: never;
             header?: never;
@@ -5818,7 +5818,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerLogs: {
+    ServerDockerHostsController__getDockerContainerLogs: {
         parameters: {
             query?: {
                 tail?: number;
@@ -5860,7 +5860,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerStats: {
+    ServerDockerHostsController__getDockerContainerStats: {
         parameters: {
             query?: never;
             header?: never;
@@ -5900,7 +5900,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerInspect: {
+    ServerDockerHostsController__getDockerContainerInspect: {
         parameters: {
             query?: never;
             header?: never;
@@ -5940,7 +5940,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerWorkers: {
+    ServerDockerHostsController__getDockerContainerWorkers: {
         parameters: {
             query?: never;
             header?: never;
@@ -5980,7 +5980,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerWorkerDetail: {
+    ServerDockerHostsController__getDockerContainerWorkerDetail: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6023,7 +6023,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerJobs: {
+    ServerDockerHostsController__getDockerContainerJobs: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6065,7 +6065,7 @@ export interface operations {
             };
         };
     };
-    purgeContainerJobs: {
+    ServerDockerHostsController__purgeContainerJobs: {
         parameters: {
             query?: {
                 olderThan?: string;
@@ -6107,7 +6107,7 @@ export interface operations {
             };
         };
     };
-    getDockerContainerJobDetail: {
+    ServerDockerHostsController__getDockerContainerJobDetail: {
         parameters: {
             query?: {
                 tail?: number;
@@ -6150,7 +6150,7 @@ export interface operations {
             };
         };
     };
-    startDockerContainer: {
+    ServerDockerHostsController__startDockerContainer: {
         parameters: {
             query?: never;
             header?: never;
@@ -6190,7 +6190,7 @@ export interface operations {
             };
         };
     };
-    stopDockerContainer: {
+    ServerDockerHostsController__stopDockerContainer: {
         parameters: {
             query?: never;
             header?: never;
@@ -6230,7 +6230,7 @@ export interface operations {
             };
         };
     };
-    restartDockerContainer: {
+    ServerDockerHostsController__restartDockerContainer: {
         parameters: {
             query?: never;
             header?: never;
@@ -6270,7 +6270,7 @@ export interface operations {
             };
         };
     };
-    removeDockerContainer: {
+    ServerDockerHostsController__removeDockerContainer: {
         parameters: {
             query?: never;
             header?: never;
@@ -6310,7 +6310,7 @@ export interface operations {
             };
         };
     };
-    getEvent: {
+    ServerEventsController__getEvent: {
         parameters: {
             query?: never;
             header?: never;
@@ -6349,7 +6349,7 @@ export interface operations {
             };
         };
     };
-    listEvents: {
+    ServerEventsController__listEvents: {
         parameters: {
             query?: {
                 sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
@@ -6393,7 +6393,7 @@ export interface operations {
             };
         };
     };
-    getFolderEvent: {
+    FolderEventsController__getFolderEvent: {
         parameters: {
             query?: never;
             header?: never;
@@ -6433,7 +6433,7 @@ export interface operations {
             };
         };
     };
-    listFolderEvents: {
+    FolderEventsController__listFolderEvents: {
         parameters: {
             query?: {
                 sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
@@ -6478,7 +6478,7 @@ export interface operations {
             };
         };
     };
-    getLog: {
+    ServerLogsController__getLog: {
         parameters: {
             query?: never;
             header?: never;
@@ -6517,7 +6517,7 @@ export interface operations {
             };
         };
     };
-    listLogs: {
+    ServerLogsController__listLogs: {
         parameters: {
             query?: {
                 sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
@@ -6566,7 +6566,7 @@ export interface operations {
             };
         };
     };
-    getFolderLog: {
+    FolderLogsController__getFolderLog: {
         parameters: {
             query?: never;
             header?: never;
@@ -6606,7 +6606,7 @@ export interface operations {
             };
         };
     };
-    listFolderLogs: {
+    FolderLogsController__listFolderLogs: {
         parameters: {
             query?: {
                 sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
@@ -6656,7 +6656,7 @@ export interface operations {
             };
         };
     };
-    getFolder: {
+    FoldersController__getFolder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6695,7 +6695,7 @@ export interface operations {
             };
         };
     };
-    updateFolder: {
+    FoldersController__updateFolder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6738,7 +6738,7 @@ export interface operations {
             };
         };
     };
-    deleteFolder: {
+    FoldersController__deleteFolder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6775,7 +6775,7 @@ export interface operations {
             };
         };
     };
-    checkFolderAccess: {
+    FoldersController__checkFolderAccess: {
         parameters: {
             query?: never;
             header?: never;
@@ -6812,7 +6812,7 @@ export interface operations {
             };
         };
     };
-    getFolderMetadata: {
+    FoldersController__getFolderMetadata: {
         parameters: {
             query?: never;
             header?: never;
@@ -6851,7 +6851,7 @@ export interface operations {
             };
         };
     };
-    listFolders: {
+    FoldersController__listFolders: {
         parameters: {
             query?: {
                 offset?: number;
@@ -6893,7 +6893,7 @@ export interface operations {
             };
         };
     };
-    createFolder: {
+    FoldersController__createFolder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6934,7 +6934,7 @@ export interface operations {
             };
         };
     };
-    reindexFolder: {
+    FoldersController__reindexFolder: {
         parameters: {
             query?: never;
             header?: never;
@@ -6971,7 +6971,7 @@ export interface operations {
             };
         };
     };
-    listFolderObjects: {
+    FoldersController__listFolderObjects: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -7021,7 +7021,7 @@ export interface operations {
             };
         };
     };
-    getFolderObject: {
+    FoldersController__getFolderObject: {
         parameters: {
             query?: never;
             header?: never;
@@ -7061,7 +7061,7 @@ export interface operations {
             };
         };
     };
-    deleteFolderObject: {
+    FoldersController__deleteFolderObject: {
         parameters: {
             query?: never;
             header?: never;
@@ -7099,7 +7099,7 @@ export interface operations {
             };
         };
     };
-    createPresignedUrls: {
+    FoldersController__createPresignedUrls: {
         parameters: {
             query?: never;
             header?: never;
@@ -7142,7 +7142,7 @@ export interface operations {
             };
         };
     };
-    refreshFolderObjectS3Metadata: {
+    FoldersController__refreshFolderObjectS3Metadata: {
         parameters: {
             query?: never;
             header?: never;
@@ -7182,7 +7182,7 @@ export interface operations {
             };
         };
     };
-    getFolderShares: {
+    FoldersController__getFolderShares: {
         parameters: {
             query?: never;
             header?: never;
@@ -7222,7 +7222,7 @@ export interface operations {
             };
         };
     };
-    upsertFolderShare: {
+    FoldersController__upsertFolderShare: {
         parameters: {
             query?: never;
             header?: never;
@@ -7266,7 +7266,7 @@ export interface operations {
             };
         };
     };
-    removeFolderShare: {
+    FoldersController__removeFolderShare: {
         parameters: {
             query?: never;
             header?: never;
@@ -7304,7 +7304,7 @@ export interface operations {
             };
         };
     };
-    listFolderShares: {
+    FoldersController__listFolderShares: {
         parameters: {
             query?: never;
             header?: never;
@@ -7343,7 +7343,7 @@ export interface operations {
             };
         };
     };
-    listFolderShareUsers: {
+    FoldersController__listFolderShareUsers: {
         parameters: {
             query?: {
                 offset?: number;
@@ -7386,7 +7386,7 @@ export interface operations {
             };
         };
     };
-    getFolderAppSettings: {
+    FoldersController__getFolderAppSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -7425,7 +7425,7 @@ export interface operations {
             };
         };
     };
-    updateFolderAppSettings: {
+    FoldersController__updateFolderAppSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -7468,7 +7468,7 @@ export interface operations {
             };
         };
     };
-    listAccessKeys: {
+    AccessKeysController__listAccessKeys: {
         parameters: {
             query?: {
                 offset?: number;
@@ -7509,7 +7509,7 @@ export interface operations {
             };
         };
     };
-    getAccessKey: {
+    AccessKeysController__getAccessKey: {
         parameters: {
             query?: never;
             header?: never;
@@ -7548,7 +7548,7 @@ export interface operations {
             };
         };
     };
-    rotateAccessKey: {
+    AccessKeysController__rotateAccessKey: {
         parameters: {
             query?: never;
             header?: never;
@@ -7591,7 +7591,7 @@ export interface operations {
             };
         };
     };
-    listAccessKeyBuckets: {
+    AccessKeysController__listAccessKeyBuckets: {
         parameters: {
             query?: never;
             header?: never;
@@ -7630,7 +7630,7 @@ export interface operations {
             };
         };
     };
-    listServerAccessKeys: {
+    ServerAccessKeysController__listServerAccessKeys: {
         parameters: {
             query?: {
                 offset?: number;
@@ -7671,7 +7671,7 @@ export interface operations {
             };
         };
     };
-    getServerAccessKey: {
+    ServerAccessKeysController__getServerAccessKey: {
         parameters: {
             query?: never;
             header?: never;
@@ -7710,7 +7710,7 @@ export interface operations {
             };
         };
     };
-    rotateServerAccessKey: {
+    ServerAccessKeysController__rotateServerAccessKey: {
         parameters: {
             query?: never;
             header?: never;
@@ -7753,7 +7753,7 @@ export interface operations {
             };
         };
     };
-    listServerAccessKeyBuckets: {
+    ServerAccessKeysController__listServerAccessKeyBuckets: {
         parameters: {
             query?: never;
             header?: never;
@@ -7792,7 +7792,7 @@ export interface operations {
             };
         };
     };
-    getTask: {
+    ServerTasksController__getTask: {
         parameters: {
             query?: never;
             header?: never;
@@ -7831,7 +7831,7 @@ export interface operations {
             };
         };
     };
-    listTasks: {
+    ServerTasksController__listTasks: {
         parameters: {
             query?: {
                 objectKey?: string;
@@ -7879,7 +7879,7 @@ export interface operations {
             };
         };
     };
-    getFolderTask: {
+    TasksController__getFolderTask: {
         parameters: {
             query?: never;
             header?: never;
@@ -7919,7 +7919,7 @@ export interface operations {
             };
         };
     };
-    listFolderTasks: {
+    TasksController__listFolderTasks: {
         parameters: {
             query?: {
                 objectKey?: string;
@@ -7968,7 +7968,7 @@ export interface operations {
             };
         };
     };
-    getUserSettings: {
+    NotificationSettingsController__getUserSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8005,7 +8005,7 @@ export interface operations {
             };
         };
     };
-    updateUserSettings: {
+    NotificationSettingsController__updateUserSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8046,7 +8046,7 @@ export interface operations {
             };
         };
     };
-    getFolderSettings: {
+    NotificationSettingsController__getFolderSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8085,7 +8085,7 @@ export interface operations {
             };
         };
     };
-    updateFolderSettings: {
+    NotificationSettingsController__updateFolderSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8128,7 +8128,7 @@ export interface operations {
             };
         };
     };
-    listNotifications: {
+    NotificationsController__listNotifications: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -8172,7 +8172,7 @@ export interface operations {
             };
         };
     };
-    getUnreadCount: {
+    NotificationsController__getUnreadCount: {
         parameters: {
             query?: never;
             header?: never;
@@ -8209,7 +8209,7 @@ export interface operations {
             };
         };
     };
-    getNotification: {
+    NotificationsController__getNotification: {
         parameters: {
             query?: never;
             header?: never;
@@ -8248,7 +8248,7 @@ export interface operations {
             };
         };
     };
-    markAsRead: {
+    NotificationsController__markAsRead: {
         parameters: {
             query?: never;
             header?: never;
@@ -8285,7 +8285,7 @@ export interface operations {
             };
         };
     };
-    login: {
+    AuthController__login: {
         parameters: {
             query?: never;
             header?: never;
@@ -8326,7 +8326,7 @@ export interface operations {
             };
         };
     };
-    signup: {
+    AuthController__signup: {
         parameters: {
             query?: never;
             header?: never;
@@ -8367,7 +8367,7 @@ export interface operations {
             };
         };
     };
-    verifyEmail: {
+    AuthController__verifyEmail: {
         parameters: {
             query?: never;
             header?: never;
@@ -8406,7 +8406,7 @@ export interface operations {
             };
         };
     };
-    logout: {
+    AuthController__logout: {
         parameters: {
             query?: never;
             header?: never;
@@ -8443,7 +8443,7 @@ export interface operations {
             };
         };
     };
-    refreshToken: {
+    AuthController__refreshToken: {
         parameters: {
             query?: never;
             header?: never;
@@ -8482,7 +8482,7 @@ export interface operations {
             };
         };
     };
-    completeSignup: {
+    SSOController__completeSignup: {
         parameters: {
             query?: never;
             header?: never;
@@ -8523,7 +8523,7 @@ export interface operations {
             };
         };
     };
-    initiateSSO: {
+    SSOController__initiateSSO: {
         parameters: {
             query?: never;
             header?: never;
@@ -8562,7 +8562,7 @@ export interface operations {
             };
         };
     };
-    handleCallback: {
+    SSOController__handleCallback: {
         parameters: {
             query?: never;
             header?: never;
@@ -8605,7 +8605,7 @@ export interface operations {
             };
         };
     };
-    linkProvider: {
+    SSOController__linkProvider: {
         parameters: {
             query?: never;
             header?: never;
@@ -8646,7 +8646,7 @@ export interface operations {
             };
         };
     };
-    getViewer: {
+    ViewerController__getViewer: {
         parameters: {
             query?: never;
             header?: never;
@@ -8665,7 +8665,7 @@ export interface operations {
             };
         };
     };
-    updateViewer: {
+    ViewerController__updateViewer: {
         parameters: {
             query?: never;
             header?: never;
@@ -8688,7 +8688,7 @@ export interface operations {
             };
         };
     };
-    listUsers: {
+    UsersController__listUsers: {
         parameters: {
             query?: {
                 offset?: number;
@@ -8731,7 +8731,7 @@ export interface operations {
             };
         };
     };
-    createUser: {
+    UsersController__createUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -8772,7 +8772,7 @@ export interface operations {
             };
         };
     };
-    getUser: {
+    UsersController__getUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -8811,7 +8811,7 @@ export interface operations {
             };
         };
     };
-    deleteUser: {
+    UsersController__deleteUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -8848,7 +8848,7 @@ export interface operations {
             };
         };
     };
-    updateUser: {
+    UsersController__updateUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -8891,7 +8891,7 @@ export interface operations {
             };
         };
     };
-    listActiveUserSessions: {
+    UsersController__listActiveUserSessions: {
         parameters: {
             query?: never;
             header?: never;
@@ -8930,7 +8930,7 @@ export interface operations {
             };
         };
     };
-    requestPresignedStorageUrls: {
+    DockerWorkerHooksController__requestPresignedStorageUrls: {
         parameters: {
             query?: never;
             header?: never;
@@ -8973,7 +8973,7 @@ export interface operations {
             };
         };
     };
-    startJob: {
+    DockerWorkerHooksController__startJob: {
         parameters: {
             query?: never;
             header?: never;
@@ -9010,7 +9010,7 @@ export interface operations {
             };
         };
     };
-    completeJob: {
+    DockerWorkerHooksController__completeJob: {
         parameters: {
             query?: never;
             header?: never;
@@ -9051,7 +9051,7 @@ export interface operations {
             };
         };
     };
-    listAllComments: {
+    CommentsController__listAllComments: {
         parameters: {
             query?: never;
             header?: never;
@@ -9063,7 +9063,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description List of all comments */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9092,7 +9091,7 @@ export interface operations {
             };
         };
     };
-    createComment: {
+    CommentsController__createComment: {
         parameters: {
             query?: never;
             header?: never;
@@ -9108,7 +9107,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Comment created */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -9137,7 +9135,7 @@ export interface operations {
             };
         };
     };
-    getThread: {
+    CommentsController__getThread: {
         parameters: {
             query?: never;
             header?: never;
@@ -9150,7 +9148,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Comment thread */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9179,7 +9176,7 @@ export interface operations {
             };
         };
     };
-    deleteComment: {
+    CommentsController__deleteComment: {
         parameters: {
             query?: never;
             header?: never;
@@ -9192,7 +9189,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Comment deleted */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9221,7 +9217,7 @@ export interface operations {
             };
         };
     };
-    addReaction: {
+    CommentsController__addReaction: {
         parameters: {
             query?: never;
             header?: never;
@@ -9238,7 +9234,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Reaction added */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -9265,7 +9260,7 @@ export interface operations {
             };
         };
     };
-    removeReaction: {
+    CommentsController__removeReaction: {
         parameters: {
             query?: never;
             header?: never;
@@ -9279,7 +9274,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Reaction removed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9306,7 +9300,7 @@ export interface operations {
             };
         };
     };
-    search: {
+    SearchController__search: {
         parameters: {
             query: {
                 q: string;
@@ -9349,7 +9343,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_get: {
+    McpController__handleMcp_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -9366,7 +9360,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_put: {
+    McpController__handleMcp_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -9383,7 +9377,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_post: {
+    McpController__handleMcp_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -9400,7 +9394,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_delete: {
+    McpController__handleMcp_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -9417,7 +9411,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_options: {
+    McpController__handleMcp_options: {
         parameters: {
             query?: never;
             header?: never;
@@ -9434,7 +9428,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_head: {
+    McpController__handleMcp_head: {
         parameters: {
             query?: never;
             header?: never;
@@ -9451,7 +9445,7 @@ export interface operations {
             };
         };
     };
-    handleMcp_patch: {
+    McpController__handleMcp_patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -9468,7 +9462,7 @@ export interface operations {
             };
         };
     };
-    listTokens: {
+    McpApiController__listTokens: {
         parameters: {
             query?: never;
             header?: never;
@@ -9477,7 +9471,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description List of active MCP tokens */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9506,7 +9499,7 @@ export interface operations {
             };
         };
     };
-    createToken: {
+    McpApiController__createToken: {
         parameters: {
             query?: never;
             header?: never;
@@ -9519,7 +9512,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description MCP token created */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -9548,7 +9540,7 @@ export interface operations {
             };
         };
     };
-    revokeToken: {
+    McpApiController__revokeToken: {
         parameters: {
             query?: never;
             header?: never;
@@ -9559,7 +9551,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description MCP token revoked */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9588,7 +9579,7 @@ export interface operations {
             };
         };
     };
-    getUserSettings: {
+    McpApiController__getUserMcpSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -9597,7 +9588,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description User MCP permission settings */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9626,7 +9616,7 @@ export interface operations {
             };
         };
     };
-    updateUserSettings: {
+    McpApiController__updateUserMcpSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -9639,7 +9629,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Updated user MCP permission settings */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9668,7 +9657,7 @@ export interface operations {
             };
         };
     };
-    getFolderSettings: {
+    McpApiController__getFolderMcpSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -9679,7 +9668,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Folder MCP permission settings */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9708,7 +9696,7 @@ export interface operations {
             };
         };
     };
-    updateFolderSettings: {
+    McpApiController__updateFolderSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -9723,7 +9711,6 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Updated folder MCP permission settings */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -9752,7 +9739,7 @@ export interface operations {
             };
         };
     };
-    deleteFolderSettings: {
+    McpApiController__deleteFolderSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -9763,7 +9750,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Folder MCP settings cleared */
             200: {
                 headers: {
                     [name: string]: unknown;

@@ -3,7 +3,7 @@
   "paths": {
     "/api/v1/server/apps/install": {
       "post": {
-        "operationId": "installAppFromZip",
+        "operationId": "AppsController__installAppFromZip",
         "parameters": [],
         "responses": {
           "201": {
@@ -49,7 +49,7 @@
     },
     "/api/v1/server/apps": {
       "get": {
-        "operationId": "listApps",
+        "operationId": "AppsController__listApps",
         "parameters": [
           {
             "name": "sort",
@@ -166,7 +166,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}/enabled": {
       "put": {
-        "operationId": "setAppEnabled",
+        "operationId": "AppsController__setAppEnabled",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -231,7 +231,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}": {
       "get": {
-        "operationId": "getApp",
+        "operationId": "AppsController__getApp",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -284,7 +284,7 @@
         ]
       },
       "delete": {
-        "operationId": "uninstallApp",
+        "operationId": "AppsController__uninstallApp",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -332,7 +332,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}/access-settings": {
       "put": {
-        "operationId": "updateAppAccessSettings",
+        "operationId": "AppsController__updateAppAccessSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -397,7 +397,7 @@
     },
     "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/environment-variables": {
       "put": {
-        "operationId": "setWorkerEnvironmentVariables",
+        "operationId": "AppsController__setWorkerEnvironmentVariables",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -470,7 +470,7 @@
     },
     "/api/v1/user/apps": {
       "get": {
-        "operationId": "listApps",
+        "operationId": "UserAppsController__listApps",
         "parameters": [],
         "responses": {
           "200": {
@@ -517,7 +517,7 @@
     },
     "/api/v1/user/apps/{appIdentifier}": {
       "get": {
-        "operationId": "getApp",
+        "operationId": "UserAppsController__getApp",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -573,7 +573,7 @@
     },
     "/api/v1/user/app-contributions": {
       "get": {
-        "operationId": "getAppContributions",
+        "operationId": "UserAppsController__getAppContributions",
         "parameters": [],
         "responses": {
           "200": {
@@ -620,7 +620,7 @@
     },
     "/api/v1/user/apps/{appIdentifier}/access-token": {
       "post": {
-        "operationId": "generateAppUserAccessToken",
+        "operationId": "UserAppsController__generateAppUserAccessToken",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -676,7 +676,7 @@
     },
     "/api/v1/user/apps/{appIdentifier}/settings": {
       "get": {
-        "operationId": "getAppUserSettings",
+        "operationId": "UserAppsController__getAppUserSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -730,7 +730,7 @@
         ]
       },
       "post": {
-        "operationId": "upsertAppUserSettings",
+        "operationId": "UserAppsController__upsertAppUserSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -794,7 +794,7 @@
         ]
       },
       "delete": {
-        "operationId": "removeAppUserSettings",
+        "operationId": "UserAppsController__removeAppUserSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -843,7 +843,7 @@
     },
     "/api/v1/public/settings": {
       "get": {
-        "operationId": "getPublicServerSettings",
+        "operationId": "PublicController__getPublicServerSettings",
         "parameters": [],
         "responses": {
           "200": {
@@ -865,7 +865,7 @@
     },
     "/api/v1/server/settings": {
       "get": {
-        "operationId": "getServerSettings",
+        "operationId": "ServerController__getServerSettings",
         "parameters": [],
         "responses": {
           "200": {
@@ -912,7 +912,7 @@
     },
     "/api/v1/server/settings/{settingKey}": {
       "put": {
-        "operationId": "setServerSetting",
+        "operationId": "ServerController__setServerSetting",
         "parameters": [
           {
             "name": "settingKey",
@@ -976,7 +976,7 @@
         ]
       },
       "delete": {
-        "operationId": "resetServerSetting",
+        "operationId": "ServerController__resetServerSetting",
         "parameters": [
           {
             "name": "settingKey",
@@ -1032,7 +1032,7 @@
     },
     "/api/v1/server/metrics": {
       "get": {
-        "operationId": "getServerMetrics",
+        "operationId": "ServerController__getServerMetrics",
         "parameters": [],
         "responses": {
           "200": {
@@ -1079,7 +1079,7 @@
     },
     "/api/v1/server/storage-provisions": {
       "get": {
-        "operationId": "listStorageProvisions",
+        "operationId": "StorageProvisionsController__listStorageProvisions",
         "parameters": [
           {
             "name": "provisionType",
@@ -1138,7 +1138,7 @@
         ]
       },
       "post": {
-        "operationId": "createUserStorageProvision",
+        "operationId": "StorageProvisionsController__createUserStorageProvision",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1195,7 +1195,7 @@
     },
     "/api/v1/server/storage-provisions/{storageProvisionId}": {
       "get": {
-        "operationId": "getStorageProvision",
+        "operationId": "StorageProvisionsController__getStorageProvision",
         "parameters": [
           {
             "name": "storageProvisionId",
@@ -1249,7 +1249,7 @@
         ]
       },
       "put": {
-        "operationId": "updateStorageProvision",
+        "operationId": "StorageProvisionsController__updateStorageProvision",
         "parameters": [
           {
             "name": "storageProvisionId",
@@ -1313,7 +1313,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteStorageProvision",
+        "operationId": "StorageProvisionsController__deleteStorageProvision",
         "parameters": [
           {
             "name": "storageProvisionId",
@@ -1369,7 +1369,7 @@
     },
     "/api/v1/server/server-storage": {
       "get": {
-        "operationId": "getServerStorageLocation",
+        "operationId": "ServerStorageController__getServerStorageLocation",
         "parameters": [],
         "responses": {
           "200": {
@@ -1414,7 +1414,7 @@
         ]
       },
       "post": {
-        "operationId": "setServerStorageLocation",
+        "operationId": "ServerStorageController__setServerStorageLocation",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1469,7 +1469,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteServerStorageLocation",
+        "operationId": "ServerStorageController__deleteServerStorageLocation",
         "parameters": [],
         "responses": {
           "200": {
@@ -1509,7 +1509,7 @@
     },
     "/api/v1/server/docker-hosts": {
       "get": {
-        "operationId": "getDockerHostsConfig",
+        "operationId": "ServerDockerHostsController__getDockerHostsConfig",
         "parameters": [],
         "responses": {
           "200": {
@@ -1556,7 +1556,7 @@
     },
     "/api/v1/server/docker-hosts/state": {
       "get": {
-        "operationId": "getDockerHostsState",
+        "operationId": "ServerDockerHostsController__getDockerHostsState",
         "parameters": [],
         "responses": {
           "200": {
@@ -1603,7 +1603,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/logs": {
       "get": {
-        "operationId": "getDockerContainerLogs",
+        "operationId": "ServerDockerHostsController__getDockerContainerLogs",
         "parameters": [
           {
             "name": "hostId",
@@ -1677,7 +1677,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stats": {
       "get": {
-        "operationId": "getDockerContainerStats",
+        "operationId": "ServerDockerHostsController__getDockerContainerStats",
         "parameters": [
           {
             "name": "hostId",
@@ -1741,7 +1741,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/inspect": {
       "get": {
-        "operationId": "getDockerContainerInspect",
+        "operationId": "ServerDockerHostsController__getDockerContainerInspect",
         "parameters": [
           {
             "name": "hostId",
@@ -1805,7 +1805,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers": {
       "get": {
-        "operationId": "getDockerContainerWorkers",
+        "operationId": "ServerDockerHostsController__getDockerContainerWorkers",
         "parameters": [
           {
             "name": "hostId",
@@ -1869,7 +1869,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/workers/{workerId}": {
       "get": {
-        "operationId": "getDockerContainerWorkerDetail",
+        "operationId": "ServerDockerHostsController__getDockerContainerWorkerDetail",
         "parameters": [
           {
             "name": "hostId",
@@ -1951,7 +1951,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs": {
       "get": {
-        "operationId": "getDockerContainerJobs",
+        "operationId": "ServerDockerHostsController__getDockerContainerJobs",
         "parameters": [
           {
             "name": "hostId",
@@ -2025,7 +2025,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/purge-jobs": {
       "post": {
-        "operationId": "purgeContainerJobs",
+        "operationId": "ServerDockerHostsController__purgeContainerJobs",
         "parameters": [
           {
             "name": "hostId",
@@ -2097,7 +2097,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/jobs/{jobId}": {
       "get": {
-        "operationId": "getDockerContainerJobDetail",
+        "operationId": "ServerDockerHostsController__getDockerContainerJobDetail",
         "parameters": [
           {
             "name": "hostId",
@@ -2179,7 +2179,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/start": {
       "post": {
-        "operationId": "startDockerContainer",
+        "operationId": "ServerDockerHostsController__startDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2243,7 +2243,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/stop": {
       "post": {
-        "operationId": "stopDockerContainer",
+        "operationId": "ServerDockerHostsController__stopDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2307,7 +2307,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/restart": {
       "post": {
-        "operationId": "restartDockerContainer",
+        "operationId": "ServerDockerHostsController__restartDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2371,7 +2371,7 @@
     },
     "/api/v1/server/docker-hosts/{hostId}/containers/{containerId}/remove": {
       "post": {
-        "operationId": "removeDockerContainer",
+        "operationId": "ServerDockerHostsController__removeDockerContainer",
         "parameters": [
           {
             "name": "hostId",
@@ -2435,7 +2435,7 @@
     },
     "/api/v1/server/events/{eventId}": {
       "get": {
-        "operationId": "getEvent",
+        "operationId": "ServerEventsController__getEvent",
         "parameters": [
           {
             "name": "eventId",
@@ -2491,7 +2491,7 @@
     },
     "/api/v1/server/events": {
       "get": {
-        "operationId": "listEvents",
+        "operationId": "ServerEventsController__listEvents",
         "parameters": [
           {
             "name": "sort",
@@ -2619,7 +2619,7 @@
     },
     "/api/v1/folders/{folderId}/events/{eventId}": {
       "get": {
-        "operationId": "getFolderEvent",
+        "operationId": "FolderEventsController__getFolderEvent",
         "parameters": [
           {
             "name": "folderId",
@@ -2683,7 +2683,7 @@
     },
     "/api/v1/folders/{folderId}/events": {
       "get": {
-        "operationId": "listFolderEvents",
+        "operationId": "FolderEventsController__listFolderEvents",
         "parameters": [
           {
             "name": "sort",
@@ -2809,7 +2809,7 @@
     },
     "/api/v1/server/logs/{logId}": {
       "get": {
-        "operationId": "getLog",
+        "operationId": "ServerLogsController__getLog",
         "parameters": [
           {
             "name": "logId",
@@ -2865,7 +2865,7 @@
     },
     "/api/v1/server/logs": {
       "get": {
-        "operationId": "listLogs",
+        "operationId": "ServerLogsController__listLogs",
         "parameters": [
           {
             "name": "sort",
@@ -3038,7 +3038,7 @@
     },
     "/api/v1/folders/{folderId}/logs/{logId}": {
       "get": {
-        "operationId": "getFolderLog",
+        "operationId": "FolderLogsController__getFolderLog",
         "parameters": [
           {
             "name": "folderId",
@@ -3102,7 +3102,7 @@
     },
     "/api/v1/folders/{folderId}/logs": {
       "get": {
-        "operationId": "listFolderLogs",
+        "operationId": "FolderLogsController__listFolderLogs",
         "parameters": [
           {
             "name": "sort",
@@ -3273,7 +3273,7 @@
     },
     "/api/v1/folders/{folderId}": {
       "get": {
-        "operationId": "getFolder",
+        "operationId": "FoldersController__getFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3327,7 +3327,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteFolder",
+        "operationId": "FoldersController__deleteFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3374,7 +3374,7 @@
         ]
       },
       "put": {
-        "operationId": "updateFolder",
+        "operationId": "FoldersController__updateFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3440,7 +3440,7 @@
     },
     "/api/v1/folders/{folderId}/check-access": {
       "post": {
-        "operationId": "checkFolderAccess",
+        "operationId": "FoldersController__checkFolderAccess",
         "parameters": [
           {
             "name": "folderId",
@@ -3489,7 +3489,7 @@
     },
     "/api/v1/folders/{folderId}/metadata": {
       "get": {
-        "operationId": "getFolderMetadata",
+        "operationId": "FoldersController__getFolderMetadata",
         "parameters": [
           {
             "name": "folderId",
@@ -3545,7 +3545,7 @@
     },
     "/api/v1/folders": {
       "get": {
-        "operationId": "listFolders",
+        "operationId": "FoldersController__listFolders",
         "parameters": [
           {
             "name": "offset",
@@ -3649,7 +3649,7 @@
         ]
       },
       "post": {
-        "operationId": "createFolder",
+        "operationId": "FoldersController__createFolder",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -3706,7 +3706,7 @@
     },
     "/api/v1/folders/{folderId}/reindex": {
       "post": {
-        "operationId": "reindexFolder",
+        "operationId": "FoldersController__reindexFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -3755,7 +3755,7 @@
     },
     "/api/v1/folders/{folderId}/objects": {
       "get": {
-        "operationId": "listFolderObjects",
+        "operationId": "FoldersController__listFolderObjects",
         "parameters": [
           {
             "name": "folderId",
@@ -3930,7 +3930,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{objectKey}": {
       "get": {
-        "operationId": "getFolderObject",
+        "operationId": "FoldersController__getFolderObject",
         "parameters": [
           {
             "name": "folderId",
@@ -3992,7 +3992,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteFolderObject",
+        "operationId": "FoldersController__deleteFolderObject",
         "parameters": [
           {
             "name": "folderId",
@@ -4049,7 +4049,7 @@
     },
     "/api/v1/folders/{folderId}/presigned-urls": {
       "post": {
-        "operationId": "createPresignedUrls",
+        "operationId": "FoldersController__createPresignedUrls",
         "parameters": [
           {
             "name": "folderId",
@@ -4115,7 +4115,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{objectKey}/refresh": {
       "post": {
-        "operationId": "refreshFolderObjectS3Metadata",
+        "operationId": "FoldersController__refreshFolderObjectS3Metadata",
         "parameters": [
           {
             "name": "folderId",
@@ -4179,7 +4179,7 @@
     },
     "/api/v1/folders/{folderId}/shares/{userId}": {
       "get": {
-        "operationId": "getFolderShares",
+        "operationId": "FoldersController__getFolderShares",
         "parameters": [
           {
             "name": "folderId",
@@ -4241,7 +4241,7 @@
         ]
       },
       "post": {
-        "operationId": "upsertFolderShare",
+        "operationId": "FoldersController__upsertFolderShare",
         "parameters": [
           {
             "name": "folderId",
@@ -4313,7 +4313,7 @@
         ]
       },
       "delete": {
-        "operationId": "removeFolderShare",
+        "operationId": "FoldersController__removeFolderShare",
         "parameters": [
           {
             "name": "folderId",
@@ -4370,7 +4370,7 @@
     },
     "/api/v1/folders/{folderId}/shares": {
       "get": {
-        "operationId": "listFolderShares",
+        "operationId": "FoldersController__listFolderShares",
         "parameters": [
           {
             "name": "folderId",
@@ -4426,7 +4426,7 @@
     },
     "/api/v1/folders/{folderId}/user-share-options": {
       "get": {
-        "operationId": "listFolderShareUsers",
+        "operationId": "FoldersController__listFolderShareUsers",
         "parameters": [
           {
             "name": "folderId",
@@ -4506,7 +4506,7 @@
     },
     "/api/v1/folders/{folderId}/app-settings": {
       "get": {
-        "operationId": "getFolderAppSettings",
+        "operationId": "FoldersController__getFolderAppSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -4560,7 +4560,7 @@
         ]
       },
       "patch": {
-        "operationId": "updateFolderAppSettings",
+        "operationId": "FoldersController__updateFolderAppSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -4626,7 +4626,7 @@
     },
     "/api/v1/access-keys": {
       "get": {
-        "operationId": "listAccessKeys",
+        "operationId": "AccessKeysController__listAccessKeys",
         "parameters": [
           {
             "name": "offset",
@@ -4728,7 +4728,7 @@
     },
     "/api/v1/access-keys/{accessKeyHashId}": {
       "get": {
-        "operationId": "getAccessKey",
+        "operationId": "AccessKeysController__getAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -4784,7 +4784,7 @@
     },
     "/api/v1/access-keys/{accessKeyHashId}/rotate": {
       "post": {
-        "operationId": "rotateAccessKey",
+        "operationId": "AccessKeysController__rotateAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -4850,7 +4850,7 @@
     },
     "/api/v1/access-keys/{accessKeyHashId}/buckets": {
       "get": {
-        "operationId": "listAccessKeyBuckets",
+        "operationId": "AccessKeysController__listAccessKeyBuckets",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -4906,7 +4906,7 @@
     },
     "/api/v1/server/access-keys": {
       "get": {
-        "operationId": "listServerAccessKeys",
+        "operationId": "ServerAccessKeysController__listServerAccessKeys",
         "parameters": [
           {
             "name": "offset",
@@ -5008,7 +5008,7 @@
     },
     "/api/v1/server/access-keys/{accessKeyHashId}": {
       "get": {
-        "operationId": "getServerAccessKey",
+        "operationId": "ServerAccessKeysController__getServerAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -5064,7 +5064,7 @@
     },
     "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
       "post": {
-        "operationId": "rotateServerAccessKey",
+        "operationId": "ServerAccessKeysController__rotateServerAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -5130,7 +5130,7 @@
     },
     "/api/v1/server/access-keys/{accessKeyHashId}/buckets": {
       "get": {
-        "operationId": "listServerAccessKeyBuckets",
+        "operationId": "ServerAccessKeysController__listServerAccessKeyBuckets",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -5186,7 +5186,7 @@
     },
     "/api/v1/server/tasks/{taskId}": {
       "get": {
-        "operationId": "getTask",
+        "operationId": "ServerTasksController__getTask",
         "parameters": [
           {
             "name": "taskId",
@@ -5242,7 +5242,7 @@
     },
     "/api/v1/server/tasks": {
       "get": {
-        "operationId": "listTasks",
+        "operationId": "ServerTasksController__listTasks",
         "parameters": [
           {
             "name": "objectKey",
@@ -5406,7 +5406,7 @@
     },
     "/api/v1/folders/{folderId}/tasks/{taskId}": {
       "get": {
-        "operationId": "getFolderTask",
+        "operationId": "TasksController__getFolderTask",
         "parameters": [
           {
             "name": "folderId",
@@ -5470,7 +5470,7 @@
     },
     "/api/v1/folders/{folderId}/tasks": {
       "get": {
-        "operationId": "listFolderTasks",
+        "operationId": "TasksController__listFolderTasks",
         "parameters": [
           {
             "name": "objectKey",
@@ -5632,7 +5632,7 @@
     },
     "/api/v1/notifications/settings": {
       "get": {
-        "operationId": "getUserSettings",
+        "operationId": "NotificationSettingsController__getUserSettings",
         "parameters": [],
         "responses": {
           "200": {
@@ -5677,7 +5677,7 @@
         ]
       },
       "put": {
-        "operationId": "updateUserSettings",
+        "operationId": "NotificationSettingsController__updateUserSettings",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -5734,7 +5734,7 @@
     },
     "/api/v1/notifications/settings/folders/{folderId}": {
       "get": {
-        "operationId": "getFolderSettings",
+        "operationId": "NotificationSettingsController__getFolderSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -5788,7 +5788,7 @@
         ]
       },
       "put": {
-        "operationId": "updateFolderSettings",
+        "operationId": "NotificationSettingsController__updateFolderSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -5854,7 +5854,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "operationId": "listNotifications",
+        "operationId": "NotificationsController__listNotifications",
         "parameters": [
           {
             "name": "cursor",
@@ -5954,7 +5954,7 @@
     },
     "/api/v1/notifications/unread-count": {
       "get": {
-        "operationId": "getUnreadCount",
+        "operationId": "NotificationsController__getUnreadCount",
         "parameters": [],
         "responses": {
           "200": {
@@ -6001,7 +6001,7 @@
     },
     "/api/v1/notifications/{notificationId}": {
       "get": {
-        "operationId": "getNotification",
+        "operationId": "NotificationsController__getNotification",
         "parameters": [
           {
             "name": "notificationId",
@@ -6057,7 +6057,7 @@
     },
     "/api/v1/notifications/{id}/read": {
       "patch": {
-        "operationId": "markAsRead",
+        "operationId": "NotificationsController__markAsRead",
         "parameters": [
           {
             "name": "id",
@@ -6106,7 +6106,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "operationId": "login",
+        "operationId": "AuthController__login",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6158,7 +6158,7 @@
     },
     "/api/v1/auth/signup": {
       "post": {
-        "operationId": "signup",
+        "operationId": "AuthController__signup",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6210,7 +6210,7 @@
     },
     "/api/v1/auth/verify-email": {
       "post": {
-        "operationId": "verifyEmail",
+        "operationId": "AuthController__verifyEmail",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6255,7 +6255,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "operationId": "logout",
+        "operationId": "AuthController__logout",
         "parameters": [],
         "responses": {
           "201": {
@@ -6302,7 +6302,7 @@
     },
     "/api/v1/auth/{refreshToken}": {
       "post": {
-        "operationId": "refreshToken",
+        "operationId": "AuthController__refreshToken",
         "parameters": [
           {
             "name": "refreshToken",
@@ -6353,7 +6353,7 @@
     },
     "/api/v1/auth/sso/complete-signup": {
       "post": {
-        "operationId": "completeSignup",
+        "operationId": "SSOController__completeSignup",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6405,7 +6405,7 @@
     },
     "/api/v1/auth/sso/initiate/{provider}": {
       "post": {
-        "operationId": "initiateSSO",
+        "operationId": "SSOController__initiateSSO",
         "parameters": [
           {
             "name": "provider",
@@ -6456,7 +6456,7 @@
     },
     "/api/v1/auth/sso/callback/{provider}": {
       "post": {
-        "operationId": "handleCallback",
+        "operationId": "SSOController__handleCallback",
         "parameters": [
           {
             "name": "provider",
@@ -6517,7 +6517,7 @@
     },
     "/api/v1/auth/sso/link-provider": {
       "post": {
-        "operationId": "linkProvider",
+        "operationId": "SSOController__linkProvider",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6574,7 +6574,7 @@
     },
     "/api/v1/viewer": {
       "get": {
-        "operationId": "getViewer",
+        "operationId": "ViewerController__getViewer",
         "parameters": [],
         "responses": {
           "200": {
@@ -6598,7 +6598,7 @@
         ]
       },
       "put": {
-        "operationId": "updateViewer",
+        "operationId": "ViewerController__updateViewer",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6634,7 +6634,7 @@
     },
     "/api/v1/server/users": {
       "post": {
-        "operationId": "createUser",
+        "operationId": "UsersController__createUser",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6689,7 +6689,7 @@
         ]
       },
       "get": {
-        "operationId": "listUsers",
+        "operationId": "UsersController__listUsers",
         "parameters": [
           {
             "name": "offset",
@@ -6811,7 +6811,7 @@
     },
     "/api/v1/server/users/{userId}": {
       "patch": {
-        "operationId": "updateUser",
+        "operationId": "UsersController__updateUser",
         "parameters": [
           {
             "name": "userId",
@@ -6875,7 +6875,7 @@
         ]
       },
       "get": {
-        "operationId": "getUser",
+        "operationId": "UsersController__getUser",
         "parameters": [
           {
             "name": "userId",
@@ -6929,7 +6929,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteUser",
+        "operationId": "UsersController__deleteUser",
         "parameters": [
           {
             "name": "userId",
@@ -6978,7 +6978,7 @@
     },
     "/api/v1/server/users/{userId}/sessions": {
       "get": {
-        "operationId": "listActiveUserSessions",
+        "operationId": "UsersController__listActiveUserSessions",
         "parameters": [
           {
             "name": "userId",
@@ -7034,7 +7034,7 @@
     "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
       "post": {
         "description": "Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.",
-        "operationId": "requestPresignedStorageUrls",
+        "operationId": "DockerWorkerHooksController__requestPresignedStorageUrls",
         "parameters": [
           {
             "name": "jobId",
@@ -7101,7 +7101,7 @@
     "/api/v1/docker/jobs/{jobId}/start": {
       "post": {
         "description": "Marks the associated task as started. The job token must be valid.",
-        "operationId": "startJob",
+        "operationId": "DockerWorkerHooksController__startJob",
         "parameters": [
           {
             "name": "jobId",
@@ -7151,7 +7151,7 @@
     "/api/v1/docker/jobs/{jobId}/complete": {
       "post": {
         "description": "Signals that a worker job has completed (success or failure). Updates the task status and stores the result/error information.",
-        "operationId": "completeJob",
+        "operationId": "DockerWorkerHooksController__completeJob",
         "parameters": [
           {
             "name": "jobId",
@@ -7210,7 +7210,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
       "get": {
-        "operationId": "listAllComments",
+        "operationId": "CommentsController__listAllComments",
         "parameters": [
           {
             "name": "folderId",
@@ -7231,7 +7231,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of all comments",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7272,7 +7272,7 @@
         ]
       },
       "post": {
-        "operationId": "createComment",
+        "operationId": "CommentsController__createComment",
         "parameters": [
           {
             "name": "folderId",
@@ -7303,7 +7303,7 @@
         },
         "responses": {
           "201": {
-            "description": "Comment created",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7346,7 +7346,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{rootId}/thread": {
       "get": {
-        "operationId": "getThread",
+        "operationId": "CommentsController__getThread",
         "parameters": [
           {
             "name": "folderId",
@@ -7375,7 +7375,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Comment thread",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7418,7 +7418,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}": {
       "delete": {
-        "operationId": "deleteComment",
+        "operationId": "CommentsController__deleteComment",
         "parameters": [
           {
             "name": "folderId",
@@ -7447,7 +7447,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Comment deleted",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7490,7 +7490,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}/reactions": {
       "post": {
-        "operationId": "addReaction",
+        "operationId": "CommentsController__addReaction",
         "parameters": [
           {
             "name": "folderId",
@@ -7529,7 +7529,7 @@
         },
         "responses": {
           "201": {
-            "description": "Reaction added"
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -7565,7 +7565,7 @@
     },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments/{commentId}/reactions/{emoji}": {
       "delete": {
-        "operationId": "removeReaction",
+        "operationId": "CommentsController__removeReaction",
         "parameters": [
           {
             "name": "folderId",
@@ -7602,7 +7602,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Reaction removed"
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -7638,7 +7638,7 @@
     },
     "/api/v1/search": {
       "get": {
-        "operationId": "search",
+        "operationId": "SearchController__search",
         "parameters": [
           {
             "name": "q",
@@ -7779,7 +7779,7 @@
     },
     "/api/mcp": {
       "get": {
-        "operationId": "handleMcp_get",
+        "operationId": "McpController__handleMcp_get",
         "parameters": [],
         "responses": {
           "200": {
@@ -7791,7 +7791,7 @@
         ]
       },
       "post": {
-        "operationId": "handleMcp_post",
+        "operationId": "McpController__handleMcp_post",
         "parameters": [],
         "responses": {
           "200": {
@@ -7803,7 +7803,7 @@
         ]
       },
       "put": {
-        "operationId": "handleMcp_put",
+        "operationId": "McpController__handleMcp_put",
         "parameters": [],
         "responses": {
           "200": {
@@ -7815,7 +7815,7 @@
         ]
       },
       "delete": {
-        "operationId": "handleMcp_delete",
+        "operationId": "McpController__handleMcp_delete",
         "parameters": [],
         "responses": {
           "200": {
@@ -7827,7 +7827,7 @@
         ]
       },
       "patch": {
-        "operationId": "handleMcp_patch",
+        "operationId": "McpController__handleMcp_patch",
         "parameters": [],
         "responses": {
           "200": {
@@ -7839,7 +7839,7 @@
         ]
       },
       "options": {
-        "operationId": "handleMcp_options",
+        "operationId": "McpController__handleMcp_options",
         "parameters": [],
         "responses": {
           "200": {
@@ -7851,7 +7851,7 @@
         ]
       },
       "head": {
-        "operationId": "handleMcp_head",
+        "operationId": "McpController__handleMcp_head",
         "parameters": [],
         "responses": {
           "200": {
@@ -7863,7 +7863,7 @@
         ]
       },
       "search": {
-        "operationId": "handleMcp_search",
+        "operationId": "McpController__handleMcp_search",
         "parameters": [],
         "responses": {
           "200": {
@@ -7877,7 +7877,7 @@
     },
     "/api/v1/user/mcp/tokens": {
       "post": {
-        "operationId": "createToken",
+        "operationId": "McpApiController__createToken",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -7891,7 +7891,7 @@
         },
         "responses": {
           "201": {
-            "description": "MCP token created",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7931,11 +7931,11 @@
         ]
       },
       "get": {
-        "operationId": "listTokens",
+        "operationId": "McpApiController__listTokens",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "List of active MCP tokens",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -7977,7 +7977,7 @@
     },
     "/api/v1/user/mcp/tokens/{tokenId}": {
       "delete": {
-        "operationId": "revokeToken",
+        "operationId": "McpApiController__revokeToken",
         "parameters": [
           {
             "name": "tokenId",
@@ -7990,7 +7990,7 @@
         ],
         "responses": {
           "200": {
-            "description": "MCP token revoked",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -8032,11 +8032,11 @@
     },
     "/api/v1/user/mcp/settings": {
       "get": {
-        "operationId": "getUserSettings",
+        "operationId": "McpApiController__getUserMcpSettings",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "User MCP permission settings",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -8076,7 +8076,7 @@
         ]
       },
       "put": {
-        "operationId": "updateUserSettings",
+        "operationId": "McpApiController__updateUserMcpSettings",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -8090,7 +8090,7 @@
         },
         "responses": {
           "200": {
-            "description": "Updated user MCP permission settings",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -8132,7 +8132,7 @@
     },
     "/api/v1/folders/{folderId}/mcp/settings": {
       "get": {
-        "operationId": "getFolderSettings",
+        "operationId": "McpApiController__getFolderMcpSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -8145,7 +8145,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Folder MCP permission settings",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -8185,7 +8185,7 @@
         ]
       },
       "put": {
-        "operationId": "updateFolderSettings",
+        "operationId": "McpApiController__updateFolderSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -8208,7 +8208,7 @@
         },
         "responses": {
           "200": {
-            "description": "Updated folder MCP permission settings",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -8248,7 +8248,7 @@
         ]
       },
       "delete": {
-        "operationId": "deleteFolderSettings",
+        "operationId": "McpApiController__deleteFolderSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -8261,7 +8261,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Folder MCP settings cleared",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {

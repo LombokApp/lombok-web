@@ -133,6 +133,7 @@ export class McpTokenService {
         updatedAt: new Date(),
       })
       .where(eq(sessionsTable.id, session.id))
+      .execute()
 
     return {
       id: session.id,
