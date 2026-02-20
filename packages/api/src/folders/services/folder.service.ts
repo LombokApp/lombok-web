@@ -1362,12 +1362,26 @@ export class FolderService {
     const mimeTypeFromExtension = extension
       ? (mimeFromExtension(extension) ?? '')
       : ''
-    const insertMimeType = updateRecord.mimeType ?? mimeTypeFromExtension
-    const insertMediaType = updateRecord.mimeType
+
+    // Resolve media type from the provided MIME type first, then fall back
+    // to extension-based resolution to gracefully handle MIME-types that are
+    // not in our known MIME-type lists and otherwise produce UNKNOWN
+    // classification even though the extension maps to a recognised type.
+    const mediaTypeFromProvidedMime = updateRecord.mimeType
       ? mediaTypeFromMimeType(updateRecord.mimeType)
-      : extension
-        ? mediaTypeFromMimeType(mimeTypeFromExtension)
-        : MediaType.UNKNOWN
+      : MediaType.UNKNOWN
+    const mediaTypeFromExt = extension
+      ? mediaTypeFromMimeType(mimeTypeFromExtension)
+      : MediaType.UNKNOWN
+
+    const insertMediaType =
+      mediaTypeFromProvidedMime !== MediaType.UNKNOWN
+        ? mediaTypeFromProvidedMime
+        : mediaTypeFromExt
+    const insertMimeType =
+      mediaTypeFromProvidedMime !== MediaType.UNKNOWN
+        ? (updateRecord.mimeType ?? mimeTypeFromExtension)
+        : mimeTypeFromExtension || (updateRecord.mimeType ?? '')
 
     const insertValues = {
       id: uuidV4(),
