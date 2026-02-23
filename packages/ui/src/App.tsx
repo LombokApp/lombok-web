@@ -144,7 +144,7 @@ const AuthenticatedContent = () => {
 const AuthStateRouter = () => {
   const { authState } = useAuthContext()
   return (
-    <div className="size-full">
+    <div className="size-full overflow-hidden">
       {authState.isAuthenticated && authState.isLoaded ? (
         <LocalFileCacheContextProvider>
           <ServerContextProvider>
