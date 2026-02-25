@@ -12,14 +12,16 @@
       "kind": "event",
       "eventIdentifier": "core:object_added",
       "taskIdentifier": "demo_object_added_worker_task",
-      "onComplete": [{
-        "taskIdentifier": "demo_worker_task_on_complete",
-        "dataTemplate": {
-          "success": {
-            "taskError": "{{task.error}}"
+      "onComplete": [
+        {
+          "taskIdentifier": "demo_worker_task_on_complete",
+          "dataTemplate": {
+            "success": {
+              "taskError": "{{task.error}}"
+            }
           }
         }
-      }]
+      ]
     },
     {
       "kind": "schedule",
@@ -58,6 +60,15 @@
         "type": "runtime",
         "identifier": "demo_scheduled_worker"
       }
+    },
+    {
+      "identifier": "demo_async_task",
+      "label": "Demo Async Task",
+      "description": "A task that simulates multi-step async work and emits progress updates.",
+      "handler": {
+        "type": "runtime",
+        "identifier": "demo_async_worker"
+      }
     }
   ],
   "runtimeWorkers": {
@@ -85,6 +96,10 @@
       "environmentVariables": {
         "MY_CUSTOM_ENV_VAR": "_some_non_secret_env_var_value_"
       }
+    },
+    "demo_async_worker": {
+      "entrypoint": "demo_async_worker/index.js",
+      "description": "Simulates multi-step async work with progress updates."
     }
   },
   "ui": {
@@ -121,6 +136,7 @@
         "label": "Demo Object View",
         "iconPath": "/assets/logo.png"
       }
-    ]
+    ],
+    "folderDetailViews": []
   }
 }

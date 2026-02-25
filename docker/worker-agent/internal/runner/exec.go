@@ -98,6 +98,19 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	stdoutInterceptor := newJobLogInterceptor(payload.JobID, jobLogFile, logs.LogLevelInfo)
 	stderrInterceptor := newJobLogInterceptor(payload.JobID, jobLogFile, logs.LogLevelError)
 
+	// Wire up platform update forwarding for stdout magic lines
+	if platformClient != nil {
+		stdoutInterceptor.onPlatformUpdate = func(update json.RawMessage) {
+			ctx := context.Background()
+			if err := platformClient.SendUpdate(ctx, payload.JobID, update); err != nil {
+				logs.WriteAgentLog(logs.LogLevelWarn, "Failed to forward update", map[string]any{
+					"job_id": payload.JobID,
+					"error":  err.Error(),
+				})
+			}
+		}
+	}
+
 	// Capture stdout to interceptor for logging
 	cmd.Stdout = stdoutInterceptor
 	cmd.Stderr = stderrInterceptor
@@ -250,6 +263,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			workerResultRaw = resultData
 		}
 	}
+
+	// Drain in-flight platform updates before signaling completion
+	stdoutInterceptor.updateWg.Wait()
 
 	// Handle file uploads and platform completion if configured
 	var outputFiles []types.OutputFileRef
@@ -480,11 +496,13 @@ func launchExecAsyncCompletion(payload *types.JobPayload, jobState *types.JobSta
 
 // jobLogInterceptor intercepts output lines, parses structured logs, and writes to job logs.
 type jobLogInterceptor struct {
-	jobID        string
-	jobLogFile   *os.File
-	defaultLevel logs.LogLevel
-	buffer       []byte
-	mu           sync.Mutex
+	jobID            string
+	jobLogFile       *os.File
+	defaultLevel     logs.LogLevel
+	buffer           []byte
+	mu               sync.Mutex
+	onPlatformUpdate func(update json.RawMessage) // callback for platform updates
+	updateWg         sync.WaitGroup               // tracks in-flight update goroutines
 }
 
 func newJobLogInterceptor(jobID string, jobLogFile *os.File, defaultLevel logs.LogLevel) *jobLogInterceptor {
@@ -523,6 +541,24 @@ func (w *jobLogInterceptor) Write(p []byte) (n int, err error) {
 }
 
 func (w *jobLogInterceptor) processLine(line string) {
+	// Check for platform update magic line (before structured log parsing)
+	const platformUpdatePrefix = "__PLATFORM_UPDATE__|"
+	if w.onPlatformUpdate != nil && strings.HasPrefix(line, platformUpdatePrefix) {
+		updateJSON := json.RawMessage(line[len(platformUpdatePrefix):])
+		if json.Valid(updateJSON) {
+			w.updateWg.Add(1)
+			go func() {
+				defer w.updateWg.Done()
+				w.onPlatformUpdate(updateJSON)
+			}()
+		} else {
+			logs.WriteAgentLog(logs.LogLevelWarn, "Invalid JSON in platform update line", map[string]any{
+				"job_id": w.jobID,
+			})
+		}
+		return // don't log magic lines
+	}
+
 	// Try to parse as structured log
 	level, message, data, ok := logs.ParseStructuredWorkerLogLine(line)
 	if ok {

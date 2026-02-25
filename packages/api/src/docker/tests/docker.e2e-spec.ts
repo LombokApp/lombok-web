@@ -300,6 +300,9 @@ const triggerAppDockerHandledTask = async (
       updatedAt: expect.any(Date),
       handlerType: CORE_IDENTIFIER,
       handlerIdentifier: null,
+      updates: [],
+      correlationKey: null,
+      progress: null,
     })
     expect(dockerRunTask?.startedAt).toEqual(dockerRunTask?.updatedAt)
   }
@@ -750,6 +753,9 @@ describe('Docker Jobs', () => {
       updatedAt: expect.any(Date),
       handlerType: 'docker',
       handlerIdentifier: 'dummy_profile_two:test_job_other',
+      updates: [],
+      correlationKey: null,
+      progress: null,
     })
   })
 
@@ -943,6 +949,9 @@ describe('Docker Jobs', () => {
       updatedAt: expect.any(Date),
       handlerType: 'docker',
       handlerIdentifier: 'dummy_profile_two:test_job_other',
+      updates: [],
+      correlationKey: null,
+      progress: null,
     })
 
     const parsedPayload = parseJobPayload(
@@ -1851,6 +1860,9 @@ describe('Docker Jobs', () => {
       updatedAt: expect.any(Date),
       handlerType: 'docker',
       handlerIdentifier: 'dummy_profile_two:test_job_other',
+      updates: [],
+      correlationKey: null,
+      progress: null,
     })
 
     const parsedPayload = parseJobPayload(

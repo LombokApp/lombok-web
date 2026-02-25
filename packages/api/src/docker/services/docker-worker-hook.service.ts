@@ -5,6 +5,7 @@ import type {
   TaskCompletion,
 } from '@lombokapp/types'
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   forwardRef,
@@ -34,6 +35,7 @@ import { z } from 'zod'
 import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
+import type { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
@@ -486,6 +488,58 @@ export class DockerWorkerHookService {
         },
         options: { tx },
       })
+    })
+  }
+
+  /**
+   * Process a mid-execution update from a running Docker worker.
+   *
+   * Orchestrates: store update -> emit socket -> dispatch onUpdate handlers
+   *
+   * @param claims - The claims from the worker job token
+   * @param request - The update request body
+   */
+  async processUpdate(
+    claims: DockerWorkerJobClaims,
+    request: DockerJobUpdateRequestDTO,
+  ): Promise<void> {
+    const { taskId: dockerRunTaskId } = claims
+
+    await this.ormService.db.transaction(async (tx) => {
+      // 1. Look up the docker task (the RunDockerWorker core task)
+      const dockerTask = await tx.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerRunTaskId),
+      })
+      if (!dockerTask) {
+        throw new BadRequestException(
+          `Docker task ${dockerRunTaskId} not found`,
+        )
+      }
+
+      // 2. Find the inner task ID (the user-visible app task)
+      const innerTaskId =
+        'innerTaskId' in dockerTask.data &&
+        typeof dockerTask.data.innerTaskId === 'string' &&
+        dockerTask.data.innerTaskId
+
+      if (!innerTaskId) {
+        throw new BadRequestException(
+          `Docker job task has no inner task: ${dockerRunTaskId}`,
+        )
+      }
+
+      // 3. Delegate to TaskService (store + socket emit + handler dispatch)
+      const result = await this.taskService.registerTaskUpdate(
+        innerTaskId,
+        request,
+        tx,
+      )
+
+      if (!result) {
+        throw new ConflictException(
+          `Task ${innerTaskId} is not in a running state (may be completed or not started)`,
+        )
+      }
     })
   }
 }

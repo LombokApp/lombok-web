@@ -6,6 +6,7 @@ await build({
     './src/workers/demo_object_added_worker/index.ts',
     './src/workers/demo_scheduled_worker/index.ts',
     './src/workers/demo_on_complete_worker/index.ts',
+    './src/workers/demo_async_worker/index.ts',
   ],
   outdir: '../dist/workers',
   external: ['@lombokapp/*', 'pg'],

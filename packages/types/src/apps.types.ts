@@ -25,6 +25,7 @@ export const AppSocketMessage = z.enum([
   'EMIT_EVENT',
   'EXECUTE_APP_DOCKER_JOB',
   'TRIGGER_APP_TASK',
+  'REPORT_TASK_UPDATE',
 ])
 
 export const appMessageErrorSchema = z.object({

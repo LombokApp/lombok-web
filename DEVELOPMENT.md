@@ -54,9 +54,16 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 
 ```bash
 ./dx check all            # Run prettier, tsc, and eslint across all packages
-./dx check lint           # Run eslint across all packages
+./dx check eslint         # Run eslint across all packages
 ./dx check prettier       # Run prettier across all packages
 ./dx check tsc            # Run tsc across all packages
+```
+
+## Code lint auto-fix
+
+```bash
+./dx check eslint fix     # Run eslint fix across all packages
+./dx check prettier fix   # Run prettier fix across all packages
 ```
 
 ## Environment

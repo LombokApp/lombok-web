@@ -17,6 +17,7 @@ const (
 	createPresignedURLsPath = "/api/v1/docker/jobs/%s/request-presigned-urls"
 	startPath               = "/api/v1/docker/jobs/%s/start"
 	completionPath          = "/api/v1/docker/jobs/%s/complete"
+	updatePath              = "/api/v1/docker/jobs/%s/update"
 
 	// HTTP timeouts
 	requestTimeout       = 30 * time.Second
@@ -144,6 +145,39 @@ func (c *Client) SignalCompletion(ctx context.Context, jobID string, req *types.
 	httpReq.Header.Set("Authorization", "Bearer "+c.token)
 
 	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		respBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("platform returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	return nil
+}
+
+// SendUpdate forwards a mid-execution update to the platform
+func (c *Client) SendUpdate(ctx context.Context, jobID string, update json.RawMessage) error {
+	if c.baseURL == "" || c.token == "" {
+		return fmt.Errorf("platform client not configured (missing baseURL or token)")
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, signalRequestTimeout)
+	defer cancel()
+
+	url := fmt.Sprintf(c.baseURL+updatePath, jobID)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(update))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.token)
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}

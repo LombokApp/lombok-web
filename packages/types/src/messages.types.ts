@@ -24,6 +24,10 @@ export enum ServerPushMessage {
   SETTINGS_UPDATED = 'SETTINGS_UPDATED',
 }
 
+export enum AppUserPushMessage {
+  WORKER_UPDATE = 'WORKER_UPDATE',
+}
+
 export type AppPushMessage = ServerPushMessage | FolderPushMessage
 
 export interface AppLogEntry {

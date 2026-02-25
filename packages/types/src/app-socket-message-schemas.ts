@@ -10,6 +10,7 @@ import { SignedURLsRequestMethod } from './storage.types'
 import {
   storageAccessPolicySchema,
   taskOnCompleteConfigSchema,
+  taskUpdateSchema,
 } from './task.types'
 
 export const logEntrySchema = z.object({
@@ -119,6 +120,7 @@ export const executeAppDockerJobSchema = z.object({
 export const triggerAppTaskSchema = z.object({
   taskIdentifier: z.string(),
   inputData: jsonSerializableObjectSchema,
+  correlationKey: z.string().optional(),
   outputLocation: z
     .object({
       folderId: z.string(),
@@ -146,6 +148,11 @@ export const triggerAppTaskSchema = z.object({
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
+export const reportTaskUpdateSchema = z.object({
+  taskId: z.guid(),
+  update: taskUpdateSchema,
+})
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
@@ -158,6 +165,7 @@ export const AppSocketMessageSchemaMap = {
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
   TRIGGER_APP_TASK: triggerAppTaskSchema,
+  REPORT_TASK_UPDATE: reportTaskUpdateSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
@@ -255,6 +263,7 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   TRIGGER_APP_TASK: createResponseSchema(z.null()),
+  REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
   GET_LATEST_DB_CREDENTIALS: createResponseSchema(
     z.object({
       host: z.string(),

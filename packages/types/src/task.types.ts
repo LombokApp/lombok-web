@@ -11,6 +11,46 @@ import type { JsonSerializableObject } from './json.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 
+// --- Task Update Types ---
+
+export const taskProgressSchema = z.object({
+  percent: z.number().min(0).max(100).optional(),
+  current: z.number().optional(),
+  total: z.number().optional(),
+  label: z.string().optional(),
+})
+export type TaskProgress = z.infer<typeof taskProgressSchema>
+
+export const taskUpdateMessageSchema = z.object({
+  level: z.enum(['debug', 'info', 'warn', 'error']),
+  text: z.string(),
+  audience: z.enum(['user', 'system']),
+})
+export type TaskUpdateMessage = z.infer<typeof taskUpdateMessageSchema>
+
+export const taskUpdateSchema = z.object({
+  code: z.string().optional(),
+  progress: taskProgressSchema.optional(),
+  message: taskUpdateMessageSchema.optional(),
+  data: jsonSerializableObjectSchema.optional(),
+  timestamp: z.string().optional(),
+})
+export type TaskUpdate = z.infer<typeof taskUpdateSchema>
+
+export const receivedTaskUpdateSchema = taskUpdateSchema.extend({
+  receivedAt: z.iso.datetime(),
+})
+export type ReceivedTaskUpdate = z.infer<typeof receivedTaskUpdateSchema>
+
+export const taskOnUpdateHandlerConfigSchema = z.object({
+  condition: z.string().optional(),
+  taskIdentifier: z.string(),
+  taskDataTemplate: jsonSerializableObjectSchema.optional(),
+})
+export type TaskOnUpdateHandlerConfig = z.infer<
+  typeof taskOnUpdateHandlerConfigSchema
+>
+
 export type TaskData = JsonSerializableObject
 
 export const taskDataSchema: z.ZodType<TaskData> = jsonSerializableObjectSchema
@@ -147,6 +187,7 @@ const taskTriggerConfigBaseSchema = z.object({
     .optional(),
   taskIdentifier: taskIdentifierSchema,
   onComplete: taskOnCompleteConfigSchema.array().optional(),
+  onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
 })
 
 export const scheduleUnitSchema = z.enum(['minutes', 'hours', 'days'])
@@ -207,6 +248,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       idempotencyData: jsonSerializableObjectSchema.optional(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
   }),
   z.object({
     kind: z.literal('event'),
@@ -223,6 +265,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       eventData: jsonSerializableObjectSchema,
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
   }),
   z.object({
     kind: z.literal('schedule'),
@@ -235,6 +278,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       }),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
   }),
   z.object({
     kind: z.literal('user_action'),
@@ -243,6 +287,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       requestId: z.guid(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
   }),
   z.object({
     kind: z.literal('app_action'),
@@ -250,6 +295,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       requestId: z.guid(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
   }),
   z.object({
     kind: z.literal('task_child'),
@@ -262,6 +308,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       onCompleteHandlerIndex: z.number().int(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
   }),
 ])
 

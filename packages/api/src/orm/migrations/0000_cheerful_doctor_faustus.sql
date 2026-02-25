@@ -282,6 +282,9 @@ CREATE TABLE "tasks" (
 	"latest_heartbeat_at" timestamp,
 	"handler_type" text NOT NULL,
 	"handler_identifier" text,
+	"updates" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"correlation_key" text,
+	"progress" jsonb,
 	CONSTRAINT "tasks_idempotency_key_unique" UNIQUE("idempotency_key")
 );
 --> statement-breakpoint

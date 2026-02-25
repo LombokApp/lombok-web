@@ -291,6 +291,7 @@ export async function handleAppSocketMessage(
         targetUserId: parsedRequest.data.targetUserId,
         targetLocation: parsedRequest.data.targetLocation,
         storageAccessPolicy: parsedRequest.data.storageAccessPolicy,
+        correlationKey: parsedRequest.data.correlationKey,
         appIdentifier: requestingAppIdentifier,
         taskIdentifier: parsedRequest.data.taskIdentifier,
         taskData: parsedRequest.data.inputData,
@@ -309,6 +310,22 @@ export async function handleAppSocketMessage(
       })
 
       return { result: null }
+    }
+    case 'REPORT_TASK_UPDATE': {
+      const result = await taskService.registerTaskUpdate(
+        parsedRequest.data.taskId,
+        parsedRequest.data.update,
+      )
+      if (!result) {
+        return {
+          error: {
+            code: 409,
+            message:
+              'Task is not in a running state (may be completed or not started)',
+          },
+        }
+      }
+      return { result: { success: true } }
     }
   }
 }

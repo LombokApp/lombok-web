@@ -1,11 +1,13 @@
 import {
   CORE_IDENTIFIER,
   JsonSerializableObject,
+  ReceivedTaskUpdate,
   StorageAccessPolicy,
   SystemLogEntry,
   TaskCompletion,
   TaskLogEntry,
   TaskOnCompleteConfig,
+  TaskUpdate,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
 import {
@@ -37,6 +39,7 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { getThreadId } from 'src/shared/thread-context'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
+import { AppUserSocketService } from 'src/socket/app-user/app-user-socket.service'
 import type { User } from 'src/users/entities/user.entity'
 
 import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
@@ -48,6 +51,7 @@ import {
   evalOnCompleteHandlerCondition,
   OnCompleteConditionTaskContext,
 } from '../util/eval-oncomplete-condition.util'
+import { evalUpdateHandlerCondition } from '../util/eval-update-condition.util'
 import { serializeLogEntry } from '../util/log-encoder.util'
 import { withTaskIdempotencyKey } from '../util/task-idempotency-key.util'
 
@@ -66,6 +70,7 @@ export enum TaskSort {
 export class TaskService {
   appService: AppService
   appSocketService: AppSocketService
+  appUserSocketService: AppUserSocketService
   folderService: FolderService
   eventService: EventService
   private readonly logger = new Logger(TaskService.name)
@@ -74,6 +79,8 @@ export class TaskService {
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppSocketService))
     _appSocketService,
+    @Inject(forwardRef(() => AppUserSocketService))
+    _appUserSocketService,
     @Inject(forwardRef(() => EventService))
     _eventService,
     @Inject(forwardRef(() => AppService))
@@ -84,6 +91,7 @@ export class TaskService {
     this.appService = _appService as AppService
     this.folderService = _folderService as FolderService
     this.appSocketService = _appSocketService as AppSocketService
+    this.appUserSocketService = _appUserSocketService as AppUserSocketService
     this.eventService = _eventService as EventService
   }
 
@@ -261,6 +269,9 @@ export class TaskService {
           updatedAt: tasksTable.updatedAt,
           handlerType: tasksTable.handlerType,
           handlerIdentifier: tasksTable.handlerIdentifier,
+          updates: tasksTable.updates,
+          correlationKey: tasksTable.correlationKey,
+          progress: tasksTable.progress,
         },
         folderName: foldersTable.name,
         folderOwnerId: foldersTable.ownerId,
@@ -457,6 +468,7 @@ export class TaskService {
     appIdentifier,
     taskIdentifier,
     taskData,
+    correlationKey,
     dontStartBefore,
     targetUserId,
     targetLocation,
@@ -466,6 +478,7 @@ export class TaskService {
     appIdentifier: string
     taskIdentifier: string
     taskData: JsonSerializableObject
+    correlationKey?: string
     dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
@@ -533,6 +546,7 @@ export class TaskService {
             : undefined,
       storageAccessPolicy,
       taskDescription: taskDefinition.description,
+      correlationKey,
       targetUserId,
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
@@ -776,6 +790,27 @@ export class TaskService {
 
     if (!updatedTask) {
       throw new ConflictException(`Failed to secure task: ${taskId}`)
+    }
+
+    // Real-time delivery: emit task_started to app-user socket if task has a target scope
+    if (updatedTask.targetUserId || updatedTask.targetLocationFolderId) {
+      this.appUserSocketService.emitAsyncUpdate(
+        {
+          correlationKey: updatedTask.correlationKey,
+          targetUserId: updatedTask.targetUserId,
+          targetLocationFolderId: updatedTask.targetLocationFolderId,
+        },
+        {
+          code: 'task_started',
+          message: {
+            level: 'info',
+            text: `Task started: ${updatedTask.taskIdentifier}`,
+            audience: 'system',
+          },
+          data: { taskId: updatedTask.id },
+          receivedAt: now.toISOString(),
+        },
+      )
     }
 
     return { task: updatedTask }
@@ -1063,6 +1098,118 @@ export class TaskService {
         }
       }
     }
+
+    // Real-time delivery: emit task_completed/task_failed to app-user socket
+    // Only emit for terminal tasks (not requeued) with a target scope
+    if (
+      !shouldRequeue &&
+      (updatedTask.targetUserId || updatedTask.targetLocationFolderId)
+    ) {
+      this.appUserSocketService.emitAsyncUpdate(
+        {
+          correlationKey: updatedTask.correlationKey,
+          targetUserId: updatedTask.targetUserId,
+          targetLocationFolderId: updatedTask.targetLocationFolderId,
+        },
+        {
+          code: completion.success ? 'task_completed' : 'task_failed',
+          message: {
+            level: completion.success ? 'info' : 'error',
+            text: completion.success
+              ? `Task completed: ${updatedTask.taskIdentifier}`
+              : `Task failed: ${updatedTask.taskIdentifier}`,
+            audience: 'system',
+          },
+          progress: completion.success ? { percent: 100 } : undefined,
+          data: { taskId: updatedTask.id },
+          receivedAt: now.toISOString(),
+        },
+      )
+    }
+
     return updatedTask
+  }
+
+  async registerTaskUpdate(
+    taskId: string,
+    update: TaskUpdate,
+    tx?: OrmService['db'],
+  ): Promise<{ task: Task; storedUpdate: ReceivedTaskUpdate } | null> {
+    const now = new Date()
+    const storedUpdate: ReceivedTaskUpdate = {
+      ...update,
+      receivedAt: now.toISOString(),
+    }
+
+    const db = tx ?? this.ormService.db
+    const updatedTask = (
+      await db
+        .update(tasksTable)
+        .set({
+          updatedAt: now,
+          latestHeartbeatAt: now,
+          updates: sql`coalesce(${tasksTable.updates}, '[]'::jsonb) || ${JSON.stringify(storedUpdate)}::jsonb`,
+          ...(update.progress ? { progress: update.progress } : {}),
+        })
+        .where(
+          and(
+            eq(tasksTable.id, taskId),
+            isNull(tasksTable.completedAt),
+            isNotNull(tasksTable.startedAt),
+          ),
+        )
+        .returning()
+    )[0]
+
+    if (!updatedTask) {
+      return null
+    } // task not in running state
+
+    // Real-time delivery: emit to app-user socket if task has a target scope
+    if (updatedTask.targetUserId || updatedTask.targetLocationFolderId) {
+      this.appUserSocketService.emitAsyncUpdate(
+        {
+          correlationKey: updatedTask.correlationKey,
+          targetUserId: updatedTask.targetUserId,
+          targetLocationFolderId: updatedTask.targetLocationFolderId,
+        },
+        storedUpdate,
+      )
+    }
+
+    // Evaluate and dispatch onUpdate handlers
+    const onUpdateHandlers = updatedTask.invocation.onUpdate ?? []
+    for (let i = 0; i < onUpdateHandlers.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const handler = onUpdateHandlers[i]!
+      const conditionResult = handler.condition
+        ? evalUpdateHandlerCondition(
+            handler.condition,
+            update,
+            updatedTask.data,
+          )
+        : true // no condition means always fire
+
+      if (conditionResult) {
+        await this.executeOnCompleteHandler({
+          parentTask: updatedTask,
+          parentTaskSuccess: true,
+          taskIdentifier: handler.taskIdentifier,
+          taskDataTemplate: handler.taskDataTemplate ?? {},
+          targetUserId: updatedTask.targetUserId ?? undefined,
+          targetLocation: updatedTask.targetLocationFolderId
+            ? {
+                folderId: updatedTask.targetLocationFolderId,
+                objectKey: updatedTask.targetLocationObjectKey ?? undefined,
+              }
+            : undefined,
+          storageAccessPolicy: updatedTask.storageAccessPolicy ?? undefined,
+          handlerIndex: i,
+          options: { tx: db },
+        })
+      }
+    }
+
+    return { task: updatedTask, storedUpdate }
   }
 }

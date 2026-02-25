@@ -1,5 +1,5 @@
 {
-  "id": "cd94b30f-40c9-4ed2-822e-cc3bffe9d01c",
+  "id": "7be2a2c6-e1cf-4e9f-866f-6a31845a4b61",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -3009,6 +3009,25 @@
         "handler_identifier": {
           "name": "handler_identifier",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updates": {
+          "name": "updates",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "correlation_key": {
+          "name": "correlation_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "progress": {
+          "name": "progress",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         }
