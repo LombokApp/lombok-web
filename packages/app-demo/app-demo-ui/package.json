@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun vite",
+    "dev": "vite",
     "build": "rm -rf ./dist && bunx vite build --mode production",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
@@ -21,7 +21,8 @@
     "openapi-react-query": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-router": "catalog:"
+    "react-router": "catalog:",
+    "socket.io-client": "catalog:"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

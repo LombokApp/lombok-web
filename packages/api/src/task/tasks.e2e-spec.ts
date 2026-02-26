@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
+import { io, type Socket } from 'socket.io-client'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
+import { appUserSettingsTable } from 'src/app/entities/app-user-settings.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -16,6 +18,7 @@ import { getUtcScheduleBucket } from './util/schedule-bucket.util'
 import { withTaskIdempotencyKey } from './util/task-idempotency-key.util'
 
 const TEST_MODULE_KEY = 'task_lifecycle'
+const startServerOnPort = 7005
 
 const LIFECYCLE_APP_SLUG = 'tasklifecycle'
 const PARENT_TASK_ID = 'lifecycle_parent_task'
@@ -43,20 +46,78 @@ const getTaskByIdentifier = async (
 describe('Task lifecycle', () => {
   let testModule: TestModule | undefined
   let apiClient: TestApiClient
+  let serverBaseUrl: string
+  let socket: Socket | undefined
 
   const resetTestState = async () => {
     await testModule?.resetAppState()
   }
 
+  const connectAppUserSocket = (userToken: string): Promise<Socket> => {
+    const socketUrl = `${serverBaseUrl}/app-user`
+    return new Promise((resolve, reject) => {
+      const newSocket = io(socketUrl, {
+        auth: { token: userToken },
+        reconnection: false,
+        transports: ['websocket'],
+      })
+
+      const timeout = setTimeout(() => {
+        newSocket.disconnect()
+        reject(new Error('Socket connection timeout'))
+      }, 10000)
+
+      newSocket.on('connect', () => {
+        clearTimeout(timeout)
+        resolve(newSocket)
+      })
+
+      newSocket.on('connect_error', (error) => {
+        clearTimeout(timeout)
+        reject(error)
+      })
+    })
+  }
+
+  const enableAppForUser = async (userId: string, appIdentifier: string) => {
+    const now = new Date()
+    await testModule!.services.ormService.db
+      .insert(appUserSettingsTable)
+      .values({
+        userId,
+        appIdentifier,
+        enabled: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+  }
+
+  const getAppUserToken = async (
+    userId: string,
+    appIdentifier: string,
+  ): Promise<string> => {
+    const { accessToken } =
+      await testModule!.services.appService.createAppUserAccessTokenAsApp({
+        actor: { appIdentifier },
+        userId,
+      })
+    return accessToken
+  }
+
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
-      // debug: true,
+      startServerOnPort,
     })
     apiClient = testModule.apiClient
+    serverBaseUrl = `http://localhost:${startServerOnPort}`
   })
 
   afterEach(async () => {
+    if (socket) {
+      socket.disconnect()
+      socket = undefined
+    }
     await resetTestState()
   })
 
@@ -1232,5 +1293,636 @@ describe('Task lifecycle', () => {
         },
       },
     ])
+  })
+
+  // --- Task update → socket emission tests ---
+
+  it('emits user-scoped ASYNC_UPDATE on app-user socket when a task update is registered', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await createTestUser(testModule!, {
+      username: 'update_socket_user_1',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'update_socket_user_1'),
+      })
+    const userId = user!.id
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(userId, appIdentifier)
+
+    // Create task with correlationKey and targetUserId
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'update-socket' },
+        correlationKey: 'ck-docker-update-1',
+        targetUserId: userId,
+      })
+    })
+
+    // Start the task (registerTaskUpdate requires started & not completed)
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    // Connect to app-user socket with app-user token
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    // Listen for ASYNC_UPDATE then send the update
+    const received = await new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Expected ASYNC_UPDATE but got none')),
+        5000,
+      )
+      socket!.once('ASYNC_UPDATE', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+
+      // Simulate docker worker sending an update via registerTaskUpdate
+      void testModule!.services.taskService.registerTaskUpdate(task.id, {
+        progress: {
+          percent: 50,
+          current: 1,
+          total: 2,
+          label: 'Processing',
+        },
+        message: { level: 'info', text: 'Halfway done', audience: 'user' },
+      })
+    })
+
+    expect(received).toBeDefined()
+    expect((received as { correlationKey: string }).correlationKey).toBe(
+      'ck-docker-update-1',
+    )
+    expect(
+      (received as { progress: { percent: number } }).progress.percent,
+    ).toBe(50)
+    expect((received as { message: { text: string } }).message.text).toBe(
+      'Halfway done',
+    )
+    expect((received as { receivedAt: string }).receivedAt).toBeDefined()
+  })
+
+  it('emits folder-scoped ASYNC_UPDATE on app-user socket when a task update targets a folder', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'update_socket_user_2',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'update_socket_user_2'),
+      })
+    const userId = user!.id
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(userId, appIdentifier)
+
+    const { folder } = await createTestFolder({
+      accessToken,
+      folderName: 'Task Update Folder',
+      testModule,
+      mockFiles: [],
+      apiClient,
+    })
+
+    // Enable app for folder
+    const now = new Date()
+    await testModule!.services.ormService.db
+      .insert(appFolderSettingsTable)
+      .values({
+        folderId: folder.id,
+        appIdentifier,
+        enabled: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+    // Create task targeting the folder
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'folder-update' },
+        correlationKey: 'ck-docker-folder-1',
+        targetLocation: { folderId: folder.id },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    // Connect to app-user socket and subscribe to the folder
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    await new Promise<void>((resolve) => {
+      socket!.emit('subscribe', { folderId: folder.id, appIdentifier })
+      setTimeout(resolve, 500)
+    })
+
+    const received = await new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Expected ASYNC_UPDATE but got none')),
+        5000,
+      )
+      socket!.once('ASYNC_UPDATE', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+
+      void testModule!.services.taskService.registerTaskUpdate(task.id, {
+        progress: { percent: 75, label: 'Almost done' },
+        message: {
+          level: 'info',
+          text: 'Processing folder data',
+          audience: 'user',
+        },
+      })
+    })
+
+    expect(received).toBeDefined()
+    expect((received as { correlationKey: string }).correlationKey).toBe(
+      'ck-docker-folder-1',
+    )
+    expect(
+      (received as { progress: { percent: number } }).progress.percent,
+    ).toBe(75)
+  })
+
+  it('stores task updates in the database and tracks latest progress', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'stored-updates' },
+        correlationKey: 'ck-stored',
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    // Send two updates
+    await testModule!.services.taskService.registerTaskUpdate(task.id, {
+      progress: { percent: 25, current: 1, total: 4 },
+      message: { level: 'info', text: 'Step 1', audience: 'user' },
+    })
+
+    await testModule!.services.taskService.registerTaskUpdate(task.id, {
+      progress: { percent: 75, current: 3, total: 4 },
+      message: { level: 'info', text: 'Step 3', audience: 'user' },
+    })
+
+    // Verify updates stored in DB
+    const updatedTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+
+    expect(updatedTask).toBeTruthy()
+    expect(updatedTask!.updates).toHaveLength(2)
+    expect(updatedTask!.updates[0]?.progress?.percent).toBe(25)
+    expect(updatedTask!.updates[0]?.receivedAt).toBeDefined()
+    expect(updatedTask!.updates[1]?.progress?.percent).toBe(75)
+    expect(updatedTask!.updates[1]?.receivedAt).toBeDefined()
+
+    // Latest progress should reflect the most recent update
+    expect(updatedTask!.progress).toEqual({
+      percent: 75,
+      current: 3,
+      total: 4,
+    })
+  })
+
+  it('does not emit socket update when task has no target scope', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    // Create task WITHOUT targetUserId or targetLocation
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'no-scope' },
+        correlationKey: 'ck-no-scope',
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    // Create a user and connect to the socket
+    await createTestUser(testModule!, {
+      username: 'update_socket_user_3',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'update_socket_user_3'),
+      })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(user!.id, appIdentifier)
+
+    const appUserToken = await getAppUserToken(user!.id, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    // Send update — should NOT emit because task has no target scope
+    const received = await new Promise<boolean>((resolve) => {
+      socket!.once('ASYNC_UPDATE', () => resolve(true))
+      void testModule!.services.taskService.registerTaskUpdate(task.id, {
+        progress: { percent: 50 },
+      })
+      setTimeout(() => resolve(false), 1500)
+    })
+
+    expect(received).toBe(false)
+
+    // But the update should still be stored in the DB
+    const updatedTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    expect(updatedTask!.updates).toHaveLength(1)
+  })
+
+  it('rejects registerTaskUpdate for a task that is not started', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'not-started' },
+      })
+    })
+
+    // Do NOT start the task — registerTaskUpdate should return null
+    const result = await testModule!.services.taskService.registerTaskUpdate(
+      task.id,
+      {
+        progress: { percent: 10 },
+      },
+    )
+
+    expect(result).toBeNull()
+  })
+
+  it('rejects registerTaskUpdate for a completed task', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier:
+          await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG),
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'already-completed' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    await testModule!.services.taskService.registerTaskCompleted(task.id, {
+      success: true,
+      result: { done: true },
+    })
+
+    // Task is completed — registerTaskUpdate should return null
+    const result = await testModule!.services.taskService.registerTaskUpdate(
+      task.id,
+      {
+        progress: { percent: 99 },
+      },
+    )
+
+    expect(result).toBeNull()
+  })
+
+  // --- Task lifecycle (started/completed) → socket emission tests ---
+
+  it('emits task_started ASYNC_UPDATE when a user-scoped task is started', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await createTestUser(testModule!, {
+      username: 'started_socket_user',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'started_socket_user'),
+      })
+    const userId = user!.id
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(userId, appIdentifier)
+
+    // Create task with targetUserId
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'started-socket' },
+        correlationKey: 'ck-started-1',
+        targetUserId: userId,
+      })
+    })
+
+    // Connect socket before starting the task
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const received = await new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () =>
+          reject(new Error('Expected task_started ASYNC_UPDATE but got none')),
+        5000,
+      )
+      socket!.once('ASYNC_UPDATE', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+
+      void testModule!.services.taskService.registerTaskStarted({
+        taskId: task.id,
+        startContext: { __executor: { kind: 'test' } },
+      })
+    })
+
+    expect(received).toBeDefined()
+    expect((received as { correlationKey: string }).correlationKey).toBe(
+      'ck-started-1',
+    )
+    expect((received as { code: string }).code).toBe('task_started')
+    expect((received as { message: { text: string } }).message.text).toBe(
+      `Task started: ${APP_ACTION_TASK_ID}`,
+    )
+    expect(
+      (received as { message: { audience: string } }).message.audience,
+    ).toBe('system')
+    expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
+    expect((received as { receivedAt: string }).receivedAt).toBeDefined()
+  })
+
+  it('emits task_completed ASYNC_UPDATE when a user-scoped task completes successfully', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await createTestUser(testModule!, {
+      username: 'completed_socket_user',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'completed_socket_user'),
+      })
+    const userId = user!.id
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(userId, appIdentifier)
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'completed-socket' },
+        correlationKey: 'ck-completed-1',
+        targetUserId: userId,
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    // Connect socket after starting (skip the task_started event)
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const received = await new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () =>
+          reject(
+            new Error('Expected task_completed ASYNC_UPDATE but got none'),
+          ),
+        5000,
+      )
+      socket!.once('ASYNC_UPDATE', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+
+      void testModule!.services.taskService.registerTaskCompleted(task.id, {
+        success: true,
+        result: { output: 'done' },
+      })
+    })
+
+    expect(received).toBeDefined()
+    expect((received as { correlationKey: string }).correlationKey).toBe(
+      'ck-completed-1',
+    )
+    expect((received as { code: string }).code).toBe('task_completed')
+    expect((received as { message: { level: string } }).message.level).toBe(
+      'info',
+    )
+    expect((received as { message: { text: string } }).message.text).toBe(
+      `Task completed: ${APP_ACTION_TASK_ID}`,
+    )
+    expect(
+      (received as { progress: { percent: number } }).progress.percent,
+    ).toBe(100)
+    expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
+  })
+
+  it('emits task_failed ASYNC_UPDATE when a user-scoped task fails', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await createTestUser(testModule!, {
+      username: 'failed_socket_user',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'failed_socket_user'),
+      })
+    const userId = user!.id
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(userId, appIdentifier)
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'failed-socket' },
+        correlationKey: 'ck-failed-1',
+        targetUserId: userId,
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const received = await new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () =>
+          reject(new Error('Expected task_failed ASYNC_UPDATE but got none')),
+        5000,
+      )
+      socket!.once('ASYNC_UPDATE', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+
+      void testModule!.services.taskService.registerTaskCompleted(task.id, {
+        success: false,
+        error: {
+          code: 'TEST_ERROR',
+          message: 'Something went wrong',
+        },
+      })
+    })
+
+    expect(received).toBeDefined()
+    expect((received as { correlationKey: string }).correlationKey).toBe(
+      'ck-failed-1',
+    )
+    expect((received as { code: string }).code).toBe('task_failed')
+    expect((received as { message: { level: string } }).message.level).toBe(
+      'error',
+    )
+    expect((received as { message: { text: string } }).message.text).toBe(
+      `Task failed: ${APP_ACTION_TASK_ID}`,
+    )
+    expect((received as { progress: undefined }).progress).toBeUndefined()
+    expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
+  })
+
+  it('does not emit task_started when task has no target scope', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await createTestUser(testModule!, {
+      username: 'no_scope_started_user',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'no_scope_started_user'),
+      })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(user!.id, appIdentifier)
+
+    // Create task WITHOUT targetUserId or targetLocation
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'no-scope-started' },
+      })
+    })
+
+    const appUserToken = await getAppUserToken(user!.id, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const received = await new Promise<boolean>((resolve) => {
+      socket!.once('ASYNC_UPDATE', () => resolve(true))
+      void testModule!.services.taskService.registerTaskStarted({
+        taskId: task.id,
+        startContext: { __executor: { kind: 'test' } },
+      })
+      setTimeout(() => resolve(false), 1500)
+    })
+
+    expect(received).toBe(false)
+  })
+
+  it('does not emit task_completed when task has no target scope', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await createTestUser(testModule!, {
+      username: 'no_scope_completed_user',
+      password: '123',
+    })
+
+    const user =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'no_scope_completed_user'),
+      })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(LIFECYCLE_APP_SLUG)
+    await enableAppForUser(user!.id, appIdentifier)
+
+    // Create task WITHOUT targetUserId or targetLocation
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'no-scope-completed' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      startContext: { __executor: { kind: 'test' } },
+    })
+
+    const appUserToken = await getAppUserToken(user!.id, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const received = await new Promise<boolean>((resolve) => {
+      socket!.once('ASYNC_UPDATE', () => resolve(true))
+      void testModule!.services.taskService.registerTaskCompleted(task.id, {
+        success: true,
+        result: { done: true },
+      })
+      setTimeout(() => resolve(false), 1500)
+    })
+
+    expect(received).toBe(false)
   })
 })

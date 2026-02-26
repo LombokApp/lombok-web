@@ -20,6 +20,8 @@ import { StorageModule } from 'src/storage/storage.module'
 
 import { AppSocketGateway } from './app/app-socket.gateway'
 import { AppSocketService } from './app/app-socket.service'
+import { AppUserSocketGateway } from './app-user/app-user-socket.gateway'
+import { AppUserSocketService } from './app-user/app-user-socket.service'
 import { FolderSocketGateway } from './folder/folder-socket.gateway'
 import { FolderSocketService } from './folder/folder-socket.service'
 import { UserSocketGateway } from './user/user-socket.gateway'
@@ -47,8 +49,10 @@ import { UserSocketService } from './user/user-socket.service'
     UserSocketGateway,
     FolderSocketGateway,
     AppSocketGateway,
+    AppUserSocketGateway,
     UserSocketService,
     FolderSocketService,
+    AppUserSocketService,
     FolderService,
     EventService,
     AppService,
@@ -61,6 +65,8 @@ import { UserSocketService } from './user/user-socket.service'
     UserSocketGateway,
     AppSocketService,
     AppSocketGateway,
+    AppUserSocketGateway,
+    AppUserSocketService,
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

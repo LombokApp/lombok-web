@@ -84,6 +84,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'TRIGGER_APP_TASK'>>
+  reportTaskUpdate: (
+    params: AppSocketMessageDataMap['REPORT_TASK_UPDATE'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'REPORT_TASK_UPDATE'>>
 }
 
 interface PlatformApiExecuteOptions {
@@ -200,6 +204,9 @@ export const buildAppClient = (
     },
     getLatestDbCredentials(options) {
       return emitWithAck('GET_LATEST_DB_CREDENTIALS', options)
+    },
+    reportTaskUpdate(params, options) {
+      return emitWithAck('REPORT_TASK_UPDATE', params, options)
     },
   }
 }

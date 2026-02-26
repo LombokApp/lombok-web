@@ -2,82 +2,47 @@ import type { RequestHandler } from '@lombokapp/app-worker-sdk'
 
 export const handleRequest: RequestHandler = async function handleRequest(
   request,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  { serverClient, dbClient, actor },
+  { serverClient, actor },
 ) {
-  console.log(
-    'DEMO API REQUEST WORKER REQUEST HANDLER:',
-    new URL(request.url).pathname,
-  )
+  const url = new URL(request.url)
+  console.log('DEMO API REQUEST WORKER:', url.pathname)
 
-  if (actor?.actorType === 'system') {
-    console.log('System request')
-  } else if (actor?.actorType === 'user') {
-    console.log('User request:', actor.userId)
-  } else {
-    console.log('Unauthenticated request')
-  }
-
-  // Log detailed request information
-  const headersObj: Record<string, string> = {}
-  request.headers.forEach((value, key) => {
-    headersObj[key] = value
-  })
-
-  console.log('Request details:', {
-    method: request.method,
-    url: request.url,
-    headers: headersObj,
-    hasBody: request.body !== null,
-  })
-
-  // Log body content if present (for debugging purposes)
-  if (request.body) {
-    try {
-      const contentType = request.headers.get('Content-Type') || ''
-      if (contentType.includes('application/json')) {
-        const bodyData = (await request.json()) as unknown
-        console.log('Request JSON body:', bodyData)
-      } else if (contentType.includes('text/')) {
-        const bodyText = await request.text()
-        console.log('Request text body:', bodyText)
-      } else {
-        console.log('Request has body with content-type:', contentType)
-      }
-    } catch (error) {
-      console.log('Could not parse request body:', error)
+  // ---- /trigger-tasks endpoint ----
+  // Triggers N demo_async_task tasks with generated correlationKeys,
+  // returns the correlationKeys so the caller can filter socket events.
+  if (url.pathname.endsWith('/trigger-tasks') && request.method === 'POST') {
+    if (actor?.actorType !== 'user') {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+      })
     }
-  }
 
-  // Test database connection with a simple query
-  try {
-    console.log('Testing database connection...')
-    const result = await dbClient.query(
-      'SELECT NOW() as current_time, current_database() as database_name',
-    )
-    console.log('Database query result:', result)
+    const body = (await request.json()) as { count?: number }
+    const count = Math.min(body.count ?? 3, 10) // cap at 10
 
-    // Try to query the demo tables if they exist
-    try {
-      const demoEntitiesResult = await dbClient.query(
-        'SELECT COUNT(*) as demo_entity_count FROM demo_entities',
-      )
-      console.log('Demo entities table query result:', demoEntitiesResult)
-    } catch (error) {
-      console.log('Demo entities table not found or not accessible:', error)
+    const correlationKeys: string[] = []
+
+    for (let i = 0; i < count; i++) {
+      const correlationKey = crypto.randomUUID()
+      correlationKeys.push(correlationKey)
+
+      await serverClient.triggerAppTask({
+        taskIdentifier: 'demo_async_task',
+        inputData: { label: `Task ${i + 1}` },
+        correlationKey,
+        targetUserId: actor.userId,
+      })
     }
-  } catch (error) {
-    console.log('Database query failed:', error)
+
+    return new Response(JSON.stringify({ correlationKeys }), { status: 200 })
   }
 
+  // ---- Default handler ----
   return new Response(
     JSON.stringify({
       message: 'Hello, world (from demo API request worker)!',
       timestamp: new Date().toISOString(),
-      databaseTest: 'Database client is available and working',
     }),
-    {
-      status: 200,
-    },
+    { status: 200 },
   )
 }

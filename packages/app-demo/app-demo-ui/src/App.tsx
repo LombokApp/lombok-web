@@ -2,6 +2,7 @@ import './styles/globals.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+import { AsyncTasksDemo } from './components/AsyncTasksDemo'
 import { SdkDemo } from './components/SdkDemo'
 
 const queryClient = new QueryClient()
@@ -180,6 +181,24 @@ export const App = () => {
           </div>
           <div className="mx-auto max-w-4xl">
             <SdkDemo />
+          </div>
+        </section>
+
+        {/* Async Tasks Demo Section */}
+        <section className="container mx-auto px-4 py-10">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl font-bold text-white">
+              Real-Time Async Tasks
+            </h2>
+            <p className="mx-auto max-w-2xl text-xl text-white/70">
+              Demonstrates scope-based socket subscriptions: trigger multiple
+              backend tasks and watch their progress in real time via{' '}
+              <code className="text-white/80">ASYNC_UPDATE</code> events
+              filtered by correlation&nbsp;ID.
+            </p>
+          </div>
+          <div className="mx-auto max-w-4xl">
+            <AsyncTasksDemo />
           </div>
         </section>
 

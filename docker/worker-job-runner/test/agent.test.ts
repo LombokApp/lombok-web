@@ -133,6 +133,11 @@ interface MockPlatformServerState {
     body: CompletionRequest
     timestamp: number
   }>
+  updateRequests: Array<{
+    jobId: string
+    body: unknown
+    timestamp: number
+  }>
   startRequests: Array<{ jobId: string; timestamp: number }>
   outputFiles: Array<{ url: string; contentType: string; body: string }>
 }
@@ -515,6 +520,7 @@ const MOCK_JOB_TOKEN = 'test-jwt-token-for-testing'
 let mockPlatformState: MockPlatformServerState = {
   uploadUrlRequests: [],
   completionRequests: [],
+  updateRequests: [],
   startRequests: [],
   outputFiles: [],
 }
@@ -523,6 +529,7 @@ function resetMockPlatformState(): void {
   mockPlatformState = {
     uploadUrlRequests: [],
     completionRequests: [],
+    updateRequests: [],
     startRequests: [],
     outputFiles: [],
   }
@@ -598,6 +605,26 @@ function startMockPlatformServer(): void {
         const body = (await req.json()) as CompletionRequest
 
         mockPlatformState.completionRequests.push({
+          jobId,
+          body,
+          timestamp: Date.now(),
+        })
+
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // POST /api/v1/docker/jobs/{job_id}/update
+      const updateMatch = path.match(
+        /^\/api\/v1\/docker\/jobs\/([^/]+)\/update$/,
+      )
+      if (updateMatch && req.method === 'POST') {
+        const jobId = updateMatch[1]
+        const body = await req.json()
+
+        mockPlatformState.updateRequests.push({
           jobId,
           body,
           timestamp: Date.now(),
@@ -3497,6 +3524,156 @@ describe('Platform Agent', () => {
       ).toBe(true)
     })
 
+    test('exec_per_job forwards stdout magic line updates to platform', async () => {
+      const jobId = generateJobId('platform-exec-update')
+      const updatePayload = JSON.stringify({
+        progress: { percent: 50, label: 'Processing' },
+        message: { level: 'info', text: 'Step 1/2', audience: 'user' },
+      })
+      const updatePayload2 = JSON.stringify({
+        progress: { percent: 100, label: 'Done' },
+        message: { level: 'info', text: 'Step 2/2', audience: 'user' },
+      })
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_update_test',
+        worker_command: [
+          'sh',
+          '-c',
+          `echo "starting work" && echo '__PLATFORM_UPDATE__|${updatePayload}' && echo "middle of work" && echo '__PLATFORM_UPDATE__|${updatePayload2}' && echo "done"`,
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: { test: true },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result } = await runJob(payload)
+
+      expect(result.success).toBe(true)
+
+      // Verify updates were forwarded to platform
+      expect(mockPlatformState.updateRequests.length).toBe(2)
+
+      const update1 = mockPlatformState.updateRequests[0]
+      expect(update1.jobId).toBe(jobId)
+      expect(update1.body).toEqual({
+        progress: { percent: 50, label: 'Processing' },
+        message: { level: 'info', text: 'Step 1/2', audience: 'user' },
+      })
+
+      const update2 = mockPlatformState.updateRequests[1]
+      expect(update2.jobId).toBe(jobId)
+      expect(update2.body).toEqual({
+        progress: { percent: 100, label: 'Done' },
+        message: { level: 'info', text: 'Step 2/2', audience: 'user' },
+      })
+
+      // Verify updates were sent before completion
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(update1.timestamp).toBeLessThanOrEqual(completionReq.timestamp)
+      expect(update2.timestamp).toBeLessThanOrEqual(completionReq.timestamp)
+
+      // Verify magic lines do NOT appear in the job log
+      const jobLog = await readJobLog(jobId)
+      expect(jobLog).not.toContain('__PLATFORM_UPDATE__')
+      expect(jobLog).not.toContain(updatePayload)
+
+      // Verify normal log lines ARE in the job log
+      expect(jobLog).toContain('starting work')
+      expect(jobLog).toContain('middle of work')
+      expect(jobLog).toContain('done')
+    })
+
+    test('exec_per_job does not forward invalid JSON magic lines', async () => {
+      const jobId = generateJobId('platform-exec-invalid-update')
+
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_invalid_update_test',
+        worker_command: [
+          'sh',
+          '-c',
+          `echo '__PLATFORM_UPDATE__|not valid json' && echo "normal output"`,
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result } = await runJob(payload)
+
+      expect(result.success).toBe(true)
+
+      // No update should have been forwarded (invalid JSON)
+      expect(mockPlatformState.updateRequests.length).toBe(0)
+
+      // Invalid magic line should NOT appear in the job log either
+      const jobLog = await readJobLog(jobId)
+      expect(jobLog).not.toContain('__PLATFORM_UPDATE__')
+
+      // Normal output should be in the job log
+      expect(jobLog).toContain('normal output')
+    })
+
+    test('persistent_http forwards updates from poll response to platform', async () => {
+      const jobClass = 'updates_demo_8230'
+      const port = 8230
+
+      const jobId = generateJobId('platform-http-updates')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: {
+          updates: [
+            {
+              progress: { percent: 25 },
+              message: { level: 'info', text: 'Quarter done', audience: 'user' },
+            },
+            {
+              progress: { percent: 75 },
+              message: { level: 'info', text: 'Almost there', audience: 'user' },
+            },
+          ],
+          delay_between_ms: 0,
+        },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(result.success).toBe(true)
+
+      // Verify updates were forwarded to platform
+      // The mock worker queues updates during execution, agent polls and forwards them
+      expect(mockPlatformState.updateRequests.length).toBeGreaterThanOrEqual(1)
+
+      // Verify the update payloads match what the mock worker queued
+      const updateBodies = mockPlatformState.updateRequests.map((r) => r.body)
+      expect(updateBodies).toContainEqual({
+        progress: { percent: 25 },
+        message: { level: 'info', text: 'Quarter done', audience: 'user' },
+      })
+      expect(updateBodies).toContainEqual({
+        progress: { percent: 75 },
+        message: { level: 'info', text: 'Almost there', audience: 'user' },
+      })
+
+      // All updates should be for this job
+      for (const req of mockPlatformState.updateRequests) {
+        expect(req.jobId).toBe(jobId)
+      }
+
+      // Verify completion was also signaled
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      expect(mockPlatformState.completionRequests[0].body.success).toBe(true)
+    })
+
     test('no platform calls when platform_url is not provided', async () => {
       const jobId = generateJobId('no-platform-test')
       const payload: JobPayload = {
@@ -3514,6 +3691,7 @@ describe('Platform Agent', () => {
       expect(mockPlatformState.completionRequests.length).toBe(0)
       expect(mockPlatformState.uploadUrlRequests.length).toBe(0)
       expect(mockPlatformState.startRequests.length).toBe(0)
+      expect(mockPlatformState.updateRequests.length).toBe(0)
     })
   })
 

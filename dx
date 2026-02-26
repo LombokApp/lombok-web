@@ -26,8 +26,9 @@ Usage: ./dx <command>
 
 Commands:
   check all            Run prettier, tsc, and eslint across all packages
-  check lint           Run eslint across all packages
+  check eslint         Run eslint across all packages
   check prettier       Run prettier across all packages
+  fix prettier         Fix prettier issues across all packages
   check tsc            Run tsc across all packages
   reload api           Reload the NestJS API (triggers bun watch reload)
   restart api          Restart the NestJS API (triggers restart of the app, which loads new env)
@@ -65,8 +66,8 @@ case "${1:-help}" in
       all)
         sh ./cmd/dev-check-all.sh
         ;;
-      lint)
-        sh ./cmd/dev-lint-all.sh
+      eslint)
+        sh ./cmd/dev-eslint-all.sh
         ;;
       prettier)
         sh ./cmd/dev-prettier-all.sh
@@ -76,6 +77,20 @@ case "${1:-help}" in
         ;;
       *)
         echo "Usage: ./dx check <all|lint|prettier|tsc>" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  fix)
+    case "${2:-}" in
+      prettier)
+        sh ./cmd/dev-prettier-fix-all.sh
+        ;;
+      eslint)
+        sh ./cmd/dev-eslint-fix-all.sh
+        ;;
+      *)
+        echo "Usage: ./dx fix <prettier|eslint>" >&2
         exit 1
         ;;
     esac

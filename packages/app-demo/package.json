@@ -11,7 +11,9 @@
     "build:bundle": "./build-bundle.sh",
     "dev:install": "./dev-install.sh",
     "lint:check": "bun --cwd app-demo-ui lint:check && bun --cwd app-demo-workers lint:check",
+    "lint:fix": "bun --cwd app-demo-ui lint:fix && bun --cwd app-demo-workers lint:fix",
     "prettier:check": "bun --cwd app-demo-ui prettier:check && bun --cwd app-demo-workers prettier:check",
+    "prettier:fix": "bun --cwd app-demo-ui prettier:fix && bun --cwd app-demo-workers prettier:fix",
     "tsc:check": "bun --cwd app-demo-ui tsc:check && bun --cwd app-demo-workers tsc:check"
   },
   "devDependencies": {

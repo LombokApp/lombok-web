@@ -55,6 +55,9 @@ interface JobState {
 // Store for tracking job states
 const jobStates = new Map<string, JobState>()
 
+// Store for pending platform updates (drained on read via GET /job/:id)
+const pendingUpdates = new Map<string, unknown[]>()
+
 // Platform agent job request structure (for persistent_http mode)
 interface AgentJobRequest {
   job_id: string
@@ -675,6 +678,47 @@ const handleDummyEcho: JobHandler = (input, ctx) => {
   return input
 }
 
+// Updates demo job - queues platform updates that are returned via GET /job/:id
+interface UpdatesDemoInput {
+  updates: Array<{
+    progress?: { percent: number; label?: string }
+    message?: { level: string; text: string; audience?: string }
+  }>
+  delay_between_ms?: number
+}
+
+const handleUpdatesDemo: JobHandler = async (input, ctx) => {
+  if (!isObject(input) || !Array.isArray((input as any).updates)) {
+    throw new Error(
+      'Invalid input: expected { updates: [...], delay_between_ms?: number }',
+    )
+  }
+  const { updates, delay_between_ms = 100 } = input as unknown as UpdatesDemoInput
+  const jobId = ctx.jobId
+  if (!jobId) {
+    throw new Error('jobId is required for updates_demo')
+  }
+
+  ctx.logger.log(`Starting updates demo with ${updates.length} updates`)
+
+  for (let i = 0; i < updates.length; i++) {
+    const update = updates[i]
+    ctx.logger.log(`Queueing update ${i + 1}/${updates.length}`)
+
+    // Add update to pending queue
+    const existing = pendingUpdates.get(jobId) ?? []
+    existing.push(update)
+    pendingUpdates.set(jobId, existing)
+
+    if (delay_between_ms > 0 && i < updates.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, delay_between_ms))
+    }
+  }
+
+  ctx.logger.log('All updates queued')
+  return { updatesQueued: updates.length }
+}
+
 // Job name registry
 const jobHandlers: Record<string, JobHandler> = {
   dummy_echo: handleDummyEcho,
@@ -705,6 +749,9 @@ const jobHandlers: Record<string, JobHandler> = {
 
   // File output demonstration
   file_output: handleFileOutput,
+
+  // Platform updates demonstration
+  updates_demo: handleUpdatesDemo,
 }
 
 // =============================================================================
@@ -961,6 +1008,13 @@ const server = Bun.serve({
 
       if (jobState.status === 'failed' && jobState.error) {
         response.error = jobState.error
+      }
+
+      // Include and drain pending updates
+      const updates = pendingUpdates.get(jobId)
+      if (updates && updates.length > 0) {
+        response.updates = updates
+        pendingUpdates.delete(jobId)
       }
 
       return jsonResponse(response)

@@ -1961,8 +1961,12 @@ export class AppService {
       })
 
     const resolvedUserSettings = resolveUserAppSettings(app, appUserSettings)
+    const enabled =
+      resolvedUserSettings.enabled === null
+        ? resolvedUserSettings.enabledFallback
+        : resolvedUserSettings.enabled
 
-    if (!resolvedUserSettings.enabled) {
+    if (!enabled) {
       throw new UnauthorizedException(
         `Unauthorized: app "${appIdentifier}" is not enabled for user "${userId}".`,
       )
