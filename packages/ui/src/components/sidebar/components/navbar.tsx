@@ -32,7 +32,7 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
               viewer={authContext.viewer}
             />
           )}
-          <div className="flex max-w-full flex-1 grow items-center pl-14 lg:-ml-0">
+          <div className="flex max-w-full flex-1 grow items-center pl-4 lg:-ml-0">
             {breadcrumbs && (
               <Breadcrumb className="hidden w-full md:flex">
                 <BreadcrumbList className="w-full max-w-full flex-nowrap">

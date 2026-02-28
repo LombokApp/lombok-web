@@ -31,11 +31,20 @@ export function Sidebar({
         settings.disabled && 'hidden',
       )}
     >
-      <SidebarToggle isOpen={isOpen} setIsOpen={toggleOpen} />
+      <div
+        className={cn(
+          'invisible absolute z-30 transition-all duration-300 ease-in-out lg:visible',
+          getOpenState()
+            ? 'left-[calc(100%-40px)] top-2'
+            : 'left-[calc(50%-16px)] top-16',
+        )}
+      >
+        <SidebarToggle isOpen={isOpen} setIsOpen={toggleOpen} />
+      </div>
       <div
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
-        className="relative flex h-screen flex-col overflow-y-auto border-r shadow-md dark:shadow-zinc-900"
+        className="relative flex h-screen flex-col overflow-y-auto overflow-x-hidden border-r shadow-md dark:shadow-zinc-900"
       >
         <div className="border-b bg-black/5 pb-0 pl-4 pr-2 pt-1">
           <Button
@@ -47,25 +56,40 @@ export function Sidebar({
           >
             <Link to="/folders" className="flex gap-4 p-0">
               <img
-                className="rounded-md border"
+                className="shrink-0 rounded-md border"
                 src="/logo.png"
                 width={24}
                 height={24}
                 alt="Lombok logo"
               />
-              <h1
+              <span
                 className={cn(
-                  'whitespace-nowrap text-lg font-bold transition-[transform,opacity,display] duration-300 ease-in-out',
+                  'grid overflow-hidden transition-[grid-template-columns] ease-in-out',
                   !getOpenState()
-                    ? 'hidden -translate-x-96 opacity-0'
-                    : 'translate-x-0 opacity-100',
+                    ? 'grid-cols-[0fr] duration-200'
+                    : 'grid-cols-[1fr] duration-200',
                 )}
               >
-                Lombok
-              </h1>
+                <h1
+                  className={cn(
+                    'min-w-0 overflow-hidden whitespace-nowrap text-lg font-bold transition-opacity ease-in-out',
+                    !getOpenState()
+                      ? 'opacity-0 duration-150'
+                      : 'opacity-100 duration-500',
+                  )}
+                >
+                  Lombok
+                </h1>
+              </span>
             </Link>
           </Button>
         </div>
+        <div
+          className={cn(
+            'shrink-0 transition-all duration-300 ease-in-out',
+            getOpenState() ? 'h-0' : 'h-11',
+          )}
+        />
         <div className="h-full overflow-hidden p-0">
           {authContext.viewer && (
             <Menu
