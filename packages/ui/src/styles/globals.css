@@ -1,4 +1,27 @@
+@import 'tailwindcss' source(none);
+@import 'tw-animate-css';
+
+@config '../../tailwind.config.ts';
+
+@source "../**/*.{js,ts,jsx,tsx}";
+@source "../../../ui-toolkit/components/**/*.{js,ts,jsx,tsx}";
+@source "../../../ui-toolkit/styles/**/*.ts";
+
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
+
 @layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--border);
+  }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+
   html,
   body {
     padding: 0;
@@ -63,10 +86,6 @@
     box-sizing: border-box;
   }
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* Root-level dark mode (class-based) */
 html.dark {
