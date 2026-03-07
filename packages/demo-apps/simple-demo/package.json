@@ -1,0 +1,32 @@
+{
+  "name": "@lombokapp/simple-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "ui",
+    "runtime"
+  ],
+  "scripts": {
+    "build:bundle": "../build-bundle.sh simple-demo",
+    "dev:install": "../dev-install.sh simple-demo",
+    "lint:check": "bun --cwd ui lint:check && bun --cwd runtime lint:check",
+    "prettier:check": "bun --cwd ui prettier:check && bun --cwd runtime prettier:check",
+    "tsc:check": "bun --cwd ui tsc:check && bun --cwd runtime tsc:check"
+  },
+  "devDependencies": {
+    "eslint": "9.39.1",
+    "@eslint/js": "9.39.1",
+    "jiti": "2.6.1",
+    "typescript-eslint": "8.46.3",
+    "@typescript-eslint/eslint-plugin": "8.46.3",
+    "@stylistic/eslint-plugin": "5.5.0",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-eslint-comments": "3.2.0",
+    "eslint-plugin-promise": "7.2.1",
+    "eslint-plugin-simple-import-sort": "12.1.1",
+    "eslint-plugin-prettier": "5.2.1",
+    "globals": "15.14.0",
+    "prettier": "3.4.2"
+  }
+}

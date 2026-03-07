@@ -2,7 +2,8 @@
   "name": "lombokapp",
   "private": true,
   "workspaces": [
-    "**"
+    "**",
+    "!packages/demo-apps/**"
   ],
   "scripts": {
     "install:clean": "sh ./cmd/dev-clean-install.sh",

@@ -12,7 +12,6 @@
 /packages/shared/packages/*/build
 /packages/shared/packages/*/builds
 /packages/shared/packages/*/dist
-!/packages/api-client/dist
 
 .DS_Store
 .idea
@@ -39,15 +38,11 @@ env.dev
 .env
 .aider*
 
-/apps/*
-!/apps/core
-!/apps/demo
-packages/app-demo/app-demo-ui/dist
 .linked-node-modules
 docker/worker-agent/dist
 docker/worker-agent/.gocache
-packages/app-demo/bundle-dist
 .claude
+.planning
 .cursor/plans
 test-results
 packages/api/script/db-seeds/local-*.ts

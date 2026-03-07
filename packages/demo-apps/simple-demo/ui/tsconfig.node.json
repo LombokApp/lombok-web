@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@/src/*": ["./src/*"],
+      "@lombokapp/app-browser-sdk": ["../../../app-browser-sdk/src"],
+      "@lombokapp/app-browser-sdk/*": ["../../../app-browser-sdk/src/*"],
+      "@lombokapp/ui-toolkit": ["../../../ui-toolkit/src"],
+      "@lombokapp/ui-toolkit/*": ["../../../ui-toolkit/src/*"],
+      "@lombokapp/utils": ["../../../utils/src"],
+      "@lombokapp/utils/*": ["../../../utils/src/*"],
+      "@lombokapp/sdk": ["../../../sdk/src"],
+      "@lombokapp/sdk/*": ["../../../sdk/src/*"],
+      "@lombokapp/auth-utils": ["../../../auth-utils/src"],
+      "@lombokapp/auth-utils/*": ["../../../auth-utils/src/*"],
+      "@lombokapp/types": ["../../../types/src"],
+      "@lombokapp/types/*": ["../../../types/src/*"]
+    }
+  },
+  "include": ["vite.config.ts", "eslint.config.ts"]
+}

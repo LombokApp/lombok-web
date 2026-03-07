@@ -1,4 +1,5 @@
 import { useAppBrowserSdk } from '@lombokapp/app-browser-sdk'
+import type { paths } from '@lombokapp/types'
 import createClient from 'openapi-react-query'
 import React from 'react'
 
@@ -8,7 +9,9 @@ export function SdkDemo() {
   const authState = sdk.authState
   const executeWorkerScriptUrl = sdk.executeWorkerScriptUrl
   // Create hooks-based client from the SDK's API client
-  const [$api] = React.useState(() => createClient(sdk.apiClient))
+  const [$api] = React.useState(() =>
+    createClient<paths>(sdk.apiClient as Parameters<typeof createClient>[0]),
+  )
 
   // Worker script state
   const [workerLoading, setWorkerLoading] = React.useState(false)

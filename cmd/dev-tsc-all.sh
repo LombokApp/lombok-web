@@ -19,8 +19,8 @@ bun --cwd packages/app-browser-sdk tsc:check
 echo "Checking @lombokapp/auth-utils..."
 bun --cwd packages/auth-utils tsc:check
 
-echo "Checking @lombokapp/app-demo..."
-bun --cwd packages/app-demo tsc:check
+echo "Checking @lombokapp/simple-demo..."
+bun --cwd packages/demo-apps/simple-demo tsc:check
 
 echo "Checking @lombokapp/sdk..."
 bun --cwd packages/sdk tsc:check
