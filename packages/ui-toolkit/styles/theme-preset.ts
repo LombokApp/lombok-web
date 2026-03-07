@@ -1,10 +1,5 @@
-import containerQueries from '@tailwindcss/container-queries'
-import animatePlugin from 'tailwindcss-animate'
-
 import { themePlugin } from './theme-plugin'
 
 export default {
-  darkMode: ['selector', '[data-mode="dark"]'],
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
-  plugins: [themePlugin, animatePlugin, containerQueries],
+  plugins: [themePlugin],
 }

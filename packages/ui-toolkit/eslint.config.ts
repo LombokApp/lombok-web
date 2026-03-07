@@ -1,21 +1,16 @@
 import '../../eslint-config/eslint-plugins.d.ts'
 
-import containerQueries from '@tailwindcss/container-queries'
 import eslintStorybook from 'eslint-plugin-storybook'
-import eslintTailwind from 'eslint-plugin-tailwindcss'
-import animatePlugin from 'tailwindcss-animate'
 import tseslint from 'typescript-eslint'
 
 import baseConfig from '../../eslint-config/base'
 import reactConfig from '../../eslint-config/react'
 import strictConfig from '../../eslint-config/strict'
-import { themePlugin } from './styles'
 
 export default [
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
-  ...eslintTailwind.configs['flat/recommended'],
   ...baseConfig,
   ...reactConfig,
   ...strictConfig,
@@ -33,15 +28,6 @@ export default [
   {
     plugins: {
       storybook: eslintStorybook,
-      tailwind: eslintTailwind,
-    },
-    settings: {
-      tailwindcss: {
-        config: {
-          darkMode: ['[data-mode="dark"]'],
-          plugins: [animatePlugin, containerQueries, themePlugin],
-        },
-      },
     },
     languageOptions: {
       globals: {

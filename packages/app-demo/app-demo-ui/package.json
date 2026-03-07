@@ -41,7 +41,6 @@
     "eslint-plugin-promise": "catalog:",
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-prettier": "catalog:",
-    "eslint-plugin-tailwindcss": "catalog:",
     "eslint-plugin-jsx-a11y": "catalog:",
     "globals": "catalog:",
     "tailwindcss": "catalog:",
