@@ -106,8 +106,8 @@ jobs:
       - run: bun --cwd packages/app-worker-sdk lint:check
       - run: bun --cwd packages/app-worker-sdk tsc:check
 
-  check-app-demo:
-    name: Check @lombokapp/app-demo package
+  check-simple-demo:
+    name: Check @lombokapp/simple-demo package
     runs-on: ubuntu-latest
 
     steps:
@@ -119,9 +119,10 @@ jobs:
           bun-version: 1.3.9
 
       - run: bun install
-      - run: bun --cwd packages/app-demo prettier:check
-      - run: bun --cwd packages/app-demo lint:check
-      - run: bun --cwd packages/app-demo tsc:check
+      - run: bun install --cwd packages/demo-apps/simple-demo
+      - run: bun --cwd packages/demo-apps/simple-demo prettier:check
+      - run: bun --cwd packages/demo-apps/simple-demo lint:check
+      - run: bun --cwd packages/demo-apps/simple-demo tsc:check
 
   check-sdk:
     name: Check @lombokapp/sdk package

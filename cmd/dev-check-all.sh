@@ -25,7 +25,7 @@ run_checks "@lombokapp/auth-utils" packages/auth-utils
 
 run_checks "@lombokapp/app-browser-sdk" packages/app-browser-sdk
 
-run_checks "@lombokapp/app-demo" packages/app-demo
+run_checks "@lombokapp/simple-demo" packages/demo-apps/simple-demo
 
 run_checks "@lombokapp/sdk" packages/sdk
 

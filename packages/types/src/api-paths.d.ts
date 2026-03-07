@@ -1507,6 +1507,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/jobs/{jobId}/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a mid-execution update from a running worker job */
+        post: operations["DockerWorkerHooks_submitUpdate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
         parameters: {
             query?: never;
@@ -1736,6 +1753,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "schedule";
@@ -1748,6 +1772,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "user_action";
@@ -1763,6 +1794,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+                            };
+                        }[];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -1993,6 +2031,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppListResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "schedule";
@@ -2005,6 +2050,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppListResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "user_action";
@@ -2020,6 +2072,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppListResponse__schema0"];
+                            };
+                        }[];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -2250,6 +2309,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppGetResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "schedule";
@@ -2262,6 +2328,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppGetResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "user_action";
@@ -2277,6 +2350,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["AppGetResponse__schema0"];
+                            };
+                        }[];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -2515,6 +2595,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "schedule";
@@ -2527,6 +2614,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "user_action";
@@ -2542,6 +2636,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
+                            };
+                        }[];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -2743,6 +2844,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "schedule";
@@ -2755,6 +2863,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
+                            };
+                        }[];
                     } | {
                         /** @constant */
                         kind: "user_action";
@@ -2770,6 +2885,13 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
+                        onUpdate?: {
+                            condition?: string;
+                            taskIdentifier: string;
+                            taskDataTemplate?: {
+                                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
+                            };
+                        }[];
                     })[];
                     tasks?: {
                         identifier: string;
@@ -3812,6 +3934,13 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "event";
@@ -3836,6 +3965,13 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "schedule";
@@ -3849,6 +3985,13 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "user_action";
@@ -3859,6 +4002,13 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "app_action";
@@ -3867,6 +4017,13 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "task_child";
@@ -3880,6 +4037,13 @@ export interface components {
                         onCompleteHandlerIndex: number;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
@@ -3965,6 +4129,13 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "event";
@@ -3989,6 +4160,13 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "schedule";
@@ -4002,6 +4180,13 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "user_action";
@@ -4012,6 +4197,13 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "app_action";
@@ -4020,6 +4212,13 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
                 } | {
                     /** @constant */
                     kind: "task_child";
@@ -4033,6 +4232,13 @@ export interface components {
                         onCompleteHandlerIndex: number;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onUpdate?: {
+                        condition?: string;
+                        taskIdentifier: string;
+                        taskDataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
                 };
                 success?: boolean;
                 handlerIdentifier?: string;
@@ -4367,6 +4573,29 @@ export interface components {
                 folderId: string;
                 objectKey: string;
             }[];
+        };
+        DockerJobUpdateRequestDTO__schema0: (string | null) | number | boolean | components["schemas"]["DockerJobUpdateRequestDTO__schema0"][] | {
+            [key: string]: components["schemas"]["DockerJobUpdateRequestDTO__schema0"];
+        };
+        DockerJobUpdateRequestDTO: {
+            code?: string;
+            progress?: {
+                percent?: number;
+                current?: number;
+                total?: number;
+                label?: string;
+            };
+            message?: {
+                /** @enum {string} */
+                level: "debug" | "info" | "warn" | "error";
+                text: string;
+                /** @enum {string} */
+                audience: "user" | "system";
+            };
+            data?: {
+                [key: string]: components["schemas"]["DockerJobUpdateRequestDTO__schema0"];
+            };
+            timestamp?: string;
         };
         AllCommentsListResponseDTO: {
             comments: {
@@ -9038,6 +9267,47 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DockerJobCompleteRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerWorkerHooks_submitUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerJobUpdateRequestDTO"];
             };
         };
         responses: {

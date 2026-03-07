@@ -19,8 +19,8 @@ bun --cwd packages/auth-utils lint:check
 echo "Checking @lombokapp/app-browser-sdk..."
 bun --cwd packages/app-browser-sdk lint:check
 
-echo "Checking @lombokapp/app-demo..."
-bun --cwd packages/app-demo lint:check
+echo "Checking @lombokapp/simple-demo..."
+bun --cwd packages/demo-apps/simple-demo lint:check
 
 echo "Checking @lombokapp/sdk..."
 bun --cwd packages/sdk lint:check

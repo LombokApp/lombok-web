@@ -91,7 +91,7 @@ RUN cd /temp/dev && \
   # remove as much unnecessary stuff as possible
   rm -rf ./packages/ui && \
   rm -rf ./packages/ui-toolkit && \
-  rm -rf ./packages/app-demo && \
+  rm -rf ./packages/demo-apps && \
   rm -rf ./packages/auth-utils && \
   rm -rf ./packages/app-browser-sdk && \
   rm -rf ./packages/api/src && \

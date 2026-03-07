@@ -7208,6 +7208,65 @@
         ]
       }
     },
+    "/api/v1/docker/jobs/{jobId}/update": {
+      "post": {
+        "operationId": "DockerWorkerHooks_submitUpdate",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DockerJobUpdateRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a mid-execution update from a running worker job",
+        "tags": [
+          "DockerWorkerHooks"
+        ]
+      }
+    },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
       "get": {
         "operationId": "Comments_listAllComments",
@@ -8449,6 +8508,32 @@
                               "items": {
                                 "$ref": "#/components/schemas/AppInstallResponse__schema1"
                               }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/AppInstallResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
                             }
                           },
                           "required": [
@@ -8502,6 +8587,32 @@
                               "type": "array",
                               "items": {
                                 "$ref": "#/components/schemas/AppInstallResponse__schema1"
+                              }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/AppInstallResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
                               }
                             }
                           },
@@ -8561,6 +8672,32 @@
                               "type": "array",
                               "items": {
                                 "$ref": "#/components/schemas/AppInstallResponse__schema1"
+                              }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/AppInstallResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
                               }
                             }
                           },
@@ -9624,6 +9761,32 @@
                                 "items": {
                                   "$ref": "#/components/schemas/AppListResponse__schema1"
                                 }
+                              },
+                              "onUpdate": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "condition": {
+                                      "type": "string"
+                                    },
+                                    "taskIdentifier": {
+                                      "type": "string"
+                                    },
+                                    "taskDataTemplate": {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "$ref": "#/components/schemas/AppListResponse__schema0"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "taskIdentifier"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -9677,6 +9840,32 @@
                                 "type": "array",
                                 "items": {
                                   "$ref": "#/components/schemas/AppListResponse__schema1"
+                                }
+                              },
+                              "onUpdate": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "condition": {
+                                      "type": "string"
+                                    },
+                                    "taskIdentifier": {
+                                      "type": "string"
+                                    },
+                                    "taskDataTemplate": {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "$ref": "#/components/schemas/AppListResponse__schema0"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "taskIdentifier"
+                                  ]
                                 }
                               }
                             },
@@ -9736,6 +9925,32 @@
                                 "type": "array",
                                 "items": {
                                   "$ref": "#/components/schemas/AppListResponse__schema1"
+                                }
+                              },
+                              "onUpdate": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "condition": {
+                                      "type": "string"
+                                    },
+                                    "taskIdentifier": {
+                                      "type": "string"
+                                    },
+                                    "taskDataTemplate": {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "$ref": "#/components/schemas/AppListResponse__schema0"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "taskIdentifier"
+                                  ]
                                 }
                               }
                             },
@@ -10799,6 +11014,32 @@
                               "items": {
                                 "$ref": "#/components/schemas/AppGetResponse__schema1"
                               }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/AppGetResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
                             }
                           },
                           "required": [
@@ -10852,6 +11093,32 @@
                               "type": "array",
                               "items": {
                                 "$ref": "#/components/schemas/AppGetResponse__schema1"
+                              }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/AppGetResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
                               }
                             }
                           },
@@ -10911,6 +11178,32 @@
                               "type": "array",
                               "items": {
                                 "$ref": "#/components/schemas/AppGetResponse__schema1"
+                              }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/AppGetResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
                               }
                             }
                           },
@@ -12003,6 +12296,32 @@
                                 "items": {
                                   "$ref": "#/components/schemas/UserAppListResponse__schema1"
                                 }
+                              },
+                              "onUpdate": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "condition": {
+                                      "type": "string"
+                                    },
+                                    "taskIdentifier": {
+                                      "type": "string"
+                                    },
+                                    "taskDataTemplate": {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "$ref": "#/components/schemas/UserAppListResponse__schema0"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "taskIdentifier"
+                                  ]
+                                }
                               }
                             },
                             "required": [
@@ -12056,6 +12375,32 @@
                                 "type": "array",
                                 "items": {
                                   "$ref": "#/components/schemas/UserAppListResponse__schema1"
+                                }
+                              },
+                              "onUpdate": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "condition": {
+                                      "type": "string"
+                                    },
+                                    "taskIdentifier": {
+                                      "type": "string"
+                                    },
+                                    "taskDataTemplate": {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "$ref": "#/components/schemas/UserAppListResponse__schema0"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "taskIdentifier"
+                                  ]
                                 }
                               }
                             },
@@ -12115,6 +12460,32 @@
                                 "type": "array",
                                 "items": {
                                   "$ref": "#/components/schemas/UserAppListResponse__schema1"
+                                }
+                              },
+                              "onUpdate": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "condition": {
+                                      "type": "string"
+                                    },
+                                    "taskIdentifier": {
+                                      "type": "string"
+                                    },
+                                    "taskDataTemplate": {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "$ref": "#/components/schemas/UserAppListResponse__schema0"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "taskIdentifier"
+                                  ]
                                 }
                               }
                             },
@@ -13049,6 +13420,32 @@
                               "items": {
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema1"
                               }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/UserAppGetResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
+                              }
                             }
                           },
                           "required": [
@@ -13102,6 +13499,32 @@
                               "type": "array",
                               "items": {
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema1"
+                              }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/UserAppGetResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
                               }
                             }
                           },
@@ -13161,6 +13584,32 @@
                               "type": "array",
                               "items": {
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema1"
+                              }
+                            },
+                            "onUpdate": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "condition": {
+                                    "type": "string"
+                                  },
+                                  "taskIdentifier": {
+                                    "type": "string"
+                                  },
+                                  "taskDataTemplate": {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "$ref": "#/components/schemas/UserAppGetResponse__schema0"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "taskIdentifier"
+                                ]
                               }
                             }
                           },
@@ -17583,6 +18032,32 @@
                         "items": {
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
+                      },
+                      "onUpdate": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "condition": {
+                              "type": "string"
+                            },
+                            "taskIdentifier": {
+                              "type": "string"
+                            },
+                            "taskDataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -17680,6 +18155,32 @@
                         "items": {
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
+                      },
+                      "onUpdate": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "condition": {
+                              "type": "string"
+                            },
+                            "taskIdentifier": {
+                              "type": "string"
+                            },
+                            "taskDataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -17737,6 +18238,32 @@
                         "items": {
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
+                      },
+                      "onUpdate": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "condition": {
+                              "type": "string"
+                            },
+                            "taskIdentifier": {
+                              "type": "string"
+                            },
+                            "taskDataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -17775,6 +18302,32 @@
                         "items": {
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
+                      },
+                      "onUpdate": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "condition": {
+                              "type": "string"
+                            },
+                            "taskIdentifier": {
+                              "type": "string"
+                            },
+                            "taskDataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -17806,6 +18359,32 @@
                         "type": "array",
                         "items": {
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
+                        }
+                      },
+                      "onUpdate": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "condition": {
+                              "type": "string"
+                            },
+                            "taskIdentifier": {
+                              "type": "string"
+                            },
+                            "taskDataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
                         }
                       }
                     },
@@ -17860,6 +18439,32 @@
                         "type": "array",
                         "items": {
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
+                        }
+                      },
+                      "onUpdate": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "condition": {
+                              "type": "string"
+                            },
+                            "taskIdentifier": {
+                              "type": "string"
+                            },
+                            "taskDataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
                         }
                       }
                     },
@@ -18182,6 +18787,32 @@
                           "items": {
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
+                        },
+                        "onUpdate": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "condition": {
+                                "type": "string"
+                              },
+                              "taskIdentifier": {
+                                "type": "string"
+                              },
+                              "taskDataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -18279,6 +18910,32 @@
                           "items": {
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
+                        },
+                        "onUpdate": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "condition": {
+                                "type": "string"
+                              },
+                              "taskIdentifier": {
+                                "type": "string"
+                              },
+                              "taskDataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -18336,6 +18993,32 @@
                           "items": {
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
+                        },
+                        "onUpdate": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "condition": {
+                                "type": "string"
+                              },
+                              "taskIdentifier": {
+                                "type": "string"
+                              },
+                              "taskDataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -18374,6 +19057,32 @@
                           "items": {
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
+                        },
+                        "onUpdate": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "condition": {
+                                "type": "string"
+                              },
+                              "taskIdentifier": {
+                                "type": "string"
+                              },
+                              "taskDataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -18405,6 +19114,32 @@
                           "type": "array",
                           "items": {
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
+                          }
+                        },
+                        "onUpdate": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "condition": {
+                                "type": "string"
+                              },
+                              "taskIdentifier": {
+                                "type": "string"
+                              },
+                              "taskDataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
                           }
                         }
                       },
@@ -18459,6 +19194,32 @@
                           "type": "array",
                           "items": {
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
+                          }
+                        },
+                        "onUpdate": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "condition": {
+                                "type": "string"
+                              },
+                              "taskIdentifier": {
+                                "type": "string"
+                              },
+                              "taskDataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
                           }
                         }
                       },
@@ -19871,6 +20632,105 @@
             ]
           }
         ]
+      },
+      "DockerJobUpdateRequestDTO__schema0": {
+        "anyOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DockerJobUpdateRequestDTO__schema0"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DockerJobUpdateRequestDTO__schema0"
+            }
+          }
+        ]
+      },
+      "DockerJobUpdateRequestDTO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "percent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "current": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          },
+          "message": {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": [
+                  "debug",
+                  "info",
+                  "warn",
+                  "error"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "audience": {
+                "type": "string",
+                "enum": [
+                  "user",
+                  "system"
+                ]
+              }
+            },
+            "required": [
+              "level",
+              "text",
+              "audience"
+            ]
+          },
+          "data": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DockerJobUpdateRequestDTO__schema0"
+            }
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
       },
       "AllCommentsListResponseDTO": {
         "type": "object",
