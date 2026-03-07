@@ -113,7 +113,6 @@ export function PDFViewer({
         ref={viewerContainerRef}
         style={{ backgroundColor: 'transparent' }}
       >
-        {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
         <div className="pdfViewer" ref={viewerRef} />
       </div>
     </div>

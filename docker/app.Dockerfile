@@ -51,13 +51,16 @@ COPY packages/api/cmd/test-entrypoint.sh ../test-entrypoint.sh
 
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-RUN su-exec bun bun --cwd packages/ui build
+RUN apk add --no-cache nodejs && \
+  su-exec bun sh -c "cd packages/ui && node node_modules/.bin/vite build --mode production"
 
 ENTRYPOINT ["sh", "../test-entrypoint.sh"]
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds
 FROM base AS install
+
+RUN apk add --no-cache nodejs
 
 COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
@@ -81,7 +84,7 @@ RUN cd /temp/dev && \
   bun --cwd ./packages/app-worker-sdk build && \
   bun --cwd ./packages/app-browser-sdk build && \
   bun --cwd ./packages/api build && \
-  bun --cwd ./packages/ui build && mv ./packages/ui/dist ./frontend && \
+  (cd ./packages/ui && node node_modules/.bin/vite build --mode production) && mv ./packages/ui/dist ./frontend && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
   mkdir ./packages/api/dist/src/migrations/ && cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/migrations/ && \
   mkdir ./packages/api/dist/src/migrations/meta && cp -r ./packages/api/src/orm/migrations/meta ./packages/api/dist/src/migrations/ && \

@@ -1,6 +1,26 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@config '../tailwind.config.ts';
+
+@source "../components/**/*.tsx";
+@source "../styles/**/*.ts";
+
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--border);
+  }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+}
 
 .docs-story {
   @apply bg-background;
