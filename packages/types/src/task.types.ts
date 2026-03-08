@@ -366,7 +366,6 @@ export const dockerExecutorMetadataSchema = z.object({
   containerId: z.string(),
   hostId: z.string(),
   extra: jsonSerializableObjectSchema,
-  // timing (dispatch time, execution time, total time)
 })
 
 export const dockerExecutorStartMetadataSchema = z.object({
@@ -383,28 +382,24 @@ export const systemExecutorMetadataSchema = z.object({
 export const runtimeExecutorMetadataSchema = z.object({
   workerIdentifier: z.string(),
   extra: jsonSerializableObjectSchema,
-  // timing (dispatch time, job execution time, total time, worker startup time)
 })
 
-export const executorStartMetadataSchema = z.discriminatedUnion(
-  'executorType',
-  [
-    z.object({
-      type: z.literal('system'),
-      metadata: systemExecutorMetadataSchema,
-    }),
-    z.object({
-      type: z.literal('docker'),
-      metadata: dockerExecutorStartMetadataSchema,
-    }),
-    z.object({
-      type: z.literal('runtime'),
-      metadata: runtimeExecutorMetadataSchema,
-    }),
-  ],
-)
+export const executorStartMetadataSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('system'),
+    metadata: systemExecutorMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('docker'),
+    metadata: dockerExecutorStartMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('runtime'),
+    metadata: runtimeExecutorMetadataSchema,
+  }),
+])
 
-export const executorMetadataSchema = z.discriminatedUnion('executorType', [
+export const executorMetadataSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('system'),
     metadata: systemExecutorMetadataSchema,
@@ -422,23 +417,20 @@ export const executorMetadataSchema = z.discriminatedUnion('executorType', [
 export type ExecutorMetadata = z.infer<typeof executorMetadataSchema>
 export type ExecutorStartMetadata = z.infer<typeof executorStartMetadataSchema>
 
-export const partialExecutorMetadataSchema = z.discriminatedUnion(
-  'executorType',
-  [
-    z.object({
-      type: z.literal('system'),
-      metadata: systemExecutorMetadataSchema.partial(),
-    }),
-    z.object({
-      type: z.literal('docker'),
-      metadata: dockerExecutorMetadataSchema.partial(),
-    }),
-    z.object({
-      type: z.literal('runtime'),
-      metadata: runtimeExecutorMetadataSchema.partial(),
-    }),
-  ],
-)
+export const partialExecutorMetadataSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('system'),
+    metadata: systemExecutorMetadataSchema.partial(),
+  }),
+  z.object({
+    type: z.literal('docker'),
+    metadata: dockerExecutorMetadataSchema.partial(),
+  }),
+  z.object({
+    type: z.literal('runtime'),
+    metadata: runtimeExecutorMetadataSchema.partial(),
+  }),
+])
 
 export const taskErrorResponseSchema = z.object({
   success: z.literal(false),

@@ -409,20 +409,22 @@ export class DockerClientService {
       return stoppedContainer
     }
 
-    // add the container labels to the container as env vars
-    options.env = {
-      ...options.env,
-      ...Object.fromEntries(
-        Object.entries(options.labels).map(([key, value]) => [
-          key.replace('lombok.', 'LOMBOK_').toUpperCase(),
-          value,
-        ]),
-      ),
+    // No suitable container found, create a new one with labels as env vars
+    const createOptions = {
+      ...options,
+      env: {
+        ...options.env,
+        ...Object.fromEntries(
+          Object.entries(options.labels).map(([key, value]) => [
+            key.replace('lombok.', 'LOMBOK_').toUpperCase(),
+            value,
+          ]),
+        ),
+      },
     }
 
-    // No suitable container found, create a new one
     return this.withErrorGuard(
-      async () => adapter.createContainer(options),
+      async () => adapter.createContainer(createOptions),
       (error) =>
         convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),
@@ -656,13 +658,7 @@ export class DockerClientService {
     })
 
     const { getError, state, output } = await this.withErrorGuard(
-      async () =>
-        adapter.execInContainer(containerId, command, {
-          env: {
-            LOMBOK_CONTAINER_ID: containerId,
-            LOMBOK_CONTAINER_HOST_ID: hostId,
-          },
-        }),
+      async () => adapter.execInContainer(containerId, command, {}),
       (error) =>
         convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),

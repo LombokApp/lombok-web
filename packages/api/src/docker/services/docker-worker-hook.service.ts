@@ -51,6 +51,15 @@ const WORKER_JOB_TOKEN_EXPIRY_SECONDS = 30 * 60
 // The permission required for uploading files to a folder
 const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
 
+const relayRequestContextSchema = z.object({
+  workerIdentifier: z.string(),
+  url: z.string(),
+  method: z.string(),
+  headers: z.record(z.string(), z.string()),
+  body: z.unknown().optional(),
+  authUser: z.literal(true).optional(),
+})
+
 export interface DockerExecutorMetadata {
   profileKey: string
   profileHash: string
@@ -554,15 +563,9 @@ export class DockerWorkerHookService {
       }
 
       // 4. Parse and validate request context JSON
-      const requestContextSchema = z.object({
-        workerIdentifier: z.string(),
-        url: z.string(),
-        method: z.string(),
-        headers: z.record(z.string(), z.string()),
-        body: z.unknown().optional(),
-        authUser: z.literal(true).optional(),
-      })
-      const requestContext = requestContextSchema.parse(JSON.parse(stdout))
+      const requestContext = relayRequestContextSchema.parse(
+        JSON.parse(stdout),
+      )
 
       // 5. Resolve user context (if authUser is requested)
       let accessToken: string | undefined

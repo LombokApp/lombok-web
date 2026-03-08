@@ -681,8 +681,8 @@ export class TaskService {
                 updatedAt: parentTask.updatedAt,
               },
               executorMetadata: parentTaskSuccess
-                ? parentTaskSuccessLog?.executorMetadata.metadata
-                : parentTaskErrorLog?.executorMetadata.metadata,
+                ? parentTaskSuccessLog?.executorMetadata
+                : parentTaskErrorLog?.executorMetadata,
             },
             functions: {
               createPresignedUrl:

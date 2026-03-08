@@ -34,6 +34,16 @@ const LIFECYCLE_EVENT_IDENTIFIER_OTHER = 'dummy_event_other'
 const SOCKET_DATA_APP_SLUG = 'sockettestappdatatemplate'
 const SOCKET_DATA_TASK_IDENTIFIER = 'socket_test_task'
 
+const TEST_EXECUTOR_METADATA = {
+  type: 'runtime' as const,
+  metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
+}
+
+const TEST_EXECUTOR_METADATA_PARTIAL = {
+  type: 'runtime' as const,
+  metadata: {},
+}
+
 const getTaskByIdentifier = async (
   testModuleRef: TestModule,
   identifier: string,
@@ -241,10 +251,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: parentTask.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     await testModule!.services.taskService.registerTaskCompleted(
@@ -252,13 +259,7 @@ describe('Task lifecycle', () => {
       {
         success: true,
         result: { message: 'parent done' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       },
     )
 
@@ -313,13 +314,7 @@ describe('Task lifecycle', () => {
     const startedParent =
       await testModule!.services.taskService.registerTaskStarted({
         taskId: parentTask.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
 
     expect(startedParent.task.startedAt).toBeInstanceOf(Date)
@@ -332,13 +327,7 @@ describe('Task lifecycle', () => {
       {
         success: true,
         result: { message: 'ok' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       },
     )
 
@@ -383,10 +372,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: parentTask.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     await testModule!.services.taskService.registerTaskCompleted(
@@ -397,10 +383,7 @@ describe('Task lifecycle', () => {
           code: 'FAILURE',
           message: 'parent failed',
         },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {},
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA_PARTIAL,
       },
     )
 
@@ -454,13 +437,7 @@ describe('Task lifecycle', () => {
     const startedParent =
       await testModule!.services.taskService.registerTaskStarted({
         taskId: parentTask.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
 
     expect(startedParent.task.startedAt).toBeInstanceOf(Date)
@@ -473,13 +450,7 @@ describe('Task lifecycle', () => {
       {
         success: true,
         result: { message: 'ok' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       },
     )
 
@@ -516,13 +487,7 @@ describe('Task lifecycle', () => {
     const startedChildTask =
       await testModule!.services.taskService.registerTaskStarted({
         taskId: childTask.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
 
     expect(startedChildTask.task.startedAt).toBeInstanceOf(Date)
@@ -538,13 +503,7 @@ describe('Task lifecycle', () => {
         {
           success: true,
           result: { message: 'ok' },
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: 'test-worker',
-              extra: { test: 'test' },
-            },
-          },
+          executorMetadata: TEST_EXECUTOR_METADATA,
         },
       )
     expect(completedChildTask.completedAt).toBeInstanceOf(Date)
@@ -571,13 +530,7 @@ describe('Task lifecycle', () => {
     const startedChainOne =
       await testModule!.services.taskService.registerTaskStarted({
         taskId: chainOne.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
     expect(startedChainOne.task.startedAt).toBeInstanceOf(Date)
     expect(startedChainOne.task.systemLog.at(0)?.logType).toBe('started')
@@ -585,13 +538,7 @@ describe('Task lifecycle', () => {
     await testModule!.services.taskService.registerTaskCompleted(chainOne.id, {
       success: true,
       result: { ok: true },
-      executorMetadata: {
-        type: 'runtime',
-        metadata: {
-          workerIdentifier: 'test-worker',
-          extra: { test: 'test' },
-        },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     const parentTaskRecord =
@@ -637,10 +584,7 @@ describe('Task lifecycle', () => {
 
     const started = await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     expect(started.task.startedAt).toBeInstanceOf(Date)
@@ -648,23 +592,14 @@ describe('Task lifecycle', () => {
     expect(started.task.systemLog.length).toBe(1)
     expect(started.task.systemLog[0]?.logType).toBe('started')
     expect(started.task.systemLog[0]?.payload).toEqual({
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     const completed =
       await testModule!.services.taskService.registerTaskCompleted(task.id, {
         success: true,
         result: { message: 'done' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
 
     expect(completed.completedAt).toBeInstanceOf(Date)
@@ -672,10 +607,7 @@ describe('Task lifecycle', () => {
     expect(completed.systemLog.length).toBe(2)
     expect(completed.systemLog[1]?.logType).toBe('success')
     expect(completed.systemLog[1]?.payload).toEqual({
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
       result: { message: 'done' },
     })
   })
@@ -718,13 +650,7 @@ describe('Task lifecycle', () => {
     await runWithThreadContext(crypto.randomUUID(), async () => {
       await testModule!.services.taskService.registerTaskStarted({
         taskId: parentTask.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
 
       await testModule!.services.taskService.registerTaskCompleted(
@@ -732,13 +658,7 @@ describe('Task lifecycle', () => {
         {
           success: true,
           result: { message: 'parent done' },
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: 'test-worker',
-              extra: { test: 'test' },
-            },
-          },
+          executorMetadata: TEST_EXECUTOR_METADATA,
         },
       )
     })
@@ -825,10 +745,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: parentTask.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     await testModule!.services.taskService.registerTaskCompleted(
@@ -836,13 +753,7 @@ describe('Task lifecycle', () => {
       {
         success: true,
         result: { message: 'parent done' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       },
     )
 
@@ -875,10 +786,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: firstChild.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     await testModule!.services.taskService.registerTaskCompleted(
@@ -886,13 +794,7 @@ describe('Task lifecycle', () => {
       {
         success: true,
         result: { message: 'first child done' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       },
     )
 
@@ -947,13 +849,7 @@ describe('Task lifecycle', () => {
     await runWithThreadContext(crypto.randomUUID(), async () => {
       await testModule!.services.taskService.registerTaskStarted({
         taskId: parentTask.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
 
       await testModule!.services.taskService.registerTaskCompleted(
@@ -964,10 +860,7 @@ describe('Task lifecycle', () => {
             code: 'NEGATED_FAILURE',
             message: 'expected failure',
           },
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {},
-          },
+          executorMetadata: TEST_EXECUTOR_METADATA_PARTIAL,
         },
       )
     })
@@ -1064,13 +957,7 @@ describe('Task lifecycle', () => {
       const started =
         await testModule!.services.taskService.registerTaskStarted({
           taskId: task.id,
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: 'test-worker',
-              extra: { test: 'test' },
-            },
-          },
+          executorMetadata: TEST_EXECUTOR_METADATA,
         })
       expect(started.task.systemLog.at(0)?.logType).toBe('started')
       expect(started.task.startedAt).toBeInstanceOf(Date)
@@ -1080,26 +967,12 @@ describe('Task lifecycle', () => {
         await testModule!.services.taskService.registerTaskCompleted(task.id, {
           success: true,
           result: { message: 'user-finished' },
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: 'test-worker',
-              extra: { test: 'test' },
-            },
-          },
+          executorMetadata: TEST_EXECUTOR_METADATA,
         })
 
       expect(completed.systemLog.at(1)?.logType).toBe('success')
       expect(completed.systemLog.at(1)?.payload).toEqual({
-        executorMetadata: {
-          metadata: {
-            extra: {
-              test: 'test',
-            },
-            workerIdentifier: 'test-worker',
-          },
-          type: 'runtime',
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
         result: { message: 'user-finished' },
       })
       expect(completed.completedAt).toBeInstanceOf(Date)
@@ -1480,10 +1353,7 @@ describe('Task lifecycle', () => {
     // Start the task (registerTaskUpdate requires started & not completed)
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     // Connect to app-user socket with app-user token
@@ -1579,10 +1449,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     // Connect to app-user socket and subscribe to the folder
@@ -1638,10 +1505,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     // Send two updates
@@ -1692,10 +1556,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     // Create a user and connect to the socket
@@ -1772,22 +1633,13 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     await testModule!.services.taskService.registerTaskCompleted(task.id, {
       success: true,
       result: { done: true },
-      executorMetadata: {
-        type: 'runtime',
-        metadata: {
-          workerIdentifier: 'test-worker',
-          extra: { test: 'test' },
-        },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     // Task is completed — registerTaskUpdate should return null
@@ -1849,13 +1701,7 @@ describe('Task lifecycle', () => {
 
       void testModule!.services.taskService.registerTaskStarted({
         taskId: task.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
     })
 
@@ -1904,10 +1750,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     // Connect socket after starting (skip the task_started event)
@@ -1930,13 +1773,7 @@ describe('Task lifecycle', () => {
       void testModule!.services.taskService.registerTaskCompleted(task.id, {
         success: true,
         result: { output: 'done' },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
     })
 
@@ -1987,10 +1824,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     const appUserToken = await getAppUserToken(userId, appIdentifier)
@@ -2013,10 +1847,7 @@ describe('Task lifecycle', () => {
           code: 'TEST_ERROR',
           message: 'Something went wrong',
         },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {},
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA_PARTIAL,
       })
     })
 
@@ -2068,13 +1899,7 @@ describe('Task lifecycle', () => {
       socket!.once('ASYNC_UPDATE', () => resolve(true))
       void testModule!.services.taskService.registerTaskStarted({
         taskId: task.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
       setTimeout(() => resolve(false), 1500)
     })
@@ -2110,10 +1935,7 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
-      executorMetadata: {
-        type: 'runtime',
-        metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
-      },
+      executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
     const appUserToken = await getAppUserToken(user!.id, appIdentifier)
@@ -2124,13 +1946,7 @@ describe('Task lifecycle', () => {
       void testModule!.services.taskService.registerTaskCompleted(task.id, {
         success: true,
         result: { done: true },
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: 'test-worker',
-            extra: { test: 'test' },
-          },
-        },
+        executorMetadata: TEST_EXECUTOR_METADATA,
       })
       setTimeout(() => resolve(false), 1500)
     })
