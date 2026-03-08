@@ -19,7 +19,6 @@ services:
       - PLATFORM_PORT=3000
       - AUTH_JWT_SECRET=00000000000000000000000000000000
       - AUTH_EMAIL_VERIFICATION_JWT_SECRET=00000000000000000000000000000000
-      - LOCAL_DOCKER_SOCKET=${DOCKER_HOST_CONFIG}
       - DOCKER_HOST_CONFIG=${DOCKER_HOST_CONFIG:-{}}
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
       - CREATE_DATABASE=true
@@ -48,7 +47,7 @@ services:
       - /usr/src/app/packages/ui/node_modules
       - /usr/src/app/packages/ui-toolkit/node_modules
       - /usr/src/app/packages/app-demo
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${LOCAL_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PGDATA_DIR:-pgdata}:/var/lib/postgresql/data
       - ${MINIO_DATA_DIR:-miniodata}:/var/lib/minio/data
     ports:

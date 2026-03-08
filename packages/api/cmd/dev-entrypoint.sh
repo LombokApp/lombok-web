@@ -17,21 +17,16 @@ trap cleanup EXIT INT TERM
 chown root:root /usr/bin/nsjail
 chmod 4755 /usr/bin/nsjail
 
-# ── Docker socket proxy ────────────────────────────────────
+# ── Docker socket permissions ─────────────────────────────
 echo "================================================"
-echo "Docker socket proxy"
+echo "Docker socket permissions"
 echo "================================================"
-PROXY_SOCKET="${PROXY_SOCKET:-/tmp/docker-proxy.sock}"
-if [ -n "$LOCAL_DOCKER_SOCKET" ]; then
-  if [ -S "$LOCAL_DOCKER_SOCKET" ]; then
-    echo "Starting Docker socket proxy: $PROXY_SOCKET -> $LOCAL_DOCKER_SOCKET"
-    rm -f "$PROXY_SOCKET"
-    socat \
-      UNIX-LISTEN:"$PROXY_SOCKET",fork,mode=660,user="$APP_USER",group="$APP_USER" \
-      UNIX-CONNECT:"$LOCAL_DOCKER_SOCKET" &
-  else
-    echo "Warning: Docker socket $LOCAL_DOCKER_SOCKET not found."
-  fi
+DOCKER_SOCKET="/var/run/docker.sock"
+if [ -S "$DOCKER_SOCKET" ]; then
+  chmod 666 "$DOCKER_SOCKET"
+  echo "Docker socket at $DOCKER_SOCKET made accessible."
+else
+  echo "Warning: Docker socket $DOCKER_SOCKET not found."
 fi
 
 # ── PostgreSQL ──────────────────────────────────────────────
