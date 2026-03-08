@@ -231,6 +231,14 @@ export const containerProfileConfigSchema = z
     // desiredMaxJobsPerContainer: z.number().positive().optional(),
     // jobClasses: z.record(z.string(), containerProfileJobClassSchema),
     workers: z.array(dockerWorkerConfigSchema),
+    // When true, containers for this profile are isolated per user.
+    // The userId is resolved from the task's targetUserId (async) or
+    // the explicit userId param (sync). The user ID is written as a
+    // container label and used for ACL enforcement on terminal access.
+    userIsolation: z.boolean().optional(),
+    // Template expression (e.g. "{{ inputData.containerRef }}") resolved at job
+    // execution time to run a job on a particular container (by host and container identifiers).
+    containerRefTemplate: z.string().optional(),
   })
   .strict()
 
@@ -264,7 +272,7 @@ export const appConfigSchema = z
     triggers: z.array(taskTriggerConfigSchema).optional(),
     tasks: z.array(taskConfigSchema.strict()).optional(),
     containerProfiles: z
-      .record(appProfileIdentifierSchema, containerProfileConfigSchema)
+      .record(appProfileIdentifierSchema, containerProfileConfigSchema.strict())
       .optional(),
     runtimeWorkers: z
       .record(workerIdentifierSchema, appRuntimeWorkerConfigSchema.strict())

@@ -115,6 +115,8 @@ export const executeAppDockerJobSchema = z.object({
   jobIdentifier: z.string(),
   jobData: jsonSerializableObjectSchema,
   storageAccessPolicy: storageAccessPolicySchema.optional(),
+  containerId: z.string().optional(),
+  targetUserId: z.string().optional(),
 })
 
 export const triggerAppTaskSchema = z.object({

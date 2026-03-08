@@ -37,9 +37,11 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
 
       const { task: startedTask } = await this.taskService.registerTaskStarted({
         taskId: innerTask.id,
-        startContext: {
-          __executor: {
-            kind: 'core_worker',
+        executorMetadata: {
+          type: 'runtime',
+          metadata: {
+            workerIdentifier: task.data.workerIdentifier,
+            extra: {},
           },
         },
       })
@@ -59,9 +61,23 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         innerTaskCompletion = {
           success: true,
           result: {},
+          executorMetadata: {
+            type: 'runtime',
+            metadata: {
+              workerIdentifier: task.data.workerIdentifier,
+              extra: {},
+            },
+          },
         }
         runnerTaskCompletion = {
           success: true,
+          executorMetadata: {
+            type: 'runtime',
+            metadata: {
+              workerIdentifier: task.data.workerIdentifier,
+              extra: {},
+            },
+          },
           result: {},
           // result: ... // TODO: add execution details as the result of the runner task
         }
@@ -82,6 +98,13 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         innerTaskCompletion = {
           success: false,
           requeueDelayMs: highestLevelAppError?.requeueDelayMs,
+          executorMetadata: {
+            type: 'runtime',
+            metadata: {
+              workerIdentifier: task.data.workerIdentifier,
+              extra: {},
+            },
+          },
           error: {
             code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
             name: highestLevelAppError?.name ?? 'ExecutionError',

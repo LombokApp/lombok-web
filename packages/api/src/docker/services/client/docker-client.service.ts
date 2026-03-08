@@ -5,19 +5,22 @@ import nestjsConfig from '@nestjs/config'
 import { ContainerInspectInfo } from 'dockerode'
 import { coreConfig } from 'src/core/config'
 
+import { DOCKER_LABELS } from '../docker-jobs.service'
 import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
-import type { ContainerCreateAndExecuteOptions } from './docker.schema'
+import type { ContainerCreateOptions } from './docker.schema'
 import {
   type ConnectionTestResult,
   type ContainerInfo,
-  type CreateContainerOptions,
   type DockerAdapter,
   type DockerContainerGpuInfo,
   type DockerContainerStats,
   type DockerError,
   type DockerHostResources,
   type DockerLogEntry,
+  type DockerPipeStream,
   type DockerStateFunc,
+  type DockerTtyStream,
+  type FindOrCreateContainerOptions,
 } from './docker-client.types'
 
 class DockerClientError extends Error {
@@ -268,11 +271,89 @@ export class DockerClientService {
    * Find an existing running container or create a new one
    * based on the given profile and labels
    */
+  private async ensureContainerRunning(
+    hostId: string,
+    container: ContainerInfo,
+  ): Promise<ContainerInfo> {
+    if (container.state === 'running') {
+      return container
+    }
+
+    await this.withErrorGuard(
+      async () => this.getAdapter(hostId).startContainer(container.id),
+      (error) =>
+        convertErrorToAsyncWorkError(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            name: 'DockerClientError',
+            message: `Failed to start container "${container.id}": ${error instanceof Error ? error.message : String(error)}`,
+            code: 'START_CONTAINER_FAILED',
+            stack: new Error().stack,
+            details: { containerId: container.id },
+          },
+        ),
+    )
+
+    return { ...container, state: 'running' }
+  }
+
+  async findContainerById(
+    hostId: string,
+    containerId: string,
+    options?: { startIfNotRunning?: boolean },
+  ): Promise<ContainerInfo | undefined> {
+    // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
+    const adapter = this.getAdapter(hostId)
+
+    // Look for a particular container by ID
+    const container = await this.withErrorGuard(
+      async () => adapter.getContainerInspect(containerId),
+      (error) =>
+        convertErrorToAsyncWorkError(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            name: 'DockerClientError',
+            message: `Failed to find container by id "${containerId}": ${error instanceof Error ? error.message : String(error)}`,
+            code: 'FIND_CONTAINER_BY_ID_FAILED',
+            stack: new Error().stack,
+            details: { containerId },
+          },
+        ),
+    ).then((containerInspect) => {
+      const state: ContainerInfo['state'] = containerInspect.State.Running
+        ? 'running'
+        : containerInspect.State.Paused
+          ? 'paused'
+          : containerInspect.State.Status === 'exited'
+            ? 'exited'
+            : containerInspect.State.Status === 'created'
+              ? 'created'
+              : 'unknown'
+      return {
+        id: containerInspect.Id,
+        image: containerInspect.Config.Image,
+        labels: containerInspect.Config.Labels,
+        state,
+        reusable: !containerInspect.State.Dead,
+        createdAt: containerInspect.Created,
+      }
+    })
+
+    if (options?.startIfNotRunning) {
+      return this.ensureContainerRunning(hostId, container)
+    }
+
+    return container
+  }
+
+  /**
+   * Find an existing running container or create a new one
+   * based on the given profile and labels
+   */
   async findOrCreateContainer(
     hostId: string,
-    options: CreateContainerOptions,
-  ): Promise<ContainerInfo | null> {
-    this.logger.debug('findOrCreateContainer:', { hostId, options })
+    options: FindOrCreateContainerOptions,
+  ): Promise<ContainerInfo | undefined> {
     // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
     const adapter = this.getAdapter(hostId)
 
@@ -296,8 +377,18 @@ export class DockerClientService {
       },
     )
 
+    // Filter containers by userId label: if no userId was requested,
+    // exclude containers that have one; if one was requested, Docker's label
+    // filter already ensures an exact match.
+    const requestedUserId = options.labels[DOCKER_LABELS.USER_ID]
+    const matchingContainers = requestedUserId
+      ? existingContainers
+      : existingContainers.filter(
+          (container) => !container.labels[DOCKER_LABELS.USER_ID],
+        )
+
     // Find a running container
-    const runningContainer = existingContainers.find(
+    const runningContainer = matchingContainers.find(
       (container) => container.state === 'running',
     )
 
@@ -306,35 +397,27 @@ export class DockerClientService {
     }
 
     // Find a stopped container we can restart
-    const stoppedContainer = existingContainers.find(
+    const stoppedContainer = matchingContainers.find(
       (container) =>
         container.state === 'exited' || container.state === 'created',
     )
 
     if (stoppedContainer) {
-      // Try to start the stopped container
-      return this.withErrorGuard(
-        async () => {
-          await adapter.startContainer(stoppedContainer.id)
-          return {
-            ...stoppedContainer,
-            state: 'running',
-          }
-        },
-        (error) =>
-          convertErrorToAsyncWorkError(
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              name: 'DockerClientError',
-              message: `Failed to restart stopped container: ${error instanceof Error ? error.message : String(error)}`,
-              code: 'RESTART_CONTAINER_FAILED',
-              stack: new Error().stack,
-              details: {
-                containerId: stoppedContainer.id,
-              },
-            },
-          ),
-      )
+      if (options.startIfNotRunning) {
+        return this.ensureContainerRunning(hostId, stoppedContainer)
+      }
+      return stoppedContainer
+    }
+
+    // add the container labels to the container as env vars
+    options.env = {
+      ...options.env,
+      ...Object.fromEntries(
+        Object.entries(options.labels).map(([key, value]) => [
+          key.replace('lombok.', 'LOMBOK_').toUpperCase(),
+          value,
+        ]),
+      ),
     }
 
     // No suitable container found, create a new one
@@ -363,18 +446,66 @@ export class DockerClientService {
     hostId: string,
     containerId: string,
     command: string[],
+    options?: {
+      env?: Record<string, string>
+    },
   ): Promise<{
     getError: () => Promise<DockerError>
     state: DockerStateFunc
     output: () => { stdout: string; stderr: string }
   }> {
-    return this.getAdapter(hostId).execInContainer(containerId, { command })
+    return this.getAdapter(hostId).execInContainer(containerId, command, {
+      ...options,
+      env: {
+        ...(options?.env ?? {}),
+        LOMBOK_CONTAINER_ID: containerId,
+        LOMBOK_CONTAINER_HOST_ID: hostId,
+      },
+    })
+  }
+
+  async execTty(
+    hostId: string,
+    containerId: string,
+    command: string[],
+    options?: {
+      cols?: number
+      rows?: number
+      env?: Record<string, string>
+    },
+  ): Promise<DockerTtyStream> {
+    return this.getAdapter(hostId).execTty(containerId, command, {
+      ...options,
+      env: {
+        ...(options?.env ?? {}),
+        LOMBOK_CONTAINER_ID: containerId,
+        LOMBOK_CONTAINER_HOST_ID: hostId,
+      },
+    })
+  }
+
+  async execPipe(
+    hostId: string,
+    containerId: string,
+    command: string[],
+    options?: {
+      env?: Record<string, string>
+    },
+  ): Promise<DockerPipeStream> {
+    return this.getAdapter(hostId).execPipe(containerId, command, {
+      ...options,
+      env: {
+        ...(options?.env ?? {}),
+        LOMBOK_CONTAINER_ID: containerId,
+        LOMBOK_CONTAINER_HOST_ID: hostId,
+      },
+    })
   }
 
   resolveDockerHostConfigForProfile(profileKey: string): {
     hostId: string
     volumes: string[] | undefined
-    environmentVariables: Record<string, string> | undefined
+    env: Record<string, string> | undefined
     gpus: { driver: string; deviceIds: string[] } | undefined
     extraHosts: string[] | undefined
     networkMode: 'host' | 'bridge' | `container:${string}` | undefined
@@ -391,11 +522,13 @@ export class DockerClientService {
 
     return {
       hostId: resolvedHostId,
-      environmentVariables:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.environmentVariables?.[profileKey] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.environmentVariables?.[appSlugProfileKey],
+      env:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
+          appSlugProfileKey
+        ],
       volumes:
         this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
           profileKey
@@ -429,11 +562,21 @@ export class DockerClientService {
   }
 
   /**
-   * Find or create a container and execute a command
+   * Find or create a container and execute a command.
+   *
+   * When `profileKey` is provided, resolves host config from the profile
+   * and finds or creates a matching container.
+   *
+   * When `containerRef` is provided (format: "hostId:containerId"),
+   * the container is resolved directly and started if not already running.
    */
   async execInProfileContainer(
-    profileKey: string,
-    { image, command, labels }: ContainerCreateAndExecuteOptions,
+    attributes: { profileKey: string } | { containerRef: string },
+    { image, labels }: ContainerCreateOptions,
+    buildCommand: (containerMetadata: {
+      containerId: string
+      hostId: string
+    }) => string[],
   ): Promise<{
     containerId: string
     hostId: string
@@ -441,74 +584,85 @@ export class DockerClientService {
     state: DockerStateFunc
     output: () => { stdout: string; stderr: string }
   }> {
-    const {
-      hostId,
-      volumes,
-      gpus,
-      extraHosts,
-      networkMode,
-      environmentVariables,
-    } = this.resolveDockerHostConfigForProfile(profileKey)
-    // Check if docker host is configured
-    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
-      throw new DockerClientError(
-        'DOCKER_NOT_CONFIGURED',
-        `Unrecognized Docker host "${hostId}" configured for profile "${profileKey}"`,
-      )
+    let hostId: string
+    let containerId: string
+
+    if ('containerRef' in attributes) {
+      // Short-circuit: container already exists, just resolve and start if needed
+      const [refHostId, refContainerId] = attributes.containerRef.split(':')
+      hostId = refHostId ?? ''
+
+      if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+        throw new DockerClientError(
+          'DOCKER_NOT_CONFIGURED',
+          `Unrecognized Docker host "${hostId}" in containerRef "${attributes.containerRef}"`,
+        )
+      }
+
+      if (!refContainerId) {
+        throw new DockerClientError(
+          'INVALID_CONTAINER_REF',
+          `Invalid containerRef "${attributes.containerRef}" — expected format "hostId:containerId"`,
+        )
+      }
+
+      const container = await this.findContainerById(hostId, refContainerId, {
+        startIfNotRunning: true,
+      })
+      if (!container) {
+        throw new DockerClientError(
+          'CONTAINER_NOT_FOUND',
+          `Container "${refContainerId}" not found on host "${hostId}"`,
+        )
+      }
+      containerId = container.id
+    } else {
+      // Profile path: resolve host config, find or create container
+      const { hostId: resolvedHostId, ...config } =
+        this.resolveDockerHostConfigForProfile(attributes.profileKey)
+      hostId = resolvedHostId
+
+      if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+        throw new DockerClientError(
+          'DOCKER_NOT_CONFIGURED',
+          `Unrecognized Docker host "${hostId}" configured for profile "${attributes.profileKey}"`,
+        )
+      }
+
+      const container = await this.findOrCreateContainer(hostId, {
+        image,
+        labels,
+        startIfNotRunning: true,
+        ...config,
+      })
+
+      if (!container) {
+        throw new DockerClientError(
+          'CONTAINER_NOT_FOUND',
+          'Container not found after findOrCreateContainer call',
+        )
+      }
+      containerId = container.id
     }
+
     const adapter = this.getAdapter(hostId)
+    const command = buildCommand({ containerId, hostId })
 
-    const container = await this.findOrCreateContainer(hostId, {
-      image,
-      labels,
-      volumes,
-      gpus,
-      networkMode,
-      environmentVariables,
-      extraHosts,
-    })
-
-    if (!container) {
-      throw new DockerClientError(
-        'CONTAINER_NOT_FOUND',
-        'Container not found after findOrCreateContainer call',
-      )
-    }
-
-    // Ensure container is running
-    const isRunning = await this.withErrorGuard(
-      async () => adapter.isContainerRunning(container.id),
-      (error) =>
-        convertErrorToAsyncWorkError(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            name: 'DockerClientError',
-            origin: 'internal',
-            message: `Failed to check if container is running: ${error instanceof Error ? error.message : String(error)}`,
-            code: 'CONTAINER_STATUS_CHECK_FAILED',
-            stack: new Error().stack,
-            details: {
-              containerId: container.id,
-            },
-          },
-        ),
-    )
-
-    if (!isRunning) {
-      throw new DockerClientError(
-        'CONTAINER_NOT_RUNNING',
-        'Container not running after findOrCreateContainer call',
-      )
-    }
     this.logger.debug('execInContainer:', {
       hostId,
-      container,
+      containerId,
       command,
       labels,
     })
 
     const { getError, state, output } = await this.withErrorGuard(
-      async () => adapter.execInContainer(container.id, { command }),
+      async () =>
+        adapter.execInContainer(containerId, command, {
+          env: {
+            LOMBOK_CONTAINER_ID: containerId,
+            LOMBOK_CONTAINER_HOST_ID: hostId,
+          },
+        }),
       (error) =>
         convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),
@@ -518,9 +672,7 @@ export class DockerClientService {
             message: `Failed to execute command in container: ${error instanceof Error ? error.message : String(error)}`,
             code: 'EXEC_IN_CONTAINER_FAILED',
             stack: new Error().stack,
-            details: {
-              containerId: container.id,
-            },
+            details: { containerId },
           },
         ),
     )
@@ -528,7 +680,7 @@ export class DockerClientService {
     return {
       getError,
       hostId,
-      containerId: container.id,
+      containerId,
       state,
       output,
     }

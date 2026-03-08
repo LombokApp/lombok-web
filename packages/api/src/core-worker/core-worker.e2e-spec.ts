@@ -628,6 +628,7 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {},
         },
       ])
     })
@@ -685,6 +686,7 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {},
         },
       ])
     })
@@ -729,8 +731,12 @@ describe('Core Worker', () => {
           logType: 'started',
           message: 'Task is started',
           payload: {
-            __executor: {
-              kind: 'core_worker',
+            executorMetadata: {
+              metadata: {
+                extra: {},
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
             },
           },
         },
@@ -752,6 +758,13 @@ describe('Core Worker', () => {
                 stack: expect.any(String) as string,
               },
               stack: expect.any(String) as string,
+            },
+            executorMetadata: {
+              metadata: {
+                extra: {},
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
             },
           },
         },
@@ -778,6 +791,7 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {},
         },
       ])
 
@@ -824,8 +838,12 @@ describe('Core Worker', () => {
           logType: 'started',
           message: 'Task is started',
           payload: {
-            __executor: {
-              kind: 'core_worker',
+            executorMetadata: {
+              metadata: {
+                extra: {},
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
             },
           },
         },
@@ -834,6 +852,13 @@ describe('Core Worker', () => {
           logType: 'error',
           message: 'Task failed',
           payload: {
+            executorMetadata: {
+              metadata: {
+                extra: {},
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
+            },
             error: {
               name: 'InvalidAppTaskError',
               message: 'The thrown AppTaskError was invalid',
@@ -877,6 +902,7 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {},
         },
       ])
     })

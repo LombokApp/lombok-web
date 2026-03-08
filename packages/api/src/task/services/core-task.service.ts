@@ -201,6 +201,12 @@ export class CoreTaskService {
               return this.taskService.registerTaskCompleted(taskId, {
                 success: true,
                 // result: processorResult?.result,
+                executorMetadata: {
+                  type: 'system',
+                  metadata: {
+                    extra: {},
+                  },
+                },
               })
             }
             return startedTask
@@ -218,6 +224,12 @@ export class CoreTaskService {
 
             return this.taskService.registerTaskCompleted(taskId, {
               success: false,
+              executorMetadata: {
+                type: 'system',
+                metadata: {
+                  extra: {},
+                },
+              },
               error: capturedError.toEnvelope(),
             })
           })

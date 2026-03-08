@@ -49,9 +49,13 @@ const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
 
 /** Labels applied to worker containers for discovery */
 export const DOCKER_LABELS = {
-  PLATFORM: 'lombok',
-  PROFILE_ID: 'lombok.profile_id',
-  PROFILE_HASH: 'lombok.profile_hash',
+  PLATFORM_HOST: 'lombok.platform_host',
+  PLATFORM_URL: 'lombok.platform_url',
+  PROFILE_ID: 'lombok.container_profile_id',
+  PROFILE_HASH: 'lombok.container_profile_hash',
+  APP_ID: 'lombok.container_app_id',
+  USER_ID: 'lombok.container_user_id',
+  IMAGE: 'lombok.container_image',
 } as const
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -150,11 +154,18 @@ export class DockerJobsService {
   private buildContainerLabels(
     profileIdentifier: string,
     profileHash: string,
+    image: string,
+    appIdentifier?: string,
+    userId?: string,
   ): Record<string, string> {
     return {
-      [DOCKER_LABELS.PLATFORM]: 'lombok',
+      [DOCKER_LABELS.PLATFORM_HOST]: 'lombok',
+      [DOCKER_LABELS.PLATFORM_URL]: buildPlatformOrigin(this._coreConfig),
       [DOCKER_LABELS.PROFILE_HASH]: profileHash,
+      [DOCKER_LABELS.IMAGE]: image,
       [DOCKER_LABELS.PROFILE_ID]: profileIdentifier,
+      ...(appIdentifier ? { [DOCKER_LABELS.APP_ID]: appIdentifier } : {}),
+      ...(userId ? { [DOCKER_LABELS.USER_ID]: userId } : {}),
     }
   }
 
@@ -167,7 +178,17 @@ export class DockerJobsService {
     waitForCompletion: T,
   ): Promise<DockerExecResult<T>> {
     try {
-      const { jobIdentifier, jobData, profileKey, profileSpec } = params
+      const startTime = performance.now()
+
+      const {
+        jobIdentifier,
+        jobData,
+        profileKey,
+        profileSpec,
+        containerRef,
+        appIdentifier,
+        userId,
+      } = params
 
       // generate a job id to represent this execution
       const jobId = crypto.randomUUID()
@@ -185,75 +206,89 @@ export class DockerJobsService {
       const labels = this.buildContainerLabels(
         containerProfileIdentifier,
         profileHash,
+        profileSpec.image,
+        appIdentifier,
+        userId,
       )
 
-      // create the worker token if one is required
-      const jobToken =
-        params.asyncTaskId || params.storageAccessPolicy
-          ? this.dockerWorkerHookService.createDockerWorkerJobToken({
-              jobId,
-              ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
-              storageAccessPolicy: params.storageAccessPolicy,
-              executorContext: {
-                profileKey,
-                profileHash,
-                jobIdentifier,
-              },
-            })
-          : undefined
-
-      const jobExecuteOptions: JobExecuteOptions = {
-        job_id: jobId,
-        job_class: jobIdentifier,
-        job_input: jobData,
-        job_token: jobToken,
-        worker_command: jobDefinition.command, // Default worker path, can be customized per job class
-        interface:
-          jobDefinition.kind === 'http'
-            ? {
-                kind: 'persistent_http',
-                port: jobDefinition.port,
-              }
-            : {
-                kind: 'exec_per_job',
-              },
-        platform_url: !jobToken
-          ? undefined
-          : buildPlatformOrigin(this._coreConfig),
-        output_location: params.storageAccessPolicy?.outputLocation
-          ? {
-              folder_id: params.storageAccessPolicy.outputLocation.folderId,
-              ...('prefix' in params.storageAccessPolicy.outputLocation
-                ? { prefix: params.storageAccessPolicy.outputLocation.prefix }
-                : {}),
-              ...('objectKey' in params.storageAccessPolicy.outputLocation
-                ? {
-                    objectKey:
-                      params.storageAccessPolicy.outputLocation.objectKey,
-                  }
-                : {}),
-            }
-          : undefined,
-      }
-
-      // Base64 encode the payload
-      const payloadBase64 = Buffer.from(
-        JSON.stringify(jobExecuteOptions),
-      ).toString('base64')
-
-      // Build the command to run in the container
-      const agentCommand = [
-        'lombok-worker-agent',
-        'run-job',
-        `--payload-base64=${payloadBase64}`,
-      ]
-
       const { hostId, containerId, state, output, getError } =
-        await this.dockerClientService.execInProfileContainer(profileKey, {
-          image: profileSpec.image,
-          command: agentCommand,
-          labels,
-        })
+        await this.dockerClientService.execInProfileContainer(
+          containerRef ? { containerRef } : { profileKey },
+          {
+            image: profileSpec.image,
+            labels,
+          },
+          (containerMetadata) => {
+            // create the worker token if one is required
+            const jobToken =
+              this.dockerWorkerHookService.createDockerWorkerJobToken({
+                jobId,
+                ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+                storageAccessPolicy: params.storageAccessPolicy ?? {
+                  rules: [],
+                },
+                executorMetadata: {
+                  profileKey,
+                  profileHash,
+                  jobIdentifier,
+                  containerId: containerMetadata.containerId,
+                  hostId: containerMetadata.hostId,
+                  extra: {},
+                },
+              })
+
+            const jobExecuteOptions: JobExecuteOptions = {
+              job_id: jobId,
+              job_class: jobIdentifier,
+              job_input: jobData,
+              job_token: jobToken,
+              worker_command: jobDefinition.command, // Default worker path, can be customized per job class
+              interface:
+                jobDefinition.kind === 'http'
+                  ? {
+                      kind: 'persistent_http',
+                      port: jobDefinition.port,
+                    }
+                  : {
+                      kind: 'exec_per_job',
+                    },
+              platform_url: !jobToken
+                ? undefined
+                : buildPlatformOrigin(this._coreConfig),
+              output_location: params.storageAccessPolicy?.outputLocation
+                ? {
+                    folder_id:
+                      params.storageAccessPolicy.outputLocation.folderId,
+                    ...('prefix' in params.storageAccessPolicy.outputLocation
+                      ? {
+                          prefix:
+                            params.storageAccessPolicy.outputLocation.prefix,
+                        }
+                      : {}),
+                    ...('objectKey' in params.storageAccessPolicy.outputLocation
+                      ? {
+                          objectKey:
+                            params.storageAccessPolicy.outputLocation.objectKey,
+                        }
+                      : {}),
+                  }
+                : undefined,
+            }
+
+            // Base64 encode the payload
+            const payloadBase64 = Buffer.from(
+              JSON.stringify(jobExecuteOptions),
+            ).toString('base64')
+
+            // Build the command to run in the container
+            const agentCommand = [
+              'lombok-worker-agent',
+              'run-job',
+              `--payload-base64=${payloadBase64}`,
+            ]
+            return agentCommand
+          },
+        )
 
       // Wait for the agent exec call to complete, signifying that the job has been submitted
       try {
@@ -265,7 +300,6 @@ export class DockerJobsService {
           () => this.getJobState(hostId, containerId, jobId),
           jobDefinition.kind,
         )
-        this.logger.debug(`Job ${jobId} submitted successfully`)
       } catch (error) {
         this.logger.debug(
           `Job ${jobId} submission failed: ${error instanceof Error ? error.message : String(error)}.`,
@@ -286,10 +320,17 @@ export class DockerJobsService {
           containerId,
           jobId,
         )
-        return completionResult
+        this.logger.debug(
+          `Job ${jobId} completed in ${(performance.now() - startTime).toFixed(0)}ms total`,
+        )
+        return {
+          ...completionResult,
+          containerId,
+        }
       } else {
         const submitResult: DockerSubmitResult = {
           jobId,
+          containerId,
         }
         return submitResult as DockerExecResult<T>
       }
@@ -573,6 +614,7 @@ export class DockerJobsService {
       ? {
           ...agentResponse,
           jobId: agentResponse.job_id,
+          containerId,
         }
       : {
           success: false,
@@ -897,7 +939,7 @@ export class DockerJobsService {
     try {
       const rawContainers =
         await this.dockerClientService.listContainersByLabels(hostId, {
-          [DOCKER_LABELS.PLATFORM]: 'lombok',
+          [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
         })
       containers = rawContainers.map((container) => ({
         ...container,
@@ -971,18 +1013,21 @@ type DockerJobResult =
   | {
       success: true
       jobId: string
+      containerId: string
       result: JsonSerializableObject
       timing: Record<string, number>
     }
   | {
       success: false
       jobId: string
+      containerId?: string
       error: { code: string; message: string }
       timing: Record<string, number>
     }
 
 interface DockerSubmitResult {
   jobId: string
+  containerId: string
 }
 
 interface DockerJobState {

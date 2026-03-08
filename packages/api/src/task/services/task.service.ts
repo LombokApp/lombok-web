@@ -1,5 +1,7 @@
 import {
   CORE_IDENTIFIER,
+  ExecutorMetadata,
+  ExecutorStartMetadata,
   JsonSerializableObject,
   ReceivedTaskUpdate,
   StorageAccessPolicy,
@@ -576,6 +578,7 @@ export class TaskService {
     parentTask,
     parentTaskSuccess,
     taskIdentifier,
+    correlationKey,
     taskDataTemplate,
     dontStartBefore,
     targetUserId,
@@ -587,6 +590,7 @@ export class TaskService {
   }: {
     parentTaskSuccess: boolean
     parentTask: Task
+    correlationKey?: string
     taskIdentifier: string
     taskDataTemplate?: JsonSerializableObject // parse this to interpolate variables, e.g. {{task.result.someKey}} or {{task.error.someKey}}
     dontStartBefore?: { timestamp: Date } | { delayMs: number }
@@ -617,7 +621,7 @@ export class TaskService {
     const parentTaskSuccessLog = parentTask.systemLog
       .reverse()
       .find((log) => log.logType === 'success')?.payload as
-      | { result: JsonSerializableObject }
+      | { result: JsonSerializableObject; executorMetadata: ExecutorMetadata }
       | undefined
 
     const parentTaskErrorLog = parentTask.systemLog
@@ -629,6 +633,7 @@ export class TaskService {
             message: string
             details: JsonSerializableObject
           }
+          executorMetadata: ExecutorStartMetadata
         }
       | undefined
 
@@ -637,6 +642,7 @@ export class TaskService {
       id: crypto.randomUUID(),
       ownerIdentifier: parentTask.ownerIdentifier,
       taskIdentifier,
+      correlationKey,
       invocation: {
         kind: 'task_child',
         invokeContext: {
@@ -654,9 +660,13 @@ export class TaskService {
             objects: {
               task: {
                 id: parentTask.id,
-                success: true,
-                result: parentTaskSuccessLog?.result ?? {},
-                error: parentTaskErrorLog?.error ?? {},
+                success: parentTaskSuccess,
+                result: parentTaskSuccess
+                  ? (parentTaskSuccessLog?.result ?? {})
+                  : undefined,
+                error: parentTaskSuccess
+                  ? undefined
+                  : (parentTaskErrorLog?.error ?? {}),
                 targetLocation: parentTask.targetLocationFolderId
                   ? {
                       folderId: parentTask.targetLocationFolderId,
@@ -670,6 +680,9 @@ export class TaskService {
                 createdAt: parentTask.createdAt,
                 updatedAt: parentTask.updatedAt,
               },
+              executorMetadata: parentTaskSuccess
+                ? parentTaskSuccessLog?.executorMetadata.metadata
+                : parentTaskErrorLog?.executorMetadata.metadata,
             },
             functions: {
               createPresignedUrl:
@@ -726,16 +739,14 @@ export class TaskService {
 
   async registerTaskStarted({
     taskId,
-    startContext,
+    executorMetadata,
     options = {},
   }: {
     taskId: string
-    startContext: {
-      __executor: JsonSerializableObject
-    } & JsonSerializableObject
+    executorMetadata: ExecutorStartMetadata
     options?: { tx?: OrmService['db'] }
   }) {
-    const args = { taskId, startContext }
+    const args = { taskId, executorMetadata }
     if (options.tx) {
       return this._registerTaskStartedInTx(args, options.tx)
     }
@@ -747,12 +758,10 @@ export class TaskService {
   async _registerTaskStartedInTx(
     {
       taskId,
-      startContext,
+      executorMetadata,
     }: {
       taskId: string
-      startContext: {
-        __executor: JsonSerializableObject
-      } & JsonSerializableObject
+      executorMetadata: ExecutorStartMetadata
     },
     tx: OrmService['db'],
   ) {
@@ -771,7 +780,9 @@ export class TaskService {
       at: now,
       logType: 'started',
       message: 'Task is started',
-      payload: startContext,
+      payload: {
+        executorMetadata,
+      },
     }
 
     const updatedTask = (
@@ -797,8 +808,11 @@ export class TaskService {
       this.appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: updatedTask.correlationKey,
+          source: updatedTask.ownerIdentifier,
+          taskIdentifier: updatedTask.taskIdentifier,
           targetUserId: updatedTask.targetUserId,
           targetLocationFolderId: updatedTask.targetLocationFolderId,
+          targetLocationObjectKey: updatedTask.targetLocationObjectKey,
         },
         {
           code: 'task_started',
@@ -952,8 +966,8 @@ export class TaskService {
       message: completion.success
         ? 'Task completed successfully'
         : 'Task failed',
-      payload:
-        completion.success && completion.result
+      payload: {
+        ...(completion.success && completion.result
           ? {
               result: completion.result,
             }
@@ -961,7 +975,9 @@ export class TaskService {
             ? {
                 error: completion.error,
               }
-            : undefined,
+            : {}),
+        executorMetadata: completion.executorMetadata,
+      },
     }
 
     const requeueRequested =
@@ -1082,6 +1098,7 @@ export class TaskService {
             parentTaskSuccess: completion.success,
             parentTask: updatedTask,
             onComplete: onCompleteHandler.onComplete ?? [],
+            correlationKey: updatedTask.correlationKey ?? undefined,
             taskIdentifier: onCompleteHandler.taskIdentifier,
             taskDataTemplate: onCompleteHandler.dataTemplate ?? {},
             targetUserId: updatedTask.targetUserId ?? undefined,
@@ -1108,8 +1125,11 @@ export class TaskService {
       this.appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: updatedTask.correlationKey,
+          source: updatedTask.ownerIdentifier,
+          taskIdentifier: updatedTask.taskIdentifier,
           targetUserId: updatedTask.targetUserId,
           targetLocationFolderId: updatedTask.targetLocationFolderId,
+          targetLocationObjectKey: updatedTask.targetLocationObjectKey,
         },
         {
           code: completion.success ? 'task_completed' : 'task_failed',
@@ -1170,8 +1190,11 @@ export class TaskService {
       this.appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: updatedTask.correlationKey,
+          source: updatedTask.ownerIdentifier,
+          taskIdentifier: updatedTask.taskIdentifier,
           targetUserId: updatedTask.targetUserId,
           targetLocationFolderId: updatedTask.targetLocationFolderId,
+          targetLocationObjectKey: updatedTask.targetLocationObjectKey,
         },
         storedUpdate,
       )
@@ -1194,6 +1217,7 @@ export class TaskService {
         await this.executeOnCompleteHandler({
           parentTask: updatedTask,
           parentTaskSuccess: true,
+          correlationKey: updatedTask.correlationKey ?? undefined,
           taskIdentifier: handler.taskIdentifier,
           taskDataTemplate: handler.taskDataTemplate ?? {},
           targetUserId: updatedTask.targetUserId ?? undefined,

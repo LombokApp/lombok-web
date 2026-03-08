@@ -2,7 +2,7 @@ import { folderScopeAppPermissionsSchema } from '@lombokapp/types'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
-const appFolderSettingsUpdateSchema = z.xor([
+const appFolderSettingsUpdateSchema = z.union([
   z.object({
     enabled: z.boolean().nullable(),
     permissions: z.array(folderScopeAppPermissionsSchema),

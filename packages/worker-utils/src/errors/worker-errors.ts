@@ -17,6 +17,7 @@ export class AsyncWorkError extends Error {
   readonly name: string
   readonly origin: ErrorOrigin
   readonly requeueDelayMs?: number
+  readonly executionMetadata?: JsonSerializableObject
   readonly code: string
   readonly details?: JsonSerializableObject
   readonly cause?: AsyncWorkError
@@ -26,6 +27,7 @@ export class AsyncWorkError extends Error {
     this.name = args.name
     this.origin = args.origin
     this.requeueDelayMs = args.requeueDelayMs
+    this.executionMetadata = args.executionMetadata
     this.code = args.code
     this.details = args.details
     this.stack = args.stack
@@ -44,6 +46,7 @@ export class AsyncWorkError extends Error {
       details: this.details,
       cause: this.cause?.toEnvelope(),
       requeueDelayMs: this.requeueDelayMs,
+      executionMetadata: this.executionMetadata,
       message: this.message,
       stack: this.stack,
     }

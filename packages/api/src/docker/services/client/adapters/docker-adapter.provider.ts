@@ -11,12 +11,19 @@ export interface IDockerAdapterProvider {
 
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerAdapterProvider implements IDockerAdapterProvider {
+  private readonly adapterCache = new Map<string, DockerAdapter>()
+
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
   ) {}
 
   getDockerAdapter(hostId: string): DockerAdapter {
+    const cached = this.adapterCache.get(hostId)
+    if (cached) {
+      return cached
+    }
+
     const hostConfig = this._coreConfig.dockerHostConfig.hosts?.[hostId]
     if (!hostConfig) {
       throw new NotFoundException(
@@ -26,10 +33,12 @@ export class DockerAdapterProvider implements IDockerAdapterProvider {
     const hostType = hostConfig.type as string
 
     if (hostType === 'docker_endpoint') {
-      return new LocalDockerAdapter(hostConfig.host, {
+      const adapter = new LocalDockerAdapter(hostConfig.host, {
         // dockerEndpointAuth: this._coreConfig.dockerHostConfig.hosts?.[hostId]?.auth,
         dockerRegistryAuth: this._coreConfig.dockerHostConfig.registryAuth,
       })
+      this.adapterCache.set(hostId, adapter)
+      return adapter
     }
 
     throw new Error(

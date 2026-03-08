@@ -600,36 +600,6 @@ export class AppService {
     }
   }
 
-  async startWorkerTaskByIdAsApp(
-    requestingAppIdentifier: string,
-    {
-      taskId,
-      startContext,
-    }: {
-      taskId: string
-      startContext: {
-        __executor: JsonSerializableObject
-      } & JsonSerializableObject
-    },
-  ) {
-    const taskToStart = await this.ormService.db.query.tasksTable.findFirst({
-      where: and(
-        eq(tasksTable.id, taskId),
-        eq(tasksTable.ownerIdentifier, requestingAppIdentifier),
-      ),
-    })
-
-    if (!taskToStart) {
-      throw new NotFoundException(`Worker task not found: ${taskId}`)
-    }
-
-    const { task } = await this.taskService.registerTaskStarted({
-      taskId,
-      startContext,
-    })
-    return task
-  }
-
   async getAppUIbundle(appIdentifier: string) {
     const app = await this.getApp(appIdentifier, {
       enabled: true,

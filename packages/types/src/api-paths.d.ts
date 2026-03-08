@@ -1524,6 +1524,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/relay-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Route a request from an app container to an app runtime worker
+         * @description Routes a request from an app container to an app runtime worker. This has the platform lookup a pending request on a running container, and forward it to the runtime worker to so the container doesn't need to hold (and refresh) authentication credentials.
+         */
+        post: operations["DockerWorkerHooks_routeAppContainerRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
         parameters: {
             query?: never;
@@ -1842,6 +1862,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2120,6 +2142,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2398,6 +2422,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2684,6 +2710,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2933,6 +2961,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -4596,6 +4626,16 @@ export interface components {
                 [key: string]: components["schemas"]["DockerJobUpdateRequestDTO__schema0"];
             };
             timestamp?: string;
+        };
+        DockerRouteAppContainerRequestDTO: {
+            containerHostId: string;
+            containerId: string;
+            requestId: string;
+        };
+        DockerRouteAppContainerResponseDTO: {
+            status: number;
+            headers: components["schemas"]["StringMapDTO"];
+            body: unknown;
         };
         AllCommentsListResponseDTO: {
             comments: {
@@ -9316,6 +9356,47 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerWorkerHooks_routeAppContainerRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerRouteAppContainerRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRouteAppContainerResponseDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {

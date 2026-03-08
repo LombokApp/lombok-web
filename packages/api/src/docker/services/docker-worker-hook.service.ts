@@ -11,6 +11,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
@@ -36,6 +37,10 @@ import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
 import type { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
+import type { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
+import type { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
+import { DockerClientService } from './client/docker-client.service'
+import { DOCKER_LABELS } from './docker-jobs.service'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
@@ -46,9 +51,18 @@ const WORKER_JOB_TOKEN_EXPIRY_SECONDS = 30 * 60
 // The permission required for uploading files to a folder
 const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
 
+export interface DockerExecutorMetadata {
+  profileKey: string
+  profileHash: string
+  jobIdentifier: string
+  containerId: string
+  hostId: string
+  extra: JsonSerializableObject
+}
+
 export interface DockerWorkerJobClaims {
   jobId: string
-  executorContext: JsonSerializableObject
+  executorMetadata: DockerExecutorMetadata
   taskId: string
   storageAccessPolicy: StorageAccessPolicy
 }
@@ -67,6 +81,7 @@ export class DockerWorkerHookService {
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
+    private readonly dockerClientService: DockerClientService,
     @Inject(forwardRef(() => CoreTaskService))
     _coreTaskService,
     @Inject(forwardRef(() => TaskService))
@@ -187,7 +202,7 @@ export class DockerWorkerHookService {
     jobId: string
     taskId?: string
     storageAccessPolicy?: StorageAccessPolicy
-    executorContext?: JsonSerializableObject
+    executorMetadata: DockerExecutorMetadata
   }): string {
     const payload = {
       aud: this._coreConfig.platformHost,
@@ -196,7 +211,7 @@ export class DockerWorkerHookService {
       job_id: params.jobId,
       task_id: params.taskId,
       storage_access_policy: params.storageAccessPolicy,
-      executor_context: params.executorContext,
+      executor_metadata: params.executorMetadata,
     }
 
     return jwt.sign(payload, this._authConfig.authJwtSecret, {
@@ -220,14 +235,14 @@ export class DockerWorkerHookService {
       }) as JwtPayload & {
         job_id: string
         task_id: string
-        executor_context: JsonSerializableObject
+        executor_metadata: DockerExecutorMetadata
         storage_access_policy: StorageAccessPolicy
       }
 
       return {
         jobId: decoded.job_id,
         taskId: decoded.task_id,
-        executorContext: decoded.executor_context,
+        executorMetadata: decoded.executor_metadata,
         storageAccessPolicy: decoded.storage_access_policy,
       }
     } catch (error) {
@@ -376,9 +391,17 @@ export class DockerWorkerHookService {
         ? {
             success: true,
             result: completeJobRequest.result,
+            executorMetadata: {
+              type: 'docker',
+              metadata: claims.executorMetadata,
+            },
           }
         : {
             success: false,
+            executorMetadata: {
+              type: 'docker',
+              metadata: claims.executorMetadata,
+            },
             error: {
               name: completeJobRequest.error.name ?? 'Error',
               code: completeJobRequest.error.code,
@@ -489,6 +512,138 @@ export class DockerWorkerHookService {
         options: { tx },
       })
     })
+  }
+
+  /**
+   * Route a request from an app container to an app runtime worker.
+   *
+   * 1. Find the container by instanceId across all Docker hosts
+   * 2. Validate the reported hostId matches where the container is actually running
+   * 3. Read the pending request context from /tmp/lombok-relay-requests/<requestId>.json inside the container
+   * 4. Optionally create an app-user access token if the container has a USER_ID label
+   * 5. Forward the request to the core-worker at localhost:3001/worker-api and return the response
+   */
+  async routeAppContainerRequest(
+    body: DockerRouteAppContainerRequestDTO,
+  ): Promise<DockerRouteAppContainerResponseDTO> {
+    try {
+      // 1. Find container by instanceId
+      const found = await this.dockerClientService.getContainerInspect(
+        body.containerHostId,
+        body.containerId,
+      )
+
+      // 2. Extract app identifier from container labels
+      const appIdentifier = found.Config.Labels[DOCKER_LABELS.APP_ID]
+      if (!appIdentifier) {
+        throw new BadRequestException('Container has no app identifier label')
+      }
+
+      // 3. Exec into container to read the request context
+      const exec = await this.dockerClientService.execInContainer(
+        body.containerHostId,
+        found.Id,
+        ['cat', `/tmp/lombok-relay-requests/${body.requestId}.json`],
+      )
+      const execState = await exec.state()
+      const { stdout, stderr } = exec.output()
+      if (execState.exitCode !== 0) {
+        throw new NotFoundException(
+          `Request file not found in container: ${stderr || 'exit code ' + String(execState.exitCode)}`,
+        )
+      }
+
+      // 4. Parse and validate request context JSON
+      const requestContextSchema = z.object({
+        workerIdentifier: z.string(),
+        url: z.string(),
+        method: z.string(),
+        headers: z.record(z.string(), z.string()),
+        body: z.unknown().optional(),
+        authUser: z.literal(true).optional(),
+      })
+      const requestContext = requestContextSchema.parse(JSON.parse(stdout))
+
+      // 5. Resolve user context (if authUser is requested)
+      let accessToken: string | undefined
+      if (requestContext.authUser) {
+        const userId = found.Config.Labels[DOCKER_LABELS.USER_ID]
+        if (!userId) {
+          throw new UnauthorizedException(
+            'Request requires authenticated user but container has no user context',
+          )
+        }
+        const tokenResult = await this.appService.createAppUserAccessTokenAsApp(
+          {
+            actor: { appIdentifier },
+            userId,
+          },
+        )
+        accessToken = tokenResult.accessToken
+      }
+
+      // 6. Build the forwarding URL and headers
+      const workerUrl = `http://localhost:3001/worker-api/${requestContext.workerIdentifier}/${requestContext.url}`
+
+      const forwardHeaders: Record<string, string> = {
+        ...requestContext.headers,
+        Host: `${appIdentifier}.apps.localhost`,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      }
+
+      // 7. Forward the request
+      const response = await fetch(workerUrl, {
+        method: requestContext.method,
+        headers: forwardHeaders,
+        ...(requestContext.body &&
+        requestContext.method !== 'GET' &&
+        requestContext.method !== 'HEAD'
+          ? {
+              body:
+                typeof requestContext.body === 'string'
+                  ? requestContext.body
+                  : JSON.stringify(requestContext.body),
+            }
+          : {}),
+      })
+
+      // 8. Read response and return
+      const responseHeaders: Record<string, string> = {}
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+
+      let responseBody: unknown
+      const contentType = response.headers.get('content-type')
+      if (contentType?.includes('application/json')) {
+        responseBody = await response.json()
+      } else {
+        responseBody = await response.text()
+      }
+
+      return {
+        status: response.status,
+        headers: responseHeaders,
+        body: responseBody,
+      }
+    } catch (error) {
+      // Re-throw NestJS HTTP exceptions as-is
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ConflictException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error
+      }
+      // Wrap unexpected errors
+      this.logger.error('routeAppContainerRequest failed', error)
+      throw new InternalServerErrorException(
+        `Failed to route app container request: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
   }
 
   /**

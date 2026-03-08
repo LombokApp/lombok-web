@@ -3,20 +3,23 @@ import { Logger } from '@nestjs/common'
 import type { ContainerInspectInfo } from 'dockerode'
 import Docker from 'dockerode'
 import * as fs from 'fs'
+import * as net from 'net'
 import { PassThrough } from 'stream'
 
 import type { ContainerExecuteOptions } from '../docker.schema'
 import {
   type ConnectionTestResult,
   type ContainerInfo,
-  type CreateContainerOptions,
   type DockerAdapter,
   DockerAdapterError,
   DockerAdapterErrorCode,
   type DockerContainerStats,
   type DockerHostResources,
   type DockerLogEntry,
+  type DockerPipeStream,
   type DockerStateFunc,
+  type DockerTtyStream,
+  type FindOrCreateContainerOptions,
 } from '../docker-client.types'
 import type {
   DockerEndpointAuth,
@@ -78,13 +81,9 @@ export class LocalDockerAdapter implements DockerAdapter {
 
       this.docker = new Docker(endpointOptions)
     } else {
-      // Unix socket - check permissions first
-      const proxySocket = '/tmp/docker-proxy.sock'
-      this.checkSocketPermissions({
-        proxySocketPath: proxySocket,
-        socketPath: dockerHost,
-      })
-      this.docker = new Docker({ socketPath: proxySocket })
+      // Unix socket - use the mounted Docker socket directly.
+      this.checkSocketPermissions({ socketPath: dockerHost })
+      this.docker = new Docker({ socketPath: dockerHost })
     }
   }
 
@@ -125,13 +124,7 @@ export class LocalDockerAdapter implements DockerAdapter {
    * Check if the Docker socket exists and is accessible.
    * Logs detailed error messages if there are permission issues.
    */
-  private checkSocketPermissions({
-    proxySocketPath,
-    socketPath,
-  }: {
-    proxySocketPath: string
-    socketPath: string
-  }): void {
+  private checkSocketPermissions({ socketPath }: { socketPath: string }): void {
     try {
       // Check if socket exists
       if (!fs.existsSync(socketPath)) {
@@ -155,19 +148,17 @@ export class LocalDockerAdapter implements DockerAdapter {
         return
       }
 
-      // Try to access the socket (via the proxy) for read/write
-      fs.accessSync(proxySocketPath, fs.constants.R_OK | fs.constants.W_OK)
+      // Try to access the mounted socket for read/write.
+      fs.accessSync(socketPath, fs.constants.R_OK | fs.constants.W_OK)
 
-      this.logger.log(
-        `[Docker] Socket at ${socketPath} is accessible, via proxy at ${proxySocketPath}`,
-      )
+      this.logger.log(`[Docker] Socket at ${socketPath} is accessible`)
     } catch (error) {
       if (error instanceof Error && 'code' in error) {
         const nodeError = error as NodeJS.ErrnoException
 
         if (nodeError.code === 'EACCES') {
           this.logger.error(
-            `[Docker] Permission denied accessing socket at ${socketPath} (via proxy at ${proxySocketPath}). ` +
+            `[Docker] Permission denied accessing socket at ${socketPath}. ` +
               `The container user does not have permission to access the Docker socket. `,
           )
         } else if (nodeError.code === 'ENOENT') {
@@ -512,13 +503,17 @@ export class LocalDockerAdapter implements DockerAdapter {
       }),
     )
 
-    return containers.map((container) => ({
-      id: container.Id,
-      image: container.Image,
-      labels: container.Labels,
-      state: this.mapContainerState(container.State),
-      createdAt: new Date(container.Created * 1000).toISOString(),
-    }))
+    return containers.map((container) => {
+      const state = this.mapContainerState(container.State)
+      return {
+        id: container.Id,
+        image: container.Image,
+        labels: container.Labels,
+        state,
+        reusable: state !== 'unknown',
+        createdAt: new Date(container.Created * 1000).toISOString(),
+      }
+    })
   }
 
   async getContainerLogs(
@@ -554,7 +549,7 @@ export class LocalDockerAdapter implements DockerAdapter {
   }
 
   async createContainer(
-    options: CreateContainerOptions,
+    options: FindOrCreateContainerOptions,
   ): Promise<ContainerInfo> {
     const imageExists = await this.imageExists(options.image)
     if (!imageExists) {
@@ -574,10 +569,8 @@ export class LocalDockerAdapter implements DockerAdapter {
 
     const createContainerOptions: Docker.ContainerCreateOptions = {
       Image: options.image,
-      Env: options.environmentVariables
-        ? Object.entries(options.environmentVariables).map(
-            ([key, value]) => `${key}=${value}`,
-          )
+      Env: options.env
+        ? Object.entries(options.env).map(([key, value]) => `${key}=${value}`)
         : undefined,
       Labels: options.labels,
       ...(options.gpus ||
@@ -621,6 +614,7 @@ export class LocalDockerAdapter implements DockerAdapter {
       image: options.image,
       labels: options.labels,
       state: 'running',
+      reusable: true,
       createdAt: new Date().toISOString(),
     }
   }
@@ -628,6 +622,9 @@ export class LocalDockerAdapter implements DockerAdapter {
   private async execInContainerAndCapture(
     containerId: string,
     command: string[],
+    options?: {
+      env?: Record<string, string>
+    },
   ): Promise<{
     getError: () => Promise<DockerAdapterError>
     state: DockerStateFunc
@@ -641,6 +638,9 @@ export class LocalDockerAdapter implements DockerAdapter {
         AttachStdout: true,
         AttachStderr: true,
         Tty: false, // must be false to demux
+        Env: options?.env
+          ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
+          : undefined,
       }),
     )
 
@@ -708,8 +708,295 @@ export class LocalDockerAdapter implements DockerAdapter {
     )
   }
 
-  async execInContainer(containerId: string, options: ContainerExecuteOptions) {
-    return this.execInContainerAndCapture(containerId, options.command)
+  async execInContainer(
+    containerId: string,
+    command: string[],
+    options: ContainerExecuteOptions,
+  ) {
+    return this.execInContainerAndCapture(containerId, command, options)
+  }
+
+  async execTty(
+    containerId: string,
+    command: string[],
+    options?: { cols?: number; rows?: number; env?: Record<string, string> },
+  ): Promise<DockerTtyStream> {
+    const container = this.docker.getContainer(containerId)
+
+    const cols = options?.cols ?? 80
+    const rows = options?.rows ?? 24
+
+    const exec = await this.withErrorGuard(() =>
+      container.exec({
+        Cmd: command,
+        AttachStdin: true,
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: true,
+        ConsoleSize: [rows, cols],
+        Env: options?.env
+          ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
+          : undefined,
+      }),
+    )
+
+    // Bun's HTTP client doesn't fire the 'upgrade' event that dockerode's
+    // hijack mode relies on (Node.js http.request upgrade → 101 Switching
+    // Protocols). Work around this by opening a raw Unix socket to the
+    // Docker daemon, sending the POST /exec/{id}/start request ourselves,
+    // reading the 101 response, and then using the socket as a duplex stream.
+    const execId = (exec as unknown as { id: string }).id
+    const stream = await new Promise<net.Socket>((resolve, reject) => {
+      let settled = false
+      const socket = net.createConnection({ path: this.host }, () => {
+        const body = JSON.stringify({ Tty: true })
+        const request = [
+          `POST /exec/${execId}/start HTTP/1.1`,
+          'Host: localhost',
+          'Content-Type: application/json',
+          `Content-Length: ${Buffer.byteLength(body)}`,
+          'Connection: Upgrade',
+          'Upgrade: tcp',
+          '',
+          body,
+        ].join('\r\n')
+        socket.write(request)
+      })
+
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return
+        }
+        settled = true
+        socket.destroy()
+        reject(
+          new Error(`Timed out after 10000ms while starting TTY exec stream`),
+        )
+      }, 10000)
+
+      let headerBuf = ''
+      const onData = (chunk: Buffer) => {
+        headerBuf += chunk.toString()
+        const headerEnd = headerBuf.indexOf('\r\n\r\n')
+        if (headerEnd === -1) {
+          return
+        }
+        clearTimeout(timeout)
+        settled = true
+        socket.removeListener('data', onData)
+
+        const statusLine = headerBuf.slice(0, headerBuf.indexOf('\r\n'))
+        if (!statusLine.includes('101')) {
+          socket.destroy()
+          reject(new Error(`Docker exec.start failed: ${statusLine}`))
+          return
+        }
+
+        // Any data after the headers is already PTY output
+        const remainder = headerBuf.slice(headerEnd + 4)
+        if (remainder.length > 0) {
+          socket.unshift(Buffer.from(remainder))
+        }
+
+        resolve(socket)
+      }
+
+      socket.on('data', onData)
+      socket.on('error', (err) => {
+        clearTimeout(timeout)
+        if (settled) {
+          return
+        }
+        settled = true
+        reject(err)
+      })
+    })
+
+    // With Tty=true, dockerode returns a raw stream (no demux needed).
+    // The stream is a Duplex: write to it for stdin, read from it for stdout+stderr merged.
+
+    return {
+      write: (data: string | Buffer) => {
+        if (typeof stream.write === 'function') {
+          stream.write(typeof data === 'string' ? Buffer.from(data) : data)
+          return
+        }
+        this.logger.warn(
+          `[Docker] ignoring terminal input because stream is not writable for container ${containerId}`,
+        )
+      },
+      onData: (handler: (data: Buffer) => void) => {
+        stream.on('data', (chunk: Buffer | string) => {
+          handler(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        })
+      },
+      onEnd: (handler: () => void) => {
+        stream.on('end', handler)
+        stream.on('close', handler)
+      },
+      resize: async (newCols: number, newRows: number) => {
+        await exec.resize({ h: newRows, w: newCols })
+      },
+      destroy: () => {
+        stream.destroy()
+      },
+    }
+  }
+
+  async execPipe(
+    containerId: string,
+    command: string[],
+    options?: { env?: Record<string, string> },
+  ): Promise<DockerPipeStream> {
+    const container = this.docker.getContainer(containerId)
+
+    const exec = await this.withErrorGuard(() =>
+      container.exec({
+        Cmd: command,
+        AttachStdin: true,
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: false,
+        Env: options?.env
+          ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
+          : undefined,
+      }),
+    )
+
+    // Same Bun raw-socket workaround as execTty — Bun's HTTP client doesn't
+    // fire the 'upgrade' event that dockerode's hijack mode relies on.
+    const execId = (exec as unknown as { id: string }).id
+    const stream = await new Promise<net.Socket>((resolve, reject) => {
+      let settled = false
+      const socket = net.createConnection({ path: this.host }, () => {
+        const body = JSON.stringify({ Tty: false })
+        const request = [
+          `POST /exec/${execId}/start HTTP/1.1`,
+          'Host: localhost',
+          'Content-Type: application/json',
+          `Content-Length: ${Buffer.byteLength(body)}`,
+          'Connection: Upgrade',
+          'Upgrade: tcp',
+          '',
+          body,
+        ].join('\r\n')
+        socket.write(request)
+      })
+
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return
+        }
+        settled = true
+        socket.destroy()
+        reject(
+          new Error(`Timed out after 10000ms while starting pipe exec stream`),
+        )
+      }, 10000)
+
+      let headerBuf = ''
+      const onData = (chunk: Buffer) => {
+        headerBuf += chunk.toString()
+        const headerEnd = headerBuf.indexOf('\r\n\r\n')
+        if (headerEnd === -1) {
+          return
+        }
+        clearTimeout(timeout)
+        settled = true
+        socket.removeListener('data', onData)
+
+        const statusLine = headerBuf.slice(0, headerBuf.indexOf('\r\n'))
+        if (!statusLine.includes('101')) {
+          socket.destroy()
+          reject(new Error(`Docker exec.start failed: ${statusLine}`))
+          return
+        }
+
+        // Any data after the headers is already multiplexed output
+        const remainder = headerBuf.slice(headerEnd + 4)
+        if (remainder.length > 0) {
+          socket.unshift(Buffer.from(remainder))
+        }
+
+        resolve(socket)
+      }
+
+      socket.on('data', onData)
+      socket.on('error', (err) => {
+        clearTimeout(timeout)
+        if (settled) {
+          return
+        }
+        settled = true
+        reject(err)
+      })
+    })
+
+    // With Tty=false, Docker multiplexes stdout/stderr with 8-byte header frames:
+    //   [stream_type: 1 byte][padding: 3 bytes][payload_length: 4 bytes BE][payload]
+    //   stream_type: 1 = stdout, 2 = stderr
+    let stdoutHandler: ((data: Buffer) => void) | null = null
+    let stderrHandler: ((data: Buffer) => void) | null = null
+    let endHandler: (() => void) | null = null
+    let pending = Buffer.alloc(0)
+
+    stream.on('data', (chunk: Buffer | string) => {
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      pending = Buffer.concat([pending, buf])
+
+      while (pending.length >= 8) {
+        const streamType = pending[0]
+        const payloadLength = pending.readUInt32BE(4)
+        const frameSize = 8 + payloadLength
+        if (pending.length < frameSize) {
+          break // partial frame, wait for more data
+        }
+
+        const payload = pending.subarray(8, frameSize)
+        pending = pending.subarray(frameSize)
+
+        if (streamType === 2) {
+          stderrHandler?.(Buffer.from(payload))
+        } else {
+          stdoutHandler?.(Buffer.from(payload))
+        }
+      }
+    })
+
+    const handleEnd = () => {
+      if (pending.length > 0) {
+        stdoutHandler?.(Buffer.from(pending))
+        pending = Buffer.alloc(0)
+      }
+      endHandler?.()
+    }
+
+    stream.on('end', handleEnd)
+    stream.on('close', handleEnd)
+
+    return {
+      write: (data: string | Buffer) => {
+        if (typeof stream.write === 'function') {
+          stream.write(typeof data === 'string' ? Buffer.from(data) : data)
+          return
+        }
+        this.logger.warn(
+          `[Docker] ignoring pipe input because stream is not writable for container ${containerId}`,
+        )
+      },
+      onStdout: (handler: (data: Buffer) => void) => {
+        stdoutHandler = handler
+      },
+      onStderr: (handler: (data: Buffer) => void) => {
+        stderrHandler = handler
+      },
+      onEnd: (handler: () => void) => {
+        endHandler = handler
+      },
+      destroy: () => {
+        stream.destroy()
+      },
+    }
   }
 
   async startContainer(containerId: string): Promise<void> {

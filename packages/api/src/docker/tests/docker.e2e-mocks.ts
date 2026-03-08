@@ -125,15 +125,17 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
       image: 'mock-image',
       labels: {},
       state: 'running',
+      reusable: true,
       createdAt: new Date().toISOString(),
     }),
 
     // eslint-disable-next-line @typescript-eslint/require-await
     execInContainer: async (
       _containerId: string,
-      _options: { command: string[] },
+      command: string[],
+      _options: { env?: Record<string, string> },
     ) => {
-      const stdout = _options.command.includes('job-state')
+      const stdout = command.includes('job-state')
         ? '{"job_id":"123","job_class":"test_job","status":"complete","success":true}'
         : 'mock-output'
       return {
@@ -151,5 +153,22 @@ export const buildMockDockerAdapter = (hostId: string): DockerAdapter => {
           }),
       }
     },
+    // eslint-disable-next-line @typescript-eslint/require-await
+    execTty: async () => ({
+      write: () => undefined,
+      onData: () => undefined,
+      onEnd: () => undefined,
+      // eslint-disable-next-line @typescript-eslint/require-await
+      resize: async () => undefined,
+      destroy: () => undefined,
+    }),
+    // eslint-disable-next-line @typescript-eslint/require-await
+    execPipe: async () => ({
+      write: () => undefined,
+      onStdout: () => undefined,
+      onStderr: () => undefined,
+      onEnd: () => undefined,
+      destroy: () => undefined,
+    }),
   }
 }

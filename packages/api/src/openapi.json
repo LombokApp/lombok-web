@@ -7267,6 +7267,64 @@
         ]
       }
     },
+    "/api/v1/docker/relay-request": {
+      "post": {
+        "description": "Routes a request from an app container to an app runtime worker. This has the platform lookup a pending request on a running container, and forward it to the runtime worker to so the container doesn't need to hold (and refresh) authentication credentials.",
+        "operationId": "DockerWorkerHooks_routeAppContainerRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DockerRouteAppContainerRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerRouteAppContainerResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Route a request from an app container to an app runtime worker",
+        "tags": [
+          "DockerWorkerHooks"
+        ]
+      }
+    },
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
       "get": {
         "operationId": "Comments_listAllComments",
@@ -8885,6 +8943,12 @@
                               }
                             ]
                           }
+                        },
+                        "userIsolation": {
+                          "type": "boolean"
+                        },
+                        "containerRefTemplate": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -10138,6 +10202,12 @@
                                 }
                               ]
                             }
+                          },
+                          "userIsolation": {
+                            "type": "boolean"
+                          },
+                          "containerRefTemplate": {
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -11391,6 +11461,12 @@
                               }
                             ]
                           }
+                        },
+                        "userIsolation": {
+                          "type": "boolean"
+                        },
+                        "containerRefTemplate": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -12673,6 +12749,12 @@
                                 }
                               ]
                             }
+                          },
+                          "userIsolation": {
+                            "type": "boolean"
+                          },
+                          "containerRefTemplate": {
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -13797,6 +13879,12 @@
                               }
                             ]
                           }
+                        },
+                        "userIsolation": {
+                          "type": "boolean"
+                        },
+                        "containerRefTemplate": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -17652,7 +17740,7 @@
           "type": "string"
         },
         "additionalProperties": {
-          "oneOf": [
+          "anyOf": [
             {
               "type": [
                 "object",
@@ -20731,6 +20819,42 @@
             "type": "string"
           }
         }
+      },
+      "DockerRouteAppContainerRequestDTO": {
+        "type": "object",
+        "properties": {
+          "containerHostId": {
+            "type": "string"
+          },
+          "containerId": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "containerHostId",
+          "containerId",
+          "requestId"
+        ]
+      },
+      "DockerRouteAppContainerResponseDTO": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number"
+          },
+          "headers": {
+            "$ref": "#/components/schemas/StringMapDTO"
+          },
+          "body": {}
+        },
+        "required": [
+          "status",
+          "headers",
+          "body"
+        ]
       },
       "AllCommentsListResponseDTO": {
         "type": "object",
