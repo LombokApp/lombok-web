@@ -1562,6 +1562,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/refresh-container-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh a container token
+         * @description Returns a new container token with fresh expiry. The current token must be valid (not expired).
+         */
+        post: operations["DockerWorkerHooks_refreshContainerToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/docker/relay-request": {
         parameters: {
             query?: never;
@@ -5213,9 +5233,10 @@ export interface components {
             };
             timestamp?: string;
         };
+        DockerRefreshContainerTokenResponseDTO: {
+            token: string;
+        };
         DockerRouteAppContainerRequestDTO: {
-            containerHostId: string;
-            containerId: string;
             requestId: string;
         };
         DockerRouteAppContainerResponseDTO: {
@@ -10183,6 +10204,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerWorkerHooks_refreshContainerToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRefreshContainerTokenResponseDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {

@@ -149,25 +149,6 @@
         "typescript-eslint": "catalog:",
       },
     },
-    "packages/app-demo": {
-      "name": "@lombokapp/app-demo",
-      "version": "0.0.0",
-      "devDependencies": {
-        "@eslint/js": "catalog:",
-        "@stylistic/eslint-plugin": "catalog:",
-        "@typescript-eslint/eslint-plugin": "catalog:",
-        "eslint": "catalog:",
-        "eslint-plugin-eslint-comments": "catalog:",
-        "eslint-plugin-import": "catalog:",
-        "eslint-plugin-prettier": "catalog:",
-        "eslint-plugin-promise": "catalog:",
-        "eslint-plugin-simple-import-sort": "catalog:",
-        "globals": "catalog:",
-        "jiti": "catalog:",
-        "prettier": "catalog:",
-        "typescript-eslint": "catalog:",
-      },
-    },
     "packages/app-worker-sdk": {
       "name": "@lombokapp/app-worker-sdk",
       "version": "0.0.1-6",
@@ -946,8 +927,6 @@
     "@lombokapp/api": ["@lombokapp/api@workspace:packages/api"],
 
     "@lombokapp/app-browser-sdk": ["@lombokapp/app-browser-sdk@workspace:packages/app-browser-sdk"],
-
-    "@lombokapp/app-demo": ["@lombokapp/app-demo@workspace:packages/app-demo"],
 
     "@lombokapp/app-testing": ["@lombokapp/app-testing@workspace:docker/worker-test"],
 

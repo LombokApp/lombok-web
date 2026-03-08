@@ -54,6 +54,17 @@ const testAppDefinitions: AppConfig[] = [
     slug: DUMMY_APP_SLUG,
     label: 'Dummy',
     requiresStorage: false,
+    settings: {
+      secretKeyPattern: '^api_',
+      user: {
+        type: 'object',
+        properties: {
+          api_key: { type: 'string' },
+          max_retries: { type: 'integer', default: 3 },
+          theme: { type: 'string', default: 'light', enum: ['light', 'dark'] },
+        },
+      },
+    },
     subscribedCoreEvents: ['core:object_added'],
     permissions: {
       core: [],

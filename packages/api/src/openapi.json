@@ -7625,6 +7625,54 @@
         ]
       }
     },
+    "/api/v1/docker/refresh-container-token": {
+      "post": {
+        "description": "Returns a new container token with fresh expiry. The current token must be valid (not expired).",
+        "operationId": "DockerWorkerHooks_refreshContainerToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerRefreshContainerTokenResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Refresh a container token",
+        "tags": [
+          "DockerWorkerHooks"
+        ]
+      }
+    },
     "/api/v1/docker/relay-request": {
       "post": {
         "description": "Routes a request from an app container to an app runtime worker. This has the platform lookup a pending request on a running container, and forward it to the runtime worker to so the container doesn't need to hold (and refresh) authentication credentials.",
@@ -23336,22 +23384,26 @@
           }
         }
       },
-      "DockerRouteAppContainerRequestDTO": {
+      "DockerRefreshContainerTokenResponseDTO": {
         "type": "object",
         "properties": {
-          "containerHostId": {
-            "type": "string"
-          },
-          "containerId": {
-            "type": "string"
-          },
-          "requestId": {
+          "token": {
             "type": "string"
           }
         },
         "required": [
-          "containerHostId",
-          "containerId",
+          "token"
+        ]
+      },
+      "DockerRouteAppContainerRequestDTO": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          }
+        },
+        "required": [
           "requestId"
         ]
       },

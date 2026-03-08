@@ -13,7 +13,10 @@ describe('App Custom Settings', () => {
   let adminToken: string
 
   beforeAll(async () => {
-    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+      debug: true,
+    })
     apiClient = testModule.apiClient
 
     await testModule.installLocalAppBundles([DUMMY_APP_SLUG])
@@ -44,7 +47,7 @@ describe('App Custom Settings', () => {
   afterEach(async () => {
     // Clean up custom settings between tests by deleting them
     await apiClient(accessToken).DELETE(
-      `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+      `/api/v1/user/apps/{appIdentifier}/custom-settings`,
       { params: { path: { appIdentifier } } },
     )
   })
@@ -52,7 +55,7 @@ describe('App Custom Settings', () => {
   describe('User-level custom settings', () => {
     it('should return schema defaults when no values stored', async () => {
       const res = await apiClient(accessToken).GET(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
       expect(res.response.status).toBe(200)
@@ -66,7 +69,7 @@ describe('App Custom Settings', () => {
 
     it('should store and return user values', async () => {
       const putRes = await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { api_key: 'sk-test-123', theme: 'dark' } },
@@ -83,7 +86,7 @@ describe('App Custom Settings', () => {
     it('should preserve secrets on PUT with masked value', async () => {
       // Store initial value
       await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { api_key: 'sk-real-key' } },
@@ -92,7 +95,7 @@ describe('App Custom Settings', () => {
 
       // Update with masked placeholder
       await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { api_key: '********', theme: 'dark' } },
@@ -101,7 +104,7 @@ describe('App Custom Settings', () => {
 
       // Verify secret was preserved (still masked on GET)
       const getRes = await apiClient(accessToken).GET(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
       const { settings } = getRes.data as any
@@ -111,7 +114,7 @@ describe('App Custom Settings', () => {
 
     it('should merge on PUT (omitted keys preserved)', async () => {
       await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { theme: 'dark', max_retries: 5 } },
@@ -120,7 +123,7 @@ describe('App Custom Settings', () => {
 
       // Update only one key
       await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { max_retries: 10 } },
@@ -128,7 +131,7 @@ describe('App Custom Settings', () => {
       )
 
       const getRes = await apiClient(accessToken).GET(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
       const { settings } = getRes.data as any
@@ -138,7 +141,7 @@ describe('App Custom Settings', () => {
 
     it('should reject invalid values', async () => {
       const res = await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { theme: 'blue' } }, // not in enum
@@ -149,7 +152,7 @@ describe('App Custom Settings', () => {
 
     it('should reject unknown keys', async () => {
       const res = await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { unknown_key: 'value' } },
@@ -160,7 +163,7 @@ describe('App Custom Settings', () => {
 
     it('should DELETE and revert to defaults', async () => {
       await apiClient(accessToken).PUT(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         {
           params: { path: { appIdentifier } },
           body: { values: { theme: 'dark' } },
@@ -168,12 +171,12 @@ describe('App Custom Settings', () => {
       )
 
       await apiClient(accessToken).DELETE(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
 
       const getRes = await apiClient(accessToken).GET(
-        `/api/v1/user/apps/{appIdentifier}/custom-settings` as any,
+        `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
       const { settings } = getRes.data as any
