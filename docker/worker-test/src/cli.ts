@@ -12,8 +12,8 @@ export function createCLI(): Command {
     .requiredOption('--config <path>', 'Path to test configuration JSON file')
     .option('--docker-host <host>', 'Docker host (default: local socket)')
     .option(
-      '--job-id <id>',
-      'Run only specific job(s) by ID (can be specified multiple times)',
+      '--job <name>',
+      'Run only specific job(s) by name (can be specified multiple times)',
       (value, previous: string[] = []) => {
         previous.push(value)
         return previous
@@ -38,7 +38,7 @@ export function createCLI(): Command {
         // Merge CLI flags
         const mergedConfig = mergeConfigFlags(config, {
           dockerHost: options.dockerHost,
-          jobIds: options.jobId,
+          jobNames: options.job,
           buildOnly: options.buildOnly,
           noCleanup: options.noCleanup,
           verbose: options.verbose,
@@ -74,7 +74,7 @@ export function createCLI(): Command {
           console.log('\nJob Results:')
           result.results.forEach((jobResult) => {
             const status = jobResult.success ? '✓' : '✗'
-            const id = jobResult.jobConfigId || jobResult.jobId
+            const id = jobResult.jobName ?? jobResult.jobId
             ;(!jobResult.success ? console.error : console.log)(
               `  ${status} ${id}`,
             )

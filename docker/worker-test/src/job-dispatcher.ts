@@ -41,7 +41,10 @@ export class JobDispatcher {
   /**
    * Submit a job to the worker agent
    */
-  async submitJob(payload: JobPayload): Promise<string> {
+  async submitJob(
+    payload: JobPayload,
+    options?: { timeout?: number },
+  ): Promise<string> {
     // Ensure job_id is set
     if (!payload.job_id) {
       payload.job_id = randomUUID()
@@ -66,11 +69,20 @@ export class JobDispatcher {
     const execResult = await this.docker.execInContainer(
       this.containerId,
       command,
+      { timeout: options?.timeout },
     )
+
+    if (execResult.exitCode !== 0) {
+      const detail = execResult.stderr || execResult.stdout || 'no output'
+      throw new Error(
+        `Agent run-job failed (exit code ${execResult.exitCode}): ${detail}`,
+      )
+    }
 
     const lines = execResult.stdout.trim().split('\n').filter(Boolean)
     if (lines.length === 0) {
-      throw new Error('Empty stdout from agent')
+      const detail = execResult.stderr || 'no stderr'
+      throw new Error(`Empty stdout from agent (stderr: ${detail})`)
     }
 
     return payload.job_id ?? ''
@@ -321,14 +333,17 @@ export class JobDispatcher {
   async executeJob(
     payload: JobPayload,
     options: {
-      timeout?: number
+      submissionTimeout?: number
+      completionTimeout?: number
       pollInterval?: number
       collectLogs?: boolean
     } = {},
   ): Promise<JobExecutionResult> {
-    const jobId = await this.submitJob(payload)
+    const jobId = await this.submitJob(payload, {
+      timeout: options.submissionTimeout,
+    })
     const state = await this.waitForCompletion(jobId, {
-      timeout: options.timeout,
+      timeout: options.completionTimeout,
       pollInterval: options.pollInterval,
     })
 

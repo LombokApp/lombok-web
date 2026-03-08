@@ -99,10 +99,35 @@ type HTTPJobResponse struct {
 	Error   *JobError       `json:"error,omitempty"`
 }
 
-// JobError represents an error from a job execution
+// JobError represents an error from a job execution.
+// Supports both structured {"code":"...","message":"..."} and plain string
+// formats during JSON unmarshaling, so that validation errors from workers
+// that return {"error":"some string"} don't cause parse failures.
 type JobError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+}
+
+// UnmarshalJSON handles both string and object error formats from workers.
+//
+//	String:  "some error"           → JobError{Code: "UNKNOWN", Message: "some error"}
+//	Object:  {"code":"X","message":"Y"} → JobError{Code: "X", Message: "Y"}
+func (e *JobError) UnmarshalJSON(data []byte) error {
+	// Try plain string first (the common mismatch case)
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		e.Code = "UNKNOWN"
+		e.Message = s
+		return nil
+	}
+	// Fall back to structured object
+	type alias JobError
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*e = JobError(a)
+	return nil
 }
 
 // =============================================================================
