@@ -25,6 +25,7 @@ import { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
 import { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
 import { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
 import { DockerJobGuard } from '../guards/docker-job.guard'
+import { DockerWorkerGuard } from '../guards/docker-worker.guard'
 import { DockerWorkerHookService } from '../services/docker-worker-hook.service'
 
 @Controller('/api/v1/docker')
@@ -157,12 +158,36 @@ export class DockerWorkerHooksController {
   }
 
   /**
+   * Refresh a container token, returning a new JWT with fresh expiry.
+   * Called periodically by the worker agent to keep long-lived containers authenticated.
+   */
+  @Post('/refresh-container-token')
+  @UseGuards(DockerWorkerGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh a container token',
+    description:
+      'Returns a new container token with fresh expiry. ' +
+      'The current token must be valid (not expired).',
+  })
+  async refreshContainerToken(
+    @Req() req: Request,
+  ): Promise<{ token: string }> {
+    const claims = req.dockerContainerClaims
+    if (!claims) {
+      throw new BadRequestException('Container claims not found')
+    }
+    return this.dockerWorkerHooksService.refreshContainerToken(claims)
+  }
+
+  /**
    * Route a request from an app container to an app runtime worker.
    * This has the platform lookup a pending request on a running container,
    * and forward it to the runtime worker to so the container doesn't need
    * to hold (and refresh) authentication credentials.
    */
   @Post('/relay-request')
+  @UseGuards(DockerWorkerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Route a request from an app container to an app runtime worker',
@@ -173,8 +198,13 @@ export class DockerWorkerHooksController {
       'to hold (and refresh) authentication credentials.',
   })
   async routeAppContainerRequest(
+    @Req() req: Request,
     @Body() body: DockerRouteAppContainerRequestDTO,
   ): Promise<DockerRouteAppContainerResponseDTO> {
-    return this.dockerWorkerHooksService.routeAppContainerRequest(body)
+    const claims = req.dockerContainerClaims
+    if (!claims) {
+      throw new BadRequestException('Container claims not found')
+    }
+    return this.dockerWorkerHooksService.routeAppContainerRequest(claims, body)
   }
 }

@@ -458,11 +458,7 @@ export class DockerClientService {
   }> {
     return this.getAdapter(hostId).execInContainer(containerId, command, {
       ...options,
-      env: {
-        ...(options?.env ?? {}),
-        LOMBOK_CONTAINER_ID: containerId,
-        LOMBOK_CONTAINER_HOST_ID: hostId,
-      },
+      env: options?.env ?? {},
     })
   }
 
@@ -478,11 +474,7 @@ export class DockerClientService {
   ): Promise<DockerTtyStream> {
     return this.getAdapter(hostId).execTty(containerId, command, {
       ...options,
-      env: {
-        ...(options?.env ?? {}),
-        LOMBOK_CONTAINER_ID: containerId,
-        LOMBOK_CONTAINER_HOST_ID: hostId,
-      },
+      env: options?.env ?? {},
     })
   }
 
@@ -564,35 +556,17 @@ export class DockerClientService {
   }
 
   /**
-   * Find or create a container and execute a command.
-   *
-   * When `profileKey` is provided, resolves host config from the profile
-   * and finds or creates a matching container.
-   *
-   * When `containerRef` is provided (format: "hostId:containerId"),
-   * the container is resolved directly and started if not already running.
+   * Resolve (find or create) a profile container and ensure it is running.
+   * Does NOT execute any command — use `execInContainer` separately.
    */
-  async execInProfileContainer(
+  async resolveContainer(
     attributes: { profileKey: string } | { containerRef: string },
-    { image, labels }: ContainerCreateOptions,
-    buildCommand: (containerMetadata: {
-      containerId: string
-      hostId: string
-    }) => string[],
-  ): Promise<{
-    containerId: string
-    hostId: string
-    getError: () => Promise<DockerError>
-    state: DockerStateFunc
-    output: () => { stdout: string; stderr: string }
-  }> {
-    let hostId: string
-    let containerId: string
-
+    { image, labels, env: extraEnv }: ContainerCreateOptions,
+  ): Promise<{ containerId: string; hostId: string }> {
     if ('containerRef' in attributes) {
       // Short-circuit: container already exists, just resolve and start if needed
       const [refHostId, refContainerId] = attributes.containerRef.split(':')
-      hostId = refHostId ?? ''
+      const hostId = refHostId ?? ''
 
       if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
         throw new DockerClientError(
@@ -617,35 +591,65 @@ export class DockerClientService {
           `Container "${refContainerId}" not found on host "${hostId}"`,
         )
       }
-      containerId = container.id
-    } else {
-      // Profile path: resolve host config, find or create container
-      const { hostId: resolvedHostId, ...config } =
-        this.resolveDockerHostConfigForProfile(attributes.profileKey)
-      hostId = resolvedHostId
-
-      if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
-        throw new DockerClientError(
-          'DOCKER_NOT_CONFIGURED',
-          `Unrecognized Docker host "${hostId}" configured for profile "${attributes.profileKey}"`,
-        )
-      }
-
-      const container = await this.findOrCreateContainer(hostId, {
-        image,
-        labels,
-        startIfNotRunning: true,
-        ...config,
-      })
-
-      if (!container) {
-        throw new DockerClientError(
-          'CONTAINER_NOT_FOUND',
-          'Container not found after findOrCreateContainer call',
-        )
-      }
-      containerId = container.id
+      return { hostId, containerId: container.id }
     }
+
+    // Profile path: resolve host config, find or create container
+    const { hostId, ...config } = this.resolveDockerHostConfigForProfile(
+      attributes.profileKey,
+    )
+
+    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+      throw new DockerClientError(
+        'DOCKER_NOT_CONFIGURED',
+        `Unrecognized Docker host "${hostId}" configured for profile "${attributes.profileKey}"`,
+      )
+    }
+
+    const container = await this.findOrCreateContainer(hostId, {
+      image,
+      labels,
+      startIfNotRunning: true,
+      ...config,
+      env: { ...config.env, ...extraEnv },
+    })
+
+    if (!container) {
+      throw new DockerClientError(
+        'CONTAINER_NOT_FOUND',
+        'Container not found after findOrCreateContainer call',
+      )
+    }
+    return { hostId, containerId: container.id }
+  }
+
+  /**
+   * Find or create a container and execute a command.
+   *
+   * When `profileKey` is provided, resolves host config from the profile
+   * and finds or creates a matching container.
+   *
+   * When `containerRef` is provided (format: "hostId:containerId"),
+   * the container is resolved directly and started if not already running.
+   */
+  async execInResolvedContainer(
+    attributes: { profileKey: string } | { containerRef: string },
+    options: ContainerCreateOptions,
+    buildCommand: (containerMetadata: {
+      containerId: string
+      hostId: string
+    }) => string[],
+  ): Promise<{
+    containerId: string
+    hostId: string
+    getError: () => Promise<DockerError>
+    state: DockerStateFunc
+    output: () => { stdout: string; stderr: string }
+  }> {
+    const { hostId, containerId } = await this.resolveContainer(
+      attributes,
+      options,
+    )
 
     const adapter = this.getAdapter(hostId)
     const command = buildCommand({ containerId, hostId })
@@ -654,7 +658,7 @@ export class DockerClientService {
       hostId,
       containerId,
       command,
-      labels,
+      labels: options.labels,
     })
 
     const { getError, state, output } = await this.withErrorGuard(

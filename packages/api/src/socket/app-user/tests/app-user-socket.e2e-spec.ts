@@ -196,6 +196,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-user-1',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: userId,
           targetLocationFolderId: null,
         },
@@ -460,6 +463,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-folder-1',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: null,
           targetLocationFolderId: folder.id,
         },
@@ -526,6 +532,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-unsub-1',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: null,
           targetLocationFolderId: folder.id,
         },
@@ -579,6 +588,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-other-user',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: otherUserId,
           targetLocationFolderId: null,
         },
@@ -683,6 +695,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-dedup',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: userId,
           targetLocationFolderId: folder.id,
         },
@@ -757,6 +772,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-multi-a',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: null,
           targetLocationFolderId: folderA.id,
         },
@@ -785,6 +803,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       appUserSocketService.emitAsyncUpdate(
         {
           correlationKey: 'ck-multi-b',
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetUserId: null,
           targetLocationFolderId: folderB.id,
         },
@@ -871,6 +892,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
         appUserSocketService.emitAsyncUpdate(
           {
             correlationKey: 'ck-selective',
+            source: 'test',
+            taskIdentifier: 'testtask',
+            targetLocationObjectKey: null,
             targetUserId: null,
             targetLocationFolderId: folder.id,
           },
@@ -951,6 +975,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
         {
           correlationKey: 'ck-keep-a',
           targetUserId: null,
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetLocationFolderId: folderA.id,
         },
         {
@@ -972,6 +999,9 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
         {
           correlationKey: 'ck-drop-b',
           targetUserId: null,
+          source: 'test',
+          taskIdentifier: 'testtask',
+          targetLocationObjectKey: null,
           targetLocationFolderId: folderB.id,
         },
         {

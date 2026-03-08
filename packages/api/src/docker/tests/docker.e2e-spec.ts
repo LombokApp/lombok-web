@@ -382,40 +382,37 @@ describe('Docker Jobs', () => {
       jobData: {},
     })
 
-    expect(execSpy).toHaveBeenCalledWith(
-      '1',
-      ['lombok-worker-agent', 'run-job', expect.any(String)],
-      {
-        env: {
-          LOMBOK_CONTAINER_HOST_ID: 'local',
-          LOMBOK_CONTAINER_ID: '1',
-        },
-      },
-    )
-
     expect(execSpy.mock.calls[0]).toEqual([
       '1',
-      ['lombok-worker-agent', 'run-job', expect.any(String)],
+      [
+        'lombok-worker-agent',
+        'set-context',
+        '--secret',
+        expect.any(String),
+        expect.stringContaining('LOMBOK_CONTAINER_TOKEN='),
+      ],
       {
-        env: {
-          LOMBOK_CONTAINER_HOST_ID: 'local',
-          LOMBOK_CONTAINER_ID: '1',
-        },
+        env: {},
       },
     ])
 
     expect(execSpy.mock.calls[1]).toEqual([
       '1',
-      ['lombok-worker-agent', 'job-state', '--job-id', expect.any(String)],
+      ['lombok-worker-agent', 'run-job', expect.any(String)],
       {
-        env: {
-          LOMBOK_CONTAINER_HOST_ID: 'local',
-          LOMBOK_CONTAINER_ID: '1',
-        },
+        env: {},
       },
     ])
 
-    const payload = parseJobPayload(execSpy.mock.calls[0]![1][2] ?? '')
+    expect(execSpy.mock.calls[2]).toEqual([
+      '1',
+      ['lombok-worker-agent', 'job-state', '--job-id', expect.any(String)],
+      {
+        env: {},
+      },
+    ])
+
+    const payload = parseJobPayload(execSpy.mock.calls[1]![1][2] ?? '')
 
     expect(payload).toEqual({
       jobId: expect.any(String),
@@ -436,6 +433,7 @@ describe('Docker Jobs', () => {
         LOMBOK_CONTAINER_IMAGE: 'dummy-namespace/dummy-image',
         LOMBOK_CONTAINER_PROFILE_HASH: '59da6c5f',
         LOMBOK_CONTAINER_PROFILE_ID: `lombok:profile_${appIdentifier}:dummy_profile`,
+        LOMBOK_CONTEXT_SECRET: expect.any(String),
         LOMBOK_PLATFORM_HOST: 'lombok',
         LOMBOK_PLATFORM_URL: 'http://localhost:3000',
       },
@@ -464,16 +462,13 @@ describe('Docker Jobs', () => {
       jobData: {},
     })
 
-    const execCall2 = execSpy.mock.calls[2]!
+    const execCall2 = execSpy.mock.calls[4]!
 
     expect(execCall2).toEqual([
       '1',
       ['lombok-worker-agent', 'run-job', expect.any(String)],
       {
-        env: {
-          LOMBOK_CONTAINER_HOST_ID: 'local',
-          LOMBOK_CONTAINER_ID: '1',
-        },
+        env: {},
       },
     ])
     const payload2 = parseJobPayload(execCall2[1][2] ?? '')
@@ -516,16 +511,13 @@ describe('Docker Jobs', () => {
       jobData: { foo: 'bar' },
     })
 
-    const execCall = execSpy.mock.calls[0]!
+    const execCall = execSpy.mock.calls[1]!
 
     expect(execCall).toEqual([
       '1',
       ['lombok-worker-agent', 'run-job', expect.any(String)],
       {
-        env: {
-          LOMBOK_CONTAINER_HOST_ID: 'local',
-          LOMBOK_CONTAINER_ID: '1',
-        },
+        env: {},
       },
     ])
     const payload = parseJobPayload(execCall[1][2] ?? '')
@@ -549,6 +541,7 @@ describe('Docker Jobs', () => {
         LOMBOK_CONTAINER_IMAGE: 'dummy-namespace/dummy-image',
         LOMBOK_CONTAINER_PROFILE_HASH: '59da6c5f',
         LOMBOK_CONTAINER_PROFILE_ID: `lombok:profile_${appIdentifier}:dummy_profile`,
+        LOMBOK_CONTEXT_SECRET: expect.any(String),
         LOMBOK_PLATFORM_HOST: 'lombok',
         LOMBOK_PLATFORM_URL: 'http://localhost:3000',
       },
@@ -577,8 +570,18 @@ describe('Docker Jobs', () => {
       password: '123',
     })
 
-    execSpy.mockImplementationOnce((_containerId, command, _options) =>
-      Promise.resolve({
+    execSpy.mockImplementation((_containerId, command, _options) => {
+      // set-context call should succeed
+      if (command[1] === 'set-context') {
+        return Promise.resolve({
+          getError: () =>
+            Promise.resolve(new DockerError('UNKNOWN_ERROR', 'Unknown error')),
+          output: () => ({ stdout: '', stderr: '' }),
+          state: () => Promise.resolve({ running: false, exitCode: 0 }),
+        })
+      }
+      // run-job call should fail with the error
+      return Promise.resolve({
         getError: () =>
           Promise.resolve({
             code: 'UNKNOWN_INTERFACE_KIND',
@@ -597,8 +600,8 @@ describe('Docker Jobs', () => {
             running: false,
             exitCode: 1,
           }),
-      }),
-    )
+      })
+    })
 
     expect(
       testModule?.services.appService.executeAppDockerJob({
@@ -643,7 +646,7 @@ describe('Docker Jobs', () => {
       asyncTaskId: taskId,
     })
 
-    const payload = execSpy.mock.calls[0]![1].at(-1)
+    const payload = execSpy.mock.calls[1]![1].at(-1)
     const parsedPayload = parseJobPayload(payload ?? '')
 
     const completeAttempt = await _apiClient(parsedPayload.jobToken).POST(
@@ -699,7 +702,7 @@ describe('Docker Jobs', () => {
     })
 
     const parsedPayload = parseJobPayload(
-      execSpy.mock.calls[0]![1].at(-1) ?? '',
+      execSpy.mock.calls[1]![1].at(-1) ?? '',
     )
     const claims =
       testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
@@ -999,7 +1002,7 @@ describe('Docker Jobs', () => {
     })
 
     const parsedPayload = parseJobPayload(
-      execSpy.mock.calls[0]![1].at(-1) ?? '',
+      execSpy.mock.calls[1]![1].at(-1) ?? '',
     )
     const jobToken = parsedPayload.jobToken
     const jobId = parsedPayload.jobId
@@ -1913,7 +1916,7 @@ describe('Docker Jobs', () => {
     })
 
     const parsedPayload = parseJobPayload(
-      execSpy.mock.calls[0]![1].at(-1) ?? '',
+      execSpy.mock.calls[1]![1].at(-1) ?? '',
     )
     const jobToken = parsedPayload.jobToken
     const jobId = parsedPayload.jobId
@@ -1958,7 +1961,7 @@ describe('Docker Jobs', () => {
     )
 
     const parsedPayload = parseJobPayload(
-      execSpy.mock.calls[0]![1].at(-1) ?? '',
+      execSpy.mock.calls[1]![1].at(-1) ?? '',
     )
     const jobToken = parsedPayload.jobToken
     const jobId = parsedPayload.jobId

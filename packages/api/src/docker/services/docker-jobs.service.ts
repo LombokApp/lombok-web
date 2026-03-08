@@ -211,84 +211,121 @@ export class DockerJobsService {
         userId,
       )
 
-      const { hostId, containerId, state, output, getError } =
-        await this.dockerClientService.execInProfileContainer(
+      // Generate a context secret that the platform passes at container creation
+      // and later uses to authenticate set-context exec calls.
+      const contextSecret = crypto.randomUUID()
+
+      const containerCreateOptions = {
+        image: profileSpec.image,
+        labels,
+        env: { LOMBOK_CONTEXT_SECRET: contextSecret },
+      }
+
+      // 1. Resolve (find or create) the container
+      const { hostId, containerId } =
+        await this.dockerClientService.resolveContainer(
           containerRef ? { containerRef } : { profileKey },
-          {
-            image: profileSpec.image,
-            labels,
-          },
-          (containerMetadata) => {
-            // create the worker token if one is required
-            const jobToken =
-              this.dockerWorkerHookService.createDockerWorkerJobToken({
-                jobId,
-                ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
-                storageAccessPolicy: params.storageAccessPolicy ?? {
-                  rules: [],
-                },
-                executorMetadata: {
-                  profileKey,
-                  profileHash,
-                  jobIdentifier,
-                  containerId: containerMetadata.containerId,
-                  hostId: containerMetadata.hostId,
-                  extra: {},
-                },
-              })
-
-            const jobExecuteOptions: JobExecuteOptions = {
-              job_id: jobId,
-              job_class: jobIdentifier,
-              job_input: jobData,
-              job_token: jobToken,
-              worker_command: jobDefinition.command, // Default worker path, can be customized per job class
-              interface:
-                jobDefinition.kind === 'http'
-                  ? {
-                      kind: 'persistent_http',
-                      port: jobDefinition.port,
-                    }
-                  : {
-                      kind: 'exec_per_job',
-                    },
-              platform_url: !jobToken
-                ? undefined
-                : buildPlatformOrigin(this._coreConfig),
-              output_location: params.storageAccessPolicy?.outputLocation
-                ? {
-                    folder_id:
-                      params.storageAccessPolicy.outputLocation.folderId,
-                    ...('prefix' in params.storageAccessPolicy.outputLocation
-                      ? {
-                          prefix:
-                            params.storageAccessPolicy.outputLocation.prefix,
-                        }
-                      : {}),
-                    ...('objectKey' in params.storageAccessPolicy.outputLocation
-                      ? {
-                          objectKey:
-                            params.storageAccessPolicy.outputLocation.objectKey,
-                        }
-                      : {}),
-                  }
-                : undefined,
-            }
-
-            // Base64 encode the payload
-            const payloadBase64 = Buffer.from(
-              JSON.stringify(jobExecuteOptions),
-            ).toString('base64')
-
-            // Build the command to run in the container
-            const agentCommand = [
-              'lombok-worker-agent',
-              'run-job',
-              `--payload-base64=${payloadBase64}`,
-            ]
-            return agentCommand
-          },
+          containerCreateOptions,
         )
+
+      // 2. Inject container context (ID, token) via set-context before starting the job.
+      const containerToken =
+        this.dockerWorkerHookService.createDockerContainerToken({
+          appIdentifier,
+          profileKey,
+          hostId,
+          containerId,
+          userId,
+        })
+
+      const setContextExec = await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        [
+          'lombok-worker-agent',
+          'set-context',
+          '--secret',
+          contextSecret,
+          `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
+        ],
+      )
+
+      const setContextState = await setContextExec.state(10_000)
+      if (setContextState.running || setContextState.exitCode !== 0) {
+        const { stdout, stderr } = setContextExec.output()
+        throw new AsyncWorkError({
+          name: 'SetContextError',
+          origin: 'internal',
+          message: `Failed to set container context: exit=${setContextState.running ? 'timeout' : setContextState.exitCode} stdout=${stdout} stderr=${stderr}`,
+          code: 'SET_CONTEXT_FAILED',
+          stack: new Error().stack,
+          details: { containerId, hostId },
+        })
+      }
+
+      // 3. Execute the job
+      const jobToken = this.dockerWorkerHookService.createDockerWorkerJobToken({
+        jobId,
+        ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+        storageAccessPolicy: params.storageAccessPolicy ?? {
+          rules: [],
+        },
+        executorMetadata: {
+          profileKey,
+          profileHash,
+          jobIdentifier,
+          containerId,
+          hostId,
+          extra: {},
+        },
+      })
+
+      const jobExecuteOptions: JobExecuteOptions = {
+        job_id: jobId,
+        job_class: jobIdentifier,
+        job_input: jobData,
+        job_token: jobToken,
+        worker_command: jobDefinition.command,
+        interface:
+          jobDefinition.kind === 'http'
+            ? {
+                kind: 'persistent_http',
+                port: jobDefinition.port,
+              }
+            : {
+                kind: 'exec_per_job',
+              },
+        platform_url: !jobToken
+          ? undefined
+          : buildPlatformOrigin(this._coreConfig),
+        output_location: params.storageAccessPolicy?.outputLocation
+          ? {
+              folder_id: params.storageAccessPolicy.outputLocation.folderId,
+              ...('prefix' in params.storageAccessPolicy.outputLocation
+                ? {
+                    prefix: params.storageAccessPolicy.outputLocation.prefix,
+                  }
+                : {}),
+              ...('objectKey' in params.storageAccessPolicy.outputLocation
+                ? {
+                    objectKey:
+                      params.storageAccessPolicy.outputLocation.objectKey,
+                  }
+                : {}),
+            }
+          : undefined,
+      }
+
+      const payloadBase64 = Buffer.from(
+        JSON.stringify(jobExecuteOptions),
+      ).toString('base64')
+
+      const { state, output, getError } =
+        await this.dockerClientService.execInContainer(hostId, containerId, [
+          'lombok-worker-agent',
+          'run-job',
+          `--payload-base64=${payloadBase64}`,
+        ])
 
       // Wait for the agent exec call to complete, signifying that the job has been submitted
       try {

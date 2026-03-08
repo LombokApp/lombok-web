@@ -29,6 +29,9 @@ function createMockAppPlatformService(
   appIdentifier: string,
 ): IAppPlatformService {
   return {
+    getAppCustomSettings: () => {
+      throw new Error('Not implemented in test mock')
+    },
     getServerBaseUrl: () => 'http://localhost',
     getLatestDbCredentials: async () => {
       const creds = await ormService.getLatestDbCredentials(appIdentifier)

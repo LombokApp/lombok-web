@@ -9,6 +9,7 @@ import z from 'zod'
 export interface ContainerCreateOptions {
   image: string
   labels: Record<string, string>
+  env?: Record<string, string>
 }
 
 export interface ContainerExecuteOptions {
@@ -44,7 +45,7 @@ export const dockerExecuteJobOptionsSchema = z.object({
   profileKey: z.string(),
   jobIdentifier: z.string(),
   jobData: jsonSerializableObjectSchema,
-  appIdentifier: z.string().optional(),
+  appIdentifier: z.string(),
   userId: z.uuid().optional(),
 })
 
