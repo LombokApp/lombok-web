@@ -170,7 +170,7 @@ case "${1:-help}" in
   e2e)
     case "${2:-}" in
       api)
-        bun --cwd packages/api e2e:api
+        bun --cwd packages/api e2e:api ${3:-}
         ;;
       ui)
         bun --cwd packages/api e2e:ui
