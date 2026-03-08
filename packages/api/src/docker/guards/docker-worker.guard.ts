@@ -24,9 +24,7 @@ export class DockerWorkerGuard implements CanActivate {
     const authHeader = request.header('Authorization')
 
     if (!authHeader?.startsWith(BEARER_PREFIX)) {
-      throw new UnauthorizedException(
-        'Missing or invalid Authorization header',
-      )
+      throw new UnauthorizedException('Missing or invalid Authorization header')
     }
 
     const token = authHeader.slice(BEARER_PREFIX.length)

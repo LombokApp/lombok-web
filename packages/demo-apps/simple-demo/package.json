@@ -11,7 +11,9 @@
     "build:bundle": "../build-bundle.sh simple-demo",
     "dev:install": "../dev-install.sh simple-demo",
     "lint:check": "bun --cwd ui lint:check && bun --cwd runtime lint:check",
+    "lint:fix": "bun --cwd ui lint:fix && bun --cwd runtime lint:fix",
     "prettier:check": "bun --cwd ui prettier:check && bun --cwd runtime prettier:check",
+    "prettier:fix": "bun --cwd ui prettier:fix && bun --cwd runtime prettier:fix",
     "tsc:check": "bun --cwd ui tsc:check && bun --cwd runtime tsc:check"
   },
   "devDependencies": {

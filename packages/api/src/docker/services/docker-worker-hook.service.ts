@@ -649,9 +649,7 @@ export class DockerWorkerHookService {
       }
 
       // 4. Parse and validate request context JSON
-      const requestContext = relayRequestContextSchema.parse(
-        JSON.parse(stdout),
-      )
+      const requestContext = relayRequestContextSchema.parse(JSON.parse(stdout))
 
       // 5. Resolve user context (if authUser is requested)
       let accessToken: string | undefined

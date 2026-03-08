@@ -19,8 +19,8 @@ bun --cwd packages/auth-utils prettier:fix
 echo "Checking @lombokapp/app-browser-sdk..."
 bun --cwd packages/app-browser-sdk prettier:fix
 
-echo "Checking @lombokapp/app-demo..."
-bun --cwd packages/app-demo prettier:fix
+echo "Checking @lombokapp/demo-apps/simple-demo..."
+bun --cwd packages/demo-apps/simple-demo prettier:fix
 
 echo "Checking @lombokapp/sdk..."
 bun --cwd packages/sdk prettier:fix

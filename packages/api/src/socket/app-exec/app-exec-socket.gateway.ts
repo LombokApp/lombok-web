@@ -25,9 +25,7 @@ export class AppExecSocketGateway
 {
   private readonly logger = new Logger(AppExecSocketGateway.name)
 
-  constructor(
-    private readonly appExecSocketService: AppExecSocketService,
-  ) {}
+  constructor(private readonly appExecSocketService: AppExecSocketService) {}
 
   async handleConnection(socket: Socket): Promise<void> {
     try {

@@ -17,8 +17,7 @@ describe('App Custom Settings', () => {
     apiClient = testModule.apiClient
 
     await testModule.installLocalAppBundles([DUMMY_APP_SLUG])
-    appIdentifier =
-      await testModule.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    appIdentifier = await testModule.getAppIdentifierBySlug(DUMMY_APP_SLUG)
 
     const admin = await createTestUser(testModule, {
       username: 'cs_admin',

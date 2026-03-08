@@ -89,8 +89,7 @@ export function FolderCustomSettingsPanel({
             onSuccess: () => {
               toast({
                 title: 'Folder settings saved',
-                description:
-                  'App settings for this folder have been updated.',
+                description: 'App settings for this folder have been updated.',
               })
             },
             onError: () => {

@@ -144,7 +144,8 @@ export type CustomSettingsData = CustomSettingsGetResponse['settings']
 
 export type CustomSettingsSchema = NonNullable<CustomSettingsData['schema']>
 
-export type CustomSettingsSchemaProperty = CustomSettingsSchema['properties'][string]
+export type CustomSettingsSchemaProperty =
+  CustomSettingsSchema['properties'][string]
 
 export type CustomSettingsSource = CustomSettingsData['sources'][string]
 

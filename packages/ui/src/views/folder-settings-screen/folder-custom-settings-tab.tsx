@@ -17,9 +17,7 @@ export function FolderCustomSettingsTab({
   const apps = appsQuery.data?.result ?? []
 
   if (appsQuery.isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground">Loading apps...</div>
-    )
+    return <div className="text-sm text-muted-foreground">Loading apps...</div>
   }
 
   if (apps.length === 0) {

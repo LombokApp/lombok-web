@@ -95,7 +95,8 @@ function FieldRenderer({
   onResetField?: (key: string) => void
 }) {
   const fieldId = `custom-setting-${fieldKey}`
-  const canResetField = level === 'folder' && source === 'folder' && onResetField
+  const canResetField =
+    level === 'folder' && source === 'folder' && onResetField
 
   return (
     <div className="space-y-2">
@@ -193,9 +194,7 @@ function FieldInput({
               return
             }
             const num =
-              property.type === 'integer'
-                ? parseInt(raw, 10)
-                : parseFloat(raw)
+              property.type === 'integer' ? parseInt(raw, 10) : parseFloat(raw)
             if (!isNaN(num)) {
               onChange(num)
             }
@@ -410,10 +409,7 @@ export function CustomSettingsForm({
       <CardFooter className="border-t px-6 py-4">
         <div className="flex w-full items-center justify-between">
           <div className="flex gap-2">
-            <Button
-              onClick={handleSave}
-              disabled={!hasChanges || isSaving}
-            >
+            <Button onClick={handleSave} disabled={!hasChanges || isSaving}>
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
             {hasCustomValues && (

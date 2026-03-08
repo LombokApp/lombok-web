@@ -519,14 +519,12 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const app =
-      await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
-    const result =
-      await this.appCustomSettingsService.getFolderCustomSettings(
-        req.user.id,
-        folderId,
-        app,
-      )
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    const result = await this.appCustomSettingsService.getFolderCustomSettings(
+      req.user.id,
+      folderId,
+      app,
+    )
     return { settings: result }
   }
 
@@ -543,19 +541,17 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const app =
-      await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
     await this.appCustomSettingsService.putFolderCustomSettings(
       folderId,
       app,
       body.values,
     )
-    const result =
-      await this.appCustomSettingsService.getFolderCustomSettings(
-        req.user.id,
-        folderId,
-        app,
-      )
+    const result = await this.appCustomSettingsService.getFolderCustomSettings(
+      req.user.id,
+      folderId,
+      app,
+    )
     return { settings: result }
   }
 
@@ -571,8 +567,7 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const app =
-      await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
     await this.appCustomSettingsService.deleteFolderCustomSettings(
       folderId,
       app,

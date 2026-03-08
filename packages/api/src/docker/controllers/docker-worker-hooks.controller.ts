@@ -170,9 +170,7 @@ export class DockerWorkerHooksController {
       'Returns a new container token with fresh expiry. ' +
       'The current token must be valid (not expired).',
   })
-  async refreshContainerToken(
-    @Req() req: Request,
-  ): Promise<{ token: string }> {
+  async refreshContainerToken(@Req() req: Request): Promise<{ token: string }> {
     const claims = req.dockerContainerClaims
     if (!claims) {
       throw new BadRequestException('Container claims not found')

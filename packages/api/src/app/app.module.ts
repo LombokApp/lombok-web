@@ -32,7 +32,12 @@ import { AppService } from './services/app.service'
     forwardRef(() => DockerModule),
   ],
   controllers: [AppsController, UserAppsController],
-  providers: [AppService, AppCustomSettingsService, S3Service, ServerConfigurationService],
+  providers: [
+    AppService,
+    AppCustomSettingsService,
+    S3Service,
+    ServerConfigurationService,
+  ],
   exports: [AppService, AppCustomSettingsService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

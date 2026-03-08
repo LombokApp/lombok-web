@@ -20,7 +20,10 @@ export const appCustomUserSettingsTable = pgTable(
     appIdentifier: text('app_identifier')
       .references(() => appsTable.identifier)
       .notNull(),
-    values: jsonb('values').$type<Record<string, unknown>>().notNull().default({}),
+    values: jsonb('values')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
