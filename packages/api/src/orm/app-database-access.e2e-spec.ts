@@ -29,6 +29,9 @@ function createMockAppPlatformService(
   appIdentifier: string,
 ): IAppPlatformService {
   return {
+    setAppCustomSettings: () => {
+      throw new Error('Not implemented in test mock')
+    },
     getAppCustomSettings: () => {
       throw new Error('Not implemented in test mock')
     },

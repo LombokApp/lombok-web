@@ -27,6 +27,7 @@ export const AppSocketMessage = z.enum([
   'TRIGGER_APP_TASK',
   'REPORT_TASK_UPDATE',
   'GET_APP_CUSTOM_SETTINGS',
+  'SET_APP_CUSTOM_SETTINGS',
 ])
 
 export const appMessageErrorSchema = z.object({
@@ -299,6 +300,9 @@ export const jsonSchema07PropertySchema = z.union([
 export const jsonSchema07ObjectSchema = z.object({
   type: z.literal('object'),
   properties: z.record(z.string(), jsonSchema07PropertySchema),
+  patternProperties: z
+    .record(z.string(), jsonSchema07PropertySchema)
+    .optional(),
   required: z.array(z.string()).optional(),
 })
 

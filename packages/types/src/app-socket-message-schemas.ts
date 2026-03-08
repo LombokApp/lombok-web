@@ -159,6 +159,11 @@ export const getAppCustomSettingsSchema = z.object({
   userId: z.string(),
 })
 
+export const setAppCustomSettingsSchema = z.object({
+  userId: z.string(),
+  settings: z.record(z.string(), z.unknown()),
+})
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
@@ -173,6 +178,7 @@ export const AppSocketMessageSchemaMap = {
   TRIGGER_APP_TASK: triggerAppTaskSchema,
   REPORT_TASK_UPDATE: reportTaskUpdateSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
+  SET_APP_CUSTOM_SETTINGS: setAppCustomSettingsSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
@@ -273,6 +279,9 @@ export const AppSocketMessageResponseSchemaMap = {
   REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
   GET_APP_CUSTOM_SETTINGS: createResponseSchema(
     z.object({ values: z.record(z.string(), z.unknown()) }),
+  ),
+  SET_APP_CUSTOM_SETTINGS: createResponseSchema(
+    z.object({ success: z.boolean() }),
   ),
   GET_LATEST_DB_CREDENTIALS: createResponseSchema(
     z.object({

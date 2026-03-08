@@ -22,8 +22,8 @@ import { AppCustomSettingsPutInputDTO } from 'src/app/dto/app-custom-settings-pu
 import { AppFolderSettingsUpdateInputDTO } from 'src/app/dto/app-folder-settings-update-input.dto'
 import { AppCustomSettingsGetResponseDTO } from 'src/app/dto/responses/app-custom-settings-get-response.dto'
 import { AppFolderSettingsGetResponseDTO } from 'src/app/dto/responses/app-folder-settings-get-response.dto'
-import { AppCustomSettingsService } from 'src/app/services/app-custom-settings.service'
 import { AppService } from 'src/app/services/app.service'
+import { AppCustomSettingsService } from 'src/app/services/app-custom-settings.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
   AllowedActor,

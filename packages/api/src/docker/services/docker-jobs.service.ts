@@ -23,6 +23,7 @@ import {
 import { OrmService } from 'src/orm/orm.service'
 
 import {
+  type ContainerCreateOptions,
   DockerExecuteJobOptions,
   JobExecuteOptions,
 } from './client/docker.schema'
@@ -170,6 +171,244 @@ export class DockerJobsService {
   }
 
   /**
+   * Resolve Docker host configuration for a given profile key
+   */
+  resolveDockerHostConfigForProfile(profileKey: string): {
+    hostId: string
+    volumes: string[] | undefined
+    env: Record<string, string> | undefined
+    gpus: { driver: string; deviceIds: string[] } | undefined
+    extraHosts: string[] | undefined
+    networkMode: 'host' | 'bridge' | `container:${string}` | undefined
+  } {
+    const profileKeyParts = profileKey.split(':')
+    const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
+
+    const resolvedHostId =
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[profileKey] ??
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[
+        appSlugProfileKey
+      ] ??
+      'local'
+
+    return {
+      hostId: resolvedHostId,
+      env:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
+          appSlugProfileKey
+        ],
+      volumes:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
+          appSlugProfileKey
+        ],
+      gpus:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          appSlugProfileKey
+        ],
+      extraHosts:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          appSlugProfileKey
+        ],
+      networkMode: (this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        ?.networkMode?.[profileKey] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.networkMode?.[appSlugProfileKey]) as
+        | 'host'
+        | 'bridge'
+        | `container:${string}`
+        | undefined,
+    }
+  }
+
+  /**
+   * Resolve (find or create) a profile container and ensure it is running.
+   * When a container is created via the profile path, injects container context
+   * (token) via set-context if `setContext` params are provided.
+   */
+  async resolveContainer(
+    attributes: { profileKey: string } | { containerRef: string },
+    { image, labels, env: extraEnv }: ContainerCreateOptions,
+    setContext?: {
+      contextSecret: string
+      appIdentifier: string
+      profileKey: string
+      userId?: string
+    },
+  ): Promise<{ containerId: string; hostId: string }> {
+    if ('containerRef' in attributes) {
+      const [refHostId, refContainerId] = attributes.containerRef.split(':')
+      const hostId = refHostId ?? ''
+
+      if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+        throw new AsyncWorkError({
+          name: 'DockerClientError',
+          origin: 'internal',
+          code: 'DOCKER_NOT_CONFIGURED',
+          message: `Unrecognized Docker host "${hostId}" in containerRef "${attributes.containerRef}"`,
+        })
+      }
+
+      if (!refContainerId) {
+        throw new AsyncWorkError({
+          name: 'DockerClientError',
+          origin: 'internal',
+          code: 'INVALID_CONTAINER_REF',
+          message: `Invalid containerRef "${attributes.containerRef}" — expected format "hostId:containerId"`,
+        })
+      }
+
+      const container = await this.dockerClientService.findContainerById(
+        hostId,
+        refContainerId,
+        { startIfNotRunning: true },
+      )
+      if (!container) {
+        throw new AsyncWorkError({
+          name: 'DockerClientError',
+          origin: 'internal',
+          code: 'CONTAINER_NOT_FOUND',
+          message: `Container "${refContainerId}" not found on host "${hostId}"`,
+        })
+      }
+      return { hostId, containerId: container.id }
+    }
+
+    // Profile path: resolve host config, find or create container
+    const { hostId, ...config } = this.resolveDockerHostConfigForProfile(
+      attributes.profileKey,
+    )
+
+    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+      throw new AsyncWorkError({
+        name: 'DockerClientError',
+        origin: 'internal',
+        code: 'DOCKER_NOT_CONFIGURED',
+        message: `Unrecognized Docker host "${hostId}" configured for profile "${attributes.profileKey}"`,
+      })
+    }
+
+    const container = await this.dockerClientService.findOrCreateContainer(
+      hostId,
+      {
+        image,
+        labels,
+        startIfNotRunning: true,
+        ...config,
+        env: { ...config.env, ...extraEnv },
+      },
+    )
+
+    if (!container) {
+      throw new AsyncWorkError({
+        name: 'DockerClientError',
+        origin: 'internal',
+        code: 'CONTAINER_NOT_FOUND',
+        message: 'Container not found after findOrCreateContainer call',
+      })
+    }
+
+    const containerId = container.id
+
+    // Inject container context (token) via set-context for newly resolved containers
+    if (setContext) {
+      const containerToken =
+        this.dockerWorkerHookService.createDockerContainerToken({
+          appIdentifier: setContext.appIdentifier,
+          profileKey: setContext.profileKey,
+          hostId,
+          containerId,
+          userId: setContext.userId,
+        })
+
+      const setContextExec = await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        [
+          'lombok-worker-agent',
+          'set-context',
+          '--secret',
+          setContext.contextSecret,
+          `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
+        ],
+      )
+
+      const setContextState = await setContextExec.state(10_000)
+      if (setContextState.running || setContextState.exitCode !== 0) {
+        const { stdout, stderr } = setContextExec.output()
+        throw new AsyncWorkError({
+          name: 'SetContextError',
+          origin: 'internal',
+          message: `Failed to set container context: exit=${setContextState.running ? 'timeout' : setContextState.exitCode} stdout=${stdout} stderr=${stderr}`,
+          code: 'SET_CONTEXT_FAILED',
+          stack: new Error().stack,
+          details: { containerId, hostId },
+        })
+      }
+    }
+
+    return { hostId, containerId }
+  }
+
+  /**
+   * Find or create a container and execute a command.
+   */
+  async execInResolvedContainer(
+    attributes: { profileKey: string } | { containerRef: string },
+    options: ContainerCreateOptions,
+    buildCommand: (containerMetadata: {
+      containerId: string
+      hostId: string
+    }) => string[],
+  ): Promise<{
+    containerId: string
+    hostId: string
+    getError: () => Promise<DockerError>
+    state: DockerStateFunc
+    output: () => { stdout: string; stderr: string }
+  }> {
+    const { hostId, containerId } = await this.resolveContainer(
+      attributes,
+      options,
+    )
+
+    const command = buildCommand({ containerId, hostId })
+
+    this.logger.debug('execInResolvedContainer:', {
+      hostId,
+      containerId,
+      command,
+      labels: options.labels,
+    })
+
+    const { getError, state, output } =
+      await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        command,
+      )
+
+    return {
+      getError,
+      hostId,
+      containerId,
+      state,
+      output,
+    }
+  }
+
+  /**
    * Execute a docker job, synchronously or asynchronously.
    *
    */
@@ -221,49 +460,14 @@ export class DockerJobsService {
         env: { LOMBOK_CONTEXT_SECRET: contextSecret },
       }
 
-      // 1. Resolve (find or create) the container
-      const { hostId, containerId } =
-        await this.dockerClientService.resolveContainer(
-          containerRef ? { containerRef } : { profileKey },
-          containerCreateOptions,
-        )
-
-      // 2. Inject container context (ID, token) via set-context before starting the job.
-      const containerToken =
-        this.dockerWorkerHookService.createDockerContainerToken({
-          appIdentifier,
-          profileKey,
-          hostId,
-          containerId,
-          userId,
-        })
-
-      const setContextExec = await this.dockerClientService.execInContainer(
-        hostId,
-        containerId,
-        [
-          'lombok-worker-agent',
-          'set-context',
-          '--secret',
-          contextSecret,
-          `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
-        ],
+      // 1. Resolve (find or create) the container, injecting context on creation
+      const { hostId, containerId } = await this.resolveContainer(
+        containerRef ? { containerRef } : { profileKey },
+        containerCreateOptions,
+        { contextSecret, appIdentifier, profileKey, userId },
       )
 
-      const setContextState = await setContextExec.state(10_000)
-      if (setContextState.running || setContextState.exitCode !== 0) {
-        const { stdout, stderr } = setContextExec.output()
-        throw new AsyncWorkError({
-          name: 'SetContextError',
-          origin: 'internal',
-          message: `Failed to set container context: exit=${setContextState.running ? 'timeout' : setContextState.exitCode} stdout=${stdout} stderr=${stderr}`,
-          code: 'SET_CONTEXT_FAILED',
-          stack: new Error().stack,
-          details: { containerId, hostId },
-        })
-      }
-
-      // 3. Execute the job
+      // 2. Execute the job
       const jobToken = this.dockerWorkerHookService.createDockerWorkerJobToken({
         jobId,
         ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),

@@ -1,7 +1,6 @@
 import type {
   DockerExecutorMetadata,
   FolderScopeAppPermissions,
-  JsonSerializableObject,
   StorageAccessPolicy,
   TaskCompletion,
 } from '@lombokapp/types'
@@ -41,7 +40,6 @@ import type { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request
 import type { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
 import type { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
 import { DockerClientService } from './client/docker-client.service'
-import { DOCKER_LABELS } from './docker-jobs.service'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'

@@ -22,8 +22,8 @@ import {
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
 import { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
-import { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
 import { DockerRefreshContainerTokenResponseDTO } from '../dto/docker-refresh-container-token-response.dto'
+import { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
 import { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
 import { DockerJobGuard } from '../guards/docker-job.guard'
 import { DockerWorkerGuard } from '../guards/docker-worker.guard'
@@ -171,7 +171,9 @@ export class DockerWorkerHooksController {
       'Returns a new container token with fresh expiry. ' +
       'The current token must be valid (not expired).',
   })
-  async refreshContainerToken(@Req() req: Request): Promise<DockerRefreshContainerTokenResponseDTO> {
+  refreshContainerToken(
+    @Req() req: Request,
+  ): DockerRefreshContainerTokenResponseDTO {
     const claims = req.dockerContainerClaims
     if (!claims) {
       throw new BadRequestException('Container claims not found')

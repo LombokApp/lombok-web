@@ -129,6 +129,72 @@ describe('jsonSchemaToZod', () => {
     const zod = jsonSchemaToZod(schema)
     expect(zod.safeParse({ name: 'test', extra: true }).success).toBe(false)
   })
+
+  it('should allow keys matching patternProperties', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        GITHUB_TOKEN: { type: 'string' },
+      },
+      patternProperties: {
+        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(zod.safeParse({ ANTHROPIC_API_KEY: 'sk-abc' }).success).toBe(true)
+    expect(zod.safeParse({ ANTHROPIC_API_KEY_1234: 'sk-abc' }).success).toBe(
+      true,
+    )
+    expect(
+      zod.safeParse({ GITHUB_TOKEN: 'ghp_abc', ANTHROPIC_API_KEY: 'sk-abc' })
+        .success,
+    ).toBe(true)
+  })
+
+  it('should reject keys that only partially match a pattern', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {},
+      patternProperties: {
+        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    // Trailing garbage after the key name
+    expect(zod.safeParse({ ANTHROPIC_API_KEYBOARD: 'value' }).success).toBe(
+      false,
+    )
+    // Suffix without underscore separator
+    expect(zod.safeParse({ ANTHROPIC_API_KEYextra: 'value' }).success).toBe(
+      false,
+    )
+  })
+
+  it('should reject keys not matching any property or pattern', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        GITHUB_TOKEN: { type: 'string' },
+      },
+      patternProperties: {
+        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(zod.safeParse({ UNKNOWN_KEY: 'value' }).success).toBe(false)
+  })
+
+  it('should validate pattern-matched values against the pattern schema', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {},
+      patternProperties: {
+        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(zod.safeParse({ ANTHROPIC_API_KEY: 123 }).success).toBe(false)
+  })
 })
 
 describe('jsonSchemaToPartialZod', () => {
@@ -145,6 +211,38 @@ describe('jsonSchemaToPartialZod', () => {
     expect(zod.safeParse({}).success).toBe(true)
     expect(zod.safeParse({ name: null }).success).toBe(true)
     expect(zod.safeParse({ name: 'test' }).success).toBe(true)
+  })
+
+  it('should allow pattern-matched keys with nullable values', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        GITHUB_TOKEN: { type: 'string' },
+      },
+      patternProperties: {
+        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+      },
+    }
+    const zod = jsonSchemaToPartialZod(schema)
+    expect(zod.safeParse({ ANTHROPIC_API_KEY: 'sk-abc' }).success).toBe(true)
+    expect(zod.safeParse({ ANTHROPIC_API_KEY: null }).success).toBe(true)
+    expect(zod.safeParse({ ANTHROPIC_API_KEY_1234: 'sk-abc' }).success).toBe(
+      true,
+    )
+  })
+
+  it('should reject unknown keys even in partial mode', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        GITHUB_TOKEN: { type: 'string' },
+      },
+      patternProperties: {
+        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+      },
+    }
+    const zod = jsonSchemaToPartialZod(schema)
+    expect(zod.safeParse({ UNKNOWN_KEY: 'value' }).success).toBe(false)
   })
 })
 

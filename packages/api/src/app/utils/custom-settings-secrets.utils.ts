@@ -45,7 +45,10 @@ export function mergeWithSecretPreservation(
   for (const [key, value] of Object.entries(incoming)) {
     if (value === null) {
       // Explicit null means remove this key
-      delete result[key]
+      if (key in result) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete result[key]
+      }
     } else if (value === MASKED_VALUE && isSecretKey(key, secretKeyPattern)) {
       // Preserve existing value when masked placeholder is sent
       // (keep whatever is in result from the spread of existing)

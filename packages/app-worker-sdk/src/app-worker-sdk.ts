@@ -92,6 +92,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['GET_APP_CUSTOM_SETTINGS'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_APP_CUSTOM_SETTINGS'>>
+  setAppCustomSettings: (
+    params: AppSocketMessageDataMap['SET_APP_CUSTOM_SETTINGS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'SET_APP_CUSTOM_SETTINGS'>>
 }
 
 interface PlatformApiExecuteOptions {
@@ -214,6 +218,9 @@ export const buildAppClient = (
     },
     getAppCustomSettings(params, options) {
       return emitWithAck('GET_APP_CUSTOM_SETTINGS', params, options)
+    },
+    setAppCustomSettings(params, options) {
+      return emitWithAck('SET_APP_CUSTOM_SETTINGS', params, options)
     },
   }
 }
