@@ -15,6 +15,7 @@ import { StorageModule } from 'src/storage/storage.module'
 import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
 import { UserAppsController } from './controllers/user-apps.controller'
+import { AppCustomSettingsService } from './services/app-custom-settings.service'
 import { AppService } from './services/app.service'
 
 @Module({
@@ -31,8 +32,8 @@ import { AppService } from './services/app.service'
     forwardRef(() => DockerModule),
   ],
   controllers: [AppsController, UserAppsController],
-  providers: [AppService, S3Service, ServerConfigurationService],
-  exports: [AppService],
+  providers: [AppService, AppCustomSettingsService, S3Service, ServerConfigurationService],
+  exports: [AppService, AppCustomSettingsService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class AppModule {}

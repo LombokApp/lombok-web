@@ -108,6 +108,24 @@
   "database": {
     "enabled": true
   },
+  "settings": {
+    "secretKeyPattern": "^(api_key|secret|token)",
+    "user": {
+      "type": "object",
+      "properties": {
+        "api_key": { "type": "string", "description": "API key for external service" },
+        "max_retries": { "type": "integer", "minimum": 0, "maximum": 100, "default": 3 },
+        "theme": { "type": "string", "enum": ["light", "dark"], "default": "light" }
+      },
+      "required": ["api_key"]
+    },
+    "folder": {
+      "type": "object",
+      "properties": {
+        "auto_index": { "type": "boolean", "default": true }
+      }
+    }
+  },
   "contributions": {
     "sidebarMenuLinks": [
       {

@@ -236,7 +236,9 @@ describe('App Socket Interface', () => {
   it('should handle GET_APP_USER_ACCESS_TOKEN message', async () => {
     socket = await connectSocket('test-instance-1')
 
-    await createTestUser(testModule!, {
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
     })
@@ -245,6 +247,22 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'testuser'),
       })
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
+    // enable the app for the viewer
+    const enableAppResponse = await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+
+    expect(enableAppResponse.response.status).toBe(201)
 
     const response = await buildAppClient(
       socket,
@@ -253,13 +271,13 @@ describe('App Socket Interface', () => {
       userId: viewer?.id ?? '',
     })
 
-    expect(response).toHaveProperty('result')
     if ('result' in response) {
       expect(response.result.accessToken).toBeDefined()
       expect(response.result.refreshToken).toBeDefined()
       expect(typeof response.result.accessToken).toBe('string')
       expect(typeof response.result.refreshToken).toBe('string')
     } else {
+      console.log(`'result' not in response:`, response)
       throw new Error('Expected result in response')
     }
   })

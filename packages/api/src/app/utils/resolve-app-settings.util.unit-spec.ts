@@ -1410,5 +1410,237 @@ describe('resolve-app-settings.util.ts', () => {
         folderScopePermissionsDefault: ['REINDEX_FOLDER'],
       })
     })
+
+    it('should return all nulls with system fallbacks when no user settings exist', () => {
+      const result = resolveUserAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: true,
+          userScopeEnabledDefault: true,
+          permissions: {
+            core: ['READ_FOLDER_ACL'],
+            user: ['CREATE_FOLDERS', 'DELETE_FOLDERS'],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: true,
+        folderScopeEnabledDefaultFallback: true,
+        permissionsFallback: ['CREATE_FOLDERS', 'DELETE_FOLDERS'],
+        enabled: null,
+        permissions: null,
+        folderScopeEnabledDefault: null,
+        folderScopePermissionsDefault: null,
+      })
+    })
+
+    it('should return all nulls with false system fallbacks when no user settings exist', () => {
+      const result = resolveUserAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: false,
+          userScopeEnabledDefault: false,
+          permissions: {
+            core: [],
+            user: ['CREATE_FOLDERS'],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: false,
+        folderScopeEnabledDefaultFallback: false,
+        permissionsFallback: ['CREATE_FOLDERS'],
+        enabled: null,
+        permissions: null,
+        folderScopeEnabledDefault: null,
+        folderScopePermissionsDefault: null,
+      })
+    })
+  })
+
+  describe('Folder App Settings - missing argument combinations', () => {
+    it('should use system fallbacks with both defaults true when no user or folder settings exist', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: true,
+          userScopeEnabledDefault: true,
+          permissions: {
+            core: [],
+            user: [],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: true,
+          source: 'system',
+        },
+        permissionsFallback: {
+          value: ['WRITE_OBJECTS'],
+          source: 'system',
+        },
+        enabled: null,
+        permissions: null,
+      })
+    })
+
+    it('should use system fallbacks with both defaults false when no user or folder settings exist', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: false,
+          userScopeEnabledDefault: false,
+          permissions: {
+            core: [],
+            user: [],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: false,
+          source: 'system',
+        },
+        permissionsFallback: {
+          value: ['WRITE_OBJECTS'],
+          source: 'system',
+        },
+        enabled: null,
+        permissions: null,
+      })
+    })
+
+    it('should use system fallbacks with explicit folder settings when no user settings exist', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: true,
+          userScopeEnabledDefault: true,
+          permissions: {
+            core: [],
+            user: [],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+        undefined,
+        createMockFolderSettings({
+          appIdentifier: 'test_app',
+          folderId: '456',
+          enabled: false,
+          permissions: ['REINDEX_FOLDER'],
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: true,
+          source: 'system',
+        },
+        permissionsFallback: {
+          value: ['WRITE_OBJECTS'],
+          source: 'system',
+        },
+        enabled: false,
+        permissions: ['REINDEX_FOLDER'],
+      })
+    })
+
+    it('should use user-level fallbacks with no folder settings object', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: true,
+          userScopeEnabledDefault: true,
+          permissions: {
+            core: [],
+            user: [],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+        createMockUserSettings({
+          appIdentifier: 'test_app',
+          userId: '123',
+          enabled: true,
+          permissions: null,
+          defaults: {
+            folderScopeEnabledDefault: false,
+            folderScopePermissionsDefault: ['REINDEX_FOLDER'],
+          },
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: false,
+          source: 'user',
+        },
+        permissionsFallback: {
+          value: ['REINDEX_FOLDER'],
+          source: 'user',
+        },
+        enabled: null,
+        permissions: null,
+      })
+    })
+
+    it('should return null folder enabled when user is explicitly disabled even if folder is explicitly enabled', () => {
+      const result = resolveFolderAppSettings(
+        createMockApp({
+          slug: 'test_app',
+          folderScopeEnabledDefault: true,
+          userScopeEnabledDefault: true,
+          permissions: {
+            core: [],
+            user: [],
+            folder: ['WRITE_OBJECTS'],
+          },
+        }),
+        createMockUserSettings({
+          appIdentifier: 'test_app',
+          userId: '123',
+          enabled: false,
+          permissions: null,
+          defaults: {
+            folderScopeEnabledDefault: true,
+            folderScopePermissionsDefault: null,
+          },
+        }),
+        createMockFolderSettings({
+          appIdentifier: 'test_app',
+          folderId: '456',
+          enabled: true,
+          permissions: ['WRITE_OBJECTS'],
+        }),
+      )
+
+      expect(result).toEqual({
+        appIdentifier: 'test_app',
+        enabledFallback: {
+          value: true,
+          source: 'user',
+        },
+        permissionsFallback: {
+          value: ['WRITE_OBJECTS'],
+          source: 'system',
+        },
+        enabled: null,
+        permissions: ['WRITE_OBJECTS'],
+      })
+    })
   })
 })

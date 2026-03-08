@@ -8,7 +8,6 @@ import type {
   AppSearchResults,
   ExecuteAppDockerJobOptions,
   FolderScopeAppPermissions,
-  JsonSerializableObject,
   StorageAccessPolicy,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
@@ -42,6 +41,7 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
+import { dataFromTemplate } from 'src/core/utils/data-template.util'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
@@ -102,6 +102,7 @@ import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
 } from '../utils/resolve-app-settings.utils'
+import { AppCustomSettingsService } from './app-custom-settings.service'
 import { handleAppSocketMessage } from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
@@ -146,6 +147,7 @@ export class AppService {
     @Inject(forwardRef(() => DockerJobsService)) _dockerJobsService,
     @Inject(forwardRef(() => CoreWorkerService))
     _coreWorkerService,
+    private readonly customSettingsService: AppCustomSettingsService,
   ) {
     this.coreTaskService = _coreTaskService as CoreTaskService
     this.coreWorkerService = _coreWorkerService as CoreWorkerService
@@ -283,6 +285,11 @@ export class AppService {
     actor: { appIdentifier: string }
     userId: string
   }) {
+    await this.validateAppUserAccess({
+      appIdentifier: actor.appIdentifier,
+      userId,
+    })
+
     const app = await this.getApp(actor.appIdentifier, { enabled: true })
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.id, userId),
@@ -298,6 +305,7 @@ export class AppService {
   }
 
   async createAppUserSession(user: User, appIdentifier: string) {
+    await this.validateAppUserAccess({ appIdentifier, userId: user.id })
     const app = await this.getApp(appIdentifier, { enabled: true })
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
@@ -323,6 +331,7 @@ export class AppService {
         taskService: this.taskService,
         appService: this,
         jwtService: this.jwtService,
+        customSettingsService: this.customSettingsService,
       },
     )
   }
@@ -900,6 +909,22 @@ export class AppService {
         app.runtimeWorkers = {
           ...app.runtimeWorkers,
           ...(await createAndUploadBundle('workers')),
+        }
+      }
+    }
+
+    // When updating, preserve user-configured env vars for workers that still exist
+    if (installedApp) {
+      const existingDefs = installedApp.runtimeWorkers.definitions
+      for (const [workerId, workerDef] of Object.entries(
+        app.runtimeWorkers.definitions,
+      )) {
+        const existingWorker = existingDefs[workerId]
+        if (
+          existingWorker &&
+          Object.keys(existingWorker.environmentVariables).length > 0
+        ) {
+          workerDef.environmentVariables = existingWorker.environmentVariables
         }
       }
     }
@@ -2128,19 +2153,50 @@ export class AppService {
       jobData,
       storageAccessPolicy,
       asyncTaskId,
+      targetUserId,
     } = params
 
-    const profileSpec = await this.dockerJobsService.getProfileSpec(
-      appIdentifier,
-      profileIdentifier,
-    )
+    let profileSpec: Awaited<
+      ReturnType<typeof this.dockerJobsService.getProfileSpec>
+    >
+    try {
+      profileSpec = await this.dockerJobsService.getProfileSpec(
+        appIdentifier,
+        profileIdentifier,
+      )
+    } catch (error) {
+      this.logger.error(
+        `Failed to resolve container profile "${profileIdentifier}" for app "${appIdentifier}"`,
+        error instanceof Error ? error.stack : error,
+      )
+      throw error
+    }
 
+    if (targetUserId) {
+      await this.validateAppUserAccess({
+        appIdentifier,
+        userId: targetUserId,
+      })
+    }
     // validate the storage access policy rules if any are provided
     if (storageAccessPolicy) {
       await this.validateAppStorageAccessPolicy({
         appIdentifier,
         storageAccessPolicy,
       })
+    }
+
+    const { containerRef } = profileSpec.containerRefTemplate
+      ? await dataFromTemplate(
+          { containerRef: profileSpec.containerRefTemplate },
+          { objects: { inputData: jobData } },
+        )
+      : { containerRef: undefined }
+
+    if (containerRef && typeof containerRef !== 'string') {
+      throw new BadRequestException(
+        'Invalid containerRef template (should resolve to a string)',
+      )
     }
 
     // Execute the docker job
@@ -2152,6 +2208,11 @@ export class AppService {
         jobData,
         asyncTaskId,
         storageAccessPolicy,
+        appIdentifier,
+        containerRef: containerRef as string | undefined,
+        ...(profileSpec.userIsolation && targetUserId
+          ? { userId: targetUserId }
+          : {}),
       },
       waitForCompletion,
     ) as Promise<DockerExecResult<T>>

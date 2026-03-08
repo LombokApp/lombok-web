@@ -19,6 +19,14 @@ import {
 
 import { App, appsTable } from '../app/entities/app.entity'
 import {
+  appCustomFolderSettingsRelations,
+  appCustomFolderSettingsTable,
+} from '../app/entities/app-custom-folder-settings.entity'
+import {
+  appCustomUserSettingsRelations,
+  appCustomUserSettingsTable,
+} from '../app/entities/app-custom-user-settings.entity'
+import {
   appFolderSettingsRelations,
   appFolderSettingsTable,
 } from '../app/entities/app-folder-settings.entity'
@@ -73,6 +81,10 @@ export const dbSchema = {
   appFolderSettingsRelations,
   appUserSettingsTable,
   appUserSettingsRelations,
+  appCustomUserSettingsTable,
+  appCustomUserSettingsRelations,
+  appCustomFolderSettingsTable,
+  appCustomFolderSettingsRelations,
   eventsTable,
   logEntriesTable,
   tasksTable,

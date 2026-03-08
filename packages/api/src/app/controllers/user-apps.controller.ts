@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -15,12 +16,15 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AppService } from 'src/app/services/app.service'
+import { AppCustomSettingsService } from 'src/app/services/app-custom-settings.service'
 import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
+import { AppCustomSettingsPutInputDTO } from '../dto/app-custom-settings-put-input.dto'
 import { AppUserSettingsCreateInputDTO } from '../dto/app-user-settings-create-input.dto'
 import { AppContributionsResponse } from '../dto/responses/app-contributions-response.dto'
+import { AppCustomSettingsGetResponseDTO } from '../dto/responses/app-custom-settings-get-response.dto'
 import { AppUserSettingsGetResponseDTO } from '../dto/responses/app-user-settings-get-response.dto'
 import { UserAppGetResponse } from '../dto/responses/user-app-get-response.dto'
 import { UserAppListResponse } from '../dto/responses/user-app-list-response.dto'
@@ -33,7 +37,10 @@ import { transformAppToUserDTO } from '../dto/transforms/user-app.transforms'
 @ApiBearerAuth()
 @ApiStandardErrorResponses()
 export class UserAppsController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly appCustomSettingsService: AppCustomSettingsService,
+  ) {}
 
   /**
    * List enabled apps available for the current user
@@ -165,5 +172,63 @@ export class UserAppsController {
       throw new UnauthorizedException()
     }
     await this.appService.removeAppUserSettings(req.user, appIdentifier)
+  }
+
+  /**
+   * Get resolved custom settings for the current user
+   */
+  @Get('/apps/:appIdentifier/custom-settings')
+  async getUserCustomSettings(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<AppCustomSettingsGetResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    const result = await this.appCustomSettingsService.getUserCustomSettings(
+      req.user.id,
+      app,
+    )
+    return { settings: result }
+  }
+
+  /**
+   * Update custom settings for the current user (merge semantics)
+   */
+  @Put('/apps/:appIdentifier/custom-settings')
+  async putUserCustomSettings(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @Body() body: AppCustomSettingsPutInputDTO,
+  ): Promise<AppCustomSettingsGetResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    const result = await this.appCustomSettingsService.putUserCustomSettings(
+      req.user.id,
+      app,
+      body.values,
+    )
+    return { settings: result }
+  }
+
+  /**
+   * Remove custom settings for the current user (revert to defaults)
+   */
+  @Delete('/apps/:appIdentifier/custom-settings')
+  async deleteUserCustomSettings(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    await this.appCustomSettingsService.deleteUserCustomSettings(
+      req.user.id,
+      app,
+    )
   }
 }

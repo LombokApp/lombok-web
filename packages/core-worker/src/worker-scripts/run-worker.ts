@@ -8,7 +8,7 @@ import type {
   WorkerResponse,
 } from '@lombokapp/worker-utils'
 import { AsyncWorkError, downloadFileToDisk } from '@lombokapp/worker-utils'
-import fs from 'fs'
+import fs from 'fs/promises'
 import { createServer, type Server, type Socket } from 'net'
 import os from 'os'
 import path from 'path'
@@ -107,8 +107,8 @@ class SocketServer {
 
   async start(onMessage: (message: WorkerMessage) => void): Promise<void> {
     // Remove existing socket file if it exists
-    if (await fs.promises.exists(this.socketPath)) {
-      await fs.promises.unlink(this.socketPath)
+    if (await fs.exists(this.socketPath)) {
+      await fs.unlink(this.socketPath)
     }
 
     this.connectionPromise = new Promise((resolve) => {
@@ -147,8 +147,7 @@ class SocketServer {
       this.server.listen(this.socketPath, () => {
         this.debug(`Listening on ${this.socketPath}`)
         // Set permissions for the socket so nsjail process can connect
-        fs.chmodSync(this.socketPath, 0o777)
-        resolve()
+        void fs.chmod(this.socketPath, 0o777).then(resolve)
       })
     })
   }
@@ -210,9 +209,9 @@ class SocketServer {
       this.server = undefined
     }
     // Clean up socket file
-    if (await fs.promises.exists(this.socketPath)) {
+    if (await fs.exists(this.socketPath)) {
       try {
-        await fs.promises.unlink(this.socketPath)
+        await fs.unlink(this.socketPath)
       } catch {
         // ignore
       }
@@ -665,7 +664,7 @@ function handleStreamingResponse(
 }
 
 const cacheRoot = path.join(os.tmpdir(), 'lombok-worker-cache')
-if (await fs.promises.exists(cacheRoot)) {
+if (await fs.exists(cacheRoot)) {
   // Clean previous worker cache directory before starting
   if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console
@@ -674,11 +673,11 @@ if (await fs.promises.exists(cacheRoot)) {
       'Cleaning previous worker cache directory before starting',
     )
   }
-  fs.rmSync(cacheRoot, { recursive: true })
+  await fs.rm(cacheRoot, { recursive: true })
 }
 
 const prepCacheRoot = path.join(os.tmpdir(), 'lombok-worker-prep-cache')
-if (await fs.promises.exists(prepCacheRoot)) {
+if (await fs.exists(prepCacheRoot)) {
   // Clean previous worker prep cache directory before starting
   if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console
@@ -687,7 +686,7 @@ if (await fs.promises.exists(prepCacheRoot)) {
       'Cleaning previous worker prep cache directory before starting',
     )
   }
-  fs.rmSync(prepCacheRoot, { recursive: true })
+  await fs.rm(prepCacheRoot, { recursive: true })
 }
 
 // Platform-aware mounts below: choose first existing path for each category
@@ -695,25 +694,25 @@ const platformAwareMounts = await (async () => {
   const flags: string[] = []
 
   // Mount whole /usr (read-only)
-  if (await fs.promises.exists('/usr')) {
+  if (await fs.exists('/usr')) {
     flags.push('--bindmount_ro=/usr:/usr')
   }
 
   // Mount either /lib64 or /lib (read-only) depending on which exists
-  if (await fs.promises.exists('/lib64')) {
+  if (await fs.exists('/lib64')) {
     flags.push('--bindmount_ro=/lib64:/lib64')
-  } else if (await fs.promises.exists('/lib')) {
+  } else if (await fs.exists('/lib')) {
     flags.push('--bindmount_ro=/lib:/lib')
   }
 
   // resolver
-  if (await fs.promises.exists('/etc/resolv.conf')) {
+  if (await fs.exists('/etc/resolv.conf')) {
     flags.push('--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf')
   }
 
   // tsconfig for worker transpile
   if (
-    await fs.promises.exists(
+    await fs.exists(
       '/usr/src/app/packages/core-worker/src/worker-scripts/tsconfig.worker-script.json',
     )
   ) {
@@ -724,7 +723,7 @@ const platformAwareMounts = await (async () => {
 
   // devices
   for (const dev of ['/dev/null', '/dev/random', '/dev/urandom']) {
-    if (await fs.promises.exists(dev)) {
+    if (await fs.exists(dev)) {
       flags.push(`--bindmount=${dev}:${dev}`)
     }
   }
@@ -747,10 +746,8 @@ async function findRepoRoot(
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
-    const hasPackages = await fs.promises.exists(path.join(dir, 'packages'))
-    const hasPackageJson = await fs.promises.exists(
-      path.join(dir, 'package.json'),
-    )
+    const hasPackages = await fs.exists(path.join(dir, 'packages'))
+    const hasPackageJson = await fs.exists(path.join(dir, 'package.json'))
     if (hasPackages && hasPackageJson) {
       return dir
     }
@@ -783,7 +780,7 @@ async function getLinkedNodeModulesPath(repoRoot: string): Promise<string> {
 async function ensureLombokSymlinkMirror(mirrorRoot: string): Promise<string> {
   const repoRoot = await findRepoRoot()
   const mirrorScopeDir = path.join(mirrorRoot, '@lombokapp')
-  await fs.promises.mkdir(mirrorScopeDir, { recursive: true })
+  await fs.mkdir(mirrorScopeDir, { recursive: true })
 
   // Only include nominated first-level packages under ./packages
   const pkgsRoot = path.join(repoRoot, 'packages')
@@ -797,7 +794,7 @@ async function ensureLombokSymlinkMirror(mirrorRoot: string): Promise<string> {
   for (const allowed of allowedPackages) {
     const pkgDir = path.join(pkgsRoot, allowed.dirName)
     try {
-      const stat = await fs.promises.lstat(pkgDir)
+      const stat = await fs.lstat(pkgDir)
       if (stat.isDirectory()) {
         found.push({ name: allowed.name, dir: pkgDir })
       }
@@ -817,33 +814,31 @@ async function ensureLombokSymlinkMirror(mirrorRoot: string): Promise<string> {
     desired.add(linkPath)
 
     try {
-      const lst = await fs.promises.lstat(linkPath).catch(() => undefined)
+      const lst = await fs.lstat(linkPath).catch(() => undefined)
       if (lst?.isSymbolicLink()) {
-        const currentTarget = await fs.promises
-          .readlink(linkPath)
-          .catch(() => '')
+        const currentTarget = await fs.readlink(linkPath).catch(() => '')
         const resolvedCurrent = path.resolve(
           path.dirname(linkPath),
           currentTarget,
         )
         const resolvedDesired = path.resolve(dir)
         if (resolvedCurrent !== resolvedDesired) {
-          await fs.promises.rm(linkPath, { force: true })
-          await fs.promises.symlink(resolvedDesired, linkPath, 'dir')
+          await fs.rm(linkPath, { force: true })
+          await fs.symlink(resolvedDesired, linkPath, 'dir')
         }
       } else {
         if (lst) {
-          await fs.promises.rm(linkPath, {
+          await fs.rm(linkPath, {
             force: true,
             recursive: lst.isDirectory(),
           })
         }
-        await fs.promises.symlink(path.resolve(dir), linkPath, 'dir')
+        await fs.symlink(path.resolve(dir), linkPath, 'dir')
       }
     } catch {
       // As a last resort, attempt to create the symlink afresh
       try {
-        await fs.promises.symlink(path.resolve(dir), linkPath, 'dir')
+        await fs.symlink(path.resolve(dir), linkPath, 'dir')
       } catch {
         // ignore if we can't create; mount step will fail later if necessary
       }
@@ -852,11 +847,11 @@ async function ensureLombokSymlinkMirror(mirrorRoot: string): Promise<string> {
 
   // Remove stale entries
   try {
-    const existing = await fs.promises.readdir(mirrorScopeDir)
+    const existing = await fs.readdir(mirrorScopeDir)
     for (const entry of existing) {
       const full = path.join(mirrorScopeDir, entry)
       if (!desired.has(full)) {
-        await fs.promises.rm(full, { force: true, recursive: true })
+        await fs.rm(full, { force: true, recursive: true })
       }
     }
   } catch {
@@ -877,7 +872,7 @@ const STATIC_NODE_MODULES_TO_LINK = [
 async function ensureLinkedNodeModulesMirror(): Promise<string> {
   const repoRoot = await findRepoRoot()
   const mirrorRoot = await getLinkedNodeModulesPath(repoRoot)
-  await fs.promises.mkdir(mirrorRoot, { recursive: true })
+  await fs.mkdir(mirrorRoot, { recursive: true })
 
   // 1) Ensure @lombokapp scope subtree exists and is synced
   await ensureLombokSymlinkMirror(mirrorRoot)
@@ -893,7 +888,7 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
 
     // Read and parse bun.lock to get the exact version
     // bun.lock may have trailing commas, so we need to clean it up first
-    const lockfileContent = await fs.promises.readFile(lockfilePath, 'utf8')
+    const lockfileContent = await fs.readFile(lockfilePath, 'utf8')
     // Remove trailing commas before } or ] to make it valid JSON
     const cleaned = lockfileContent.replace(/,(\s*[}\]])/g, '$1')
     const lockfile = JSON.parse(cleaned) as {
@@ -920,15 +915,15 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
     // Try exact match first, then search for directories starting with the base name
     let versionDir: string | undefined
     const exactPath = path.join(nmBase, baseDirName)
-    if (await fs.promises.exists(exactPath)) {
+    if (await fs.exists(exactPath)) {
       versionDir = exactPath
     } else {
       // Search for directories that start with the base name (may have hash suffix)
-      const entries = await fs.promises.readdir(nmBase)
+      const entries = await fs.readdir(nmBase)
       for (const entry of entries) {
         if (entry.startsWith(baseDirName)) {
           const candidate = path.join(nmBase, entry)
-          const stat = await fs.promises.lstat(candidate)
+          const stat = await fs.lstat(candidate)
           if (stat.isDirectory()) {
             versionDir = candidate
             break
@@ -939,7 +934,7 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
 
     if (versionDir) {
       const packagePath = path.join(versionDir, 'node_modules', pkgName)
-      if (await fs.promises.exists(packagePath)) {
+      if (await fs.exists(packagePath)) {
         return packagePath
       }
     }
@@ -959,26 +954,26 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
 
     // Ensure scope dir exists if scoped
     if (isScoped) {
-      await fs.promises.mkdir(path.dirname(linkPath), { recursive: true })
+      await fs.mkdir(path.dirname(linkPath), { recursive: true })
     }
 
     const desired = path.resolve(targetDir)
-    const lst = await fs.promises.lstat(linkPath).catch(() => undefined)
+    const lst = await fs.lstat(linkPath).catch(() => undefined)
     if (lst?.isSymbolicLink()) {
-      const curTarget = await fs.promises.readlink(linkPath).catch(() => '')
+      const curTarget = await fs.readlink(linkPath).catch(() => '')
       const resolvedCurrent = path.resolve(path.dirname(linkPath), curTarget)
       if (resolvedCurrent !== desired) {
-        await fs.promises.rm(linkPath, { force: true })
-        await fs.promises.symlink(desired, linkPath, 'dir')
+        await fs.rm(linkPath, { force: true })
+        await fs.symlink(desired, linkPath, 'dir')
       }
     } else {
       if (lst) {
-        await fs.promises.rm(linkPath, {
+        await fs.rm(linkPath, {
           force: true,
           recursive: lst.isDirectory(),
         })
       }
-      await fs.promises.symlink(desired, linkPath, 'dir')
+      await fs.symlink(desired, linkPath, 'dir')
     }
     return linkPath
   }
@@ -1002,9 +997,9 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
       : path.join(mirrorRoot, pkgName)
     if (!desiredStatic.has(candidate)) {
       // Remove file only if present and we own the slot
-      const exists = await fs.promises.lstat(candidate).catch(() => undefined)
+      const exists = await fs.lstat(candidate).catch(() => undefined)
       if (exists) {
-        await fs.promises.rm(candidate, { force: true, recursive: true })
+        await fs.rm(candidate, { force: true, recursive: true })
       }
     }
   }
@@ -1083,16 +1078,16 @@ async function prepareWorkerBundle({
   const lockFile = path.join(workerCacheRoot, `.lock.${bundleHash}`)
 
   // Fast-path if already prepared
-  if (await fs.promises.exists(readyMarker)) {
+  if (await fs.exists(readyMarker)) {
     return { cacheDir }
   }
 
-  fs.mkdirSync(workerCacheRoot, { recursive: true })
+  await fs.mkdir(workerCacheRoot, { recursive: true })
 
   // Try to acquire lock atomically
   let haveLock = false
   try {
-    fs.openSync(lockFile, 'wx')
+    await fs.open(lockFile, 'wx')
     haveLock = true
   } catch {
     // lock exists; wait for READY up to 30s
@@ -1104,7 +1099,7 @@ async function prepareWorkerBundle({
     const timeoutMs = 30_000
     // Busy-wait with small delay until READY appears or timeout
     while (Date.now() - start < timeoutMs) {
-      if (await fs.promises.exists(readyMarker)) {
+      if (await fs.exists(readyMarker)) {
         return { cacheDir }
       }
       await new Promise((resolve) => setTimeout(resolve, 200))
@@ -1116,12 +1111,12 @@ async function prepareWorkerBundle({
 
   // We have the lock; double-check another process didn't finish in between
   try {
-    if (await fs.promises.exists(readyMarker)) {
+    if (await fs.exists(readyMarker)) {
       return { cacheDir }
     }
 
     const tmpRoot = path.join(prepCacheRoot, crypto.randomUUID())
-    fs.mkdirSync(tmpRoot, { recursive: true })
+    await fs.mkdir(tmpRoot, { recursive: true })
     const zipPath = path.join(tmpRoot, 'worker-module.zip')
     await downloadFileToDisk(payloadUrl, zipPath)
 
@@ -1136,28 +1131,28 @@ async function prepareWorkerBundle({
     }
 
     // Move prepared contents into versioned cacheDir
-    await fs.promises.mkdir(cacheDir, { recursive: true })
+    await fs.mkdir(cacheDir, { recursive: true })
     // Copy all files from tmpRoot except the zip itself into cacheDir
-    for (const entry of fs.readdirSync(tmpRoot)) {
+    for (const entry of await fs.readdir(tmpRoot)) {
       if (entry === 'worker-module.zip') {
         continue
       }
       const src = path.join(tmpRoot, entry)
       const dest = path.join(cacheDir, entry)
-      fs.cpSync(src, dest, { recursive: true })
+      await fs.cp(src, dest, { recursive: true })
     }
 
     // Copy both the wrapper script and daemon into the main app dir, to avoid an extra bindmount
     const workerDaemonDir = './worker-daemon'
     const workerDaemonPath = path.join(import.meta.dir, workerDaemonDir)
-    fs.cpSync(workerDaemonPath, path.join(cacheDir, 'worker-daemon'), {
+    await fs.cp(workerDaemonPath, path.join(cacheDir, 'worker-daemon'), {
       recursive: true,
     })
 
     // Mark as ready
-    fs.writeFileSync(readyMarker, '')
+    await fs.writeFile(readyMarker, '')
 
-    fs.rmSync(tmpRoot, { recursive: true })
+    await fs.rm(tmpRoot, { recursive: true })
     return { cacheDir }
   } catch (error) {
     console.error('Failed to prepare worker bundle:', error)
@@ -1165,7 +1160,7 @@ async function prepareWorkerBundle({
   } finally {
     // Release lock
     try {
-      fs.rmSync(lockFile, { force: true })
+      await fs.rm(lockFile, { force: true })
     } catch {
       // ignore
     }
@@ -1272,9 +1267,9 @@ async function createWorkerProcess(
   }
 
   const ensureDir = async (dir: string, mode: number) => {
-    if (!(await fs.promises.exists(dir))) {
-      fs.mkdirSync(dir, { recursive: true })
-      fs.chmodSync(dir, mode)
+    if (!(await fs.exists(dir))) {
+      await fs.mkdir(dir, { recursive: true })
+      await fs.chmod(dir, mode)
     }
   }
 
@@ -1290,8 +1285,8 @@ async function createWorkerProcess(
     Bun.file(errOutputPath).write(''),
 
     // Fix permissions for the jailed process (user 1001)
-    fs.promises.chmod(outLogPath, 0o1777),
-    fs.promises.chmod(errOutputPath, 0o1777),
+    fs.chmod(outLogPath, 0o1777),
+    fs.chmod(errOutputPath, 0o1777),
   ])
 
   // Create message router for this worker (handles incoming messages from socket)
@@ -1650,8 +1645,8 @@ export async function runWorker(
     await Promise.all([
       Bun.file(hostOutLogPath).write(''),
       Bun.file(hostErrLogPath).write(''),
-      fs.promises.chmod(hostOutLogPath, 0o666),
-      fs.promises.chmod(hostErrLogPath, 0o666),
+      fs.chmod(hostOutLogPath, 0o666),
+      fs.chmod(hostErrLogPath, 0o666),
     ])
 
     // Jail-visible paths
