@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun vite",
+    "dev": "bunx --bun vite",
     "build": "bunx vite build --mode production",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
