@@ -1,3 +1,8 @@
+import type {
+  CustomSettingsSchema,
+  CustomSettingsSchemaProperty,
+  CustomSettingsSource,
+} from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
@@ -21,12 +26,6 @@ import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import { RotateCcw } from 'lucide-react'
 import React from 'react'
 
-import type {
-  CustomSettingsSchema,
-  CustomSettingsSchemaProperty,
-  CustomSettingsSource,
-} from '@lombokapp/types'
-
 const MASKED_VALUE = '********'
 
 interface CustomSettingsFormProps {
@@ -44,7 +43,9 @@ interface CustomSettingsFormProps {
 }
 
 function isSecretKey(key: string, pattern: string | null): boolean {
-  if (!pattern) return false
+  if (!pattern) {
+    return false
+  }
   try {
     return new RegExp(pattern).test(key)
   } catch {
@@ -71,6 +72,182 @@ function SourceBadge({ source }: { source: CustomSettingsSource }) {
       {source}
     </Badge>
   )
+}
+
+function ArrayFieldInput({
+  fieldId,
+  value,
+  itemType,
+  onChange,
+}: {
+  fieldId: string
+  value: unknown
+  itemType: string
+  onChange: (value: unknown) => void
+}) {
+  const items: unknown[] = Array.isArray(value) ? value : []
+
+  const handleItemChange = (index: number, newValue: string) => {
+    const updated = [...items]
+    if (itemType === 'number' || itemType === 'integer') {
+      const num =
+        itemType === 'integer' ? parseInt(newValue, 10) : parseFloat(newValue)
+      updated[index] = isNaN(num) ? newValue : num
+    } else if (itemType === 'boolean') {
+      updated[index] = newValue === 'true'
+    } else {
+      updated[index] = newValue
+    }
+    onChange(updated)
+  }
+
+  const handleAdd = () => {
+    const defaultValue =
+      itemType === 'number' || itemType === 'integer'
+        ? 0
+        : itemType === 'boolean'
+          ? false
+          : ''
+    onChange([...items, defaultValue])
+  }
+
+  const handleRemove = (index: number) => {
+    onChange(items.filter((_, i) => i !== index))
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <Input
+            id={`${fieldId}-${index}`}
+            type={
+              itemType === 'number' || itemType === 'integer'
+                ? 'number'
+                : 'text'
+            }
+            value={String(item)}
+            onChange={(e) => handleItemChange(index, e.target.value)}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleRemove(index)}
+          >
+            Remove
+          </Button>
+        </div>
+      ))}
+      <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
+        Add item
+      </Button>
+    </div>
+  )
+}
+function FieldInput({
+  fieldId,
+  property,
+  value,
+  isSecret,
+  onChange,
+}: {
+  fieldId: string
+  property: CustomSettingsSchemaProperty
+  value: unknown
+  isSecret: boolean
+  onChange: (value: unknown) => void
+}) {
+  switch (property.type) {
+    case 'string': {
+      if (property.enum) {
+        return (
+          <Select value={String(value)} onValueChange={(v) => onChange(v)}>
+            <SelectTrigger id={fieldId} className="w-full">
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              {property.enum.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+      }
+      return (
+        <Input
+          id={fieldId}
+          type={isSecret ? 'password' : 'text'}
+          value={String(value)}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={
+            property.default != null ? String(property.default) : undefined
+          }
+          minLength={property.minLength}
+          maxLength={property.maxLength}
+        />
+      )
+    }
+    case 'number':
+    case 'integer': {
+      return (
+        <Input
+          id={fieldId}
+          type="number"
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
+          value={value != null ? String(value) : ''}
+          onChange={(e) => {
+            const raw = e.target.value
+            if (raw === '') {
+              onChange(null)
+              return
+            }
+            const num =
+              property.type === 'integer' ? parseInt(raw, 10) : parseFloat(raw)
+            if (!isNaN(num)) {
+              onChange(num)
+            }
+          }}
+          placeholder={
+            property.default != null ? String(property.default) : undefined
+          }
+          min={property.minimum}
+          max={property.maximum}
+          step={property.type === 'integer' ? 1 : undefined}
+        />
+      )
+    }
+    case 'boolean': {
+      return (
+        <Switch
+          id={fieldId}
+          checked={Boolean(value)}
+          onCheckedChange={(checked) => onChange(checked)}
+        />
+      )
+    }
+    case 'array': {
+      return (
+        <ArrayFieldInput
+          fieldId={fieldId}
+          value={value}
+          itemType={property.items.type}
+          onChange={onChange}
+        />
+      )
+    }
+    default:
+      return (
+        <Input
+          id={fieldId}
+          value={String(value)}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )
+  }
 }
 
 function FieldRenderer({
@@ -128,185 +305,6 @@ function FieldRenderer({
         isSecret={isSecret}
         onChange={onChange}
       />
-    </div>
-  )
-}
-
-function FieldInput({
-  fieldId,
-  property,
-  value,
-  isSecret,
-  onChange,
-}: {
-  fieldId: string
-  property: CustomSettingsSchemaProperty
-  value: unknown
-  isSecret: boolean
-  onChange: (value: unknown) => void
-}) {
-  switch (property.type) {
-    case 'string': {
-      if (property.enum) {
-        return (
-          <Select
-            value={String(value ?? '')}
-            onValueChange={(v) => onChange(v)}
-          >
-            <SelectTrigger id={fieldId} className="w-full">
-              <SelectValue placeholder="Select..." />
-            </SelectTrigger>
-            <SelectContent>
-              {property.enum.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )
-      }
-      return (
-        <Input
-          id={fieldId}
-          type={isSecret ? 'password' : 'text'}
-          value={String(value ?? '')}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={
-            property.default != null ? String(property.default) : undefined
-          }
-          minLength={property.minLength}
-          maxLength={property.maxLength}
-        />
-      )
-    }
-    case 'number':
-    case 'integer': {
-      return (
-        <Input
-          id={fieldId}
-          type="number"
-          value={value != null ? String(value) : ''}
-          onChange={(e) => {
-            const raw = e.target.value
-            if (raw === '') {
-              onChange(null)
-              return
-            }
-            const num =
-              property.type === 'integer' ? parseInt(raw, 10) : parseFloat(raw)
-            if (!isNaN(num)) {
-              onChange(num)
-            }
-          }}
-          placeholder={
-            property.default != null ? String(property.default) : undefined
-          }
-          min={property.minimum}
-          max={property.maximum}
-          step={property.type === 'integer' ? 1 : undefined}
-        />
-      )
-    }
-    case 'boolean': {
-      return (
-        <Switch
-          id={fieldId}
-          checked={Boolean(value)}
-          onCheckedChange={(checked) => onChange(checked)}
-        />
-      )
-    }
-    case 'array': {
-      return (
-        <ArrayFieldInput
-          fieldId={fieldId}
-          value={value}
-          itemType={property.items?.type ?? 'string'}
-          onChange={onChange}
-        />
-      )
-    }
-    default:
-      return (
-        <Input
-          id={fieldId}
-          value={String(value ?? '')}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      )
-  }
-}
-
-function ArrayFieldInput({
-  fieldId,
-  value,
-  itemType,
-  onChange,
-}: {
-  fieldId: string
-  value: unknown
-  itemType: string
-  onChange: (value: unknown) => void
-}) {
-  const items = Array.isArray(value) ? value : []
-
-  const handleItemChange = (index: number, newValue: string) => {
-    const updated = [...items]
-    if (itemType === 'number' || itemType === 'integer') {
-      const num =
-        itemType === 'integer' ? parseInt(newValue, 10) : parseFloat(newValue)
-      updated[index] = isNaN(num) ? newValue : num
-    } else if (itemType === 'boolean') {
-      updated[index] = newValue === 'true'
-    } else {
-      updated[index] = newValue
-    }
-    onChange(updated)
-  }
-
-  const handleAdd = () => {
-    const defaultValue =
-      itemType === 'number' || itemType === 'integer'
-        ? 0
-        : itemType === 'boolean'
-          ? false
-          : ''
-    onChange([...items, defaultValue])
-  }
-
-  const handleRemove = (index: number) => {
-    onChange(items.filter((_, i) => i !== index))
-  }
-
-  return (
-    <div className="space-y-2">
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center gap-2">
-          <Input
-            id={`${fieldId}-${index}`}
-            type={
-              itemType === 'number' || itemType === 'integer'
-                ? 'number'
-                : 'text'
-            }
-            value={String(item ?? '')}
-            onChange={(e) => handleItemChange(index, e.target.value)}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleRemove(index)}
-          >
-            Remove
-          </Button>
-        </div>
-      ))}
-      <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
-        Add item
-      </Button>
     </div>
   )
 }
