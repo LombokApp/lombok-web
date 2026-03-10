@@ -21,6 +21,7 @@ COPY packages/api/cmd/dev-entrypoint.sh ../dev-entrypoint.sh
 RUN apk add --no-cache \
   curl \
   chromium=142.0.7444.59-r0 \
+  nodejs \
   postgresql18 \
   postgresql18-contrib \
   postgresql-pgvector && \
