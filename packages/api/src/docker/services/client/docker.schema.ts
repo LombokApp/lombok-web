@@ -6,29 +6,14 @@ import {
 } from '@lombokapp/types'
 import z from 'zod'
 
-export const dockerExecutionOptionsSchema = z
-  .object({
-    image: z.string(),
-    command: z.array(z.string()).optional(),
-    environmentVariables: z.record(z.string(), z.string()).optional(),
-  })
-  .strict()
-
-export const containerExecuteOptionsSchema = z
-  .object({
-    command: z.array(z.string()),
-    captureOutput: z.boolean(),
-  })
-  .strict()
-
-export interface ContainerCreateAndExecuteOptions {
+export interface ContainerCreateOptions {
   image: string
-  command: string[]
   labels: Record<string, string>
+  env?: Record<string, string>
 }
 
 export interface ContainerExecuteOptions {
-  command: string[]
+  env?: Record<string, string>
 }
 
 export interface JobExecuteOptions {
@@ -53,12 +38,15 @@ export interface JobExecuteOptions {
 }
 
 export const dockerExecuteJobOptionsSchema = z.object({
+  containerRef: z.string().optional(),
   asyncTaskId: z.string().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
   profileSpec: containerProfileConfigSchema,
   profileKey: z.string(),
   jobIdentifier: z.string(),
   jobData: jsonSerializableObjectSchema,
+  appIdentifier: z.string(),
+  userId: z.uuid().optional(),
 })
 
 export type DockerExecuteJobOptions = z.infer<

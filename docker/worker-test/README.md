@@ -29,7 +29,7 @@ bun run src/index.ts --config my-worker-config.json
 ### Run Specific Jobs
 
 ```bash
-bun run src/index.ts --config my-worker-config.json --job-id test-embedding --job-id test-metadata
+bun run src/index.ts --config my-worker-config.json --job test-embedding --job test-metadata
 ```
 
 ### Build Only
@@ -42,7 +42,7 @@ bun run src/index.ts --config my-worker-config.json --build-only
 
 - `--config <path>` - Path to test configuration JSON file (required)
 - `--docker-host <host>` - Docker host (default: local socket)
-- `--job-id <id>` - Run only specific job(s) by ID (can be specified multiple times)
+- `--job <id>` - Run only specific job(s) by ID (can be specified multiple times)
 - `--no-cleanup` - Do not remove container after test
 - `--verbose` - Print detailed logs
 - `--build-only` - Only build image, do not run tests
@@ -74,7 +74,7 @@ bun run src/index.ts --config my-worker-config.json --build-only
   "container": {
     "dockerHost": "/var/run/docker.sock",
     "name": "my-worker-test",
-    "environmentVariables": {
+    "env": {
       "ENV": "test"
     },
     "volumes": ["/host/path:/container/path"],

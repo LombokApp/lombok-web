@@ -54,7 +54,7 @@ export const dockerHostConfigSchema = z
               )
               .optional(), // the specific GPUs assigned to app container profiles. e.g. {'app:content_indexing': "\"device=0'""}
             volumes: z.record(z.string(), z.string().array()).optional(), // the volumes assigned to app container profiles. e.g. {'app:content_indexing': ["/app/model_cache:/mnt/user/appdata/model-cache"]}
-            environmentVariables: z
+            env: z
               .record(z.string(), z.record(z.string(), z.string()))
               .optional(), // the environment variables assigned to app container profiles. e.g. {'app:content_indexing': { 'PRIVATE_KEY': '___' }}
           })

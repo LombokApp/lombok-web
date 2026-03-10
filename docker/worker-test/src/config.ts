@@ -19,7 +19,7 @@ const jobPayloadSchema = z.object({
   wait_for_completion: z.boolean().optional().default(true),
   worker_command: z.array(z.string()),
   interface: jobInterfaceSchema,
-  job_input: z.record(z.any()).optional(),
+  job_input: z.record(z.string(), z.any()).optional(),
   job_token: z.string().optional(),
   platform_url: z.string().optional(),
   output_location: z
@@ -39,9 +39,11 @@ const jobValidationSchema = z
   .optional()
 
 const jobConfigSchema = z.object({
-  id: z.string(), // Optional identifier for filtering
+  name: z.string(), // Optional name for filtering
   payload: jobPayloadSchema,
   validate: jobValidationSchema,
+  submissionTimeout: z.number().optional(), // Job submission timeout in milliseconds (default: 10000 = 10 seconds)
+  completionTimeout: z.number().optional(), // Job completion timeout in milliseconds (default: 300000 = 5 minutes)
 })
 
 // Build configuration
@@ -64,7 +66,7 @@ const buildConfigSchema = z
 const containerConfigSchema = z.object({
   dockerHost: z.string().optional(), // Default: local docker socket
   name: z.string().optional(), // Auto-generated if not provided
-  environmentVariables: z.record(z.string(), z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   volumes: z.array(z.string()).optional(), // Docker volume mounts
   gpus: z
     .object({
@@ -135,8 +137,8 @@ export function loadConfig(configPath: string): TestConfig {
 
   if (!result.success) {
     throw new Error(
-      `Invalid configuration file: ${result.error.errors
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
+      `Invalid configuration file: ${result.error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
         .join(', ')}`,
     )
   }
@@ -151,7 +153,7 @@ export function mergeConfigFlags(
   config: TestConfig,
   flags: {
     dockerHost?: string
-    jobIds?: string[]
+    jobNames?: string[]
     buildOnly?: boolean
     noCleanup?: boolean
     verbose?: boolean
@@ -165,16 +167,18 @@ export function mergeConfigFlags(
     merged.container = { ...merged.container, dockerHost: flags.dockerHost }
   }
 
-  if (flags.jobIds && flags.jobIds.length > 0) {
+  if (flags.jobNames && flags.jobNames.length > 0) {
     merged.jobs = merged.jobs.filter((job) => {
-      if (!job.id) {
+      if (!job.name) {
         return false
       }
-      return flags.jobIds!.includes(job.id)
+      return flags.jobNames!.includes(job.name)
     })
 
     if (merged.jobs.length === 0) {
-      throw new Error(`No jobs found matching IDs: ${flags.jobIds.join(', ')}`)
+      throw new Error(
+        `No jobs found matching names: ${flags.jobNames.join(', ')}`,
+      )
     }
   }
 

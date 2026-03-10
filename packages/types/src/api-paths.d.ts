@@ -187,6 +187,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user/apps/{appIdentifier}/custom-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get resolved custom settings for the current user */
+        get: operations["UserApps_getUserCustomSettings"];
+        /** Update custom settings for the current user (merge semantics) */
+        put: operations["UserApps_putUserCustomSettings"];
+        post?: never;
+        /** Remove custom settings for the current user (revert to defaults) */
+        delete: operations["UserApps_deleteUserCustomSettings"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/settings": {
         parameters: {
             query?: never;
@@ -914,6 +933,25 @@ export interface paths {
         patch: operations["Folders_updateFolderAppSettings"];
         trace?: never;
     };
+    "/api/v1/folders/{folderId}/apps/{appIdentifier}/custom-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get resolved custom settings for an app on a folder */
+        get: operations["Folders_getFolderCustomSettings"];
+        /** Update custom settings for an app on a folder (merge semantics) */
+        put: operations["Folders_putFolderCustomSettings"];
+        post?: never;
+        /** Remove custom settings for an app on a folder (revert to user-level) */
+        delete: operations["Folders_deleteFolderCustomSettings"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/access-keys": {
         parameters: {
             query?: never;
@@ -1524,6 +1562,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/refresh-container-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh a container token
+         * @description Returns a new container token with fresh expiry. The current token must be valid (not expired).
+         */
+        post: operations["DockerWorkerHooks_refreshContainerToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/relay-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Route a request from an app container to an app runtime worker
+         * @description Routes a request from an app container to an app runtime worker. This has the platform lookup a pending request on a running container, and forward it to the runtime worker to so the container doesn't need to hold (and refresh) authentication credentials.
+         */
+        post: operations["DockerWorkerHooks_routeAppContainerRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
         parameters: {
             query?: never;
@@ -1842,6 +1920,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -1890,6 +1970,103 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                    };
+                    settings?: {
+                        secretKeyPattern?: string;
+                        user?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
+                        folder?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
                     };
                 };
                 requiresStorage: boolean;
@@ -2120,6 +2297,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2168,6 +2347,103 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                    };
+                    settings?: {
+                        secretKeyPattern?: string;
+                        user?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
+                        folder?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
                     };
                 };
                 requiresStorage: boolean;
@@ -2398,6 +2674,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2446,6 +2724,103 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                    };
+                    settings?: {
+                        secretKeyPattern?: string;
+                        user?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
+                        folder?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
                     };
                 };
                 requiresStorage: boolean;
@@ -2684,6 +3059,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2732,6 +3109,103 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                    };
+                    settings?: {
+                        secretKeyPattern?: string;
+                        user?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
+                        folder?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
                     };
                 };
                 enabled: boolean;
@@ -2933,6 +3407,8 @@ export interface components {
                                     identifier: string;
                                 }[];
                             })[];
+                            userIsolation?: boolean;
+                            containerRefTemplate?: string;
                         };
                     };
                     runtimeWorkers?: {
@@ -2981,6 +3457,103 @@ export interface components {
                             label: string;
                             iconPath?: string;
                         }[];
+                    };
+                    settings?: {
+                        secretKeyPattern?: string;
+                        user?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
+                        folder?: {
+                            /** @constant */
+                            type: "object";
+                            properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            required?: string[];
+                        };
                     };
                 };
                 enabled: boolean;
@@ -3115,6 +3688,69 @@ export interface components {
             folderScopeEnabledDefault: boolean | null;
             folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
             permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
+        };
+        AppCustomSettingsGetResponseDTO: {
+            settings: {
+                values: {
+                    [key: string]: unknown;
+                };
+                sources: {
+                    [key: string]: "folder" | "user" | "default";
+                };
+                schema: {
+                    /** @constant */
+                    type: "object";
+                    properties: {
+                        [key: string]: {
+                            /** @constant */
+                            type: "string";
+                            description?: string;
+                            default?: string;
+                            enum?: string[];
+                            minLength?: number;
+                            maxLength?: number;
+                            pattern?: string;
+                        } | {
+                            /** @constant */
+                            type: "number";
+                            description?: string;
+                            default?: number;
+                            minimum?: number;
+                            maximum?: number;
+                        } | {
+                            /** @constant */
+                            type: "integer";
+                            description?: string;
+                            default?: number;
+                            minimum?: number;
+                            maximum?: number;
+                        } | {
+                            /** @constant */
+                            type: "boolean";
+                            description?: string;
+                            default?: boolean;
+                        } | {
+                            /** @constant */
+                            type: "array";
+                            description?: string;
+                            default?: unknown[];
+                            items: {
+                                /** @enum {string} */
+                                type: "string" | "number" | "integer" | "boolean";
+                            };
+                            minItems?: number;
+                            maxItems?: number;
+                        };
+                    };
+                    required?: string[];
+                } | null;
+                secretKeyPattern: string | null;
+            };
+        };
+        AppCustomSettingsPutInputDTO: {
+            values: {
+                [key: string]: (string | null) | number | boolean | unknown[];
+            };
         };
         PublicSettingsGetResponse: {
             settings: {
@@ -4597,6 +5233,17 @@ export interface components {
             };
             timestamp?: string;
         };
+        DockerRefreshContainerTokenResponseDTO: {
+            token: string;
+        };
+        DockerRouteAppContainerRequestDTO: {
+            requestId: string;
+        };
+        DockerRouteAppContainerResponseDTO: {
+            status: number;
+            headers: components["schemas"]["StringMapDTO"];
+            body: unknown;
+        };
         AllCommentsListResponseDTO: {
             comments: {
                 /** Format: uuid */
@@ -5463,6 +6110,125 @@ export interface operations {
         };
     };
     UserApps_removeAppUserSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    UserApps_getUserCustomSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    UserApps_putUserCustomSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppCustomSettingsPutInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    UserApps_deleteUserCustomSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -7713,6 +8479,128 @@ export interface operations {
             };
         };
     };
+    Folders_getFolderCustomSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    Folders_putFolderCustomSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppCustomSettingsPutInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    Folders_deleteFolderCustomSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     AccessKeys_listAccessKeys: {
         parameters: {
             query?: {
@@ -9316,6 +10204,84 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerWorkerHooks_refreshContainerToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRefreshContainerTokenResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerWorkerHooks_routeAppContainerRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerRouteAppContainerRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRouteAppContainerResponseDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {

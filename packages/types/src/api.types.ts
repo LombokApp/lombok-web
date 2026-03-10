@@ -136,3 +136,18 @@ export type SSOCallbackResponse =
 
 export type TaskWithLocationContextDTO =
   paths['/api/v1/server/tasks/{taskId}']['get']['responses']['200']['content']['application/json']['task']
+
+export type CustomSettingsGetResponse =
+  paths['/api/v1/user/apps/{appIdentifier}/custom-settings']['get']['responses']['200']['content']['application/json']
+
+export type CustomSettingsData = CustomSettingsGetResponse['settings']
+
+export type CustomSettingsSchema = NonNullable<CustomSettingsData['schema']>
+
+export type CustomSettingsSchemaProperty =
+  CustomSettingsSchema['properties'][string]
+
+export type CustomSettingsSource = CustomSettingsData['sources'][string]
+
+export type CustomSettingsPutInput =
+  paths['/api/v1/user/apps/{appIdentifier}/custom-settings']['put']['requestBody']['content']['application/json']

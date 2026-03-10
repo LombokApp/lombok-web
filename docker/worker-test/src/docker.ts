@@ -267,10 +267,8 @@ export class DockerClient {
   ): Promise<ContainerInfo> {
     const createOptions: Docker.ContainerCreateOptions = {
       Image: image,
-      Env: config.environmentVariables
-        ? Object.entries(config.environmentVariables).map(
-            ([key, value]) => `${key}=${value}`,
-          )
+      Env: config.env
+        ? Object.entries(config.env).map(([key, value]) => `${key}=${value}`)
         : undefined,
       Labels: labels || {},
       ...(config.gpus ||
@@ -317,6 +315,7 @@ export class DockerClient {
   async execInContainer(
     containerId: string,
     command: string[],
+    options?: { timeout?: number },
   ): Promise<DockerExecResult> {
     const container = this.docker.getContainer(containerId)
 
@@ -346,7 +345,31 @@ export class DockerClient {
     })
 
     return new Promise((resolve, reject) => {
+      let timedOut = false
+      let timer: ReturnType<typeof setTimeout> | undefined
+
+      if (options?.timeout) {
+        timer = setTimeout(() => {
+          timedOut = true
+          stream.destroy()
+          reject(
+            Object.assign(
+              new Error(
+                `Exec timed out after ${
+                  options.timeout
+                }ms. Partial stdout: ${stdout.slice(
+                  -500,
+                )}. Partial stderr: ${stderr.slice(-500)}`,
+              ),
+              { code: 'EXEC_TIMEOUT', stdout, stderr },
+            ),
+          )
+        }, options.timeout)
+      }
+
       stream.on('end', async () => {
+        if (timedOut) return
+        if (timer) clearTimeout(timer)
         try {
           const inspect = await exec.inspect()
           resolve({
@@ -360,6 +383,8 @@ export class DockerClient {
       })
 
       stream.on('error', (error) => {
+        if (timedOut) return
+        if (timer) clearTimeout(timer)
         reject(error)
       })
     })

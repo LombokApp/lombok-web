@@ -22,6 +22,7 @@ const errorEnvelopeBaseSchema = z.object({
   message: z.string().min(1),
   stack: z.string().optional(),
   requeueDelayMs: requeueSchema.optional(),
+  executionMetadata: jsonSerializableObjectSchema.optional(),
 })
 
 export type AsyncWorkErrorEnvelope = z.infer<typeof errorEnvelopeBaseSchema> & {

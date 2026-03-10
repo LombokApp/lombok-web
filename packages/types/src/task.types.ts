@@ -359,7 +359,81 @@ export const taskDTOSchema = z.object({
 
 export const requeueSchema = z.number().int().min(0)
 
-export const jobErrorResponseSchema = z.object({
+export const dockerExecutorMetadataSchema = z.object({
+  profileKey: z.string(),
+  profileHash: z.string(),
+  jobIdentifier: z.string(),
+  containerId: z.string(),
+  hostId: z.string(),
+})
+
+export const dockerExecutorStartMetadataSchema = z.object({
+  profileKey: z.string(),
+  profileHash: z.string(),
+  jobIdentifier: z.string(),
+})
+
+export const systemExecutorMetadataSchema = jsonSerializableObjectSchema
+
+export const runtimeExecutorMetadataSchema = z.object({
+  workerIdentifier: z.string(),
+})
+
+export const executorStartMetadataSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('system'),
+    metadata: systemExecutorMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('docker'),
+    metadata: dockerExecutorStartMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('runtime'),
+    metadata: runtimeExecutorMetadataSchema,
+  }),
+])
+
+export const executorMetadataSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('system'),
+    metadata: systemExecutorMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('docker'),
+    metadata: dockerExecutorMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('runtime'),
+    metadata: runtimeExecutorMetadataSchema,
+  }),
+])
+
+export type ExecutorMetadata = z.infer<typeof executorMetadataSchema>
+export type ExecutorStartMetadata = z.infer<typeof executorStartMetadataSchema>
+export type DockerExecutorMetadata = z.infer<
+  typeof dockerExecutorMetadataSchema
+>
+export type PartialExecutorMetadata = z.infer<
+  typeof partialExecutorMetadataSchema
+>
+
+export const partialExecutorMetadataSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('system'),
+    metadata: systemExecutorMetadataSchema,
+  }),
+  z.object({
+    type: z.literal('docker'),
+    metadata: dockerExecutorMetadataSchema.partial(),
+  }),
+  z.object({
+    type: z.literal('runtime'),
+    metadata: runtimeExecutorMetadataSchema.partial(),
+  }),
+])
+
+export const taskErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.object({
     name: z.string().optional(),
@@ -368,16 +442,18 @@ export const jobErrorResponseSchema = z.object({
     details: jsonSerializableObjectSchema.optional(),
   }),
   requeueDelayMs: requeueSchema.optional(),
+  executorMetadata: partialExecutorMetadataSchema.optional(),
 })
 
-export const jobSuccessResponseSchema = z.object({
+export const taskSuccessResponseSchema = z.object({
   success: z.literal(true),
   result: jsonSerializableObjectSchema.optional(),
+  executorMetadata: executorMetadataSchema,
 })
 
 export const taskCompletionSchema = z.discriminatedUnion('success', [
-  jobErrorResponseSchema,
-  jobSuccessResponseSchema,
+  taskErrorResponseSchema,
+  taskSuccessResponseSchema,
 ])
 
 export type TaskCompletion = z.infer<typeof taskCompletionSchema>

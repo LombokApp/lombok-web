@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
 import { AppService } from 'src/app/services/app.service'
+import { AppCustomSettingsService } from 'src/app/services/app-custom-settings.service'
 import { authConfig } from 'src/auth/config'
 import { coreConfig } from 'src/core/config'
 import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
@@ -38,6 +39,7 @@ import { FolderService } from './services/folder.service'
     EventService,
     FolderService,
     AppService,
+    AppCustomSettingsService,
     LogEntryService,
     ReindexFolderProcessor,
   ],

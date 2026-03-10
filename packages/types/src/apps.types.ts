@@ -26,6 +26,8 @@ export const AppSocketMessage = z.enum([
   'EXECUTE_APP_DOCKER_JOB',
   'TRIGGER_APP_TASK',
   'REPORT_TASK_UPDATE',
+  'GET_APP_CUSTOM_SETTINGS',
+  'SET_APP_CUSTOM_SETTINGS',
 ])
 
 export const appMessageErrorSchema = z.object({
@@ -231,6 +233,14 @@ export const containerProfileConfigSchema = z
     // desiredMaxJobsPerContainer: z.number().positive().optional(),
     // jobClasses: z.record(z.string(), containerProfileJobClassSchema),
     workers: z.array(dockerWorkerConfigSchema),
+    // When true, containers for this profile are isolated per user.
+    // The userId is resolved from the task's targetUserId (async) or
+    // the explicit userId param (sync). The user ID is written as a
+    // container label and used for ACL enforcement on terminal access.
+    userIsolation: z.boolean().optional(),
+    // Template expression (e.g. "{{ inputData.containerRef }}") resolved at job
+    // execution time to run a job on a particular container (by host and container identifiers).
+    containerRefTemplate: z.string().optional(),
   })
   .strict()
 
@@ -245,6 +255,70 @@ export const appSystemRequestRuntimeWorkersSchema = z
     performSearch: workerIdentifierSchema.array(),
   })
   .strict()
+
+export const jsonSchema07PropertySchema = z.union([
+  z.object({
+    type: z.literal('string'),
+    description: z.string().optional(),
+    default: z.string().optional(),
+    enum: z.array(z.string()).optional(),
+    minLength: z.number().int().min(0).optional(),
+    maxLength: z.number().int().min(0).optional(),
+    pattern: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('number'),
+    description: z.string().optional(),
+    default: z.number().optional(),
+    minimum: z.number().optional(),
+    maximum: z.number().optional(),
+  }),
+  z.object({
+    type: z.literal('integer'),
+    description: z.string().optional(),
+    default: z.number().int().optional(),
+    minimum: z.number().int().optional(),
+    maximum: z.number().int().optional(),
+  }),
+  z.object({
+    type: z.literal('boolean'),
+    description: z.string().optional(),
+    default: z.boolean().optional(),
+  }),
+  z.object({
+    type: z.literal('array'),
+    description: z.string().optional(),
+    default: z.array(z.unknown()).optional(),
+    items: z.object({
+      type: z.enum(['string', 'number', 'integer', 'boolean']),
+    }),
+    minItems: z.number().int().min(0).optional(),
+    maxItems: z.number().int().min(0).optional(),
+  }),
+])
+
+export const jsonSchema07ObjectSchema = z.object({
+  type: z.literal('object'),
+  properties: z.record(z.string(), jsonSchema07PropertySchema),
+  patternProperties: z
+    .record(z.string(), jsonSchema07PropertySchema)
+    .optional(),
+  required: z.array(z.string()).optional(),
+})
+
+export const appSettingsConfigSchema = z
+  .object({
+    secretKeyPattern: z.string().optional(),
+    user: jsonSchema07ObjectSchema.optional(),
+    folder: jsonSchema07ObjectSchema.optional(),
+  })
+  .refine((val) => val.user || val.folder, {
+    message: 'At least one of "user" or "folder" must be defined in settings',
+  })
+
+export type JsonSchema07Property = z.infer<typeof jsonSchema07PropertySchema>
+export type JsonSchema07Object = z.infer<typeof jsonSchema07ObjectSchema>
+export type AppSettingsConfig = z.infer<typeof appSettingsConfigSchema>
 
 export const appConfigSchema = z
   .object({
@@ -264,7 +338,7 @@ export const appConfigSchema = z
     triggers: z.array(taskTriggerConfigSchema).optional(),
     tasks: z.array(taskConfigSchema.strict()).optional(),
     containerProfiles: z
-      .record(appProfileIdentifierSchema, containerProfileConfigSchema)
+      .record(appProfileIdentifierSchema, containerProfileConfigSchema.strict())
       .optional(),
     runtimeWorkers: z
       .record(workerIdentifierSchema, appRuntimeWorkerConfigSchema.strict())
@@ -286,6 +360,7 @@ export const appConfigSchema = z
       .strict()
       .optional(),
     contributions: appContributionsSchema.strict().optional(),
+    settings: appSettingsConfigSchema.optional(),
   })
   .strict()
   .superRefine((value, ctx) => {

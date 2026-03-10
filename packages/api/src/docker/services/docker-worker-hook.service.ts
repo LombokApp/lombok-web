@@ -1,6 +1,6 @@
 import type {
+  DockerExecutorMetadata,
   FolderScopeAppPermissions,
-  JsonSerializableObject,
   StorageAccessPolicy,
   TaskCompletion,
 } from '@lombokapp/types'
@@ -11,6 +11,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
@@ -36,21 +37,45 @@ import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
 import type { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
+import type { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
+import type { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
+import { DockerClientService } from './client/docker-client.service'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
+const DOCKER_CONTAINER_JWT_SUB_PREFIX = 'docker_container:'
 
 // JWT expiry for worker job tokens (30 minutes)
 const WORKER_JOB_TOKEN_EXPIRY_SECONDS = 30 * 60
 
+// JWT expiry for container tokens (24 hours — containers are long-lived)
+const CONTAINER_TOKEN_EXPIRY_SECONDS = 24 * 60 * 60
+
 // The permission required for uploading files to a folder
 const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
 
+const relayRequestContextSchema = z.object({
+  workerIdentifier: z.string(),
+  url: z.string(),
+  method: z.string(),
+  headers: z.record(z.string(), z.string()),
+  body: z.unknown().optional(),
+  authUser: z.literal(true).optional(),
+})
+
 export interface DockerWorkerJobClaims {
   jobId: string
-  executorContext: JsonSerializableObject
+  executorMetadata: DockerExecutorMetadata
   taskId: string
   storageAccessPolicy: StorageAccessPolicy
+}
+
+export interface DockerContainerClaims {
+  appIdentifier: string
+  profileKey: string
+  hostId: string
+  containerId: string
+  userId?: string
 }
 
 export type CompleteJobRequest = z.infer<typeof dockerJobResultSchema>
@@ -67,6 +92,7 @@ export class DockerWorkerHookService {
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
+    private readonly dockerClientService: DockerClientService,
     @Inject(forwardRef(() => CoreTaskService))
     _coreTaskService,
     @Inject(forwardRef(() => TaskService))
@@ -187,7 +213,7 @@ export class DockerWorkerHookService {
     jobId: string
     taskId?: string
     storageAccessPolicy?: StorageAccessPolicy
-    executorContext?: JsonSerializableObject
+    executorMetadata: DockerExecutorMetadata
   }): string {
     const payload = {
       aud: this._coreConfig.platformHost,
@@ -196,7 +222,7 @@ export class DockerWorkerHookService {
       job_id: params.jobId,
       task_id: params.taskId,
       storage_access_policy: params.storageAccessPolicy,
-      executor_context: params.executorContext,
+      executor_metadata: params.executorMetadata,
     }
 
     return jwt.sign(payload, this._authConfig.authJwtSecret, {
@@ -220,14 +246,14 @@ export class DockerWorkerHookService {
       }) as JwtPayload & {
         job_id: string
         task_id: string
-        executor_context: JsonSerializableObject
+        executor_metadata: DockerExecutorMetadata
         storage_access_policy: StorageAccessPolicy
       }
 
       return {
         jobId: decoded.job_id,
         taskId: decoded.task_id,
-        executorContext: decoded.executor_context,
+        executorMetadata: decoded.executor_metadata,
         storageAccessPolicy: decoded.storage_access_policy,
       }
     } catch (error) {
@@ -236,6 +262,89 @@ export class DockerWorkerHookService {
       }
       if (error instanceof jwt.JsonWebTokenError) {
         throw new UnauthorizedException('Invalid worker job token')
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Create a long-lived JWT token scoped to a specific container.
+   * Injected into the container via `lombok-worker-agent set-context` for relay-request auth.
+   */
+  createDockerContainerToken(params: {
+    appIdentifier: string
+    profileKey: string
+    hostId: string
+    containerId: string
+    userId?: string
+  }): string {
+    const payload = {
+      aud: this._coreConfig.platformHost,
+      jti: uuidV4(),
+      sub: `${DOCKER_CONTAINER_JWT_SUB_PREFIX}${params.containerId}`,
+      app_identifier: params.appIdentifier,
+      profile_key: params.profileKey,
+      host_id: params.hostId,
+      container_id: params.containerId,
+      ...(params.userId ? { user_id: params.userId } : {}),
+    }
+
+    return jwt.sign(payload, this._authConfig.authJwtSecret, {
+      algorithm: ALGORITHM,
+      expiresIn: CONTAINER_TOKEN_EXPIRY_SECONDS,
+    })
+  }
+
+  /**
+   * Refresh a container token, issuing a new JWT with the same claims but fresh expiry.
+   */
+  refreshContainerToken(claims: DockerContainerClaims): { token: string } {
+    const token = this.createDockerContainerToken({
+      appIdentifier: claims.appIdentifier,
+      profileKey: claims.profileKey,
+      hostId: claims.hostId,
+      containerId: claims.containerId,
+      userId: claims.userId,
+    })
+    return { token }
+  }
+
+  /**
+   * Verify a container token and return the claims.
+   */
+  verifyDockerContainerToken(token: string): DockerContainerClaims {
+    try {
+      const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
+        algorithms: [ALGORITHM],
+        audience: this._coreConfig.platformHost,
+      }) as JwtPayload & {
+        app_identifier: string
+        profile_key: string
+        host_id: string
+        container_id: string
+        user_id?: string
+      }
+
+      if (!decoded.sub?.startsWith(DOCKER_CONTAINER_JWT_SUB_PREFIX)) {
+        throw new UnauthorizedException('Token is not a container token')
+      }
+
+      return {
+        appIdentifier: decoded.app_identifier,
+        profileKey: decoded.profile_key,
+        hostId: decoded.host_id,
+        containerId: decoded.container_id,
+        userId: decoded.user_id,
+      }
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error
+      }
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new UnauthorizedException('Container token has expired')
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new UnauthorizedException('Invalid container token')
       }
       throw error
     }
@@ -376,9 +485,17 @@ export class DockerWorkerHookService {
         ? {
             success: true,
             result: completeJobRequest.result,
+            executorMetadata: {
+              type: 'docker',
+              metadata: claims.executorMetadata,
+            },
           }
         : {
             success: false,
+            executorMetadata: {
+              type: 'docker',
+              metadata: claims.executorMetadata,
+            },
             error: {
               name: completeJobRequest.error.name ?? 'Error',
               code: completeJobRequest.error.code,
@@ -489,6 +606,120 @@ export class DockerWorkerHookService {
         options: { tx },
       })
     })
+  }
+
+  /**
+   * Route a request from an app container to an app runtime worker.
+   *
+   * 1. Validate the claimed hostId matches the container token's hostId
+   * 2. Find the container and verify its labels match the token claims
+   * 3. Read the pending request context from /tmp/lombok-relay-requests/<requestId>.json inside the container
+   * 4. Optionally create an app-user access token if the token has a userId
+   * 5. Forward the request to the core-worker at localhost:3001/worker-api and return the response
+   */
+  async routeAppContainerRequest(
+    claims: DockerContainerClaims,
+    body: DockerRouteAppContainerRequestDTO,
+  ): Promise<DockerRouteAppContainerResponseDTO> {
+    try {
+      const { appIdentifier, hostId, containerId, userId } = claims
+
+      // 1. Exec into container to read the request context
+      const exec = await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        ['cat', `/tmp/lombok-relay-requests/${body.requestId}.json`],
+      )
+      const execState = await exec.state()
+      const { stdout, stderr } = exec.output()
+      if (execState.exitCode !== 0) {
+        throw new NotFoundException(
+          `Request file not found in container: ${stderr || 'exit code ' + String(execState.exitCode)}`,
+        )
+      }
+
+      // 4. Parse and validate request context JSON
+      const requestContext = relayRequestContextSchema.parse(JSON.parse(stdout))
+
+      // 5. Resolve user context (if authUser is requested)
+      let accessToken: string | undefined
+      if (requestContext.authUser) {
+        if (!userId) {
+          throw new UnauthorizedException(
+            'Request requires authenticated user but container has no user context',
+          )
+        }
+        const tokenResult = await this.appService.createAppUserAccessTokenAsApp(
+          {
+            actor: { appIdentifier },
+            userId,
+          },
+        )
+        accessToken = tokenResult.accessToken
+      }
+
+      // 6. Build the forwarding URL and headers
+      const workerUrl = `http://localhost:3001/worker-api/${requestContext.workerIdentifier}/${requestContext.url}`
+
+      const forwardHeaders: Record<string, string> = {
+        ...requestContext.headers,
+        Host: `${appIdentifier}.apps.localhost`,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      }
+
+      // 7. Forward the request
+      const response = await fetch(workerUrl, {
+        method: requestContext.method,
+        headers: forwardHeaders,
+        ...(requestContext.body &&
+        requestContext.method !== 'GET' &&
+        requestContext.method !== 'HEAD'
+          ? {
+              body:
+                typeof requestContext.body === 'string'
+                  ? requestContext.body
+                  : JSON.stringify(requestContext.body),
+            }
+          : {}),
+      })
+
+      // 8. Read response and return
+      const responseHeaders: Record<string, string> = {}
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+
+      let responseBody: unknown
+      const contentType = response.headers.get('content-type')
+      if (contentType?.includes('application/json')) {
+        responseBody = await response.json()
+      } else {
+        responseBody = await response.text()
+      }
+
+      return {
+        status: response.status,
+        headers: responseHeaders,
+        body: responseBody,
+      }
+    } catch (error) {
+      // Re-throw NestJS HTTP exceptions as-is
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ConflictException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error
+      }
+      // Wrap unexpected errors
+      this.logger.error('routeAppContainerRequest failed', error)
+      throw new InternalServerErrorException(
+        `Failed to route app container request: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
   }
 
   /**

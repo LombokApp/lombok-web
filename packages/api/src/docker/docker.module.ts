@@ -7,6 +7,7 @@ import { OrmModule } from 'src/orm/orm.module'
 
 import { DockerWorkerHooksController } from './controllers/docker-worker-hooks.controller'
 import { DockerJobGuard } from './guards/docker-job.guard'
+import { DockerWorkerGuard } from './guards/docker-worker.guard'
 import { RunDockerWorkerTaskProcessor } from './processors/run-docker-worker.task-processor'
 import { DockerAdapterProvider } from './services/client/adapters/docker-adapter.provider'
 import { DockerClientService } from './services/client/docker-client.service'
@@ -28,6 +29,7 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
     DockerJobGuard,
+    DockerWorkerGuard,
   ],
   exports: [
     DockerJobsService,

@@ -49,14 +49,17 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
         task.data.profileIdentifier,
       )
 
+      const executorMetadata = {
+        profileHash: this.dockerJobsService.hashProfileSpec(profileSpec),
+        profileKey: `${task.data.appIdentifier}:${task.data.profileIdentifier}`,
+        jobIdentifier: task.data.jobClassIdentifier,
+      }
+
       await this.taskService.registerTaskStarted({
         taskId: innerTask.id,
-        startContext: {
-          __executor: {
-            profileHash: this.dockerJobsService.hashProfileSpec(profileSpec),
-            profileKey: `${task.data.appIdentifier}:${task.data.profileIdentifier}`,
-            jobIdentifier: task.data.jobClassIdentifier,
-          },
+        executorMetadata: {
+          type: 'docker',
+          metadata: executorMetadata,
         },
       })
 
@@ -68,6 +71,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
           profileIdentifier: task.data.profileIdentifier,
           jobIdentifier: task.data.jobClassIdentifier,
           asyncTaskId: task.id,
+          targetUserId: innerTask.targetUserId ?? undefined,
           storageAccessPolicy: innerTask.storageAccessPolicy ?? undefined,
         })
 
@@ -92,6 +96,10 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
         const innerTaskCompletion = {
           success: false,
           requeueDelayMs: highestLevelAppError?.requeueDelayMs,
+          executorMetadata: {
+            type: 'docker',
+            metadata: executorMetadata,
+          },
           error: {
             code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
             name: highestLevelAppError?.name ?? 'ExecutionError',
@@ -107,7 +115,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
                 }
               : {}), // TODO: add some details for an internal (non-app) error
           },
-        }
+        } as const
 
         const runnerTaskCompletion = {
           success: runnerSuccess,
@@ -120,8 +128,12 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
                   details: normalizedError.toEnvelope(),
                 },
               }
-            : undefined),
-        } as TaskCompletion
+            : {}),
+          executorMetadata: {
+            type: 'system' as const,
+            metadata: {},
+          },
+        }
 
         await this.ormService.db.transaction(async (tx) => {
           await this.taskService.registerTaskCompleted(
@@ -132,7 +144,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
 
           await this.taskService.registerTaskCompleted(
             task.id,
-            runnerTaskCompletion,
+            runnerTaskCompletion as TaskCompletion,
             { tx },
           )
         })

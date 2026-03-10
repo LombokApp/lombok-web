@@ -88,6 +88,14 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['REPORT_TASK_UPDATE'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'REPORT_TASK_UPDATE'>>
+  getAppCustomSettings: (
+    params: AppSocketMessageDataMap['GET_APP_CUSTOM_SETTINGS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_APP_CUSTOM_SETTINGS'>>
+  setAppCustomSettings: (
+    params: AppSocketMessageDataMap['SET_APP_CUSTOM_SETTINGS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'SET_APP_CUSTOM_SETTINGS'>>
 }
 
 interface PlatformApiExecuteOptions {
@@ -207,6 +215,12 @@ export const buildAppClient = (
     },
     reportTaskUpdate(params, options) {
       return emitWithAck('REPORT_TASK_UPDATE', params, options)
+    },
+    getAppCustomSettings(params, options) {
+      return emitWithAck('GET_APP_CUSTOM_SETTINGS', params, options)
+    },
+    setAppCustomSettings(params, options) {
+      return emitWithAck('SET_APP_CUSTOM_SETTINGS', params, options)
     },
   }
 }

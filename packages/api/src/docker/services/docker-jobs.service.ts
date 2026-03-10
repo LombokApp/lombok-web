@@ -23,6 +23,7 @@ import {
 import { OrmService } from 'src/orm/orm.service'
 
 import {
+  type ContainerCreateOptions,
   DockerExecuteJobOptions,
   JobExecuteOptions,
 } from './client/docker.schema'
@@ -49,9 +50,13 @@ const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
 
 /** Labels applied to worker containers for discovery */
 export const DOCKER_LABELS = {
-  PLATFORM: 'lombok',
-  PROFILE_ID: 'lombok.profile_id',
-  PROFILE_HASH: 'lombok.profile_hash',
+  PLATFORM_HOST: 'lombok.platform_host',
+  PLATFORM_URL: 'lombok.platform_url',
+  PROFILE_ID: 'lombok.container_profile_id',
+  PROFILE_HASH: 'lombok.container_profile_hash',
+  APP_ID: 'lombok.container_app_id',
+  USER_ID: 'lombok.container_user_id',
+  IMAGE: 'lombok.container_image',
 } as const
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -150,11 +155,256 @@ export class DockerJobsService {
   private buildContainerLabels(
     profileIdentifier: string,
     profileHash: string,
+    image: string,
+    appIdentifier?: string,
+    userId?: string,
   ): Record<string, string> {
     return {
-      [DOCKER_LABELS.PLATFORM]: 'lombok',
+      [DOCKER_LABELS.PLATFORM_HOST]: 'lombok',
+      [DOCKER_LABELS.PLATFORM_URL]: buildPlatformOrigin(this._coreConfig),
       [DOCKER_LABELS.PROFILE_HASH]: profileHash,
+      [DOCKER_LABELS.IMAGE]: image,
       [DOCKER_LABELS.PROFILE_ID]: profileIdentifier,
+      ...(appIdentifier ? { [DOCKER_LABELS.APP_ID]: appIdentifier } : {}),
+      ...(userId ? { [DOCKER_LABELS.USER_ID]: userId } : {}),
+    }
+  }
+
+  /**
+   * Resolve Docker host configuration for a given profile key
+   */
+  resolveDockerHostConfigForProfile(profileKey: string): {
+    hostId: string
+    volumes: string[] | undefined
+    env: Record<string, string> | undefined
+    gpus: { driver: string; deviceIds: string[] } | undefined
+    extraHosts: string[] | undefined
+    networkMode: 'host' | 'bridge' | `container:${string}` | undefined
+  } {
+    const profileKeyParts = profileKey.split(':')
+    const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
+
+    const resolvedHostId =
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[profileKey] ??
+      this._coreConfig.dockerHostConfig.profileHostAssignments?.[
+        appSlugProfileKey
+      ] ??
+      'local'
+
+    return {
+      hostId: resolvedHostId,
+      env:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
+          appSlugProfileKey
+        ],
+      volumes:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
+          appSlugProfileKey
+        ],
+      gpus:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
+          appSlugProfileKey
+        ],
+      extraHosts:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
+          appSlugProfileKey
+        ],
+      networkMode: (this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+        ?.networkMode?.[profileKey] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.networkMode?.[appSlugProfileKey]) as
+        | 'host'
+        | 'bridge'
+        | `container:${string}`
+        | undefined,
+    }
+  }
+
+  /**
+   * Resolve (find or create) a profile container and ensure it is running.
+   * When a container is created via the profile path, injects container context
+   * (token) via set-context if `setContext` params are provided.
+   */
+  async resolveContainer(
+    attributes: { profileKey: string } | { containerRef: string },
+    { image, labels, env: extraEnv }: ContainerCreateOptions,
+    setContext?: {
+      contextSecret: string
+      appIdentifier: string
+      profileKey: string
+      userId?: string
+    },
+  ): Promise<{ containerId: string; hostId: string }> {
+    if ('containerRef' in attributes) {
+      const [refHostId, refContainerId] = attributes.containerRef.split(':')
+      const hostId = refHostId ?? ''
+
+      if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+        throw new AsyncWorkError({
+          name: 'DockerClientError',
+          origin: 'internal',
+          code: 'DOCKER_NOT_CONFIGURED',
+          message: `Unrecognized Docker host "${hostId}" in containerRef "${attributes.containerRef}"`,
+        })
+      }
+
+      if (!refContainerId) {
+        throw new AsyncWorkError({
+          name: 'DockerClientError',
+          origin: 'internal',
+          code: 'INVALID_CONTAINER_REF',
+          message: `Invalid containerRef "${attributes.containerRef}" — expected format "hostId:containerId"`,
+        })
+      }
+
+      const container = await this.dockerClientService.findContainerById(
+        hostId,
+        refContainerId,
+        { startIfNotRunning: true },
+      )
+      if (!container) {
+        throw new AsyncWorkError({
+          name: 'DockerClientError',
+          origin: 'internal',
+          code: 'CONTAINER_NOT_FOUND',
+          message: `Container "${refContainerId}" not found on host "${hostId}"`,
+        })
+      }
+      return { hostId, containerId: container.id }
+    }
+
+    // Profile path: resolve host config, find or create container
+    const { hostId, ...config } = this.resolveDockerHostConfigForProfile(
+      attributes.profileKey,
+    )
+
+    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+      throw new AsyncWorkError({
+        name: 'DockerClientError',
+        origin: 'internal',
+        code: 'DOCKER_NOT_CONFIGURED',
+        message: `Unrecognized Docker host "${hostId}" configured for profile "${attributes.profileKey}"`,
+      })
+    }
+
+    const container = await this.dockerClientService.findOrCreateContainer(
+      hostId,
+      {
+        image,
+        labels,
+        startIfNotRunning: true,
+        ...config,
+        env: { ...config.env, ...extraEnv },
+      },
+    )
+
+    if (!container) {
+      throw new AsyncWorkError({
+        name: 'DockerClientError',
+        origin: 'internal',
+        code: 'CONTAINER_NOT_FOUND',
+        message: 'Container not found after findOrCreateContainer call',
+      })
+    }
+
+    const containerId = container.id
+
+    // Inject container context (token) via set-context for newly resolved containers
+    if (setContext) {
+      const containerToken =
+        this.dockerWorkerHookService.createDockerContainerToken({
+          appIdentifier: setContext.appIdentifier,
+          profileKey: setContext.profileKey,
+          hostId,
+          containerId,
+          userId: setContext.userId,
+        })
+
+      const setContextExec = await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        [
+          'lombok-worker-agent',
+          'set-context',
+          '--secret',
+          setContext.contextSecret,
+          `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
+        ],
+      )
+
+      const setContextState = await setContextExec.state(10_000)
+      if (setContextState.running || setContextState.exitCode !== 0) {
+        const { stdout, stderr } = setContextExec.output()
+        throw new AsyncWorkError({
+          name: 'SetContextError',
+          origin: 'internal',
+          message: `Failed to set container context: exit=${setContextState.running ? 'timeout' : setContextState.exitCode} stdout=${stdout} stderr=${stderr}`,
+          code: 'SET_CONTEXT_FAILED',
+          stack: new Error().stack,
+          details: { containerId, hostId },
+        })
+      }
+    }
+
+    return { hostId, containerId }
+  }
+
+  /**
+   * Find or create a container and execute a command.
+   */
+  async execInResolvedContainer(
+    attributes: { profileKey: string } | { containerRef: string },
+    options: ContainerCreateOptions,
+    buildCommand: (containerMetadata: {
+      containerId: string
+      hostId: string
+    }) => string[],
+  ): Promise<{
+    containerId: string
+    hostId: string
+    getError: () => Promise<DockerError>
+    state: DockerStateFunc
+    output: () => { stdout: string; stderr: string }
+  }> {
+    const { hostId, containerId } = await this.resolveContainer(
+      attributes,
+      options,
+    )
+
+    const command = buildCommand({ containerId, hostId })
+
+    this.logger.debug('execInResolvedContainer:', {
+      hostId,
+      containerId,
+      command,
+      labels: options.labels,
+    })
+
+    const { getError, state, output } =
+      await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        command,
+      )
+
+    return {
+      getError,
+      hostId,
+      containerId,
+      state,
+      output,
     }
   }
 
@@ -167,7 +417,17 @@ export class DockerJobsService {
     waitForCompletion: T,
   ): Promise<DockerExecResult<T>> {
     try {
-      const { jobIdentifier, jobData, profileKey, profileSpec } = params
+      const startTime = performance.now()
+
+      const {
+        jobIdentifier,
+        jobData,
+        profileKey,
+        profileSpec,
+        containerRef,
+        appIdentifier,
+        userId,
+      } = params
 
       // generate a job id to represent this execution
       const jobId = crypto.randomUUID()
@@ -185,29 +445,50 @@ export class DockerJobsService {
       const labels = this.buildContainerLabels(
         containerProfileIdentifier,
         profileHash,
+        profileSpec.image,
+        appIdentifier,
+        userId,
       )
 
-      // create the worker token if one is required
-      const jobToken =
-        params.asyncTaskId || params.storageAccessPolicy
-          ? this.dockerWorkerHookService.createDockerWorkerJobToken({
-              jobId,
-              ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
-              storageAccessPolicy: params.storageAccessPolicy,
-              executorContext: {
-                profileKey,
-                profileHash,
-                jobIdentifier,
-              },
-            })
-          : undefined
+      // Generate a context secret that the platform passes at container creation
+      // and later uses to authenticate set-context exec calls.
+      const contextSecret = crypto.randomUUID()
+
+      const containerCreateOptions = {
+        image: profileSpec.image,
+        labels,
+        env: { LOMBOK_CONTEXT_SECRET: contextSecret },
+      }
+
+      // 1. Resolve (find or create) the container, injecting context on creation
+      const { hostId, containerId } = await this.resolveContainer(
+        containerRef ? { containerRef } : { profileKey },
+        containerCreateOptions,
+        { contextSecret, appIdentifier, profileKey, userId },
+      )
+
+      // 2. Execute the job
+      const jobToken = this.dockerWorkerHookService.createDockerWorkerJobToken({
+        jobId,
+        ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+        storageAccessPolicy: params.storageAccessPolicy ?? {
+          rules: [],
+        },
+        executorMetadata: {
+          profileKey,
+          profileHash,
+          jobIdentifier,
+          containerId,
+          hostId,
+        },
+      })
 
       const jobExecuteOptions: JobExecuteOptions = {
         job_id: jobId,
         job_class: jobIdentifier,
         job_input: jobData,
         job_token: jobToken,
-        worker_command: jobDefinition.command, // Default worker path, can be customized per job class
+        worker_command: jobDefinition.command,
         interface:
           jobDefinition.kind === 'http'
             ? {
@@ -224,7 +505,9 @@ export class DockerJobsService {
           ? {
               folder_id: params.storageAccessPolicy.outputLocation.folderId,
               ...('prefix' in params.storageAccessPolicy.outputLocation
-                ? { prefix: params.storageAccessPolicy.outputLocation.prefix }
+                ? {
+                    prefix: params.storageAccessPolicy.outputLocation.prefix,
+                  }
                 : {}),
               ...('objectKey' in params.storageAccessPolicy.outputLocation
                 ? {
@@ -236,24 +519,16 @@ export class DockerJobsService {
           : undefined,
       }
 
-      // Base64 encode the payload
       const payloadBase64 = Buffer.from(
         JSON.stringify(jobExecuteOptions),
       ).toString('base64')
 
-      // Build the command to run in the container
-      const agentCommand = [
-        'lombok-worker-agent',
-        'run-job',
-        `--payload-base64=${payloadBase64}`,
-      ]
-
-      const { hostId, containerId, state, output, getError } =
-        await this.dockerClientService.execInProfileContainer(profileKey, {
-          image: profileSpec.image,
-          command: agentCommand,
-          labels,
-        })
+      const { state, output, getError } =
+        await this.dockerClientService.execInContainer(hostId, containerId, [
+          'lombok-worker-agent',
+          'run-job',
+          `--payload-base64=${payloadBase64}`,
+        ])
 
       // Wait for the agent exec call to complete, signifying that the job has been submitted
       try {
@@ -265,7 +540,6 @@ export class DockerJobsService {
           () => this.getJobState(hostId, containerId, jobId),
           jobDefinition.kind,
         )
-        this.logger.debug(`Job ${jobId} submitted successfully`)
       } catch (error) {
         this.logger.debug(
           `Job ${jobId} submission failed: ${error instanceof Error ? error.message : String(error)}.`,
@@ -286,10 +560,17 @@ export class DockerJobsService {
           containerId,
           jobId,
         )
-        return completionResult
+        this.logger.debug(
+          `Job ${jobId} completed in ${(performance.now() - startTime).toFixed(0)}ms total`,
+        )
+        return {
+          ...completionResult,
+          containerId,
+        }
       } else {
         const submitResult: DockerSubmitResult = {
           jobId,
+          containerId,
         }
         return submitResult as DockerExecResult<T>
       }
@@ -573,6 +854,7 @@ export class DockerJobsService {
       ? {
           ...agentResponse,
           jobId: agentResponse.job_id,
+          containerId,
         }
       : {
           success: false,
@@ -897,7 +1179,7 @@ export class DockerJobsService {
     try {
       const rawContainers =
         await this.dockerClientService.listContainersByLabels(hostId, {
-          [DOCKER_LABELS.PLATFORM]: 'lombok',
+          [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
         })
       containers = rawContainers.map((container) => ({
         ...container,
@@ -971,18 +1253,21 @@ type DockerJobResult =
   | {
       success: true
       jobId: string
+      containerId: string
       result: JsonSerializableObject
       timing: Record<string, number>
     }
   | {
       success: false
       jobId: string
+      containerId?: string
       error: { code: string; message: string }
       timing: Record<string, number>
     }
 
 interface DockerSubmitResult {
   jobId: string
+  containerId: string
 }
 
 interface DockerJobState {

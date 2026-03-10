@@ -157,7 +157,7 @@ describe('MCP', () => {
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
-      debug: true,
+      // debug: true,
     })
     apiClient = testModule.apiClient
     app = testModule.app.getHttpServer() as App

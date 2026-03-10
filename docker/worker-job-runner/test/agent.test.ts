@@ -140,6 +140,7 @@ interface MockPlatformServerState {
   }>
   startRequests: Array<{ jobId: string; timestamp: number }>
   outputFiles: Array<{ url: string; contentType: string; body: string }>
+  refreshRequests: Array<{ token: string; timestamp: number }>
 }
 
 interface ExecResult {
@@ -523,6 +524,7 @@ let mockPlatformState: MockPlatformServerState = {
   updateRequests: [],
   startRequests: [],
   outputFiles: [],
+  refreshRequests: [],
 }
 
 function resetMockPlatformState(): void {
@@ -532,7 +534,31 @@ function resetMockPlatformState(): void {
     updateRequests: [],
     startRequests: [],
     outputFiles: [],
+    refreshRequests: [],
   }
+}
+
+/**
+ * Create a fake JWT with a given expiry for testing token refresh.
+ * The Go agent only decodes the payload to read `exp` — it does not verify the signature.
+ */
+function createFakeJWT(expiresInSeconds: number): string {
+  const header = Buffer.from(
+    JSON.stringify({ alg: 'HS256', typ: 'JWT' }),
+  ).toString('base64url')
+  const payload = Buffer.from(
+    JSON.stringify({
+      exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
+      sub: 'docker_container:test-container-id',
+      aud: 'test-platform',
+      app_identifier: 'test-app',
+      profile_key: 'test:profile',
+      host_id: 'local',
+      container_id: 'test-container-id',
+    }),
+  ).toString('base64url')
+  const signature = Buffer.from('fake-signature').toString('base64url')
+  return `${header}.${payload}.${signature}`
 }
 
 function startMockPlatformServer(): void {
@@ -542,6 +568,31 @@ function startMockPlatformServer(): void {
     fetch: async (req) => {
       const url = new URL(req.url)
       const path = url.pathname
+
+      // Token refresh endpoint — accepts any Bearer token (container tokens, not job tokens)
+      if (
+        path === '/api/v1/docker/refresh-container-token' &&
+        req.method === 'POST'
+      ) {
+        const containerAuth = req.headers.get('Authorization')
+        if (!containerAuth?.startsWith('Bearer ')) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+        const containerToken = containerAuth.slice('Bearer '.length)
+        mockPlatformState.refreshRequests.push({
+          token: containerToken,
+          timestamp: Date.now(),
+        })
+        // Return a new token with 24-hour expiry
+        const newToken = createFakeJWT(24 * 60 * 60)
+        return new Response(JSON.stringify({ token: newToken }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
 
       // Check authorization header
       const authHeader = req.headers.get('Authorization')
@@ -5769,5 +5820,145 @@ describe('Platform Agent', () => {
       })
       expect(workerLogs.length).toBeGreaterThan(0)
     })
+  })
+
+  // ===========================================================================
+  // Token Refresh Tests
+  // ===========================================================================
+
+  describe('token-refresh', () => {
+    const CONTEXT_ENV_PATH = '/var/lib/lombok-worker-agent/context.env'
+
+    async function writeContextEnv(content: string): Promise<void> {
+      const b64 = Buffer.from(content).toString('base64')
+      await execInContainer([
+        'sh',
+        '-c',
+        `echo '${b64}' | base64 -d > ${CONTEXT_ENV_PATH} && chmod 600 ${CONTEXT_ENV_PATH}`,
+      ])
+    }
+
+    async function readContextEnv(): Promise<string> {
+      return readFileInContainer(CONTEXT_ENV_PATH)
+    }
+
+    async function restartAgentContainer(): Promise<void> {
+      if (!container) throw new Error('Container not started')
+      await container.restart({ t: 2 })
+      // Wait for container to be running again
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
+
+    function buildContextEnvContent(token: string): string {
+      return `LOMBOK_CONTAINER_TOKEN=${token}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\n`
+    }
+
+    test(
+      'token-refresh: refreshes token approaching expiry',
+      async () => {
+        // Token with 6 hours remaining — below the 12-hour threshold
+        const nearExpiringToken = createFakeJWT(6 * 60 * 60)
+
+        await writeContextEnv(buildContextEnvContent(nearExpiringToken))
+        resetMockPlatformState()
+        await restartAgentContainer()
+
+        // Wait for the 30-second initial delay + buffer
+        await new Promise((resolve) => setTimeout(resolve, 38_000))
+
+        // Agent should have called the refresh endpoint
+        expect(mockPlatformState.refreshRequests.length).toBeGreaterThanOrEqual(
+          1,
+        )
+        expect(mockPlatformState.refreshRequests[0]?.token).toBe(
+          nearExpiringToken,
+        )
+
+        // context.env should now contain the new token (not the old one)
+        const updatedEnv = await readContextEnv()
+        expect(updatedEnv).toContain('LOMBOK_CONTAINER_TOKEN=')
+        expect(updatedEnv).not.toContain(nearExpiringToken)
+
+        const newToken = updatedEnv
+          .split('\n')
+          .find((l) => l.startsWith('LOMBOK_CONTAINER_TOKEN='))
+          ?.substring('LOMBOK_CONTAINER_TOKEN='.length)
+        expect(newToken).toBeDefined()
+        expect(newToken!.length).toBeGreaterThan(0)
+        expect(newToken).not.toBe(nearExpiringToken)
+      },
+      60_000,
+    )
+
+    test(
+      'token-refresh: skips refresh when token has sufficient validity',
+      async () => {
+        // Token with 20 hours remaining — above the 12-hour threshold
+        const longLivedToken = createFakeJWT(20 * 60 * 60)
+
+        await writeContextEnv(buildContextEnvContent(longLivedToken))
+        resetMockPlatformState()
+        await restartAgentContainer()
+
+        // Wait for the 30-second initial delay + buffer
+        await new Promise((resolve) => setTimeout(resolve, 38_000))
+
+        // No refresh request should have been made
+        expect(mockPlatformState.refreshRequests.length).toBe(0)
+
+        // context.env should still contain the original token
+        const env = await readContextEnv()
+        expect(env).toContain(longLivedToken)
+      },
+      60_000,
+    )
+
+    test(
+      'token-refresh: handles missing context.env gracefully',
+      async () => {
+        await execInContainer(['rm', '-f', CONTEXT_ENV_PATH])
+        resetMockPlatformState()
+        await restartAgentContainer()
+
+        // Wait for the 30-second initial delay + buffer
+        await new Promise((resolve) => setTimeout(resolve, 38_000))
+
+        // No refresh request should have been made
+        expect(mockPlatformState.refreshRequests.length).toBe(0)
+
+        // Agent log should have only debug-level token refresh messages, no errors
+        const agentLog = await readAgentLog({ grep: 'Token refresh' })
+        const entries = parseStructuredLogs(agentLog)
+        const errorEntries = entries.filter((e) => e.level === 'ERROR')
+        expect(errorEntries.length).toBe(0)
+      },
+      60_000,
+    )
+
+    test(
+      'token-refresh: preserves other context.env variables during refresh',
+      async () => {
+        const nearExpiringToken = createFakeJWT(6 * 60 * 60)
+        const content = `LOMBOK_CONTAINER_TOKEN=${nearExpiringToken}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\nCUSTOM_VAR=some_value\n`
+
+        await writeContextEnv(content)
+        resetMockPlatformState()
+        await restartAgentContainer()
+
+        // Wait for the 30-second initial delay + buffer
+        await new Promise((resolve) => setTimeout(resolve, 38_000))
+
+        // Refresh should have happened
+        expect(mockPlatformState.refreshRequests.length).toBeGreaterThanOrEqual(
+          1,
+        )
+
+        // Other variables should be preserved
+        const updatedEnv = await readContextEnv()
+        expect(updatedEnv).toContain('CUSTOM_VAR=some_value')
+        expect(updatedEnv).toContain('LOMBOK_PLATFORM_URL=')
+      },
+      60_000,
+    )
   })
 })

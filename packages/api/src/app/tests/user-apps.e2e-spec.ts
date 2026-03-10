@@ -271,6 +271,7 @@ describe('User Apps', () => {
 
   it(`should generate a valid user app access token`, async () => {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -298,6 +299,20 @@ describe('User Apps', () => {
           },
         },
         body: { enabled: true },
+      },
+    )
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/access-settings`,
+      {
+        params: {
+          path: {
+            appIdentifier,
+          },
+        },
+        body: {
+          userScopeEnabledDefault: true,
+          folderScopeEnabledDefault: true,
+        },
       },
     )
 
@@ -331,7 +346,7 @@ describe('User Apps', () => {
     expect(viewerResponse.data?.user.username).toBe('testuser11')
   })
 
-  it(`should return 404 for non-existent app when generating access token`, async () => {
+  it(`should return 401 for non-existent app when generating access token`, async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -351,7 +366,7 @@ describe('User Apps', () => {
       },
     )
 
-    expect(generateTokenResponse.response.status).toEqual(404)
+    expect(generateTokenResponse.response.status).toEqual(401)
   })
 
   it(`should require authentication for user apps endpoints`, async () => {
@@ -374,6 +389,213 @@ describe('User Apps', () => {
       '/api/v1/user/app-contributions',
     )
     expect(contributionsResponse.response.status).toBe(401)
+  })
+
+  it(`should not generate app user access token when app is disabled at system level`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'testuser_sys_disabled',
+      password: '123',
+    })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+
+    // Ensure app is disabled at system level (default after install)
+    const {
+      session: { accessToken: adminToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin_sys_disabled',
+      password: '123',
+      admin: true,
+    })
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/enabled`,
+      {
+        params: { path: { appIdentifier } },
+        body: { enabled: false },
+      },
+    )
+
+    const generateTokenResponse = await apiClient(accessToken).POST(
+      `/api/v1/user/apps/{appIdentifier}/access-token`,
+      {
+        params: { path: { appIdentifier } },
+      },
+    )
+
+    expect(generateTokenResponse.response.status).toEqual(401)
+  })
+
+  it(`should not generate app user access token when user has disabled the app`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
+    // Enable app at system level
+    const {
+      session: { accessToken: adminToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin_user_disabled',
+      password: '123',
+      admin: true,
+    })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/enabled`,
+      {
+        params: { path: { appIdentifier } },
+        body: { enabled: true },
+      },
+    )
+
+    // Create user and explicitly disable the app for them
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'testuser_user_disabled',
+      password: '123',
+    })
+
+    await apiClient(accessToken).POST(
+      `/api/v1/user/apps/{appIdentifier}/settings`,
+      {
+        params: { path: { appIdentifier } },
+        body: {
+          enabled: false,
+          folderScopeEnabledDefault: null,
+          folderScopePermissionsDefault: null,
+          permissions: null,
+        },
+      },
+    )
+
+    const generateTokenResponse = await apiClient(accessToken).POST(
+      `/api/v1/user/apps/{appIdentifier}/access-token`,
+      {
+        params: { path: { appIdentifier } },
+      },
+    )
+
+    expect(generateTokenResponse.response.status).toEqual(401)
+  })
+
+  it(`should not generate app user access token when userScopeEnabledDefault is false and user has no settings`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
+    const {
+      session: { accessToken: adminToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin_default_disabled',
+      password: '123',
+      admin: true,
+    })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+
+    // Enable app at system level but set userScopeEnabledDefault to false
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/enabled`,
+      {
+        params: { path: { appIdentifier } },
+        body: { enabled: true },
+      },
+    )
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/access-settings`,
+      {
+        params: { path: { appIdentifier } },
+        body: {
+          userScopeEnabledDefault: false,
+          folderScopeEnabledDefault: false,
+        },
+      },
+    )
+
+    // Create user with no app-specific settings
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'testuser_default_disabled',
+      password: '123',
+    })
+
+    const generateTokenResponse = await apiClient(accessToken).POST(
+      `/api/v1/user/apps/{appIdentifier}/access-token`,
+      {
+        params: { path: { appIdentifier } },
+      },
+    )
+
+    expect(generateTokenResponse.response.status).toEqual(401)
+  })
+
+  it(`should generate app user access token when user explicitly enables a default-disabled app`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
+    const {
+      session: { accessToken: adminToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin_user_override',
+      password: '123',
+      admin: true,
+    })
+
+    const appIdentifier =
+      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+
+    // Enable app at system level but set userScopeEnabledDefault to false
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/enabled`,
+      {
+        params: { path: { appIdentifier } },
+        body: { enabled: true },
+      },
+    )
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/access-settings`,
+      {
+        params: { path: { appIdentifier } },
+        body: {
+          userScopeEnabledDefault: false,
+          folderScopeEnabledDefault: false,
+        },
+      },
+    )
+
+    // Create user and explicitly enable the app
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'testuser_user_override',
+      password: '123',
+    })
+
+    await apiClient(accessToken).POST(
+      `/api/v1/user/apps/{appIdentifier}/settings`,
+      {
+        params: { path: { appIdentifier } },
+        body: {
+          enabled: true,
+          folderScopeEnabledDefault: null,
+          folderScopePermissionsDefault: null,
+          permissions: null,
+        },
+      },
+    )
+
+    const generateTokenResponse = await apiClient(accessToken).POST(
+      `/api/v1/user/apps/{appIdentifier}/access-token`,
+      {
+        params: { path: { appIdentifier } },
+      },
+    )
+
+    expect(generateTokenResponse.response.status).toEqual(201)
+    expect(generateTokenResponse.data?.session.accessToken).toBeDefined()
   })
 
   afterAll(async () => {

@@ -69,14 +69,12 @@ export class ServerDockerHostsController {
           .map(([profileKey]) => profileKey)
           .sort()
 
-        const environmentVariableKeys = config.environmentVariables
+        const environmentVariableKeys = config.env
           ? Object.fromEntries(
-              Object.entries(config.environmentVariables).map(
-                ([profileKey, variables]) => [
-                  profileKey,
-                  Object.keys(variables).sort(),
-                ],
-              ),
+              Object.entries(config.env).map(([profileKey, variables]) => [
+                profileKey,
+                Object.keys(variables).sort(),
+              ]),
             )
           : undefined
 

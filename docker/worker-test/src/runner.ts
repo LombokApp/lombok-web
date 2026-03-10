@@ -11,7 +11,7 @@ import { validateJobResult } from './validation'
 
 export interface TestResult {
   jobId: string
-  jobConfigId?: string
+  jobName?: string
   success: boolean
   error?: string
   validationErrors?: string[]
@@ -88,13 +88,13 @@ export class TestRunner {
           const errorMsg =
             error instanceof Error ? error.message : String(error)
           errors.push(
-            `Job ${jobConfig.id ?? 'unknown'} (${
+            `Job ${jobConfig.name ?? 'unknown'} (${
               jobConfig.payload.job_id
             }): ${errorMsg}`,
           )
           results.push({
             jobId: jobConfig.payload.job_id,
-            jobConfigId: jobConfig.id,
+            jobName: jobConfig.name,
             success: false,
             error: errorMsg,
           })
@@ -404,7 +404,7 @@ export class TestRunner {
 
     if (verbose) {
       console.log(
-        `\nRunning job: ${jobConfig.id ?? 'unknown'} (${
+        `\nRunning job: ${jobConfig.name ?? 'unknown'} (${
           jobConfig.payload.job_id
         })`,
       )
@@ -412,10 +412,14 @@ export class TestRunner {
       console.log(`  Interface: ${jobConfig.payload.interface.kind}`)
     }
 
+    const submissionTimeout = jobConfig.submissionTimeout ?? 10000 // 10 seconds default
+    const completionTimeout = jobConfig.completionTimeout ?? 300000 // 5 minutes default
+
     try {
       // Execute job
       const executionResult = await dispatcher.executeJob(jobConfig.payload, {
-        timeout: 300000, // 5 minutes
+        submissionTimeout,
+        completionTimeout,
         pollInterval: 2000, // 2 seconds
         collectLogs: true,
       })
@@ -505,7 +509,7 @@ export class TestRunner {
 
       return {
         jobId: executionResult.jobId,
-        jobConfigId: jobConfig.id,
+        jobName: jobConfig.name,
         success,
         error:
           executionResult.state.status === 'failed'
@@ -517,9 +521,56 @@ export class TestRunner {
         logs: executionResult.logs,
       }
     } catch (error) {
-      console.log('\n--- Test Runner Error ---')
-      console.error(error instanceof Error ? error.message : String(error))
-      console.error(error instanceof Error ? error.stack : undefined)
+      const isTimeout =
+        error instanceof Error &&
+        (error as { code?: string }).code === 'EXEC_TIMEOUT'
+      const errorMsg = error instanceof Error ? error.message : String(error)
+
+      console.error(
+        `\n--- ${
+          isTimeout ? 'Job Submission Timeout' : 'Test Runner Error'
+        } ---`,
+      )
+      console.error(errorMsg)
+      if (error instanceof Error && error.stack && !isTimeout) {
+        console.error(error.stack)
+      }
+
+      // Extract container logs to help diagnose the failure
+      if (this.docker && this.containerId) {
+        let containerLogs = ''
+        try {
+          containerLogs = await this.docker.getContainerLogs(this.containerId, {
+            tail: 100,
+          })
+          if (containerLogs.trim()) {
+            console.error('\n--- Container Logs (last 100 lines) ---')
+            for (const line of containerLogs.split('\n')) {
+              const isError = /error|fatal|panic|exception|traceback/i.test(
+                line,
+              )
+              ;(isError ? console.error : console.log)(line)
+            }
+            console.error('--- End Container Logs ---')
+          }
+        } catch (logErr) {
+          console.error(
+            'Failed to fetch container logs:',
+            logErr instanceof Error ? logErr.message : String(logErr),
+          )
+        }
+
+        // If "Poll error" detected, dump raw state files via exec (bypassing the agent)
+        // await this.dumpJobStateFiles(jobConfig.payload.job_id ?? '')
+        if (jobConfig.payload.job_id) {
+          await this.printVerboseJobInfo(
+            dispatcher,
+            jobConfig.payload.job_id,
+            false,
+          )
+        }
+      }
+
       throw error
     }
   }

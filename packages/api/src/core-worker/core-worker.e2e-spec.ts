@@ -623,11 +623,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
     })
@@ -680,11 +693,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
     })
@@ -729,8 +755,11 @@ describe('Core Worker', () => {
           logType: 'started',
           message: 'Task is started',
           payload: {
-            __executor: {
-              kind: 'core_worker',
+            executorMetadata: {
+              metadata: {
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
             },
           },
         },
@@ -753,6 +782,12 @@ describe('Core Worker', () => {
               },
               stack: expect.any(String) as string,
             },
+            executorMetadata: {
+              metadata: {
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
+            },
           },
         },
         {
@@ -773,11 +808,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
 
@@ -824,8 +872,11 @@ describe('Core Worker', () => {
           logType: 'started',
           message: 'Task is started',
           payload: {
-            __executor: {
-              kind: 'core_worker',
+            executorMetadata: {
+              metadata: {
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
             },
           },
         },
@@ -834,6 +885,12 @@ describe('Core Worker', () => {
           logType: 'error',
           message: 'Task failed',
           payload: {
+            executorMetadata: {
+              metadata: {
+                workerIdentifier: 'test_worker',
+              },
+              type: 'runtime',
+            },
             error: {
               name: 'InvalidAppTaskError',
               message: 'The thrown AppTaskError was invalid',
@@ -872,11 +929,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
     })

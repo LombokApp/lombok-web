@@ -15,6 +15,7 @@ import { CoreTaskName, MAX_TASK_ATTEMPTS } from 'src/task/task.constants'
 import type { CoreTask } from '../base.processor'
 import { BaseCoreTaskProcessor } from '../base.processor'
 import { tasksTable } from '../entities/task.entity'
+import { serializeLogEntry } from '../util/log-encoder.util'
 import { TaskService } from './task.service'
 
 const MAX_CONCURRENT_CORE_TASKS = 10
@@ -156,6 +157,12 @@ export class CoreTaskService {
           at: startedTimestamp,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         }
 
         await tx
@@ -163,7 +170,7 @@ export class CoreTaskService {
           .set({
             systemLog: sql<
               SystemLogEntry[]
-            >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify([coreTaskStartLog])}::jsonb`,
+            >`coalesce(${tasksTable.systemLog}, '[]'::jsonb) || ${JSON.stringify([serializeLogEntry(coreTaskStartLog)])}::jsonb`,
           })
           .where(eq(tasksTable.id, taskId))
 
@@ -201,6 +208,10 @@ export class CoreTaskService {
               return this.taskService.registerTaskCompleted(taskId, {
                 success: true,
                 // result: processorResult?.result,
+                executorMetadata: {
+                  type: 'system',
+                  metadata: {},
+                },
               })
             }
             return startedTask
@@ -218,6 +229,10 @@ export class CoreTaskService {
 
             return this.taskService.registerTaskCompleted(taskId, {
               success: false,
+              executorMetadata: {
+                type: 'system',
+                metadata: {},
+              },
               error: capturedError.toEnvelope(),
             })
           })

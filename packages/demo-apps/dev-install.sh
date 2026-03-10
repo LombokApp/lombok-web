@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Generic dev install script for demo apps
-# Usage: ./dev-install.sh [--install-deps] <app-name>
+# Usage: ./dev-install.sh [--install-deps] [--run-scripts] <app-name>
 
 set -euo pipefail
 
 RUN_INSTALL=false
+RUN_SCRIPTS=false
 
 # Parse flags
 while [[ $# -gt 0 ]]; do
@@ -14,9 +15,13 @@ while [[ $# -gt 0 ]]; do
       RUN_INSTALL=true
       shift
       ;;
+    --run-scripts)
+      RUN_SCRIPTS=true
+      shift
+      ;;
     -*)
       echo "Unknown flag: $1"
-      echo "Usage: $0 [--install-deps] <app-name>"
+      echo "Usage: $0 [--install-deps] [--run-scripts] <app-name>"
       exit 1
       ;;
     *)
@@ -27,8 +32,8 @@ done
 
 # Check for app name argument
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 [--install-deps] <app-name>"
-  echo "Example: $0 --install-deps simple-demo"
+  echo "Usage: $0 [--install-deps] [--run-scripts] <app-name>"
+  echo "Example: $0 --install-deps --run-scripts simple-demo"
   exit 1
 fi
 
@@ -141,8 +146,58 @@ fi
 echo "App installed successfully!"
 echo "Response: $INSTALL_BODY"
 
-# Step 6: Cleanup
+# Step 6: Enable app for all users
+echo "Step 6: Enabling app for all users..."
+if command -v jq &> /dev/null; then
+  APP_IDENTIFIER=$(echo "$INSTALL_BODY" | jq -r '.app.identifier')
+else
+  echo "Error: jq is required to extract app identifier from install response"
+  exit 1
+fi
+
+if [ -z "$APP_IDENTIFIER" ] || [ "$APP_IDENTIFIER" = "null" ]; then
+  echo "Warning: Could not extract app identifier from install response, skipping enable step"
+else
+  ENABLE_RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT "$API_URL/api/v1/server/apps/$APP_IDENTIFIER/access-settings" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"userScopeEnabledDefault": true, "folderScopeEnabledDefault": true}')
+
+  HTTP_CODE=$(echo "$ENABLE_RESPONSE" | tail -n1)
+  ENABLE_BODY=$(echo "$ENABLE_RESPONSE" | sed '$d')
+
+  if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ]; then
+    echo "Warning: Failed to enable app with HTTP status $HTTP_CODE"
+    echo "Response: $ENABLE_BODY"
+  else
+    echo "App '$APP_IDENTIFIER' enabled for all users"
+  fi
+fi
+
+# Step 7: Run dev scripts (optional)
+if [ "$RUN_SCRIPTS" = true ]; then
+  DEV_SCRIPTS_DIR="$APP_DIR/dev-scripts"
+  if [ -d "$DEV_SCRIPTS_DIR" ]; then
+    SCRIPTS=($(find "$DEV_SCRIPTS_DIR" -maxdepth 1 -name '*.ts' | sort))
+    if [ ${#SCRIPTS[@]} -gt 0 ]; then
+      echo "Step 7: Running ${#SCRIPTS[@]} dev script(s)..."
+      for SCRIPT_FILE in "${SCRIPTS[@]}"; do
+        SCRIPT_NAME=$(basename "$SCRIPT_FILE")
+        echo "  Running $SCRIPT_NAME..."
+        (cd "$APP_DIR" && APP_IDENTIFIER="$APP_IDENTIFIER" API_URL="$API_URL" API_TOKEN="$TOKEN" bun run "$SCRIPT_FILE")
+        echo "  $SCRIPT_NAME completed"
+      done
+    else
+      echo "Step 7: No dev scripts found in $DEV_SCRIPTS_DIR"
+    fi
+  else
+    echo "Step 7: No dev-scripts/ directory found, skipping"
+  fi
+fi
+
+# Step 8: Cleanup
 echo "Cleaning up temporary zip file..."
 rm -f "$APP_DIR/$ZIP_FILE"
 
+echo ""
 echo "Dev install completed successfully for $APP_NAME!"

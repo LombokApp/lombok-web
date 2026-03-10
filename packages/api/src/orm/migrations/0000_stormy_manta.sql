@@ -1,3 +1,19 @@
+CREATE TABLE "app_custom_folder_settings" (
+	"folder_id" uuid NOT NULL,
+	"app_identifier" text NOT NULL,
+	"values" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "app_custom_user_settings" (
+	"user_id" uuid NOT NULL,
+	"app_identifier" text NOT NULL,
+	"values" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "app_folder_settings" (
 	"folder_id" uuid NOT NULL,
 	"app_identifier" text NOT NULL,
@@ -303,6 +319,10 @@ CREATE TABLE "users" (
 	"updated_at" timestamp NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "app_custom_folder_settings" ADD CONSTRAINT "app_custom_folder_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_custom_folder_settings" ADD CONSTRAINT "app_custom_folder_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -333,6 +353,8 @@ ALTER TABLE "notification_settings" ADD CONSTRAINT "notification_settings_folder
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_target_location_folder_id_folders_id_fk" FOREIGN KEY ("target_location_folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_target_user_id_users_id_fk" FOREIGN KEY ("target_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "app_custom_folder_settings_folder_app_unique" ON "app_custom_folder_settings" USING btree ("folder_id","app_identifier");--> statement-breakpoint
+CREATE UNIQUE INDEX "app_custom_user_settings_user_app_unique" ON "app_custom_user_settings" USING btree ("user_id","app_identifier");--> statement-breakpoint
 CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING btree ("folder_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folder_id","app_identifier");--> statement-breakpoint
 CREATE INDEX "app_user_settings_user_id_idx" ON "app_user_settings" USING btree ("user_id");--> statement-breakpoint

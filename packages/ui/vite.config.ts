@@ -29,6 +29,9 @@ function createWsHandlers(wsTarget: string) {
     close(ws: BunWs) {
       ws.data.backendWs?.close()
     },
+    drain() {
+      // no-op: required by Bun's WebSocket handler interface
+    },
   }
 }
 
@@ -140,7 +143,7 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
           return
         }
 
-        const appFrontendProxyHostConfigEnvKey = `LOMBOK_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}`
+        const appFrontendProxyHostConfigEnvKey = `LOMBOK_APP_FRONTEND_PROXY_HOST_${appIdentifier.split('_')[0]?.toUpperCase()}`
         const appProxyHostConfig = env[appFrontendProxyHostConfigEnvKey]
           ? new URL(env[appFrontendProxyHostConfigEnvKey])
           : undefined

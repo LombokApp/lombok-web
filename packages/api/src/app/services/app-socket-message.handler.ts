@@ -18,6 +18,7 @@ import type { TaskService } from 'src/task/services/task.service'
 import { z } from 'zod'
 
 import type { AppService } from './app.service'
+import type { AppCustomSettingsService } from './app-custom-settings.service'
 
 export type AppSocketMessageName = z.infer<typeof AppSocketMessage>
 
@@ -81,6 +82,7 @@ export async function handleAppSocketMessage(
     folderService,
     appService,
     jwtService,
+    customSettingsService,
   }: {
     eventService: EventService
     ormService: OrmService
@@ -89,6 +91,7 @@ export async function handleAppSocketMessage(
     taskService: TaskService
     jwtService: JWTService
     appService: AppService
+    customSettingsService: AppCustomSettingsService
   },
 ): Promise<AppSocketResponse<AppSocketMessageName>> {
   const parsedRequest = parseAppSocketRequest(message)
@@ -325,6 +328,42 @@ export async function handleAppSocketMessage(
           },
         }
       }
+      return { result: { success: true } }
+    }
+    case 'GET_APP_CUSTOM_SETTINGS': {
+      const app = await appService.getApp(requestingAppIdentifier)
+      if (!app) {
+        return { error: { code: 404, message: 'App not found.' } }
+      }
+      const settingsConfig = app.config.settings
+      if (!settingsConfig?.user) {
+        return { result: { values: {} } }
+      }
+      const settingsResult =
+        await customSettingsService.getUserCustomSettingsUnmasked(
+          parsedRequest.data.userId,
+          app,
+        )
+      return { result: { values: settingsResult.values } }
+    }
+    case 'SET_APP_CUSTOM_SETTINGS': {
+      const app = await appService.getApp(requestingAppIdentifier)
+      if (!app) {
+        return { error: { code: 404, message: 'App not found.' } }
+      }
+      if (!app.config.settings?.user) {
+        return {
+          error: {
+            code: 400,
+            message: 'App does not define user-level custom settings.',
+          },
+        }
+      }
+      await customSettingsService.putUserCustomSettings(
+        parsedRequest.data.userId,
+        app,
+        parsedRequest.data.settings,
+      )
       return { result: { success: true } }
     }
   }

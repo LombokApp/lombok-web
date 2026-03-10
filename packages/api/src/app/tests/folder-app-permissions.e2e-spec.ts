@@ -1377,7 +1377,7 @@ describe('Folder App Permissions', () => {
       ).toEqual({ value: false, source: 'system' })
     })
 
-    it.only(`should delete folder app settings by setting app to null`, async () => {
+    it(`should delete folder app settings by setting app to null`, async () => {
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {

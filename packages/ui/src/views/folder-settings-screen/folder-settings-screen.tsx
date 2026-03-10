@@ -6,6 +6,7 @@ import {
 } from '@lombokapp/ui-toolkit/components/tabs/tabs'
 
 import { FolderAppConfigTab } from './folder-app-config-tab'
+import { FolderCustomSettingsTab } from './folder-custom-settings-tab'
 import { FolderMcpSettingsTab } from './folder-mcp-settings-tab'
 
 interface FolderSettingsScreenProps {
@@ -26,13 +27,17 @@ export function FolderSettingsScreen({ folderId }: FolderSettingsScreenProps) {
       <Tabs defaultValue="mcp" className="w-full">
         <TabsList>
           <TabsTrigger value="mcp">MCP Permissions</TabsTrigger>
-          <TabsTrigger value="apps">App Settings</TabsTrigger>
+          <TabsTrigger value="apps">App Access</TabsTrigger>
+          <TabsTrigger value="custom-settings">App Settings</TabsTrigger>
         </TabsList>
         <TabsContent value="mcp" className="mt-6">
           <FolderMcpSettingsTab folderId={folderId} />
         </TabsContent>
         <TabsContent value="apps" className="mt-6">
           <FolderAppConfigTab folderId={folderId} />
+        </TabsContent>
+        <TabsContent value="custom-settings" className="mt-6">
+          <FolderCustomSettingsTab folderId={folderId} />
         </TabsContent>
       </Tabs>
     </div>

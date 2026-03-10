@@ -142,8 +142,11 @@ export class AppUserSocketService {
   emitAsyncUpdate(
     scope: {
       correlationKey: string | null
+      source: string | null
+      taskIdentifier: string | null
       targetUserId: string | null
       targetLocationFolderId: string | null
+      targetLocationObjectKey: string | null
     },
     update: ReceivedTaskUpdate,
   ): void {

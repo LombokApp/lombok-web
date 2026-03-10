@@ -43,10 +43,6 @@ export function UserAppsSettingsTab() {
     <div className="flex h-full max-h-full flex-1 flex-col gap-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">App Settings</h1>
-        <p className="text-muted-foreground">Customize your app settings.</p>
-      </div>
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">App Settings</h1>
         <p className="text-muted-foreground">
           Configure settings for installed apps. Select an app to manage its
           user-scoped settings.
@@ -57,7 +53,7 @@ export function UserAppsSettingsTab() {
         {apps.map((app) => (
           <Link
             key={app.identifier}
-            to={`/settings/apps/${app.identifier}`}
+            to={`/account/settings/apps/${app.identifier}`}
             className="rounded-lg border bg-background p-4 transition-colors hover:bg-accent"
           >
             <div className="flex items-center justify-between">

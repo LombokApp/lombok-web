@@ -40,7 +40,7 @@ export const attemptStartHandleTaskByIdSchema = z.object({
 })
 
 export const getAppUserAccessTokenSchema = z.object({
-  userId: z.guid(),
+  userId: z.uuid(),
 })
 
 export const getContentSignedUrlsSchema = z.array(
@@ -115,6 +115,8 @@ export const executeAppDockerJobSchema = z.object({
   jobIdentifier: z.string(),
   jobData: jsonSerializableObjectSchema,
   storageAccessPolicy: storageAccessPolicySchema.optional(),
+  containerId: z.string().optional(),
+  targetUserId: z.string().optional(),
 })
 
 export const triggerAppTaskSchema = z.object({
@@ -153,6 +155,15 @@ export const reportTaskUpdateSchema = z.object({
   update: taskUpdateSchema,
 })
 
+export const getAppCustomSettingsSchema = z.object({
+  userId: z.string(),
+})
+
+export const setAppCustomSettingsSchema = z.object({
+  userId: z.string(),
+  settings: z.record(z.string(), z.unknown()),
+})
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
@@ -166,6 +177,8 @@ export const AppSocketMessageSchemaMap = {
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
   TRIGGER_APP_TASK: triggerAppTaskSchema,
   REPORT_TASK_UPDATE: reportTaskUpdateSchema,
+  GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
+  SET_APP_CUSTOM_SETTINGS: setAppCustomSettingsSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
@@ -264,6 +277,12 @@ export const AppSocketMessageResponseSchemaMap = {
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   TRIGGER_APP_TASK: createResponseSchema(z.null()),
   REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
+  GET_APP_CUSTOM_SETTINGS: createResponseSchema(
+    z.object({ values: z.record(z.string(), z.unknown()) }),
+  ),
+  SET_APP_CUSTOM_SETTINGS: createResponseSchema(
+    z.object({ success: z.boolean() }),
+  ),
   GET_LATEST_DB_CREDENTIALS: createResponseSchema(
     z.object({
       host: z.string(),

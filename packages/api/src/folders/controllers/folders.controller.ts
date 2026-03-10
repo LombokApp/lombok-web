@@ -18,9 +18,12 @@ import {
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
+import { AppCustomSettingsPutInputDTO } from 'src/app/dto/app-custom-settings-put-input.dto'
 import { AppFolderSettingsUpdateInputDTO } from 'src/app/dto/app-folder-settings-update-input.dto'
+import { AppCustomSettingsGetResponseDTO } from 'src/app/dto/responses/app-custom-settings-get-response.dto'
 import { AppFolderSettingsGetResponseDTO } from 'src/app/dto/responses/app-folder-settings-get-response.dto'
 import { AppService } from 'src/app/services/app.service'
+import { AppCustomSettingsService } from 'src/app/services/app-custom-settings.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
   AllowedActor,
@@ -72,6 +75,7 @@ export class FoldersController {
   constructor(
     private readonly folderService: FolderService,
     private readonly appService: AppService,
+    private readonly appCustomSettingsService: AppCustomSettingsService,
   ) {}
 
   /**
@@ -501,5 +505,72 @@ export class FoldersController {
       body,
     )
     return { settings }
+  }
+
+  /**
+   * Get resolved custom settings for an app on a folder
+   */
+  @Get('/:folderId/apps/:appIdentifier/custom-settings')
+  async getFolderCustomSettings(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<AppCustomSettingsGetResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    const result = await this.appCustomSettingsService.getFolderCustomSettings(
+      req.user.id,
+      folderId,
+      app,
+    )
+    return { settings: result }
+  }
+
+  /**
+   * Update custom settings for an app on a folder (merge semantics)
+   */
+  @Put('/:folderId/apps/:appIdentifier/custom-settings')
+  async putFolderCustomSettings(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('appIdentifier') appIdentifier: string,
+    @Body() body: AppCustomSettingsPutInputDTO,
+  ): Promise<AppCustomSettingsGetResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    await this.appCustomSettingsService.putFolderCustomSettings(
+      folderId,
+      app,
+      body.values,
+    )
+    const result = await this.appCustomSettingsService.getFolderCustomSettings(
+      req.user.id,
+      folderId,
+      app,
+    )
+    return { settings: result }
+  }
+
+  /**
+   * Remove custom settings for an app on a folder (revert to user-level)
+   */
+  @Delete('/:folderId/apps/:appIdentifier/custom-settings')
+  async deleteFolderCustomSettings(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
+    await this.appCustomSettingsService.deleteFolderCustomSettings(
+      folderId,
+      app,
+    )
   }
 }
