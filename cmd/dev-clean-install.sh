@@ -11,7 +11,7 @@ echo "🧹 Removing bun.lock..."
 rm -f bun.lock
 
 # Define the Bun image and target platform
-BUN_IMAGE="oven/bun:1.3.9-alpine"
+BUN_IMAGE="oven/bun:1.3.10-alpine"
 TARGET_PLATFORM="linux/amd64"
 
 echo "🚀 Running \"bun install\" (platform: $TARGET_PLATFORM) ..."

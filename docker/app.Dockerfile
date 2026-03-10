@@ -1,7 +1,7 @@
 FROM cgr.dev/chainguard/minio:latest AS minio
 FROM cgr.dev/chainguard/minio-client:latest AS mc
 
-FROM oven/bun:1.3.9-alpine AS base
+FROM oven/bun:1.3.10-alpine AS base
 
 WORKDIR /usr/src/app
 
