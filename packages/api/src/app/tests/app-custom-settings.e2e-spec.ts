@@ -59,12 +59,11 @@ describe('App Custom Settings', () => {
         { params: { path: { appIdentifier } } },
       )
       expect(res.response.status).toBe(200)
-      const { settings } = res.data as any
-      expect(settings.schema).toBeDefined()
-      expect(settings.values.max_retries).toBe(3)
-      expect(settings.values.theme).toBe('light')
-      expect(settings.sources.max_retries).toBe('default')
-      expect(settings.sources.theme).toBe('default')
+      expect(res.data?.settings.schema).toBeDefined()
+      expect(res.data?.settings.values.max_retries).toBe(3)
+      expect(res.data?.settings.values.theme).toBe('light')
+      expect(res.data?.settings.sources.max_retries).toBe('default')
+      expect(res.data?.settings.sources.theme).toBe('default')
     })
 
     it('should store and return user values', async () => {
@@ -76,11 +75,10 @@ describe('App Custom Settings', () => {
         },
       )
       expect(putRes.response.status).toBe(200)
-      const { settings } = putRes.data as any
-      expect(settings.values.api_key).toBe('********') // masked
-      expect(settings.values.theme).toBe('dark')
-      expect(settings.sources.api_key).toBe('user')
-      expect(settings.sources.theme).toBe('user')
+      expect(putRes.data?.settings.values.api_key).toBe('********') // masked
+      expect(putRes.data?.settings.values.theme).toBe('dark')
+      expect(putRes.data?.settings.sources.api_key).toBe('user')
+      expect(putRes.data?.settings.sources.theme).toBe('user')
     })
 
     it('should preserve secrets on PUT with masked value', async () => {
@@ -107,9 +105,8 @@ describe('App Custom Settings', () => {
         `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
-      const { settings } = getRes.data as any
-      expect(settings.values.api_key).toBe('********')
-      expect(settings.values.theme).toBe('dark')
+      expect(getRes.data?.settings.values.api_key).toBe('********')
+      expect(getRes.data?.settings.values.theme).toBe('dark')
     })
 
     it('should merge on PUT (omitted keys preserved)', async () => {
@@ -134,9 +131,8 @@ describe('App Custom Settings', () => {
         `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
-      const { settings } = getRes.data as any
-      expect(settings.values.theme).toBe('dark') // preserved
-      expect(settings.values.max_retries).toBe(10) // updated
+      expect(getRes.data?.settings.values.theme).toBe('dark') // preserved
+      expect(getRes.data?.settings.values.max_retries).toBe(10) // updated
     })
 
     it('should reject invalid values', async () => {
@@ -179,9 +175,8 @@ describe('App Custom Settings', () => {
         `/api/v1/user/apps/{appIdentifier}/custom-settings`,
         { params: { path: { appIdentifier } } },
       )
-      const { settings } = getRes.data as any
-      expect(settings.values.theme).toBe('light') // back to default
-      expect(settings.sources.theme).toBe('default')
+      expect(getRes.data?.settings.values.theme).toBe('light') // back to default
+      expect(getRes.data?.settings.sources.theme).toBe('default')
     })
   })
 
