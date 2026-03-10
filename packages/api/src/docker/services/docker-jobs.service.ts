@@ -276,7 +276,6 @@ export class DockerJobsService {
           jobIdentifier,
           containerId,
           hostId,
-          extra: {},
         },
       })
 

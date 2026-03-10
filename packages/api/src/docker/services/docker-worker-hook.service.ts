@@ -1,4 +1,5 @@
 import type {
+  DockerExecutorMetadata,
   FolderScopeAppPermissions,
   JsonSerializableObject,
   StorageAccessPolicy,
@@ -63,15 +64,6 @@ const relayRequestContextSchema = z.object({
   body: z.unknown().optional(),
   authUser: z.literal(true).optional(),
 })
-
-export interface DockerExecutorMetadata {
-  profileKey: string
-  profileHash: string
-  jobIdentifier: string
-  containerId: string
-  hostId: string
-  extra: JsonSerializableObject
-}
 
 export interface DockerWorkerJobClaims {
   jobId: string

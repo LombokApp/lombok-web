@@ -35,15 +35,16 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         )
       }
 
+      const runtimeExecutorMetadata = {
+        type: 'runtime' as const,
+        metadata: {
+          workerIdentifier: task.data.workerIdentifier,
+        },
+      }
+
       const { task: startedTask } = await this.taskService.registerTaskStarted({
         taskId: innerTask.id,
-        executorMetadata: {
-          type: 'runtime',
-          metadata: {
-            workerIdentifier: task.data.workerIdentifier,
-            extra: {},
-          },
-        },
+        executorMetadata: runtimeExecutorMetadata,
       })
 
       let innerTaskCompletion: TaskCompletion
@@ -61,25 +62,12 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         innerTaskCompletion = {
           success: true,
           result: {},
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: task.data.workerIdentifier,
-              extra: {},
-            },
-          },
+          executorMetadata: runtimeExecutorMetadata,
         }
         runnerTaskCompletion = {
           success: true,
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: task.data.workerIdentifier,
-              extra: {},
-            },
-          },
+          executorMetadata: { type: 'system', metadata: {} },
           result: {},
-          // result: ... // TODO: add execution details as the result of the runner task
         }
       } catch (error) {
         const normalizedError =
@@ -98,13 +86,7 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
         innerTaskCompletion = {
           success: false,
           requeueDelayMs: highestLevelAppError?.requeueDelayMs,
-          executorMetadata: {
-            type: 'runtime',
-            metadata: {
-              workerIdentifier: task.data.workerIdentifier,
-              extra: {},
-            },
-          },
+          executorMetadata: runtimeExecutorMetadata,
           error: {
             code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
             name: highestLevelAppError?.name ?? 'ExecutionError',
@@ -133,7 +115,10 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
                   details: normalizedError.toEnvelope(),
                 },
               }
-            : undefined),
+            : {
+                result: {},
+              }),
+          executorMetadata: { type: 'system', metadata: {} },
         } as TaskCompletion
       }
 

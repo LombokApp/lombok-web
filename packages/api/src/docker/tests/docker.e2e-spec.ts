@@ -253,6 +253,12 @@ const triggerAppDockerHandledTask = async (
           at: expect.any(Date),
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
       ],
       taskLog: [],
@@ -2046,7 +2052,7 @@ describe('Docker Jobs', () => {
             metadata: {
               containerId: '1',
               hostId: 'local',
-              extra: {},
+
               jobIdentifier: 'test_job_other',
               profileHash: '679f45ae',
               profileKey: `${await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)}:dummy_profile_two`,
@@ -2068,6 +2074,12 @@ describe('Docker Jobs', () => {
         at: expect.any(Date),
         logType: 'started',
         message: 'Task is started',
+        payload: {
+          executorMetadata: {
+            type: 'system',
+            metadata: {},
+          },
+        },
       },
       {
         at: expect.any(Date),
@@ -2080,7 +2092,7 @@ describe('Docker Jobs', () => {
           executorMetadata: {
             metadata: {
               containerId: '1',
-              extra: {},
+
               hostId: 'local',
               jobIdentifier: 'test_job_other',
               profileHash: '679f45ae',

@@ -128,8 +128,12 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
                   details: normalizedError.toEnvelope(),
                 },
               }
-            : undefined),
-        } as TaskCompletion
+            : {}),
+          executorMetadata: {
+            type: 'system' as const,
+            metadata: {},
+          },
+        }
 
         await this.ormService.db.transaction(async (tx) => {
           await this.taskService.registerTaskCompleted(
@@ -140,7 +144,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
 
           await this.taskService.registerTaskCompleted(
             task.id,
-            runnerTaskCompletion,
+            runnerTaskCompletion as TaskCompletion,
             { tx },
           )
         })

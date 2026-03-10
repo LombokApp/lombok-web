@@ -36,7 +36,7 @@ const SOCKET_DATA_TASK_IDENTIFIER = 'socket_test_task'
 
 const TEST_EXECUTOR_METADATA = {
   type: 'runtime' as const,
-  metadata: { workerIdentifier: 'test-worker', extra: { test: 'test' } },
+  metadata: { workerIdentifier: 'test-worker' },
 }
 
 const TEST_EXECUTOR_METADATA_PARTIAL = {

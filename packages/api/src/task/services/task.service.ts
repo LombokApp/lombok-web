@@ -633,7 +633,7 @@ export class TaskService {
             message: string
             details: JsonSerializableObject
           }
-          executorMetadata: ExecutorStartMetadata
+          executorMetadata?: ExecutorMetadata
         }
       | undefined
 
@@ -976,7 +976,7 @@ export class TaskService {
                 error: completion.error,
               }
             : {}),
-        executorMetadata: completion.executorMetadata,
+        executorMetadata: completion.executorMetadata ?? {},
       },
     }
 

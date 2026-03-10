@@ -623,12 +623,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
-          payload: {},
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
     })
@@ -681,12 +693,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
-          payload: {},
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
     })
@@ -733,7 +757,6 @@ describe('Core Worker', () => {
           payload: {
             executorMetadata: {
               metadata: {
-                extra: {},
                 workerIdentifier: 'test_worker',
               },
               type: 'runtime',
@@ -761,7 +784,6 @@ describe('Core Worker', () => {
             },
             executorMetadata: {
               metadata: {
-                extra: {},
                 workerIdentifier: 'test_worker',
               },
               type: 'runtime',
@@ -786,12 +808,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
-          payload: {},
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
 
@@ -840,7 +874,6 @@ describe('Core Worker', () => {
           payload: {
             executorMetadata: {
               metadata: {
-                extra: {},
                 workerIdentifier: 'test_worker',
               },
               type: 'runtime',
@@ -854,7 +887,6 @@ describe('Core Worker', () => {
           payload: {
             executorMetadata: {
               metadata: {
-                extra: {},
                 workerIdentifier: 'test_worker',
               },
               type: 'runtime',
@@ -897,12 +929,24 @@ describe('Core Worker', () => {
           at: expect.any(Date) as Date,
           logType: 'started',
           message: 'Task is started',
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+          },
         },
         {
           at: expect.any(Date) as Date,
           logType: 'success',
           message: 'Task completed successfully',
-          payload: {},
+          payload: {
+            executorMetadata: {
+              type: 'system',
+              metadata: {},
+            },
+            result: {},
+          },
         },
       ])
     })

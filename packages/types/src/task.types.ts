@@ -365,7 +365,6 @@ export const dockerExecutorMetadataSchema = z.object({
   jobIdentifier: z.string(),
   containerId: z.string(),
   hostId: z.string(),
-  extra: jsonSerializableObjectSchema,
 })
 
 export const dockerExecutorStartMetadataSchema = z.object({
@@ -374,14 +373,10 @@ export const dockerExecutorStartMetadataSchema = z.object({
   jobIdentifier: z.string(),
 })
 
-export const systemExecutorMetadataSchema = z.object({
-  lombokInstanceId: z.string().optional(),
-  extra: jsonSerializableObjectSchema,
-})
+export const systemExecutorMetadataSchema = jsonSerializableObjectSchema
 
 export const runtimeExecutorMetadataSchema = z.object({
   workerIdentifier: z.string(),
-  extra: jsonSerializableObjectSchema,
 })
 
 export const executorStartMetadataSchema = z.discriminatedUnion('type', [
@@ -416,11 +411,17 @@ export const executorMetadataSchema = z.discriminatedUnion('type', [
 
 export type ExecutorMetadata = z.infer<typeof executorMetadataSchema>
 export type ExecutorStartMetadata = z.infer<typeof executorStartMetadataSchema>
+export type DockerExecutorMetadata = z.infer<
+  typeof dockerExecutorMetadataSchema
+>
+export type PartialExecutorMetadata = z.infer<
+  typeof partialExecutorMetadataSchema
+>
 
 export const partialExecutorMetadataSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('system'),
-    metadata: systemExecutorMetadataSchema.partial(),
+    metadata: systemExecutorMetadataSchema,
   }),
   z.object({
     type: z.literal('docker'),
@@ -441,7 +442,7 @@ export const taskErrorResponseSchema = z.object({
     details: jsonSerializableObjectSchema.optional(),
   }),
   requeueDelayMs: requeueSchema.optional(),
-  executorMetadata: partialExecutorMetadataSchema,
+  executorMetadata: partialExecutorMetadataSchema.optional(),
 })
 
 export const taskSuccessResponseSchema = z.object({
