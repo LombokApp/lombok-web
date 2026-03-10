@@ -4,6 +4,10 @@ export function buildTestServerClient(
   overrides: Partial<IAppPlatformService> = {},
 ): IAppPlatformService {
   const base: IAppPlatformService = {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    getAppCustomSettings: async () => ({ result: { values: {}, sources: {} } }),
+    // eslint-disable-next-line @typescript-eslint/require-await
+    setAppCustomSettings: async () => ({ result: { success: true } }),
     getServerBaseUrl: () => 'http://localhost:3000',
     // eslint-disable-next-line @typescript-eslint/require-await
     emitEvent: async () => ({ result: { success: true } }),
