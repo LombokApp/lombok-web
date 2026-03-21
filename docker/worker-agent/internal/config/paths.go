@@ -37,6 +37,12 @@ func UnifiedLogPath() string {
 	return filepath.Join(LogBaseDir, "lombok-worker-agent.log")
 }
 
+// ProcessLogPath returns the path to the secondary process log file.
+// JavaScript processes write Docker-engine-compatible JSON entries here.
+func ProcessLogPath() string {
+	return filepath.Join(LogBaseDir, "process.log")
+}
+
 // JobLogPath returns the structured log path for a specific job
 func JobLogPath(jobID string) string {
 	return filepath.Join(LogBaseDir, "jobs", fmt.Sprintf("%s.log", jobID))

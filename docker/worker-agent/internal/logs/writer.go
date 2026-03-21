@@ -47,6 +47,20 @@ func rotationTargets() []rotationTarget {
 	}
 }
 
+// externalRotationPaths returns log file paths written by external processes
+// (not the Go agent). These are rotated by path — no file handle is held.
+func externalRotationPaths() []struct {
+	name string
+	path string
+} {
+	return []struct {
+		name string
+		path string
+	}{
+		{name: "process log", path: config.ProcessLogPath()},
+	}
+}
+
 // InitAgentLog initializes the agent log file for writing.
 // It ensures the log directory exists and opens the log file in append mode.
 // This should be called once at startup.
