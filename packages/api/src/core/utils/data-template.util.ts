@@ -5,7 +5,7 @@ import type {
 import { validateConditionExpression } from '@lombokapp/types'
 import { EvalAstFactory, parse } from 'jexpr'
 
-const TEMPLATE_EXPRESSION = /\{\{\s*(?<expression>.+?)\s*\}\}/g
+const TEMPLATE_EXPRESSION = /\{\{\s*(?<expression>.+?)\s*(?<!\{)\}\}/g
 const FUNCTION_EXPRESSION = /^(?<functionName>[a-zA-Z_][\w]*)\((?<args>.*)\)$/
 const STRING_LITERAL = /^(['"])(?<literal>.*)\1$/
 
