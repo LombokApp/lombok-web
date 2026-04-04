@@ -1,12 +1,18 @@
-import type { JsonSchema07Object, JsonSchema07Property } from '@lombokapp/types'
+import type {
+  JsonSchema07DiscriminatedObjectItem,
+  JsonSchema07Object,
+  JsonSchema07ObjectItem,
+  JsonSchema07ObjectItemProperty,
+  JsonSchema07PrimitiveProperty,
+  JsonSchema07Property,
+} from '@lombokapp/types'
 import { z } from 'zod'
 
-function propertyToZod(prop: JsonSchema07Property): z.ZodType {
+function primitivePropertyToZod(prop: JsonSchema07PrimitiveProperty): z.ZodType {
   switch (prop.type) {
     case 'string': {
       let schema = z.string()
       if (prop.enum) {
-        // Zod enum requires at least one value
         if (prop.enum.length > 0) {
           return z.enum(prop.enum as [string, ...string[]])
         }
@@ -45,20 +51,78 @@ function propertyToZod(prop: JsonSchema07Property): z.ZodType {
     }
     case 'boolean':
       return z.boolean()
-    case 'array': {
-      const itemSchema = propertyToZod({
-        type: prop.items.type,
-      } as JsonSchema07Property)
-      let schema = z.array(itemSchema)
-      if (prop.minItems !== undefined) {
-        schema = schema.min(prop.minItems)
-      }
-      if (prop.maxItems !== undefined) {
-        schema = schema.max(prop.maxItems)
-      }
-      return schema
-    }
   }
+}
+
+function objectItemPropertyToZod(prop: JsonSchema07ObjectItemProperty): z.ZodType {
+  if (prop.type === 'array') {
+    let itemZod = primitivePropertyToZod({
+      type: prop.items.type,
+    } as JsonSchema07PrimitiveProperty)
+    let schema = z.array(itemZod)
+    if (prop.minItems !== undefined) {
+      schema = schema.min(prop.minItems)
+    }
+    if (prop.maxItems !== undefined) {
+      schema = schema.max(prop.maxItems)
+    }
+    return schema
+  }
+  return primitivePropertyToZod(prop)
+}
+
+function objectItemToZod(itemSchema: JsonSchema07ObjectItem): z.ZodType {
+  const shape: Record<string, z.ZodType> = {}
+  const requiredKeys = new Set(itemSchema.required ?? [])
+
+  for (const [key, prop] of Object.entries(itemSchema.properties)) {
+    let fieldSchema = objectItemPropertyToZod(prop)
+    if (!requiredKeys.has(key)) {
+      fieldSchema = fieldSchema.optional()
+    }
+    shape[key] = fieldSchema
+  }
+
+  return z.object(shape).strict()
+}
+
+function discriminatedObjectItemToZod(
+  itemSchema: JsonSchema07DiscriminatedObjectItem,
+): z.ZodType {
+  const variants = itemSchema.oneOf.map(
+    (variant) => objectItemToZod(variant) as z.ZodObject<Record<string, z.ZodType>>,
+  )
+  return z.discriminatedUnion(
+    itemSchema.discriminator,
+    variants as [z.ZodObject<Record<string, z.ZodType>>, ...z.ZodObject<Record<string, z.ZodType>>[]],
+  )
+}
+
+function propertyToZod(prop: JsonSchema07Property): z.ZodType {
+  if (prop.type !== 'array') {
+    return primitivePropertyToZod(prop)
+  }
+
+  let itemZod: z.ZodType
+  if ('discriminator' in prop.items) {
+    itemZod = discriminatedObjectItemToZod(
+      prop.items as JsonSchema07DiscriminatedObjectItem,
+    )
+  } else if (prop.items.type === 'object') {
+    itemZod = objectItemToZod(prop.items)
+  } else {
+    itemZod = primitivePropertyToZod({
+      type: prop.items.type,
+    } as JsonSchema07PrimitiveProperty)
+  }
+  let schema = z.array(itemZod)
+  if (prop.minItems !== undefined) {
+    schema = schema.min(prop.minItems)
+  }
+  if (prop.maxItems !== undefined) {
+    schema = schema.max(prop.maxItems)
+  }
+  return schema
 }
 
 /**
