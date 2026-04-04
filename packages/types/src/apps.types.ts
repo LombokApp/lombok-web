@@ -267,35 +267,59 @@ export const appSystemRequestRuntimeWorkersSchema = z
   })
   .strict()
 
-export const jsonSchema07PropertySchema = z.union([
-  z.object({
-    type: z.literal('string'),
-    description: z.string().optional(),
-    default: z.string().optional(),
-    enum: z.array(z.string()).optional(),
-    minLength: z.number().int().min(0).optional(),
-    maxLength: z.number().int().min(0).optional(),
-    pattern: z.string().optional(),
-  }),
-  z.object({
-    type: z.literal('number'),
-    description: z.string().optional(),
-    default: z.number().optional(),
-    minimum: z.number().optional(),
-    maximum: z.number().optional(),
-  }),
-  z.object({
-    type: z.literal('integer'),
-    description: z.string().optional(),
-    default: z.number().int().optional(),
-    minimum: z.number().int().optional(),
-    maximum: z.number().int().optional(),
-  }),
-  z.object({
-    type: z.literal('boolean'),
-    description: z.string().optional(),
-    default: z.boolean().optional(),
-  }),
+const jsonSchema07StringPropertySchema = z.object({
+  type: z.literal('string'),
+  description: z.string().optional(),
+  default: z.string().optional(),
+  enum: z.array(z.string()).optional(),
+  minLength: z.number().int().min(0).optional(),
+  maxLength: z.number().int().min(0).optional(),
+  pattern: z.string().optional(),
+})
+
+const jsonSchema07NumberPropertySchema = z.object({
+  type: z.literal('number'),
+  description: z.string().optional(),
+  default: z.number().optional(),
+  minimum: z.number().optional(),
+  maximum: z.number().optional(),
+})
+
+const jsonSchema07IntegerPropertySchema = z.object({
+  type: z.literal('integer'),
+  description: z.string().optional(),
+  default: z.number().int().optional(),
+  minimum: z.number().int().optional(),
+  maximum: z.number().int().optional(),
+})
+
+const jsonSchema07BooleanPropertySchema = z.object({
+  type: z.literal('boolean'),
+  description: z.string().optional(),
+  default: z.boolean().optional(),
+})
+
+/**
+ * Primitive-only property schema — used for top-level settings
+ * and as the property type within array object items.
+ */
+export const jsonSchema07PrimitivePropertySchema = z.union([
+  jsonSchema07StringPropertySchema,
+  jsonSchema07NumberPropertySchema,
+  jsonSchema07IntegerPropertySchema,
+  jsonSchema07BooleanPropertySchema,
+])
+
+export type JsonSchema07PrimitiveProperty = z.infer<
+  typeof jsonSchema07PrimitivePropertySchema
+>
+
+/**
+ * Property schema for object items — primitives plus primitive-typed arrays.
+ * Allows e.g. `MODELS: { type: 'array', items: { type: 'string' } }` inside object items.
+ */
+export const jsonSchema07ObjectItemPropertySchema = z.union([
+  jsonSchema07PrimitivePropertySchema,
   z.object({
     type: z.literal('array'),
     description: z.string().optional(),
@@ -303,6 +327,57 @@ export const jsonSchema07PropertySchema = z.union([
     items: z.object({
       type: z.enum(['string', 'number', 'integer', 'boolean']),
     }),
+    minItems: z.number().int().min(0).optional(),
+    maxItems: z.number().int().min(0).optional(),
+  }),
+])
+
+export type JsonSchema07ObjectItemProperty = z.infer<
+  typeof jsonSchema07ObjectItemPropertySchema
+>
+
+/**
+ * Schema for object items within arrays.
+ * Properties support primitive types and primitive-typed arrays.
+ */
+export const jsonSchema07ObjectItemSchema = z.object({
+  type: z.literal('object'),
+  properties: z.record(z.string(), jsonSchema07ObjectItemPropertySchema),
+  required: z.array(z.string()).optional(),
+})
+
+export type JsonSchema07ObjectItem = z.infer<typeof jsonSchema07ObjectItemSchema>
+
+/**
+ * Discriminated union of object items — uses a discriminator property
+ * to determine which variant's schema applies.
+ * Each variant in `oneOf` must define the discriminator as a single-value enum.
+ */
+export const jsonSchema07DiscriminatedObjectItemSchema = z.object({
+  discriminator: z.string(),
+  oneOf: z.array(jsonSchema07ObjectItemSchema).min(1),
+})
+
+export type JsonSchema07DiscriminatedObjectItem = z.infer<
+  typeof jsonSchema07DiscriminatedObjectItemSchema
+>
+
+export const jsonSchema07PropertySchema = z.union([
+  jsonSchema07StringPropertySchema,
+  jsonSchema07NumberPropertySchema,
+  jsonSchema07IntegerPropertySchema,
+  jsonSchema07BooleanPropertySchema,
+  z.object({
+    type: z.literal('array'),
+    description: z.string().optional(),
+    default: z.array(z.unknown()).optional(),
+    items: z.union([
+      z.object({
+        type: z.enum(['string', 'number', 'integer', 'boolean']),
+      }),
+      jsonSchema07ObjectItemSchema,
+      jsonSchema07DiscriminatedObjectItemSchema,
+    ]),
     minItems: z.number().int().min(0).optional(),
     maxItems: z.number().int().min(0).optional(),
   }),
