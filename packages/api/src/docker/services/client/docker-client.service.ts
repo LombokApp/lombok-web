@@ -1,54 +1,147 @@
 import { convertUnknownToJsonSerializableObject } from '@lombokapp/types'
 import { convertErrorToAsyncWorkError } from '@lombokapp/worker-utils'
-import { Inject, Injectable, Logger, Scope } from '@nestjs/common'
-import nestjsConfig from '@nestjs/config'
-import { ContainerInspectInfo } from 'dockerode'
+import {
+  HttpException,
+  Inject,
+  Injectable,
+  Logger,
+  Scope,
+} from '@nestjs/common'
+import type { ConfigType } from '@nestjs/config'
+import type { ContainerInspectInfo } from 'dockerode'
+import * as jwt from 'jsonwebtoken'
 import { coreConfig } from 'src/core/config'
 
+import { DockerBridgeService } from '../docker-bridge.service'
 import { DOCKER_LABELS } from '../docker-jobs.service'
-import { DockerAdapterProvider } from './adapters/docker-adapter.provider'
 import {
   type ConnectionTestResult,
   type ContainerInfo,
-  type DockerAdapter,
   type DockerContainerGpuInfo,
   type DockerContainerStats,
-  type DockerError,
+  DockerError,
   type DockerHostResources,
   type DockerLogEntry,
   type DockerPipeStream,
-  type DockerStateFunc,
   type DockerTtyStream,
   type FindOrCreateContainerOptions,
 } from './docker-client.types'
+
+const BRIDGE_HTTP_URL = 'http://localhost:3100'
+const BRIDGE_WS_URL = 'ws://localhost:3101'
+
+/** Session token TTL for private sessions — matches bridge idle timeout (30 min) */
+const SESSION_TOKEN_TTL_SECONDS = 1800
+
+/** Session token TTL for public sessions (24 hours) */
+const PUBLIC_SESSION_TOKEN_TTL_SECONDS = 86400
+
+interface BridgeSessionResponse {
+  id: string
+  container_id: string
+  state: string
+  protocol: string
+  public_id: string | null
+  label: string
+  app_id: string
+  agent_ready: boolean
+}
+
+interface BridgeContainerInfo {
+  id: string
+  image: string
+  labels: Record<string, string>
+  state: string
+  reusable: boolean
+  createdAt: string
+  names: string[]
+}
+
+function toBridgeContainerInfo(c: BridgeContainerInfo): ContainerInfo {
+  return {
+    id: c.id,
+    image: c.image,
+    labels: c.labels,
+    state: (['running', 'exited', 'paused', 'created'].includes(c.state)
+      ? c.state
+      : 'unknown') as ContainerInfo['state'],
+    reusable: c.reusable,
+    createdAt: c.createdAt,
+  }
+}
+
+export interface TunnelSessionDetails {
+  sessionId: string
+  token: string
+  urls: {
+    ws: string
+    http: string
+  }
+  public?: {
+    id: string
+    url: string
+  }
+}
 
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerClientService {
   private readonly logger = new Logger(DockerClientService.name)
 
   constructor(
-    private readonly dockerAdapterProvider: DockerAdapterProvider,
     @Inject(coreConfig.KEY)
-    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
+    private readonly config: ConfigType<typeof coreConfig>,
+    private readonly dockerBridgeService: DockerBridgeService,
   ) {}
 
-  /**
-   * Get a docker adapter by host ID
-   */
-  private getAdapter(hostId: string): DockerAdapter {
-    return this.dockerAdapterProvider.getDockerAdapter(hostId)
+  // ---------------------------------------------------------------------------
+  // Bridge HTTP helper
+  // ---------------------------------------------------------------------------
+
+  private async bridgeRequest<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    queryParams?: Record<string, string>,
+  ): Promise<T> {
+    const secret = this.dockerBridgeService.getSecret()
+    const url = new URL(path, BRIDGE_HTTP_URL)
+    if (queryParams) {
+      for (const [k, v] of Object.entries(queryParams)) {
+        url.searchParams.set(k, v)
+      }
+    }
+    const response = await fetch(url.toString(), {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+
+    if (!response.ok) {
+      const error = (await response.json().catch(() => ({
+        error: response.statusText,
+      }))) as { error?: string }
+      throw new Error(
+        `Bridge ${method} ${path} failed (${response.status}): ${error.error ?? response.statusText}`,
+      )
+    }
+
+    if (response.status === 204) {
+      return undefined as T
+    }
+    return response.json() as Promise<T>
   }
 
-  /**
-   * Test connectivity to a Docker host
-   */
+  // ---------------------------------------------------------------------------
+  // Docker operations — each calls the bridge HTTP API directly
+  // ---------------------------------------------------------------------------
+
   async testHostConnection(hostId: string): Promise<ConnectionTestResult> {
-    return this.getAdapter(hostId).testConnection()
+    return this.bridgeRequest('GET', `/docker/${hostId}/test`)
   }
 
-  /**
-   * Test connectivity to all Docker host
-   */
   async testAllHostConnections(): Promise<
     Record<string, { result: ConnectionTestResult; id: string }>
   > {
@@ -57,31 +150,51 @@ export class DockerClientService {
       { result: ConnectionTestResult; id: string }
     > = {}
     for (const hostId of Object.keys(
-      this._coreConfig.dockerHostConfig.hosts ?? {},
+      this.config.dockerHostConfig.hosts ?? {},
     )) {
       results[hostId] = {
-        id: this.getAdapter(hostId).getDescription(),
-        result: await this.getAdapter(hostId).testConnection(),
+        id: `[BRIDGE]: ${hostId}`,
+        result: await this.testHostConnection(hostId),
       }
     }
     return results
   }
 
-  /**
-   * Get a display-friendly description of a Docker host
-   */
   getHostDescription(hostId: string): string {
-    return this.getAdapter(hostId).getDescription()
+    return `[BRIDGE]: ${hostId}`
   }
 
-  /**
-   * List containers on a host matching the given labels
-   */
   async listContainersByLabels(
     hostId: string,
     labels: Record<string, string>,
   ): Promise<ContainerInfo[]> {
-    return this.getAdapter(hostId).listContainersByLabels(labels)
+    const result = await this.bridgeRequest<BridgeContainerInfo[]>(
+      'GET',
+      `/docker/${hostId}/containers`,
+      undefined,
+      { labels: JSON.stringify(labels) },
+    )
+    return result.map(toBridgeContainerInfo)
+  }
+
+  async createContainer(
+    hostId: string,
+    options: FindOrCreateContainerOptions,
+  ): Promise<ContainerInfo> {
+    const result = await this.bridgeRequest<BridgeContainerInfo>(
+      'POST',
+      `/docker/${hostId}/containers`,
+      {
+        image: options.image,
+        labels: options.labels,
+        env: options.env,
+        extraHosts: options.extraHosts,
+        volumes: options.volumes,
+        networkMode: options.networkMode,
+        gpus: options.gpus,
+      },
+    )
+    return toBridgeContainerInfo(result)
   }
 
   async getContainerLogs(
@@ -89,25 +202,36 @@ export class DockerClientService {
     containerId: string,
     options?: { tail?: number },
   ): Promise<DockerLogEntry[]> {
-    return this.getAdapter(hostId).getContainerLogs(containerId, options)
+    return this.bridgeRequest(
+      'GET',
+      `/docker/${hostId}/containers/${containerId}/logs`,
+      undefined,
+      { tail: String(options?.tail ?? 100) },
+    )
   }
 
   async getHostResources(hostId: string): Promise<DockerHostResources> {
-    return this.getAdapter(hostId).getHostResources()
+    return this.bridgeRequest('GET', `/docker/${hostId}/resources`)
   }
 
   async getContainerStats(
     hostId: string,
     containerId: string,
   ): Promise<DockerContainerStats> {
-    return this.getAdapter(hostId).getContainerStats(containerId)
+    return this.bridgeRequest(
+      'GET',
+      `/docker/${hostId}/containers/${containerId}/stats`,
+    )
   }
 
   async getContainerInspect(
     hostId: string,
     containerId: string,
   ): Promise<ContainerInspectInfo> {
-    return this.getAdapter(hostId).getContainerInspect(containerId)
+    return this.bridgeRequest(
+      'GET',
+      `/docker/${hostId}/containers/${containerId}/inspect`,
+    )
   }
 
   async getContainerGpuInfo(
@@ -187,10 +311,8 @@ export class DockerClientService {
     const command = ['nvidia-smi', '-L']
     try {
       const exec = await this.execInContainer(hostId, containerId, command)
-      const execState = await exec.state()
-      const { stdout, stderr } = exec.output()
-      if (!execState.running && execState.exitCode === 0) {
-        const output = stdout.trim() || stderr.trim()
+      if (exec.exitCode === 0) {
+        const output = exec.stdout.trim()
         return {
           driver: driver ?? 'nvidia',
           command: command.join(' '),
@@ -198,22 +320,10 @@ export class DockerClientService {
         }
       }
 
-      let errorMessage = stderr.trim()
-      if (!errorMessage) {
-        try {
-          const execError = await exec.getError()
-          errorMessage = execError.message
-        } catch (error) {
-          errorMessage = error instanceof Error ? error.message : String(error)
-        }
-      }
-
-      return {
-        driver: driver ?? 'nvidia',
-        command: command.join(' '),
-        output: stdout.trim() || undefined,
-        error: errorMessage || 'Failed to run nvidia-smi.',
-      }
+      throw new DockerError(
+        'EXEC_FAILED',
+        `Failed to run nvidia-smi...\n${exec.stderr}`,
+      )
     } catch (error) {
       return {
         driver: driver ?? 'nvidia',
@@ -224,15 +334,24 @@ export class DockerClientService {
   }
 
   async startContainer(hostId: string, containerId: string): Promise<void> {
-    await this.getAdapter(hostId).startContainer(containerId)
+    await this.bridgeRequest(
+      'POST',
+      `/docker/${hostId}/containers/${containerId}/start`,
+    )
   }
 
   async stopContainer(hostId: string, containerId: string): Promise<void> {
-    await this.getAdapter(hostId).stopContainer(containerId)
+    await this.bridgeRequest(
+      'POST',
+      `/docker/${hostId}/containers/${containerId}/stop`,
+    )
   }
 
   async restartContainer(hostId: string, containerId: string): Promise<void> {
-    await this.getAdapter(hostId).restartContainer(containerId)
+    await this.bridgeRequest(
+      'POST',
+      `/docker/${hostId}/containers/${containerId}/restart`,
+    )
   }
 
   async removeContainer(
@@ -240,8 +359,187 @@ export class DockerClientService {
     containerId: string,
     options?: { force?: boolean },
   ): Promise<void> {
-    await this.getAdapter(hostId).removeContainer(containerId, options)
+    await this.bridgeRequest(
+      'POST',
+      `/docker/${hostId}/containers/${containerId}/remove`,
+      { force: options?.force },
+    )
   }
+
+  async pullImage(
+    hostId: string,
+    image: string,
+    authconfig?: {
+      username: string
+      password: string
+      email?: string
+      serveraddress: string
+    },
+  ): Promise<void> {
+    await this.bridgeRequest('POST', `/docker/${hostId}/images/pull`, {
+      image,
+      registry_auth: authconfig,
+    })
+  }
+
+  async execInContainer(
+    hostId: string,
+    containerId: string,
+    command: string[],
+    options?: {
+      env?: Record<string, string>
+    },
+  ): Promise<{
+    exitCode: number
+    stdout: string
+    stderr: string
+  }> {
+    const result = await this.bridgeRequest<{
+      stdout: string
+      stderr: string
+      exitCode: number
+    }>('POST', `/docker/${hostId}/containers/${containerId}/exec`, {
+      command,
+      env: options?.env
+        ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
+        : undefined,
+    })
+
+    return result
+  }
+
+  async execPipe(
+    hostId: string,
+    containerId: string,
+    command: string[],
+    options?: {
+      env?: Record<string, string>
+    },
+  ): Promise<DockerPipeStream> {
+    const secret = this.dockerBridgeService.getSecret()
+    const env = options?.env ?? {}
+
+    // Create a raw tunnel session with tty=false for demuxed stdout/stderr
+    const session = await this.bridgeRequest<{ id: string }>(
+      'POST',
+      '/sessions/tunnel',
+      {
+        host_id: hostId,
+        container_id: containerId,
+        command,
+        label: 'pipe',
+        app_id: 'internal',
+        mode: 'ephemeral',
+        protocol: 'raw',
+        tty: false,
+        env: Object.entries(env).map(([k, v]) => `${k}=${v}`),
+      },
+    )
+
+    // Connect via WebSocket for bidirectional streaming
+    const ws = new WebSocket(
+      `${BRIDGE_WS_URL}/sessions/${session.id}/attach?token=${encodeURIComponent(secret)}`,
+    )
+    ws.binaryType = 'arraybuffer'
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('WS connect timeout')),
+        10000,
+      )
+      ws.addEventListener(
+        'open',
+        () => {
+          clearTimeout(timeout)
+          resolve()
+        },
+        { once: true },
+      )
+      ws.addEventListener(
+        'error',
+        (ev) => {
+          clearTimeout(timeout)
+          reject(new Error(`WS error: ${JSON.stringify(ev)}`))
+        },
+        { once: true },
+      )
+    })
+
+    const stdoutHandlers: ((data: Buffer) => void)[] = []
+    const stderrHandlers: ((data: Buffer) => void)[] = []
+    const endHandlers: (() => void)[] = []
+    let destroyed = false
+
+    ws.addEventListener('message', (ev) => {
+      if (destroyed) {
+        return
+      }
+      const buf = Buffer.from(ev.data as ArrayBuffer)
+      if (buf.length < 2) {
+        return
+      }
+
+      // First byte is stream type: 0x01=stdout, 0x02=stderr
+      const streamType = buf[0]
+      const payload = buf.subarray(1)
+
+      if (streamType === 1) {
+        for (const h of stdoutHandlers) {
+          h(payload)
+        }
+      } else if (streamType === 2) {
+        for (const h of stderrHandlers) {
+          h(payload)
+        }
+      }
+    })
+
+    ws.addEventListener('close', () => {
+      if (destroyed) {
+        return
+      }
+      for (const h of endHandlers) {
+        h()
+      }
+    })
+
+    return {
+      write: (data: string | Buffer) => {
+        if (destroyed || ws.readyState !== WebSocket.OPEN) {
+          return
+        }
+        ws.send(typeof data === 'string' ? data : data)
+      },
+      onStdout: (handler: (data: Buffer) => void) => {
+        stdoutHandlers.push(handler)
+      },
+      onStderr: (handler: (data: Buffer) => void) => {
+        stderrHandlers.push(handler)
+      },
+      onEnd: (handler: () => void) => {
+        endHandlers.push(handler)
+      },
+      destroy: () => {
+        if (destroyed) {
+          return
+        }
+        destroyed = true
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close()
+        }
+        void fetch(`${BRIDGE_HTTP_URL}/sessions/${session.id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${secret}` },
+        }).catch(() => {
+          void 0
+        })
+      },
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Higher-level container helpers (absorbed from DockerClientService)
+  // ---------------------------------------------------------------------------
 
   private async withErrorGuard<T>(
     fn: () => Promise<T>,
@@ -254,10 +552,6 @@ export class DockerClientService {
     }
   }
 
-  /**
-   * Find an existing running container or create a new one
-   * based on the given profile and labels
-   */
   private async ensureContainerRunning(
     hostId: string,
     container: ContainerInfo,
@@ -267,7 +561,7 @@ export class DockerClientService {
     }
 
     await this.withErrorGuard(
-      async () => this.getAdapter(hostId).startContainer(container.id),
+      async () => this.startContainer(hostId, container.id),
       (error) =>
         convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),
@@ -289,12 +583,8 @@ export class DockerClientService {
     containerId: string,
     options?: { startIfNotRunning?: boolean },
   ): Promise<ContainerInfo | undefined> {
-    // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
-    const adapter = this.getAdapter(hostId)
-
-    // Look for a particular container by ID
     const container = await this.withErrorGuard(
-      async () => adapter.getContainerInspect(containerId),
+      async () => this.getContainerInspect(hostId, containerId),
       (error) =>
         convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),
@@ -333,20 +623,12 @@ export class DockerClientService {
     return container
   }
 
-  /**
-   * Find an existing running container or create a new one
-   * based on the given profile and labels
-   */
   async findOrCreateContainer(
     hostId: string,
     options: FindOrCreateContainerOptions,
   ): Promise<ContainerInfo | undefined> {
-    // TODO: Should this detect running container with non-matching host config (volumes, gpus, etc.)?
-    const adapter = this.getAdapter(hostId)
-
-    // Look for existing containers with matching labels
     const existingContainers = await this.withErrorGuard(
-      async () => adapter.listContainersByLabels(options.labels),
+      async () => this.listContainersByLabels(hostId, options.labels),
       (error) => {
         return convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),
@@ -364,15 +646,24 @@ export class DockerClientService {
       },
     )
 
-    // Filter containers by userId label: if no userId was requested,
-    // exclude containers that have one; if one was requested, Docker's label
-    // filter already ensures an exact match.
+    // Filter containers by userId and isolationKey labels: if a label was not
+    // requested, exclude containers that have one set. When a label is requested,
+    // Docker's label filter already ensures an exact match.
     const requestedUserId = options.labels[DOCKER_LABELS.USER_ID]
-    const matchingContainers = requestedUserId
-      ? existingContainers
-      : existingContainers.filter(
-          (container) => !container.labels[DOCKER_LABELS.USER_ID],
-        )
+    const requestedIsolationKey = options.labels[DOCKER_LABELS.ISOLATION_KEY]
+
+    const matchingContainers = existingContainers.filter((container) => {
+      if (!requestedUserId && container.labels[DOCKER_LABELS.USER_ID]) {
+        return false
+      }
+      if (
+        !requestedIsolationKey &&
+        container.labels[DOCKER_LABELS.ISOLATION_KEY]
+      ) {
+        return false
+      }
+      return true
+    })
 
     // Find a running container
     const runningContainer = matchingContainers.find(
@@ -411,7 +702,11 @@ export class DockerClientService {
     }
 
     return this.withErrorGuard(
-      async () => adapter.createContainer(createOptions),
+      async () => {
+        const created = await this.createContainer(hostId, createOptions)
+        await this.ensureContainerRunning(hostId, created)
+        return created
+      },
       (error) =>
         convertErrorToAsyncWorkError(
           error instanceof Error ? error : new Error(String(error)),
@@ -431,55 +726,352 @@ export class DockerClientService {
     )
   }
 
-  async execInContainer(
-    hostId: string,
-    containerId: string,
-    command: string[],
-    options?: {
-      env?: Record<string, string>
-    },
-  ): Promise<{
-    getError: () => Promise<DockerError>
-    state: DockerStateFunc
-    output: () => { stdout: string; stderr: string }
-  }> {
-    return this.getAdapter(hostId).execInContainer(containerId, command, {
-      ...options,
-      env: options?.env ?? {},
-    })
-  }
+  // ---------------------------------------------------------------------------
+  // Tunnel / session management
+  // ---------------------------------------------------------------------------
 
+  /**
+   * Create a raw tunnel session and return a DockerTtyStream for server-side relay.
+   * Used by Socket.IO terminal relay (backend attaches to terminal, not browser).
+   */
   async execTty(
-    hostId: string,
     containerId: string,
     command: string[],
     options?: {
       cols?: number
       rows?: number
       env?: Record<string, string>
+      hostId?: string
     },
   ): Promise<DockerTtyStream> {
-    return this.getAdapter(hostId).execTty(containerId, command, {
-      ...options,
-      env: options?.env ?? {},
+    const backendToken = this.dockerBridgeService.getSecret()
+
+    // 1. Create raw tunnel session via HTTP
+    const createResponse = await fetch(`${BRIDGE_HTTP_URL}/sessions/tunnel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${backendToken}`,
+      },
+      body: JSON.stringify({
+        container_id: containerId,
+        command,
+        host_id: options?.hostId,
+        label: 'pty',
+        app_id: 'internal',
+        mode: 'ephemeral',
+        protocol: 'raw',
+        tty: true,
+      }),
     })
+
+    if (!createResponse.ok) {
+      const body = (await createResponse.json().catch(() => ({}))) as {
+        error?: string
+      }
+      throw new HttpException(
+        `Bridge tunnel create failed (${createResponse.status}): ${body.error ?? createResponse.statusText}`,
+        createResponse.status,
+      )
+    }
+
+    const session = (await createResponse.json()) as BridgeSessionResponse
+
+    this.logger.debug(
+      `Bridge raw tunnel created: ${session.id} for container ${containerId}`,
+    )
+
+    // 2. Attach via WebSocket for bidirectional I/O
+    const ws = new WebSocket(
+      `${BRIDGE_WS_URL}/sessions/${session.id}/attach?token=${encodeURIComponent(backendToken)}`,
+    )
+    ws.binaryType = 'arraybuffer'
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Bridge WebSocket connect timeout (10s)'))
+      }, 10000)
+
+      ws.addEventListener(
+        'open',
+        () => {
+          clearTimeout(timeout)
+          resolve()
+        },
+        { once: true },
+      )
+
+      ws.addEventListener(
+        'error',
+        (ev) => {
+          clearTimeout(timeout)
+          reject(new Error(`Bridge WS connect error: ${JSON.stringify(ev)}`))
+        },
+        { once: true },
+      )
+    })
+
+    const dataHandlers: ((data: Buffer) => void)[] = []
+    const endHandlers: (() => void)[] = []
+    let destroyed = false
+
+    ws.addEventListener('message', (ev) => {
+      if (destroyed) {
+        return
+      }
+      const buf =
+        ev.data instanceof ArrayBuffer
+          ? Buffer.from(ev.data)
+          : Buffer.from(ev.data as string)
+      for (const handler of dataHandlers) {
+        handler(buf)
+      }
+    })
+
+    ws.addEventListener('close', () => {
+      if (destroyed) {
+        return
+      }
+      for (const handler of endHandlers) {
+        handler()
+      }
+    })
+
+    ws.addEventListener('error', (ev) => {
+      this.logger.warn(
+        `Bridge WS error for session ${session.id}: ${JSON.stringify(ev)}`,
+      )
+    })
+
+    // 3. Return DockerTtyStream interface
+    const stream: DockerTtyStream = {
+      write: (data: string | Buffer) => {
+        if (destroyed || ws.readyState !== WebSocket.OPEN) {
+          return
+        }
+        ws.send(data)
+      },
+
+      onData: (handler: (data: Buffer) => void) => {
+        dataHandlers.push(handler)
+      },
+
+      onEnd: (handler: () => void) => {
+        endHandlers.push(handler)
+      },
+
+      resize: async (cols: number, rows: number) => {
+        const resizeResponse = await fetch(
+          `${BRIDGE_HTTP_URL}/sessions/${session.id}/resize`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${backendToken}`,
+            },
+            body: JSON.stringify({ cols, rows }),
+          },
+        )
+        if (!resizeResponse.ok) {
+          throw new Error(`Bridge resize failed (${resizeResponse.status})`)
+        }
+      },
+
+      destroy: () => {
+        if (destroyed) {
+          return
+        }
+        destroyed = true
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close()
+        }
+        void fetch(`${BRIDGE_HTTP_URL}/sessions/${session.id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${backendToken}` },
+        }).catch(() => {
+          void 0
+        })
+      },
+    }
+
+    return stream
   }
 
-  async execPipe(
-    hostId: string,
+  /**
+   * Create a tunnel session and return credentials for direct client access.
+   * For raw protocol: used for terminal sessions (browser connects via WS).
+   * For framed protocol: used for HTTP tunnel-agent proxying.
+   */
+  async createTunnelSession(
     containerId: string,
     command: string[],
+    label: string,
+    appIdentifier: string,
+    mode: 'ephemeral' | 'persistent',
+    protocol: 'framed' | 'raw',
     options?: {
-      env?: Record<string, string>
+      hostId?: string
+      public?: boolean
     },
-  ): Promise<DockerPipeStream> {
-    return this.getAdapter(hostId).execPipe(containerId, command, {
-      ...options,
-      env: {
-        ...(options?.env ?? {}),
-        LOMBOK_CONTAINER_ID: containerId,
-        LOMBOK_CONTAINER_HOST_ID: hostId,
+  ): Promise<TunnelSessionDetails> {
+    const backendToken = this.dockerBridgeService.getSecret()
+    const isPublic = options?.public ?? false
+
+    const createResponse = await fetch(`${BRIDGE_HTTP_URL}/sessions/tunnel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${backendToken}`,
       },
+      body: JSON.stringify({
+        container_id: containerId,
+        command,
+        host_id: options?.hostId,
+        label,
+        app_id: appIdentifier,
+        mode,
+        protocol,
+        public: isPublic,
+      }),
     })
+
+    if (!createResponse.ok) {
+      const body = (await createResponse.json().catch(() => ({}))) as {
+        error?: string
+      }
+      throw new Error(
+        `Bridge tunnel create failed (${createResponse.status}): ${body.error ?? createResponse.statusText}`,
+      )
+    }
+
+    const session = (await createResponse.json()) as BridgeSessionResponse
+    const publicId = session.public_id || undefined
+
+    this.logger.debug(
+      `Bridge tunnel session created: ${session.id} for container ${containerId}${publicId ? ` publicId ${publicId}` : ''}`,
+    )
+
+    const token = this.mintSessionToken(session.id, backendToken, {
+      publicId,
+      mode,
+    })
+
+    const { wsUrl, httpUrl } = this.buildBridgeUrls()
+
+    return {
+      ...(publicId ? { publicId } : {}),
+      sessionId: session.id,
+      token,
+      ...(publicId
+        ? {
+            public: {
+              id: publicId,
+              url: this.buildTunnelUrl(publicId, label, appIdentifier),
+            },
+          }
+        : {}),
+      urls: {
+        ws: wsUrl,
+        http: httpUrl,
+      },
+    }
+  }
+
+  /**
+   * Delete a tunnel session, optionally validating ownership by app identifier.
+   */
+  async deleteTunnelSession(
+    sessionId: string,
+    appIdentifier?: string,
+  ): Promise<void> {
+    const backendToken = this.dockerBridgeService.getSecret()
+
+    // If appIdentifier provided, validate ownership first
+    if (appIdentifier) {
+      const getResponse = await fetch(
+        `${BRIDGE_HTTP_URL}/sessions/${sessionId}`,
+        {
+          headers: { Authorization: `Bearer ${backendToken}` },
+        },
+      )
+      if (!getResponse.ok) {
+        if (getResponse.status === 404) {
+          return
+        } // Already gone
+        throw new Error(`Bridge session lookup failed (${getResponse.status})`)
+      }
+      const session = (await getResponse.json()) as { app_id?: string }
+      if (session.app_id && session.app_id !== appIdentifier) {
+        throw new Error('Session not owned by this app')
+      }
+    }
+
+    const response = await fetch(`${BRIDGE_HTTP_URL}/sessions/${sessionId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${backendToken}` },
+    })
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Bridge session delete failed (${response.status})`)
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  private mintSessionToken(
+    sessionId: string,
+    secret: string,
+    options?: {
+      publicId?: string
+      mode?: 'ephemeral' | 'persistent'
+    },
+  ): string {
+    return jwt.sign(
+      {
+        sub: `bridge_session:${sessionId}`,
+        sid: sessionId,
+        aud: 'docker-bridge',
+        ...(options?.publicId ? { public_id: options.publicId } : {}),
+        ...(options?.mode ? { mode: options.mode } : {}),
+      },
+      secret,
+      {
+        algorithm: 'HS256',
+        expiresIn: options?.publicId
+          ? PUBLIC_SESSION_TOKEN_TTL_SECONDS
+          : SESSION_TOKEN_TTL_SECONDS,
+      },
+    )
+  }
+
+  private buildBridgeUrls(): { wsUrl: string; httpUrl: string } {
+    const { platformHost, platformHttps, platformPort } = this.config
+    const wsProtocol = platformHttps ? 'wss' : 'ws'
+    const httpProtocol = platformHttps ? 'https' : 'http'
+    const portSuffix =
+      typeof platformPort === 'number' && ![80, 443].includes(platformPort)
+        ? `:${platformPort}`
+        : ''
+    const host = `${platformHost}${portSuffix}`
+
+    return {
+      wsUrl: `${wsProtocol}://${host}/_bridge`,
+      httpUrl: `${httpProtocol}://${host}/_bridge`,
+    }
+  }
+
+  private buildTunnelUrl(
+    publicId: string,
+    label: string,
+    appIdentifier: string,
+  ): string {
+    const { platformHost, platformHttps, platformPort } = this.config
+    const protocol = platformHttps ? 'https' : 'http'
+    const portSuffix =
+      typeof platformPort === 'number' && ![80, 443].includes(platformPort)
+        ? `:${platformPort}`
+        : ''
+    return `${protocol}://${label}--${publicId}--${appIdentifier}.apps.${platformHost}${portSuffix}`
   }
 }

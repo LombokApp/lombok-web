@@ -55,7 +55,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return AppBrowserSdk.theme
   }
 
-  private readonly basePath: string = (() => {
+  public readonly lombokApiBasePath: string = (() => {
     const potocol = window.location.protocol
     const port = window.location.port
     const hostname = window.location.hostname.split('.').slice(2).join('.')
@@ -65,7 +65,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   public get sdk(): LombokSdk {
     if (!AppBrowserSdk.sdk) {
       AppBrowserSdk.sdk = new LombokSdk({
-        basePath: this.basePath,
+        basePath: this.lombokApiBasePath,
         accessToken: () => AppBrowserSdk.initialData?.accessToken,
         refreshToken: () => AppBrowserSdk.initialData?.refreshToken,
       })

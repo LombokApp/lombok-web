@@ -95,6 +95,8 @@ else
   echo "Skipping embedded postgres setup."
 fi
 
+mkdir -p /var/lib/lombok && chown "$APP_USER" /var/lib/lombok
+
 # ── Backend (foreground) ────────────────────────────────────
 echo ""
 echo "================================================"

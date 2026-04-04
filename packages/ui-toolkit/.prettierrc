@@ -2,12 +2,5 @@
   "semi": false,
   "singleQuote": true,
   "printWidth": 80,
-  "tabWidth": 2,
-  "importOrder": ["^react$", "", "<THIRD_PARTY_MODULES>", "", "^[./]"],
-  "importOrderParserPlugins": [
-    "classProperties",
-    "typescript",
-    "jsx",
-    "importAssertions"
-  ]
+  "tabWidth": 2
 }

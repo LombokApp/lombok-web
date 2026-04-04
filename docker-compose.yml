@@ -7,6 +7,9 @@ services:
       context: .
       dockerfile: docker/app.Dockerfile
       target: dev
+    extra_hosts:
+      - ${PLATFORM_HOST}:127.0.0.1
+      - ${DEV_S3_HOST:-localhost}:127.0.0.1
     environment:
       - DEV_SEED_FILE=${DEV_SEED_FILE:-default.ts}
       - PLATFORM_HOST=${PLATFORM_HOST:-lombok.localhost}
@@ -16,7 +19,7 @@ services:
       - DB_USER=lombokuser_dev
       - DB_PASSWORD=${DB_PASSWORD:-XXXXXXXX}
       - PLATFORM_HTTPS=false
-      - PLATFORM_PORT=3000
+      - PLATFORM_PORT=8080
       - AUTH_JWT_SECRET=00000000000000000000000000000000
       - AUTH_EMAIL_VERIFICATION_JWT_SECRET=00000000000000000000000000000000
       - DOCKER_HOST_CONFIG=${DOCKER_HOST_CONFIG:-{}}
@@ -29,7 +32,7 @@ services:
       - DEV_S3_BUCKET_NAME=${DEV_S3_BUCKET_NAME:-lombokdevbucket}
       - DEV_S3_PREFIX=${DEV_S3_PREFIX:-dev-local}
       - DEV_S3_REGION=${DEV_S3_REGION:-auto}
-      - DEV_S3_ENDPOINT=${DEV_S3_ENDPOINT:-http://127.0.0.1:9000}
+      - DEV_S3_ENDPOINT=http://${PLATFORM_HOST:-lombok.localhost}:9000
       - DEV_S3_LABEL=${DEV_S3_LABEL:-MinioDEV}
       - PRINT_CORE_WORKER_OUTPUT=${PRINT_CORE_WORKER_OUTPUT:-true}
       - PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT=${PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT:-true}
@@ -40,6 +43,8 @@ services:
       - /usr/src/app/packages/app-worker-sdk/node_modules
       - /usr/src/app/packages/auth-utils/node_modules
       - /usr/src/app/packages/core-worker/node_modules
+      - /usr/src/app/packages/app-browser-sdk/node_modules
+      - /usr/src/app/docker/docker-bridge/node_modules
       - /usr/src/app/packages/worker-utils/node_modules
       - /usr/src/app/packages/sdk/node_modules
       - /usr/src/app/packages/types/node_modules
@@ -50,9 +55,8 @@ services:
       - ${PGDATA_DIR:-pgdata}:/var/lib/postgresql/data
       - ${MINIO_DATA_DIR:-miniodata}:/var/lib/minio/data
     ports:
-      - 3000:3000
+      - 8080:8080
       - 5432:${HOST_DB_PORT:-5432}
-      - 5173:5173
       - 9000:9000
       - 9001:9001
     cap_drop: [ALL]
@@ -63,6 +67,8 @@ services:
       - SYS_CHROOT
       - SETPCAP
       - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
     security_opt:
       - seccomp=unconfined
       - no-new-privileges:false

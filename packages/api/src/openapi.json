@@ -7389,6 +7389,64 @@
         ]
       }
     },
+    "/api/v1/docker/bridge-sessions/tunnel": {
+      "post": {
+        "description": "Creates a tunnel session on the Docker bridge. For framed protocol, spawns a tunnel-agent that proxies HTTP/WebSocket traffic. For raw protocol, creates a PTY exec for direct terminal access. Returns a tunnel URL for browser access and session credentials for direct WebSocket access.",
+        "operationId": "BridgeSession_createTunnelSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBridgeTunnelSessionRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBridgeTunnelSessionResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a bridge tunnel",
+        "tags": [
+          "BridgeSessions"
+        ]
+      }
+    },
     "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
       "post": {
         "description": "Returns presigned URLs for performing storage operations. The job token must have permissions for the requested folder/prefix/method combinations.",
@@ -7974,7 +8032,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteCommentResponseDTO"
+                  "$ref": "#/components/schemas/SuccessResponseDTO"
                 }
               }
             }
@@ -8052,7 +8110,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDTO"
+                }
+              }
+            }
           },
           "5XX": {
             "description": "Server Error",
@@ -9274,16 +9339,55 @@
                                     "minLength": 1,
                                     "pattern": "^[a-z_]+$"
                                   },
-                                  "maxPerContainer": {
-                                    "type": "number",
-                                    "minimum": 1
-                                  },
-                                  "countTowardsGlobalCap": {
-                                    "type": "boolean",
-                                    "const": false
-                                  },
-                                  "priority": {
-                                    "type": "number"
+                                  "containerTarget": {
+                                    "anyOf": [
+                                      {
+                                        "oneOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "instance"
+                                              },
+                                              "containerIdTemplate": {
+                                                "type": "string"
+                                              },
+                                              "userIsolation": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": [
+                                              "type",
+                                              "containerIdTemplate"
+                                            ]
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "class"
+                                              },
+                                              "isolationKeyTemplate": {
+                                                "type": "string"
+                                              },
+                                              "userIsolation": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": [
+                                          "null"
+                                        ]
+                                      }
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -9316,16 +9420,55 @@
                                     "items": {
                                       "type": "object",
                                       "properties": {
-                                        "maxPerContainer": {
-                                          "type": "number",
-                                          "minimum": 1
-                                        },
-                                        "countTowardsGlobalCap": {
-                                          "type": "boolean",
-                                          "const": false
-                                        },
-                                        "priority": {
-                                          "type": "number"
+                                        "containerTarget": {
+                                          "anyOf": [
+                                            {
+                                              "oneOf": [
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "const": "instance"
+                                                    },
+                                                    "containerIdTemplate": {
+                                                      "type": "string"
+                                                    },
+                                                    "userIsolation": {
+                                                      "type": "boolean"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "type",
+                                                    "containerIdTemplate"
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "const": "class"
+                                                    },
+                                                    "isolationKeyTemplate": {
+                                                      "type": "string"
+                                                    },
+                                                    "userIsolation": {
+                                                      "type": "boolean"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "type"
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": [
+                                                "null"
+                                              ]
+                                            }
+                                          ]
                                         },
                                         "identifier": {
                                           "type": "string",
@@ -9350,11 +9493,46 @@
                             ]
                           }
                         },
-                        "userIsolation": {
-                          "type": "boolean"
-                        },
-                        "containerRefTemplate": {
-                          "type": "string"
+                        "containerTarget": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "instance"
+                                },
+                                "containerIdTemplate": {
+                                  "type": "string"
+                                },
+                                "userIsolation": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "containerIdTemplate"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "class"
+                                },
+                                "isolationKeyTemplate": {
+                                  "type": "string"
+                                },
+                                "userIsolation": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -9755,6 +9933,172 @@
                               ]
                             }
                           },
+                          "patternProperties": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "string"
+                                    },
+                                    "enum": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "minLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "number"
+                                    },
+                                    "minimum": {
+                                      "type": "number"
+                                    },
+                                    "maximum": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "minimum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maximum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "array"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "array",
+                                      "items": {}
+                                    },
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "type"
+                                      ]
+                                    },
+                                    "minItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "items"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
                           "required": {
                             "type": "array",
                             "items": {
@@ -9775,6 +10119,172 @@
                             "const": "object"
                           },
                           "properties": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "string"
+                                    },
+                                    "enum": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "minLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "number"
+                                    },
+                                    "minimum": {
+                                      "type": "number"
+                                    },
+                                    "maximum": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "minimum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maximum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "array"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "array",
+                                      "items": {}
+                                    },
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "type"
+                                      ]
+                                    },
+                                    "minItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "items"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "patternProperties": {
                             "type": "object",
                             "propertyNames": {
                               "type": "string"
@@ -10911,16 +11421,55 @@
                                       "minLength": 1,
                                       "pattern": "^[a-z_]+$"
                                     },
-                                    "maxPerContainer": {
-                                      "type": "number",
-                                      "minimum": 1
-                                    },
-                                    "countTowardsGlobalCap": {
-                                      "type": "boolean",
-                                      "const": false
-                                    },
-                                    "priority": {
-                                      "type": "number"
+                                    "containerTarget": {
+                                      "anyOf": [
+                                        {
+                                          "oneOf": [
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "type": {
+                                                  "type": "string",
+                                                  "const": "instance"
+                                                },
+                                                "containerIdTemplate": {
+                                                  "type": "string"
+                                                },
+                                                "userIsolation": {
+                                                  "type": "boolean"
+                                                }
+                                              },
+                                              "required": [
+                                                "type",
+                                                "containerIdTemplate"
+                                              ]
+                                            },
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "type": {
+                                                  "type": "string",
+                                                  "const": "class"
+                                                },
+                                                "isolationKeyTemplate": {
+                                                  "type": "string"
+                                                },
+                                                "userIsolation": {
+                                                  "type": "boolean"
+                                                }
+                                              },
+                                              "required": [
+                                                "type"
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": [
+                                            "null"
+                                          ]
+                                        }
+                                      ]
                                     }
                                   },
                                   "required": [
@@ -10953,16 +11502,55 @@
                                       "items": {
                                         "type": "object",
                                         "properties": {
-                                          "maxPerContainer": {
-                                            "type": "number",
-                                            "minimum": 1
-                                          },
-                                          "countTowardsGlobalCap": {
-                                            "type": "boolean",
-                                            "const": false
-                                          },
-                                          "priority": {
-                                            "type": "number"
+                                          "containerTarget": {
+                                            "anyOf": [
+                                              {
+                                                "oneOf": [
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "instance"
+                                                      },
+                                                      "containerIdTemplate": {
+                                                        "type": "string"
+                                                      },
+                                                      "userIsolation": {
+                                                        "type": "boolean"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "containerIdTemplate"
+                                                    ]
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "class"
+                                                      },
+                                                      "isolationKeyTemplate": {
+                                                        "type": "string"
+                                                      },
+                                                      "userIsolation": {
+                                                        "type": "boolean"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type"
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "type": [
+                                                  "null"
+                                                ]
+                                              }
+                                            ]
                                           },
                                           "identifier": {
                                             "type": "string",
@@ -10987,11 +11575,46 @@
                               ]
                             }
                           },
-                          "userIsolation": {
-                            "type": "boolean"
-                          },
-                          "containerRefTemplate": {
-                            "type": "string"
+                          "containerTarget": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "instance"
+                                  },
+                                  "containerIdTemplate": {
+                                    "type": "string"
+                                  },
+                                  "userIsolation": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "containerIdTemplate"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "class"
+                                  },
+                                  "isolationKeyTemplate": {
+                                    "type": "string"
+                                  },
+                                  "userIsolation": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -11392,6 +12015,172 @@
                                 ]
                               }
                             },
+                            "patternProperties": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "string"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "string"
+                                      },
+                                      "enum": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "minLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pattern": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "number"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "number"
+                                      },
+                                      "minimum": {
+                                        "type": "number"
+                                      },
+                                      "maximum": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "integer"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "minimum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maximum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "boolean"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "array"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "array",
+                                        "items": {}
+                                      },
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "string",
+                                              "number",
+                                              "integer",
+                                              "boolean"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "type"
+                                        ]
+                                      },
+                                      "minItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "items"
+                                    ]
+                                  }
+                                ]
+                              }
+                            },
                             "required": {
                               "type": "array",
                               "items": {
@@ -11412,6 +12201,172 @@
                               "const": "object"
                             },
                             "properties": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "string"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "string"
+                                      },
+                                      "enum": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "minLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pattern": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "number"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "number"
+                                      },
+                                      "minimum": {
+                                        "type": "number"
+                                      },
+                                      "maximum": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "integer"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "minimum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maximum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "boolean"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "array"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "array",
+                                        "items": {}
+                                      },
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "string",
+                                              "number",
+                                              "integer",
+                                              "boolean"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "type"
+                                        ]
+                                      },
+                                      "minItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "items"
+                                    ]
+                                  }
+                                ]
+                              }
+                            },
+                            "patternProperties": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -12548,16 +13503,55 @@
                                     "minLength": 1,
                                     "pattern": "^[a-z_]+$"
                                   },
-                                  "maxPerContainer": {
-                                    "type": "number",
-                                    "minimum": 1
-                                  },
-                                  "countTowardsGlobalCap": {
-                                    "type": "boolean",
-                                    "const": false
-                                  },
-                                  "priority": {
-                                    "type": "number"
+                                  "containerTarget": {
+                                    "anyOf": [
+                                      {
+                                        "oneOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "instance"
+                                              },
+                                              "containerIdTemplate": {
+                                                "type": "string"
+                                              },
+                                              "userIsolation": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": [
+                                              "type",
+                                              "containerIdTemplate"
+                                            ]
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "class"
+                                              },
+                                              "isolationKeyTemplate": {
+                                                "type": "string"
+                                              },
+                                              "userIsolation": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": [
+                                          "null"
+                                        ]
+                                      }
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -12590,16 +13584,55 @@
                                     "items": {
                                       "type": "object",
                                       "properties": {
-                                        "maxPerContainer": {
-                                          "type": "number",
-                                          "minimum": 1
-                                        },
-                                        "countTowardsGlobalCap": {
-                                          "type": "boolean",
-                                          "const": false
-                                        },
-                                        "priority": {
-                                          "type": "number"
+                                        "containerTarget": {
+                                          "anyOf": [
+                                            {
+                                              "oneOf": [
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "const": "instance"
+                                                    },
+                                                    "containerIdTemplate": {
+                                                      "type": "string"
+                                                    },
+                                                    "userIsolation": {
+                                                      "type": "boolean"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "type",
+                                                    "containerIdTemplate"
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "const": "class"
+                                                    },
+                                                    "isolationKeyTemplate": {
+                                                      "type": "string"
+                                                    },
+                                                    "userIsolation": {
+                                                      "type": "boolean"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "type"
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": [
+                                                "null"
+                                              ]
+                                            }
+                                          ]
                                         },
                                         "identifier": {
                                           "type": "string",
@@ -12624,11 +13657,46 @@
                             ]
                           }
                         },
-                        "userIsolation": {
-                          "type": "boolean"
-                        },
-                        "containerRefTemplate": {
-                          "type": "string"
+                        "containerTarget": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "instance"
+                                },
+                                "containerIdTemplate": {
+                                  "type": "string"
+                                },
+                                "userIsolation": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "containerIdTemplate"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "class"
+                                },
+                                "isolationKeyTemplate": {
+                                  "type": "string"
+                                },
+                                "userIsolation": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -13029,6 +14097,172 @@
                               ]
                             }
                           },
+                          "patternProperties": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "string"
+                                    },
+                                    "enum": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "minLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "number"
+                                    },
+                                    "minimum": {
+                                      "type": "number"
+                                    },
+                                    "maximum": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "minimum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maximum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "array"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "array",
+                                      "items": {}
+                                    },
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "type"
+                                      ]
+                                    },
+                                    "minItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "items"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
                           "required": {
                             "type": "array",
                             "items": {
@@ -13049,6 +14283,172 @@
                             "const": "object"
                           },
                           "properties": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "string"
+                                    },
+                                    "enum": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "minLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "number"
+                                    },
+                                    "minimum": {
+                                      "type": "number"
+                                    },
+                                    "maximum": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "minimum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maximum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "array"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "array",
+                                      "items": {}
+                                    },
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "type"
+                                      ]
+                                    },
+                                    "minItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "items"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "patternProperties": {
                             "type": "object",
                             "propertyNames": {
                               "type": "string"
@@ -14214,16 +15614,55 @@
                                       "minLength": 1,
                                       "pattern": "^[a-z_]+$"
                                     },
-                                    "maxPerContainer": {
-                                      "type": "number",
-                                      "minimum": 1
-                                    },
-                                    "countTowardsGlobalCap": {
-                                      "type": "boolean",
-                                      "const": false
-                                    },
-                                    "priority": {
-                                      "type": "number"
+                                    "containerTarget": {
+                                      "anyOf": [
+                                        {
+                                          "oneOf": [
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "type": {
+                                                  "type": "string",
+                                                  "const": "instance"
+                                                },
+                                                "containerIdTemplate": {
+                                                  "type": "string"
+                                                },
+                                                "userIsolation": {
+                                                  "type": "boolean"
+                                                }
+                                              },
+                                              "required": [
+                                                "type",
+                                                "containerIdTemplate"
+                                              ]
+                                            },
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "type": {
+                                                  "type": "string",
+                                                  "const": "class"
+                                                },
+                                                "isolationKeyTemplate": {
+                                                  "type": "string"
+                                                },
+                                                "userIsolation": {
+                                                  "type": "boolean"
+                                                }
+                                              },
+                                              "required": [
+                                                "type"
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": [
+                                            "null"
+                                          ]
+                                        }
+                                      ]
                                     }
                                   },
                                   "required": [
@@ -14256,16 +15695,55 @@
                                       "items": {
                                         "type": "object",
                                         "properties": {
-                                          "maxPerContainer": {
-                                            "type": "number",
-                                            "minimum": 1
-                                          },
-                                          "countTowardsGlobalCap": {
-                                            "type": "boolean",
-                                            "const": false
-                                          },
-                                          "priority": {
-                                            "type": "number"
+                                          "containerTarget": {
+                                            "anyOf": [
+                                              {
+                                                "oneOf": [
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "instance"
+                                                      },
+                                                      "containerIdTemplate": {
+                                                        "type": "string"
+                                                      },
+                                                      "userIsolation": {
+                                                        "type": "boolean"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "containerIdTemplate"
+                                                    ]
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "class"
+                                                      },
+                                                      "isolationKeyTemplate": {
+                                                        "type": "string"
+                                                      },
+                                                      "userIsolation": {
+                                                        "type": "boolean"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type"
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "type": [
+                                                  "null"
+                                                ]
+                                              }
+                                            ]
                                           },
                                           "identifier": {
                                             "type": "string",
@@ -14290,11 +15768,46 @@
                               ]
                             }
                           },
-                          "userIsolation": {
-                            "type": "boolean"
-                          },
-                          "containerRefTemplate": {
-                            "type": "string"
+                          "containerTarget": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "instance"
+                                  },
+                                  "containerIdTemplate": {
+                                    "type": "string"
+                                  },
+                                  "userIsolation": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "containerIdTemplate"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "class"
+                                  },
+                                  "isolationKeyTemplate": {
+                                    "type": "string"
+                                  },
+                                  "userIsolation": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -14695,6 +16208,172 @@
                                 ]
                               }
                             },
+                            "patternProperties": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "string"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "string"
+                                      },
+                                      "enum": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "minLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pattern": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "number"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "number"
+                                      },
+                                      "minimum": {
+                                        "type": "number"
+                                      },
+                                      "maximum": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "integer"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "minimum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maximum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "boolean"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "array"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "array",
+                                        "items": {}
+                                      },
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "string",
+                                              "number",
+                                              "integer",
+                                              "boolean"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "type"
+                                        ]
+                                      },
+                                      "minItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "items"
+                                    ]
+                                  }
+                                ]
+                              }
+                            },
                             "required": {
                               "type": "array",
                               "items": {
@@ -14715,6 +16394,172 @@
                               "const": "object"
                             },
                             "properties": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "string"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "string"
+                                      },
+                                      "enum": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "minLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxLength": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pattern": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "number"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "number"
+                                      },
+                                      "minimum": {
+                                        "type": "number"
+                                      },
+                                      "maximum": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "integer"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "minimum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maximum": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "boolean"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "array"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "default": {
+                                        "type": "array",
+                                        "items": {}
+                                      },
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "string",
+                                              "number",
+                                              "integer",
+                                              "boolean"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "type"
+                                        ]
+                                      },
+                                      "minItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "maxItems": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "items"
+                                    ]
+                                  }
+                                ]
+                              }
+                            },
+                            "patternProperties": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -15722,16 +17567,55 @@
                                     "minLength": 1,
                                     "pattern": "^[a-z_]+$"
                                   },
-                                  "maxPerContainer": {
-                                    "type": "number",
-                                    "minimum": 1
-                                  },
-                                  "countTowardsGlobalCap": {
-                                    "type": "boolean",
-                                    "const": false
-                                  },
-                                  "priority": {
-                                    "type": "number"
+                                  "containerTarget": {
+                                    "anyOf": [
+                                      {
+                                        "oneOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "instance"
+                                              },
+                                              "containerIdTemplate": {
+                                                "type": "string"
+                                              },
+                                              "userIsolation": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": [
+                                              "type",
+                                              "containerIdTemplate"
+                                            ]
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "class"
+                                              },
+                                              "isolationKeyTemplate": {
+                                                "type": "string"
+                                              },
+                                              "userIsolation": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": [
+                                          "null"
+                                        ]
+                                      }
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -15764,16 +17648,55 @@
                                     "items": {
                                       "type": "object",
                                       "properties": {
-                                        "maxPerContainer": {
-                                          "type": "number",
-                                          "minimum": 1
-                                        },
-                                        "countTowardsGlobalCap": {
-                                          "type": "boolean",
-                                          "const": false
-                                        },
-                                        "priority": {
-                                          "type": "number"
+                                        "containerTarget": {
+                                          "anyOf": [
+                                            {
+                                              "oneOf": [
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "const": "instance"
+                                                    },
+                                                    "containerIdTemplate": {
+                                                      "type": "string"
+                                                    },
+                                                    "userIsolation": {
+                                                      "type": "boolean"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "type",
+                                                    "containerIdTemplate"
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "const": "class"
+                                                    },
+                                                    "isolationKeyTemplate": {
+                                                      "type": "string"
+                                                    },
+                                                    "userIsolation": {
+                                                      "type": "boolean"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "type"
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": [
+                                                "null"
+                                              ]
+                                            }
+                                          ]
                                         },
                                         "identifier": {
                                           "type": "string",
@@ -15798,11 +17721,46 @@
                             ]
                           }
                         },
-                        "userIsolation": {
-                          "type": "boolean"
-                        },
-                        "containerRefTemplate": {
-                          "type": "string"
+                        "containerTarget": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "instance"
+                                },
+                                "containerIdTemplate": {
+                                  "type": "string"
+                                },
+                                "userIsolation": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "containerIdTemplate"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "class"
+                                },
+                                "isolationKeyTemplate": {
+                                  "type": "string"
+                                },
+                                "userIsolation": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -16203,6 +18161,172 @@
                               ]
                             }
                           },
+                          "patternProperties": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "string"
+                                    },
+                                    "enum": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "minLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "number"
+                                    },
+                                    "minimum": {
+                                      "type": "number"
+                                    },
+                                    "maximum": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "minimum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maximum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "array"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "array",
+                                      "items": {}
+                                    },
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "type"
+                                      ]
+                                    },
+                                    "minItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "items"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
                           "required": {
                             "type": "array",
                             "items": {
@@ -16223,6 +18347,172 @@
                             "const": "object"
                           },
                           "properties": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "string"
+                                    },
+                                    "enum": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "minLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxLength": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "number"
+                                    },
+                                    "minimum": {
+                                      "type": "number"
+                                    },
+                                    "maximum": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "minimum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maximum": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "array"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "default": {
+                                      "type": "array",
+                                      "items": {}
+                                    },
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "type"
+                                      ]
+                                    },
+                                    "minItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "maxItems": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "items"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "patternProperties": {
                             "type": "object",
                             "propertyNames": {
                               "type": "string"
@@ -17104,6 +19394,172 @@
                     "const": "object"
                   },
                   "properties": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "default": {
+                              "type": "string"
+                            },
+                            "enum": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "minLength": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "maxLength": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "pattern": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "number"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "default": {
+                              "type": "number"
+                            },
+                            "minimum": {
+                              "type": "number"
+                            },
+                            "maximum": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "integer"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "default": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "minimum": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "maximum": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "boolean"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "default": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "default": {
+                              "type": "array",
+                              "items": {}
+                            },
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "string",
+                                    "number",
+                                    "integer",
+                                    "boolean"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ]
+                            },
+                            "minItems": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "maxItems": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "items"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "patternProperties": {
                     "type": "object",
                     "propertyNames": {
                       "type": "string"
@@ -23067,6 +25523,106 @@
           "result"
         ]
       },
+      "CreateBridgeTunnelSessionRequestDTO": {
+        "type": "object",
+        "properties": {
+          "hostId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "containerId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "mode": {
+            "type": "string",
+            "default": "persistent",
+            "enum": [
+              "ephemeral",
+              "persistent"
+            ]
+          },
+          "protocol": {
+            "type": "string",
+            "default": "framed",
+            "enum": [
+              "framed",
+              "raw"
+            ]
+          },
+          "public": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "hostId",
+          "containerId",
+          "command",
+          "label"
+        ]
+      },
+      "CreateBridgeTunnelSessionResponseDTO": {
+        "type": "object",
+        "properties": {
+          "publicId": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "urls": {
+            "type": "object",
+            "properties": {
+              "ws": {
+                "type": "string"
+              },
+              "http": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ws",
+              "http"
+            ]
+          },
+          "public": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "url"
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "token",
+          "urls"
+        ]
+      },
       "DockerJobPresignedUrlsRequestDTO": {
         "type": "array",
         "items": {
@@ -24505,7 +27061,7 @@
           "comments"
         ]
       },
-      "DeleteCommentResponseDTO": {
+      "SuccessResponseDTO": {
         "type": "object",
         "properties": {
           "success": {

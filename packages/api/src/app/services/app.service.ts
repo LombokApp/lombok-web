@@ -41,12 +41,15 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
-import { dataFromTemplate } from 'src/core/utils/data-template.util'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
+import { DockerClientService } from 'src/docker/services/client/docker-client.service'
 import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
-import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
+import {
+  DOCKER_LABELS,
+  DockerJobsService,
+} from 'src/docker/services/docker-jobs.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
@@ -148,6 +151,7 @@ export class AppService {
     @Inject(forwardRef(() => CoreWorkerService))
     _coreWorkerService,
     private readonly customSettingsService: AppCustomSettingsService,
+    private readonly dockerClientService: DockerClientService,
   ) {
     this.coreTaskService = _coreTaskService as CoreTaskService
     this.coreWorkerService = _coreWorkerService as CoreWorkerService
@@ -333,6 +337,61 @@ export class AppService {
         jwtService: this.jwtService,
         customSettingsService: this.customSettingsService,
       },
+    )
+  }
+
+  async createTunnelSessionAsApp(
+    requestingAppIdentifier: string,
+    params: {
+      hostId: string
+      containerId: string
+      command: string[]
+      label: string
+      mode: 'ephemeral' | 'persistent'
+      protocol: 'framed' | 'raw'
+      public?: boolean
+    },
+  ) {
+    // Validate container belongs to requesting app
+    const container = await this.dockerClientService.findContainerById(
+      params.hostId,
+      params.containerId,
+    )
+    if (!container) {
+      throw new Error('Container not found')
+    }
+    const containerAppId = container.labels[DOCKER_LABELS.APP_ID]
+    if (!containerAppId || containerAppId !== requestingAppIdentifier) {
+      throw new Error('Container not owned by this app')
+    }
+
+    const tunnelSession = await this.dockerClientService.createTunnelSession(
+      params.containerId,
+      params.command,
+      params.label,
+      requestingAppIdentifier,
+      params.mode,
+      params.protocol,
+      {
+        hostId: params.hostId,
+        public: params.public,
+      },
+    )
+    return {
+      sessionId: tunnelSession.sessionId,
+      token: tunnelSession.token,
+      urls: tunnelSession.urls,
+      public: tunnelSession.public,
+    }
+  }
+
+  async deleteTunnelSessionAsApp(
+    requestingAppIdentifier: string,
+    sessionId: string,
+  ) {
+    await this.dockerClientService.deleteTunnelSession(
+      sessionId,
+      requestingAppIdentifier,
     )
   }
 
@@ -758,9 +817,18 @@ export class AppService {
       .where(eq(appsTable.identifier, app.identifier))
   }
 
-  private async generateUniqueAppIdentifierSuffix(
+  private async generateUniqueAppIdentifier(
     appSlug: string,
   ): Promise<string> {
+    // Try using just the slug as the identifier first
+    const slugTaken = await this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, appSlug),
+    })
+    if (!slugTaken) {
+      return appSlug
+    }
+
+    // Slug is taken — append a random suffix
     const MAX_ATTEMPTS = 10
     let suffix = generateAppIdentifierSuffix()
     const checkExists = async () => {
@@ -776,10 +844,10 @@ export class AppService {
     }
     if (attempts >= MAX_ATTEMPTS) {
       throw new Error(
-        `Failed to generate a unique app identifier suffix for app ${appSlug}`,
+        `Failed to generate a unique app identifier for app ${appSlug}`,
       )
     }
-    return suffix
+    return `${appSlug}_${suffix}`
   }
 
   public async installApp(
@@ -797,7 +865,7 @@ export class AppService {
     }
     const appIdentifier =
       installedApp?.identifier ??
-      `${app.slug}_${await this.generateUniqueAppIdentifierSuffix(app.slug)}`
+      (await this.generateUniqueAppIdentifier(app.slug))
     const assetManifestEntryPaths = Object.keys(app.manifest).filter(
       (manifestItemPath) =>
         manifestItemPath.startsWith('/ui') ||
@@ -2186,20 +2254,7 @@ export class AppService {
       })
     }
 
-    const { containerRef } = profileSpec.containerRefTemplate
-      ? await dataFromTemplate(
-          { containerRef: profileSpec.containerRefTemplate },
-          { objects: { inputData: jobData } },
-        )
-      : { containerRef: undefined }
-
-    if (containerRef && typeof containerRef !== 'string') {
-      throw new BadRequestException(
-        'Invalid containerRef template (should resolve to a string)',
-      )
-    }
-
-    // Execute the docker job
+    // Execute the docker job — containerTarget resolution happens inside executeDockerJob
     return this.dockerJobsService.executeDockerJob<T>(
       {
         profileSpec,
@@ -2209,13 +2264,60 @@ export class AppService {
         asyncTaskId,
         storageAccessPolicy,
         appIdentifier,
-        containerRef: containerRef as string | undefined,
-        ...(profileSpec.userIsolation && targetUserId
-          ? { userId: targetUserId }
-          : {}),
+        userId: targetUserId,
       },
       waitForCompletion,
     ) as Promise<DockerExecResult<T>>
+  }
+
+  /**
+   * Destroy Docker containers belonging to the requesting app.
+   * The hostId is always resolved from the profile configuration.
+   */
+  async destroyAppDockerContainers(
+    appIdentifier: string,
+    params:
+      | { profileIdentifier: string; userId?: string; containerId: string }
+      | { profileIdentifier: string; userId?: string; isolationKey: string },
+  ): Promise<{ destroyedCount: number }> {
+    const { profileIdentifier } = params
+    const profileKey = `${appIdentifier}:${profileIdentifier}`
+    const profileSpec = await this.dockerJobsService.getProfileSpec(
+      appIdentifier,
+      profileIdentifier,
+    )
+    const { hostId } =
+      this.dockerJobsService.resolveDockerHostConfigForProfile(profileKey)
+
+    const hasContainerId = 'containerId' in params
+    if (hasContainerId) {
+      // Validate the container belongs to this app
+      const container =
+        await this.dockerJobsService.dockerClientService.findContainerById(
+          hostId,
+          params.containerId,
+        )
+      if (!container) {
+        return { destroyedCount: 0 }
+      }
+      if (container.labels[DOCKER_LABELS.APP_ID] !== appIdentifier) {
+        throw new BadRequestException('Container does not belong to this app')
+      }
+    }
+    const destroyedCount = await this.dockerJobsService.destroyContainers({
+      hostId,
+      ...(hasContainerId
+        ? { containerId: params.containerId }
+        : {
+            profileKey,
+            appIdentifier,
+            profileSpec,
+            isolationKey: params.userId
+              ? `user:${params.userId}:${params.isolationKey}`
+              : params.isolationKey,
+          }),
+    })
+    return { destroyedCount }
   }
 
   async getSearchResultsFromAppAsUser(

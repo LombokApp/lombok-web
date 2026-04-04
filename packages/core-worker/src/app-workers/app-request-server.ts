@@ -53,14 +53,18 @@ export const buildAppRequestServer = ({
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const workerIdentifier = workerIdentifierMatch[1]!
 
-        const host = req.headers.get('host') || ''
+        const host = req.headers.get('host') ?? ''
         const hostParts = host.split('.')
 
-        if (hostParts.length < 2 || hostParts[1] !== 'apps') {
+        if (
+          hostParts.length < 2 ||
+          hostParts[1] !== 'apps' ||
+          !hostParts[0]?.startsWith('app-server--')
+        ) {
           return new Response('Invalid host format', { status: 400 })
         }
 
-        const appIdentifier = hostParts[0] || ''
+        const appIdentifier = hostParts[0].replace('app-server--', '')
 
         let serverlessWorkerDetails: ServerlessWorkerExecConfig
         try {
@@ -150,11 +154,15 @@ export const buildAppRequestServer = ({
       const host = req.headers.get('host') || ''
       const hostParts = host.split('.')
 
-      if (hostParts.length < 2 || hostParts[1] !== 'apps') {
+      if (
+        hostParts.length < 2 ||
+        hostParts[1] !== 'apps' ||
+        !hostParts[0]?.startsWith('app-server--')
+      ) {
         return new Response('Invalid host format', { status: 404 })
       }
 
-      const appIdentifier = hostParts[0] || ''
+      const appIdentifier = hostParts[0].replace('app-server--', '') || ''
       let uiHash = appUiHashMapping[appIdentifier] ?? ''
 
       let appBundleCacheDir = uiHash
