@@ -38,7 +38,6 @@ export interface JobExecuteOptions {
 }
 
 export const dockerExecuteJobOptionsSchema = z.object({
-  containerRef: z.string().optional(),
   asyncTaskId: z.string().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
   profileSpec: containerProfileConfigSchema,

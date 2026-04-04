@@ -86,13 +86,15 @@ export class DockerWorkerHookService {
   taskService: TaskService
   coreTaskService: CoreTaskService
   appService: AppService
+  dockerClientService: DockerClientService
   constructor(
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
-    private readonly dockerClientService: DockerClientService,
+    @Inject(forwardRef(() => DockerClientService))
+    private readonly _dockerClientService,
     @Inject(forwardRef(() => CoreTaskService))
     _coreTaskService,
     @Inject(forwardRef(() => TaskService))
@@ -101,6 +103,7 @@ export class DockerWorkerHookService {
     _appService,
   ) {
     this.coreTaskService = _coreTaskService as CoreTaskService
+    this.dockerClientService = _dockerClientService as DockerClientService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
   }
@@ -269,7 +272,7 @@ export class DockerWorkerHookService {
 
   /**
    * Create a long-lived JWT token scoped to a specific container.
-   * Injected into the container via `lombok-worker-agent set-context` for relay-request auth.
+   * Injected into the container via `lombok-worker-agent provision` for relay-request auth.
    */
   createDockerContainerToken(params: {
     appIdentifier: string
@@ -625,21 +628,21 @@ export class DockerWorkerHookService {
       const { appIdentifier, hostId, containerId, userId } = claims
 
       // 1. Exec into container to read the request context
-      const exec = await this.dockerClientService.execInContainer(
+      const loadRequestContext = await this.dockerClientService.execInContainer(
         hostId,
         containerId,
         ['cat', `/tmp/lombok-relay-requests/${body.requestId}.json`],
       )
-      const execState = await exec.state()
-      const { stdout, stderr } = exec.output()
-      if (execState.exitCode !== 0) {
+      if (loadRequestContext.exitCode !== 0) {
         throw new NotFoundException(
-          `Request file not found in container: ${stderr || 'exit code ' + String(execState.exitCode)}`,
+          `Request file not found in container: ${loadRequestContext.stderr || 'exit code ' + String(loadRequestContext.exitCode)}`,
         )
       }
 
       // 4. Parse and validate request context JSON
-      const requestContext = relayRequestContextSchema.parse(JSON.parse(stdout))
+      const requestContext = relayRequestContextSchema.parse(
+        JSON.parse(loadRequestContext.stdout),
+      )
 
       // 5. Resolve user context (if authUser is requested)
       let accessToken: string | undefined
@@ -659,11 +662,12 @@ export class DockerWorkerHookService {
       }
 
       // 6. Build the forwarding URL and headers
-      const workerUrl = `http://localhost:3001/worker-api/${requestContext.workerIdentifier}/${requestContext.url}`
+      const normalizedUrl = requestContext.url.replace(/^\/+/, '')
+      const workerUrl = `http://localhost:3001/worker-api/${requestContext.workerIdentifier}/${normalizedUrl}`
 
       const forwardHeaders: Record<string, string> = {
         ...requestContext.headers,
-        Host: `${appIdentifier}.apps.localhost`,
+        Host: `app-server--${appIdentifier}.apps.localhost`,
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       }
 

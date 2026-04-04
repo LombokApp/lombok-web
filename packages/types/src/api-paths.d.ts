@@ -1485,6 +1485,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/bridge-sessions/tunnel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a bridge tunnel
+         * @description Creates a tunnel session on the Docker bridge. For framed protocol, spawns a tunnel-agent that proxies HTTP/WebSocket traffic. For raw protocol, creates a PTY exec for direct terminal access. Returns a tunnel URL for browser access and session credentials for direct WebSocket access.
+         */
+        post: operations["BridgeSession_createTunnelSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/docker/jobs/{jobId}/request-presigned-urls": {
         parameters: {
             query?: never;
@@ -1903,25 +1923,48 @@ export interface components {
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @constant */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
+                                containerTarget?: ({
+                                    /** @constant */
+                                    type: "instance";
+                                    containerIdTemplate: string;
+                                    userIsolation?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "class";
+                                    isolationKeyTemplate?: string;
+                                    userIsolation?: boolean;
+                                }) | null;
                             } | {
                                 /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    maxPerContainer?: number;
-                                    /** @constant */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
+                                    containerTarget?: ({
+                                        /** @constant */
+                                        type: "instance";
+                                        containerIdTemplate: string;
+                                        userIsolation?: boolean;
+                                    } | {
+                                        /** @constant */
+                                        type: "class";
+                                        isolationKeyTemplate?: string;
+                                        userIsolation?: boolean;
+                                    }) | null;
                                     identifier: string;
                                 }[];
                             })[];
-                            userIsolation?: boolean;
-                            containerRefTemplate?: string;
+                            containerTarget?: {
+                                /** @constant */
+                                type: "instance";
+                                containerIdTemplate: string;
+                                userIsolation?: boolean;
+                            } | {
+                                /** @constant */
+                                type: "class";
+                                isolationKeyTemplate?: string;
+                                userIsolation?: boolean;
+                            };
                         };
                     };
                     runtimeWorkers?: {
@@ -2018,12 +2061,96 @@ export interface components {
                                     maxItems?: number;
                                 };
                             };
+                            patternProperties?: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
                             required?: string[];
                         };
                         folder?: {
                             /** @constant */
                             type: "object";
                             properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            patternProperties?: {
                                 [key: string]: {
                                     /** @constant */
                                     type: "string";
@@ -2280,25 +2407,48 @@ export interface components {
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @constant */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
+                                containerTarget?: ({
+                                    /** @constant */
+                                    type: "instance";
+                                    containerIdTemplate: string;
+                                    userIsolation?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "class";
+                                    isolationKeyTemplate?: string;
+                                    userIsolation?: boolean;
+                                }) | null;
                             } | {
                                 /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    maxPerContainer?: number;
-                                    /** @constant */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
+                                    containerTarget?: ({
+                                        /** @constant */
+                                        type: "instance";
+                                        containerIdTemplate: string;
+                                        userIsolation?: boolean;
+                                    } | {
+                                        /** @constant */
+                                        type: "class";
+                                        isolationKeyTemplate?: string;
+                                        userIsolation?: boolean;
+                                    }) | null;
                                     identifier: string;
                                 }[];
                             })[];
-                            userIsolation?: boolean;
-                            containerRefTemplate?: string;
+                            containerTarget?: {
+                                /** @constant */
+                                type: "instance";
+                                containerIdTemplate: string;
+                                userIsolation?: boolean;
+                            } | {
+                                /** @constant */
+                                type: "class";
+                                isolationKeyTemplate?: string;
+                                userIsolation?: boolean;
+                            };
                         };
                     };
                     runtimeWorkers?: {
@@ -2395,12 +2545,96 @@ export interface components {
                                     maxItems?: number;
                                 };
                             };
+                            patternProperties?: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
                             required?: string[];
                         };
                         folder?: {
                             /** @constant */
                             type: "object";
                             properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            patternProperties?: {
                                 [key: string]: {
                                     /** @constant */
                                     type: "string";
@@ -2657,25 +2891,48 @@ export interface components {
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @constant */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
+                                containerTarget?: ({
+                                    /** @constant */
+                                    type: "instance";
+                                    containerIdTemplate: string;
+                                    userIsolation?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "class";
+                                    isolationKeyTemplate?: string;
+                                    userIsolation?: boolean;
+                                }) | null;
                             } | {
                                 /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    maxPerContainer?: number;
-                                    /** @constant */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
+                                    containerTarget?: ({
+                                        /** @constant */
+                                        type: "instance";
+                                        containerIdTemplate: string;
+                                        userIsolation?: boolean;
+                                    } | {
+                                        /** @constant */
+                                        type: "class";
+                                        isolationKeyTemplate?: string;
+                                        userIsolation?: boolean;
+                                    }) | null;
                                     identifier: string;
                                 }[];
                             })[];
-                            userIsolation?: boolean;
-                            containerRefTemplate?: string;
+                            containerTarget?: {
+                                /** @constant */
+                                type: "instance";
+                                containerIdTemplate: string;
+                                userIsolation?: boolean;
+                            } | {
+                                /** @constant */
+                                type: "class";
+                                isolationKeyTemplate?: string;
+                                userIsolation?: boolean;
+                            };
                         };
                     };
                     runtimeWorkers?: {
@@ -2772,12 +3029,96 @@ export interface components {
                                     maxItems?: number;
                                 };
                             };
+                            patternProperties?: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
                             required?: string[];
                         };
                         folder?: {
                             /** @constant */
                             type: "object";
                             properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            patternProperties?: {
                                 [key: string]: {
                                     /** @constant */
                                     type: "string";
@@ -3042,25 +3383,48 @@ export interface components {
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @constant */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
+                                containerTarget?: ({
+                                    /** @constant */
+                                    type: "instance";
+                                    containerIdTemplate: string;
+                                    userIsolation?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "class";
+                                    isolationKeyTemplate?: string;
+                                    userIsolation?: boolean;
+                                }) | null;
                             } | {
                                 /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    maxPerContainer?: number;
-                                    /** @constant */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
+                                    containerTarget?: ({
+                                        /** @constant */
+                                        type: "instance";
+                                        containerIdTemplate: string;
+                                        userIsolation?: boolean;
+                                    } | {
+                                        /** @constant */
+                                        type: "class";
+                                        isolationKeyTemplate?: string;
+                                        userIsolation?: boolean;
+                                    }) | null;
                                     identifier: string;
                                 }[];
                             })[];
-                            userIsolation?: boolean;
-                            containerRefTemplate?: string;
+                            containerTarget?: {
+                                /** @constant */
+                                type: "instance";
+                                containerIdTemplate: string;
+                                userIsolation?: boolean;
+                            } | {
+                                /** @constant */
+                                type: "class";
+                                isolationKeyTemplate?: string;
+                                userIsolation?: boolean;
+                            };
                         };
                     };
                     runtimeWorkers?: {
@@ -3157,12 +3521,96 @@ export interface components {
                                     maxItems?: number;
                                 };
                             };
+                            patternProperties?: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
                             required?: string[];
                         };
                         folder?: {
                             /** @constant */
                             type: "object";
                             properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            patternProperties?: {
                                 [key: string]: {
                                     /** @constant */
                                     type: "string";
@@ -3390,25 +3838,48 @@ export interface components {
                                 kind: "exec";
                                 command: string[];
                                 jobIdentifier: string;
-                                maxPerContainer?: number;
-                                /** @constant */
-                                countTowardsGlobalCap?: false;
-                                priority?: number;
+                                containerTarget?: ({
+                                    /** @constant */
+                                    type: "instance";
+                                    containerIdTemplate: string;
+                                    userIsolation?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "class";
+                                    isolationKeyTemplate?: string;
+                                    userIsolation?: boolean;
+                                }) | null;
                             } | {
                                 /** @constant */
                                 kind: "http";
                                 command: string[];
                                 port: number;
                                 jobs: {
-                                    maxPerContainer?: number;
-                                    /** @constant */
-                                    countTowardsGlobalCap?: false;
-                                    priority?: number;
+                                    containerTarget?: ({
+                                        /** @constant */
+                                        type: "instance";
+                                        containerIdTemplate: string;
+                                        userIsolation?: boolean;
+                                    } | {
+                                        /** @constant */
+                                        type: "class";
+                                        isolationKeyTemplate?: string;
+                                        userIsolation?: boolean;
+                                    }) | null;
                                     identifier: string;
                                 }[];
                             })[];
-                            userIsolation?: boolean;
-                            containerRefTemplate?: string;
+                            containerTarget?: {
+                                /** @constant */
+                                type: "instance";
+                                containerIdTemplate: string;
+                                userIsolation?: boolean;
+                            } | {
+                                /** @constant */
+                                type: "class";
+                                isolationKeyTemplate?: string;
+                                userIsolation?: boolean;
+                            };
                         };
                     };
                     runtimeWorkers?: {
@@ -3505,12 +3976,96 @@ export interface components {
                                     maxItems?: number;
                                 };
                             };
+                            patternProperties?: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
                             required?: string[];
                         };
                         folder?: {
                             /** @constant */
                             type: "object";
                             properties: {
+                                [key: string]: {
+                                    /** @constant */
+                                    type: "string";
+                                    description?: string;
+                                    default?: string;
+                                    enum?: string[];
+                                    minLength?: number;
+                                    maxLength?: number;
+                                    pattern?: string;
+                                } | {
+                                    /** @constant */
+                                    type: "number";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "integer";
+                                    description?: string;
+                                    default?: number;
+                                    minimum?: number;
+                                    maximum?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "boolean";
+                                    description?: string;
+                                    default?: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "array";
+                                    description?: string;
+                                    default?: unknown[];
+                                    items: {
+                                        /** @enum {string} */
+                                        type: "string" | "number" | "integer" | "boolean";
+                                    };
+                                    minItems?: number;
+                                    maxItems?: number;
+                                };
+                            };
+                            patternProperties?: {
                                 [key: string]: {
                                     /** @constant */
                                     type: "string";
@@ -3701,6 +4256,48 @@ export interface components {
                     /** @constant */
                     type: "object";
                     properties: {
+                        [key: string]: {
+                            /** @constant */
+                            type: "string";
+                            description?: string;
+                            default?: string;
+                            enum?: string[];
+                            minLength?: number;
+                            maxLength?: number;
+                            pattern?: string;
+                        } | {
+                            /** @constant */
+                            type: "number";
+                            description?: string;
+                            default?: number;
+                            minimum?: number;
+                            maximum?: number;
+                        } | {
+                            /** @constant */
+                            type: "integer";
+                            description?: string;
+                            default?: number;
+                            minimum?: number;
+                            maximum?: number;
+                        } | {
+                            /** @constant */
+                            type: "boolean";
+                            description?: string;
+                            default?: boolean;
+                        } | {
+                            /** @constant */
+                            type: "array";
+                            description?: string;
+                            default?: unknown[];
+                            items: {
+                                /** @enum {string} */
+                                type: "string" | "number" | "integer" | "boolean";
+                            };
+                            minItems?: number;
+                            maxItems?: number;
+                        };
+                    };
+                    patternProperties?: {
                         [key: string]: {
                             /** @constant */
                             type: "string";
@@ -5160,6 +5757,37 @@ export interface components {
                 updatedAt: string;
             }[];
         };
+        CreateBridgeTunnelSessionRequestDTO: {
+            hostId: string;
+            containerId: string;
+            command: string[];
+            label: string;
+            /**
+             * @default persistent
+             * @enum {string}
+             */
+            mode: "ephemeral" | "persistent";
+            /**
+             * @default framed
+             * @enum {string}
+             */
+            protocol: "framed" | "raw";
+            /** @default false */
+            public: boolean;
+        };
+        CreateBridgeTunnelSessionResponseDTO: {
+            publicId?: string;
+            sessionId: string;
+            token: string;
+            urls: {
+                ws: string;
+                http: string;
+            };
+            public?: {
+                id: string;
+                url: string;
+            };
+        };
         DockerJobPresignedUrlsRequestDTO: {
             /** Format: uuid */
             folderId: string;
@@ -5498,7 +6126,7 @@ export interface components {
                 }[];
             }[];
         };
-        DeleteCommentResponseDTO: {
+        SuccessResponseDTO: {
             success: boolean;
         };
         AddReactionDTO: {
@@ -10063,6 +10691,47 @@ export interface operations {
             };
         };
     };
+    BridgeSession_createTunnelSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBridgeTunnelSessionRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateBridgeTunnelSessionResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     DockerWorkerHooks_requestPresignedStorageUrls: {
         parameters: {
             query?: never;
@@ -10446,7 +11115,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeleteCommentResponseDTO"];
+                    "application/json": components["schemas"]["SuccessResponseDTO"];
                 };
             };
             /** @description Server Error */
@@ -10490,7 +11159,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SuccessResponseDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {

@@ -1,5 +1,6 @@
 import type {
   ContainerProfileConfig,
+  ContainerTarget,
   JsonSerializableObject,
 } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
@@ -15,11 +16,9 @@ import nestjsConfig from '@nestjs/config'
 import { and, eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { coreConfig } from 'src/core/config'
+import { dataFromTemplate } from 'src/core/utils/data-template.util'
 import { buildPlatformOrigin } from 'src/core/utils/platform-origin.util'
-import {
-  waitForCondition,
-  WaitForConditionError,
-} from 'src/core/utils/wait.util'
+import { waitForCondition } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
 
 import {
@@ -30,18 +29,11 @@ import {
 import { DockerClientService } from './client/docker-client.service'
 import {
   ConnectionTestResult,
-  DockerError,
   DockerHostResources,
   DockerLogAccessError,
   DockerLogEntry,
-  DockerStateFunc,
 } from './client/docker-client.types'
 import { DockerWorkerHookService } from './docker-worker-hook.service'
-
-const DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS = {
-  maxRetries: 50,
-  retryPeriodMs: 250,
-}
 
 const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
   maxRetries: 100,
@@ -57,25 +49,25 @@ export const DOCKER_LABELS = {
   APP_ID: 'lombok.container_app_id',
   USER_ID: 'lombok.container_user_id',
   IMAGE: 'lombok.container_image',
+  ISOLATION_KEY: 'lombok.container_isolation_key',
 } as const
 
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
   dockerWorkerHookService: DockerWorkerHookService
+  dockerClientService: DockerClientService
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
-    private readonly dockerClientService: DockerClientService,
+    @Inject(forwardRef(() => DockerClientService)) _dockerClientService,
     @Inject(forwardRef(() => DockerWorkerHookService))
     _dockerWorkerHookService,
   ) {
     this.dockerWorkerHookService =
       _dockerWorkerHookService as DockerWorkerHookService
-    void this.dockerClientService.testAllHostConnections().then((result) => {
-      this.logger.debug('Docker host connection test result:', result)
-    })
+    this.dockerClientService = _dockerClientService as DockerClientService
   }
 
   /**
@@ -130,8 +122,25 @@ export class DockerJobsService {
         `Job class "${jobIdentifier}" not found. Available: ${availableJobClasses.join(', ') || '(none)'}`,
       )
     }
+
+    // Find job-level containerTarget for inheritance merge
+    let jobContainerTarget: ContainerTarget | undefined
     if (workerDefinition.kind === 'exec') {
-      return workerDefinition
+      jobContainerTarget = workerDefinition.containerTarget ?? undefined
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const jobDef = workerDefinition.jobs.find(
+        (job) => job.identifier === jobIdentifier,
+      )!
+      jobContainerTarget = jobDef.containerTarget ?? undefined
+    }
+
+    // Job overrides profile (defined overrides, undefined inherits)
+    const resolvedContainerTarget =
+      jobContainerTarget ?? profileSpec.containerTarget
+
+    if (workerDefinition.kind === 'exec') {
+      return { ...workerDefinition, resolvedContainerTarget }
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const jobDefinition = workerDefinition.jobs.find(
@@ -140,12 +149,10 @@ export class DockerJobsService {
 
     return {
       jobIdentifier: jobDefinition.identifier,
-      maxPerContainer: jobDefinition.maxPerContainer,
-      countTowardsGlobalCap: jobDefinition.countTowardsGlobalCap,
-      priority: jobDefinition.priority,
       command: workerDefinition.command,
       kind: workerDefinition.kind,
       port: workerDefinition.port,
+      resolvedContainerTarget,
     }
   }
 
@@ -158,16 +165,88 @@ export class DockerJobsService {
     image: string,
     appIdentifier?: string,
     userId?: string,
+    isolationKey?: string,
   ): Record<string, string> {
     return {
-      [DOCKER_LABELS.PLATFORM_HOST]: 'lombok',
+      [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
       [DOCKER_LABELS.PLATFORM_URL]: buildPlatformOrigin(this._coreConfig),
       [DOCKER_LABELS.PROFILE_HASH]: profileHash,
       [DOCKER_LABELS.IMAGE]: image,
       [DOCKER_LABELS.PROFILE_ID]: profileIdentifier,
       ...(appIdentifier ? { [DOCKER_LABELS.APP_ID]: appIdentifier } : {}),
       ...(userId ? { [DOCKER_LABELS.USER_ID]: userId } : {}),
+      ...(isolationKey ? { [DOCKER_LABELS.ISOLATION_KEY]: isolationKey } : {}),
     }
+  }
+
+  /**
+   * Destroy containers matching the given criteria.
+   * If containerId is provided, destroy that specific container.
+   * If profileKey is provided, find all containers by labels and destroy them.
+   */
+  async destroyContainers(
+    params:
+      | { hostId: string; containerId: string }
+      | {
+          hostId: string
+          profileKey: string
+          appIdentifier: string
+          profileSpec: ContainerProfileConfig
+          userId?: string
+          isolationKey?: string
+        },
+  ): Promise<number> {
+    if ('containerId' in params) {
+      try {
+        await this.dockerClientService.removeContainer(
+          params.hostId,
+          params.containerId,
+          { force: true },
+        )
+        return 1
+      } catch {
+        return 0
+      }
+    }
+
+    const {
+      hostId,
+      profileKey,
+      appIdentifier,
+      profileSpec,
+      userId,
+      isolationKey,
+    } = params
+    const profileHash = this.hashProfileSpec(profileSpec)
+    const containerProfileIdentifier = `lombok:profile_${profileKey}`
+    const labels = this.buildContainerLabels(
+      containerProfileIdentifier,
+      profileHash,
+      profileSpec.image,
+      appIdentifier,
+      userId,
+      isolationKey,
+    )
+
+    const containers = await this.dockerClientService.listContainersByLabels(
+      hostId,
+      labels,
+    )
+
+    let destroyedCount = 0
+    for (const container of containers) {
+      try {
+        await this.dockerClientService.removeContainer(hostId, container.id, {
+          force: true,
+        })
+        destroyedCount++
+      } catch {
+        this.logger.warn(
+          `Failed to remove container ${container.id} on host ${hostId}`,
+        )
+      }
+    }
+    return destroyedCount
   }
 
   /**
@@ -234,38 +313,30 @@ export class DockerJobsService {
 
   /**
    * Resolve (find or create) a profile container and ensure it is running.
-   * When a container is created via the profile path, injects container context
-   * (token) via set-context if `setContext` params are provided.
+   * When a container is created via the profile path, provisions it with
+   * platform credentials via the `provision` command if params are provided.
    */
   async resolveContainer(
-    attributes: { profileKey: string } | { containerRef: string },
+    attributes:
+      | { profileKey: string }
+      | { containerId: string; hostId: string },
     { image, labels, env: extraEnv }: ContainerCreateOptions,
-    setContext?: {
-      contextSecret: string
+    provision?: {
+      provisionSecret: string
       appIdentifier: string
       profileKey: string
       userId?: string
     },
   ): Promise<{ containerId: string; hostId: string }> {
-    if ('containerRef' in attributes) {
-      const [refHostId, refContainerId] = attributes.containerRef.split(':')
-      const hostId = refHostId ?? ''
+    if ('containerId' in attributes) {
+      const { hostId, containerId: refContainerId } = attributes
 
       if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
         throw new AsyncWorkError({
           name: 'DockerClientError',
           origin: 'internal',
           code: 'DOCKER_NOT_CONFIGURED',
-          message: `Unrecognized Docker host "${hostId}" in containerRef "${attributes.containerRef}"`,
-        })
-      }
-
-      if (!refContainerId) {
-        throw new AsyncWorkError({
-          name: 'DockerClientError',
-          origin: 'internal',
-          code: 'INVALID_CONTAINER_REF',
-          message: `Invalid containerRef "${attributes.containerRef}" — expected format "hostId:containerId"`,
+          message: `Unrecognized Docker host "${hostId}" for container "${refContainerId}"`,
         })
       }
 
@@ -321,37 +392,38 @@ export class DockerJobsService {
 
     const containerId = container.id
 
-    // Inject container context (token) via set-context for newly resolved containers
-    if (setContext) {
+    // Provision the container with platform credentials (container token)
+    if (provision) {
       const containerToken =
         this.dockerWorkerHookService.createDockerContainerToken({
-          appIdentifier: setContext.appIdentifier,
-          profileKey: setContext.profileKey,
+          appIdentifier: provision.appIdentifier,
+          profileKey: provision.profileKey,
           hostId,
           containerId,
-          userId: setContext.userId,
+          userId: provision.userId,
         })
 
-      const setContextExec = await this.dockerClientService.execInContainer(
+      const platformUrl = buildPlatformOrigin(this._coreConfig)
+
+      const provisionExec = await this.dockerClientService.execInContainer(
         hostId,
         containerId,
         [
           'lombok-worker-agent',
-          'set-context',
+          'provision',
           '--secret',
-          setContext.contextSecret,
+          provision.provisionSecret,
           `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
+          `LOMBOK_PLATFORM_URL=${platformUrl}`,
         ],
       )
 
-      const setContextState = await setContextExec.state(10_000)
-      if (setContextState.running || setContextState.exitCode !== 0) {
-        const { stdout, stderr } = setContextExec.output()
+      if (provisionExec.exitCode !== 0) {
         throw new AsyncWorkError({
-          name: 'SetContextError',
+          name: 'ProvisionError',
           origin: 'internal',
-          message: `Failed to set container context: exit=${setContextState.running ? 'timeout' : setContextState.exitCode} stdout=${stdout} stderr=${stderr}`,
-          code: 'SET_CONTEXT_FAILED',
+          message: `Failed to provision container: exit=${provisionExec.exitCode} stdout=${provisionExec.stdout} stderr=${provisionExec.stderr}`,
+          code: 'PROVISION_FAILED',
           stack: new Error().stack,
           details: { containerId, hostId },
         })
@@ -359,53 +431,6 @@ export class DockerJobsService {
     }
 
     return { hostId, containerId }
-  }
-
-  /**
-   * Find or create a container and execute a command.
-   */
-  async execInResolvedContainer(
-    attributes: { profileKey: string } | { containerRef: string },
-    options: ContainerCreateOptions,
-    buildCommand: (containerMetadata: {
-      containerId: string
-      hostId: string
-    }) => string[],
-  ): Promise<{
-    containerId: string
-    hostId: string
-    getError: () => Promise<DockerError>
-    state: DockerStateFunc
-    output: () => { stdout: string; stderr: string }
-  }> {
-    const { hostId, containerId } = await this.resolveContainer(
-      attributes,
-      options,
-    )
-
-    const command = buildCommand({ containerId, hostId })
-
-    this.logger.debug('execInResolvedContainer:', {
-      hostId,
-      containerId,
-      command,
-      labels: options.labels,
-    })
-
-    const { getError, state, output } =
-      await this.dockerClientService.execInContainer(
-        hostId,
-        containerId,
-        command,
-      )
-
-    return {
-      getError,
-      hostId,
-      containerId,
-      state,
-      output,
-    }
   }
 
   /**
@@ -424,7 +449,6 @@ export class DockerJobsService {
         jobData,
         profileKey,
         profileSpec,
-        containerRef,
         appIdentifier,
         userId,
       } = params
@@ -440,32 +464,140 @@ export class DockerJobsService {
       )
 
       const containerProfileIdentifier = `lombok:profile_${profileKey}`
-      // Build labels for container discovery
 
-      const labels = this.buildContainerLabels(
-        containerProfileIdentifier,
-        profileHash,
-        profileSpec.image,
-        appIdentifier,
-        userId,
-      )
+      const { resolvedContainerTarget } = jobDefinition
 
-      // Generate a context secret that the platform passes at container creation
-      // and later uses to authenticate set-context exec calls.
-      const contextSecret = crypto.randomUUID()
+      // Generate a one-time secret for authenticating the provision exec call.
+      const provisionSecret = crypto.randomUUID()
 
-      const containerCreateOptions = {
-        image: profileSpec.image,
-        labels,
-        env: { LOMBOK_CONTEXT_SECRET: contextSecret },
+      let resolvedContainer: { containerId: string; hostId: string }
+
+      if (resolvedContainerTarget?.type === 'instance') {
+        // Instance path: resolve containerIdTemplate → direct container targeting
+        const { containerId: resolvedContainerId } = await dataFromTemplate(
+          { containerId: resolvedContainerTarget.containerIdTemplate },
+          { objects: { inputData: jobData } },
+        )
+
+        if (!resolvedContainerId || typeof resolvedContainerId !== 'string') {
+          throw new AsyncWorkError({
+            name: 'DockerClientError',
+            origin: 'internal',
+            code: 'INVALID_CONTAINER_TARGET',
+            message:
+              'containerIdTemplate did not resolve to a valid container ID',
+          })
+        }
+
+        const { hostId } = this.resolveDockerHostConfigForProfile(profileKey)
+
+        // If userIsolation, verify container's USER_ID label matches
+        if (resolvedContainerTarget.userIsolation && userId) {
+          const container = await this.dockerClientService.findContainerById(
+            hostId,
+            resolvedContainerId,
+          )
+          if (
+            container?.labels[DOCKER_LABELS.USER_ID] &&
+            container.labels[DOCKER_LABELS.USER_ID] !== userId
+          ) {
+            throw new AsyncWorkError({
+              name: 'DockerClientError',
+              origin: 'internal',
+              code: 'CONTAINER_USER_MISMATCH',
+              message: `Container "${resolvedContainerId}" does not belong to user "${userId}"`,
+            })
+          }
+        }
+
+        // Build labels for provisioning (not for matching)
+        const labels = this.buildContainerLabels(
+          containerProfileIdentifier,
+          profileHash,
+          profileSpec.image,
+          appIdentifier,
+          userId,
+        )
+
+        resolvedContainer = await this.resolveContainer(
+          { containerId: resolvedContainerId, hostId },
+          {
+            image: profileSpec.image,
+            labels,
+            env: { LOMBOK_PROVISION_SECRET: provisionSecret },
+          },
+          { provisionSecret, appIdentifier, profileKey, userId },
+        )
+      } else if (resolvedContainerTarget?.type === 'class') {
+        // Class path: compose isolation key, find-or-create container
+        let isolationKey: string | undefined
+
+        if (resolvedContainerTarget.isolationKeyTemplate) {
+          const { isolationKey: resolvedKey } = await dataFromTemplate(
+            { isolationKey: resolvedContainerTarget.isolationKeyTemplate },
+            { objects: { inputData: jobData } },
+          )
+          if (resolvedKey && typeof resolvedKey === 'string') {
+            isolationKey = resolvedKey
+          }
+        }
+
+        // Compose effective isolation key with optional user prefix
+        if (resolvedContainerTarget.userIsolation && userId) {
+          isolationKey = isolationKey
+            ? `user:${userId}:${isolationKey}`
+            : `user:${userId}`
+        }
+
+        const effectiveUserId = resolvedContainerTarget.userIsolation
+          ? userId
+          : undefined
+
+        const labels = this.buildContainerLabels(
+          containerProfileIdentifier,
+          profileHash,
+          profileSpec.image,
+          appIdentifier,
+          effectiveUserId,
+          isolationKey,
+        )
+
+        resolvedContainer = await this.resolveContainer(
+          { profileKey },
+          {
+            image: profileSpec.image,
+            labels,
+            env: { LOMBOK_PROVISION_SECRET: provisionSecret },
+          },
+          {
+            provisionSecret,
+            appIdentifier,
+            profileKey,
+            userId: effectiveUserId,
+          },
+        )
+      } else {
+        // No containerTarget — shared container per profile (backward-compatible default)
+        const labels = this.buildContainerLabels(
+          containerProfileIdentifier,
+          profileHash,
+          profileSpec.image,
+          appIdentifier,
+          userId,
+        )
+
+        resolvedContainer = await this.resolveContainer(
+          { profileKey },
+          {
+            image: profileSpec.image,
+            labels,
+            env: { LOMBOK_PROVISION_SECRET: provisionSecret },
+          },
+          { provisionSecret, appIdentifier, profileKey, userId },
+        )
       }
 
-      // 1. Resolve (find or create) the container, injecting context on creation
-      const { hostId, containerId } = await this.resolveContainer(
-        containerRef ? { containerRef } : { profileKey },
-        containerCreateOptions,
-        { contextSecret, appIdentifier, profileKey, userId },
-      )
+      const { hostId, containerId } = resolvedContainer
 
       // 2. Execute the job
       const jobToken = this.dockerWorkerHookService.createDockerWorkerJobToken({
@@ -523,34 +655,22 @@ export class DockerJobsService {
         JSON.stringify(jobExecuteOptions),
       ).toString('base64')
 
-      const { state, output, getError } =
-        await this.dockerClientService.execInContainer(hostId, containerId, [
-          'lombok-worker-agent',
-          'run-job',
-          `--payload-base64=${payloadBase64}`,
-        ])
+      const startJobExec = await this.dockerClientService.execInContainer(
+        hostId,
+        containerId,
+        ['lombok-worker-agent', 'run-job', `--payload-base64=${payloadBase64}`],
+      )
 
-      // Wait for the agent exec call to complete, signifying that the job has been submitted
-      try {
-        await this.waitForStarted(
-          jobId,
-          state,
-          getError,
-          output,
-          () => this.getJobState(hostId, containerId, jobId),
-          jobDefinition.kind,
-        )
-      } catch (error) {
+      if (startJobExec.exitCode !== 0) {
         this.logger.debug(
-          `Job ${jobId} submission failed: ${error instanceof Error ? error.message : String(error)}.`,
+          `Job ${jobId} submission failed:\n${startJobExec.stderr}.`,
         )
-        if (error instanceof AsyncWorkError) {
-          throw error
-        }
-        throw buildUnexpectedError({
-          code: 'UNEXPECTED_ERROR_IN_EXECUTE_DOCKER_JOB',
-          message: 'Unexpected error in executeDockerJob',
-          error,
+        throw new AsyncWorkError({
+          name: 'DockerJobSubmissionError',
+          origin: 'internal',
+          code: 'JOB_SUBMISSION_FAILED',
+          message: startJobExec.stderr || `Job ${jobId} submission failed`,
+          stack: new Error().stack,
         })
       }
 
@@ -600,81 +720,6 @@ export class DockerJobsService {
       hash = hash & hash // Convert to 32bit integer
     }
     return Math.abs(hash).toString(16)
-  }
-
-  private async waitForStarted(
-    jobId: string,
-    execState: DockerStateFunc,
-    getError: () => Promise<DockerError>,
-    execOutput: () => { stdout: string; stderr: string },
-    jobState: () => Promise<DockerJobState>,
-    jobKind: 'exec' | 'http',
-    {
-      maxRetries = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.maxRetries,
-      retryPeriodMs = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS.retryPeriodMs,
-    }: {
-      maxRetries?: number
-      retryPeriodMs?: number
-    } = DEFAULT_WAIT_FOR_SUBMISSION_OPTIONS,
-  ) {
-    const jobHasStarted = async () => {
-      const currentState = await execState(maxRetries * retryPeriodMs)
-      if (!currentState.running && currentState.exitCode !== 0) {
-        const error = await getError()
-        throw new AsyncWorkError({
-          name: 'DockerWorkerSubmissionError',
-          origin: 'internal',
-          code: error.code,
-          message: `Job submission failed with error: [${error.code}] Message: ${error.message}`,
-        })
-      }
-
-      if (!currentState.running || jobKind === 'exec') {
-        // For exec jobs this means the job was completed (success or failure), but for http jobs it
-        // just means the initial submit call is completed, but not that the job is even running.
-        const _jobState = await jobState()
-        if (_jobState.status === 'failed') {
-          const error = new AsyncWorkError({
-            name: 'DockerWorkerError',
-            origin: 'internal',
-            code: !_jobState.started_at
-              ? 'DOCKER_JOB_SUBMISSION_ERROR'
-              : 'DOCKER_JOB_EXECUTION_ERROR',
-            message: `Job submission failed: ${_jobState.error}`,
-          })
-
-          throw error
-        }
-        // the dispatch exec is no longer running, and there's no reported failure in the job state, so we've officially submitted the job
-        return true
-      }
-      return false
-    }
-
-    try {
-      await waitForCondition(jobHasStarted, 'Job submission failed', {
-        maxRetries,
-        retryPeriodMs,
-        totalMaxDurationMs: maxRetries * retryPeriodMs,
-      })
-    } catch (error) {
-      if (error instanceof WaitForConditionError && error.code === 'TIMEOUT') {
-        this.logger.warn('Docker job waitForStarted timeout')
-        throw new AsyncWorkError({
-          name: 'DockerWorkerSubmissionError',
-          origin: 'internal',
-          code: 'SUBMISSION_TIMEOUT',
-          message: `Job submission timed out after approximately ${maxRetries * retryPeriodMs}ms`,
-        })
-      } else if (error instanceof AsyncWorkError) {
-        throw error
-      }
-      throw buildUnexpectedError({
-        code: 'UNEXPECTED_ERROR_IN_EXECUTE_DOCKER_JOB',
-        message: 'Unexpected error in waitForStarted',
-        error,
-      })
-    }
   }
 
   private async waitForCompletion(
@@ -738,34 +783,19 @@ export class DockerJobsService {
       command.push('--tail', options.tail.toString())
     }
 
-    const { output, state } = await this.dockerClientService.execInContainer(
+    const exec = await this.dockerClientService.execInContainer(
       hostId,
       containerId,
       command,
     )
 
-    await waitForCondition(
-      async () => {
-        const _state = await state(5000)
-        return !_state.running
-      },
-      'Agent log access timed out',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
-    )
-
-    const streamsOutput = output()
-
-    if (streamsOutput.stderr.length > 0) {
+    if (exec.stderr.length > 0) {
       throw new DockerLogAccessError(
         'AGENT_LOG_ACCESS_ERROR',
-        'Error getting agent log: ' + streamsOutput.stderr,
+        'Error getting agent log: ' + exec.stderr,
       )
     }
-    return streamsOutput.stdout
+    return exec.stdout
   }
 
   private async getJobState(
@@ -775,46 +805,32 @@ export class DockerJobsService {
   ): Promise<DockerJobState> {
     const command = ['lombok-worker-agent', 'job-state', '--job-id', jobId]
 
-    const { getError, output, state } =
-      await this.dockerClientService.execInContainer(
-        hostId,
-        containerId,
-        command,
-      )
-
-    await waitForCondition(
-      async () => {
-        const _state = await state(5000)
-        return !_state.running
-      },
-      'Job state not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
+    const exec = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      command,
     )
 
-    const latestState = await state(5000)
-    if (latestState.exitCode !== 0) {
-      throw await getError()
+    if (exec.exitCode !== 0) {
+      throw new AsyncWorkError({
+        name: 'DockerWorkerStateError',
+        origin: 'internal',
+        code: 'GET_JOB_STATE_FAILED',
+        message: 'Failed to get job state: ' + exec.stderr,
+      })
     }
 
-    const streamsOutput = output()
-
-    if (streamsOutput.stdout.length === 0) {
+    if (exec.stdout.length === 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
         origin: 'internal',
         code: 'JOB_STATE_NOT_FOUND',
         message:
-          'Job state not found\nError: ' +
-          streamsOutput.stderr +
-          '\n' +
-          streamsOutput.stderr,
+          'Job state not found\nError: ' + exec.stderr + '\n' + exec.stderr,
       })
     }
-    return JSON.parse(streamsOutput.stdout) as DockerJobState
+
+    return JSON.parse(exec.stdout) as DockerJobState
   }
 
   private async getJobResult(
@@ -824,30 +840,15 @@ export class DockerJobsService {
   ): Promise<DockerJobResult> {
     const command = ['lombok-worker-agent', 'job-result', '--job-id', jobId]
 
-    const { output, state } = await this.dockerClientService.execInContainer(
+    const exec = await this.dockerClientService.execInContainer(
       hostId,
       containerId,
       command,
     )
 
-    await waitForCondition(
-      async () => {
-        const _state = await state(5000)
-        return !_state.running
-      },
-      'Job result not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
-    )
-
-    const streamsOutput = output()
-
     const agentResponse =
-      streamsOutput.stdout.length > 0
-        ? (JSON.parse(streamsOutput.stdout) as DockerJobResultAgent)
+      exec.stdout.length > 0
+        ? (JSON.parse(exec.stdout) as DockerJobResultAgent)
         : undefined
 
     return agentResponse
@@ -861,7 +862,7 @@ export class DockerJobsService {
           jobId,
           error: {
             code: 'JOB_RESULT_NOT_FOUND',
-            message: 'Job result not found\nError: ' + streamsOutput.stderr,
+            message: 'Job result not found\nError: ' + exec.stderr,
           },
           timing: {},
         }
@@ -883,41 +884,26 @@ export class DockerJobsService {
       command.push('--tail', options.tail.toString())
     }
 
-    const { output, state } = await this.dockerClientService.execInContainer(
+    const exec = await this.dockerClientService.execInContainer(
       hostId,
       containerId,
       command,
     )
 
-    await waitForCondition(
-      async () => {
-        const _state = await state(5000)
-        return !_state.running
-      },
-      'Job log not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
-    )
-
-    const streamsOutput = output()
-
-    if (streamsOutput.stderr.length > 0) {
+    if (exec.stderr.length > 0) {
       throw new DockerLogAccessError(
         'JOB_LOG_ACCESS_ERROR',
-        'Error getting job log: ' + streamsOutput.stderr,
+        'Error getting job log: ' + exec.stderr,
       )
     }
-    return streamsOutput.stdout
+    return exec.stdout
   }
 
   async listContainerJobStateFiles(
     hostId: string,
     containerId: string,
   ): Promise<string[]> {
-    const { output, state } = await this.dockerClientService.execInContainer(
+    const exec = await this.dockerClientService.execInContainer(
       hostId,
       containerId,
       [
@@ -927,22 +913,7 @@ export class DockerJobsService {
       ],
     )
 
-    await waitForCondition(
-      async () => {
-        const execState = await state(5000)
-        return !execState.running
-      },
-      'Job state files not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
-    )
-
-    const streamsOutput = output()
-
-    return streamsOutput.stdout
+    return exec.stdout
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
@@ -952,7 +923,7 @@ export class DockerJobsService {
     hostId: string,
     containerId: string,
   ): Promise<string[]> {
-    const { output, state } = await this.dockerClientService.execInContainer(
+    const exec = await this.dockerClientService.execInContainer(
       hostId,
       containerId,
       [
@@ -962,22 +933,7 @@ export class DockerJobsService {
       ],
     )
 
-    await waitForCondition(
-      async () => {
-        const execState = await state(5000)
-        return !execState.running
-      },
-      'Worker state files not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
-    )
-
-    const streamsOutput = output()
-
-    return streamsOutput.stdout
+    return exec.stdout
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
@@ -991,7 +947,7 @@ export class DockerJobsService {
     const port = this.parseWorkerPort(workerId)
     const safeWorkerId = `http_${port}`
 
-    const { output, state } = await this.dockerClientService.execInContainer(
+    const exec = await this.dockerClientService.execInContainer(
       hostId,
       containerId,
       [
@@ -1001,22 +957,7 @@ export class DockerJobsService {
       ],
     )
 
-    await waitForCondition(
-      async () => {
-        const execState = await state(5000)
-        return !execState.running
-      },
-      'Worker job state files not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
-    )
-
-    const streamsOutput = output()
-
-    return streamsOutput.stdout
+    return exec.stdout
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
@@ -1030,47 +971,32 @@ export class DockerJobsService {
     const port = this.parseWorkerPort(workerId)
     const command = ['lombok-worker-agent', 'worker-state', '--port', `${port}`]
 
-    const { getError, output, state } =
-      await this.dockerClientService.execInContainer(
-        hostId,
-        containerId,
-        command,
-      )
-
-    await waitForCondition(
-      async () => {
-        const _state = await state(5000)
-        return !_state.running
-      },
-      'Worker state not found',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
+    const exec = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      command,
     )
 
-    const latestState = await state(5000)
-    if (latestState.exitCode !== 0) {
-      throw await getError()
+    if (exec.exitCode !== 0) {
+      throw new AsyncWorkError({
+        name: 'DockerWorkerStateError',
+        origin: 'internal',
+        code: 'GET_WORKER_STATE_FAILED',
+        message: 'Failed to get worker state: ' + exec.stderr,
+      })
     }
 
-    const streamsOutput = output()
-
-    if (streamsOutput.stdout.length === 0) {
+    if (exec.stdout.length === 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
         origin: 'internal',
         code: 'WORKER_STATE_NOT_FOUND',
         message:
-          'Worker state not found\nError: ' +
-          streamsOutput.stderr +
-          '\n' +
-          streamsOutput.stderr,
+          'Worker state not found\nError: ' + exec.stderr + '\n' + exec.stderr,
       })
     }
 
-    return JSON.parse(streamsOutput.stdout)
+    return JSON.parse(exec.stdout)
   }
 
   async getContainerJobState(
@@ -1118,40 +1044,29 @@ export class DockerJobsService {
       command.push('--older-than', options.olderThan)
     }
 
-    const { getError, output, state } =
-      await this.dockerClientService.execInContainer(
-        hostId,
-        containerId,
-        command,
-      )
-
-    await waitForCondition(
-      async () => {
-        const execState = await state(5000)
-        return !execState.running
-      },
-      'Purge jobs timed out',
-      {
-        maxRetries: 10,
-        retryPeriodMs: 100,
-        totalMaxDurationMs: 1000,
-      },
+    const exec = await this.dockerClientService.execInContainer(
+      hostId,
+      containerId,
+      command,
     )
 
-    const latestState = await state(5000)
-    if (latestState.exitCode !== 0) {
-      throw await getError()
+    if (exec.exitCode !== 0) {
+      throw new AsyncWorkError({
+        name: 'DockerWorkerError',
+        origin: 'internal',
+        code: 'PURGE_JOBS_FAILED',
+        message: 'Failed to purge jobs: ' + exec.stderr,
+      })
     }
 
-    const streamsOutput = output()
-    if (streamsOutput.stderr.length > 0) {
+    if (exec.stderr.length > 0) {
       throw new DockerLogAccessError(
         'PURGE_JOBS_ERROR',
-        'Error purging job files: ' + streamsOutput.stderr,
+        'Error purging job files: ' + exec.stderr,
       )
     }
 
-    return { message: streamsOutput.stdout.trim() || 'Purge completed.' }
+    return { message: exec.stdout.trim() || 'Purge completed.' }
   }
 
   async getDockerHostState(hostId: string): Promise<DockerHostState> {

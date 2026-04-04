@@ -1,8 +1,4 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
-import type { ContainerInspectInfo } from 'dockerode'
-
-import type { DockerPullOptions } from './adapters/local.adapter'
-import type { ContainerExecuteOptions } from './docker.schema'
 
 export interface ContainerInfo {
   id: string
@@ -83,121 +79,6 @@ export interface DockerPipeStream {
   destroy: () => void
 }
 
-export interface DockerAdapter {
-  /**
-   * Get the description of the underlying docker resource
-   */
-  getDescription: () => string
-
-  /**
-   * Test connectivity to the Docker host
-   */
-  testConnection: () => Promise<ConnectionTestResult>
-
-  /**
-   * Pull an image from a registry
-   */
-  pullImage: (image: string, options: DockerPullOptions) => Promise<void>
-
-  /**
-   * List containers matching the given labels
-   */
-  listContainersByLabels: (
-    labels: Record<string, string>,
-  ) => Promise<ContainerInfo[]>
-
-  /**
-   * Create a new container with the given configuration
-   */
-  createContainer: (
-    options: FindOrCreateContainerOptions,
-  ) => Promise<ContainerInfo>
-
-  /**
-   * Execute a command in a running container
-   */
-  execInContainer: (
-    containerId: string,
-    command: string[],
-    options: ContainerExecuteOptions,
-  ) => Promise<{
-    getError: () => Promise<DockerError>
-    state: DockerStateFunc
-    output: () => { stdout: string; stderr: string }
-  }>
-
-  /**
-   * Start a stopped container
-   */
-  startContainer: (containerId: string) => Promise<void>
-
-  /**
-   * Stop a running container
-   */
-  stopContainer: (containerId: string) => Promise<void>
-
-  /**
-   * Restart a container
-   */
-  restartContainer: (containerId: string) => Promise<void>
-
-  /**
-   * Remove a container
-   */
-  removeContainer: (
-    containerId: string,
-    options?: { force?: boolean },
-  ) => Promise<void>
-
-  /**
-   * Get container logs
-   */
-  getContainerLogs: (
-    containerId: string,
-    options?: { tail?: number },
-  ) => Promise<DockerLogEntry[]>
-
-  /**
-   * Get host resource info
-   */
-  getHostResources: () => Promise<DockerHostResources>
-
-  /**
-   * Get container resource usage
-   */
-  getContainerStats: (containerId: string) => Promise<DockerContainerStats>
-
-  /**
-   * Get container inspection data
-   */
-  getContainerInspect: (containerId: string) => Promise<ContainerInspectInfo>
-
-  /**
-   * Check if a container is running
-   */
-  isContainerRunning: (containerId: string) => Promise<boolean>
-
-  /**
-   * Execute a command in a container with TTY attached, returning a bidirectional stream.
-   * Used for interactive terminal sessions.
-   */
-  execTty: (
-    containerId: string,
-    command: string[],
-    options?: { cols?: number; rows?: number; env?: Record<string, string> },
-  ) => Promise<DockerTtyStream>
-
-  /**
-   * Execute a command in a container without TTY, returning a streaming pipe
-   * with separate stdout/stderr channels. Used for non-interactive exec sessions.
-   */
-  execPipe: (
-    containerId: string,
-    command: string[],
-    options?: { env?: Record<string, string> },
-  ) => Promise<DockerPipeStream>
-}
-
 export type DockerSynchronousExecResult =
   | {
       jobId: string
@@ -235,44 +116,6 @@ export interface DockerAsynchronousExecResult {
 export type DockerExecResult<T extends boolean> = T extends true
   ? DockerSynchronousExecResult
   : DockerAsynchronousExecResult
-
-export type DockerStateFunc = (timeoutMs?: number) => Promise<DockerExecState>
-
-export type DockerExecState = DockerExecStateRunning | DockerExecStateExited
-
-export interface DockerExecStateRunning {
-  running: true
-  exitCode: null
-}
-
-export interface DockerExecStateExited {
-  running: false
-  exitCode: number
-}
-
-export enum DockerAdapterErrorCode {
-  IMAGE_NOT_FOUND = 'IMAGE_NOT_FOUND',
-  IMAGE_PULL_ERROR = 'IMAGE_PULL_ERROR',
-  COMMAND_ARGUMENT_LIST_TOO_LONG = 'COMMAND_ARGUMENT_LIST_TOO_LONG',
-  UNEXPECTED_ERROR = 'UNEXPECTED_ERROR',
-  HOST_CONNECTION_ERROR = 'HOST_CONNECTION_ERROR',
-  HOST_CONNECTION_TIMEOUT = 'HOST_CONNECTION_TIMEOUT',
-  CONTAINER_NOT_FOUND = 'CONTAINER_NOT_FOUND',
-  CONTAINER_NOT_RUNNING = 'CONTAINER_NOT_RUNNING',
-  CONTAINER_START_FAILED = 'CONTAINER_START_FAILED',
-  CONTAINER_START_ERROR = 'CONTAINER_START_ERROR',
-}
-
-export class DockerAdapterError extends Error {
-  constructor(
-    public readonly code: DockerAdapterErrorCode,
-    message: string,
-    public readonly cause?: Error,
-  ) {
-    super(message)
-    this.name = 'DockerAdapterError'
-  }
-}
 
 export class DockerError extends Error {
   constructor(

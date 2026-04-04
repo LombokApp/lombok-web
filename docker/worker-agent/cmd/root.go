@@ -43,6 +43,6 @@ func init() {
 	rootCmd.AddCommand(workerSupervisorCmd)
 	rootCmd.AddCommand(purgeJobsCmd)
 	rootCmd.AddCommand(rotateLogsCmd)
-	rootCmd.AddCommand(setContextCmd)
+	rootCmd.AddCommand(provisionCmd)
 	rootCmd.AddCommand(processLogCmd)
 }

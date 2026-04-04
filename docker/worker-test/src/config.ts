@@ -102,6 +102,10 @@ export const testConfigSchema = z.object({
   buildArgs: z.record(z.string(), z.string()).optional(),
   agentBinaryVariant: z.string().optional().default('linux-amd64'), // e.g., "linux-amd64", "linux-arm64", etc.
 
+  // Shell script to run before docker build (resolved relative to config file).
+  // Use this to compile binaries, copy dependencies, or prepare the build context.
+  prebuild: z.string().optional(),
+
   // Build options
   build: buildConfigSchema,
 

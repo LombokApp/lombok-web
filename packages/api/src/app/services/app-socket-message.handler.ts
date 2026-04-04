@@ -366,5 +366,68 @@ export async function handleAppSocketMessage(
       )
       return { result: { success: true } }
     }
+    case 'CREATE_BRIDGE_TUNNEL': {
+      try {
+        const result = await appService.createTunnelSessionAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Bridge tunnel creation failed',
+          },
+        }
+      }
+    }
+    case 'DELETE_BRIDGE_TUNNEL': {
+      try {
+        await appService.deleteTunnelSessionAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data.sessionId,
+        )
+        return { result: { success: true } }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code: 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Bridge tunnel deletion failed',
+          },
+        }
+      }
+    }
+    case 'DESTROY_APP_DOCKER_CONTAINERS': {
+      try {
+        const result = await appService.destroyAppDockerContainers(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Container destruction failed',
+          },
+        }
+      }
+    }
   }
 }

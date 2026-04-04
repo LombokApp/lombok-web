@@ -33,6 +33,7 @@ Commands:
   reload api           Reload the NestJS API (triggers bun watch reload)
   restart api          Restart the NestJS API (triggers restart of the app, which loads new env)
   restart ui           Restart the Vite frontend dev server
+  restart bridge       Restart the docker bridge server
   db seed              Seed the database with dev data
   db reset             Drop all tables and re-migrate
   db reset:seed        Drop all tables, re-migrate, and re-seed
@@ -104,8 +105,12 @@ case "${1:-help}" in
       ui)
         $DOCKER_EXEC sh /usr/src/app/packages/api/cmd/restart-ui.sh
         ;;
+      bridge)
+        $DOCKER_EXEC pkill -f 'bun run.*/docker-bridge/src/index.ts' || true
+        echo "Sent kill signal to docker-bridge. The API service will restart it automatically."
+        ;;
       *)
-        echo "Usage: ./dx restart api" >&2
+        echo "Usage: ./dx restart (api|ui|bridge)" >&2
         exit 1
         ;;
     esac

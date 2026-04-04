@@ -82,12 +82,12 @@ func startAgent(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to ensure state directories: %w", err)
 	}
 
-	// Persist the context secret for set-context authentication.
-	// Read from LOMBOK_CONTEXT_SECRET env var (set by the platform at container creation).
-	contextSecret := os.Getenv("LOMBOK_CONTEXT_SECRET")
-	if contextSecret != "" {
-		if err := os.WriteFile(config.ContextSecretPath(), []byte(contextSecret), 0600); err != nil {
-			return fmt.Errorf("failed to write context secret: %w", err)
+	// Persist the provision secret for 'provision' command authentication.
+	// Read from LOMBOK_PROVISION_SECRET env var (set by the platform at container creation).
+	provisionSecret := os.Getenv("LOMBOK_PROVISION_SECRET")
+	if provisionSecret != "" {
+		if err := os.WriteFile(config.ProvisionSecretPath(), []byte(provisionSecret), 0600); err != nil {
+			return fmt.Errorf("failed to write provision secret: %w", err)
 		}
 	}
 
@@ -219,7 +219,7 @@ func parseStartArgs(args []string) ([]warmupSpec, error) {
 // --- Token refresh ---
 
 func startTokenRefreshLoop(ctx context.Context) {
-	// Wait briefly to give set-context time to inject the token.
+	// Wait briefly to give provision time to inject the token.
 	if waitForContext(ctx, tokenRefreshInitialDelay) {
 		return
 	}
@@ -240,15 +240,15 @@ func startTokenRefreshLoop(ctx context.Context) {
 }
 
 func refreshTokenIfNeeded() {
-	envPath := config.ContextEnvPath()
+	envPath := config.ProvisionEnvPath()
 
 	data, err := os.ReadFile(envPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			logs.WriteAgentLog(logs.LogLevelDebug, "Token refresh: context.env not found yet, skipping", nil)
+			logs.WriteAgentLog(logs.LogLevelDebug, "Token refresh: provision.env not found yet, skipping", nil)
 			return
 		}
-		logs.WriteAgentLog(logs.LogLevelError, "Token refresh: failed to read context.env", map[string]any{"error": err.Error()})
+		logs.WriteAgentLog(logs.LogLevelError, "Token refresh: failed to read provision.env", map[string]any{"error": err.Error()})
 		return
 	}
 
@@ -339,7 +339,7 @@ func getJWTExpiry(token string) (time.Time, error) {
 	return time.Unix(claims.Exp, 0), nil
 }
 
-// resolvePlatformURL reads the platform URL from the process env or context.env lines.
+// resolvePlatformURL reads the platform URL from the process env or provision.env lines.
 func resolvePlatformURL(envLines []string) string {
 	if v := os.Getenv(platformURLEnvKey); v != "" {
 		return v

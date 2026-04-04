@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "strict": true,
+    "target": "ES2022",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "baseUrl": ".",
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts", "eslint.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

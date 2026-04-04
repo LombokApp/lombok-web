@@ -1,6 +1,8 @@
 #!/bin/sh
 
 APP_USER=bun
+PLATFORM_HOST="${PLATFORM_HOST:-lombok.localhost}"
+APP_UI_HOST="${APP_UI_HOST:-http://127.0.0.1:3001}"
 
 # Change to ./app relative to this script's location
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -28,6 +30,34 @@ if [ -S "$DOCKER_SOCKET" ]; then
 else
   echo "Warning: Docker socket $DOCKER_SOCKET not found."
 fi
+
+# ── NGINX ──────────────────────────────────────────────────
+echo ""
+echo "================================================"
+echo "NGINX"
+echo "================================================"
+sed -e "s|{{PLATFORM_HOST}}|$PLATFORM_HOST|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST|g" ./packages/api/nginx/dev-nginx.conf > /etc/nginx/http.d/default.conf
+cp ./packages/api/nginx/app_router.js /etc/nginx/app_router.js
+
+# Build app_frontend_proxies.json from LOMBOK_APP_FRONTEND_PROXY_HOST_* env vars
+APP_FRONTEND_PROXIES_ENV="./packages/ui/.env.development.local"
+if [ -f "$APP_FRONTEND_PROXIES_ENV" ]; then
+  # Extract active (uncommented) proxy host vars, build JSON
+  ENTRIES=$(grep -v '^\s*#' "$APP_FRONTEND_PROXIES_ENV" | grep 'LOMBOK_APP_FRONTEND_PROXY_HOST_' | sed 's/LOMBOK_APP_FRONTEND_PROXY_HOST_//' | awk -F= '{printf "\"%s\": \"%s\"", tolower($1), $2}' | paste -sd, -)
+  echo "{${ENTRIES}}" > /etc/nginx/app_frontend_proxies.json
+  echo "App frontend proxy overrides:"
+  cat /etc/nginx/app_frontend_proxies.json
+else
+  echo "{}" > /etc/nginx/app_frontend_proxies.json
+  echo "No app frontend proxy overrides (${APP_FRONTEND_PROXIES_ENV} not found)"
+fi
+
+if [ -f /run/nginx/nginx.pid ] && kill -0 $(cat /run/nginx/nginx.pid) 2>/dev/null; then
+    nginx -s reload
+else
+    nginx
+fi
+echo "NGINX started on port 8080"
 
 # ── PostgreSQL ──────────────────────────────────────────────
 echo ""
@@ -140,6 +170,9 @@ echo ""
 echo "================================================"
 echo "Backend (foreground)"
 echo "================================================"
+
+mkdir -p /var/lib/lombok && chown "$APP_USER" /var/lib/lombok
+
 # ── Start the backend (foreground, auto-restart on exit) ────
 while true; do
   su-exec "$APP_USER" bun --cwd packages/api dev

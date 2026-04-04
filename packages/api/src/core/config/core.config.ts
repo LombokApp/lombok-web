@@ -100,6 +100,7 @@ export const coreConfig = registerAs('core', () => {
         .string()
         .refine(isBoolean)
         .optional(),
+      BRIDGE_TUNNEL_DOMAIN: z.string().optional(),
     }),
   )
 

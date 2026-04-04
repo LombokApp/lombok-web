@@ -15,14 +15,14 @@ const (
 	AgentVersion = "1.0.0"
 )
 
-// ContextSecretPath returns the path where the one-time secret for set-context auth is stored.
-func ContextSecretPath() string {
-	return filepath.Join(StateBaseDir, "context-secret")
+// ProvisionSecretPath returns the path where the one-time secret for provision auth is stored.
+func ProvisionSecretPath() string {
+	return filepath.Join(StateBaseDir, "provision-secret")
 }
 
-// ContextEnvPath returns the path where set-context persists environment variables.
-func ContextEnvPath() string {
-	return filepath.Join(StateBaseDir, "context.env")
+// ProvisionEnvPath returns the path where provision persists environment variables.
+func ProvisionEnvPath() string {
+	return filepath.Join(StateBaseDir, "provision.env")
 }
 
 // Log file paths

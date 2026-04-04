@@ -218,14 +218,18 @@ export class AppExecSocketService {
     // --- Auto-exec: create docker exec stream on successful auth ---
     try {
       if (auth.mode === 'pty') {
+        const execOpts = {
+          cols: auth.cols,
+          rows: auth.rows,
+          env: auth.env ?? { TERM: 'xterm-256color' },
+        }
+
         const ttyStream = await this.dockerClientService.execTty(
-          hostId,
           container.id,
           auth.command,
           {
-            cols: auth.cols,
-            rows: auth.rows,
-            env: auth.env ?? { TERM: 'xterm-256color' },
+            ...execOpts,
+            hostId,
           },
         )
 

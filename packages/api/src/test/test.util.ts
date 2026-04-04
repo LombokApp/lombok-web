@@ -15,12 +15,9 @@ import { KVService } from 'src/cache/kv.service'
 import { CoreModule } from 'src/core/core.module'
 import { waitForCondition } from 'src/core/utils/wait.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
-import { DockerAdapterProvider } from 'src/docker/services/client/adapters/docker-adapter.provider'
+import { DockerClientService } from 'src/docker/services/client/docker-client.service'
 import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
-import {
-  buildMockDockerAdapter,
-  MockDockerAdapterProvider,
-} from 'src/docker/tests/docker.e2e-mocks'
+import { buildMockDockerClientService } from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -48,10 +45,7 @@ const MINIO_SECRET_ACCESS_KEY = process.env.MINIO_ROOT_PASSWORD ?? ''
 const MINIO_ENDPOINT = 'http://127.0.0.1:9000'
 const MINIO_REGION = 'auto'
 
-const mockDockerAdapter = buildMockDockerAdapter('local')
-const mockDockerAdapterProvider = new MockDockerAdapterProvider(
-  mockDockerAdapter,
-)
+const mockDockerClientService = buildMockDockerClientService()
 
 export async function buildTestModule({
   testModuleKey,
@@ -94,8 +88,8 @@ export async function buildTestModule({
   const builtInOverrides: { token: symbol | string | Type; value: unknown }[] =
     [
       {
-        token: DockerAdapterProvider,
-        value: mockDockerAdapterProvider,
+        token: DockerClientService,
+        value: mockDockerClientService,
       },
       {
         token: ormConfig.KEY,
@@ -347,15 +341,6 @@ export async function buildTestModule({
         endpoint: MINIO_ENDPOINT,
         region: MINIO_REGION,
       }),
-    getAppIdentifierBySlug: async (slug: string) => {
-      const _app = await services.ormService.db.query.appsTable.findFirst({
-        where: eq(appsTable.slug, slug),
-      })
-      if (!_app) {
-        throw new Error(`App with slug ${slug} not found`)
-      }
-      return _app.identifier
-    },
     installLocalAppBundles: async (limitTo: string[] | null = null) => {
       await setServerStorageLocation()
       await services.appService.installLocalAppBundles(limitTo)
@@ -471,13 +456,13 @@ export async function createTestFolder({
   accessToken,
   folderName,
   testModule,
-  mockFiles,
+  mockFiles = [],
   apiClient,
 }: {
   testModule: TestModule | undefined
   folderName: string
   accessToken: string
-  mockFiles: { objectKey: string; content: string }[]
+  mockFiles?: { objectKey: string; content: string }[]
   apiClient: TestApiClient
 }): Promise<{
   folder: FolderDTO

@@ -22,6 +22,7 @@ RUN apk add --no-cache \
   curl \
   chromium=142.0.7444.59-r0 \
   nodejs \
+  nginx-mod-http-js \
   postgresql18 \
   postgresql18-contrib \
   postgresql-pgvector && \
@@ -69,6 +70,7 @@ COPY bunfig.toml /temp/dev/bunfig.toml
 COPY eslint-config /temp/dev/eslint-config
 COPY docker/worker-job-runner/test/package.json /temp/dev/docker/worker-job-runner/test/package.json
 COPY docker/worker-test/package.json /temp/dev/docker/worker-test/package.json
+COPY docker/docker-bridge /temp/bridge
 
 RUN cd /temp/dev && \
   # cp the entrypoint script to the root
@@ -89,6 +91,13 @@ RUN cd /temp/dev && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
   mkdir ./packages/api/dist/src/migrations/ && cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/migrations/ && \
   mkdir ./packages/api/dist/src/migrations/meta && cp -r ./packages/api/src/orm/migrations/meta ./packages/api/dist/src/migrations/ && \
+  # build docker-bridge binary (compiled Bun executable + dockerode runtime dep)
+  cd /temp/bridge && bun install --frozen-lockfile && \
+  bun build src/index.ts --compile --outfile /temp/docker-bridge-bin --external dockerode && \
+  cd /temp/dev && \
+  mkdir -p ./docker/docker-bridge && \
+  cp /temp/docker-bridge-bin ./docker/docker-bridge/docker-bridge && \
+  cp -r /temp/bridge/node_modules ./docker/docker-bridge/node_modules && \
   # remove all but production deps
   rm -rf ./node_modules && \
   bun install --production --filter ./packages/api && \

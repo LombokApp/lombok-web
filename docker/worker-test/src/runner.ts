@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto'
+import { execSync } from 'child_process'
 import { resolve, dirname, join } from 'path'
 import { copyFileSync, mkdirSync, existsSync, rmSync, readFileSync } from 'fs'
 import type { TestConfig } from './config'
@@ -144,134 +145,60 @@ export class TestRunner {
       ? dirname(resolve(...[configPath, config.buildContext ?? '.']))
       : configDir
 
-    // Copy agent binary into build context if needed
-    const agentBinaryPath = await this.prepareAgentBinary(
-      config,
-      buildContext,
-      configPath,
-    )
+    // Run prebuild script if configured
+    if (config.prebuild) {
+      this.runPrebuild(config.prebuild, configDir)
+    }
 
-    try {
-      if (config.build?.ssh) {
-        // Remote build via SSH
-        await buildImageViaSSH({
-          ssh: config.build.ssh,
-          dockerfile: config.dockerfile,
-          buildContext,
-          imageName: config.imageName,
-          buildArgs: {
-            ...config.buildArgs,
-            AGENT_VARIANT: config.agentBinaryVariant || 'linux-amd64',
-          },
-          noCache: config.build.noCache,
-        })
-      } else {
-        // Local build
-        if (!this.docker) {
-          this.docker = new DockerClient(config.container.dockerHost)
-        }
+    if (config.build?.ssh) {
+      // Remote build via SSH
+      await buildImageViaSSH({
+        ssh: config.build.ssh,
+        dockerfile: config.dockerfile,
+        buildContext,
+        imageName: config.imageName,
+        buildArgs: {
+          ...config.buildArgs,
+          AGENT_VARIANT: config.agentBinaryVariant || 'linux-amd64',
+        },
+        noCache: config.build.noCache,
+      })
+    } else {
+      // Local build
+      if (!this.docker) {
+        this.docker = new DockerClient(config.container.dockerHost)
+      }
 
-        await this.docker.buildImage({
-          dockerfile: config.dockerfile,
-          buildContext,
-          imageName: config.imageName,
-          buildArgs: {
-            ...config.buildArgs,
-            AGENT_VARIANT: config.agentBinaryVariant || 'linux-amd64',
-          },
-          tag: config.imageName,
-          noCache: config.build?.noCache,
-        })
-      }
-    } finally {
-      // Clean up agent binary
-      if (agentBinaryPath) {
-        this.cleanupAgentBinary(agentBinaryPath)
-      }
+      await this.docker.buildImage({
+        dockerfile: config.dockerfile,
+        buildContext,
+        imageName: config.imageName,
+        buildArgs: {
+          ...config.buildArgs,
+          AGENT_VARIANT: config.agentBinaryVariant || 'linux-amd64',
+        },
+        tag: config.imageName,
+        noCache: config.build?.noCache,
+      })
     }
   }
 
   /**
-   * Prepare agent binary in build context
-   * Returns the path to the binary directory if created, null otherwise
+   * Run a prebuild script before docker build.
+   * The script is resolved relative to the config file directory
+   * and executed with the config directory as cwd.
    */
-  private async prepareAgentBinary(
-    config: TestConfig,
-    buildContext: string,
-    configPath?: string,
-  ): Promise<string | null> {
-    const variant = config.agentBinaryVariant || 'linux-amd64'
-    const binaryName = `lombok-worker-agent-${variant}`
-
-    // Find the source binary (assume it's in docker/worker-agent/dist relative to repo root)
-    // Try to find repo root by looking for docker/worker-agent/dist directory
-    let repoRoot: string | null = null
-    let currentPath = configPath ? dirname(resolve(configPath)) : process.cwd()
-
-    // Walk up the directory tree to find the repo root
-    for (let i = 0; i < 10; i++) {
-      const testPath = join(currentPath, 'docker/worker-agent/dist')
-      if (existsSync(testPath)) {
-        repoRoot = currentPath
-        break
-      }
-      const parent = dirname(currentPath)
-      if (parent === currentPath) {
-        break // Reached filesystem root
-      }
-      currentPath = parent
+  private runPrebuild(scriptPath: string, configDir: string): void {
+    const resolved = resolve(configDir, scriptPath)
+    if (!existsSync(resolved)) {
+      throw new Error(`Prebuild script not found: ${resolved}`)
     }
-
-    if (!repoRoot) {
-      console.warn(
-        `Could not find repo root (looking for docker/worker-agent/dist), skipping binary copy`,
-      )
-      return null
-    }
-
-    const sourceBinary = resolve(
-      repoRoot,
-      'docker/worker-agent/dist',
-      binaryName,
-    )
-
-    if (!existsSync(sourceBinary)) {
-      console.warn(
-        `Agent binary not found at ${sourceBinary}, skipping binary copy`,
-      )
-      return null
-    }
-
-    // Create worker-agent-binaries directory in build context
-    const targetDir = join(buildContext, 'worker-agent-binaries')
-    if (!existsSync(targetDir)) {
-      mkdirSync(targetDir, { recursive: true })
-    }
-
-    const targetBinary = join(targetDir, binaryName)
-    copyFileSync(sourceBinary, targetBinary)
-
-    console.log(`Copied agent binary: ${sourceBinary} -> ${targetBinary}`)
-
-    return targetDir
-  }
-
-  /**
-   * Clean up agent binary from build context
-   */
-  private cleanupAgentBinary(binaryDir: string): void {
-    try {
-      if (existsSync(binaryDir)) {
-        rmSync(binaryDir, { recursive: true, force: true })
-        console.log(`Cleaned up agent binary directory: ${binaryDir}`)
-      }
-    } catch (error) {
-      console.warn(
-        `Failed to clean up agent binary directory: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      )
-    }
+    console.log(`Running prebuild script: ${resolved}`)
+    execSync(`bash "${resolved}"`, {
+      cwd: configDir,
+      stdio: 'inherit',
+      env: process.env,
+    })
   }
 
   /**

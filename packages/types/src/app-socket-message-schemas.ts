@@ -164,6 +164,33 @@ export const setAppCustomSettingsSchema = z.object({
   settings: z.record(z.string(), z.unknown()),
 })
 
+export const createBridgeTunnelSchema = z.object({
+  hostId: z.string(),
+  containerId: z.string(),
+  command: z.array(z.string()).min(1),
+  label: z.string().min(1).max(63),
+  public: z.boolean().optional(),
+  mode: z.enum(['ephemeral', 'persistent']).default('persistent'),
+  protocol: z.enum(['framed', 'raw']).default('framed'),
+})
+
+export const deleteBridgeTunnelSchema = z.object({
+  sessionId: z.string(),
+})
+
+export const destroyAppDockerContainersSchema = z.union([
+  z.object({
+    profileIdentifier: z.string(),
+    userId: z.string().optional(),
+    containerId: z.string(),
+  }),
+  z.object({
+    profileIdentifier: z.string(),
+    userId: z.string().optional(),
+    isolationKey: z.string(),
+  }),
+])
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
@@ -179,6 +206,9 @@ export const AppSocketMessageSchemaMap = {
   REPORT_TASK_UPDATE: reportTaskUpdateSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
   SET_APP_CUSTOM_SETTINGS: setAppCustomSettingsSchema,
+  CREATE_BRIDGE_TUNNEL: createBridgeTunnelSchema,
+  DELETE_BRIDGE_TUNNEL: deleteBridgeTunnelSchema,
+  DESTROY_APP_DOCKER_CONTAINERS: destroyAppDockerContainersSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
@@ -292,6 +322,28 @@ export const AppSocketMessageResponseSchemaMap = {
       ssl: z.boolean(),
       port: z.number(),
     }),
+  ),
+  CREATE_BRIDGE_TUNNEL: createResponseSchema(
+    z.object({
+      public: z
+        .object({
+          id: z.string(),
+          url: z.string(),
+        })
+        .optional(),
+      sessionId: z.string(),
+      token: z.string(),
+      urls: z.object({
+        ws: z.string(),
+        http: z.string(),
+      }),
+    }),
+  ),
+  DELETE_BRIDGE_TUNNEL: createResponseSchema(
+    z.object({ success: z.boolean() }),
+  ),
+  DESTROY_APP_DOCKER_CONTAINERS: createResponseSchema(
+    z.object({ destroyedCount: z.number() }),
   ),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 

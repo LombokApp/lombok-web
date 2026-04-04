@@ -166,7 +166,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
 
     const userId = userIdFromToken(accessToken)
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
     const appUserToken = await getAppUserToken(userId, appIdentifier)
@@ -257,7 +257,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
 
@@ -306,7 +306,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(otherToken, appIdentifier)
 
@@ -355,7 +355,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
 
     // Enable app for user but with folderScopeEnabledDefault=false
@@ -418,7 +418,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
 
@@ -489,7 +489,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
 
@@ -563,7 +563,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(token1, appIdentifier)
 
@@ -653,7 +653,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
 
@@ -722,7 +722,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
 
@@ -838,7 +838,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(token1, appIdentifier)
     await enableAppForUser(token2, appIdentifier)
@@ -919,7 +919,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     })
 
     const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+      DUMMY_APP_SLUG
     await enableAppAsAdmin(appIdentifier)
     await enableAppForUser(accessToken, appIdentifier)
 

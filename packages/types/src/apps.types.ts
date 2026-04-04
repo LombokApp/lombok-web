@@ -28,6 +28,9 @@ export const AppSocketMessage = z.enum([
   'REPORT_TASK_UPDATE',
   'GET_APP_CUSTOM_SETTINGS',
   'SET_APP_CUSTOM_SETTINGS',
+  'CREATE_BRIDGE_TUNNEL',
+  'DELETE_BRIDGE_TUNNEL',
+  'DESTROY_APP_DOCKER_CONTAINERS',
 ])
 
 export const appMessageErrorSchema = z.object({
@@ -191,11 +194,22 @@ export const dockerWorkerJobIdentifierSchema = z
   .nonempty()
   .regex(/^[a-z_]+$/)
 
+export const containerTargetSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('instance'),
+    containerIdTemplate: z.string(),
+    userIsolation: z.boolean().optional(),
+  }),
+  z.object({
+    type: z.literal('class'),
+    isolationKeyTemplate: z.string().optional(),
+    userIsolation: z.boolean().optional(),
+  }),
+])
+
 export const containerProfileJobDefinitionSchema = z
   .object({
-    maxPerContainer: z.number().min(1).optional(),
-    countTowardsGlobalCap: z.literal(false).optional(),
-    priority: z.number().optional(),
+    containerTarget: containerTargetSchema.nullable().optional(),
   })
   .strict()
 
@@ -233,14 +247,11 @@ export const containerProfileConfigSchema = z
     // desiredMaxJobsPerContainer: z.number().positive().optional(),
     // jobClasses: z.record(z.string(), containerProfileJobClassSchema),
     workers: z.array(dockerWorkerConfigSchema),
-    // When true, containers for this profile are isolated per user.
-    // The userId is resolved from the task's targetUserId (async) or
-    // the explicit userId param (sync). The user ID is written as a
-    // container label and used for ACL enforcement on terminal access.
-    userIsolation: z.boolean().optional(),
-    // Template expression (e.g. "{{ inputData.containerRef }}") resolved at job
-    // execution time to run a job on a particular container (by host and container identifiers).
-    containerRefTemplate: z.string().optional(),
+    // Discriminated union for container targeting strategy.
+    // 'instance' — target a specific container by resolved ID.
+    // 'class' — find-or-create a container by isolation key.
+    // Omitted — shared container per profile (backward-compatible default).
+    containerTarget: containerTargetSchema.optional(),
   })
   .strict()
 
@@ -645,6 +656,8 @@ export const appMetricsSchema = z.object({
 })
 
 export type AppTaskConfig = z.infer<typeof taskConfigSchema>
+
+export type ContainerTarget = z.infer<typeof containerTargetSchema>
 
 export type ContainerProfileConfig = z.infer<
   typeof containerProfileConfigSchema

@@ -96,6 +96,18 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['SET_APP_CUSTOM_SETTINGS'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'SET_APP_CUSTOM_SETTINGS'>>
+  createBridgeTunnel: (
+    params: AppSocketMessageDataMap['CREATE_BRIDGE_TUNNEL'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'CREATE_BRIDGE_TUNNEL'>>
+  deleteBridgeTunnel: (
+    params: AppSocketMessageDataMap['DELETE_BRIDGE_TUNNEL'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'DELETE_BRIDGE_TUNNEL'>>
+  destroyAppDockerContainers: (
+    params: AppSocketMessageDataMap['DESTROY_APP_DOCKER_CONTAINERS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'DESTROY_APP_DOCKER_CONTAINERS'>>
 }
 
 interface PlatformApiExecuteOptions {
@@ -221,6 +233,15 @@ export const buildAppClient = (
     },
     setAppCustomSettings(params, options) {
       return emitWithAck('SET_APP_CUSTOM_SETTINGS', params, options)
+    },
+    createBridgeTunnel(params, options) {
+      return emitWithAck('CREATE_BRIDGE_TUNNEL', params, options)
+    },
+    deleteBridgeTunnel(params, options) {
+      return emitWithAck('DELETE_BRIDGE_TUNNEL', params, options)
+    },
+    destroyAppDockerContainers(params, options) {
+      return emitWithAck('DESTROY_APP_DOCKER_CONTAINERS', params, options)
     },
   }
 }

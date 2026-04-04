@@ -9,6 +9,7 @@ import { JWTService } from 'src/auth/services/jwt.service'
 import { coreConfig } from 'src/core/config'
 import { CoreWorkerModule } from 'src/core-worker/core-worker.module'
 import { DockerModule } from 'src/docker/docker.module'
+import { DockerClientService } from 'src/docker/services/client/docker-client.service'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { FoldersModule } from 'src/folders/folders.module'
@@ -57,6 +58,7 @@ import { UserSocketService } from './user/user-socket.service'
     FolderSocketService,
     AppUserSocketService,
     AppExecSocketService,
+    DockerClientService,
     FolderService,
     EventService,
     AppService,

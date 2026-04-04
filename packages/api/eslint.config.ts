@@ -26,9 +26,17 @@ export default [
     },
   },
   {
-    files: ['src/**/*.e2e-spec.ts', 'test/**/*.ui-e2e-spec.ts'],
+    files: [
+      'src/**/*.e2e-spec.ts',
+      'src/**/*.test.ts',
+      'test/**/*.ui-e2e-spec.ts',
+      'src/docker/tests/*.ts',
+    ],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
     },
   },
+  { ignores: ['nginx/*.js'] },
 ] as ConfigArray
