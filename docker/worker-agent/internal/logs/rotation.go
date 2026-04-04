@@ -65,6 +65,13 @@ func performRotation(
 			fmt.Fprintf(os.Stderr, "log rotation error for %s: %v\n", target.name, err)
 		}
 	}
+
+	// Rotate externally-written log files (no file handle held by the agent).
+	for _, ext := range externalRotationPaths() {
+		if err := rotateExternalFile(ext.path, cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "log rotation error for %s: %v\n", ext.name, err)
+		}
+	}
 }
 
 func rotateTarget(target rotationTarget, cfg config.LogRotationConfig) error {
@@ -117,6 +124,44 @@ func rotateTarget(target rotationTarget, cfg config.LogRotationConfig) error {
 	target.setFile(newFile)
 
 	return nil
+}
+
+// rotateExternalFile rotates a log file written by an external process.
+// Unlike rotateTarget, no file handle is held — we stat by path, rename the
+// chain, and the next write from the external process creates a fresh file.
+func rotateExternalFile(path string, cfg config.LogRotationConfig) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil // file doesn't exist yet — nothing to rotate
+		}
+		return err
+	}
+
+	maxSizeBytes := int64(cfg.MaxSizeMB) * 1024 * 1024
+	if maxSizeBytes <= 0 {
+		maxSizeBytes = 1
+	}
+	if info.Size() < maxSizeBytes {
+		return nil
+	}
+
+	maxFiles := cfg.MaxFiles
+	if maxFiles < 1 {
+		maxFiles = 1
+	}
+
+	oldest := fmt.Sprintf("%s.%d", path, maxFiles)
+	_ = os.Remove(oldest)
+	for i := maxFiles - 1; i >= 1; i-- {
+		src := fmt.Sprintf("%s.%d", path, i)
+		dst := fmt.Sprintf("%s.%d", path, i+1)
+		if err := renameIfExists(src, dst); err != nil {
+			return err
+		}
+	}
+
+	return renameIfExists(path, fmt.Sprintf("%s.1", path))
 }
 
 func renameIfExists(src, dst string) error {
