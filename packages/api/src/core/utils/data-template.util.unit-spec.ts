@@ -753,6 +753,102 @@ describe('dataFromTemplate', () => {
     })
   })
 
+  describe('object literals in expressions (empty object fallback)', () => {
+    it('resolves ternary with empty object fallback when condition is true', () => {
+      expect(
+        dataFromTemplate(
+          {
+            result: '{{task.success ? task.result.storageKeys : {}}}',
+          },
+          {
+            objects: {
+              task: {
+                success: true,
+                result: {
+                  storageKeys: {
+                    thumbnail: 'previews/abc/thumbnail.png',
+                    card: 'previews/abc/card.png',
+                    full: 'previews/abc/full.png',
+                  },
+                },
+              },
+            },
+          },
+        ),
+      ).resolves.toEqual({
+        result: {
+          thumbnail: 'previews/abc/thumbnail.png',
+          card: 'previews/abc/card.png',
+          full: 'previews/abc/full.png',
+        },
+      })
+    })
+
+    it('resolves ternary with empty object fallback when condition is false', () => {
+      expect(
+        dataFromTemplate(
+          {
+            result: '{{task.success ? task.result.storageKeys : {}}}',
+          },
+          {
+            objects: {
+              task: {
+                success: false,
+                result: undefined,
+              },
+            },
+          },
+        ),
+      ).resolves.toEqual({
+        result: {},
+      })
+    })
+
+    it('handles empty object in ternary alongside other templates in same object', () => {
+      expect(
+        dataFromTemplate(
+          {
+            status: '{{task.success ? "complete" : "error"}}',
+            keys: '{{task.success ? task.result.data : {}}}',
+          },
+          {
+            objects: {
+              task: {
+                success: true,
+                result: { data: { a: 1, b: 2 } },
+              },
+            },
+          },
+        ),
+      ).resolves.toEqual({
+        status: 'complete',
+        keys: { a: 1, b: 2 },
+      })
+    })
+
+    it('handles empty object fallback with multiple templates in one string', () => {
+      expect(
+        dataFromTemplate(
+          {
+            path: 'prefix/{{task.result.id}}/suffix',
+            fallback: '{{task.success ? task.result.meta : {}}}',
+          },
+          {
+            objects: {
+              task: {
+                success: false,
+                result: { id: 'abc' },
+              },
+            },
+          },
+        ),
+      ).resolves.toEqual({
+        path: 'prefix/abc/suffix',
+        fallback: {},
+      })
+    })
+  })
+
   describe('function calls with expressions', () => {
     it('handles function calls with expression arguments', () => {
       const formatPath = (
