@@ -817,9 +817,7 @@ export class AppService {
       .where(eq(appsTable.identifier, app.identifier))
   }
 
-  private async generateUniqueAppIdentifier(
-    appSlug: string,
-  ): Promise<string> {
+  private async generateUniqueAppIdentifier(appSlug: string): Promise<string> {
     // Try using just the slug as the identifier first
     const slugTaken = await this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, appSlug),

@@ -167,7 +167,11 @@ function PrimitiveFieldInput({
     case 'string': {
       if (property.enum) {
         return (
-          <Select value={String(value ?? '')} onValueChange={(v) => onChange(v)}>
+          <Select
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            value={String(value ?? '')}
+            onValueChange={(v) => onChange(v)}
+          >
             <SelectTrigger id={id} className="w-full">
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
@@ -185,6 +189,7 @@ function PrimitiveFieldInput({
         <Input
           id={id}
           type={isSecret ? 'password' : 'text'}
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
           placeholder={
@@ -389,11 +394,7 @@ function ObjectArrayFieldInput({
     ? (value as Record<string, unknown>[])
     : []
   const requiredKeys = new Set(itemSchema.required ?? [])
-  const propertyEntries = Object.entries(itemSchema.properties) as [
-    string,
-    JsonSchema07ObjectItemProperty,
-  ][]
-
+  const propertyEntries = Object.entries(itemSchema.properties)
   const handleItemPropertyChange = (
     index: number,
     propKey: string,
@@ -465,7 +466,7 @@ function DiscriminatedObjectArrayFieldInput({
     const map = new Map<string, JsonSchema07ObjectItem>()
     for (const variant of oneOf) {
       const discProp = variant.properties[discriminator]
-      if (discProp && discProp.type === 'string' && discProp.enum?.length) {
+      if (discProp?.type === 'string' && discProp.enum?.length) {
         for (const val of discProp.enum) {
           map.set(val, variant)
         }
@@ -477,7 +478,7 @@ function DiscriminatedObjectArrayFieldInput({
   const variantKeys = React.useMemo(() => [...variantMap.keys()], [variantMap])
 
   const getVariantForItem = (item: Record<string, unknown>) => {
-    const discValue = String(item[discriminator] ?? '')
+    const discValue = (item[discriminator] as string | undefined) ?? ''
     return variantMap.get(discValue)
   }
 
@@ -494,11 +495,10 @@ function DiscriminatedObjectArrayFieldInput({
 
   const handleAdd = (variantKey: string) => {
     const variant = variantMap.get(variantKey)
-    if (!variant) return
-    const entries = Object.entries(variant.properties) as [
-      string,
-      JsonSchema07ObjectItemProperty,
-    ][]
+    if (!variant) {
+      return
+    }
+    const entries = Object.entries(variant.properties)
     const newItem = buildDefaultItem(entries, { [discriminator]: variantKey })
     onChange([...items, newItem])
   }
@@ -513,12 +513,12 @@ function DiscriminatedObjectArrayFieldInput({
     <div className="space-y-3">
       {items.map((item, index) => {
         const variant = getVariantForItem(item)
-        if (!variant) return null
-        const propertyEntries = Object.entries(variant.properties) as [
-          string,
-          JsonSchema07ObjectItemProperty,
-        ][]
+        if (!variant) {
+          return null
+        }
+        const propertyEntries = Object.entries(variant.properties)
         const requiredKeys = new Set(variant.required ?? [])
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         const discValue = String(item[discriminator] ?? '')
 
         return (
@@ -532,9 +532,7 @@ function DiscriminatedObjectArrayFieldInput({
             secretKeyPattern={secretKeyPattern}
             discriminatorKey={discriminator}
             label={discValue}
-            onPropertyChange={(k, v) =>
-              handleItemPropertyChange(index, k, v)
-            }
+            onPropertyChange={(k, v) => handleItemPropertyChange(index, k, v)}
             onRemove={() => handleRemove(index)}
           />
         )
@@ -574,7 +572,7 @@ function DiscriminatedObjectArrayFieldInput({
             onClick={() => {
               // If only one variant, add it directly
               if (variantKeys.length === 1) {
-                handleAdd(variantKeys[0])
+                handleAdd(variantKeys[0] ?? '')
               } else {
                 setAddMenuOpen(true)
               }

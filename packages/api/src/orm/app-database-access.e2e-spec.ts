@@ -29,6 +29,12 @@ function createMockAppPlatformService(
   appIdentifier: string,
 ): IAppPlatformService {
   return {
+    createBridgeTunnel: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    deleteBridgeTunnel: () => {
+      throw new Error('Not implemented in test mock')
+    },
     setAppCustomSettings: () => {
       throw new Error('Not implemented in test mock')
     },
@@ -71,6 +77,9 @@ function createMockAppPlatformService(
       throw new Error('Not implemented in test mock')
     },
     reportTaskUpdate: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    destroyAppDockerContainers: () => {
       throw new Error('Not implemented in test mock')
     },
   }
@@ -236,7 +245,7 @@ describe('ORM Schema Isolation', () => {
     await testModule!.installLocalAppBundles([TEST_APP_SLUG])
 
     const ormService = testModule!.services.ormService
-    const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
+    const testAppId = TEST_APP_SLUG
 
     // Create a LombokAppPgClient for the app
     const appClient = createAppPgClient(ormService, testAppId)
@@ -446,7 +455,7 @@ describe('ORM Schema Isolation', () => {
   it('should prevent app queries from accessing other schemas', async () => {
     await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
-    const appId = await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
+    const appId = SOCKET_TEST_APP_SLUG
 
     await ormService.client.query(`
       CREATE TABLE IF NOT EXISTS public.cross_schema_guard (
@@ -581,7 +590,7 @@ describe('ORM Schema Isolation', () => {
   it('should handle app migrations with proper isolation', async () => {
     await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
-    const testAppId = await testModule!.getAppIdentifierBySlug(TEST_APP_SLUG)
+    const testAppId = TEST_APP_SLUG
 
     // Run app migrations
     const migrationFiles = [
@@ -662,8 +671,7 @@ describe('ORM Schema Isolation', () => {
   it('should handle rowMode array format correctly', async () => {
     await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
-    const testAppId =
-      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
+    const testAppId = SOCKET_TEST_APP_SLUG
 
     // Create a LombokAppPgClient for the app
     const appClient = createAppPgClient(ormService, testAppId)
@@ -757,7 +765,7 @@ describe('ORM Schema Isolation', () => {
     it('should have database field set to false for app without database enabled', async () => {
       await testModule!.installLocalAppBundles([SOCKET_TEST_APP_NO_DB_SLUG])
       const app = await testModule!.services.appService.getApp(
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_NO_DB_SLUG),
+        SOCKET_TEST_APP_NO_DB_SLUG,
       )
 
       expect(app).toBeDefined()
@@ -770,9 +778,8 @@ describe('ORM Schema Isolation', () => {
 
     it('should have database field set to true for app with database enabled', async () => {
       await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
-      const app = await testModule!.services.appService.getApp(
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      )
+      const app =
+        await testModule!.services.appService.getApp(SOCKET_TEST_APP_SLUG)
 
       expect(app).toBeDefined()
       if (!app) {
@@ -784,8 +791,7 @@ describe('ORM Schema Isolation', () => {
 
     it('should allow ORM service methods for app with database enabled', async () => {
       await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
-      const appIdentifier =
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
+      const appIdentifier = SOCKET_TEST_APP_SLUG
       const ormService = testModule!.services.ormService
 
       // Create a LombokAppPgClient for the app
@@ -843,7 +849,7 @@ describe('ORM Schema Isolation', () => {
 
       // App without database enabled should be restricted
       const checkWithoutDb = await checkDatabaseAccess(
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_NO_DB_SLUG),
+        SOCKET_TEST_APP_NO_DB_SLUG,
       )
       expect(checkWithoutDb.allowed).toBe(false)
       expect(checkWithoutDb.reason).toBe(
@@ -851,9 +857,7 @@ describe('ORM Schema Isolation', () => {
       )
 
       // App with database enabled should be allowed
-      const checkWithDb = await checkDatabaseAccess(
-        await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-      )
+      const checkWithDb = await checkDatabaseAccess(SOCKET_TEST_APP_SLUG)
       expect(checkWithDb.allowed).toBe(true)
     })
   })

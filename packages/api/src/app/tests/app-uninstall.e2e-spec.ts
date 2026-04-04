@@ -32,8 +32,7 @@ describe('App Uninstall', () => {
 
   it('should require admin for uninstall', async () => {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
-    const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    const appIdentifier = DUMMY_APP_SLUG
 
     const {
       session: { accessToken },
@@ -67,8 +66,7 @@ describe('App Uninstall', () => {
 
   it('should uninstall an app as admin', async () => {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
-    const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    const appIdentifier = DUMMY_APP_SLUG
 
     const {
       session: { accessToken },

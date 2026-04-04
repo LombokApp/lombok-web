@@ -64,6 +64,9 @@ export function buildTestServerClient(
     }),
     // eslint-disable-next-line @typescript-eslint/require-await
     triggerAppTask: async () => ({ result: null }),
+    destroyAppDockerContainers: () => {
+      throw new Error('Not implemented in test mock')
+    },
   }
 
   return { ...base, ...overrides }

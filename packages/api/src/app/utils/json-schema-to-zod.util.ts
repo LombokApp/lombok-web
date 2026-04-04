@@ -8,7 +8,9 @@ import type {
 } from '@lombokapp/types'
 import { z } from 'zod'
 
-function primitivePropertyToZod(prop: JsonSchema07PrimitiveProperty): z.ZodType {
+function primitivePropertyToZod(
+  prop: JsonSchema07PrimitiveProperty,
+): z.ZodType {
   switch (prop.type) {
     case 'string': {
       let schema = z.string()
@@ -54,9 +56,11 @@ function primitivePropertyToZod(prop: JsonSchema07PrimitiveProperty): z.ZodType 
   }
 }
 
-function objectItemPropertyToZod(prop: JsonSchema07ObjectItemProperty): z.ZodType {
+function objectItemPropertyToZod(
+  prop: JsonSchema07ObjectItemProperty,
+): z.ZodType {
   if (prop.type === 'array') {
-    let itemZod = primitivePropertyToZod({
+    const itemZod = primitivePropertyToZod({
       type: prop.items.type,
     } as JsonSchema07PrimitiveProperty)
     let schema = z.array(itemZod)
@@ -90,11 +94,15 @@ function discriminatedObjectItemToZod(
   itemSchema: JsonSchema07DiscriminatedObjectItem,
 ): z.ZodType {
   const variants = itemSchema.oneOf.map(
-    (variant) => objectItemToZod(variant) as z.ZodObject<Record<string, z.ZodType>>,
+    (variant) =>
+      objectItemToZod(variant) as z.ZodObject<Record<string, z.ZodType>>,
   )
   return z.discriminatedUnion(
     itemSchema.discriminator,
-    variants as [z.ZodObject<Record<string, z.ZodType>>, ...z.ZodObject<Record<string, z.ZodType>>[]],
+    variants as [
+      z.ZodObject<Record<string, z.ZodType>>,
+      ...z.ZodObject<Record<string, z.ZodType>>[],
+    ],
   )
 }
 
@@ -105,9 +113,7 @@ function propertyToZod(prop: JsonSchema07Property): z.ZodType {
 
   let itemZod: z.ZodType
   if ('discriminator' in prop.items) {
-    itemZod = discriminatedObjectItemToZod(
-      prop.items as JsonSchema07DiscriminatedObjectItem,
-    )
+    itemZod = discriminatedObjectItemToZod(prop.items)
   } else if (prop.items.type === 'object') {
     itemZod = objectItemToZod(prop.items)
   } else {

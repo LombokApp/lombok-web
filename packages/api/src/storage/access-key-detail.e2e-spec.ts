@@ -29,10 +29,9 @@ describe('Access Key Detail, Rotate & Buckets', () => {
   })
 
   it('should require authentication for get access key', async () => {
-    const res = await apiClient().GET(
-      '/api/v1/access-keys/{accessKeyHashId}',
-      { params: { path: { accessKeyHashId: 'fake' } } },
-    )
+    const res = await apiClient().GET('/api/v1/access-keys/{accessKeyHashId}', {
+      params: { path: { accessKeyHashId: 'fake' } },
+    })
     expect(res.response.status).toBe(401)
   })
 

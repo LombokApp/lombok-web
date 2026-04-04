@@ -13,6 +13,17 @@ export function isSecretKey(
   return new RegExp(secretKeyPattern).test(key)
 }
 
+function maskObjectItem(
+  item: Record<string, unknown>,
+  secretKeyPattern: string,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(item)) {
+    result[key] = isSecretKey(key, secretKeyPattern) ? MASKED_VALUE : value
+  }
+  return result
+}
+
 /**
  * Mask a single value — if it's an array of objects, mask secret keys within each item.
  */
@@ -25,28 +36,14 @@ function maskValue(
     return MASKED_VALUE
   }
   if (Array.isArray(value)) {
-    return value.map((item) => {
+    return value.map((item: unknown) => {
       if (item != null && typeof item === 'object' && !Array.isArray(item)) {
-        return maskObjectItem(
-          item as Record<string, unknown>,
-          secretKeyPattern,
-        )
+        return maskObjectItem(item as Record<string, unknown>, secretKeyPattern)
       }
       return item
     })
   }
   return value
-}
-
-function maskObjectItem(
-  item: Record<string, unknown>,
-  secretKeyPattern: string,
-): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(item)) {
-    result[key] = isSecretKey(key, secretKeyPattern) ? MASKED_VALUE : value
-  }
-  return result
 }
 
 /**

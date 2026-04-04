@@ -1,12 +1,13 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { LogEntryLevel } from '@lombokapp/types'
-import { v4 as uuidV4 } from 'uuid'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
   createTestUser,
 } from 'src/test/test.util'
+import { v4 as uuidV4 } from 'uuid'
+
 import { logEntriesTable } from './entities/log-entry.entity'
 
 const TEST_MODULE_KEY = 'folder_logs'
@@ -51,10 +52,9 @@ describe('Folder Logs', () => {
   })
 
   it('should require authentication', async () => {
-    const response = await apiClient().GET(
-      '/api/v1/folders/{folderId}/logs',
-      { params: { path: { folderId: uuidV4() } } },
-    )
+    const response = await apiClient().GET('/api/v1/folders/{folderId}/logs', {
+      params: { path: { folderId: uuidV4() } },
+    })
     expect(response.response.status).toEqual(401)
   })
 

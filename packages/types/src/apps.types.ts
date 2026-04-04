@@ -346,7 +346,9 @@ export const jsonSchema07ObjectItemSchema = z.object({
   required: z.array(z.string()).optional(),
 })
 
-export type JsonSchema07ObjectItem = z.infer<typeof jsonSchema07ObjectItemSchema>
+export type JsonSchema07ObjectItem = z.infer<
+  typeof jsonSchema07ObjectItemSchema
+>
 
 /**
  * Discriminated union of object items — uses a discriminator property

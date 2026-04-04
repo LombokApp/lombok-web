@@ -15,7 +15,7 @@ describe('App Access Settings', () => {
     apiClient = testModule.apiClient
 
     await testModule.installLocalAppBundles([DUMMY_APP_SLUG])
-    appIdentifier = await testModule.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    appIdentifier = DUMMY_APP_SLUG
 
     const {
       session: { accessToken: adminToken },
@@ -79,7 +79,7 @@ describe('App Access Settings', () => {
 
   it('should update access settings as admin', async () => {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
-    appIdentifier = await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    appIdentifier = DUMMY_APP_SLUG
 
     const {
       session: { accessToken },
@@ -113,7 +113,7 @@ describe('App Access Settings', () => {
 
   it('should persist access settings changes', async () => {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
-    appIdentifier = await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    appIdentifier = DUMMY_APP_SLUG
 
     const {
       session: { accessToken },

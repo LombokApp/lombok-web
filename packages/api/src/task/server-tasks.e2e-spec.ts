@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -6,7 +7,6 @@ import {
   createTestUser,
   reindexTestFolder,
 } from 'src/test/test.util'
-import { CoreTaskName } from 'src/task/task.constants'
 
 const TEST_MODULE_KEY = 'srv_tasks'
 

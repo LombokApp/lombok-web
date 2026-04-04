@@ -1,7 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
-import { v4 as uuidV4 } from 'uuid'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { v4 as uuidV4 } from 'uuid'
+
 import { notificationsTable } from './entities/notification.entity'
 import { notificationDeliveriesTable } from './entities/notification-delivery.entity'
 
@@ -9,7 +10,9 @@ const TEST_MODULE_KEY = 'notifications'
 
 async function getUserId(apiClient: TestApiClient, accessToken: string) {
   const viewer = await apiClient(accessToken).GET('/api/v1/viewer')
-  if (!viewer.data) throw new Error('Failed to get viewer')
+  if (!viewer.data) {
+    throw new Error('Failed to get viewer')
+  }
   return viewer.data.user.id
 }
 
@@ -22,20 +25,18 @@ async function seedNotification(
   const eventId = uuidV4()
   const now = new Date()
 
-  await testModule.services.ormService.db
-    .insert(notificationsTable)
-    .values({
-      id: notificationId,
-      eventIdentifier: 'object_added',
-      emitterIdentifier: 'core',
-      aggregationKey: `test:${notificationId}`,
-      targetUserId: userId,
-      eventIds: [eventId],
-      title: 'Test notification',
-      body: 'Something happened',
-      createdAt: now,
-      ...overrides,
-    })
+  await testModule.services.ormService.db.insert(notificationsTable).values({
+    id: notificationId,
+    eventIdentifier: 'object_added',
+    emitterIdentifier: 'core',
+    aggregationKey: `test:${notificationId}`,
+    targetUserId: userId,
+    eventIds: [eventId],
+    title: 'Test notification',
+    body: 'Something happened',
+    createdAt: now,
+    ...overrides,
+  })
 
   await testModule.services.ormService.db
     .insert(notificationDeliveriesTable)
