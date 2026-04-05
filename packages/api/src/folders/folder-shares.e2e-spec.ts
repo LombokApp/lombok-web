@@ -158,10 +158,9 @@ describe('Folder Shares Management', () => {
     const folderId = '00000000-0000-0000-0000-000000000000'
     const userId = '00000000-0000-0000-0000-000000000000'
 
-    const listRes = await apiClient().GET(
-      '/api/v1/folders/{folderId}/shares',
-      { params: { path: { folderId } } },
-    )
+    const listRes = await apiClient().GET('/api/v1/folders/{folderId}/shares', {
+      params: { path: { folderId } },
+    })
     expect(listRes.response.status).toBe(401)
 
     const getRes = await apiClient().GET(

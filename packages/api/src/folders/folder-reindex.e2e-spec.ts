@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
-import { v4 as uuidV4 } from 'uuid'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
   createTestUser,
 } from 'src/test/test.util'
+import { v4 as uuidV4 } from 'uuid'
 
 const TEST_MODULE_KEY = 'folder_reindex'
 
@@ -28,14 +28,11 @@ describe('Folder Reindex', () => {
   })
 
   it('should require authentication', async () => {
-    const res = await apiClient().POST(
-      '/api/v1/folders/{folderId}/reindex',
-      {
-        params: {
-          path: { folderId: '00000000-0000-0000-0000-000000000000' },
-        },
+    const res = await apiClient().POST('/api/v1/folders/{folderId}/reindex', {
+      params: {
+        path: { folderId: '00000000-0000-0000-0000-000000000000' },
       },
-    )
+    })
     expect(res.response.status).toBe(401)
   })
 

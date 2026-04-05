@@ -29,9 +29,14 @@ describe('Server Docker Hosts', () => {
   it('should require admin role for docker hosts config', async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule!, { username: 'nonadmin', password: '123' })
+    } = await createTestUser(testModule!, {
+      username: 'nonadmin',
+      password: '123',
+    })
 
-    const response = await apiClient(accessToken).GET('/api/v1/server/docker-hosts')
+    const response = await apiClient(accessToken).GET(
+      '/api/v1/server/docker-hosts',
+    )
     expect(response.response.status).toEqual(401)
   })
 
@@ -44,7 +49,9 @@ describe('Server Docker Hosts', () => {
       admin: true,
     })
 
-    const response = await apiClient(accessToken).GET('/api/v1/server/docker-hosts')
+    const response = await apiClient(accessToken).GET(
+      '/api/v1/server/docker-hosts',
+    )
     expect(response.response.status).toEqual(200)
     expect(response.data?.hosts).toBeArray()
   })
@@ -52,7 +59,10 @@ describe('Server Docker Hosts', () => {
   it('should require admin for docker hosts state', async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule!, { username: 'nonadmin2', password: '123' })
+    } = await createTestUser(testModule!, {
+      username: 'nonadmin2',
+      password: '123',
+    })
 
     const response = await apiClient(accessToken).GET(
       '/api/v1/server/docker-hosts/state',
@@ -85,7 +95,9 @@ describe('Server Docker Hosts', () => {
       admin: true,
     })
 
-    const response = await apiClient(accessToken).GET('/api/v1/server/docker-hosts')
+    const response = await apiClient(accessToken).GET(
+      '/api/v1/server/docker-hosts',
+    )
     expect(response.response.status).toEqual(200)
 
     if (response.data?.hosts && response.data.hosts.length > 0) {

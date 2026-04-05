@@ -1041,9 +1041,6 @@ describe('apps.types', () => {
         kind: 'exec',
         command: ['run'],
         jobIdentifier: 'job',
-        maxPerContainer: 1,
-        countTowardsGlobalCap: false,
-        priority: 10,
       })
       expectZodSuccess(result)
     })
@@ -1655,9 +1652,6 @@ describe('apps.types', () => {
     it('should validate job definition', () => {
       const result = httpJobDefinitionSchema.safeParse({
         identifier: 'job',
-        maxPerContainer: 1,
-        countTowardsGlobalCap: false,
-        priority: 5,
       })
       expectZodSuccess(result)
     })
@@ -1669,9 +1663,6 @@ describe('apps.types', () => {
         kind: 'exec',
         command: ['run'],
         jobIdentifier: 'job',
-        maxPerContainer: 1,
-        countTowardsGlobalCap: false,
-        priority: 5,
       })
       expectZodSuccess(result)
     })
@@ -1794,17 +1785,12 @@ describe('apps.types', () => {
                 jobs: [
                   {
                     identifier: 'generate_content_embeddings',
-                    maxPerContainer: 2,
                   },
                   {
                     identifier: 'generate_text_embedding',
-                    maxPerContainer: 2,
-                    countTowardsGlobalCap: false,
                   },
                   {
                     identifier: 'rerank_search_results',
-                    maxPerContainer: 2,
-                    countTowardsGlobalCap: false,
                   },
                 ],
               },

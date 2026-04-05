@@ -1,8 +1,9 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { LogEntryLevel } from '@lombokapp/types'
-import { v4 as uuidV4 } from 'uuid'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { v4 as uuidV4 } from 'uuid'
+
 import { logEntriesTable } from './entities/log-entry.entity'
 
 const TEST_MODULE_KEY = 'server_logs'

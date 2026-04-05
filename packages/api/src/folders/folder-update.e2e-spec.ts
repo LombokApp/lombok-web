@@ -27,15 +27,12 @@ describe('Folder Update (Rename)', () => {
   })
 
   it('should require authentication', async () => {
-    const res = await apiClient().PUT(
-      '/api/v1/folders/{folderId}',
-      {
-        params: {
-          path: { folderId: '00000000-0000-0000-0000-000000000000' },
-        },
-        body: { name: 'NewName' },
+    const res = await apiClient().PUT('/api/v1/folders/{folderId}', {
+      params: {
+        path: { folderId: '00000000-0000-0000-0000-000000000000' },
       },
-    )
+      body: { name: 'NewName' },
+    })
     expect(res.response.status).toBe(401)
   })
 
@@ -57,13 +54,10 @@ describe('Folder Update (Rename)', () => {
       mockFiles: [],
     })
 
-    const res = await apiClient(accessToken).PUT(
-      '/api/v1/folders/{folderId}',
-      {
-        params: { path: { folderId: folder.id } },
-        body: { name: 'RenamedFolder' },
-      },
-    )
+    const res = await apiClient(accessToken).PUT('/api/v1/folders/{folderId}', {
+      params: { path: { folderId: folder.id } },
+      body: { name: 'RenamedFolder' },
+    })
     expect([200, 201]).toContain(res.response.status)
     expect(res.data?.folder).toBeDefined()
     expect(res.data!.folder.name).toBe('RenamedFolder')
@@ -125,13 +119,10 @@ describe('Folder Update (Rename)', () => {
       mockFiles: [],
     })
 
-    const res = await apiClient(otherToken).PUT(
-      '/api/v1/folders/{folderId}',
-      {
-        params: { path: { folderId: folder.id } },
-        body: { name: 'Hacked' },
-      },
-    )
+    const res = await apiClient(otherToken).PUT('/api/v1/folders/{folderId}', {
+      params: { path: { folderId: folder.id } },
+      body: { name: 'Hacked' },
+    })
     expect([401, 403, 404]).toContain(res.response.status)
   })
 })

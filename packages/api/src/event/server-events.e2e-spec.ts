@@ -1,7 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
-import { v4 as uuidV4 } from 'uuid'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { v4 as uuidV4 } from 'uuid'
+
 import { eventsTable } from './entities/event.entity'
 
 const TEST_MODULE_KEY = 'server_events'
@@ -46,7 +47,10 @@ describe('Server Events', () => {
   it('should require admin role', async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule!, { username: 'nonadmin', password: '123' })
+    } = await createTestUser(testModule!, {
+      username: 'nonadmin',
+      password: '123',
+    })
 
     const response = await apiClient(accessToken).GET('/api/v1/server/events')
     expect(response.response.status).toEqual(401)

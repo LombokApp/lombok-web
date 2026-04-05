@@ -48,9 +48,7 @@ describe('App Socket Interface', () => {
     handledTaskIdentifiers: string[] = [],
     _appIdentifier?: string,
   ): Promise<Socket> => {
-    const appIdentifier =
-      _appIdentifier ??
-      (await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG))
+    const appIdentifier = _appIdentifier ?? SOCKET_TEST_APP_SLUG
     const token = await createAppToken(appIdentifier)
     const socketUrl = `${serverBaseUrl}/apps`
 
@@ -193,9 +191,7 @@ describe('App Socket Interface', () => {
 
     expect(events.length).toBeGreaterThan(0)
     expect(events[0]?.eventIdentifier).toBe('sockettestappevent')
-    expect(events[0]?.emitterIdentifier).toBe(
-      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-    )
+    expect(events[0]?.emitterIdentifier).toBe(SOCKET_TEST_APP_SLUG)
   })
 
   it('should return 409 for a app without db enabled', async () => {
@@ -203,7 +199,7 @@ describe('App Socket Interface', () => {
     socket = await connectSocket(
       'test-instance-1',
       [],
-      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG_NO_DB),
+      SOCKET_TEST_APP_SLUG_NO_DB,
     )
 
     const response = await buildAppClient(
@@ -247,8 +243,7 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'testuser'),
       })
-    const appIdentifier =
-      await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG)
+    const appIdentifier = SOCKET_TEST_APP_SLUG
     // enable the app for the viewer
     const enableAppResponse = await testModule!
       .apiClient(userToken)
@@ -304,12 +299,7 @@ describe('App Socket Interface', () => {
     const tasks = await testModule!.services.ormService.db
       .select()
       .from(tasksTable)
-      .where(
-        eq(
-          tasksTable.ownerIdentifier,
-          await testModule!.getAppIdentifierBySlug(SOCKET_TEST_APP_SLUG),
-        ),
-      )
+      .where(eq(tasksTable.ownerIdentifier, SOCKET_TEST_APP_SLUG))
 
     const matchingTasks = tasks.filter(
       (task) => task.taskIdentifier === 'socket_test_task',

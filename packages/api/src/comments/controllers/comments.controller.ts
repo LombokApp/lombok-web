@@ -21,11 +21,11 @@ import {
 } from 'src/auth/guards/auth.guard-config'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
+import { SuccessResponseDTO } from '../../shared/dto/success-response.dto'
 import { AddReactionDTO } from '../dto/add-reaction.dto'
 import { CreateCommentDTO } from '../dto/create-root-comment.dto'
 import { AllCommentsListResponseDTO } from '../dto/responses/all-comments-list-response.dto'
 import { CreateRootCommentResponseDTO } from '../dto/responses/create-root-comment-response.dto'
-import { DeleteCommentResponseDTO } from '../dto/responses/delete-comment-response.dto'
 import { ThreadResponseDTO } from '../dto/responses/thread-response.dto'
 import { transformCommentToDTO } from '../dto/transforms/comment.transforms'
 import { CommentReactionService } from '../services/comment-reaction.service'
@@ -280,7 +280,7 @@ export class CommentsController {
     @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('folderObjectId', ParseUUIDPipe) folderObjectId: string,
     @Param('commentId', ParseUUIDPipe) commentId: string,
-  ): Promise<DeleteCommentResponseDTO> {
+  ): Promise<SuccessResponseDTO> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
@@ -307,7 +307,7 @@ export class CommentsController {
     @Param('folderObjectId', ParseUUIDPipe) folderObjectId: string,
     @Param('commentId', ParseUUIDPipe) commentId: string,
     @Body() dto: AddReactionDTO,
-  ): Promise<{ success: true }> {
+  ): Promise<SuccessResponseDTO> {
     if (!req.user) {
       throw new UnauthorizedException()
     }

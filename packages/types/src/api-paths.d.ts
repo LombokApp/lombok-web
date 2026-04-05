@@ -2056,6 +2056,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2098,6 +2193,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2145,6 +2335,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2187,6 +2472,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2540,6 +2920,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2582,6 +3057,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2629,6 +3199,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -2671,6 +3336,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3024,6 +3784,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3066,6 +3921,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3113,6 +4063,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3155,6 +4200,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3516,6 +4656,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3558,6 +4793,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3605,6 +4935,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3647,6 +5072,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -3971,6 +5491,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -4013,6 +5628,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -4060,6 +5770,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -4102,6 +5907,101 @@ export interface components {
                                     items: {
                                         /** @enum {string} */
                                         type: "string" | "number" | "integer" | "boolean";
+                                    } | {
+                                        /** @constant */
+                                        type: "object";
+                                        properties: {
+                                            [key: string]: ({
+                                                /** @constant */
+                                                type: "string";
+                                                description?: string;
+                                                default?: string;
+                                                enum?: string[];
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                            } | {
+                                                /** @constant */
+                                                type: "number";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "integer";
+                                                description?: string;
+                                                default?: number;
+                                                minimum?: number;
+                                                maximum?: number;
+                                            } | {
+                                                /** @constant */
+                                                type: "boolean";
+                                                description?: string;
+                                                default?: boolean;
+                                            }) | {
+                                                /** @constant */
+                                                type: "array";
+                                                description?: string;
+                                                default?: unknown[];
+                                                items: {
+                                                    /** @enum {string} */
+                                                    type: "string" | "number" | "integer" | "boolean";
+                                                };
+                                                minItems?: number;
+                                                maxItems?: number;
+                                            };
+                                        };
+                                        required?: string[];
+                                    } | {
+                                        discriminator: string;
+                                        oneOf: {
+                                            /** @constant */
+                                            type: "object";
+                                            properties: {
+                                                [key: string]: ({
+                                                    /** @constant */
+                                                    type: "string";
+                                                    description?: string;
+                                                    default?: string;
+                                                    enum?: string[];
+                                                    minLength?: number;
+                                                    maxLength?: number;
+                                                    pattern?: string;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "number";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "integer";
+                                                    description?: string;
+                                                    default?: number;
+                                                    minimum?: number;
+                                                    maximum?: number;
+                                                } | {
+                                                    /** @constant */
+                                                    type: "boolean";
+                                                    description?: string;
+                                                    default?: boolean;
+                                                }) | {
+                                                    /** @constant */
+                                                    type: "array";
+                                                    description?: string;
+                                                    default?: unknown[];
+                                                    items: {
+                                                        /** @enum {string} */
+                                                        type: "string" | "number" | "integer" | "boolean";
+                                                    };
+                                                    minItems?: number;
+                                                    maxItems?: number;
+                                                };
+                                            };
+                                            required?: string[];
+                                        }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
@@ -4292,6 +6192,101 @@ export interface components {
                             items: {
                                 /** @enum {string} */
                                 type: "string" | "number" | "integer" | "boolean";
+                            } | {
+                                /** @constant */
+                                type: "object";
+                                properties: {
+                                    [key: string]: ({
+                                        /** @constant */
+                                        type: "string";
+                                        description?: string;
+                                        default?: string;
+                                        enum?: string[];
+                                        minLength?: number;
+                                        maxLength?: number;
+                                        pattern?: string;
+                                    } | {
+                                        /** @constant */
+                                        type: "number";
+                                        description?: string;
+                                        default?: number;
+                                        minimum?: number;
+                                        maximum?: number;
+                                    } | {
+                                        /** @constant */
+                                        type: "integer";
+                                        description?: string;
+                                        default?: number;
+                                        minimum?: number;
+                                        maximum?: number;
+                                    } | {
+                                        /** @constant */
+                                        type: "boolean";
+                                        description?: string;
+                                        default?: boolean;
+                                    }) | {
+                                        /** @constant */
+                                        type: "array";
+                                        description?: string;
+                                        default?: unknown[];
+                                        items: {
+                                            /** @enum {string} */
+                                            type: "string" | "number" | "integer" | "boolean";
+                                        };
+                                        minItems?: number;
+                                        maxItems?: number;
+                                    };
+                                };
+                                required?: string[];
+                            } | {
+                                discriminator: string;
+                                oneOf: {
+                                    /** @constant */
+                                    type: "object";
+                                    properties: {
+                                        [key: string]: ({
+                                            /** @constant */
+                                            type: "string";
+                                            description?: string;
+                                            default?: string;
+                                            enum?: string[];
+                                            minLength?: number;
+                                            maxLength?: number;
+                                            pattern?: string;
+                                        } | {
+                                            /** @constant */
+                                            type: "number";
+                                            description?: string;
+                                            default?: number;
+                                            minimum?: number;
+                                            maximum?: number;
+                                        } | {
+                                            /** @constant */
+                                            type: "integer";
+                                            description?: string;
+                                            default?: number;
+                                            minimum?: number;
+                                            maximum?: number;
+                                        } | {
+                                            /** @constant */
+                                            type: "boolean";
+                                            description?: string;
+                                            default?: boolean;
+                                        }) | {
+                                            /** @constant */
+                                            type: "array";
+                                            description?: string;
+                                            default?: unknown[];
+                                            items: {
+                                                /** @enum {string} */
+                                                type: "string" | "number" | "integer" | "boolean";
+                                            };
+                                            minItems?: number;
+                                            maxItems?: number;
+                                        };
+                                    };
+                                    required?: string[];
+                                }[];
                             };
                             minItems?: number;
                             maxItems?: number;
@@ -4334,6 +6329,101 @@ export interface components {
                             items: {
                                 /** @enum {string} */
                                 type: "string" | "number" | "integer" | "boolean";
+                            } | {
+                                /** @constant */
+                                type: "object";
+                                properties: {
+                                    [key: string]: ({
+                                        /** @constant */
+                                        type: "string";
+                                        description?: string;
+                                        default?: string;
+                                        enum?: string[];
+                                        minLength?: number;
+                                        maxLength?: number;
+                                        pattern?: string;
+                                    } | {
+                                        /** @constant */
+                                        type: "number";
+                                        description?: string;
+                                        default?: number;
+                                        minimum?: number;
+                                        maximum?: number;
+                                    } | {
+                                        /** @constant */
+                                        type: "integer";
+                                        description?: string;
+                                        default?: number;
+                                        minimum?: number;
+                                        maximum?: number;
+                                    } | {
+                                        /** @constant */
+                                        type: "boolean";
+                                        description?: string;
+                                        default?: boolean;
+                                    }) | {
+                                        /** @constant */
+                                        type: "array";
+                                        description?: string;
+                                        default?: unknown[];
+                                        items: {
+                                            /** @enum {string} */
+                                            type: "string" | "number" | "integer" | "boolean";
+                                        };
+                                        minItems?: number;
+                                        maxItems?: number;
+                                    };
+                                };
+                                required?: string[];
+                            } | {
+                                discriminator: string;
+                                oneOf: {
+                                    /** @constant */
+                                    type: "object";
+                                    properties: {
+                                        [key: string]: ({
+                                            /** @constant */
+                                            type: "string";
+                                            description?: string;
+                                            default?: string;
+                                            enum?: string[];
+                                            minLength?: number;
+                                            maxLength?: number;
+                                            pattern?: string;
+                                        } | {
+                                            /** @constant */
+                                            type: "number";
+                                            description?: string;
+                                            default?: number;
+                                            minimum?: number;
+                                            maximum?: number;
+                                        } | {
+                                            /** @constant */
+                                            type: "integer";
+                                            description?: string;
+                                            default?: number;
+                                            minimum?: number;
+                                            maximum?: number;
+                                        } | {
+                                            /** @constant */
+                                            type: "boolean";
+                                            description?: string;
+                                            default?: boolean;
+                                        }) | {
+                                            /** @constant */
+                                            type: "array";
+                                            description?: string;
+                                            default?: unknown[];
+                                            items: {
+                                                /** @enum {string} */
+                                                type: "string" | "number" | "integer" | "boolean";
+                                            };
+                                            minItems?: number;
+                                            maxItems?: number;
+                                        };
+                                    };
+                                    required?: string[];
+                                }[];
                             };
                             minItems?: number;
                             maxItems?: number;

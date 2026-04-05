@@ -30,7 +30,10 @@ describe('Public Settings', () => {
   it('should return public settings with authentication too', async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule!, { username: 'pubuser', password: '123' })
+    } = await createTestUser(testModule!, {
+      username: 'pubuser',
+      password: '123',
+    })
 
     const response = await apiClient(accessToken).GET('/api/v1/public/settings')
     expect(response.response.status).toEqual(200)

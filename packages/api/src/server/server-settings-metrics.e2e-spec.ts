@@ -86,13 +86,10 @@ describe('Server Settings & Metrics', () => {
     })
 
     // Set a setting
-    await apiClient(accessToken).PUT(
-      '/api/v1/server/settings/{settingKey}',
-      {
-        params: { path: { settingKey: 'SIGNUP_ENABLED' } },
-        body: { value: false },
-      },
-    )
+    await apiClient(accessToken).PUT('/api/v1/server/settings/{settingKey}', {
+      params: { path: { settingKey: 'SIGNUP_ENABLED' } },
+      body: { value: false },
+    })
 
     // Reset it
     const delRes = await apiClient(accessToken).DELETE(

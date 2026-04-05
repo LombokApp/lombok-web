@@ -806,12 +806,7 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
-      .where(
-        eq(
-          appsTable.identifier,
-          TEST_APP_SLUG,
-        ),
-      )
+      .where(eq(appsTable.identifier, TEST_APP_SLUG))
 
     execSpy.mockImplementation((_hostId, _containerId, command, _options?) => {
       return Promise.resolve({
@@ -1651,20 +1646,14 @@ describe('Docker Jobs', () => {
     const userSettings =
       await testModule!.services.ormService.db.query.appUserSettingsTable.findFirst(
         {
-          where: eq(
-            appUserSettingsTable.appIdentifier,
-            TEST_APP_SLUG,
-          ),
+          where: eq(appUserSettingsTable.appIdentifier, TEST_APP_SLUG),
         },
       )
 
     const folderSettings =
       await testModule!.services.ormService.db.query.appFolderSettingsTable.findFirst(
         {
-          where: eq(
-            appUserSettingsTable.appIdentifier,
-            TEST_APP_SLUG,
-          ),
+          where: eq(appUserSettingsTable.appIdentifier, TEST_APP_SLUG),
         },
       )
 
@@ -1677,12 +1666,7 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
-      .where(
-        eq(
-          appsTable.identifier,
-          TEST_APP_SLUG,
-        ),
-      )
+      .where(eq(appsTable.identifier, TEST_APP_SLUG))
 
     const firstTry = await triggerAppDockerHandledTask(testModule!, {
       appIdentifier: TEST_APP_SLUG,
@@ -1708,12 +1692,7 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: false,
         folderScopeEnabledDefault: true,
       })
-      .where(
-        eq(
-          appsTable.identifier,
-          TEST_APP_SLUG,
-        ),
-      )
+      .where(eq(appsTable.identifier, TEST_APP_SLUG))
       .returning()
 
     await resetTestData()
@@ -1783,12 +1762,7 @@ describe('Docker Jobs', () => {
         userScopeEnabledDefault: true,
         folderScopeEnabledDefault: true,
       })
-      .where(
-        eq(
-          appsTable.identifier,
-          TEST_APP_SLUG,
-        ),
-      )
+      .where(eq(appsTable.identifier, TEST_APP_SLUG))
 
     execSpy.mockImplementation((_hostId, _containerId, command, _options?) => {
       return Promise.resolve({

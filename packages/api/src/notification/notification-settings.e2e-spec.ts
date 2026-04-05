@@ -1,6 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
-import { buildTestModule, createTestFolder, createTestUser } from 'src/test/test.util'
+import {
+  buildTestModule,
+  createTestFolder,
+  createTestUser,
+} from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'notification_settings'
 

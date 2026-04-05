@@ -5827,19 +5827,19 @@ describe('Platform Agent', () => {
   // ===========================================================================
 
   describe('token-refresh', () => {
-    const CONTEXT_ENV_PATH = '/var/lib/lombok-worker-agent/context.env'
+    const PROVISION_ENV_PATH = '/var/lib/lombok-worker-agent/provision.env'
 
     async function writeContextEnv(content: string): Promise<void> {
       const b64 = Buffer.from(content).toString('base64')
       await execInContainer([
         'sh',
         '-c',
-        `echo '${b64}' | base64 -d > ${CONTEXT_ENV_PATH} && chmod 600 ${CONTEXT_ENV_PATH}`,
+        `echo '${b64}' | base64 -d > ${PROVISION_ENV_PATH} && chmod 600 ${PROVISION_ENV_PATH}`,
       ])
     }
 
     async function readContextEnv(): Promise<string> {
-      return readFileInContainer(CONTEXT_ENV_PATH)
+      return readFileInContainer(PROVISION_ENV_PATH)
     }
 
     async function restartAgentContainer(): Promise<void> {
@@ -5874,7 +5874,7 @@ describe('Platform Agent', () => {
           nearExpiringToken,
         )
 
-        // context.env should now contain the new token (not the old one)
+        // provision.env should now contain the new token (not the old one)
         const updatedEnv = await readContextEnv()
         expect(updatedEnv).toContain('LOMBOK_CONTAINER_TOKEN=')
         expect(updatedEnv).not.toContain(nearExpiringToken)
@@ -5906,7 +5906,7 @@ describe('Platform Agent', () => {
         // No refresh request should have been made
         expect(mockPlatformState.refreshRequests.length).toBe(0)
 
-        // context.env should still contain the original token
+        // provision.env should still contain the original token
         const env = await readContextEnv()
         expect(env).toContain(longLivedToken)
       },
@@ -5914,9 +5914,9 @@ describe('Platform Agent', () => {
     )
 
     test(
-      'token-refresh: handles missing context.env gracefully',
+      'token-refresh: handles missing provision.env gracefully',
       async () => {
-        await execInContainer(['rm', '-f', CONTEXT_ENV_PATH])
+        await execInContainer(['rm', '-f', PROVISION_ENV_PATH])
         resetMockPlatformState()
         await restartAgentContainer()
 
@@ -5936,7 +5936,7 @@ describe('Platform Agent', () => {
     )
 
     test(
-      'token-refresh: preserves other context.env variables during refresh',
+      'token-refresh: preserves other provision.env variables during refresh',
       async () => {
         const nearExpiringToken = createFakeJWT(6 * 60 * 60)
         const content = `LOMBOK_CONTAINER_TOKEN=${nearExpiringToken}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\nCUSTOM_VAR=some_value\n`

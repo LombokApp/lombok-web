@@ -25,7 +25,7 @@ describe('App Worker Environment Variables', () => {
 
   async function setupApp(adminToken: string) {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
-    appIdentifier = await testModule!.getAppIdentifierBySlug(DUMMY_APP_SLUG)
+    appIdentifier = DUMMY_APP_SLUG
 
     await apiClient(adminToken).PUT(
       '/api/v1/server/apps/{appIdentifier}/enabled',
@@ -92,7 +92,7 @@ describe('App Worker Environment Variables', () => {
     })
 
     const app = await setupApp(accessToken)
-    const workerIds = Object.keys(app.runtimeWorkers?.definitions ?? {})
+    const workerIds = Object.keys(app.runtimeWorkers.definitions)
 
     // Skip if dummy app has no workers
     if (workerIds.length === 0) {

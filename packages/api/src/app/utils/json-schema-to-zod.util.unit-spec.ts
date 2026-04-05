@@ -221,9 +221,9 @@ describe('jsonSchemaToZod', () => {
     expect(
       zod.safeParse({ configs: [{ name: 'a', tags: ['x'] }] }).success,
     ).toBe(true)
-    expect(
-      zod.safeParse({ configs: [{ name: 'a', tags: [] }] }).success,
-    ).toBe(false)
+    expect(zod.safeParse({ configs: [{ name: 'a', tags: [] }] }).success).toBe(
+      false,
+    )
     expect(
       zod.safeParse({ configs: [{ name: 'a', tags: [123] }] }).success,
     ).toBe(false)

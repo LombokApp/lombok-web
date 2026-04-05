@@ -77,7 +77,10 @@ describe('Folder Object Delete', () => {
       '/api/v1/folders/{folderId}/objects/{objectKey}',
       {
         params: {
-          path: { folderId: folder.id, objectKey: encodeURIComponent(objectKey) },
+          path: {
+            folderId: folder.id,
+            objectKey: encodeURIComponent(objectKey),
+          },
         },
       },
     )
@@ -109,7 +112,11 @@ describe('Folder Object Delete', () => {
       mockFiles: [{ objectKey: 'protected.txt', content: 'nope' }],
     })
 
-    await reindexTestFolder({ accessToken: ownerToken, apiClient, folderId: folder.id })
+    await reindexTestFolder({
+      accessToken: ownerToken,
+      apiClient,
+      folderId: folder.id,
+    })
     await testModule!.waitForTasks('completed', {
       taskIdentifiers: [CoreTaskName.ReindexFolder],
     })
@@ -118,13 +125,16 @@ describe('Folder Object Delete', () => {
       '/api/v1/folders/{folderId}/objects',
       { params: { path: { folderId: folder.id } } },
     )
-    const objectKey = listRes.data?.result?.[0]?.objectKey ?? 'protected.txt'
+    const objectKey = listRes.data?.result[0]?.objectKey ?? 'protected.txt'
 
     const deleteRes = await apiClient(otherToken).DELETE(
       '/api/v1/folders/{folderId}/objects/{objectKey}',
       {
         params: {
-          path: { folderId: folder.id, objectKey: encodeURIComponent(objectKey) },
+          path: {
+            folderId: folder.id,
+            objectKey: encodeURIComponent(objectKey),
+          },
         },
       },
     )
