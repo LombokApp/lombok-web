@@ -315,26 +315,80 @@ export type JsonSchema07PrimitiveProperty = z.infer<
 >
 
 /**
- * Property schema for object items — primitives plus primitive-typed arrays.
- * Allows e.g. `MODELS: { type: 'array', items: { type: 'string' } }` inside object items.
+ * Property schema for object items — primitives, primitive-typed arrays,
+ * and nested objects (with primitive/primitive-array properties).
+ * Allows e.g. `THINGS: { type: 'array', items: { type: 'string' } }` inside object items.
  */
-export const jsonSchema07ObjectItemPropertySchema = z.union([
-  jsonSchema07PrimitivePropertySchema,
-  z.object({
-    type: z.literal('array'),
-    description: z.string().optional(),
-    default: z.array(z.unknown()).optional(),
-    items: z.object({
-      type: z.enum(['string', 'number', 'integer', 'boolean']),
-    }),
-    minItems: z.number().int().min(0).optional(),
-    maxItems: z.number().int().min(0).optional(),
-  }),
-])
+export type JsonSchema07ObjectItemProperty =
+  | z.infer<typeof jsonSchema07PrimitivePropertySchema>
+  | {
+      type: 'array'
+      description?: string
+      default?: unknown[]
+      items:
+        | { type: 'string' | 'number' | 'integer' | 'boolean' }
+        | {
+            type: 'object'
+            properties?: Record<string, JsonSchema07ObjectItemProperty>
+            additionalProperties?: JsonSchema07ObjectItemProperty
+            required?: string[]
+          }
+      minItems?: number
+      maxItems?: number
+    }
+  | {
+      type: 'object'
+      description?: string
+      default?: Record<string, unknown>
+      properties?: Record<string, JsonSchema07ObjectItemProperty>
+      additionalProperties?: JsonSchema07ObjectItemProperty
+      required?: string[]
+    }
 
-export type JsonSchema07ObjectItemProperty = z.infer<
-  typeof jsonSchema07ObjectItemPropertySchema
->
+export const jsonSchema07ObjectItemPropertySchema: z.ZodType<JsonSchema07ObjectItemProperty> =
+  z.union([
+    jsonSchema07PrimitivePropertySchema,
+    z.object({
+      type: z.literal('array'),
+      description: z.string().optional(),
+      default: z.array(z.unknown()).optional(),
+      items: z.union([
+        z.object({
+          type: z.enum(['string', 'number', 'integer', 'boolean']),
+        }),
+        z.object({
+          type: z.literal('object'),
+          properties: z
+            .record(
+              z.string(),
+              z.lazy(() => jsonSchema07ObjectItemPropertySchema),
+            )
+            .optional(),
+          additionalProperties: z
+            .lazy(() => jsonSchema07ObjectItemPropertySchema)
+            .optional(),
+          required: z.array(z.string()).optional(),
+        }),
+      ]),
+      minItems: z.number().int().min(0).optional(),
+      maxItems: z.number().int().min(0).optional(),
+    }),
+    z.object({
+      type: z.literal('object'),
+      description: z.string().optional(),
+      default: z.record(z.string(), z.unknown()).optional(),
+      properties: z
+        .record(
+          z.string(),
+          z.lazy(() => jsonSchema07ObjectItemPropertySchema),
+        )
+        .optional(),
+      additionalProperties: z
+        .lazy(() => jsonSchema07ObjectItemPropertySchema)
+        .optional(),
+      required: z.array(z.string()).optional(),
+    }),
+  ])
 
 /**
  * Schema for object items within arrays.
@@ -382,6 +436,16 @@ export const jsonSchema07PropertySchema = z.union([
     ]),
     minItems: z.number().int().min(0).optional(),
     maxItems: z.number().int().min(0).optional(),
+  }),
+  z.object({
+    type: z.literal('object'),
+    description: z.string().optional(),
+    default: z.record(z.string(), z.unknown()).optional(),
+    properties: z
+      .record(z.string(), jsonSchema07ObjectItemPropertySchema)
+      .optional(),
+    additionalProperties: jsonSchema07ObjectItemPropertySchema.optional(),
+    required: z.array(z.string()).optional(),
   }),
 ])
 
