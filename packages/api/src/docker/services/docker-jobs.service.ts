@@ -259,6 +259,8 @@ export class DockerJobsService {
     gpus: { driver: string; deviceIds: string[] } | undefined
     extraHosts: string[] | undefined
     networkMode: 'host' | 'bridge' | `container:${string}` | undefined
+    capAdd: string[] | undefined
+    securityOpt: string[] | undefined
   } {
     const profileKeyParts = profileKey.split(':')
     const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
@@ -308,6 +310,18 @@ export class DockerJobsService {
         | 'bridge'
         | `container:${string}`
         | undefined,
+      capAdd:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.capAdd?.[
+          profileKey
+        ] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.capAdd?.[
+          appSlugProfileKey
+        ],
+      securityOpt:
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.securityOpt?.[profileKey] ??
+        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
+          ?.securityOpt?.[appSlugProfileKey],
     }
   }
 

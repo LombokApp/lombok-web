@@ -57,6 +57,8 @@ export const dockerHostConfigSchema = z
             env: z
               .record(z.string(), z.record(z.string(), z.string()))
               .optional(), // the environment variables assigned to app container profiles. e.g. {'app:content_indexing': { 'PRIVATE_KEY': '___' }}
+            capAdd: z.record(z.string(), z.string().array()).optional(), // Linux capabilities to add per profile. e.g. {'coder:lombok_codicle_agent': ['SYS_ADMIN']}
+            securityOpt: z.record(z.string(), z.string().array()).optional(), // Docker security options per profile. e.g. {'coder:lombok_codicle_agent': ['apparmor=unconfined']}
           })
           .strict(),
       )

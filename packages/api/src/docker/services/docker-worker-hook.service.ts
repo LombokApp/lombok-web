@@ -628,10 +628,14 @@ export class DockerWorkerHookService {
       const { appIdentifier, hostId, containerId, userId } = claims
 
       // 1. Exec into container to read the request context
+      // When callerSubPath is provided, read from a caller-specific subdirectory
+      const relayDir = body.callerSubPath
+        ? `/tmp/lombok-relay-requests/${body.callerSubPath}`
+        : '/tmp/lombok-relay-requests'
       const loadRequestContext = await this.dockerClientService.execInContainer(
         hostId,
         containerId,
-        ['cat', `/tmp/lombok-relay-requests/${body.requestId}.json`],
+        ['cat', `${relayDir}/${body.requestId}.json`],
       )
       if (loadRequestContext.exitCode !== 0) {
         throw new NotFoundException(

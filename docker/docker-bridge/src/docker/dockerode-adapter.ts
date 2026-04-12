@@ -267,6 +267,8 @@ export class DockerodeAdapter implements DockerAdapter {
         ExtraHosts: options.extraHosts,
         Binds: options.volumes,
         NetworkMode: options.networkMode,
+        CapAdd: options.capAdd,
+        SecurityOpt: options.securityOpt,
       },
     }
 

@@ -34713,6 +34713,10 @@
           "requestId": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "callerSubPath": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
           }
         },
         "required": [

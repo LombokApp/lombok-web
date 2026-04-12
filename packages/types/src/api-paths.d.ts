@@ -7956,6 +7956,7 @@ export interface components {
         };
         DockerRouteAppContainerRequestDTO: {
             requestId: string;
+            callerSubPath?: string;
         };
         DockerRouteAppContainerResponseDTO: {
             status: number;

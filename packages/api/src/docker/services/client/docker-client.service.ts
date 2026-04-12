@@ -192,6 +192,8 @@ export class DockerClientService {
         volumes: options.volumes,
         networkMode: options.networkMode,
         gpus: options.gpus,
+        capAdd: options.capAdd,
+        securityOpt: options.securityOpt,
       },
     )
     return toBridgeContainerInfo(result)
