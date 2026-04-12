@@ -633,7 +633,10 @@ export class DockerJobsService {
         job_id: jobId,
         job_class: jobIdentifier,
         job_input: jobData,
-        job_token: jobToken,
+        // Only include job_token + platform_url when there's a platform-side
+        // task to track. Without a task, there's nothing to send lifecycle
+        // signals to and no reason to issue presigned URLs.
+        job_token: params.asyncTaskId ? jobToken : undefined,
         worker_command: jobDefinition.command,
         interface:
           jobDefinition.kind === 'http'
@@ -644,9 +647,9 @@ export class DockerJobsService {
             : {
                 kind: 'exec_per_job',
               },
-        platform_url: !jobToken
-          ? undefined
-          : buildPlatformOrigin(this._coreConfig),
+        platform_url: params.asyncTaskId
+          ? buildPlatformOrigin(this._coreConfig)
+          : undefined,
         output_location: params.storageAccessPolicy?.outputLocation
           ? {
               folder_id: params.storageAccessPolicy.outputLocation.folderId,

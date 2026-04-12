@@ -53,8 +53,6 @@ const parseJobPayload = (payload: string) => {
       | undefined
   }
 
-  expect(parsedPaylod.job_token?.length).toBeGreaterThan(0)
-  expect(parsedPaylod.platform_url?.length).toBeGreaterThan(0)
   expect(parsedPaylod.job_id?.length).toBeGreaterThan(0)
   expect(parsedPaylod.job_class?.length).toBeGreaterThan(0)
   expect(parsedPaylod.interface?.kind).toBeDefined()
@@ -402,10 +400,8 @@ describe('Docker Jobs', () => {
 
     expect(payload).toEqual({
       jobId: expect.any(String),
-      jobToken: expect.any(String),
       jobIdentifier: 'test_job',
       jobInterface: { kind: 'exec_per_job' },
-      platformURL: 'http://localhost:3000',
       jobData: {},
     })
 
@@ -456,8 +452,6 @@ describe('Docker Jobs', () => {
       jobIdentifier: 'test_job_other',
       jobInterface: { kind: 'exec_per_job' },
       jobData: {},
-      jobToken: expect.any(String),
-      platformURL: 'http://localhost:3000',
     })
   })
 
@@ -526,8 +520,6 @@ describe('Docker Jobs', () => {
       jobIdentifier: 'test_job',
       jobInterface: { kind: 'exec_per_job' },
       jobData: { foo: 'bar' },
-      jobToken: expect.any(String),
-      platformURL: 'http://localhost:3000',
     })
 
     const findOrCreateContainerCall = findOrCreateContainerSpy.mock.calls[0]!
