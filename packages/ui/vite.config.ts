@@ -14,13 +14,13 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
         const host = req.headers.host
         const url = req.url || ''
 
-        // Only handle if it's an apps subdomain
-        if (!host?.match(/\.apps\./)) {
+        // Only handle if it's an app subdomain
+        if (!host?.startsWith('app-server--')) {
           next()
           return
         }
 
-        // Extract combined subdomain and parse identifiers: app-server--<app>.apps.<platform_host>
+        // Extract combined subdomain and parse identifiers: app-server--<app>.<platform_host>
         const hostParts = host.split('.')
         const appIdentifier = hostParts[0]?.replace('app-server--', '')
 

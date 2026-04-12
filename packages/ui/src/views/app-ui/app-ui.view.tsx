@@ -65,7 +65,7 @@ export function AppUI({
 
   const theme = useTheme()
   const srcUrl = React.useMemo(() => {
-    return `${scheme}//app-server--${appIdentifier}.apps.${host}${paths.initial}`
+    return `${scheme}//app-server--${appIdentifier}.${host}${paths.initial}`
   }, [appIdentifier, host, scheme, paths.initial])
 
   React.useEffect(() => {

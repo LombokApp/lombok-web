@@ -21,8 +21,8 @@ import { DockerBridgeService } from '../services/docker-bridge.service'
 const COOKIE_NAME = 'tunnel_auth'
 const TUNNEL_TOKEN_TTL_SECONDS = 86400 // 24 hours
 
-/** Tunnel subdomain format: {label}--{publicId}--{appIdentifier}.apps.{platformHost} */
-const TUNNEL_DOMAIN_REGEX = /^(.+)--([a-z0-9]+)--([^.]+)\.apps\.(.+)$/
+/** Tunnel subdomain format: {label}--{publicId}--{appIdentifier}.{platformHost} */
+const TUNNEL_DOMAIN_REGEX = /^(.+)--([a-z0-9]+)--([^.]+)\.(.+)$/
 
 interface SessionTokenPayload {
   sub: string
@@ -248,7 +248,7 @@ async function refreshAuth() {
 
   /**
    * Build a full origin URL for a given hostname using platform config.
-   * Produces e.g. `https://foo.apps.example.com` or `http://foo.apps.localhost:8080`.
+   * Produces e.g. `https://foo.example.com` or `http://foo.localhost:8080`.
    */
   private buildTunnelOrigin(hostname: string): string {
     const protocol = this.config.platformHttps ? 'https' : 'http'

@@ -200,7 +200,7 @@ export const FolderObjectSidebar = ({
                       <TypographyH3>
                         <div className="flex items-center gap-2">
                           <img
-                            src={`${protocol}//${embed.appIdentifier}.apps.${API_HOST}${embed.iconPath ?? ''}`}
+                            src={`${protocol}//${embed.appIdentifier}.${API_HOST}${embed.iconPath ?? ''}`}
                             alt={`${embed.appLabel} icon`}
                             className="size-6"
                           />

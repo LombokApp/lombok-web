@@ -40,7 +40,7 @@ const port = window.location.port
 const API_HOST = `${hostname}${port && !['80', '443'].includes(port) ? `:${port}` : ''}`
 
 function resolveAppIconUrl(appIdentifier: string, iconPath: string): string {
-  return `${protocol}//${appIdentifier}.apps.${API_HOST}${iconPath}`
+  return `${protocol}//${appIdentifier}.${API_HOST}${iconPath}`
 }
 
 function groupContributionsByApp(

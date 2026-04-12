@@ -12,7 +12,7 @@
  *   - Subsequent requests: cookie sent automatically.
  *
  * nginx sets X-Tunnel-Public-Id header based on the subdomain:
- *   {label}--{publicId}--{appId}.apps.{domain}
+ *   {label}--{publicId}--{appId}.{domain}
  */
 
 import type { BridgeConfig } from '../config.js'
