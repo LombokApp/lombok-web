@@ -56,13 +56,59 @@ function primitivePropertyToZod(
   }
 }
 
+function nestedObjectToZod(prop: {
+  type: 'object'
+  properties?: Record<string, unknown>
+  additionalProperties?: unknown
+  required?: string[]
+}): z.ZodType {
+  // additionalProperties: validate all values against a schema (dynamic keys)
+  if (prop.additionalProperties) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define, no-use-before-define
+    const valueSchema = objectItemPropertyToZod(
+      prop.additionalProperties as JsonSchema07ObjectItemProperty,
+    )
+    return z.record(z.string(), valueSchema)
+  }
+
+  const properties = prop.properties ?? {}
+  const shape: Record<string, z.ZodType> = {}
+  const requiredKeys = new Set(prop.required ?? [])
+  for (const [key, nestedProp] of Object.entries(properties)) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define, no-use-before-define
+    let fieldSchema = objectItemPropertyToZod(
+      nestedProp as JsonSchema07ObjectItemProperty,
+    )
+    if (!requiredKeys.has(key)) {
+      fieldSchema = fieldSchema.optional()
+    }
+    shape[key] = fieldSchema
+  }
+  if (Object.keys(shape).length === 0) {
+    return z.record(z.string(), z.unknown())
+  }
+  return z.object(shape).strict()
+}
+
 function objectItemPropertyToZod(
   prop: JsonSchema07ObjectItemProperty,
 ): z.ZodType {
   if (prop.type === 'array') {
-    const itemZod = primitivePropertyToZod({
-      type: prop.items.type,
-    } as JsonSchema07PrimitiveProperty)
+    let itemZod: z.ZodType
+    if (prop.items.type === 'object') {
+      itemZod = nestedObjectToZod(
+        prop.items as {
+          type: 'object'
+          properties?: Record<string, unknown>
+          additionalProperties?: unknown
+          required?: string[]
+        },
+      )
+    } else {
+      itemZod = primitivePropertyToZod({
+        type: prop.items.type,
+      } as JsonSchema07PrimitiveProperty)
+    }
     let schema = z.array(itemZod)
     if (prop.minItems !== undefined) {
       schema = schema.min(prop.minItems)
@@ -71,6 +117,9 @@ function objectItemPropertyToZod(
       schema = schema.max(prop.maxItems)
     }
     return schema
+  }
+  if (prop.type === 'object') {
+    return nestedObjectToZod(prop)
   }
   return primitivePropertyToZod(prop)
 }
@@ -107,6 +156,10 @@ function discriminatedObjectItemToZod(
 }
 
 function propertyToZod(prop: JsonSchema07Property): z.ZodType {
+  if (prop.type === 'object') {
+    return nestedObjectToZod(prop)
+  }
+
   if (prop.type !== 'array') {
     return primitivePropertyToZod(prop)
   }

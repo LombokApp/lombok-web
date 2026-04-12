@@ -331,6 +331,223 @@ describe('jsonSchemaToZod', () => {
     ).toBe(false)
   })
 
+  it('should convert top-level object property with known keys', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        DEFAULTS: {
+          type: 'object',
+          properties: {
+            default: { type: 'string' },
+            code_small: { type: 'string' },
+            reasoning: { type: 'string' },
+          },
+        },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(
+      zod.safeParse({
+        DEFAULTS: {
+          default: 'anthropic/claude-sonnet-4-6',
+          code_small: 'openai/gpt-4.1-mini',
+        },
+      }).success,
+    ).toBe(true)
+    expect(zod.safeParse({ DEFAULTS: { default: 123 } }).success).toBe(false)
+    // Strict: rejects unknown keys
+    expect(
+      zod.safeParse({ DEFAULTS: { default: 'x', unknown_role: 'y' } }).success,
+    ).toBe(false)
+  })
+
+  it('should convert top-level object property with empty properties as passthrough', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        META: {
+          type: 'object',
+        },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(zod.safeParse({ META: { anything: 'goes' } }).success).toBe(true)
+    expect(zod.safeParse({ META: {} }).success).toBe(true)
+    expect(zod.safeParse({ META: 'string' }).success).toBe(false)
+  })
+
+  it('should convert object with additionalProperties to validate values', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        MODELS: {
+          type: 'object',
+          additionalProperties: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              reasoning: { type: 'boolean' },
+            },
+            required: ['name', 'reasoning'],
+          },
+        },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    // Valid: values match schema
+    expect(
+      zod.safeParse({
+        MODELS: {
+          'anthropic/claude-sonnet-4-6': {
+            name: 'Claude Sonnet 4.6',
+            reasoning: true,
+          },
+          'openai/gpt-5.4': { name: 'GPT 5.4', reasoning: true },
+        },
+      }).success,
+    ).toBe(true)
+    expect(zod.safeParse({ MODELS: {} }).success).toBe(true)
+    // Invalid: missing required field
+    expect(
+      zod.safeParse({
+        MODELS: { 'openai/gpt-5.4': { name: 'GPT 5.4' } },
+      }).success,
+    ).toBe(false)
+    // Invalid: wrong type
+    expect(
+      zod.safeParse({
+        MODELS: { 'openai/gpt-5.4': { name: 123, reasoning: true } },
+      }).success,
+    ).toBe(false)
+    // Invalid: not an object
+    expect(zod.safeParse({ MODELS: 'string' }).success).toBe(false)
+  })
+
+  it('should convert object property with required fields', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        config: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            port: { type: 'integer' },
+          },
+          required: ['name'],
+        },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(zod.safeParse({ config: { name: 'test' } }).success).toBe(true)
+    expect(
+      zod.safeParse({ config: { name: 'test', port: 8080 } }).success,
+    ).toBe(true)
+    // Missing required 'name'
+    expect(zod.safeParse({ config: { port: 8080 } }).success).toBe(false)
+  })
+
+  it('should convert nested object within object item in array', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        providers: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              TYPE: { type: 'string' },
+              DEFAULTS: {
+                type: 'object',
+                properties: {
+                  default: { type: 'string' },
+                  code_large: { type: 'string' },
+                },
+              },
+            },
+            required: ['TYPE'],
+          },
+        },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    expect(
+      zod.safeParse({
+        providers: [
+          {
+            TYPE: 'openai',
+            DEFAULTS: { default: 'gpt-5.4', code_large: 'gpt-5.3-codex' },
+          },
+        ],
+      }).success,
+    ).toBe(true)
+    expect(
+      zod.safeParse({
+        providers: [{ TYPE: 'openai' }],
+      }).success,
+    ).toBe(true)
+    // Wrong type for nested field
+    expect(
+      zod.safeParse({
+        providers: [{ TYPE: 'openai', DEFAULTS: { default: 123 } }],
+      }).success,
+    ).toBe(false)
+  })
+
+  it('should convert object with additionalProperties within array item', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        providers: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              TYPE: { type: 'string' },
+              MODELS: {
+                type: 'object',
+                additionalProperties: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    reasoning: { type: 'boolean' },
+                  },
+                  required: ['name'],
+                },
+              },
+            },
+            required: ['TYPE'],
+          },
+        },
+      },
+    }
+    const zod = jsonSchemaToZod(schema)
+    // Valid
+    expect(
+      zod.safeParse({
+        providers: [
+          {
+            TYPE: 'openai_compatible',
+            MODELS: {
+              'anthropic/claude-sonnet-4-6': { name: 'Claude Sonnet' },
+              'openai/gpt-5.4': { name: 'GPT 5.4', reasoning: true },
+            },
+          },
+        ],
+      }).success,
+    ).toBe(true)
+    // Missing required 'name' in value
+    expect(
+      zod.safeParse({
+        providers: [
+          {
+            TYPE: 'openai_compatible',
+            MODELS: { 'openai/gpt-5.4': { reasoning: true } },
+          },
+        ],
+      }).success,
+    ).toBe(false)
+  })
+
   it('should validate mixed discriminated union items in same array', () => {
     const schema: JsonSchema07Object = {
       type: 'object',
@@ -411,6 +628,32 @@ describe('jsonSchemaToPartialZod', () => {
     expect(zod.safeParse({ ANTHROPIC_API_KEY_1234: 'sk-abc' }).success).toBe(
       true,
     )
+  })
+
+  it('should make object properties optional and nullable in partial mode', () => {
+    const schema: JsonSchema07Object = {
+      type: 'object',
+      properties: {
+        DEFAULTS: {
+          type: 'object',
+          properties: {
+            default: { type: 'string' },
+          },
+        },
+        MODELS: {
+          type: 'object',
+          properties: {},
+        },
+      },
+    }
+    const zod = jsonSchemaToPartialZod(schema)
+    expect(zod.safeParse({}).success).toBe(true)
+    expect(zod.safeParse({ DEFAULTS: null }).success).toBe(true)
+    expect(zod.safeParse({ MODELS: null }).success).toBe(true)
+    expect(
+      zod.safeParse({ DEFAULTS: { default: 'anthropic/claude-sonnet-4-6' } })
+        .success,
+    ).toBe(true)
   })
 
   it('should reject unknown keys even in partial mode', () => {

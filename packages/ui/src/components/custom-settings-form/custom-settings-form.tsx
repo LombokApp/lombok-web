@@ -265,6 +265,10 @@ function ObjectItemPropertyInput({
       />
     )
   }
+  if (property.type === 'object') {
+    // Nested object settings are not yet supported in the UI
+    return null
+  }
   return (
     <PrimitiveFieldInput
       id={id}
