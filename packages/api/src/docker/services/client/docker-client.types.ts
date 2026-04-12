@@ -18,6 +18,8 @@ export interface FindOrCreateContainerOptions {
   volumes?: string[]
   networkMode?: 'host' | 'bridge' | `container:${string}`
   gpus?: { driver: string; deviceIds: string[] }
+  capAdd?: string[]
+  securityOpt?: string[]
   startIfNotRunning?: boolean
 }
 

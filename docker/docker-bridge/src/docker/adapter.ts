@@ -31,6 +31,8 @@ export interface CreateContainerOptions {
   volumes?: string[]
   networkMode?: string
   gpus?: { driver: string; deviceIds: string[] }
+  capAdd?: string[]
+  securityOpt?: string[]
 }
 
 export interface BridgeContainerInfo {
