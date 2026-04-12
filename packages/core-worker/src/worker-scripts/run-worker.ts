@@ -1351,6 +1351,7 @@ async function createWorkerProcess(
       '--disable_clone_newuser',
       '--disable_clone_newcgroup',
       '--disable_rlimits',
+      '--time_limit=0',
       '--disable_proc',
       '--tmpfsmount=/',
       '--user=1000',
