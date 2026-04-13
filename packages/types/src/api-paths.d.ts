@@ -1622,6 +1622,214 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/hosts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerHosts_list"];
+        put?: never;
+        post: operations["DockerHosts_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/hosts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerHosts_get"];
+        put: operations["DockerHosts_update"];
+        post?: never;
+        delete: operations["DockerHosts_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/registry-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerRegistryCredentials_list"];
+        put?: never;
+        post: operations["DockerRegistryCredentials_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/registry-credentials/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["DockerRegistryCredentials_update"];
+        post?: never;
+        delete: operations["DockerRegistryCredentials_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/resource-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerResourceConfigs_list"];
+        put?: never;
+        post: operations["DockerResourceConfigs_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/resource-configs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerResourceConfigs_get"];
+        put: operations["DockerResourceConfigs_update"];
+        post?: never;
+        delete: operations["DockerResourceConfigs_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/resource-configs/{id}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerResourceConfigs_findSimilar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/resource-configs/{id}/clone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DockerResourceConfigs_clone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/profile-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerProfileAssignments_list"];
+        put?: never;
+        post: operations["DockerProfileAssignments_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/profile-assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerProfileAssignments_get"];
+        put: operations["DockerProfileAssignments_update"];
+        post?: never;
+        delete: operations["DockerProfileAssignments_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/profile-assignments/resolve/{appIdentifier}/{profileKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerProfileAssignments_resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/standalone-containers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerStandaloneContainers_list"];
+        put?: never;
+        post: operations["DockerStandaloneContainers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/standalone-containers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerStandaloneContainers_get"];
+        put: operations["DockerStandaloneContainers_update"];
+        post?: never;
+        delete: operations["DockerStandaloneContainers_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
         parameters: {
             query?: never;
@@ -1823,6 +2031,66 @@ export interface components {
                 [key: string]: components["schemas"]["AppInstallResponse__schema0"];
             };
             onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
+        };
+        AppInstallResponse__schema2: ({
+            /** @constant */
+            type: "string";
+            description?: string;
+            default?: string;
+            enum?: string[];
+            minLength?: number;
+            maxLength?: number;
+            pattern?: string;
+        } | {
+            /** @constant */
+            type: "number";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "integer";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "boolean";
+            description?: string;
+            default?: boolean;
+        }) | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: {
+                /** @enum {string} */
+                type: "string" | "number" | "integer" | "boolean";
+            } | {
+                /** @constant */
+                type: "object";
+                properties?: {
+                    [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                };
+                additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+                required?: string[];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | {
+            /** @constant */
+            type: "object";
+            description?: string;
+            default?: {
+                [key: string]: unknown;
+            };
+            properties?: {
+                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+            };
+            additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+            required?: string[];
         };
         AppInstallResponse: {
             app: {
@@ -2060,46 +2328,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -2108,52 +2337,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -2197,46 +2399,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -2245,52 +2408,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -2339,46 +2475,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -2387,52 +2484,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -2476,46 +2546,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -2524,52 +2555,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -2684,6 +2688,66 @@ export interface components {
                 [key: string]: components["schemas"]["AppListResponse__schema0"];
             };
             onComplete?: components["schemas"]["AppListResponse__schema1"][];
+        };
+        AppListResponse__schema2: ({
+            /** @constant */
+            type: "string";
+            description?: string;
+            default?: string;
+            enum?: string[];
+            minLength?: number;
+            maxLength?: number;
+            pattern?: string;
+        } | {
+            /** @constant */
+            type: "number";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "integer";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "boolean";
+            description?: string;
+            default?: boolean;
+        }) | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: {
+                /** @enum {string} */
+                type: "string" | "number" | "integer" | "boolean";
+            } | {
+                /** @constant */
+                type: "object";
+                properties?: {
+                    [key: string]: components["schemas"]["AppListResponse__schema2"];
+                };
+                additionalProperties?: components["schemas"]["AppListResponse__schema2"];
+                required?: string[];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | {
+            /** @constant */
+            type: "object";
+            description?: string;
+            default?: {
+                [key: string]: unknown;
+            };
+            properties?: {
+                [key: string]: components["schemas"]["AppListResponse__schema2"];
+            };
+            additionalProperties?: components["schemas"]["AppListResponse__schema2"];
+            required?: string[];
         };
         AppListResponse: {
             meta: {
@@ -2924,46 +2988,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -2972,52 +2997,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -3061,46 +3059,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -3109,52 +3068,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -3203,46 +3135,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -3251,52 +3144,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -3340,46 +3206,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -3388,52 +3215,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -3551,6 +3351,66 @@ export interface components {
                 [key: string]: components["schemas"]["AppGetResponse__schema0"];
             };
             onComplete?: components["schemas"]["AppGetResponse__schema1"][];
+        };
+        AppGetResponse__schema2: ({
+            /** @constant */
+            type: "string";
+            description?: string;
+            default?: string;
+            enum?: string[];
+            minLength?: number;
+            maxLength?: number;
+            pattern?: string;
+        } | {
+            /** @constant */
+            type: "number";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "integer";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "boolean";
+            description?: string;
+            default?: boolean;
+        }) | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: {
+                /** @enum {string} */
+                type: "string" | "number" | "integer" | "boolean";
+            } | {
+                /** @constant */
+                type: "object";
+                properties?: {
+                    [key: string]: components["schemas"]["AppGetResponse__schema2"];
+                };
+                additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
+                required?: string[];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | {
+            /** @constant */
+            type: "object";
+            description?: string;
+            default?: {
+                [key: string]: unknown;
+            };
+            properties?: {
+                [key: string]: components["schemas"]["AppGetResponse__schema2"];
+            };
+            additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
+            required?: string[];
         };
         AppGetResponse: {
             app: {
@@ -3788,46 +3648,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -3836,52 +3657,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -3925,46 +3719,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -3973,52 +3728,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -4067,46 +3795,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -4115,52 +3804,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -4204,46 +3866,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -4252,52 +3875,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -4422,6 +4018,66 @@ export interface components {
                 [key: string]: components["schemas"]["UserAppListResponse__schema0"];
             };
             onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
+        };
+        UserAppListResponse__schema2: ({
+            /** @constant */
+            type: "string";
+            description?: string;
+            default?: string;
+            enum?: string[];
+            minLength?: number;
+            maxLength?: number;
+            pattern?: string;
+        } | {
+            /** @constant */
+            type: "number";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "integer";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "boolean";
+            description?: string;
+            default?: boolean;
+        }) | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: {
+                /** @enum {string} */
+                type: "string" | "number" | "integer" | "boolean";
+            } | {
+                /** @constant */
+                type: "object";
+                properties?: {
+                    [key: string]: components["schemas"]["UserAppListResponse__schema2"];
+                };
+                additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
+                required?: string[];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | {
+            /** @constant */
+            type: "object";
+            description?: string;
+            default?: {
+                [key: string]: unknown;
+            };
+            properties?: {
+                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
+            };
+            additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
+            required?: string[];
         };
         UserAppListResponse: {
             meta: {
@@ -4660,46 +4316,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -4708,52 +4325,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -4797,46 +4387,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -4845,52 +4396,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -4939,46 +4463,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -4987,52 +4472,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -5076,46 +4534,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -5124,52 +4543,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -5260,6 +4652,66 @@ export interface components {
                 [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
             };
             onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
+        };
+        UserAppGetResponse__schema2: ({
+            /** @constant */
+            type: "string";
+            description?: string;
+            default?: string;
+            enum?: string[];
+            minLength?: number;
+            maxLength?: number;
+            pattern?: string;
+        } | {
+            /** @constant */
+            type: "number";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "integer";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "boolean";
+            description?: string;
+            default?: boolean;
+        }) | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: {
+                /** @enum {string} */
+                type: "string" | "number" | "integer" | "boolean";
+            } | {
+                /** @constant */
+                type: "object";
+                properties?: {
+                    [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
+                };
+                additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
+                required?: string[];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | {
+            /** @constant */
+            type: "object";
+            description?: string;
+            default?: {
+                [key: string]: unknown;
+            };
+            properties?: {
+                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
+            };
+            additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
+            required?: string[];
         };
         UserAppGetResponse: {
             app: {
@@ -5495,46 +4947,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -5543,52 +4956,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -5632,46 +5018,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -5680,52 +5027,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -5774,46 +5094,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -5822,52 +5103,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             patternProperties?: {
@@ -5911,46 +5165,7 @@ export interface components {
                                         /** @constant */
                                         type: "object";
                                         properties: {
-                                            [key: string]: ({
-                                                /** @constant */
-                                                type: "string";
-                                                description?: string;
-                                                default?: string;
-                                                enum?: string[];
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                            } | {
-                                                /** @constant */
-                                                type: "number";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "integer";
-                                                description?: string;
-                                                default?: number;
-                                                minimum?: number;
-                                                maximum?: number;
-                                            } | {
-                                                /** @constant */
-                                                type: "boolean";
-                                                description?: string;
-                                                default?: boolean;
-                                            }) | {
-                                                /** @constant */
-                                                type: "array";
-                                                description?: string;
-                                                default?: unknown[];
-                                                items: {
-                                                    /** @enum {string} */
-                                                    type: "string" | "number" | "integer" | "boolean";
-                                                };
-                                                minItems?: number;
-                                                maxItems?: number;
-                                            };
+                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                         };
                                         required?: string[];
                                     } | {
@@ -5959,52 +5174,25 @@ export interface components {
                                             /** @constant */
                                             type: "object";
                                             properties: {
-                                                [key: string]: ({
-                                                    /** @constant */
-                                                    type: "string";
-                                                    description?: string;
-                                                    default?: string;
-                                                    enum?: string[];
-                                                    minLength?: number;
-                                                    maxLength?: number;
-                                                    pattern?: string;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "number";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "integer";
-                                                    description?: string;
-                                                    default?: number;
-                                                    minimum?: number;
-                                                    maximum?: number;
-                                                } | {
-                                                    /** @constant */
-                                                    type: "boolean";
-                                                    description?: string;
-                                                    default?: boolean;
-                                                }) | {
-                                                    /** @constant */
-                                                    type: "array";
-                                                    description?: string;
-                                                    default?: unknown[];
-                                                    items: {
-                                                        /** @enum {string} */
-                                                        type: "string" | "number" | "integer" | "boolean";
-                                                    };
-                                                    minItems?: number;
-                                                    maxItems?: number;
-                                                };
+                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
                                             };
                                             required?: string[];
                                         }[];
                                     };
                                     minItems?: number;
                                     maxItems?: number;
+                                } | {
+                                    /** @constant */
+                                    type: "object";
+                                    description?: string;
+                                    default?: {
+                                        [key: string]: unknown;
+                                    };
+                                    properties?: {
+                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
+                                    };
+                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
+                                    required?: string[];
                                 };
                             };
                             required?: string[];
@@ -6144,6 +5332,66 @@ export interface components {
             folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
             permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
         };
+        AppCustomSettingsGetResponseDTO__schema0: ({
+            /** @constant */
+            type: "string";
+            description?: string;
+            default?: string;
+            enum?: string[];
+            minLength?: number;
+            maxLength?: number;
+            pattern?: string;
+        } | {
+            /** @constant */
+            type: "number";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "integer";
+            description?: string;
+            default?: number;
+            minimum?: number;
+            maximum?: number;
+        } | {
+            /** @constant */
+            type: "boolean";
+            description?: string;
+            default?: boolean;
+        }) | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: {
+                /** @enum {string} */
+                type: "string" | "number" | "integer" | "boolean";
+            } | {
+                /** @constant */
+                type: "object";
+                properties?: {
+                    [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+                };
+                additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+                required?: string[];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | {
+            /** @constant */
+            type: "object";
+            description?: string;
+            default?: {
+                [key: string]: unknown;
+            };
+            properties?: {
+                [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+            };
+            additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+            required?: string[];
+        };
         AppCustomSettingsGetResponseDTO: {
             settings: {
                 values: {
@@ -6196,46 +5444,7 @@ export interface components {
                                 /** @constant */
                                 type: "object";
                                 properties: {
-                                    [key: string]: ({
-                                        /** @constant */
-                                        type: "string";
-                                        description?: string;
-                                        default?: string;
-                                        enum?: string[];
-                                        minLength?: number;
-                                        maxLength?: number;
-                                        pattern?: string;
-                                    } | {
-                                        /** @constant */
-                                        type: "number";
-                                        description?: string;
-                                        default?: number;
-                                        minimum?: number;
-                                        maximum?: number;
-                                    } | {
-                                        /** @constant */
-                                        type: "integer";
-                                        description?: string;
-                                        default?: number;
-                                        minimum?: number;
-                                        maximum?: number;
-                                    } | {
-                                        /** @constant */
-                                        type: "boolean";
-                                        description?: string;
-                                        default?: boolean;
-                                    }) | {
-                                        /** @constant */
-                                        type: "array";
-                                        description?: string;
-                                        default?: unknown[];
-                                        items: {
-                                            /** @enum {string} */
-                                            type: "string" | "number" | "integer" | "boolean";
-                                        };
-                                        minItems?: number;
-                                        maxItems?: number;
-                                    };
+                                    [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
                                 };
                                 required?: string[];
                             } | {
@@ -6244,52 +5453,25 @@ export interface components {
                                     /** @constant */
                                     type: "object";
                                     properties: {
-                                        [key: string]: ({
-                                            /** @constant */
-                                            type: "string";
-                                            description?: string;
-                                            default?: string;
-                                            enum?: string[];
-                                            minLength?: number;
-                                            maxLength?: number;
-                                            pattern?: string;
-                                        } | {
-                                            /** @constant */
-                                            type: "number";
-                                            description?: string;
-                                            default?: number;
-                                            minimum?: number;
-                                            maximum?: number;
-                                        } | {
-                                            /** @constant */
-                                            type: "integer";
-                                            description?: string;
-                                            default?: number;
-                                            minimum?: number;
-                                            maximum?: number;
-                                        } | {
-                                            /** @constant */
-                                            type: "boolean";
-                                            description?: string;
-                                            default?: boolean;
-                                        }) | {
-                                            /** @constant */
-                                            type: "array";
-                                            description?: string;
-                                            default?: unknown[];
-                                            items: {
-                                                /** @enum {string} */
-                                                type: "string" | "number" | "integer" | "boolean";
-                                            };
-                                            minItems?: number;
-                                            maxItems?: number;
-                                        };
+                                        [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
                                     };
                                     required?: string[];
                                 }[];
                             };
                             minItems?: number;
                             maxItems?: number;
+                        } | {
+                            /** @constant */
+                            type: "object";
+                            description?: string;
+                            default?: {
+                                [key: string]: unknown;
+                            };
+                            properties?: {
+                                [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+                            };
+                            additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+                            required?: string[];
                         };
                     };
                     patternProperties?: {
@@ -6333,46 +5515,7 @@ export interface components {
                                 /** @constant */
                                 type: "object";
                                 properties: {
-                                    [key: string]: ({
-                                        /** @constant */
-                                        type: "string";
-                                        description?: string;
-                                        default?: string;
-                                        enum?: string[];
-                                        minLength?: number;
-                                        maxLength?: number;
-                                        pattern?: string;
-                                    } | {
-                                        /** @constant */
-                                        type: "number";
-                                        description?: string;
-                                        default?: number;
-                                        minimum?: number;
-                                        maximum?: number;
-                                    } | {
-                                        /** @constant */
-                                        type: "integer";
-                                        description?: string;
-                                        default?: number;
-                                        minimum?: number;
-                                        maximum?: number;
-                                    } | {
-                                        /** @constant */
-                                        type: "boolean";
-                                        description?: string;
-                                        default?: boolean;
-                                    }) | {
-                                        /** @constant */
-                                        type: "array";
-                                        description?: string;
-                                        default?: unknown[];
-                                        items: {
-                                            /** @enum {string} */
-                                            type: "string" | "number" | "integer" | "boolean";
-                                        };
-                                        minItems?: number;
-                                        maxItems?: number;
-                                    };
+                                    [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
                                 };
                                 required?: string[];
                             } | {
@@ -6381,52 +5524,25 @@ export interface components {
                                     /** @constant */
                                     type: "object";
                                     properties: {
-                                        [key: string]: ({
-                                            /** @constant */
-                                            type: "string";
-                                            description?: string;
-                                            default?: string;
-                                            enum?: string[];
-                                            minLength?: number;
-                                            maxLength?: number;
-                                            pattern?: string;
-                                        } | {
-                                            /** @constant */
-                                            type: "number";
-                                            description?: string;
-                                            default?: number;
-                                            minimum?: number;
-                                            maximum?: number;
-                                        } | {
-                                            /** @constant */
-                                            type: "integer";
-                                            description?: string;
-                                            default?: number;
-                                            minimum?: number;
-                                            maximum?: number;
-                                        } | {
-                                            /** @constant */
-                                            type: "boolean";
-                                            description?: string;
-                                            default?: boolean;
-                                        }) | {
-                                            /** @constant */
-                                            type: "array";
-                                            description?: string;
-                                            default?: unknown[];
-                                            items: {
-                                                /** @enum {string} */
-                                                type: "string" | "number" | "integer" | "boolean";
-                                            };
-                                            minItems?: number;
-                                            maxItems?: number;
-                                        };
+                                        [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
                                     };
                                     required?: string[];
                                 }[];
                             };
                             minItems?: number;
                             maxItems?: number;
+                        } | {
+                            /** @constant */
+                            type: "object";
+                            description?: string;
+                            default?: {
+                                [key: string]: unknown;
+                            };
+                            properties?: {
+                                [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+                            };
+                            additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
+                            required?: string[];
                         };
                     };
                     required?: string[];
@@ -7962,6 +7078,567 @@ export interface components {
             status: number;
             headers: components["schemas"]["StringMapDTO"];
             body: unknown;
+        };
+        DockerHostListResponse: {
+            result: {
+                id: string;
+                identifier: string;
+                label: string;
+                /** @enum {string} */
+                type: "docker_endpoint";
+                host: string;
+                tlsConfig: {
+                    ca?: string;
+                    cert?: string;
+                    key?: string;
+                } | null;
+                isDefault: boolean;
+                enabled: boolean;
+                /** @enum {string} */
+                healthStatus: "healthy" | "unhealthy" | "unknown";
+                lastHealthCheck: string | null;
+                createdAt: string;
+                updatedAt: string;
+            }[];
+        };
+        DockerHostResponse: {
+            result: {
+                id: string;
+                identifier: string;
+                label: string;
+                /** @enum {string} */
+                type: "docker_endpoint";
+                host: string;
+                tlsConfig: {
+                    ca?: string;
+                    cert?: string;
+                    key?: string;
+                } | null;
+                isDefault: boolean;
+                enabled: boolean;
+                /** @enum {string} */
+                healthStatus: "healthy" | "unhealthy" | "unknown";
+                lastHealthCheck: string | null;
+                createdAt: string;
+                updatedAt: string;
+            };
+        };
+        DockerHostInputDTO: {
+            identifier: string;
+            label: string;
+            /** @enum {string} */
+            type: "docker_endpoint";
+            host: string;
+            tlsConfig?: {
+                ca?: string;
+                cert?: string;
+                key?: string;
+            };
+            isDefault?: boolean;
+            enabled?: boolean;
+        };
+        DockerHostUpdateDTO: {
+            identifier?: string;
+            label?: string;
+            /** @enum {string} */
+            type?: "docker_endpoint";
+            host?: string;
+            tlsConfig?: {
+                ca?: string;
+                cert?: string;
+                key?: string;
+            };
+            isDefault?: boolean;
+            enabled?: boolean;
+        };
+        DockerHostDeleteResponse: {
+            /** @constant */
+            success: true;
+        };
+        DockerRegistryCredentialListResponse: {
+            result: {
+                id: string;
+                registry: string;
+                serverAddress: string;
+                username: string;
+                password: string;
+                createdAt: string;
+                updatedAt: string;
+            }[];
+        };
+        DockerRegistryCredentialInputDTO: {
+            registry: string;
+            serverAddress: string;
+            username: string;
+            password: string;
+        };
+        DockerRegistryCredentialResponse: {
+            result: {
+                id: string;
+                registry: string;
+                serverAddress: string;
+                username: string;
+                password: string;
+                createdAt: string;
+                updatedAt: string;
+            };
+        };
+        DockerRegistryCredentialUpdateDTO: {
+            registry?: string;
+            serverAddress?: string;
+            username?: string;
+            password?: string;
+        };
+        DockerRegistryCredentialDeleteResponse: {
+            /** @constant */
+            success: true;
+        };
+        DockerResourceConfigListResponse: {
+            result: {
+                id: string;
+                dockerHostId: string;
+                label: string;
+                config: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                };
+                configHashes: components["schemas"]["StringMapDTO"];
+                createdAt: string;
+                updatedAt: string;
+            }[];
+        };
+        DockerResourceConfigResponse: {
+            result: {
+                id: string;
+                dockerHostId: string;
+                label: string;
+                config: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                };
+                configHashes: components["schemas"]["StringMapDTO"];
+                createdAt: string;
+                updatedAt: string;
+            };
+        };
+        DockerResourceConfigSimilarResponse: {
+            result: {
+                [key: string]: {
+                    configId: string;
+                    label: string;
+                }[];
+            };
+        };
+        DockerResourceConfigInputDTO: {
+            /** Format: uuid */
+            dockerHostId: string;
+            label: string;
+            config: {
+                volumes?: string[];
+                env?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    driver: string;
+                    deviceIds: string[];
+                };
+                extraHosts?: string[];
+                networkMode?: string;
+                capAdd?: string[];
+                capDrop?: string[];
+                securityOpt?: string[];
+                ports?: {
+                    host: number;
+                    container: number;
+                    /**
+                     * @default tcp
+                     * @enum {string}
+                     */
+                    protocol: "tcp" | "udp";
+                }[];
+                /** @enum {string} */
+                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                shmSize?: number;
+                tmpfs?: components["schemas"]["StringMapDTO"];
+                devices?: string[];
+                ulimits?: {
+                    [key: string]: {
+                        soft: number;
+                        hard: number;
+                    };
+                };
+                sysctls?: components["schemas"]["StringMapDTO"];
+                labels?: components["schemas"]["StringMapDTO"];
+                privileged?: boolean;
+                readOnly?: boolean;
+                user?: string;
+                workingDir?: string;
+                hostname?: string;
+                domainName?: string;
+                dns?: string[];
+                dnsSearch?: string[];
+                entrypoint?: string[];
+                command?: string[];
+                stopSignal?: string;
+                stopTimeout?: number;
+                memoryLimit?: number;
+                cpuShares?: number;
+                cpuQuota?: number;
+                pidsLimit?: number;
+                ipcMode?: string;
+                pidMode?: string;
+                cgroupParent?: string;
+                runtime?: string;
+            };
+        };
+        DockerResourceConfigUpdateDTO: {
+            label?: string;
+            config?: {
+                volumes?: string[];
+                env?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    driver: string;
+                    deviceIds: string[];
+                };
+                extraHosts?: string[];
+                networkMode?: string;
+                capAdd?: string[];
+                capDrop?: string[];
+                securityOpt?: string[];
+                ports?: {
+                    host: number;
+                    container: number;
+                    /**
+                     * @default tcp
+                     * @enum {string}
+                     */
+                    protocol: "tcp" | "udp";
+                }[];
+                /** @enum {string} */
+                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                shmSize?: number;
+                tmpfs?: components["schemas"]["StringMapDTO"];
+                devices?: string[];
+                ulimits?: {
+                    [key: string]: {
+                        soft: number;
+                        hard: number;
+                    };
+                };
+                sysctls?: components["schemas"]["StringMapDTO"];
+                labels?: components["schemas"]["StringMapDTO"];
+                privileged?: boolean;
+                readOnly?: boolean;
+                user?: string;
+                workingDir?: string;
+                hostname?: string;
+                domainName?: string;
+                dns?: string[];
+                dnsSearch?: string[];
+                entrypoint?: string[];
+                command?: string[];
+                stopSignal?: string;
+                stopTimeout?: number;
+                memoryLimit?: number;
+                cpuShares?: number;
+                cpuQuota?: number;
+                pidsLimit?: number;
+                ipcMode?: string;
+                pidMode?: string;
+                cgroupParent?: string;
+                runtime?: string;
+            };
+        };
+        DockerResourceConfigDeleteResponse: {
+            /** @constant */
+            success: true;
+        };
+        DockerProfileAssignmentListResponse: {
+            result: {
+                id: string;
+                dockerResourceConfigId: string;
+                appIdentifier: string;
+                profileKey: string;
+                createdAt: string;
+                updatedAt: string;
+            }[];
+        };
+        DockerProfileAssignmentResponse: {
+            result: {
+                id: string;
+                dockerResourceConfigId: string;
+                appIdentifier: string;
+                profileKey: string;
+                createdAt: string;
+                updatedAt: string;
+            };
+        };
+        DockerProfileAssignmentInputDTO: {
+            /** Format: uuid */
+            dockerResourceConfigId: string;
+            appIdentifier: string;
+            profileKey: string;
+        };
+        DockerProfileAssignmentUpdateDTO: {
+            /** Format: uuid */
+            dockerResourceConfigId: string;
+        };
+        DockerProfileAssignmentDeleteResponse: {
+            /** @constant */
+            success: true;
+        };
+        DockerProfileResolveResponse: {
+            result: {
+                hostId: string;
+                hostIdentifier: string;
+                hostLabel: string;
+                hostEndpoint: string;
+                resourceConfig: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                } | null;
+            };
+        };
+        DockerStandaloneContainerListResponse: {
+            result: {
+                id: string;
+                dockerResourceConfigId: string;
+                label: string;
+                image: string;
+                tag: string;
+                /** @enum {string} */
+                desiredStatus: "running" | "stopped";
+                containerId: string | null;
+                ports: {
+                    host: number;
+                    container: number;
+                    /** @enum {string} */
+                    protocol: "tcp" | "udp";
+                }[];
+                createdAt: string;
+                updatedAt: string;
+            }[];
+        };
+        DockerStandaloneContainerResponse: {
+            result: {
+                id: string;
+                dockerResourceConfigId: string;
+                label: string;
+                image: string;
+                tag: string;
+                /** @enum {string} */
+                desiredStatus: "running" | "stopped";
+                containerId: string | null;
+                ports: {
+                    host: number;
+                    container: number;
+                    /** @enum {string} */
+                    protocol: "tcp" | "udp";
+                }[];
+                createdAt: string;
+                updatedAt: string;
+            };
+        };
+        DockerStandaloneContainerInputDTO: {
+            /** Format: uuid */
+            dockerResourceConfigId: string;
+            label: string;
+            image: string;
+            /** @default latest */
+            tag: string;
+            /**
+             * @default stopped
+             * @enum {string}
+             */
+            desiredStatus: "running" | "stopped";
+            /** @default [] */
+            ports: {
+                host: number;
+                container: number;
+                /**
+                 * @default tcp
+                 * @enum {string}
+                 */
+                protocol: "tcp" | "udp";
+            }[];
+        };
+        DockerStandaloneContainerUpdateDTO: {
+            label?: string;
+            image?: string;
+            /** @default latest */
+            tag: string;
+            /**
+             * @default stopped
+             * @enum {string}
+             */
+            desiredStatus: "running" | "stopped";
+            /** @default [] */
+            ports: {
+                host: number;
+                container: number;
+                /**
+                 * @default tcp
+                 * @enum {string}
+                 */
+                protocol: "tcp" | "udp";
+            }[];
+            /** Format: uuid */
+            dockerResourceConfigId?: string;
+        };
+        DockerStandaloneContainerDeleteResponse: {
+            /** @constant */
+            success: true;
         };
         AllCommentsListResponseDTO: {
             comments: {
@@ -13041,6 +12718,1084 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DockerRouteAppContainerResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerHosts_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerHosts_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerHostInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerHosts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerHosts_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerHostUpdateDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerHosts_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerHostDeleteResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerRegistryCredentials_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRegistryCredentialListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerRegistryCredentials_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerRegistryCredentialInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRegistryCredentialResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerRegistryCredentials_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerRegistryCredentialUpdateDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRegistryCredentialResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerRegistryCredentials_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerRegistryCredentialDeleteResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_list: {
+        parameters: {
+            query: {
+                dockerHostId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerResourceConfigInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerResourceConfigUpdateDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigDeleteResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_findSimilar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigSimilarResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerResourceConfigs_clone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_list: {
+        parameters: {
+            query: {
+                appIdentifier: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileAssignmentListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerProfileAssignmentInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileAssignmentResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileAssignmentResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerProfileAssignmentUpdateDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileAssignmentResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileAssignmentDeleteResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+                profileKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileResolveResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerStandaloneContainers_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerStandaloneContainerListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerStandaloneContainers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerStandaloneContainerInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerStandaloneContainerResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerStandaloneContainers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerStandaloneContainerResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerStandaloneContainers_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerStandaloneContainerUpdateDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerStandaloneContainerResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerStandaloneContainers_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerStandaloneContainerDeleteResponse"];
                 };
             };
             /** @description Server Error */
