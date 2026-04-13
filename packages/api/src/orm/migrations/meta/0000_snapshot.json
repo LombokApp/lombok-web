@@ -1,5 +1,5 @@
 {
-  "id": "565cba9c-0269-4144-a36a-ef2ea2bbc815",
+  "id": "006c2640-10a4-4787-b1c2-8810893b143d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1344,12 +1344,6 @@
           "primaryKey": true,
           "notNull": true
         },
-        "docker_resource_config_id": {
-          "name": "docker_resource_config_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "app_identifier": {
           "name": "app_identifier",
           "type": "text",
@@ -1361,6 +1355,26 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "docker_host_id": {
+          "name": "docker_host_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "config": {
+          "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "config_hashes": {
+          "name": "config_hashes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
         },
         "created_at": {
           "name": "created_at",
@@ -1397,21 +1411,6 @@
           "method": "btree",
           "with": {}
         },
-        "docker_profile_resource_assignments_config_id_idx": {
-          "name": "docker_profile_resource_assignments_config_id_idx",
-          "columns": [
-            {
-              "expression": "docker_resource_config_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "docker_profile_resource_assignments_app_identifier_idx": {
           "name": "docker_profile_resource_assignments_app_identifier_idx",
           "columns": [
@@ -1426,22 +1425,24 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "docker_profile_resource_assignments_docker_host_id_idx": {
+          "name": "docker_profile_resource_assignments_docker_host_id_idx",
+          "columns": [
+            {
+              "expression": "docker_host_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
-        "docker_profile_resource_assignments_docker_resource_config_id_docker_resource_configs_id_fk": {
-          "name": "docker_profile_resource_assignments_docker_resource_config_id_docker_resource_configs_id_fk",
-          "tableFrom": "docker_profile_resource_assignments",
-          "tableTo": "docker_resource_configs",
-          "columnsFrom": [
-            "docker_resource_config_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
         "docker_profile_resource_assignments_app_identifier_apps_identifier_fk": {
           "name": "docker_profile_resource_assignments_app_identifier_apps_identifier_fk",
           "tableFrom": "docker_profile_resource_assignments",
@@ -1451,6 +1452,19 @@
           ],
           "columnsTo": [
             "identifier"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "docker_profile_resource_assignments_docker_host_id_docker_hosts_id_fk": {
+          "name": "docker_profile_resource_assignments_docker_host_id_docker_hosts_id_fk",
+          "tableFrom": "docker_profile_resource_assignments",
+          "tableTo": "docker_hosts",
+          "columnsFrom": [
+            "docker_host_id"
+          ],
+          "columnsTo": [
+            "id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -1533,93 +1547,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.docker_resource_configs": {
-      "name": "docker_resource_configs",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "docker_host_id": {
-          "name": "docker_host_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "label": {
-          "name": "label",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "config": {
-          "name": "config",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "config_hashes": {
-          "name": "config_hashes",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "docker_resource_configs_docker_host_id_idx": {
-          "name": "docker_resource_configs_docker_host_id_idx",
-          "columns": [
-            {
-              "expression": "docker_host_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "docker_resource_configs_docker_host_id_docker_hosts_id_fk": {
-          "name": "docker_resource_configs_docker_host_id_docker_hosts_id_fk",
-          "tableFrom": "docker_resource_configs",
-          "tableTo": "docker_hosts",
-          "columnsFrom": [
-            "docker_host_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.docker_standalone_containers": {
       "name": "docker_standalone_containers",
       "schema": "",
@@ -1630,8 +1557,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "docker_resource_config_id": {
-          "name": "docker_resource_config_id",
+        "docker_host_id": {
+          "name": "docker_host_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -1675,6 +1602,20 @@
           "notNull": true,
           "default": "'[]'::jsonb"
         },
+        "config": {
+          "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "config_hashes": {
+          "name": "config_hashes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1689,21 +1630,6 @@
         }
       },
       "indexes": {
-        "docker_standalone_containers_config_id_idx": {
-          "name": "docker_standalone_containers_config_id_idx",
-          "columns": [
-            {
-              "expression": "docker_resource_config_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "docker_standalone_containers_desired_status_idx": {
           "name": "docker_standalone_containers_desired_status_idx",
           "columns": [
@@ -1718,15 +1644,30 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "docker_standalone_containers_docker_host_id_idx": {
+          "name": "docker_standalone_containers_docker_host_id_idx",
+          "columns": [
+            {
+              "expression": "docker_host_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
-        "docker_standalone_containers_docker_resource_config_id_docker_resource_configs_id_fk": {
-          "name": "docker_standalone_containers_docker_resource_config_id_docker_resource_configs_id_fk",
+        "docker_standalone_containers_docker_host_id_docker_hosts_id_fk": {
+          "name": "docker_standalone_containers_docker_host_id_docker_hosts_id_fk",
           "tableFrom": "docker_standalone_containers",
-          "tableTo": "docker_resource_configs",
+          "tableTo": "docker_hosts",
           "columnsFrom": [
-            "docker_resource_config_id"
+            "docker_host_id"
           ],
           "columnsTo": [
             "id"

@@ -7,16 +7,22 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
+import type { z } from 'zod'
 
-import { dockerResourceConfigsTable } from './docker-resource-config.entity'
+import type { dockerResourceConfigDataSchema } from '../dto/docker-resource-config-input.dto'
+import { dockerHostsTable } from './docker-host.entity'
+
+export type DockerResourceConfig = z.infer<
+  typeof dockerResourceConfigDataSchema
+>
 
 export const dockerStandaloneContainersTable = pgTable(
   'docker_standalone_containers',
   {
     id: uuid('id').primaryKey(),
-    dockerResourceConfigId: uuid('docker_resource_config_id')
+    dockerHostId: uuid('docker_host_id')
       .notNull()
-      .references(() => dockerResourceConfigsTable.id),
+      .references(() => dockerHostsTable.id),
     label: text('label').notNull(),
     image: text('image').notNull(),
     tag: text('tag').notNull().default('latest'),
@@ -29,15 +35,20 @@ export const dockerStandaloneContainersTable = pgTable(
       .$type<{ host: number; container: number; protocol: 'tcp' | 'udp' }[]>()
       .notNull()
       .default([]),
+    config: jsonb('config').$type<DockerResourceConfig>().notNull().default({}),
+    configHashes: jsonb('config_hashes')
+      .$type<Record<string, string>>()
+      .notNull()
+      .default({}),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
-    index('docker_standalone_containers_config_id_idx').on(
-      table.dockerResourceConfigId,
-    ),
     index('docker_standalone_containers_desired_status_idx').on(
       table.desiredStatus,
+    ),
+    index('docker_standalone_containers_docker_host_id_idx').on(
+      table.dockerHostId,
     ),
   ],
 )
@@ -45,9 +56,9 @@ export const dockerStandaloneContainersTable = pgTable(
 export const dockerStandaloneContainersRelations = relations(
   dockerStandaloneContainersTable,
   ({ one }) => ({
-    resourceConfig: one(dockerResourceConfigsTable, {
-      fields: [dockerStandaloneContainersTable.dockerResourceConfigId],
-      references: [dockerResourceConfigsTable.id],
+    dockerHost: one(dockerHostsTable, {
+      fields: [dockerStandaloneContainersTable.dockerHostId],
+      references: [dockerHostsTable.id],
     }),
   }),
 )

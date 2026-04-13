@@ -30,9 +30,11 @@ import { DockerClientService } from './client/docker-client.service'
 import {
   ConnectionTestResult,
   DockerHostResources,
+  type FindOrCreateContainerOptions,
   DockerLogAccessError,
   DockerLogEntry,
 } from './client/docker-client.types'
+import type { DockerResourceConfig } from '../entities/docker-profile-resource-assignment.entity'
 import { DockerHostManagementService } from './docker-host-management.service'
 import { DockerWorkerHookService } from './docker-worker-hook.service'
 
@@ -252,19 +254,12 @@ export class DockerJobsService {
   }
 
   /**
-   * Resolve Docker host configuration for a given profile key.
+   * Resolve Docker host and resource config for a given profile key.
    * Uses the DB-backed resolution via DockerHostManagementService.
    */
-  async resolveDockerHostConfigForProfile(profileKey: string): Promise<{
-    hostId: string
-    volumes: string[] | undefined
-    env: Record<string, string> | undefined
-    gpus: { driver: string; deviceIds: string[] } | undefined
-    extraHosts: string[] | undefined
-    networkMode: 'host' | 'bridge' | `container:${string}` | undefined
-    capAdd: string[] | undefined
-    securityOpt: string[] | undefined
-  }> {
+  async resolveDockerHostConfigForProfile(
+    profileKey: string,
+  ): Promise<{ hostId: string } & Partial<DockerResourceConfig>> {
     const [appIdentifier, profileName] = profileKey.split(':')
     if (!appIdentifier || !profileName) {
       throw new AsyncWorkError({
@@ -281,20 +276,9 @@ export class DockerJobsService {
         profileName,
       )
 
-    const rc = resolved.resourceConfig
     return {
       hostId: resolved.hostId,
-      env: rc?.env ?? undefined,
-      volumes: rc?.volumes ?? undefined,
-      gpus: rc?.gpus ?? undefined,
-      extraHosts: rc?.extraHosts ?? undefined,
-      networkMode: rc?.networkMode as
-        | 'host'
-        | 'bridge'
-        | `container:${string}`
-        | undefined,
-      capAdd: rc?.capAdd ?? undefined,
-      securityOpt: rc?.securityOpt ?? undefined,
+      ...resolved.resourceConfig,
     }
   }
 
@@ -351,10 +335,10 @@ export class DockerJobsService {
     const container = await this.dockerClientService.findOrCreateContainer(
       hostId,
       {
-        image,
-        labels,
-        startIfNotRunning: true,
         ...config,
+        image,
+        labels: { ...config.labels, ...labels },
+        startIfNotRunning: true,
         env: { ...config.env, ...extraEnv },
       },
     )

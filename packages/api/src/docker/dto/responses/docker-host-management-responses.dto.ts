@@ -73,50 +73,15 @@ export class DockerRegistryCredentialDeleteResponse extends createZodDto(
   successResponseSchema,
 ) {}
 
-// ─── Resource Config ──────────────────────────────────────────────────────
-
-export const dockerResourceConfigDTOSchema = z.object({
-  id: z.string(),
-  dockerHostId: z.string(),
-  label: z.string(),
-  config: dockerResourceConfigDataSchema,
-  configHashes: z.record(z.string(), z.string()),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
-
-export type DockerResourceConfigDTO = z.infer<
-  typeof dockerResourceConfigDTOSchema
->
-
-export class DockerResourceConfigListResponse extends createZodDto(
-  z.object({ result: z.array(dockerResourceConfigDTOSchema) }),
-) {}
-
-export class DockerResourceConfigResponse extends createZodDto(
-  z.object({ result: dockerResourceConfigDTOSchema }),
-) {}
-
-export class DockerResourceConfigSimilarResponse extends createZodDto(
-  z.object({
-    result: z.record(
-      z.string(),
-      z.array(z.object({ configId: z.string(), label: z.string() })),
-    ),
-  }),
-) {}
-
-export class DockerResourceConfigDeleteResponse extends createZodDto(
-  successResponseSchema,
-) {}
-
 // ─── Profile Resource Assignment ──────────────────────────────────────────
 
 export const dockerProfileResourceAssignmentDTOSchema = z.object({
   id: z.string(),
-  dockerResourceConfigId: z.string(),
   appIdentifier: z.string(),
   profileKey: z.string(),
+  dockerHostId: z.string(),
+  config: dockerResourceConfigDataSchema,
+  configHashes: z.record(z.string(), z.string()),
   createdAt: z.string(),
   updatedAt: z.string(),
 })
@@ -152,7 +117,7 @@ export class DockerProfileResolveResponse extends createZodDto(
 
 export const dockerStandaloneContainerDTOSchema = z.object({
   id: z.string(),
-  dockerResourceConfigId: z.string(),
+  dockerHostId: z.string(),
   label: z.string(),
   image: z.string(),
   tag: z.string(),
@@ -165,6 +130,8 @@ export const dockerStandaloneContainerDTOSchema = z.object({
       protocol: z.enum(['tcp', 'udp']),
     }),
   ),
+  config: dockerResourceConfigDataSchema,
+  configHashes: z.record(z.string(), z.string()),
   createdAt: z.string(),
   updatedAt: z.string(),
 })

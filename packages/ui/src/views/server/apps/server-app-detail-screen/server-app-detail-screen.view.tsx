@@ -24,6 +24,9 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { DockerIcon } from '@/src/components/icons/docker-icon'
+import { JavaScriptIcon } from '@/src/components/icons/javascript-icon'
+import { TypeScriptIcon } from '@/src/components/icons/typescript-icon'
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api } from '@/src/services/api'
@@ -33,38 +36,6 @@ import { appContributedRouteLinksTableColumns } from './app-contributed-links-ta
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
 import { serverConnectedAppWorkersTableColumns } from './server-connected-app-workers-table-columns'
-
-const DockerIcon = ({ className }: { className?: string }) => {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M13.983 12.21c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15zm-1.98-3.21c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15zm-2.98 0c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15zm-2.98 0c-.12 0-.24-.05-.33-.15l-1.48-1.48c-.2-.2-.2-.51 0-.71.2-.2.51-.2.71 0l1.15 1.15 2.83-2.83c.2-.2.51-.2.71 0 .2.2.2.51 0 .71l-3.16 3.16c-.1.1-.23.15-.33.15z" />
-      <path d="M20.5 2h-17C2.67 2 2 2.67 2 3.5v17c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5v-17c0-.83-.67-1.5-1.5-1.5zM20 20H4V4h16v16z" />
-      <path d="M13.09 8.91c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41zm-4.18 0c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41zm4.18 4.18c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41zm-4.18 0c-.39-.39-1.02-.39-1.41 0l-1.18 1.18c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.18-1.18c.39-.39.39-1.02 0-1.41z" />
-      <path d="M8.5 6.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5S6.17 5 7 5s1.5.67 1.5 1.5zm9 0c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5zm-9 9c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5S6.17 14 7 14s1.5.67 1.5 1.5zm9 0c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5 1.5.67 1.5 1.5z" />
-    </svg>
-  )
-}
-
-const JSIcon = ({ className }: { className?: string }) => {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M0 0h24v24H0V0zm22.034 18.276c-.175-.61-.888-2.066-2.966-2.066v1.381h-1.112v-1.381c-1.777 0-2.966 1.381-2.966 2.966 0 1.585 1.189 2.966 2.966 2.966v-1.381h1.112v1.381c2.078 0 2.791-1.456 2.966-2.066h-1.112zm-11.008-9.557h-1.112V7.228h1.112v1.491zm-1.112-1.934h-1.112v-1.491h1.112v1.491zm2.225 0h-1.112v-1.491h1.112v1.491zm-1.112 1.934h-1.112V7.228h1.112v1.491zM9.678 17.61c0 .795-.756 1.38-1.734 1.38V18.276H6.832v.716c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V18.276h1.112v-.716c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44zm4.451 0c0 .795-.756 1.38-1.734 1.38V18.276h-1.112v.716c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V18.276h1.112v-.716c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44zM14.712 8.294c0 .795-.756 1.38-1.734 1.38V8.294h-1.112v1.38c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V8.294h1.112v-1.38c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44zm4.451 0c0 .795-.756 1.38-1.734 1.38V8.294h-1.112v1.38c-.975 0-1.734-.589-1.734-1.38 0-.795.759-1.38 1.734-1.38V8.294h1.112v-1.38c.978 0 1.734.589 1.734 1.38zm-2.225 0c0 .246.222.44.49.44v-.88c-.268 0-.49.194-.49.44z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
 
 export function ServerAppDetailScreen({
   appIdentifier,
@@ -361,6 +332,12 @@ export function ServerAppDetailScreen({
                       task.handler.type === 'docker' // eslint-disable-line @typescript-eslint/no-unnecessary-condition
                         ? task.handler.identifier
                         : null,
+                    entrypoint:
+                      task.handler.type === 'runtime'
+                        ? app.runtimeWorkers.definitions?.[
+                            task.handler.identifier
+                          ]?.entrypoint
+                        : undefined,
                   })) ?? []
                 }
                 columns={[
@@ -396,7 +373,11 @@ export function ServerAppDetailScreen({
                           <DockerIcon className="size-8" />
                         ) : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                         row.original.handlerType === 'runtime' ? (
-                          <JSIcon className="size-8" />
+                          row.original.entrypoint?.endsWith('.ts') ? (
+                            <TypeScriptIcon className="size-8" />
+                          ) : (
+                            <JavaScriptIcon className="size-8" />
+                          )
                         ) : null}
                         <div>{row.original.handler}</div>
                       </div>

@@ -1,13 +1,11 @@
 import type { DockerHost } from '../../entities/docker-host.entity'
 import type { DockerProfileResourceAssignment } from '../../entities/docker-profile-resource-assignment.entity'
 import type { DockerRegistryCredential } from '../../entities/docker-registry-credential.entity'
-import type { DockerResourceConfigRow } from '../../entities/docker-resource-config.entity'
 import type { DockerStandaloneContainer } from '../../entities/docker-standalone-container.entity'
 import type {
   DockerHostDTO,
   DockerProfileResourceAssignmentDTO,
   DockerRegistryCredentialDTO,
-  DockerResourceConfigDTO,
   DockerStandaloneContainerDTO,
 } from '../responses/docker-host-management-responses.dto'
 
@@ -41,28 +39,16 @@ export function transformDockerRegistryCredentialToDTO(
   }
 }
 
-export function transformDockerResourceConfigToDTO(
-  config: DockerResourceConfigRow,
-): DockerResourceConfigDTO {
-  return {
-    id: config.id,
-    dockerHostId: config.dockerHostId,
-    label: config.label,
-    config: config.config,
-    configHashes: config.configHashes,
-    createdAt: config.createdAt.toISOString(),
-    updatedAt: config.updatedAt.toISOString(),
-  }
-}
-
 export function transformDockerProfileAssignmentToDTO(
   assignment: DockerProfileResourceAssignment,
 ): DockerProfileResourceAssignmentDTO {
   return {
     id: assignment.id,
-    dockerResourceConfigId: assignment.dockerResourceConfigId,
     appIdentifier: assignment.appIdentifier,
     profileKey: assignment.profileKey,
+    dockerHostId: assignment.dockerHostId,
+    config: assignment.config,
+    configHashes: assignment.configHashes,
     createdAt: assignment.createdAt.toISOString(),
     updatedAt: assignment.updatedAt.toISOString(),
   }
@@ -73,13 +59,15 @@ export function transformDockerStandaloneContainerToDTO(
 ): DockerStandaloneContainerDTO {
   return {
     id: container.id,
-    dockerResourceConfigId: container.dockerResourceConfigId,
+    dockerHostId: container.dockerHostId,
     label: container.label,
     image: container.image,
     tag: container.tag,
     desiredStatus: container.desiredStatus,
     containerId: container.containerId,
     ports: container.ports,
+    config: container.config,
+    configHashes: container.configHashes,
     createdAt: container.createdAt.toISOString(),
     updatedAt: container.updatedAt.toISOString(),
   }

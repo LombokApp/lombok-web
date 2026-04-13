@@ -21,46 +21,18 @@ describe('Server Docker Hosts', () => {
     await testModule?.shutdown()
   })
 
-  it('should require authentication for docker hosts config', async () => {
-    const response = await apiClient().GET('/api/v1/server/docker-hosts')
+  it('should require authentication for docker hosts state', async () => {
+    const response = await apiClient().GET(
+      '/api/v1/server/docker-hosts/state',
+    )
     expect(response.response.status).toEqual(401)
   })
 
-  it('should require admin role for docker hosts config', async () => {
+  it('should require admin role for docker hosts state', async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
       username: 'nonadmin',
-      password: '123',
-    })
-
-    const response = await apiClient(accessToken).GET(
-      '/api/v1/server/docker-hosts',
-    )
-    expect(response.response.status).toEqual(401)
-  })
-
-  it('should return docker hosts config for admin', async () => {
-    const {
-      session: { accessToken },
-    } = await createTestUser(testModule!, {
-      username: 'dockeradmin',
-      password: '123',
-      admin: true,
-    })
-
-    const response = await apiClient(accessToken).GET(
-      '/api/v1/server/docker-hosts',
-    )
-    expect(response.response.status).toEqual(200)
-    expect(response.data?.hosts).toBeArray()
-  })
-
-  it('should require admin for docker hosts state', async () => {
-    const {
-      session: { accessToken },
-    } = await createTestUser(testModule!, {
-      username: 'nonadmin2',
       password: '123',
     })
 
@@ -74,7 +46,7 @@ describe('Server Docker Hosts', () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
-      username: 'dockeradmin2',
+      username: 'dockeradmin',
       password: '123',
       admin: true,
     })
@@ -86,24 +58,34 @@ describe('Server Docker Hosts', () => {
     expect(response.data?.hosts).toBeDefined()
   })
 
-  it('should return hosts with expected structure', async () => {
+  it('should require authentication for docker hosts list', async () => {
+    const response = await apiClient().GET('/api/v1/docker/hosts')
+    expect(response.response.status).toEqual(401)
+  })
+
+  it('should require admin role for docker hosts list', async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
-      username: 'dockeradmin3',
+      username: 'nonadmin2',
+      password: '123',
+    })
+
+    const response = await apiClient(accessToken).GET('/api/v1/docker/hosts')
+    expect(response.response.status).toEqual(401)
+  })
+
+  it('should return docker hosts list for admin', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'dockeradmin2',
       password: '123',
       admin: true,
     })
 
-    const response = await apiClient(accessToken).GET(
-      '/api/v1/server/docker-hosts',
-    )
+    const response = await apiClient(accessToken).GET('/api/v1/docker/hosts')
     expect(response.response.status).toEqual(200)
-
-    if (response.data?.hosts && response.data.hosts.length > 0) {
-      const host = response.data.hosts[0]!
-      expect(host.id).toBeTruthy()
-      expect(host.type).toBeTruthy()
-    }
+    expect(response.data?.result).toBeArray()
   })
 })

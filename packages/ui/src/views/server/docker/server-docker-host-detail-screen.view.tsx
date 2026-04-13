@@ -16,9 +16,7 @@ import {
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { formatBytes } from '@lombokapp/utils'
 import {
@@ -28,7 +26,6 @@ import {
   Link2,
   RefreshCcw,
   Server,
-  Settings2,
   Trash2,
 } from 'lucide-react'
 import React from 'react'
@@ -53,99 +50,7 @@ const LABEL_CLASS =
   'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 const VALUE_CLASS = 'text-sm'
 
-// ─── Resource config row type ─────────────────────────────────────────────
-
-interface ResourceConfigRow {
-  id: string
-  label: string
-  configSummary: string
-  createdAt: string
-}
-
-// ─── Resource config columns ──────────────────────────────────────────────
-
-const resourceConfigColumns: HideableColumnDef<ResourceConfigRow>[] = [
-  {
-    accessorKey: 'label',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Label"
-      />
-    ),
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.label}</span>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    id: 'configSummary',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Configuration"
-      />
-    ),
-    cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
-        {row.original.configSummary}
-      </span>
-    ),
-    enableSorting: false,
-    enableHiding: true,
-  },
-  {
-    id: 'createdAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Created"
-      />
-    ),
-    cell: ({ row }) => (
-      <span className="text-xs">
-        <DateDisplay date={row.original.createdAt} showTimeSince={true} />
-      </span>
-    ),
-    enableSorting: false,
-    enableHiding: true,
-  },
-]
-
 // ─── Helpers ──────────────────────────────────────────────────────────────
-
-function summarizeConfig(config: Record<string, unknown>): string {
-  const parts: string[] = []
-  if (config.gpus) {
-    parts.push('GPU')
-  }
-  if (config.volumes) {
-    parts.push('Volumes')
-  }
-  if (config.networkMode) {
-    parts.push(`Net: ${JSON.stringify(config.networkMode)}`)
-  }
-  if (config.ports) {
-    parts.push('Ports')
-  }
-  if (config.memoryLimit) {
-    parts.push(`Mem: ${formatBytes(config.memoryLimit as number)}`)
-  }
-  if (config.cpuShares) {
-    parts.push(`CPU: ${JSON.stringify(config.cpuShares)}`)
-  }
-  if (config.privileged) {
-    parts.push('Privileged')
-  }
-  if (config.env) {
-    parts.push('Env')
-  }
-  return parts.length > 0 ? parts.join(', ') : 'Default'
-}
 
 const renderConnectionBadge = (connection?: DockerHostConnectionState) => {
   if (!connection) {
@@ -196,11 +101,6 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
   })
   // Runtime state from bridge
   const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
-  // Resource configs for this host
-  const configsQuery = $api.useQuery('get', '/api/v1/docker/resource-configs', {
-    params: { query: { dockerHostId: hostId } },
-  })
-
   const host = hostQuery.data?.result
   const hostState: DockerHostState | undefined = stateQuery.data?.hosts.find(
     (h) => h.id === hostId,
@@ -209,11 +109,6 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
   const runningContainers = containers.filter(
     (c) => c.state === 'running',
   ).length
-
-  const resourceConfigs = React.useMemo(
-    () => configsQuery.data?.result ?? [],
-    [configsQuery.data?.result],
-  )
 
   const isLoading = hostQuery.isLoading || stateQuery.isLoading
 
@@ -225,19 +120,6 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
     })
     void navigate('/server/docker')
   }, [hostId, navigate])
-
-  // ─── Resource config rows ─────────────────────────────────────────────
-
-  const configRows = React.useMemo<ResourceConfigRow[]>(
-    () =>
-      resourceConfigs.map((cfg) => ({
-        id: cfg.id,
-        label: cfg.label,
-        configSummary: summarizeConfig(cfg.config as Record<string, unknown>),
-        createdAt: cfg.createdAt,
-      })),
-    [resourceConfigs],
-  )
 
   // ─── Error state ──────────────────────────────────────────────────────
 
@@ -302,7 +184,6 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
             onClick={() => {
               void hostQuery.refetch()
               void stateQuery.refetch()
-              void configsQuery.refetch()
             }}
           >
             <RefreshCcw className="mr-2 size-4" />
@@ -358,12 +239,6 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
               ? `${runningContainers} running`
               : 'No containers',
             icon: Container,
-          },
-          {
-            title: 'Resource Configs',
-            label: String(resourceConfigs.length),
-            subtitle: `${resourceConfigs.length} template${resourceConfigs.length === 1 ? '' : 's'}`,
-            icon: Settings2,
           },
           {
             title: 'Memory',
@@ -498,36 +373,6 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
           </div>
         </Card>
       </div>
-
-      {/* Resource Configs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Settings2 className="size-4 text-muted-foreground" />
-            Resource Configs
-            <Badge variant={BadgeVariant.outline} className="text-xs">
-              {resourceConfigs.length}
-            </Badge>
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Container resource templates assigned to this host.
-          </p>
-        </CardHeader>
-        <div className="px-6 pb-6">
-          {configRows.length === 0 ? (
-            <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
-              No resource configs for this host.
-            </div>
-          ) : (
-            <DataTable
-              data={configRows}
-              columns={resourceConfigColumns}
-              rowCount={configRows.length}
-              className="border-muted/40 shadow-sm"
-            />
-          )}
-        </div>
-      </Card>
 
       {/* Containers */}
       <Card>

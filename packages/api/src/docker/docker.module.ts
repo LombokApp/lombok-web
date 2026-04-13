@@ -11,7 +11,6 @@ import {
   DockerHostsController,
   DockerProfileAssignmentsController,
   DockerRegistryCredentialsController,
-  DockerResourceConfigsController,
   DockerStandaloneContainersController,
 } from './controllers/docker-host-management.controller'
 import { DockerWorkerHooksController } from './controllers/docker-worker-hooks.controller'
@@ -38,7 +37,6 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     TunnelAuthController,
     DockerHostsController,
     DockerRegistryCredentialsController,
-    DockerResourceConfigsController,
     DockerProfileAssignmentsController,
     DockerStandaloneContainersController,
   ],

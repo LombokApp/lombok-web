@@ -31,12 +31,6 @@ import {
   DockerRegistryCredentialInputDTO,
   DockerRegistryCredentialUpdateDTO,
 } from '../dto/docker-registry-credential-input.dto'
-import { DockerResourceConfigCloneInputDTO } from '../dto/docker-resource-config-clone-input.dto'
-import {
-  DockerResourceConfigInputDTO,
-  DockerResourceConfigUpdateDTO,
-} from '../dto/docker-resource-config-input.dto'
-import { DockerResourceConfigListQueryParamsDTO } from '../dto/docker-resource-config-list-query-params.dto'
 import {
   DockerStandaloneContainerInputDTO,
   DockerStandaloneContainerUpdateDTO,
@@ -52,10 +46,6 @@ import {
   DockerRegistryCredentialDeleteResponse,
   DockerRegistryCredentialListResponse,
   DockerRegistryCredentialResponse,
-  DockerResourceConfigDeleteResponse,
-  DockerResourceConfigListResponse,
-  DockerResourceConfigResponse,
-  DockerResourceConfigSimilarResponse,
   DockerStandaloneContainerDeleteResponse,
   DockerStandaloneContainerListResponse,
   DockerStandaloneContainerResponse,
@@ -64,7 +54,6 @@ import {
   transformDockerHostToDTO,
   transformDockerProfileAssignmentToDTO,
   transformDockerRegistryCredentialToDTO,
-  transformDockerResourceConfigToDTO,
   transformDockerStandaloneContainerToDTO,
 } from '../dto/transforms/docker-host-management.transforms'
 import { DockerHostManagementService } from '../services/docker-host-management.service'
@@ -198,101 +187,6 @@ export class DockerRegistryCredentialsController {
   }
 }
 
-// ─── Resource Configs ──────────────────────────────────────────────────────
-
-@Controller('/api/v1/docker/resource-configs')
-@ApiTags('DockerHostManagement')
-@ApiBearerAuth()
-@UsePipes(ZodValidationPipe)
-@UseGuards(AuthGuard)
-@ApiStandardErrorResponses()
-export class DockerResourceConfigsController {
-  constructor(private readonly service: DockerHostManagementService) {}
-
-  @Get()
-  async list(
-    @Req() req: express.Request,
-    @Query() query: DockerResourceConfigListQueryParamsDTO,
-  ): Promise<DockerResourceConfigListResponse> {
-    assertAdmin(req)
-    const configs = await this.service.listResourceConfigs(query.dockerHostId)
-    return { result: configs.map(transformDockerResourceConfigToDTO) }
-  }
-
-  @Get('/:id')
-  async get(
-    @Req() req: express.Request,
-    @Param('id') id: string,
-  ): Promise<DockerResourceConfigResponse> {
-    assertAdmin(req)
-    return {
-      result: transformDockerResourceConfigToDTO(
-        await this.service.getResourceConfigOrThrow(id),
-      ),
-    }
-  }
-
-  @Get('/:id/similar')
-  async findSimilar(
-    @Req() req: express.Request,
-    @Param('id') id: string,
-  ): Promise<DockerResourceConfigSimilarResponse> {
-    assertAdmin(req)
-    return { result: await this.service.findSimilarConfigValues(id) }
-  }
-
-  @Post()
-  async create(
-    @Req() req: express.Request,
-    @Body() input: DockerResourceConfigInputDTO,
-  ): Promise<DockerResourceConfigResponse> {
-    assertAdmin(req)
-    return {
-      result: transformDockerResourceConfigToDTO(
-        await this.service.createResourceConfig(input),
-      ),
-    }
-  }
-
-  @Post('/:id/clone')
-  async clone(
-    @Req() req: express.Request,
-    @Param('id') id: string,
-    @Body() input: DockerResourceConfigCloneInputDTO,
-  ): Promise<DockerResourceConfigResponse> {
-    assertAdmin(req)
-    return {
-      result: transformDockerResourceConfigToDTO(
-        await this.service.cloneResourceConfig(id, input.label),
-      ),
-    }
-  }
-
-  @Put('/:id')
-  async update(
-    @Req() req: express.Request,
-    @Param('id') id: string,
-    @Body() input: DockerResourceConfigUpdateDTO,
-  ): Promise<DockerResourceConfigResponse> {
-    assertAdmin(req)
-    return {
-      result: transformDockerResourceConfigToDTO(
-        await this.service.updateResourceConfig(id, input),
-      ),
-    }
-  }
-
-  @Delete('/:id')
-  async delete(
-    @Req() req: express.Request,
-    @Param('id') id: string,
-  ): Promise<DockerResourceConfigDeleteResponse> {
-    assertAdmin(req)
-    await this.service.deleteResourceConfig(id)
-    return { success: true }
-  }
-}
-
 // ─── Profile Resource Assignments ──────────────────────────────────────────
 
 @Controller('/api/v1/docker/profile-assignments')
@@ -314,6 +208,27 @@ export class DockerProfileAssignmentsController {
       query.appIdentifier,
     )
     return { result: assignments.map(transformDockerProfileAssignmentToDTO) }
+  }
+
+  @Get('/resolve/:appIdentifier/:profileKey')
+  async resolve(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @Param('profileKey') profileKey: string,
+  ): Promise<DockerProfileResolveResponse> {
+    assertAdmin(req)
+    const resolved = await this.service.resolveProfileConfig(
+      appIdentifier,
+      profileKey,
+    )
+    return {
+      result: {
+        hostId: resolved.hostId,
+        hostLabel: resolved.host.label,
+        hostEndpoint: resolved.host.host,
+        resourceConfig: resolved.resourceConfig,
+      },
+    }
   }
 
   @Get('/:id')
@@ -364,27 +279,6 @@ export class DockerProfileAssignmentsController {
     assertAdmin(req)
     await this.service.deleteProfileAssignment(id)
     return { success: true }
-  }
-
-  @Get('/resolve/:appIdentifier/:profileKey')
-  async resolve(
-    @Req() req: express.Request,
-    @Param('appIdentifier') appIdentifier: string,
-    @Param('profileKey') profileKey: string,
-  ): Promise<DockerProfileResolveResponse> {
-    assertAdmin(req)
-    const resolved = await this.service.resolveProfileConfig(
-      appIdentifier,
-      profileKey,
-    )
-    return {
-      result: {
-        hostId: resolved.hostId,
-        hostLabel: resolved.host.label,
-        hostEndpoint: resolved.host.host,
-        resourceConfig: resolved.resourceConfig,
-      },
-    }
   }
 }
 

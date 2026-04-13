@@ -42,8 +42,6 @@ import {
   dockerProfileResourceAssignmentsRelations,
   dockerProfileResourceAssignmentsTable,
   dockerRegistryCredentialsTable,
-  dockerResourceConfigsRelations,
-  dockerResourceConfigsTable,
   dockerStandaloneContainersRelations,
   dockerStandaloneContainersTable,
 } from '../docker/entities'
@@ -113,8 +111,6 @@ export const dbSchema = {
   dockerHostsTable,
   dockerHostsRelations,
   dockerRegistryCredentialsTable,
-  dockerResourceConfigsTable,
-  dockerResourceConfigsRelations,
   dockerProfileResourceAssignmentsTable,
   dockerProfileResourceAssignmentsRelations,
   dockerStandaloneContainersTable,

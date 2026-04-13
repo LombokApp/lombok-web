@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm'
 import {
   index,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -8,20 +9,31 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import { appsTable } from 'src/app/entities/app.entity'
+import type { z } from 'zod'
 
-import { dockerResourceConfigsTable } from './docker-resource-config.entity'
+import type { dockerResourceConfigDataSchema } from '../dto/docker-resource-config-input.dto'
+import { dockerHostsTable } from './docker-host.entity'
+
+export type DockerResourceConfig = z.infer<
+  typeof dockerResourceConfigDataSchema
+>
 
 export const dockerProfileResourceAssignmentsTable = pgTable(
   'docker_profile_resource_assignments',
   {
     id: uuid('id').primaryKey(),
-    dockerResourceConfigId: uuid('docker_resource_config_id')
-      .notNull()
-      .references(() => dockerResourceConfigsTable.id),
     appIdentifier: text('app_identifier')
       .notNull()
       .references(() => appsTable.identifier),
     profileKey: text('profile_key').notNull(),
+    dockerHostId: uuid('docker_host_id')
+      .notNull()
+      .references(() => dockerHostsTable.id),
+    config: jsonb('config').$type<DockerResourceConfig>().notNull().default({}),
+    configHashes: jsonb('config_hashes')
+      .$type<Record<string, string>>()
+      .notNull()
+      .default({}),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
@@ -30,11 +42,11 @@ export const dockerProfileResourceAssignmentsTable = pgTable(
       table.appIdentifier,
       table.profileKey,
     ),
-    index('docker_profile_resource_assignments_config_id_idx').on(
-      table.dockerResourceConfigId,
-    ),
     index('docker_profile_resource_assignments_app_identifier_idx').on(
       table.appIdentifier,
+    ),
+    index('docker_profile_resource_assignments_docker_host_id_idx').on(
+      table.dockerHostId,
     ),
   ],
 )
@@ -42,13 +54,13 @@ export const dockerProfileResourceAssignmentsTable = pgTable(
 export const dockerProfileResourceAssignmentsRelations = relations(
   dockerProfileResourceAssignmentsTable,
   ({ one }) => ({
-    resourceConfig: one(dockerResourceConfigsTable, {
-      fields: [dockerProfileResourceAssignmentsTable.dockerResourceConfigId],
-      references: [dockerResourceConfigsTable.id],
-    }),
     app: one(appsTable, {
       fields: [dockerProfileResourceAssignmentsTable.appIdentifier],
       references: [appsTable.identifier],
+    }),
+    dockerHost: one(dockerHostsTable, {
+      fields: [dockerProfileResourceAssignmentsTable.dockerHostId],
+      references: [dockerHostsTable.id],
     }),
   }),
 )

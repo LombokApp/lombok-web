@@ -1,8 +1,10 @@
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
+import { dockerResourceConfigDataSchema } from './docker-resource-config-input.dto'
+
 export const dockerStandaloneContainerInputSchema = z.object({
-  dockerResourceConfigId: z.uuid(),
+  dockerHostId: z.uuid(),
   label: z.string().min(1).max(128),
   image: z.string().min(1),
   tag: z.string().min(1).default('latest'),
@@ -16,6 +18,7 @@ export const dockerStandaloneContainerInputSchema = z.object({
       }),
     )
     .default([]),
+  config: dockerResourceConfigDataSchema.default({}),
 })
 
 export class DockerStandaloneContainerInputDTO extends createZodDto(
@@ -23,12 +26,7 @@ export class DockerStandaloneContainerInputDTO extends createZodDto(
 ) {}
 
 export const dockerStandaloneContainerUpdateSchema =
-  dockerStandaloneContainerInputSchema
-    .omit({ dockerResourceConfigId: true })
-    .partial()
-    .extend({
-      dockerResourceConfigId: z.uuid().optional(),
-    })
+  dockerStandaloneContainerInputSchema.partial()
 
 export class DockerStandaloneContainerUpdateDTO extends createZodDto(
   dockerStandaloneContainerUpdateSchema,

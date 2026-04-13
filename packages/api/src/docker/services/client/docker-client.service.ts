@@ -185,20 +185,11 @@ export class DockerClientService {
     hostId: string,
     options: FindOrCreateContainerOptions,
   ): Promise<ContainerInfo> {
+    const { startIfNotRunning: _startIfNotRunning, ...createPayload } = options
     const result = await this.bridgeRequest<BridgeContainerInfo>(
       'POST',
       `/docker/${hostId}/containers`,
-      {
-        image: options.image,
-        labels: options.labels,
-        env: options.env,
-        extraHosts: options.extraHosts,
-        volumes: options.volumes,
-        networkMode: options.networkMode,
-        gpus: options.gpus,
-        capAdd: options.capAdd,
-        securityOpt: options.securityOpt,
-      },
+      createPayload,
     )
     return toBridgeContainerInfo(result)
   }
@@ -558,6 +549,38 @@ export class DockerClientService {
     }
   }
 
+  /**
+   * Look up registry credentials for an image. Returns auth config if the
+   * image's registry matches a stored credential, otherwise undefined.
+   */
+  private async resolveRegistryAuth(
+    image: string,
+  ): Promise<
+    { username: string; password: string; serveraddress: string } | undefined
+  > {
+    const authMap = await this.dockerHostManagementService.getRegistryAuthMap()
+    if (Object.keys(authMap).length === 0) {
+      return undefined
+    }
+
+    // Extract registry from image (e.g. "ghcr.io/org/img:tag" → "ghcr.io")
+    // Images without a registry prefix (e.g. "nginx:latest") use Docker Hub
+    const firstSegment = image.split('/')[0] ?? ''
+    const hasRegistry = firstSegment.includes('.') || firstSegment.includes(':')
+    const registry = hasRegistry ? firstSegment : 'docker.io'
+
+    const cred = authMap[registry]
+    if (!cred) {
+      return undefined
+    }
+
+    return {
+      username: cred.username,
+      password: cred.password,
+      serveraddress: cred.serverAddress,
+    }
+  }
+
   private async ensureContainerRunning(
     hostId: string,
     container: ContainerInfo,
@@ -709,6 +732,12 @@ export class DockerClientService {
 
     return this.withErrorGuard(
       async () => {
+        // Pull image with registry auth if configured
+        const registryAuth = await this.resolveRegistryAuth(createOptions.image)
+        if (registryAuth) {
+          await this.pullImage(hostId, createOptions.image, registryAuth)
+        }
+
         const created = await this.createContainer(hostId, createOptions)
         await this.ensureContainerRunning(hostId, created)
         return created

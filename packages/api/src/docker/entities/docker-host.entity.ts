@@ -9,7 +9,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
-import { dockerResourceConfigsTable } from './docker-resource-config.entity'
+import { dockerProfileResourceAssignmentsTable } from './docker-profile-resource-assignment.entity'
+import { dockerStandaloneContainersTable } from './docker-standalone-container.entity'
 
 export const dockerHostsTable = pgTable(
   'docker_hosts',
@@ -40,7 +41,8 @@ export const dockerHostsTable = pgTable(
 )
 
 export const dockerHostsRelations = relations(dockerHostsTable, ({ many }) => ({
-  resourceConfigs: many(dockerResourceConfigsTable),
+  profileAssignments: many(dockerProfileResourceAssignmentsTable),
+  standaloneContainers: many(dockerStandaloneContainersTable),
 }))
 
 export type DockerHost = typeof dockerHostsTable.$inferSelect

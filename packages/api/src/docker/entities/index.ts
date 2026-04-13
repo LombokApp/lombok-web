@@ -12,16 +12,9 @@ export {
 } from './docker-registry-credential.entity'
 
 export {
-  dockerResourceConfigsTable,
-  dockerResourceConfigsRelations,
-  type DockerResourceConfig,
-  type DockerResourceConfigRow,
-  type NewDockerResourceConfigRow,
-} from './docker-resource-config.entity'
-
-export {
   dockerProfileResourceAssignmentsTable,
   dockerProfileResourceAssignmentsRelations,
+  type DockerResourceConfig,
   type DockerProfileResourceAssignment,
   type NewDockerProfileResourceAssignment,
 } from './docker-profile-resource-assignment.entity'

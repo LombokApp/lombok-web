@@ -8231,408 +8231,6 @@
         ]
       }
     },
-    "/api/v1/docker/resource-configs": {
-      "get": {
-        "operationId": "DockerResourceConfigs_list",
-        "parameters": [
-          {
-            "name": "dockerHostId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigListResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      },
-      "post": {
-        "operationId": "DockerResourceConfigs_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DockerResourceConfigInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      }
-    },
-    "/api/v1/docker/resource-configs/{id}": {
-      "get": {
-        "operationId": "DockerResourceConfigs_get",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      },
-      "put": {
-        "operationId": "DockerResourceConfigs_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DockerResourceConfigUpdateDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      },
-      "delete": {
-        "operationId": "DockerResourceConfigs_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigDeleteResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      }
-    },
-    "/api/v1/docker/resource-configs/{id}/similar": {
-      "get": {
-        "operationId": "DockerResourceConfigs_findSimilar",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigSimilarResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      }
-    },
-    "/api/v1/docker/resource-configs/{id}/clone": {
-      "post": {
-        "operationId": "DockerResourceConfigs_clone",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DockerResourceConfigCloneInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerResourceConfigResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      }
-    },
     "/api/v1/docker/profile-assignments": {
       "get": {
         "operationId": "DockerProfileAssignments_list",
@@ -8707,6 +8305,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DockerProfileAssignmentResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "DockerHostManagement"
+        ]
+      }
+    },
+    "/api/v1/docker/profile-assignments/resolve/{appIdentifier}/{profileKey}": {
+      "get": {
+        "operationId": "DockerProfileAssignments_resolve",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerProfileResolveResponse"
                 }
               }
             }
@@ -8878,69 +8539,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DockerProfileAssignmentDeleteResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "DockerHostManagement"
-        ]
-      }
-    },
-    "/api/v1/docker/profile-assignments/resolve/{appIdentifier}/{profileKey}": {
-      "get": {
-        "operationId": "DockerProfileAssignments_resolve",
-        "parameters": [
-          {
-            "name": "appIdentifier",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "profileKey",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerProfileResolveResponse"
                 }
               }
             }
@@ -31735,7 +31333,7 @@
           "success"
         ]
       },
-      "DockerResourceConfigListResponse": {
+      "DockerProfileAssignmentListResponse": {
         "type": "object",
         "properties": {
           "result": {
@@ -31746,10 +31344,13 @@
                 "id": {
                   "type": "string"
                 },
-                "dockerHostId": {
+                "appIdentifier": {
                   "type": "string"
                 },
-                "label": {
+                "profileKey": {
+                  "type": "string"
+                },
+                "dockerHostId": {
                   "type": "string"
                 },
                 "config": {
@@ -31978,8 +31579,9 @@
               },
               "required": [
                 "id",
+                "appIdentifier",
+                "profileKey",
                 "dockerHostId",
-                "label",
                 "config",
                 "configHashes",
                 "createdAt",
@@ -31990,902 +31592,6 @@
         },
         "required": [
           "result"
-        ]
-      },
-      "DockerResourceConfigResponse": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "dockerHostId": {
-                "type": "string"
-              },
-              "label": {
-                "type": "string"
-              },
-              "config": {
-                "type": "object",
-                "properties": {
-                  "volumes": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "env": {
-                    "$ref": "#/components/schemas/StringMapDTO"
-                  },
-                  "gpus": {
-                    "type": "object",
-                    "properties": {
-                      "driver": {
-                        "type": "string"
-                      },
-                      "deviceIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "driver",
-                      "deviceIds"
-                    ]
-                  },
-                  "extraHosts": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "networkMode": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "capAdd": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "capDrop": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "securityOpt": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "ports": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "host": {
-                          "type": "number",
-                          "exclusiveMinimum": 0,
-                          "maximum": 65535
-                        },
-                        "container": {
-                          "type": "number",
-                          "exclusiveMinimum": 0,
-                          "maximum": 65535
-                        },
-                        "protocol": {
-                          "default": "tcp",
-                          "type": "string",
-                          "enum": [
-                            "tcp",
-                            "udp"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "host",
-                        "container"
-                      ]
-                    }
-                  },
-                  "restartPolicy": {
-                    "type": "string",
-                    "enum": [
-                      "no",
-                      "always",
-                      "unless-stopped",
-                      "on-failure"
-                    ]
-                  },
-                  "shmSize": {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  "tmpfs": {
-                    "$ref": "#/components/schemas/StringMapDTO"
-                  },
-                  "devices": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "ulimits": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string"
-                    },
-                    "additionalProperties": {
-                      "type": "object",
-                      "properties": {
-                        "soft": {
-                          "type": "number"
-                        },
-                        "hard": {
-                          "type": "number"
-                        }
-                      },
-                      "required": [
-                        "soft",
-                        "hard"
-                      ]
-                    }
-                  },
-                  "sysctls": {
-                    "$ref": "#/components/schemas/StringMapDTO"
-                  },
-                  "labels": {
-                    "$ref": "#/components/schemas/StringMapDTO"
-                  },
-                  "privileged": {
-                    "type": "boolean"
-                  },
-                  "readOnly": {
-                    "type": "boolean"
-                  },
-                  "user": {
-                    "type": "string"
-                  },
-                  "workingDir": {
-                    "type": "string"
-                  },
-                  "hostname": {
-                    "type": "string"
-                  },
-                  "domainName": {
-                    "type": "string"
-                  },
-                  "dns": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "dnsSearch": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "entrypoint": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "command": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "stopSignal": {
-                    "type": "string"
-                  },
-                  "stopTimeout": {
-                    "type": "number"
-                  },
-                  "memoryLimit": {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  "cpuShares": {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  "cpuQuota": {
-                    "type": "number"
-                  },
-                  "pidsLimit": {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  "ipcMode": {
-                    "type": "string"
-                  },
-                  "pidMode": {
-                    "type": "string"
-                  },
-                  "cgroupParent": {
-                    "type": "string"
-                  },
-                  "runtime": {
-                    "type": "string"
-                  }
-                }
-              },
-              "configHashes": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "createdAt": {
-                "type": "string"
-              },
-              "updatedAt": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "dockerHostId",
-              "label",
-              "config",
-              "configHashes",
-              "createdAt",
-              "updatedAt"
-            ]
-          }
-        },
-        "required": [
-          "result"
-        ]
-      },
-      "DockerResourceConfigSimilarResponse": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "configId": {
-                    "type": "string"
-                  },
-                  "label": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "configId",
-                  "label"
-                ]
-              }
-            }
-          }
-        },
-        "required": [
-          "result"
-        ]
-      },
-      "DockerResourceConfigInputDTO": {
-        "type": "object",
-        "properties": {
-          "dockerHostId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "config": {
-            "type": "object",
-            "properties": {
-              "volumes": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "env": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "gpus": {
-                "type": "object",
-                "properties": {
-                  "driver": {
-                    "type": "string"
-                  },
-                  "deviceIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "driver",
-                  "deviceIds"
-                ]
-              },
-              "extraHosts": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "networkMode": {
-                "type": "string",
-                "minLength": 1
-              },
-              "capAdd": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "capDrop": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "securityOpt": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "ports": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "host": {
-                      "type": "number",
-                      "exclusiveMinimum": 0,
-                      "maximum": 65535
-                    },
-                    "container": {
-                      "type": "number",
-                      "exclusiveMinimum": 0,
-                      "maximum": 65535
-                    },
-                    "protocol": {
-                      "default": "tcp",
-                      "type": "string",
-                      "enum": [
-                        "tcp",
-                        "udp"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "host",
-                    "container"
-                  ]
-                }
-              },
-              "restartPolicy": {
-                "type": "string",
-                "enum": [
-                  "no",
-                  "always",
-                  "unless-stopped",
-                  "on-failure"
-                ]
-              },
-              "shmSize": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "tmpfs": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "devices": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "ulimits": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string"
-                },
-                "additionalProperties": {
-                  "type": "object",
-                  "properties": {
-                    "soft": {
-                      "type": "number"
-                    },
-                    "hard": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "soft",
-                    "hard"
-                  ]
-                }
-              },
-              "sysctls": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "labels": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "privileged": {
-                "type": "boolean"
-              },
-              "readOnly": {
-                "type": "boolean"
-              },
-              "user": {
-                "type": "string"
-              },
-              "workingDir": {
-                "type": "string"
-              },
-              "hostname": {
-                "type": "string"
-              },
-              "domainName": {
-                "type": "string"
-              },
-              "dns": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "dnsSearch": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "entrypoint": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "command": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "stopSignal": {
-                "type": "string"
-              },
-              "stopTimeout": {
-                "type": "number"
-              },
-              "memoryLimit": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "cpuShares": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "cpuQuota": {
-                "type": "number"
-              },
-              "pidsLimit": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "ipcMode": {
-                "type": "string"
-              },
-              "pidMode": {
-                "type": "string"
-              },
-              "cgroupParent": {
-                "type": "string"
-              },
-              "runtime": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "required": [
-          "dockerHostId",
-          "label",
-          "config"
-        ]
-      },
-      "DockerResourceConfigCloneInputDTO": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          }
-        }
-      },
-      "DockerResourceConfigUpdateDTO": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "config": {
-            "type": "object",
-            "properties": {
-              "volumes": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "env": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "gpus": {
-                "type": "object",
-                "properties": {
-                  "driver": {
-                    "type": "string"
-                  },
-                  "deviceIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "driver",
-                  "deviceIds"
-                ]
-              },
-              "extraHosts": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "networkMode": {
-                "type": "string",
-                "minLength": 1
-              },
-              "capAdd": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "capDrop": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "securityOpt": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "ports": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "host": {
-                      "type": "number",
-                      "exclusiveMinimum": 0,
-                      "maximum": 65535
-                    },
-                    "container": {
-                      "type": "number",
-                      "exclusiveMinimum": 0,
-                      "maximum": 65535
-                    },
-                    "protocol": {
-                      "default": "tcp",
-                      "type": "string",
-                      "enum": [
-                        "tcp",
-                        "udp"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "host",
-                    "container"
-                  ]
-                }
-              },
-              "restartPolicy": {
-                "type": "string",
-                "enum": [
-                  "no",
-                  "always",
-                  "unless-stopped",
-                  "on-failure"
-                ]
-              },
-              "shmSize": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "tmpfs": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "devices": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "ulimits": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string"
-                },
-                "additionalProperties": {
-                  "type": "object",
-                  "properties": {
-                    "soft": {
-                      "type": "number"
-                    },
-                    "hard": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "soft",
-                    "hard"
-                  ]
-                }
-              },
-              "sysctls": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "labels": {
-                "$ref": "#/components/schemas/StringMapDTO"
-              },
-              "privileged": {
-                "type": "boolean"
-              },
-              "readOnly": {
-                "type": "boolean"
-              },
-              "user": {
-                "type": "string"
-              },
-              "workingDir": {
-                "type": "string"
-              },
-              "hostname": {
-                "type": "string"
-              },
-              "domainName": {
-                "type": "string"
-              },
-              "dns": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "dnsSearch": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "entrypoint": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "command": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "stopSignal": {
-                "type": "string"
-              },
-              "stopTimeout": {
-                "type": "number"
-              },
-              "memoryLimit": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "cpuShares": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "cpuQuota": {
-                "type": "number"
-              },
-              "pidsLimit": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "ipcMode": {
-                "type": "string"
-              },
-              "pidMode": {
-                "type": "string"
-              },
-              "cgroupParent": {
-                "type": "string"
-              },
-              "runtime": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "DockerResourceConfigDeleteResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "const": true
-          }
-        },
-        "required": [
-          "success"
-        ]
-      },
-      "DockerProfileAssignmentListResponse": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "dockerResourceConfigId": {
-                  "type": "string"
-                },
-                "appIdentifier": {
-                  "type": "string"
-                },
-                "profileKey": {
-                  "type": "string"
-                },
-                "createdAt": {
-                  "type": "string"
-                },
-                "updatedAt": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "dockerResourceConfigId",
-                "appIdentifier",
-                "profileKey",
-                "createdAt",
-                "updatedAt"
-              ]
-            }
-          }
-        },
-        "required": [
-          "result"
-        ]
-      },
-      "DockerProfileAssignmentResponse": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "dockerResourceConfigId": {
-                "type": "string"
-              },
-              "appIdentifier": {
-                "type": "string"
-              },
-              "profileKey": {
-                "type": "string"
-              },
-              "createdAt": {
-                "type": "string"
-              },
-              "updatedAt": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "dockerResourceConfigId",
-              "appIdentifier",
-              "profileKey",
-              "createdAt",
-              "updatedAt"
-            ]
-          }
-        },
-        "required": [
-          "result"
-        ]
-      },
-      "DockerProfileAssignmentInputDTO": {
-        "type": "object",
-        "properties": {
-          "dockerResourceConfigId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "appIdentifier": {
-            "type": "string",
-            "minLength": 1
-          },
-          "profileKey": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^[a-z_]+$"
-          }
-        },
-        "required": [
-          "dockerResourceConfigId",
-          "appIdentifier",
-          "profileKey"
-        ]
-      },
-      "DockerProfileAssignmentUpdateDTO": {
-        "type": "object",
-        "properties": {
-          "dockerResourceConfigId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          }
-        },
-        "required": [
-          "dockerResourceConfigId"
-        ]
-      },
-      "DockerProfileAssignmentDeleteResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "const": true
-          }
-        },
-        "required": [
-          "success"
         ]
       },
       "DockerProfileResolveResponse": {
@@ -33133,6 +31839,739 @@
           "result"
         ]
       },
+      "DockerProfileAssignmentResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "appIdentifier": {
+                "type": "string"
+              },
+              "profileKey": {
+                "type": "string"
+              },
+              "dockerHostId": {
+                "type": "string"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "volumes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "env": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "gpus": {
+                    "type": "object",
+                    "properties": {
+                      "driver": {
+                        "type": "string"
+                      },
+                      "deviceIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "driver",
+                      "deviceIds"
+                    ]
+                  },
+                  "extraHosts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "networkMode": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "capAdd": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "capDrop": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "securityOpt": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ports": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "host": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 65535
+                        },
+                        "container": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 65535
+                        },
+                        "protocol": {
+                          "default": "tcp",
+                          "type": "string",
+                          "enum": [
+                            "tcp",
+                            "udp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "host",
+                        "container"
+                      ]
+                    }
+                  },
+                  "restartPolicy": {
+                    "type": "string",
+                    "enum": [
+                      "no",
+                      "always",
+                      "unless-stopped",
+                      "on-failure"
+                    ]
+                  },
+                  "shmSize": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "tmpfs": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "devices": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ulimits": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "soft": {
+                          "type": "number"
+                        },
+                        "hard": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "soft",
+                        "hard"
+                      ]
+                    }
+                  },
+                  "sysctls": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "labels": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "privileged": {
+                    "type": "boolean"
+                  },
+                  "readOnly": {
+                    "type": "boolean"
+                  },
+                  "user": {
+                    "type": "string"
+                  },
+                  "workingDir": {
+                    "type": "string"
+                  },
+                  "hostname": {
+                    "type": "string"
+                  },
+                  "domainName": {
+                    "type": "string"
+                  },
+                  "dns": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "dnsSearch": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "entrypoint": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "command": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "stopSignal": {
+                    "type": "string"
+                  },
+                  "stopTimeout": {
+                    "type": "number"
+                  },
+                  "memoryLimit": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "cpuShares": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "cpuQuota": {
+                    "type": "number"
+                  },
+                  "pidsLimit": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "ipcMode": {
+                    "type": "string"
+                  },
+                  "pidMode": {
+                    "type": "string"
+                  },
+                  "cgroupParent": {
+                    "type": "string"
+                  },
+                  "runtime": {
+                    "type": "string"
+                  }
+                }
+              },
+              "configHashes": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "appIdentifier",
+              "profileKey",
+              "dockerHostId",
+              "config",
+              "configHashes",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "DockerProfileAssignmentInputDTO": {
+        "type": "object",
+        "properties": {
+          "appIdentifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profileKey": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z_]+$"
+          },
+          "dockerHostId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "config": {
+            "type": "object",
+            "default": {},
+            "properties": {
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "gpus": {
+                "type": "object",
+                "properties": {
+                  "driver": {
+                    "type": "string"
+                  },
+                  "deviceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "driver",
+                  "deviceIds"
+                ]
+              },
+              "extraHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "networkMode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capAdd": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capDrop": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "securityOpt": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "container": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "protocol": {
+                      "default": "tcp",
+                      "type": "string",
+                      "enum": [
+                        "tcp",
+                        "udp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "host",
+                    "container"
+                  ]
+                }
+              },
+              "restartPolicy": {
+                "type": "string",
+                "enum": [
+                  "no",
+                  "always",
+                  "unless-stopped",
+                  "on-failure"
+                ]
+              },
+              "shmSize": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "tmpfs": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "devices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ulimits": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "soft": {
+                      "type": "number"
+                    },
+                    "hard": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "soft",
+                    "hard"
+                  ]
+                }
+              },
+              "sysctls": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "labels": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "privileged": {
+                "type": "boolean"
+              },
+              "readOnly": {
+                "type": "boolean"
+              },
+              "user": {
+                "type": "string"
+              },
+              "workingDir": {
+                "type": "string"
+              },
+              "hostname": {
+                "type": "string"
+              },
+              "domainName": {
+                "type": "string"
+              },
+              "dns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "dnsSearch": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "entrypoint": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "stopSignal": {
+                "type": "string"
+              },
+              "stopTimeout": {
+                "type": "number"
+              },
+              "memoryLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuShares": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuQuota": {
+                "type": "number"
+              },
+              "pidsLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "ipcMode": {
+                "type": "string"
+              },
+              "pidMode": {
+                "type": "string"
+              },
+              "cgroupParent": {
+                "type": "string"
+              },
+              "runtime": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "appIdentifier",
+          "profileKey",
+          "dockerHostId"
+        ]
+      },
+      "DockerProfileAssignmentUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "dockerHostId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "gpus": {
+                "type": "object",
+                "properties": {
+                  "driver": {
+                    "type": "string"
+                  },
+                  "deviceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "driver",
+                  "deviceIds"
+                ]
+              },
+              "extraHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "networkMode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capAdd": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capDrop": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "securityOpt": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "container": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "protocol": {
+                      "default": "tcp",
+                      "type": "string",
+                      "enum": [
+                        "tcp",
+                        "udp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "host",
+                    "container"
+                  ]
+                }
+              },
+              "restartPolicy": {
+                "type": "string",
+                "enum": [
+                  "no",
+                  "always",
+                  "unless-stopped",
+                  "on-failure"
+                ]
+              },
+              "shmSize": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "tmpfs": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "devices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ulimits": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "soft": {
+                      "type": "number"
+                    },
+                    "hard": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "soft",
+                    "hard"
+                  ]
+                }
+              },
+              "sysctls": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "labels": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "privileged": {
+                "type": "boolean"
+              },
+              "readOnly": {
+                "type": "boolean"
+              },
+              "user": {
+                "type": "string"
+              },
+              "workingDir": {
+                "type": "string"
+              },
+              "hostname": {
+                "type": "string"
+              },
+              "domainName": {
+                "type": "string"
+              },
+              "dns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "dnsSearch": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "entrypoint": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "stopSignal": {
+                "type": "string"
+              },
+              "stopTimeout": {
+                "type": "number"
+              },
+              "memoryLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuShares": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuQuota": {
+                "type": "number"
+              },
+              "pidsLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "ipcMode": {
+                "type": "string"
+              },
+              "pidMode": {
+                "type": "string"
+              },
+              "cgroupParent": {
+                "type": "string"
+              },
+              "runtime": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "DockerProfileAssignmentDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
       "DockerStandaloneContainerListResponse": {
         "type": "object",
         "properties": {
@@ -33144,7 +32583,7 @@
                 "id": {
                   "type": "string"
                 },
-                "dockerResourceConfigId": {
+                "dockerHostId": {
                   "type": "string"
                 },
                 "label": {
@@ -33195,6 +32634,223 @@
                     ]
                   }
                 },
+                "config": {
+                  "type": "object",
+                  "properties": {
+                    "volumes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "env": {
+                      "$ref": "#/components/schemas/StringMapDTO"
+                    },
+                    "gpus": {
+                      "type": "object",
+                      "properties": {
+                        "driver": {
+                          "type": "string"
+                        },
+                        "deviceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "driver",
+                        "deviceIds"
+                      ]
+                    },
+                    "extraHosts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "networkMode": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "capAdd": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "capDrop": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "securityOpt": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "ports": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "host": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 65535
+                          },
+                          "container": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 65535
+                          },
+                          "protocol": {
+                            "default": "tcp",
+                            "type": "string",
+                            "enum": [
+                              "tcp",
+                              "udp"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "host",
+                          "container"
+                        ]
+                      }
+                    },
+                    "restartPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "no",
+                        "always",
+                        "unless-stopped",
+                        "on-failure"
+                      ]
+                    },
+                    "shmSize": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "tmpfs": {
+                      "$ref": "#/components/schemas/StringMapDTO"
+                    },
+                    "devices": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "ulimits": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "soft": {
+                            "type": "number"
+                          },
+                          "hard": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "soft",
+                          "hard"
+                        ]
+                      }
+                    },
+                    "sysctls": {
+                      "$ref": "#/components/schemas/StringMapDTO"
+                    },
+                    "labels": {
+                      "$ref": "#/components/schemas/StringMapDTO"
+                    },
+                    "privileged": {
+                      "type": "boolean"
+                    },
+                    "readOnly": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "type": "string"
+                    },
+                    "workingDir": {
+                      "type": "string"
+                    },
+                    "hostname": {
+                      "type": "string"
+                    },
+                    "domainName": {
+                      "type": "string"
+                    },
+                    "dns": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "dnsSearch": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "entrypoint": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "command": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "stopSignal": {
+                      "type": "string"
+                    },
+                    "stopTimeout": {
+                      "type": "number"
+                    },
+                    "memoryLimit": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "cpuShares": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "cpuQuota": {
+                      "type": "number"
+                    },
+                    "pidsLimit": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "ipcMode": {
+                      "type": "string"
+                    },
+                    "pidMode": {
+                      "type": "string"
+                    },
+                    "cgroupParent": {
+                      "type": "string"
+                    },
+                    "runtime": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "configHashes": {
+                  "$ref": "#/components/schemas/StringMapDTO"
+                },
                 "createdAt": {
                   "type": "string"
                 },
@@ -33204,13 +32860,15 @@
               },
               "required": [
                 "id",
-                "dockerResourceConfigId",
+                "dockerHostId",
                 "label",
                 "image",
                 "tag",
                 "desiredStatus",
                 "containerId",
                 "ports",
+                "config",
+                "configHashes",
                 "createdAt",
                 "updatedAt"
               ]
@@ -33230,7 +32888,7 @@
               "id": {
                 "type": "string"
               },
-              "dockerResourceConfigId": {
+              "dockerHostId": {
                 "type": "string"
               },
               "label": {
@@ -33281,6 +32939,223 @@
                   ]
                 }
               },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "volumes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "env": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "gpus": {
+                    "type": "object",
+                    "properties": {
+                      "driver": {
+                        "type": "string"
+                      },
+                      "deviceIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "driver",
+                      "deviceIds"
+                    ]
+                  },
+                  "extraHosts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "networkMode": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "capAdd": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "capDrop": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "securityOpt": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ports": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "host": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 65535
+                        },
+                        "container": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 65535
+                        },
+                        "protocol": {
+                          "default": "tcp",
+                          "type": "string",
+                          "enum": [
+                            "tcp",
+                            "udp"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "host",
+                        "container"
+                      ]
+                    }
+                  },
+                  "restartPolicy": {
+                    "type": "string",
+                    "enum": [
+                      "no",
+                      "always",
+                      "unless-stopped",
+                      "on-failure"
+                    ]
+                  },
+                  "shmSize": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "tmpfs": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "devices": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ulimits": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "soft": {
+                          "type": "number"
+                        },
+                        "hard": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "soft",
+                        "hard"
+                      ]
+                    }
+                  },
+                  "sysctls": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "labels": {
+                    "$ref": "#/components/schemas/StringMapDTO"
+                  },
+                  "privileged": {
+                    "type": "boolean"
+                  },
+                  "readOnly": {
+                    "type": "boolean"
+                  },
+                  "user": {
+                    "type": "string"
+                  },
+                  "workingDir": {
+                    "type": "string"
+                  },
+                  "hostname": {
+                    "type": "string"
+                  },
+                  "domainName": {
+                    "type": "string"
+                  },
+                  "dns": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "dnsSearch": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "entrypoint": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "command": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "stopSignal": {
+                    "type": "string"
+                  },
+                  "stopTimeout": {
+                    "type": "number"
+                  },
+                  "memoryLimit": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "cpuShares": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "cpuQuota": {
+                    "type": "number"
+                  },
+                  "pidsLimit": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "ipcMode": {
+                    "type": "string"
+                  },
+                  "pidMode": {
+                    "type": "string"
+                  },
+                  "cgroupParent": {
+                    "type": "string"
+                  },
+                  "runtime": {
+                    "type": "string"
+                  }
+                }
+              },
+              "configHashes": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
               "createdAt": {
                 "type": "string"
               },
@@ -33290,13 +33165,15 @@
             },
             "required": [
               "id",
-              "dockerResourceConfigId",
+              "dockerHostId",
               "label",
               "image",
               "tag",
               "desiredStatus",
               "containerId",
               "ports",
+              "config",
+              "configHashes",
               "createdAt",
               "updatedAt"
             ]
@@ -33309,7 +33186,7 @@
       "DockerStandaloneContainerInputDTO": {
         "type": "object",
         "properties": {
-          "dockerResourceConfigId": {
+          "dockerHostId": {
             "type": "string",
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
@@ -33366,10 +33243,225 @@
                 "container"
               ]
             }
+          },
+          "config": {
+            "type": "object",
+            "default": {},
+            "properties": {
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "gpus": {
+                "type": "object",
+                "properties": {
+                  "driver": {
+                    "type": "string"
+                  },
+                  "deviceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "driver",
+                  "deviceIds"
+                ]
+              },
+              "extraHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "networkMode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capAdd": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capDrop": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "securityOpt": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "container": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "protocol": {
+                      "default": "tcp",
+                      "type": "string",
+                      "enum": [
+                        "tcp",
+                        "udp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "host",
+                    "container"
+                  ]
+                }
+              },
+              "restartPolicy": {
+                "type": "string",
+                "enum": [
+                  "no",
+                  "always",
+                  "unless-stopped",
+                  "on-failure"
+                ]
+              },
+              "shmSize": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "tmpfs": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "devices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ulimits": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "soft": {
+                      "type": "number"
+                    },
+                    "hard": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "soft",
+                    "hard"
+                  ]
+                }
+              },
+              "sysctls": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "labels": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "privileged": {
+                "type": "boolean"
+              },
+              "readOnly": {
+                "type": "boolean"
+              },
+              "user": {
+                "type": "string"
+              },
+              "workingDir": {
+                "type": "string"
+              },
+              "hostname": {
+                "type": "string"
+              },
+              "domainName": {
+                "type": "string"
+              },
+              "dns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "dnsSearch": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "entrypoint": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "stopSignal": {
+                "type": "string"
+              },
+              "stopTimeout": {
+                "type": "number"
+              },
+              "memoryLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuShares": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuQuota": {
+                "type": "number"
+              },
+              "pidsLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "ipcMode": {
+                "type": "string"
+              },
+              "pidMode": {
+                "type": "string"
+              },
+              "cgroupParent": {
+                "type": "string"
+              },
+              "runtime": {
+                "type": "string"
+              }
+            }
           }
         },
         "required": [
-          "dockerResourceConfigId",
+          "dockerHostId",
           "label",
           "image"
         ]
@@ -33377,6 +33469,11 @@
       "DockerStandaloneContainerUpdateDTO": {
         "type": "object",
         "properties": {
+          "dockerHostId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
           "label": {
             "type": "string",
             "minLength": 1,
@@ -33430,10 +33527,220 @@
               ]
             }
           },
-          "dockerResourceConfigId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          "config": {
+            "type": "object",
+            "default": {},
+            "properties": {
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "gpus": {
+                "type": "object",
+                "properties": {
+                  "driver": {
+                    "type": "string"
+                  },
+                  "deviceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "driver",
+                  "deviceIds"
+                ]
+              },
+              "extraHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "networkMode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capAdd": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capDrop": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "securityOpt": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "container": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 65535
+                    },
+                    "protocol": {
+                      "default": "tcp",
+                      "type": "string",
+                      "enum": [
+                        "tcp",
+                        "udp"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "host",
+                    "container"
+                  ]
+                }
+              },
+              "restartPolicy": {
+                "type": "string",
+                "enum": [
+                  "no",
+                  "always",
+                  "unless-stopped",
+                  "on-failure"
+                ]
+              },
+              "shmSize": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "tmpfs": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "devices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ulimits": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "soft": {
+                      "type": "number"
+                    },
+                    "hard": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "soft",
+                    "hard"
+                  ]
+                }
+              },
+              "sysctls": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "labels": {
+                "$ref": "#/components/schemas/StringMapDTO"
+              },
+              "privileged": {
+                "type": "boolean"
+              },
+              "readOnly": {
+                "type": "boolean"
+              },
+              "user": {
+                "type": "string"
+              },
+              "workingDir": {
+                "type": "string"
+              },
+              "hostname": {
+                "type": "string"
+              },
+              "domainName": {
+                "type": "string"
+              },
+              "dns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "dnsSearch": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "entrypoint": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "stopSignal": {
+                "type": "string"
+              },
+              "stopTimeout": {
+                "type": "number"
+              },
+              "memoryLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuShares": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cpuQuota": {
+                "type": "number"
+              },
+              "pidsLimit": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "ipcMode": {
+                "type": "string"
+              },
+              "pidMode": {
+                "type": "string"
+              },
+              "cgroupParent": {
+                "type": "string"
+              },
+              "runtime": {
+                "type": "string"
+              }
+            }
           }
         }
       },

@@ -1,4 +1,3 @@
-import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const dockerResourceConfigDataSchema = z.object({
@@ -53,22 +52,3 @@ export const dockerResourceConfigDataSchema = z.object({
   cgroupParent: z.string().optional(),
   runtime: z.string().optional(),
 })
-
-export const dockerResourceConfigInputSchema = z.object({
-  dockerHostId: z.uuid(),
-  label: z.string().min(1).max(128),
-  config: dockerResourceConfigDataSchema,
-})
-
-export class DockerResourceConfigInputDTO extends createZodDto(
-  dockerResourceConfigInputSchema,
-) {}
-
-export const dockerResourceConfigUpdateSchema = z.object({
-  label: z.string().min(1).max(128).optional(),
-  config: dockerResourceConfigDataSchema.optional(),
-})
-
-export class DockerResourceConfigUpdateDTO extends createZodDto(
-  dockerResourceConfigUpdateSchema,
-) {}

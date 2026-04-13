@@ -257,29 +257,94 @@ export class DockerodeAdapter implements DockerAdapter {
   async createContainer(
     options: CreateContainerOptions,
   ): Promise<BridgeContainerInfo> {
-    const createOpts: Dockerode.ContainerCreateOptions = {
-      Image: options.image,
-      Labels: options.labels,
-      Env: options.env
-        ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
-        : undefined,
-      HostConfig: {
-        ExtraHosts: options.extraHosts,
-        Binds: options.volumes,
-        NetworkMode: options.networkMode,
-        CapAdd: options.capAdd,
-        SecurityOpt: options.securityOpt,
-      },
+    const hostConfig: Dockerode.HostConfig = {
+      ExtraHosts: options.extraHosts,
+      Binds: options.volumes,
+      NetworkMode: options.networkMode,
+      CapAdd: options.capAdd,
+      CapDrop: options.capDrop,
+      SecurityOpt: options.securityOpt,
+      Privileged: options.privileged,
+      ReadonlyRootfs: options.readOnly,
+      ShmSize: options.shmSize,
+      Tmpfs: options.tmpfs,
+      Devices: options.devices?.map((d) => {
+        const [hostPath, containerPath, permissions] = d.split(':')
+        return {
+          PathOnHost: hostPath ?? '',
+          PathInContainer: containerPath ?? hostPath ?? '',
+          CgroupPermissions: permissions ?? 'rwm',
+        }
+      }),
+      Dns: options.dns,
+      DnsSearch: options.dnsSearch,
+      IpcMode: options.ipcMode,
+      PidMode: options.pidMode,
+      CgroupParent: options.cgroupParent,
+      Memory: options.memoryLimit,
+      CpuShares: options.cpuShares,
+      CpuQuota: options.cpuQuota,
+      PidsLimit: options.pidsLimit,
+      Runtime: options.runtime,
+      Sysctls: options.sysctls,
     }
 
-    if (options.gpus && createOpts.HostConfig) {
-      createOpts.HostConfig.DeviceRequests = [
+    if (options.restartPolicy) {
+      hostConfig.RestartPolicy = {
+        Name: options.restartPolicy,
+        ...(options.restartPolicy === 'on-failure'
+          ? { MaximumRetryCount: 5 }
+          : {}),
+      }
+    }
+
+    if (options.ports) {
+      const exposedPorts: Record<string, object> = {}
+      const portBindings: Record<string, { HostPort: string }[]> = {}
+      for (const p of options.ports) {
+        const key = `${p.container}/${p.protocol}`
+        exposedPorts[key] = {}
+        portBindings[key] = [{ HostPort: String(p.host) }]
+      }
+      hostConfig.PortBindings = portBindings
+    }
+
+    if (options.ulimits) {
+      hostConfig.Ulimits = Object.entries(options.ulimits).map(
+        ([name, { soft, hard }]) => ({ Name: name, Soft: soft, Hard: hard }),
+      )
+    }
+
+    if (options.gpus) {
+      hostConfig.DeviceRequests = [
         {
           Driver: options.gpus.driver,
           DeviceIDs: options.gpus.deviceIds,
           Capabilities: [['gpu']],
         },
       ]
+    }
+
+    const createOpts: Dockerode.ContainerCreateOptions = {
+      Image: options.image,
+      Labels: options.labels,
+      Env: options.env
+        ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
+        : undefined,
+      Entrypoint: options.entrypoint,
+      Cmd: options.command,
+      WorkingDir: options.workingDir,
+      User: options.user,
+      Hostname: options.hostname,
+      Domainname: options.domainName,
+      StopSignal: options.stopSignal,
+      StopTimeout: options.stopTimeout,
+      ExposedPorts: options.ports
+        ? Object.fromEntries(
+            options.ports.map((p) => [`${p.container}/${p.protocol}`, {}]),
+          )
+        : undefined,
+      HostConfig: hostConfig,
     }
 
     const container = await this.docker.createContainer(createOpts)

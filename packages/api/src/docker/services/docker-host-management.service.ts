@@ -18,17 +18,13 @@ import {
 } from '../entities/docker-host.entity'
 import {
   type DockerProfileResourceAssignment,
+  type DockerResourceConfig,
   dockerProfileResourceAssignmentsTable,
 } from '../entities/docker-profile-resource-assignment.entity'
 import {
   type DockerRegistryCredential,
   dockerRegistryCredentialsTable,
 } from '../entities/docker-registry-credential.entity'
-import {
-  type DockerResourceConfig,
-  type DockerResourceConfigRow,
-  dockerResourceConfigsTable,
-} from '../entities/docker-resource-config.entity'
 import {
   type DockerStandaloneContainer,
   dockerStandaloneContainersTable,
@@ -163,13 +159,18 @@ export class DockerHostManagementService {
   }
 
   async deleteHost(id: string): Promise<void> {
-    const configs =
-      await this.ormService.db.query.dockerResourceConfigsTable.findMany({
-        where: eq(dockerResourceConfigsTable.dockerHostId, id),
+    const assignments =
+      await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findMany(
+        { where: eq(dockerProfileResourceAssignmentsTable.dockerHostId, id) },
+      )
+    const containers =
+      await this.ormService.db.query.dockerStandaloneContainersTable.findMany({
+        where: eq(dockerStandaloneContainersTable.dockerHostId, id),
       })
-    if (configs.length > 0) {
+
+    if (assignments.length > 0 || containers.length > 0) {
       throw new BadRequestException(
-        `Cannot delete host: ${configs.length} resource config(s) still reference it. Delete or reassign them first.`,
+        `Cannot delete host: still referenced by ${assignments.length} profile assignment(s) and ${containers.length} standalone container(s). Delete or reassign them first.`,
       )
     }
 
@@ -278,177 +279,6 @@ export class DockerHostManagementService {
     }
   }
 
-  // ─── Resource Configs ─────────────────────────────────────────────────
-
-  async listResourceConfigs(
-    dockerHostId?: string,
-  ): Promise<DockerResourceConfigRow[]> {
-    if (dockerHostId) {
-      return this.ormService.db.query.dockerResourceConfigsTable.findMany({
-        where: eq(dockerResourceConfigsTable.dockerHostId, dockerHostId),
-        orderBy: (configs, { asc }) => [asc(configs.label)],
-      })
-    }
-    return this.ormService.db.query.dockerResourceConfigsTable.findMany({
-      orderBy: (configs, { asc }) => [asc(configs.label)],
-    })
-  }
-
-  async getResourceConfig(
-    id: string,
-  ): Promise<DockerResourceConfigRow | undefined> {
-    return this.ormService.db.query.dockerResourceConfigsTable.findFirst({
-      where: eq(dockerResourceConfigsTable.id, id),
-    })
-  }
-
-  async getResourceConfigOrThrow(id: string): Promise<DockerResourceConfigRow> {
-    const config = await this.getResourceConfig(id)
-    if (!config) {
-      throw new NotFoundException(`Resource config not found: ${id}`)
-    }
-    return config
-  }
-
-  async createResourceConfig(input: {
-    dockerHostId: string
-    label: string
-    config: DockerResourceConfig
-  }): Promise<DockerResourceConfigRow> {
-    await this.getHostOrThrow(input.dockerHostId)
-
-    const now = new Date()
-    const configHashes = computeConfigHashes(input.config)
-
-    const [created] = await this.ormService.db
-      .insert(dockerResourceConfigsTable)
-      .values({
-        id: uuidV4(),
-        dockerHostId: input.dockerHostId,
-        label: input.label,
-        config: input.config,
-        configHashes,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning()
-
-    if (!created) {
-      throw new InternalServerErrorException('Failed to create resource config')
-    }
-    return created
-  }
-
-  async updateResourceConfig(
-    id: string,
-    input: Partial<{
-      label: string
-      config: DockerResourceConfig
-    }>,
-  ): Promise<DockerResourceConfigRow> {
-    const _existing = await this.getResourceConfigOrThrow(id)
-
-    const updates: Record<string, unknown> = { updatedAt: new Date() }
-    if (input.label !== undefined) {
-      updates.label = input.label
-    }
-    if (input.config !== undefined) {
-      updates.config = input.config
-      updates.configHashes = computeConfigHashes(input.config)
-    }
-
-    const [updated] = await this.ormService.db
-      .update(dockerResourceConfigsTable)
-      .set(updates)
-      .where(eq(dockerResourceConfigsTable.id, id))
-      .returning()
-
-    if (!updated) {
-      throw new InternalServerErrorException('Failed to update resource config')
-    }
-    return updated
-  }
-
-  async cloneResourceConfig(
-    id: string,
-    newLabel?: string,
-  ): Promise<DockerResourceConfigRow> {
-    const source = await this.getResourceConfigOrThrow(id)
-
-    const now = new Date()
-    const [cloned] = await this.ormService.db
-      .insert(dockerResourceConfigsTable)
-      .values({
-        id: uuidV4(),
-        dockerHostId: source.dockerHostId,
-        label: newLabel ?? `${source.label} (copy)`,
-        config: source.config,
-        configHashes: source.configHashes,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning()
-
-    if (!cloned) {
-      throw new InternalServerErrorException('Failed to clone resource config')
-    }
-    return cloned
-  }
-
-  async findSimilarConfigValues(
-    id: string,
-  ): Promise<Record<string, { configId: string; label: string }[]>> {
-    const source = await this.getResourceConfigOrThrow(id)
-    const allConfigs =
-      await this.ormService.db.query.dockerResourceConfigsTable.findMany({
-        where: eq(dockerResourceConfigsTable.dockerHostId, source.dockerHostId),
-      })
-
-    const similar: Record<string, { configId: string; label: string }[]> = {}
-
-    for (const [key, hash] of Object.entries(source.configHashes)) {
-      const matches = allConfigs.filter(
-        (c) => c.id !== id && c.configHashes[key] === hash,
-      )
-      if (matches.length > 0) {
-        similar[key] = matches.map((c) => ({ configId: c.id, label: c.label }))
-      }
-    }
-
-    return similar
-  }
-
-  async deleteResourceConfig(id: string): Promise<void> {
-    const assignments =
-      await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findMany(
-        {
-          where: eq(
-            dockerProfileResourceAssignmentsTable.dockerResourceConfigId,
-            id,
-          ),
-        },
-      )
-    const containers =
-      await this.ormService.db.query.dockerStandaloneContainersTable.findMany({
-        where: eq(dockerStandaloneContainersTable.dockerResourceConfigId, id),
-      })
-
-    if (assignments.length > 0 || containers.length > 0) {
-      throw new BadRequestException(
-        `Cannot delete resource config: still referenced by ${assignments.length} profile assignment(s) and ${containers.length} standalone container(s).`,
-      )
-    }
-
-    const result = await this.ormService.db
-      .delete(dockerResourceConfigsTable)
-      .where(eq(dockerResourceConfigsTable.id, id))
-      .returning()
-
-    if (result.length === 0) {
-      throw new NotFoundException(`Resource config not found: ${id}`)
-    }
-  }
-
   // ─── Profile Resource Assignments ─────────────────────────────────────
 
   async listProfileAssignments(
@@ -481,18 +311,25 @@ export class DockerHostManagementService {
   }
 
   async createProfileAssignment(input: {
-    dockerResourceConfigId: string
     appIdentifier: string
     profileKey: string
+    dockerHostId: string
+    config: DockerResourceConfig
   }): Promise<DockerProfileResourceAssignment> {
-    await this.getResourceConfigOrThrow(input.dockerResourceConfigId)
+    await this.getHostOrThrow(input.dockerHostId)
 
     const now = new Date()
+    const configHashes = computeConfigHashes(input.config)
+
     const [created] = await this.ormService.db
       .insert(dockerProfileResourceAssignmentsTable)
       .values({
         id: uuidV4(),
-        ...input,
+        appIdentifier: input.appIdentifier,
+        profileKey: input.profileKey,
+        dockerHostId: input.dockerHostId,
+        config: input.config,
+        configHashes,
         createdAt: now,
         updatedAt: now,
       })
@@ -508,16 +345,27 @@ export class DockerHostManagementService {
 
   async updateProfileAssignment(
     id: string,
-    input: { dockerResourceConfigId: string },
+    input: Partial<{
+      dockerHostId: string
+      config: DockerResourceConfig
+    }>,
   ): Promise<DockerProfileResourceAssignment> {
-    await this.getResourceConfigOrThrow(input.dockerResourceConfigId)
+    if (input.dockerHostId) {
+      await this.getHostOrThrow(input.dockerHostId)
+    }
+
+    const updates: Record<string, unknown> = { updatedAt: new Date() }
+    if (input.dockerHostId !== undefined) {
+      updates.dockerHostId = input.dockerHostId
+    }
+    if (input.config !== undefined) {
+      updates.config = input.config
+      updates.configHashes = computeConfigHashes(input.config)
+    }
 
     const [updated] = await this.ormService.db
       .update(dockerProfileResourceAssignmentsTable)
-      .set({
-        dockerResourceConfigId: input.dockerResourceConfigId,
-        updatedAt: new Date(),
-      })
+      .set(updates)
       .where(eq(dockerProfileResourceAssignmentsTable.id, id))
       .returning()
 
@@ -555,26 +403,31 @@ export class DockerHostManagementService {
   }
 
   async createStandaloneContainer(input: {
-    dockerResourceConfigId: string
+    dockerHostId: string
     label: string
     image: string
     tag?: string
     desiredStatus?: 'running' | 'stopped'
     ports?: { host: number; container: number; protocol: 'tcp' | 'udp' }[]
+    config: DockerResourceConfig
   }): Promise<DockerStandaloneContainer> {
-    await this.getResourceConfigOrThrow(input.dockerResourceConfigId)
+    await this.getHostOrThrow(input.dockerHostId)
 
     const now = new Date()
+    const configHashes = computeConfigHashes(input.config)
+
     const [created] = await this.ormService.db
       .insert(dockerStandaloneContainersTable)
       .values({
         id: uuidV4(),
-        dockerResourceConfigId: input.dockerResourceConfigId,
+        dockerHostId: input.dockerHostId,
         label: input.label,
         image: input.image,
         tag: input.tag ?? 'latest',
         desiredStatus: input.desiredStatus ?? 'stopped',
         ports: input.ports ?? [],
+        config: input.config,
+        configHashes,
         createdAt: now,
         updatedAt: now,
       })
@@ -591,21 +444,27 @@ export class DockerHostManagementService {
   async updateStandaloneContainer(
     id: string,
     input: Partial<{
-      dockerResourceConfigId: string
+      dockerHostId: string
       label: string
       image: string
       tag: string
       desiredStatus: 'running' | 'stopped'
       ports: { host: number; container: number; protocol: 'tcp' | 'udp' }[]
+      config: DockerResourceConfig
     }>,
   ): Promise<DockerStandaloneContainer> {
-    if (input.dockerResourceConfigId) {
-      await this.getResourceConfigOrThrow(input.dockerResourceConfigId)
+    if (input.dockerHostId) {
+      await this.getHostOrThrow(input.dockerHostId)
+    }
+
+    const updates: Record<string, unknown> = { ...input, updatedAt: new Date() }
+    if (input.config !== undefined) {
+      updates.configHashes = computeConfigHashes(input.config)
     }
 
     const [updated] = await this.ormService.db
       .update(dockerStandaloneContainersTable)
-      .set({ ...input, updatedAt: new Date() })
+      .set(updates)
       .where(eq(dockerStandaloneContainersTable.id, id))
       .returning()
 
@@ -626,7 +485,7 @@ export class DockerHostManagementService {
     }
   }
 
-  // ─── Resolution (replaces resolveDockerHostConfigForProfile) ──────────
+  // ─── Resolution ───────────────────────────────────────────────────────
 
   /**
    * Resolve the Docker host and resource config for a given app profile.
@@ -659,14 +518,11 @@ export class DockerHostManagementService {
       )
 
     if (exact) {
-      const config = await this.getResourceConfigOrThrow(
-        exact.dockerResourceConfigId,
-      )
-      const host = await this.getHostOrThrow(config.dockerHostId)
+      const host = await this.getHostOrThrow(exact.dockerHostId)
       return {
         hostId: host.id,
         host,
-        resourceConfig: config.config,
+        resourceConfig: exact.config,
       }
     }
 
@@ -685,14 +541,11 @@ export class DockerHostManagementService {
       )
 
     if (appDefault) {
-      const config = await this.getResourceConfigOrThrow(
-        appDefault.dockerResourceConfigId,
-      )
-      const host = await this.getHostOrThrow(config.dockerHostId)
+      const host = await this.getHostOrThrow(appDefault.dockerHostId)
       return {
         hostId: host.id,
         host,
-        resourceConfig: config.config,
+        resourceConfig: appDefault.config,
       }
     }
 

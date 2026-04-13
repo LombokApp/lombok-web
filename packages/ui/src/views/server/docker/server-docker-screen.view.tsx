@@ -28,6 +28,7 @@ import {
   Plus,
   RefreshCcw,
   Server,
+  Settings2,
   Trash2,
 } from 'lucide-react'
 import React from 'react'
@@ -38,6 +39,7 @@ import { TableLinkColumn } from '@/src/components/table-link-column/table-link-c
 import { $api, $apiClient } from '@/src/services/api'
 
 import { CreateDockerHostDialog } from './create-docker-host-dialog'
+import { ProfileAssignmentDialog } from './profile-assignment-dialog'
 import type {
   DockerHostConnectionState,
   DockerHostContainerState,
@@ -70,6 +72,8 @@ interface ProfileRow {
   profileKey: string
   image: string
   assignedHostLabel: string | null
+  assignmentId: string | null
+  assignedHostId: string | null
 }
 
 // ─── Host columns ──────────────────────────────────────────────────────────
@@ -340,7 +344,9 @@ const containerColumns: HideableColumnDef<ContainerRow>[] = [
 
 // ─── Profile columns ───────────────────────────────────────────────────────
 
-const profileColumns: HideableColumnDef<ProfileRow>[] = [
+const createProfileColumns = (
+  onConfigure: (row: ProfileRow) => void,
+): HideableColumnDef<ProfileRow>[] => [
   {
     id: 'link',
     cell: ({ row }) => (
@@ -426,6 +432,24 @@ const profileColumns: HideableColumnDef<ProfileRow>[] = [
     enableSorting: false,
     enableHiding: true,
   },
+  {
+    id: 'actions',
+    cell: ({ row }) => (
+      <div className="relative z-20 justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs"
+          onClick={() => onConfigure(row.original)}
+        >
+          <Settings2 className="mr-1.5 size-3" />
+          Configure
+        </Button>
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
 ]
 
 // ─── Section header ────────────────────────────────────────────────────────
@@ -505,8 +529,6 @@ export function ServerDockerScreen() {
 
     const hostLabelMap = new Map(hosts.map((h) => [h.id, h.label]))
 
-    // Build assignment lookup: "appIdentifier:profileKey" → configId → hostId → label
-    // We need resource configs to resolve hostId, but for now we can show assignment existence
     const assignmentMap = new Map(
       assignments.map((a) => [`${a.appIdentifier}:${a.profileKey}`, a]),
     )
@@ -517,8 +539,7 @@ export function ServerDockerScreen() {
         : []
       return profiles.map(([profileKey, profile]) => {
         const assignment = assignmentMap.get(`${app.identifier}:${profileKey}`)
-        // If there's an assignment we know a host is configured, but we'd need the resource config to get the host label
-        // For now, show "Configured" vs "default"
+
         return {
           appIdentifier: app.identifier,
           appLabel: app.label,
@@ -526,8 +547,10 @@ export function ServerDockerScreen() {
           profileKey,
           image: profile.image,
           assignedHostLabel: assignment
-            ? (hostLabelMap.get(assignment.dockerResourceConfigId) ?? 'Unknown')
+            ? (hostLabelMap.get(assignment.dockerHostId) ?? 'Unknown')
             : null,
+          assignmentId: assignment?.id ?? null,
+          assignedHostId: assignment?.dockerHostId ?? null,
         }
       })
     })
@@ -549,6 +572,20 @@ export function ServerDockerScreen() {
     () => createHostColumns((host) => void handleDeleteHost(host)),
     [handleDeleteHost],
   )
+
+  // ─── Profile assignment dialog ─────────────────────────────────────────
+
+  const [configureProfile, setConfigureProfile] =
+    React.useState<ProfileRow | null>(null)
+
+  const profileCols = React.useMemo(
+    () => createProfileColumns((row) => setConfigureProfile(row)),
+    [],
+  )
+
+  const handleProfileSaved = React.useCallback(() => {
+    void assignmentsQuery.refetch()
+  }, [assignmentsQuery])
 
   // ─── Stats ─────────────────────────────────────────────────────────────
 
@@ -589,7 +626,6 @@ export function ServerDockerScreen() {
               void hostsQuery.refetch()
               void stateQuery.refetch()
               void assignmentsQuery.refetch()
-              void appsQuery.refetch()
             }}
           >
             <RefreshCcw className="mr-2 size-4" />
@@ -735,7 +771,7 @@ export function ServerDockerScreen() {
           ) : (
             <DataTable
               data={profileRows}
-              columns={profileColumns}
+              columns={profileCols}
               rowCount={profileRows.length}
               className="border-muted/40 shadow-sm"
             />
@@ -748,6 +784,24 @@ export function ServerDockerScreen() {
         onOpenChange={setCreateHostOpen}
         onCreated={() => void hostsQuery.refetch()}
       />
+
+      {configureProfile && (
+        <ProfileAssignmentDialog
+          open={!!configureProfile}
+          onOpenChange={(v) => {
+            if (!v) {
+              setConfigureProfile(null)
+            }
+          }}
+          appIdentifier={configureProfile.appIdentifier}
+          appLabel={configureProfile.appLabel}
+          profileKey={configureProfile.profileKey}
+          image={configureProfile.image}
+          assignmentId={configureProfile.assignmentId}
+          currentHostId={configureProfile.assignedHostId}
+          onSaved={handleProfileSaved}
+        />
+      )}
     </div>
   )
 }

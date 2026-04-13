@@ -1669,70 +1669,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/docker/resource-configs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["DockerResourceConfigs_list"];
-        put?: never;
-        post: operations["DockerResourceConfigs_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/resource-configs/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["DockerResourceConfigs_get"];
-        put: operations["DockerResourceConfigs_update"];
-        post?: never;
-        delete: operations["DockerResourceConfigs_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/resource-configs/{id}/similar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["DockerResourceConfigs_findSimilar"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/resource-configs/{id}/clone": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["DockerResourceConfigs_clone"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/docker/profile-assignments": {
         parameters: {
             query?: never;
@@ -1743,6 +1679,22 @@ export interface paths {
         get: operations["DockerProfileAssignments_list"];
         put?: never;
         post: operations["DockerProfileAssignments_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docker/profile-assignments/resolve/{appIdentifier}/{profileKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DockerProfileAssignments_resolve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1760,22 +1712,6 @@ export interface paths {
         put: operations["DockerProfileAssignments_update"];
         post?: never;
         delete: operations["DockerProfileAssignments_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/profile-assignments/resolve/{appIdentifier}/{profileKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["DockerProfileAssignments_resolve"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -7146,302 +7082,71 @@ export interface components {
             /** @constant */
             success: true;
         };
-        DockerResourceConfigListResponse: {
-            result: {
-                id: string;
-                dockerHostId: string;
-                label: string;
-                config: {
-                    volumes?: string[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
-                    labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
-                };
-                configHashes: components["schemas"]["StringMapDTO"];
-                createdAt: string;
-                updatedAt: string;
-            }[];
-        };
-        DockerResourceConfigResponse: {
-            result: {
-                id: string;
-                dockerHostId: string;
-                label: string;
-                config: {
-                    volumes?: string[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
-                    labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
-                };
-                configHashes: components["schemas"]["StringMapDTO"];
-                createdAt: string;
-                updatedAt: string;
-            };
-        };
-        DockerResourceConfigSimilarResponse: {
-            result: {
-                [key: string]: {
-                    configId: string;
-                    label: string;
-                }[];
-            };
-        };
-        DockerResourceConfigInputDTO: {
-            /** Format: uuid */
-            dockerHostId: string;
-            label: string;
-            config: {
-                volumes?: string[];
-                env?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    driver: string;
-                    deviceIds: string[];
-                };
-                extraHosts?: string[];
-                networkMode?: string;
-                capAdd?: string[];
-                capDrop?: string[];
-                securityOpt?: string[];
-                ports?: {
-                    host: number;
-                    container: number;
-                    /**
-                     * @default tcp
-                     * @enum {string}
-                     */
-                    protocol: "tcp" | "udp";
-                }[];
-                /** @enum {string} */
-                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                shmSize?: number;
-                tmpfs?: components["schemas"]["StringMapDTO"];
-                devices?: string[];
-                ulimits?: {
-                    [key: string]: {
-                        soft: number;
-                        hard: number;
-                    };
-                };
-                sysctls?: components["schemas"]["StringMapDTO"];
-                labels?: components["schemas"]["StringMapDTO"];
-                privileged?: boolean;
-                readOnly?: boolean;
-                user?: string;
-                workingDir?: string;
-                hostname?: string;
-                domainName?: string;
-                dns?: string[];
-                dnsSearch?: string[];
-                entrypoint?: string[];
-                command?: string[];
-                stopSignal?: string;
-                stopTimeout?: number;
-                memoryLimit?: number;
-                cpuShares?: number;
-                cpuQuota?: number;
-                pidsLimit?: number;
-                ipcMode?: string;
-                pidMode?: string;
-                cgroupParent?: string;
-                runtime?: string;
-            };
-        };
-        DockerResourceConfigCloneInputDTO: {
-            label?: string;
-        };
-        DockerResourceConfigUpdateDTO: {
-            label?: string;
-            config?: {
-                volumes?: string[];
-                env?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    driver: string;
-                    deviceIds: string[];
-                };
-                extraHosts?: string[];
-                networkMode?: string;
-                capAdd?: string[];
-                capDrop?: string[];
-                securityOpt?: string[];
-                ports?: {
-                    host: number;
-                    container: number;
-                    /**
-                     * @default tcp
-                     * @enum {string}
-                     */
-                    protocol: "tcp" | "udp";
-                }[];
-                /** @enum {string} */
-                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                shmSize?: number;
-                tmpfs?: components["schemas"]["StringMapDTO"];
-                devices?: string[];
-                ulimits?: {
-                    [key: string]: {
-                        soft: number;
-                        hard: number;
-                    };
-                };
-                sysctls?: components["schemas"]["StringMapDTO"];
-                labels?: components["schemas"]["StringMapDTO"];
-                privileged?: boolean;
-                readOnly?: boolean;
-                user?: string;
-                workingDir?: string;
-                hostname?: string;
-                domainName?: string;
-                dns?: string[];
-                dnsSearch?: string[];
-                entrypoint?: string[];
-                command?: string[];
-                stopSignal?: string;
-                stopTimeout?: number;
-                memoryLimit?: number;
-                cpuShares?: number;
-                cpuQuota?: number;
-                pidsLimit?: number;
-                ipcMode?: string;
-                pidMode?: string;
-                cgroupParent?: string;
-                runtime?: string;
-            };
-        };
-        DockerResourceConfigDeleteResponse: {
-            /** @constant */
-            success: true;
-        };
         DockerProfileAssignmentListResponse: {
             result: {
                 id: string;
-                dockerResourceConfigId: string;
                 appIdentifier: string;
                 profileKey: string;
+                dockerHostId: string;
+                config: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                };
+                configHashes: components["schemas"]["StringMapDTO"];
                 createdAt: string;
                 updatedAt: string;
             }[];
-        };
-        DockerProfileAssignmentResponse: {
-            result: {
-                id: string;
-                dockerResourceConfigId: string;
-                appIdentifier: string;
-                profileKey: string;
-                createdAt: string;
-                updatedAt: string;
-            };
-        };
-        DockerProfileAssignmentInputDTO: {
-            /** Format: uuid */
-            dockerResourceConfigId: string;
-            appIdentifier: string;
-            profileKey: string;
-        };
-        DockerProfileAssignmentUpdateDTO: {
-            /** Format: uuid */
-            dockerResourceConfigId: string;
-        };
-        DockerProfileAssignmentDeleteResponse: {
-            /** @constant */
-            success: true;
         };
         DockerProfileResolveResponse: {
             result: {
@@ -7505,10 +7210,201 @@ export interface components {
                 } | null;
             };
         };
+        DockerProfileAssignmentResponse: {
+            result: {
+                id: string;
+                appIdentifier: string;
+                profileKey: string;
+                dockerHostId: string;
+                config: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                };
+                configHashes: components["schemas"]["StringMapDTO"];
+                createdAt: string;
+                updatedAt: string;
+            };
+        };
+        DockerProfileAssignmentInputDTO: {
+            appIdentifier: string;
+            profileKey: string;
+            /** Format: uuid */
+            dockerHostId: string;
+            /** @default {} */
+            config: {
+                volumes?: string[];
+                env?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    driver: string;
+                    deviceIds: string[];
+                };
+                extraHosts?: string[];
+                networkMode?: string;
+                capAdd?: string[];
+                capDrop?: string[];
+                securityOpt?: string[];
+                ports?: {
+                    host: number;
+                    container: number;
+                    /**
+                     * @default tcp
+                     * @enum {string}
+                     */
+                    protocol: "tcp" | "udp";
+                }[];
+                /** @enum {string} */
+                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                shmSize?: number;
+                tmpfs?: components["schemas"]["StringMapDTO"];
+                devices?: string[];
+                ulimits?: {
+                    [key: string]: {
+                        soft: number;
+                        hard: number;
+                    };
+                };
+                sysctls?: components["schemas"]["StringMapDTO"];
+                labels?: components["schemas"]["StringMapDTO"];
+                privileged?: boolean;
+                readOnly?: boolean;
+                user?: string;
+                workingDir?: string;
+                hostname?: string;
+                domainName?: string;
+                dns?: string[];
+                dnsSearch?: string[];
+                entrypoint?: string[];
+                command?: string[];
+                stopSignal?: string;
+                stopTimeout?: number;
+                memoryLimit?: number;
+                cpuShares?: number;
+                cpuQuota?: number;
+                pidsLimit?: number;
+                ipcMode?: string;
+                pidMode?: string;
+                cgroupParent?: string;
+                runtime?: string;
+            };
+        };
+        DockerProfileAssignmentUpdateDTO: {
+            /** Format: uuid */
+            dockerHostId?: string;
+            config?: {
+                volumes?: string[];
+                env?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    driver: string;
+                    deviceIds: string[];
+                };
+                extraHosts?: string[];
+                networkMode?: string;
+                capAdd?: string[];
+                capDrop?: string[];
+                securityOpt?: string[];
+                ports?: {
+                    host: number;
+                    container: number;
+                    /**
+                     * @default tcp
+                     * @enum {string}
+                     */
+                    protocol: "tcp" | "udp";
+                }[];
+                /** @enum {string} */
+                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                shmSize?: number;
+                tmpfs?: components["schemas"]["StringMapDTO"];
+                devices?: string[];
+                ulimits?: {
+                    [key: string]: {
+                        soft: number;
+                        hard: number;
+                    };
+                };
+                sysctls?: components["schemas"]["StringMapDTO"];
+                labels?: components["schemas"]["StringMapDTO"];
+                privileged?: boolean;
+                readOnly?: boolean;
+                user?: string;
+                workingDir?: string;
+                hostname?: string;
+                domainName?: string;
+                dns?: string[];
+                dnsSearch?: string[];
+                entrypoint?: string[];
+                command?: string[];
+                stopSignal?: string;
+                stopTimeout?: number;
+                memoryLimit?: number;
+                cpuShares?: number;
+                cpuQuota?: number;
+                pidsLimit?: number;
+                ipcMode?: string;
+                pidMode?: string;
+                cgroupParent?: string;
+                runtime?: string;
+            };
+        };
+        DockerProfileAssignmentDeleteResponse: {
+            /** @constant */
+            success: true;
+        };
         DockerStandaloneContainerListResponse: {
             result: {
                 id: string;
-                dockerResourceConfigId: string;
+                dockerHostId: string;
                 label: string;
                 image: string;
                 tag: string;
@@ -7521,6 +7417,62 @@ export interface components {
                     /** @enum {string} */
                     protocol: "tcp" | "udp";
                 }[];
+                config: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                };
+                configHashes: components["schemas"]["StringMapDTO"];
                 createdAt: string;
                 updatedAt: string;
             }[];
@@ -7528,7 +7480,7 @@ export interface components {
         DockerStandaloneContainerResponse: {
             result: {
                 id: string;
-                dockerResourceConfigId: string;
+                dockerHostId: string;
                 label: string;
                 image: string;
                 tag: string;
@@ -7541,13 +7493,69 @@ export interface components {
                     /** @enum {string} */
                     protocol: "tcp" | "udp";
                 }[];
+                config: {
+                    volumes?: string[];
+                    env?: components["schemas"]["StringMapDTO"];
+                    gpus?: {
+                        driver: string;
+                        deviceIds: string[];
+                    };
+                    extraHosts?: string[];
+                    networkMode?: string;
+                    capAdd?: string[];
+                    capDrop?: string[];
+                    securityOpt?: string[];
+                    ports?: {
+                        host: number;
+                        container: number;
+                        /**
+                         * @default tcp
+                         * @enum {string}
+                         */
+                        protocol: "tcp" | "udp";
+                    }[];
+                    /** @enum {string} */
+                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                    shmSize?: number;
+                    tmpfs?: components["schemas"]["StringMapDTO"];
+                    devices?: string[];
+                    ulimits?: {
+                        [key: string]: {
+                            soft: number;
+                            hard: number;
+                        };
+                    };
+                    sysctls?: components["schemas"]["StringMapDTO"];
+                    labels?: components["schemas"]["StringMapDTO"];
+                    privileged?: boolean;
+                    readOnly?: boolean;
+                    user?: string;
+                    workingDir?: string;
+                    hostname?: string;
+                    domainName?: string;
+                    dns?: string[];
+                    dnsSearch?: string[];
+                    entrypoint?: string[];
+                    command?: string[];
+                    stopSignal?: string;
+                    stopTimeout?: number;
+                    memoryLimit?: number;
+                    cpuShares?: number;
+                    cpuQuota?: number;
+                    pidsLimit?: number;
+                    ipcMode?: string;
+                    pidMode?: string;
+                    cgroupParent?: string;
+                    runtime?: string;
+                };
+                configHashes: components["schemas"]["StringMapDTO"];
                 createdAt: string;
                 updatedAt: string;
             };
         };
         DockerStandaloneContainerInputDTO: {
             /** Format: uuid */
-            dockerResourceConfigId: string;
+            dockerHostId: string;
             label: string;
             image: string;
             /** @default latest */
@@ -7567,8 +7575,66 @@ export interface components {
                  */
                 protocol: "tcp" | "udp";
             }[];
+            /** @default {} */
+            config: {
+                volumes?: string[];
+                env?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    driver: string;
+                    deviceIds: string[];
+                };
+                extraHosts?: string[];
+                networkMode?: string;
+                capAdd?: string[];
+                capDrop?: string[];
+                securityOpt?: string[];
+                ports?: {
+                    host: number;
+                    container: number;
+                    /**
+                     * @default tcp
+                     * @enum {string}
+                     */
+                    protocol: "tcp" | "udp";
+                }[];
+                /** @enum {string} */
+                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                shmSize?: number;
+                tmpfs?: components["schemas"]["StringMapDTO"];
+                devices?: string[];
+                ulimits?: {
+                    [key: string]: {
+                        soft: number;
+                        hard: number;
+                    };
+                };
+                sysctls?: components["schemas"]["StringMapDTO"];
+                labels?: components["schemas"]["StringMapDTO"];
+                privileged?: boolean;
+                readOnly?: boolean;
+                user?: string;
+                workingDir?: string;
+                hostname?: string;
+                domainName?: string;
+                dns?: string[];
+                dnsSearch?: string[];
+                entrypoint?: string[];
+                command?: string[];
+                stopSignal?: string;
+                stopTimeout?: number;
+                memoryLimit?: number;
+                cpuShares?: number;
+                cpuQuota?: number;
+                pidsLimit?: number;
+                ipcMode?: string;
+                pidMode?: string;
+                cgroupParent?: string;
+                runtime?: string;
+            };
         };
         DockerStandaloneContainerUpdateDTO: {
+            /** Format: uuid */
+            dockerHostId?: string;
             label?: string;
             image?: string;
             /** @default latest */
@@ -7588,8 +7654,62 @@ export interface components {
                  */
                 protocol: "tcp" | "udp";
             }[];
-            /** Format: uuid */
-            dockerResourceConfigId?: string;
+            /** @default {} */
+            config: {
+                volumes?: string[];
+                env?: components["schemas"]["StringMapDTO"];
+                gpus?: {
+                    driver: string;
+                    deviceIds: string[];
+                };
+                extraHosts?: string[];
+                networkMode?: string;
+                capAdd?: string[];
+                capDrop?: string[];
+                securityOpt?: string[];
+                ports?: {
+                    host: number;
+                    container: number;
+                    /**
+                     * @default tcp
+                     * @enum {string}
+                     */
+                    protocol: "tcp" | "udp";
+                }[];
+                /** @enum {string} */
+                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+                shmSize?: number;
+                tmpfs?: components["schemas"]["StringMapDTO"];
+                devices?: string[];
+                ulimits?: {
+                    [key: string]: {
+                        soft: number;
+                        hard: number;
+                    };
+                };
+                sysctls?: components["schemas"]["StringMapDTO"];
+                labels?: components["schemas"]["StringMapDTO"];
+                privileged?: boolean;
+                readOnly?: boolean;
+                user?: string;
+                workingDir?: string;
+                hostname?: string;
+                domainName?: string;
+                dns?: string[];
+                dnsSearch?: string[];
+                entrypoint?: string[];
+                command?: string[];
+                stopSignal?: string;
+                stopTimeout?: number;
+                memoryLimit?: number;
+                cpuShares?: number;
+                cpuQuota?: number;
+                pidsLimit?: number;
+                ipcMode?: string;
+                pidMode?: string;
+                cgroupParent?: string;
+                runtime?: string;
+            };
         };
         DockerStandaloneContainerDeleteResponse: {
             /** @constant */
@@ -13017,289 +13137,6 @@ export interface operations {
             };
         };
     };
-    DockerResourceConfigs_list: {
-        parameters: {
-            query?: {
-                dockerHostId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigListResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerResourceConfigs_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DockerResourceConfigInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerResourceConfigs_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerResourceConfigs_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DockerResourceConfigUpdateDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerResourceConfigs_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigDeleteResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerResourceConfigs_findSimilar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigSimilarResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerResourceConfigs_clone: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DockerResourceConfigCloneInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerResourceConfigResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
     DockerProfileAssignments_list: {
         parameters: {
             query?: {
@@ -13358,6 +13195,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DockerProfileAssignmentResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerProfileAssignments_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+                profileKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerProfileResolveResponse"];
                 };
             };
             /** @description Server Error */
@@ -13479,46 +13356,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DockerProfileAssignmentDeleteResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerProfileAssignments_resolve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                appIdentifier: string;
-                profileKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerProfileResolveResponse"];
                 };
             };
             /** @description Server Error */

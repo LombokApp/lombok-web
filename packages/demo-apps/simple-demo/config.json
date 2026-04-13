@@ -113,17 +113,53 @@
     "user": {
       "type": "object",
       "properties": {
-        "api_key": { "type": "string", "description": "API key for external service" },
-        "max_retries": { "type": "integer", "minimum": 0, "maximum": 100, "default": 3 },
-        "theme": { "type": "string", "enum": ["light", "dark"], "default": "light" }
+        "api_key": {
+          "type": "string",
+          "description": "API key for external service"
+        },
+        "max_retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 3
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "light",
+            "dark"
+          ],
+          "default": "light"
+        }
       },
-      "required": ["api_key"]
+      "required": [
+        "api_key"
+      ]
     },
     "folder": {
       "type": "object",
       "properties": {
-        "auto_index": { "type": "boolean", "default": true }
+        "auto_index": {
+          "type": "boolean",
+          "default": true
+        }
       }
+    }
+  },
+  "containerProfiles": {
+    "demo_container_profile": {
+      "image": "docker.io/library/nginx:latest",
+      "workers": [
+        {
+          "kind": "exec",
+          "command": [
+            "nginx",
+            "-g",
+            "daemon off;"
+          ],
+          "jobIdentifier": "demo_nginx_job"
+        }
+      ]
     }
   },
   "contributions": {
