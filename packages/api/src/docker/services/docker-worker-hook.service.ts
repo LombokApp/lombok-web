@@ -671,7 +671,7 @@ export class DockerWorkerHookService {
 
       const forwardHeaders: Record<string, string> = {
         ...requestContext.headers,
-        Host: `app-server--${appIdentifier}.apps.localhost`,
+        Host: `app-server--${appIdentifier}.localhost`,
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       }
 

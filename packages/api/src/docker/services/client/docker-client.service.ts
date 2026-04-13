@@ -1074,6 +1074,6 @@ export class DockerClientService {
       typeof platformPort === 'number' && ![80, 443].includes(platformPort)
         ? `:${platformPort}`
         : ''
-    return `${protocol}://${label}--${publicId}--${appIdentifier}.apps.${platformHost}${portSuffix}`
+    return `${protocol}://${label}--${publicId}--${appIdentifier}.${platformHost}${portSuffix}`
   }
 }

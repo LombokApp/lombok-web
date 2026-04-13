@@ -70,7 +70,7 @@ export function FolderObjectDetailViewEmbedSelector({
             <div className="flex items-center gap-2">
               {option.iconPath && (
                 <img
-                  src={`${window.location.protocol}//${option.appIdentifier}.apps.${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}${option.iconPath ?? ''}`}
+                  src={`${window.location.protocol}//${option.appIdentifier}.${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}${option.iconPath ?? ''}`}
                   alt=""
                   className="size-4 object-contain"
                 />

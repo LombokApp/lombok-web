@@ -476,7 +476,7 @@ describe('Core Worker', () => {
   it('should serve UI bundle via core worker server', async () => {
     const response = await fetch('http://127.0.0.1:3001/', {
       headers: {
-        host: `app-server--${installedAppIdentifier}.apps.localhost`,
+        host: `app-server--${installedAppIdentifier}.localhost`,
       },
     })
     const bodyText = await response.text()

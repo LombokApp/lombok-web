@@ -472,7 +472,7 @@ controller only — no global middleware needed.
 **File:** `packages/api/src/docker/controllers/tunnel-auth.controller.ts` line 168
 
 ```typescript
-// BEFORE — produced http://foo.apps.example.com:8080:3000/...
+// BEFORE — produced http://foo.example.com:8080:3000/...
 const tunnelOrigin = `${req.protocol}://${tunnelHost}`
 const landingUrl = `${tunnelOrigin}:${this.config.platformPort}/...`
 ```
