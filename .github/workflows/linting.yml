@@ -18,7 +18,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/ui prettier:check
       - run: bun --cwd packages/ui lint:check
@@ -34,7 +34,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/api prettier:check
       - run: bun --cwd packages/api lint:check
@@ -50,7 +50,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/core-worker prettier:check
       - run: bun --cwd packages/core-worker lint:check
@@ -66,7 +66,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/worker-utils prettier:check
       - run: bun --cwd packages/worker-utils lint:check
@@ -82,7 +82,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
 
       - run: bun install
       - run: bun --cwd packages/app-browser-sdk prettier:check
@@ -99,7 +99,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
 
       - run: bun install
       - run: bun --cwd packages/app-worker-sdk prettier:check
@@ -116,7 +116,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
 
       - run: bun install
       - run: bun install --cwd packages/demo-apps/simple-demo
@@ -134,7 +134,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
 
       - run: bun install
       - run: bun --cwd packages/sdk prettier:check
@@ -151,7 +151,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/auth-utils prettier:check
       - run: bun --cwd packages/auth-utils lint:check
@@ -167,7 +167,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/utils prettier:check
       - run: bun --cwd packages/utils lint:check
@@ -183,7 +183,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/types prettier:check
       - run: bun --cwd packages/types lint:check
@@ -199,7 +199,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.3.12
       - run: bun install
       - run: bun --cwd packages/ui-toolkit prettier:check
       - run: bun --cwd packages/ui-toolkit lint:check
