@@ -14,7 +14,6 @@ import type {
 export function transformDockerHostToDTO(host: DockerHost): DockerHostDTO {
   return {
     id: host.id,
-    identifier: host.identifier,
     label: host.label,
     type: host.type,
     host: host.host,

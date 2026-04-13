@@ -7082,7 +7082,6 @@ export interface components {
         DockerHostListResponse: {
             result: {
                 id: string;
-                identifier: string;
                 label: string;
                 /** @enum {string} */
                 type: "docker_endpoint";
@@ -7104,7 +7103,6 @@ export interface components {
         DockerHostResponse: {
             result: {
                 id: string;
-                identifier: string;
                 label: string;
                 /** @enum {string} */
                 type: "docker_endpoint";
@@ -7124,7 +7122,6 @@ export interface components {
             };
         };
         DockerHostInputDTO: {
-            identifier: string;
             label: string;
             /** @enum {string} */
             type: "docker_endpoint";
@@ -7138,7 +7135,6 @@ export interface components {
             enabled?: boolean;
         };
         DockerHostUpdateDTO: {
-            identifier?: string;
             label?: string;
             /** @enum {string} */
             type?: "docker_endpoint";
@@ -7493,7 +7489,6 @@ export interface components {
         DockerProfileResolveResponse: {
             result: {
                 hostId: string;
-                hostIdentifier: string;
                 hostLabel: string;
                 hostEndpoint: string;
                 resourceConfig: {

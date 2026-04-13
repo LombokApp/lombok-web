@@ -29,7 +29,6 @@ export function CreateDockerHostDialog({
   onOpenChange: (open: boolean) => void
   onCreated: () => void
 }) {
-  const [identifier, setIdentifier] = React.useState('')
   const [label, setLabel] = React.useState('')
   const [host, setHost] = React.useState('')
   const [type] = React.useState<'docker_endpoint'>('docker_endpoint')
@@ -38,7 +37,6 @@ export function CreateDockerHostDialog({
   const [submitting, setSubmitting] = React.useState(false)
 
   const resetForm = () => {
-    setIdentifier('')
     setLabel('')
     setHost('')
     setIsDefault(false)
@@ -55,7 +53,6 @@ export function CreateDockerHostDialog({
         '/api/v1/docker/hosts',
         {
           body: {
-            identifier,
             label,
             host,
             type,
@@ -102,21 +99,6 @@ export function CreateDockerHostDialog({
 
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="identifier">Identifier</Label>
-            <Input
-              id="identifier"
-              placeholder="e.g. local, homelab, gpu-server"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              required
-              pattern="^[a-z][a-z0-9_-]*$"
-            />
-            <p className="text-xs text-muted-foreground">
-              Lowercase slug used in config references.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
             <Label htmlFor="label">Label</Label>
             <Input
               id="label"
@@ -161,7 +143,7 @@ export function CreateDockerHostDialog({
             </Button>
             <Button
               type="submit"
-              disabled={submitting || !identifier || !label || !host}
+              disabled={submitting || !label || !host}
             >
               {submitting ? 'Creating...' : 'Create Host'}
             </Button>

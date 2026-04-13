@@ -6,7 +6,6 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 
@@ -16,7 +15,6 @@ export const dockerHostsTable = pgTable(
   'docker_hosts',
   {
     id: uuid('id').primaryKey(),
-    identifier: text('identifier').notNull(),
     label: text('label').notNull(),
     type: text('type').notNull().$type<'docker_endpoint'>(),
     host: text('host').notNull(),
@@ -36,7 +34,6 @@ export const dockerHostsTable = pgTable(
     updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
-    uniqueIndex('docker_hosts_identifier_unique').on(table.identifier),
     index('docker_hosts_is_default_idx').on(table.isDefault),
     index('docker_hosts_enabled_idx').on(table.enabled),
   ],

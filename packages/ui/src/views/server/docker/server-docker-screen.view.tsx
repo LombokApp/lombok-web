@@ -45,7 +45,6 @@ import type {
 
 interface HostRow {
   id: string
-  identifier: string
   label: string
   host: string
   type: string
@@ -59,7 +58,7 @@ interface HostRow {
 
 interface ContainerRow extends DockerHostContainerState {
   hostId: string
-  hostIdentifier: string
+  hostLabel: string
 }
 
 interface ProfileRow {
@@ -85,7 +84,7 @@ const createHostColumns = (
     zeroWidth: true,
   },
   {
-    accessorKey: 'identifier',
+    accessorKey: 'label',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
@@ -211,8 +210,8 @@ const createHostColumns = (
               <AlertDialogTitle>Delete Docker Host</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete{' '}
-                <span className="font-medium">{row.original.label}</span> (
-                {row.original.identifier})? This cannot be undone.
+                <span className="font-medium">{row.original.label}</span>?
+                This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -262,7 +261,7 @@ const containerColumns: HideableColumnDef<ContainerRow>[] = [
           {row.original.id.slice(0, 12)}
         </span>
         <span className="text-xs text-muted-foreground">
-          {row.original.hostIdentifier}
+          {row.original.hostLabel}
         </span>
       </div>
     ),
@@ -487,7 +486,6 @@ export function ServerDockerScreen() {
       const containers = state?.containers ?? []
       return {
         id: host.id,
-        identifier: host.identifier,
         label: host.label,
         host: host.host,
         type: host.type,
@@ -506,14 +504,14 @@ export function ServerDockerScreen() {
 
   const containerRows = React.useMemo<ContainerRow[]>(() => {
     const hosts = hostsQuery.data?.result ?? []
-    const hostIdToIdentifier = new Map(hosts.map((h) => [h.id, h.identifier]))
+    const hostIdToLabel = new Map(hosts.map((h) => [h.id, h.label]))
     const stateHosts = stateQuery.data?.hosts ?? []
 
     return stateHosts.flatMap((hostState) =>
       hostState.containers.map((container) => ({
         ...container,
         hostId: hostState.id,
-        hostIdentifier: hostIdToIdentifier.get(hostState.id) ?? hostState.id,
+        hostLabel: hostIdToLabel.get(hostState.id) ?? hostState.id,
       })),
     )
   }, [hostsQuery.data, stateQuery.data])

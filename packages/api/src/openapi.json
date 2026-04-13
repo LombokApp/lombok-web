@@ -31480,9 +31480,6 @@
                 "id": {
                   "type": "string"
                 },
-                "identifier": {
-                  "type": "string"
-                },
                 "label": {
                   "type": "string"
                 },
@@ -31541,7 +31538,6 @@
               },
               "required": [
                 "id",
-                "identifier",
                 "label",
                 "type",
                 "host",
@@ -31567,9 +31563,6 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
-              },
-              "identifier": {
                 "type": "string"
               },
               "label": {
@@ -31630,7 +31623,6 @@
             },
             "required": [
               "id",
-              "identifier",
               "label",
               "type",
               "host",
@@ -31651,12 +31643,6 @@
       "DockerHostInputDTO": {
         "type": "object",
         "properties": {
-          "identifier": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "^[a-z][a-z0-9_-]*$"
-          },
           "label": {
             "type": "string",
             "minLength": 1,
@@ -31694,7 +31680,6 @@
           }
         },
         "required": [
-          "identifier",
           "label",
           "type",
           "host"
@@ -31703,12 +31688,6 @@
       "DockerHostUpdateDTO": {
         "type": "object",
         "properties": {
-          "identifier": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "^[a-z][a-z0-9_-]*$"
-          },
           "label": {
             "type": "string",
             "minLength": 1,
@@ -33071,9 +33050,6 @@
               "hostId": {
                 "type": "string"
               },
-              "hostIdentifier": {
-                "type": "string"
-              },
               "hostLabel": {
                 "type": "string"
               },
@@ -33300,7 +33276,6 @@
             },
             "required": [
               "hostId",
-              "hostIdentifier",
               "hostLabel",
               "hostEndpoint",
               "resourceConfig"

@@ -118,7 +118,6 @@ CREATE TABLE "comments" (
 --> statement-breakpoint
 CREATE TABLE "docker_hosts" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"identifier" text NOT NULL,
 	"label" text NOT NULL,
 	"type" text NOT NULL,
 	"host" text NOT NULL,
@@ -430,7 +429,6 @@ CREATE INDEX "idx_comments_folder_object_roots" ON "comments" USING btree ("fold
 CREATE INDEX "idx_comments_thread_flat" ON "comments" USING btree ("root_id","created_at") WHERE root_id IS NOT NULL AND deleted_at IS NULL;--> statement-breakpoint
 CREATE INDEX "idx_comments_tombstone_lookup" ON "comments" USING btree ("id","deleted_at","author_id");--> statement-breakpoint
 CREATE INDEX "idx_comments_folder_id" ON "comments" USING btree ("folder_id","created_at");--> statement-breakpoint
-CREATE UNIQUE INDEX "docker_hosts_identifier_unique" ON "docker_hosts" USING btree ("identifier");--> statement-breakpoint
 CREATE INDEX "docker_hosts_is_default_idx" ON "docker_hosts" USING btree ("is_default");--> statement-breakpoint
 CREATE INDEX "docker_hosts_enabled_idx" ON "docker_hosts" USING btree ("enabled");--> statement-breakpoint
 CREATE UNIQUE INDEX "docker_profile_resource_assignments_app_profile_unique" ON "docker_profile_resource_assignments" USING btree ("app_identifier","profile_key");--> statement-breakpoint

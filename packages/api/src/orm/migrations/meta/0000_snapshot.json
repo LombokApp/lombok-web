@@ -1,5 +1,5 @@
 {
-  "id": "ea872096-a88b-40f0-abcb-77d65d1f0a8e",
+  "id": "565cba9c-0269-4144-a36a-ef2ea2bbc815",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1231,12 +1231,6 @@
           "primaryKey": true,
           "notNull": true
         },
-        "identifier": {
-          "name": "identifier",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "label": {
           "name": "label",
           "type": "text",
@@ -1302,21 +1296,6 @@
         }
       },
       "indexes": {
-        "docker_hosts_identifier_unique": {
-          "name": "docker_hosts_identifier_unique",
-          "columns": [
-            {
-              "expression": "identifier",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "docker_hosts_is_default_idx": {
           "name": "docker_hosts_is_default_idx",
           "columns": [

@@ -63,7 +63,7 @@ export class DockerHostManagementService {
 
   async listHosts(): Promise<DockerHost[]> {
     return this.ormService.db.query.dockerHostsTable.findMany({
-      orderBy: (hosts, { asc }) => [asc(hosts.identifier)],
+      orderBy: (hosts, { asc }) => [asc(hosts.label)],
     })
   }
 
@@ -82,7 +82,6 @@ export class DockerHostManagementService {
   }
 
   async createHost(input: {
-    identifier: string
     label: string
     type: 'docker_endpoint'
     host: string
@@ -101,7 +100,6 @@ export class DockerHostManagementService {
       .insert(dockerHostsTable)
       .values({
         id,
-        identifier: input.identifier,
         label: input.label,
         type: input.type,
         host: input.host,
@@ -125,7 +123,6 @@ export class DockerHostManagementService {
   async updateHost(
     id: string,
     input: Partial<{
-      identifier: string
       label: string
       type: 'docker_endpoint'
       host: string

@@ -13,7 +13,6 @@ const successResponseSchema = z.object({
 
 export const dockerHostDTOSchema = z.object({
   id: z.string(),
-  identifier: z.string(),
   label: z.string(),
   type: z.enum(['docker_endpoint']),
   host: z.string(),
@@ -142,7 +141,6 @@ export class DockerProfileResolveResponse extends createZodDto(
   z.object({
     result: z.object({
       hostId: z.string(),
-      hostIdentifier: z.string(),
       hostLabel: z.string(),
       hostEndpoint: z.string(),
       resourceConfig: dockerResourceConfigDataSchema.nullable(),

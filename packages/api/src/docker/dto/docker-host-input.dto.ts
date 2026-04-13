@@ -2,11 +2,6 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const dockerHostInputSchema = z.object({
-  identifier: z
-    .string()
-    .min(1)
-    .max(64)
-    .regex(/^[a-z][a-z0-9_-]*$/),
   label: z.string().min(1).max(128),
   type: z.enum(['docker_endpoint']),
   host: z.string().min(1),

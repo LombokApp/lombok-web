@@ -380,7 +380,6 @@ export class DockerProfileAssignmentsController {
     return {
       result: {
         hostId: resolved.hostId,
-        hostIdentifier: resolved.host.identifier,
         hostLabel: resolved.host.label,
         hostEndpoint: resolved.host.host,
         resourceConfig: resolved.resourceConfig,
