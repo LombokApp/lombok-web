@@ -92,7 +92,7 @@ export const coreConfig = registerAs('core', () => {
         .optional(),
       PLATFORM_HOST: z.string(),
       PLATFORM_PORT: z.string().refine(isInteger).optional(),
-      PLATFORM_HTTPS: z.literal('false').or(z.literal('0')).optional(),
+      PLATFORM_HTTPS: z.string().refine(isBoolean).default('true'),
       INITIAL_USER: z.string().optional(),
       DISABLE_CORE_WORKER: z.string().refine(isBoolean).optional(),
       INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),

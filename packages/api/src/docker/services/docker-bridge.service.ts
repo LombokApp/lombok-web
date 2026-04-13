@@ -57,12 +57,6 @@ export class DockerBridgeService {
   }
 
   async startBridge(): Promise<void> {
-    const hasDocker = this.hasDockerSocket()
-    if (!hasDocker) {
-      this.logger.warn('No Docker socket found, skipping bridge startup')
-      return
-    }
-
     const hosts = this.config.dockerHostConfig.hosts
     if (!hosts || Object.keys(hosts).length === 0) {
       this.logger.warn('No Docker hosts configured, skipping bridge startup')
@@ -353,13 +347,5 @@ export class DockerBridgeService {
       )
     }
     return secret
-  }
-
-  private hasDockerSocket(): boolean {
-    try {
-      return fs.statSync('/var/run/docker.sock').isSocket()
-    } catch {
-      return false
-    }
   }
 }
