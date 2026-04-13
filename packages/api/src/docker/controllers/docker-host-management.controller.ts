@@ -26,14 +26,17 @@ import {
   DockerProfileAssignmentInputDTO,
   DockerProfileAssignmentUpdateDTO,
 } from '../dto/docker-profile-assignment-input.dto'
+import { DockerProfileAssignmentListQueryParamsDTO } from '../dto/docker-profile-assignment-list-query-params.dto'
 import {
   DockerRegistryCredentialInputDTO,
   DockerRegistryCredentialUpdateDTO,
 } from '../dto/docker-registry-credential-input.dto'
+import { DockerResourceConfigCloneInputDTO } from '../dto/docker-resource-config-clone-input.dto'
 import {
   DockerResourceConfigInputDTO,
   DockerResourceConfigUpdateDTO,
 } from '../dto/docker-resource-config-input.dto'
+import { DockerResourceConfigListQueryParamsDTO } from '../dto/docker-resource-config-list-query-params.dto'
 import {
   DockerStandaloneContainerInputDTO,
   DockerStandaloneContainerUpdateDTO,
@@ -209,10 +212,10 @@ export class DockerResourceConfigsController {
   @Get()
   async list(
     @Req() req: express.Request,
-    @Query('dockerHostId') dockerHostId?: string,
+    @Query() query: DockerResourceConfigListQueryParamsDTO,
   ): Promise<DockerResourceConfigListResponse> {
     assertAdmin(req)
-    const configs = await this.service.listResourceConfigs(dockerHostId)
+    const configs = await this.service.listResourceConfigs(query.dockerHostId)
     return { result: configs.map(transformDockerResourceConfigToDTO) }
   }
 
@@ -255,7 +258,7 @@ export class DockerResourceConfigsController {
   async clone(
     @Req() req: express.Request,
     @Param('id') id: string,
-    @Body() input: { label?: string },
+    @Body() input: DockerResourceConfigCloneInputDTO,
   ): Promise<DockerResourceConfigResponse> {
     assertAdmin(req)
     return {
@@ -304,10 +307,12 @@ export class DockerProfileAssignmentsController {
   @Get()
   async list(
     @Req() req: express.Request,
-    @Query('appIdentifier') appIdentifier?: string,
+    @Query() query: DockerProfileAssignmentListQueryParamsDTO,
   ): Promise<DockerProfileAssignmentListResponse> {
     assertAdmin(req)
-    const assignments = await this.service.listProfileAssignments(appIdentifier)
+    const assignments = await this.service.listProfileAssignments(
+      query.appIdentifier,
+    )
     return { result: assignments.map(transformDockerProfileAssignmentToDTO) }
   }
 

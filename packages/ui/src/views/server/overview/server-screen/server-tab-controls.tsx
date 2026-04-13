@@ -5,15 +5,24 @@ import {
   FileText,
   LayoutGrid,
   ListChecks,
-  Server,
   Settings,
   Users,
 } from 'lucide-react'
+
+import { DockerIcon } from '@/src/components/icons/docker-icon'
 
 interface ServerTabControlsProps {
   serverPage: string[]
   navigate: (path: string) => void
 }
+
+const BUTTON_STYLE =
+  'ring-offset-background focus-visible:ring-ring text-muted-foreground ' +
+  'data-[state=active]:bg-background data-[state=active]:text-foreground ' +
+  'inline-flex items-center justify-center whitespace-nowrap rounded-sm ' +
+  'px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none ' +
+  'focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none ' +
+  'disabled:opacity-50 data-[state=active]:shadow-sm'
 
 export function ServerTabControls({
   serverPage,
@@ -35,11 +44,7 @@ export function ServerTabControls({
         aria-controls="overview-tab-content"
         data-state={serverPage[0] === 'overview' ? 'active' : 'inactive'}
         id="overview-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'overview' &&
-            'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server')}
@@ -56,11 +61,7 @@ export function ServerTabControls({
         aria-controls="users-tab-content"
         data-state={serverPage[0] === 'users' ? 'active' : 'inactive'}
         id="users-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'users' &&
-            'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/users')}
@@ -77,10 +78,7 @@ export function ServerTabControls({
         aria-controls="apps-tab-content"
         data-state={serverPage[0] === 'apps' ? 'active' : 'inactive'}
         id="apps-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'apps' && 'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/apps')}
@@ -97,17 +95,13 @@ export function ServerTabControls({
         aria-controls="docker-tab-content"
         data-state={serverPage[0] === 'docker' ? 'active' : 'inactive'}
         id="docker-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'docker' &&
-            'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/docker')}
       >
         <div className="flex items-center gap-2">
-          <Server className="size-4" />
+          <DockerIcon className="size-4" />
           Docker
         </div>
       </button>
@@ -118,11 +112,7 @@ export function ServerTabControls({
         aria-controls="events-tab-content"
         data-state={serverPage[0] === 'events' ? 'active' : 'inactive'}
         id="events-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'events' &&
-            'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/events')}
@@ -139,11 +129,7 @@ export function ServerTabControls({
         aria-controls="tasks-tab-content"
         data-state={serverPage[0] === 'tasks' ? 'active' : 'inactive'}
         id="tasks-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'tasks' &&
-            'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/tasks')}
@@ -160,10 +146,7 @@ export function ServerTabControls({
         aria-controls="logs-tab-content"
         data-state={serverPage[0] === 'logs' ? 'active' : 'inactive'}
         id="logs-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'logs' && 'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/logs')}
@@ -180,11 +163,7 @@ export function ServerTabControls({
         aria-controls="settings-tab-content"
         data-state={serverPage[0] === 'settings' ? 'active' : 'inactive'}
         id="settings-tab-trigger"
-        className={cn(
-          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
-          serverPage[0] === 'settings' &&
-            'bg-background text-foreground shadow-sm',
-        )}
+        className={cn(BUTTON_STYLE)}
         tabIndex={-1}
         data-orientation="horizontal"
         onClick={() => navigate('/server/settings')}

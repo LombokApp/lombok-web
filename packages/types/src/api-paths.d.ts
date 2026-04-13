@@ -7391,6 +7391,9 @@ export interface components {
                 runtime?: string;
             };
         };
+        DockerResourceConfigCloneInputDTO: {
+            label?: string;
+        };
         DockerResourceConfigUpdateDTO: {
             label?: string;
             config?: {
@@ -13101,8 +13104,8 @@ export interface operations {
     };
     DockerResourceConfigs_list: {
         parameters: {
-            query: {
-                dockerHostId: string;
+            query?: {
+                dockerHostId?: string;
             };
             header?: never;
             path?: never;
@@ -13348,7 +13351,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerResourceConfigCloneInputDTO"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -13380,8 +13387,8 @@ export interface operations {
     };
     DockerProfileAssignments_list: {
         parameters: {
-            query: {
-                appIdentifier: string;
+            query?: {
+                appIdentifier?: string;
             };
             header?: never;
             path?: never;

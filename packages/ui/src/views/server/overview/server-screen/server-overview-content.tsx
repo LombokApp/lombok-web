@@ -103,10 +103,6 @@ export function ServerOverviewContent() {
             subtitle: `+${metrics.sessionsCreatedPrevious24Hours} in the last 24 hours`,
             icon: HardDrive,
           },
-        ]}
-      />
-      <StatCardGroup
-        stats={[
           {
             title: 'Total Indexed Storage',
             label: formatBytes(metrics.totalIndexedSizeBytes),
