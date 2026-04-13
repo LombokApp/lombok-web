@@ -8,13 +8,7 @@ import {
 } from '@lombokapp/ui-toolkit/components/dialog'
 import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import { Label } from '@lombokapp/ui-toolkit/components/label/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@lombokapp/ui-toolkit/components/select/select'
+
 import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
 import React from 'react'
 

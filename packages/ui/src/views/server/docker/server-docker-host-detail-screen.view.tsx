@@ -1,23 +1,50 @@
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@lombokapp/ui-toolkit/components/alert-dialog'
+import {
   Badge,
   BadgeVariant,
 } from '@lombokapp/ui-toolkit/components/badge/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { formatBytes } from '@lombokapp/utils'
-import { Server } from 'lucide-react'
+import {
+  ArrowLeft,
+  Container,
+  Layers,
+  RefreshCcw,
+  Server,
+  Settings2,
+  Trash2,
+} from 'lucide-react'
+import React from 'react'
+import { useNavigate } from 'react-router'
 
+import { DateDisplay } from '@/src/components/date-display'
 import { EmptyState } from '@/src/components/empty-state/empty-state'
-import { $api } from '@/src/services/api'
+import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
+import { $api, $apiClient } from '@/src/services/api'
 
 import type {
-  DockerHostConfigSummary,
   DockerHostConnectionState,
   DockerHostState,
 } from './server-docker.types'
 import { createServerDockerHostContainersTableColumns } from './server-docker-host-containers-table-columns'
+
+// ─── Constants ────────────────────────────────────────────────────────────
 
 const ROW_CLASS =
   'grid grid-cols-1 gap-2 border-b border-muted/30 py-3 last:border-b-0 sm:grid-cols-3'
@@ -25,44 +52,82 @@ const LABEL_CLASS =
   'text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 const VALUE_CLASS = 'text-sm'
 
-const renderInlineList = (items: string[], emptyLabel = 'None') => {
-  if (!items.length) {
-    return <span className="italic opacity-50">{emptyLabel}</span>
-  }
+// ─── Resource config row type ─────────────────────────────────────────────
 
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((item) => (
-        <Badge
-          key={item}
-          variant={BadgeVariant.outline}
-          className="truncate text-xs"
-        >
-          {item}
-        </Badge>
-      ))}
-    </div>
-  )
+interface ResourceConfigRow {
+  id: string
+  label: string
+  configSummary: string
+  createdAt: string
 }
 
-const renderProfileOverrides = <T,>(
-  overrides: Record<string, T> | undefined,
-  formatValue: (value: T) => string,
-) => {
-  if (!overrides || Object.keys(overrides).length === 0) {
-    return <span className="italic opacity-50">None</span>
-  }
+// ─── Resource config columns ──────────────────────────────────────────────
 
-  return (
-    <div className="flex flex-col gap-2">
-      {Object.entries(overrides).map(([profileKey, value]) => (
-        <div key={profileKey} className="truncate text-xs">
-          <span className="font-medium">{profileKey}</span>
-          <span className="text-muted-foreground"> — {formatValue(value)}</span>
-        </div>
-      ))}
-    </div>
-  )
+const resourceConfigColumns: HideableColumnDef<ResourceConfigRow>[] = [
+  {
+    accessorKey: 'label',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Label"
+      />
+    ),
+    cell: ({ row }) => (
+      <span className="font-medium">{row.original.label}</span>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    id: 'configSummary',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Configuration"
+      />
+    ),
+    cell: ({ row }) => (
+      <span className="text-xs text-muted-foreground">
+        {row.original.configSummary}
+      </span>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'createdAt',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Created"
+      />
+    ),
+    cell: ({ row }) => (
+      <span className="text-xs">
+        <DateDisplay date={row.original.createdAt} showTimeSince={true} />
+      </span>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+]
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function summarizeConfig(config: Record<string, unknown>): string {
+  const parts: string[] = []
+  if (config.gpus) parts.push('GPU')
+  if (config.volumes) parts.push('Volumes')
+  if (config.networkMode) parts.push(`Net: ${config.networkMode}`)
+  if (config.ports) parts.push('Ports')
+  if (config.memoryLimit) parts.push(`Mem: ${formatBytes(config.memoryLimit as number)}`)
+  if (config.cpuShares) parts.push(`CPU: ${config.cpuShares}`)
+  if (config.privileged) parts.push('Privileged')
+  if (config.env) parts.push('Env')
+  return parts.length > 0 ? parts.join(', ') : 'Default'
 }
 
 const renderConnectionBadge = (connection?: DockerHostConnectionState) => {
@@ -103,35 +168,71 @@ const renderConnectionValue = (
   )
 }
 
-export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
-  const configQuery = $api.useQuery('get', '/api/v1/server/docker-hosts')
-  const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
+// ─── Main screen ──────────────────────────────────────────────────────────
 
-  const hostConfig: DockerHostConfigSummary | undefined =
-    configQuery.data?.hosts.find((host) => host.id === hostId)
+export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
+  const navigate = useNavigate()
+
+  // New DB-backed host detail
+  const hostQuery = $api.useQuery('get', '/api/v1/docker/hosts/{id}', {
+    params: { path: { id: hostId } },
+  })
+  // Runtime state from bridge
+  const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
+  // Resource configs for this host
+  const configsQuery = $api.useQuery('get', '/api/v1/docker/resource-configs', {
+    params: { query: { dockerHostId: hostId } },
+  })
+
+  const host = hostQuery.data?.result
   const hostState: DockerHostState | undefined = stateQuery.data?.hosts.find(
-    (host) => host.id === hostId,
+    (h) => h.id === hostId,
   )
   const containers = hostState?.containers ?? []
-  const runningContainers = containers.filter(
-    (container) => container.state === 'running',
-  ).length
+  const runningContainers = containers.filter((c) => c.state === 'running').length
+  const resourceConfigs = configsQuery.data?.result ?? []
 
-  if (configQuery.isError) {
+  const isLoading = hostQuery.isLoading || stateQuery.isLoading
+
+  // ─── Delete handler ───────────────────────────────────────────────────
+
+  const handleDelete = React.useCallback(async () => {
+    await $apiClient.DELETE('/api/v1/docker/hosts/{id}', {
+      params: { path: { id: hostId } },
+    })
+    void navigate('/server/docker')
+  }, [hostId, navigate])
+
+  // ─── Resource config rows ─────────────────────────────────────────────
+
+  const configRows = React.useMemo<ResourceConfigRow[]>(
+    () =>
+      resourceConfigs.map((cfg) => ({
+        id: cfg.id,
+        label: cfg.label,
+        configSummary: summarizeConfig(cfg.config as Record<string, unknown>),
+        createdAt: cfg.createdAt,
+      })),
+    [resourceConfigs],
+  )
+
+  // ─── Error state ──────────────────────────────────────────────────────
+
+  if (hostQuery.isError) {
     return (
       <div className="flex flex-1 items-center justify-center text-sm text-destructive">
-        Failed to load docker host configuration.
+        Failed to load docker host.
       </div>
     )
   }
 
-  if (!hostConfig && !configQuery.isLoading) {
+  if (!host && !hostQuery.isLoading) {
     return (
       <EmptyState text="Docker host not found" icon={Server} variant="row" />
     )
   }
 
-  if (!hostConfig) {
+  if (!host) {
     return (
       <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         Loading docker host...
@@ -139,61 +240,124 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
     )
   }
 
+  // ─── Render ───────────────────────────────────────────────────────────
+
   return (
     <div className="flex size-full flex-1 flex-col gap-6 overflow-y-auto pb-6">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold tracking-tight">{hostConfig.id}</h1>
-          {renderConnectionBadge(hostState?.connection)}
+      {/* Header */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0"
+              onClick={() => void navigate('/server/docker')}
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+            <h1 className="text-2xl font-semibold">{host.label}</h1>
+            {renderConnectionBadge(hostState?.connection)}
+            {host.isDefault && (
+              <Badge variant={BadgeVariant.secondary} className="text-xs">
+                default
+              </Badge>
+            )}
+            {!host.enabled && (
+              <Badge variant={BadgeVariant.outline} className="text-xs">
+                disabled
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">{host.host}</p>
         </div>
-        <p className="text-muted-foreground">{hostConfig.host}</p>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isLoading}
+            onClick={() => {
+              void hostQuery.refetch()
+              void stateQuery.refetch()
+              void configsQuery.refetch()
+            }}
+          >
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Trash2 className="mr-2 size-4" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Docker Host</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete{' '}
+                  <span className="font-medium">{host.label}</span>? This
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => void handleDelete()}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-lg border border-muted/40 bg-muted/10 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Containers
-          </div>
-          <div className="mt-2 text-2xl font-semibold">
-            {containers.length
+      {/* Stats */}
+      <StatCardGroup
+        stats={[
+          {
+            title: 'Status',
+            label: hostState?.connection?.success ? 'Connected' : 'Offline',
+            subtitle: hostState?.connection?.version
+              ? `Docker ${hostState.connection.version}`
+              : 'No connection data',
+            icon: Server,
+          },
+          {
+            title: 'Containers',
+            label: containers.length
               ? `${runningContainers}/${containers.length}`
-              : '0'}
-          </div>
-          <div className="text-xs text-muted-foreground">Running</div>
-        </div>
-        <div className="rounded-lg border border-muted/40 bg-muted/10 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Assigned Profiles
-          </div>
-          <div className="mt-2 text-2xl font-semibold">
-            {hostConfig.assignedProfiles.length}
-          </div>
-          <div className="text-xs text-muted-foreground">Total</div>
-        </div>
-        <div className="rounded-lg border border-muted/40 bg-muted/10 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            CPU Cores
-          </div>
-          <div className="mt-2 text-2xl font-semibold">
-            {hostState?.resources?.cpuCores !== undefined
-              ? hostState.resources.cpuCores
-              : '—'}
-          </div>
-          <div className="text-xs text-muted-foreground">Available</div>
-        </div>
-        <div className="rounded-lg border border-muted/40 bg-muted/10 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Memory
-          </div>
-          <div className="mt-2 text-2xl font-semibold">
-            {hostState?.resources?.memoryBytes !== undefined
-              ? formatBytes(hostState.resources.memoryBytes)
-              : '—'}
-          </div>
-          <div className="text-xs text-muted-foreground">Available</div>
-        </div>
-      </div>
+              : '0',
+            subtitle: containers.length
+              ? `${runningContainers} running`
+              : 'No containers',
+            icon: Container,
+          },
+          {
+            title: 'Resource Configs',
+            label: String(resourceConfigs.length),
+            subtitle: `${resourceConfigs.length} template${resourceConfigs.length === 1 ? '' : 's'}`,
+            icon: Settings2,
+          },
+          {
+            title: 'Memory',
+            label:
+              hostState?.resources?.memoryBytes !== undefined
+                ? formatBytes(hostState.resources.memoryBytes)
+                : '—',
+            subtitle:
+              hostState?.resources?.cpuCores !== undefined
+                ? `${hostState.resources.cpuCores} CPU cores`
+                : 'Unknown resources',
+            icon: Layers,
+          },
+        ]}
+      />
 
+      {/* Connection + Host Info */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -240,103 +404,110 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
             <div className="space-y-1">
               <CardTitle className="text-lg">Host Configuration</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Assigned profiles and per-profile overrides.
+                Stored settings and endpoint details.
               </p>
             </div>
             <Badge variant={BadgeVariant.outline} className="text-xs uppercase">
-              {hostConfig.type}
+              {host.type.replace('_', ' ')}
             </Badge>
           </CardHeader>
           <div className="space-y-0 px-6 pb-6">
             <div className={ROW_CLASS}>
-              <div className={LABEL_CLASS}>Assigned Profiles</div>
-              <div className={cn(VALUE_CLASS, 'col-span-2')}>
-                {renderInlineList(hostConfig.assignedProfiles)}
+              <div className={LABEL_CLASS}>Endpoint</div>
+              <div className={cn(VALUE_CLASS, 'col-span-2 font-mono text-xs')}>
+                {host.host}
               </div>
             </div>
             <div className={ROW_CLASS}>
-              <div className={LABEL_CLASS}>Network Modes</div>
-              <div className={cn(VALUE_CLASS, 'col-span-2')}>
-                {renderProfileOverrides(
-                  hostConfig.networkMode,
-                  (value) => value,
+              <div className={LABEL_CLASS}>Health Status</div>
+              <div className={VALUE_CLASS}>
+                <Badge
+                  variant={
+                    host.healthStatus === 'healthy'
+                      ? BadgeVariant.secondary
+                      : host.healthStatus === 'unhealthy'
+                        ? BadgeVariant.destructive
+                        : BadgeVariant.outline
+                  }
+                  className="text-xs capitalize"
+                >
+                  {host.healthStatus}
+                </Badge>
+              </div>
+            </div>
+            <div className={ROW_CLASS}>
+              <div className={LABEL_CLASS}>Last Health Check</div>
+              <div className={VALUE_CLASS}>
+                {host.lastHealthCheck ? (
+                  <DateDisplay
+                    date={host.lastHealthCheck}
+                    showTimeSince={true}
+                  />
+                ) : (
+                  <span className="italic opacity-50">Never</span>
                 )}
               </div>
             </div>
             <div className={ROW_CLASS}>
-              <div className={LABEL_CLASS}>Volumes</div>
-              <div className={cn(VALUE_CLASS, 'col-span-2')}>
-                {renderProfileOverrides(hostConfig.volumes, (value) =>
-                  value.length ? value.join(', ') : 'None',
+              <div className={LABEL_CLASS}>TLS</div>
+              <div className={VALUE_CLASS}>
+                {host.tlsConfig ? (
+                  <Badge variant={BadgeVariant.secondary} className="text-xs">
+                    Configured
+                  </Badge>
+                ) : (
+                  <span className="italic opacity-50">None</span>
                 )}
               </div>
             </div>
             <div className={ROW_CLASS}>
-              <div className={LABEL_CLASS}>Extra Hosts</div>
-              <div className={cn(VALUE_CLASS, 'col-span-2')}>
-                {renderProfileOverrides(hostConfig.extraHosts, (value) =>
-                  value.length ? value.join(', ') : 'None',
-                )}
-              </div>
-            </div>
-            <div className={ROW_CLASS}>
-              <div className={LABEL_CLASS}>GPU Assignments</div>
-              <div className={cn(VALUE_CLASS, 'col-span-2')}>
-                {renderProfileOverrides(hostConfig.gpus, (value) =>
-                  value.deviceIds.length
-                    ? `${value.driver}: ${value.deviceIds.join(', ')}`
-                    : value.driver,
-                )}
-              </div>
-            </div>
-            <div className={ROW_CLASS}>
-              <div className={LABEL_CLASS}>Env Var Keys</div>
-              <div className={cn(VALUE_CLASS, 'col-span-2')}>
-                {renderProfileOverrides(
-                  hostConfig.environmentVariableKeys,
-                  (value) => (value.length ? value.join(', ') : 'None'),
-                )}
+              <div className={LABEL_CLASS}>Created</div>
+              <div className={VALUE_CLASS}>
+                <DateDisplay date={host.createdAt} showTimeSince={true} />
               </div>
             </div>
           </div>
         </Card>
       </div>
 
+      {/* Resource Configs */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Host Resources</CardTitle>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-lg">Resource Configs</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Container resource templates assigned to this host.
+            </p>
+          </div>
+          <Badge variant={BadgeVariant.outline} className="text-xs">
+            {resourceConfigs.length}
+          </Badge>
         </CardHeader>
-        <div className="grid gap-4 px-6 pb-6 sm:grid-cols-2">
-          <div className="rounded-md border border-muted/30 bg-muted/10 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              CPU Cores
+        <div className="px-6 pb-6">
+          {configRows.length === 0 ? (
+            <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
+              No resource configs for this host.
             </div>
-            <div className="mt-2 text-2xl font-semibold">
-              {hostState?.resources?.cpuCores !== undefined ? (
-                hostState.resources.cpuCores
-              ) : (
-                <span className="italic opacity-50">Unknown</span>
-              )}
-            </div>
-          </div>
-          <div className="rounded-md border border-muted/30 bg-muted/10 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Memory
-            </div>
-            <div className="mt-2 text-2xl font-semibold">
-              {hostState?.resources?.memoryBytes !== undefined ? (
-                formatBytes(hostState.resources.memoryBytes)
-              ) : (
-                <span className="italic opacity-50">Unknown</span>
-              )}
-            </div>
-          </div>
+          ) : (
+            <DataTable
+              data={configRows}
+              columns={resourceConfigColumns}
+              rowCount={configRows.length}
+              className="border-muted/40 shadow-sm"
+            />
+          )}
         </div>
       </Card>
 
+      {/* Containers */}
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <CardTitle className="text-lg">Platform Containers</CardTitle>
+          <div className="space-y-1">
+            <CardTitle className="text-lg">Platform Containers</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Live containers running on this host.
+            </p>
+          </div>
           <Badge variant={BadgeVariant.outline} className="text-xs">
             {containers.length}
           </Badge>
@@ -346,14 +517,15 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
             <div className="text-sm text-destructive">
               {hostState.containersError}
             </div>
+          ) : containers.length === 0 ? (
+            <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
+              No containers running on this host.
+            </div>
           ) : (
             <DataTable
-              data={hostState?.containers ?? []}
-              columns={createServerDockerHostContainersTableColumns(
-                hostConfig.id,
-              )}
-              rowCount={hostState?.containers.length ?? 0}
-              hideHeader={false}
+              data={containers}
+              columns={createServerDockerHostContainersTableColumns(hostId)}
+              rowCount={containers.length}
               className="border-muted/40 shadow-sm"
             />
           )}

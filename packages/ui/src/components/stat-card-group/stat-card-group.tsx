@@ -21,12 +21,19 @@ const WIDE_ROW_COLS: Record<number, string> = {
 }
 
 function rowSizes(n: number): number[] {
-  if (n <= 0) return []
-  if (n <= 4) return [n]
+  if (n <= 0) {
+    return []
+  }
+  if (n <= 4) {
+    return [n]
+  }
   for (let fours = Math.floor(n / 4); fours >= 0; fours--) {
     const rem = n - fours * 4
     if (rem % 3 === 0) {
-      return [...Array<number>(fours).fill(4), ...Array<number>(rem / 3).fill(3)]
+      return [
+        ...Array<number>(fours).fill(4),
+        ...Array<number>(rem / 3).fill(3),
+      ]
     }
   }
   return [3, n - 3]
