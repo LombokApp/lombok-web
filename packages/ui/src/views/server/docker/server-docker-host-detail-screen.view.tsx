@@ -25,6 +25,7 @@ import {
   ArrowLeft,
   Container,
   Layers,
+  Link2,
   RefreshCcw,
   Server,
   Settings2,
@@ -119,14 +120,30 @@ const resourceConfigColumns: HideableColumnDef<ResourceConfigRow>[] = [
 
 function summarizeConfig(config: Record<string, unknown>): string {
   const parts: string[] = []
-  if (config.gpus) parts.push('GPU')
-  if (config.volumes) parts.push('Volumes')
-  if (config.networkMode) parts.push(`Net: ${config.networkMode}`)
-  if (config.ports) parts.push('Ports')
-  if (config.memoryLimit) parts.push(`Mem: ${formatBytes(config.memoryLimit as number)}`)
-  if (config.cpuShares) parts.push(`CPU: ${config.cpuShares}`)
-  if (config.privileged) parts.push('Privileged')
-  if (config.env) parts.push('Env')
+  if (config.gpus) {
+    parts.push('GPU')
+  }
+  if (config.volumes) {
+    parts.push('Volumes')
+  }
+  if (config.networkMode) {
+    parts.push(`Net: ${JSON.stringify(config.networkMode)}`)
+  }
+  if (config.ports) {
+    parts.push('Ports')
+  }
+  if (config.memoryLimit) {
+    parts.push(`Mem: ${formatBytes(config.memoryLimit as number)}`)
+  }
+  if (config.cpuShares) {
+    parts.push(`CPU: ${JSON.stringify(config.cpuShares)}`)
+  }
+  if (config.privileged) {
+    parts.push('Privileged')
+  }
+  if (config.env) {
+    parts.push('Env')
+  }
   return parts.length > 0 ? parts.join(', ') : 'Default'
 }
 
@@ -189,8 +206,14 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
     (h) => h.id === hostId,
   )
   const containers = hostState?.containers ?? []
-  const runningContainers = containers.filter((c) => c.state === 'running').length
-  const resourceConfigs = configsQuery.data?.result ?? []
+  const runningContainers = containers.filter(
+    (c) => c.state === 'running',
+  ).length
+
+  const resourceConfigs = React.useMemo(
+    () => configsQuery.data?.result ?? [],
+    [configsQuery.data?.result],
+  )
 
   const isLoading = hostQuery.isLoading || stateQuery.isLoading
 
@@ -297,8 +320,8 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
                 <AlertDialogTitle>Delete Docker Host</AlertDialogTitle>
                 <AlertDialogDescription>
                   Are you sure you want to delete{' '}
-                  <span className="font-medium">{host.label}</span>? This
-                  cannot be undone.
+                  <span className="font-medium">{host.label}</span>? This cannot
+                  be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -320,8 +343,8 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
         stats={[
           {
             title: 'Status',
-            label: hostState?.connection?.success ? 'Connected' : 'Offline',
-            subtitle: hostState?.connection?.version
+            label: hostState?.connection.success ? 'Connected' : 'Offline',
+            subtitle: hostState?.connection.version
               ? `Docker ${hostState.connection.version}`
               : 'No connection data',
             icon: Server,
@@ -362,7 +385,10 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle className="text-lg">Connection</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Link2 className="size-4 text-muted-foreground" />
+                Connection
+              </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Live status and daemon metadata.
               </p>
@@ -402,7 +428,10 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle className="text-lg">Host Configuration</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Server className="size-4 text-muted-foreground" />
+                Host Configuration
+              </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Stored settings and endpoint details.
               </p>
@@ -472,16 +501,17 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
 
       {/* Resource Configs */}
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">Resource Configs</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Container resource templates assigned to this host.
-            </p>
-          </div>
-          <Badge variant={BadgeVariant.outline} className="text-xs">
-            {resourceConfigs.length}
-          </Badge>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Settings2 className="size-4 text-muted-foreground" />
+            Resource Configs
+            <Badge variant={BadgeVariant.outline} className="text-xs">
+              {resourceConfigs.length}
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Container resource templates assigned to this host.
+          </p>
         </CardHeader>
         <div className="px-6 pb-6">
           {configRows.length === 0 ? (
@@ -501,16 +531,17 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
 
       {/* Containers */}
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">Platform Containers</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Live containers running on this host.
-            </p>
-          </div>
-          <Badge variant={BadgeVariant.outline} className="text-xs">
-            {containers.length}
-          </Badge>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Container className="size-4 text-muted-foreground" />
+            Platform Containers
+            <Badge variant={BadgeVariant.outline} className="text-xs">
+              {containers.length}
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Live containers running on this host.
+          </p>
         </CardHeader>
         <div className="px-6 pb-6">
           {hostState?.containersError ? (

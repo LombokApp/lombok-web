@@ -14,6 +14,8 @@ import {
   BadgeVariant,
 } from '@lombokapp/ui-toolkit/components/badge/badge'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
@@ -210,8 +212,8 @@ const createHostColumns = (
               <AlertDialogTitle>Delete Docker Host</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete{' '}
-                <span className="font-medium">{row.original.label}</span>?
-                This cannot be undone.
+                <span className="font-medium">{row.original.label}</span>? This
+                cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -428,28 +430,6 @@ const profileColumns: HideableColumnDef<ProfileRow>[] = [
 
 // ─── Section header ────────────────────────────────────────────────────────
 
-function SectionHeader({
-  icon: Icon,
-  title,
-  count,
-}: {
-  icon: React.ElementType
-  title: string
-  count?: number
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 text-muted-foreground" />
-      <h2 className="text-lg font-semibold">{title}</h2>
-      {count !== undefined && (
-        <Badge variant={BadgeVariant.secondary} className="text-xs">
-          {count}
-        </Badge>
-      )}
-    </div>
-  )
-}
-
 // ─── Main screen ───────────────────────────────────────────────────────────
 
 export function ServerDockerScreen() {
@@ -660,7 +640,18 @@ export function ServerDockerScreen() {
 
       {/* Hosts */}
       <div className="flex flex-col gap-3">
-        <SectionHeader icon={Server} title="Hosts" count={hostRows.length} />
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <Server className="size-4 text-muted-foreground" />
+            <h2 className="text-lg font-semibold">Hosts</h2>
+            <Badge variant={BadgeVariant.secondary} className="text-xs">
+              {hostRows.length}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Docker endpoints available for running containers.
+          </p>
+        </div>
         {hostRows.length === 0 && !isLoading ? (
           <div className="w-full rounded-xl border border-border/50 bg-card px-16 py-14 shadow-sm">
             <div className="flex flex-col items-center gap-4 text-center">
@@ -693,46 +684,64 @@ export function ServerDockerScreen() {
       </div>
 
       {/* Containers */}
-      <div className="flex flex-col gap-3">
-        <SectionHeader
-          icon={Container}
-          title="Containers"
-          count={containerRows.length}
-        />
-        {containerRows.length === 0 && !isLoading ? (
-          <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
-            No containers running on any host.
-          </div>
-        ) : (
-          <DataTable
-            data={containerRows}
-            columns={containerColumns}
-            rowCount={containerRows.length}
-            className="border-muted/40 shadow-sm"
-          />
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Container className="size-4 text-muted-foreground" />
+            Containers
+            <Badge variant={BadgeVariant.outline} className="text-xs">
+              {containerRows.length}
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Live containers running across all hosts.
+          </p>
+        </CardHeader>
+        <div className="px-6 pb-6">
+          {containerRows.length === 0 && !isLoading ? (
+            <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
+              No containers running on any host.
+            </div>
+          ) : (
+            <DataTable
+              data={containerRows}
+              columns={containerColumns}
+              rowCount={containerRows.length}
+              className="border-muted/40 shadow-sm"
+            />
+          )}
+        </div>
+      </Card>
 
       {/* App Container Profiles */}
-      <div className="flex flex-col gap-3">
-        <SectionHeader
-          icon={Cpu}
-          title="App Container Profiles"
-          count={profileRows.length}
-        />
-        {profileRows.length === 0 && !isLoading ? (
-          <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
-            No apps with container profiles installed.
-          </div>
-        ) : (
-          <DataTable
-            data={profileRows}
-            columns={profileColumns}
-            rowCount={profileRows.length}
-            className="border-muted/40 shadow-sm"
-          />
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Cpu className="size-4 text-muted-foreground" />
+            App Container Profiles
+            <Badge variant={BadgeVariant.outline} className="text-xs">
+              {profileRows.length}
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Installed apps with Docker container profiles.
+          </p>
+        </CardHeader>
+        <div className="px-6 pb-6">
+          {profileRows.length === 0 && !isLoading ? (
+            <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
+              No apps with container profiles installed.
+            </div>
+          ) : (
+            <DataTable
+              data={profileRows}
+              columns={profileColumns}
+              rowCount={profileRows.length}
+              className="border-muted/40 shadow-sm"
+            />
+          )}
+        </div>
+      </Card>
 
       <CreateDockerHostDialog
         open={createHostOpen}

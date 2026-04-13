@@ -331,23 +331,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/docker-hosts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the configured docker hosts. */
-        get: operations["ServerDockerHosts_getDockerHostsConfig"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/server/docker-hosts/state": {
         parameters: {
             query?: never;
@@ -5701,32 +5684,6 @@ export interface components {
             region: string;
             prefix: string | null;
         };
-        DockerHostsConfigResponse: {
-            profileHostAssignments?: components["schemas"]["StringMapDTO"];
-            hosts: {
-                id: string;
-                host: string;
-                /** @enum {string} */
-                type: "docker_endpoint";
-                assignedProfiles: string[];
-                networkMode?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    [key: string]: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                };
-                volumes?: {
-                    [key: string]: string[];
-                };
-                extraHosts?: {
-                    [key: string]: string[];
-                };
-                environmentVariableKeys?: {
-                    [key: string]: string[];
-                };
-            }[];
-        };
         DockerHostsStateResponse: {
             hosts: {
                 id: string;
@@ -9128,43 +9085,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    ServerDockerHosts_getDockerHostsConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerHostsConfigResponse"];
-                };
             };
             /** @description Server Error */
             "5XX": {

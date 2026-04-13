@@ -33,6 +33,7 @@ import {
   DockerLogAccessError,
   DockerLogEntry,
 } from './client/docker-client.types'
+import { DockerHostManagementService } from './docker-host-management.service'
 import { DockerWorkerHookService } from './docker-worker-hook.service'
 
 const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
@@ -64,6 +65,7 @@ export class DockerJobsService {
     @Inject(forwardRef(() => DockerClientService)) _dockerClientService,
     @Inject(forwardRef(() => DockerWorkerHookService))
     _dockerWorkerHookService,
+    private readonly dockerHostManagementService: DockerHostManagementService,
   ) {
     this.dockerWorkerHookService =
       _dockerWorkerHookService as DockerWorkerHookService
@@ -250,9 +252,10 @@ export class DockerJobsService {
   }
 
   /**
-   * Resolve Docker host configuration for a given profile key
+   * Resolve Docker host configuration for a given profile key.
+   * Uses the DB-backed resolution via DockerHostManagementService.
    */
-  resolveDockerHostConfigForProfile(profileKey: string): {
+  async resolveDockerHostConfigForProfile(profileKey: string): Promise<{
     hostId: string
     volumes: string[] | undefined
     env: Record<string, string> | undefined
@@ -261,67 +264,37 @@ export class DockerJobsService {
     networkMode: 'host' | 'bridge' | `container:${string}` | undefined
     capAdd: string[] | undefined
     securityOpt: string[] | undefined
-  } {
-    const profileKeyParts = profileKey.split(':')
-    const appSlugProfileKey = `${profileKeyParts[0]?.split('_')[0]}:${profileKeyParts[1]}`
+  }> {
+    const [appIdentifier, profileName] = profileKey.split(':')
+    if (!appIdentifier || !profileName) {
+      throw new AsyncWorkError({
+        name: 'DockerClientError',
+        origin: 'internal',
+        code: 'DOCKER_NOT_CONFIGURED',
+        message: `Invalid profile key "${profileKey}" — expected "appIdentifier:profileName"`,
+      })
+    }
 
-    const resolvedHostId =
-      this._coreConfig.dockerHostConfig.profileHostAssignments?.[profileKey] ??
-      this._coreConfig.dockerHostConfig.profileHostAssignments?.[
-        appSlugProfileKey
-      ] ??
-      'local'
+    const resolved =
+      await this.dockerHostManagementService.resolveProfileConfig(
+        appIdentifier,
+        profileName,
+      )
 
+    const rc = resolved.resourceConfig
     return {
-      hostId: resolvedHostId,
-      env:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
-          profileKey
-        ] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.env?.[
-          appSlugProfileKey
-        ],
-      volumes:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
-          profileKey
-        ] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.volumes?.[
-          appSlugProfileKey
-        ],
-      gpus:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
-          profileKey
-        ] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.gpus?.[
-          appSlugProfileKey
-        ],
-      extraHosts:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
-          profileKey
-        ] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.extraHosts?.[
-          appSlugProfileKey
-        ],
-      networkMode: (this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-        ?.networkMode?.[profileKey] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.networkMode?.[appSlugProfileKey]) as
+      hostId: resolved.hostId,
+      env: rc?.env ?? undefined,
+      volumes: rc?.volumes ?? undefined,
+      gpus: rc?.gpus ?? undefined,
+      extraHosts: rc?.extraHosts ?? undefined,
+      networkMode: rc?.networkMode as
         | 'host'
         | 'bridge'
         | `container:${string}`
         | undefined,
-      capAdd:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.capAdd?.[
-          profileKey
-        ] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]?.capAdd?.[
-          appSlugProfileKey
-        ],
-      securityOpt:
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.securityOpt?.[profileKey] ??
-        this._coreConfig.dockerHostConfig.hosts?.[resolvedHostId]
-          ?.securityOpt?.[appSlugProfileKey],
+      capAdd: rc?.capAdd ?? undefined,
+      securityOpt: rc?.securityOpt ?? undefined,
     }
   }
 
@@ -345,7 +318,8 @@ export class DockerJobsService {
     if ('containerId' in attributes) {
       const { hostId, containerId: refContainerId } = attributes
 
-      if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
+      const host = await this.dockerHostManagementService.getHost(hostId)
+      if (!host || !host.enabled) {
         throw new AsyncWorkError({
           name: 'DockerClientError',
           origin: 'internal',
@@ -371,18 +345,8 @@ export class DockerJobsService {
     }
 
     // Profile path: resolve host config, find or create container
-    const { hostId, ...config } = this.resolveDockerHostConfigForProfile(
-      attributes.profileKey,
-    )
-
-    if (!(hostId in (this._coreConfig.dockerHostConfig.hosts ?? {}))) {
-      throw new AsyncWorkError({
-        name: 'DockerClientError',
-        origin: 'internal',
-        code: 'DOCKER_NOT_CONFIGURED',
-        message: `Unrecognized Docker host "${hostId}" configured for profile "${attributes.profileKey}"`,
-      })
-    }
+    const { hostId, ...config } =
+      await this.resolveDockerHostConfigForProfile(attributes.profileKey)
 
     const container = await this.dockerClientService.findOrCreateContainer(
       hostId,
@@ -503,7 +467,8 @@ export class DockerJobsService {
           })
         }
 
-        const { hostId } = this.resolveDockerHostConfigForProfile(profileKey)
+        const { hostId } =
+          await this.resolveDockerHostConfigForProfile(profileKey)
 
         // If userIsolation, verify container's USER_ID label matches
         if (resolvedContainerTarget.userIsolation && userId) {
@@ -1133,8 +1098,11 @@ export class DockerJobsService {
   }
 
   async getDockerHostStates(): Promise<DockerHostState[]> {
-    const hostIds = Object.keys(this._coreConfig.dockerHostConfig.hosts ?? {})
-    return Promise.all(hostIds.map((hostId) => this.getDockerHostState(hostId)))
+    const hosts = await this.dockerHostManagementService.listHosts()
+    const enabledHostIds = hosts.filter((h) => h.enabled).map((h) => h.id)
+    return Promise.all(
+      enabledHostIds.map((hostId) => this.getDockerHostState(hostId)),
+    )
   }
 
   private parseWorkerPort(workerId: string): number {

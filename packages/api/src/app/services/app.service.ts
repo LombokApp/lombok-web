@@ -2285,7 +2285,7 @@ export class AppService {
       profileIdentifier,
     )
     const { hostId } =
-      this.dockerJobsService.resolveDockerHostConfigForProfile(profileKey)
+      await this.dockerJobsService.resolveDockerHostConfigForProfile(profileKey)
 
     const hasContainerId = 'containerId' in params
     if (hasContainerId) {

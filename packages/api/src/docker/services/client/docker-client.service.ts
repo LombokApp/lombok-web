@@ -13,6 +13,7 @@ import * as jwt from 'jsonwebtoken'
 import { coreConfig } from 'src/core/config'
 
 import { DockerBridgeService } from '../docker-bridge.service'
+import { DockerHostManagementService } from '../docker-host-management.service'
 import { DOCKER_LABELS } from '../docker-jobs.service'
 import {
   type ConnectionTestResult,
@@ -91,6 +92,7 @@ export class DockerClientService {
     @Inject(coreConfig.KEY)
     private readonly config: ConfigType<typeof coreConfig>,
     private readonly dockerBridgeService: DockerBridgeService,
+    private readonly dockerHostManagementService: DockerHostManagementService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -149,12 +151,14 @@ export class DockerClientService {
       string,
       { result: ConnectionTestResult; id: string }
     > = {}
-    for (const hostId of Object.keys(
-      this.config.dockerHostConfig.hosts ?? {},
-    )) {
-      results[hostId] = {
-        id: `[BRIDGE]: ${hostId}`,
-        result: await this.testHostConnection(hostId),
+    const hosts = await this.dockerHostManagementService.listHosts()
+    for (const host of hosts) {
+      if (!host.enabled) {
+        continue
+      }
+      results[host.id] = {
+        id: `[BRIDGE]: ${host.id}`,
+        result: await this.testHostConnection(host.id),
       }
     }
     return results

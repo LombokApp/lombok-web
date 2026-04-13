@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -31,6 +33,7 @@ import {
   type DockerStandaloneContainer,
   dockerStandaloneContainersTable,
 } from '../entities/docker-standalone-container.entity'
+import { DockerBridgeService } from './docker-bridge.service'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -57,7 +60,15 @@ function computeConfigHashes(
 export class DockerHostManagementService {
   private readonly logger = new Logger(DockerHostManagementService.name)
 
-  constructor(private readonly ormService: OrmService) {}
+  dockerBridgeService: DockerBridgeService
+
+  constructor(
+    private readonly ormService: OrmService,
+    @Inject(forwardRef(() => DockerBridgeService))
+    _dockerBridgeService,
+  ) {
+    this.dockerBridgeService = _dockerBridgeService as DockerBridgeService
+  }
 
   // ─── Docker Hosts ──────────────────────────────────────────────────────
 
@@ -117,6 +128,7 @@ export class DockerHostManagementService {
       throw new InternalServerErrorException('Failed to create docker host')
     }
 
+    void this.dockerBridgeService.syncHosts()
     return host
   }
 
@@ -146,6 +158,7 @@ export class DockerHostManagementService {
     if (!updated) {
       throw new InternalServerErrorException('Failed to update docker host')
     }
+    void this.dockerBridgeService.syncHosts()
     return updated
   }
 
@@ -168,6 +181,7 @@ export class DockerHostManagementService {
     if (result.length === 0) {
       throw new NotFoundException(`Docker host not found: ${id}`)
     }
+    void this.dockerBridgeService.syncHosts()
   }
 
   async updateHostHealth(

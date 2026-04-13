@@ -8,7 +8,6 @@ import {
 } from '@lombokapp/ui-toolkit/components/dialog'
 import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import { Label } from '@lombokapp/ui-toolkit/components/label/label'
-
 import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
 import React from 'react'
 
@@ -78,7 +77,7 @@ export function CreateDockerHostDialog({
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (!v) resetForm()
+        if (!v) {resetForm()}
         onOpenChange(v)
       }}
     >
