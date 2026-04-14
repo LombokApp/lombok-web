@@ -1,4 +1,7 @@
-import { convertUnknownToJsonSerializableObject } from '@lombokapp/types'
+import {
+  convertUnknownToJsonSerializableObject,
+  JsonSerializableValue,
+} from '@lombokapp/types'
 import { convertErrorToAsyncWorkError } from '@lombokapp/worker-utils'
 import {
   HttpException,
@@ -14,7 +17,7 @@ import { coreConfig } from 'src/core/config'
 
 import { DockerBridgeService } from '../docker-bridge.service'
 import { DockerHostManagementService } from '../docker-host-management.service'
-import { DOCKER_LABELS } from '../docker-jobs.service'
+import { DOCKER_CONTAINER_TYPES, DOCKER_LABELS } from '../docker-jobs.service'
 import {
   type ConnectionTestResult,
   type ContainerInfo,
@@ -102,7 +105,7 @@ export class DockerClientService {
   private async bridgeRequest<T>(
     method: string,
     path: string,
-    body?: unknown,
+    body?: JsonSerializableValue,
     queryParams?: Record<string, string>,
   ): Promise<T> {
     const secret = this.dockerBridgeService.getSecret()
@@ -185,7 +188,7 @@ export class DockerClientService {
     hostId: string,
     options: FindOrCreateContainerOptions,
   ): Promise<ContainerInfo> {
-    const { startIfNotRunning: _startIfNotRunning, ...createPayload } = options
+    const { ...createPayload } = options
     const result = await this.bridgeRequest<BridgeContainerInfo>(
       'POST',
       `/docker/${hostId}/containers`,
@@ -359,7 +362,7 @@ export class DockerClientService {
     await this.bridgeRequest(
       'POST',
       `/docker/${hostId}/containers/${containerId}/remove`,
-      { force: options?.force },
+      { force: options?.force ? true : null },
     )
   }
 
@@ -375,7 +378,7 @@ export class DockerClientService {
   ): Promise<void> {
     await this.bridgeRequest('POST', `/docker/${hostId}/images/pull`, {
       image,
-      registry_auth: authconfig,
+      registry_auth: authconfig ?? null,
     })
   }
 
@@ -399,7 +402,7 @@ export class DockerClientService {
       command,
       env: options?.env
         ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
-        : undefined,
+        : null,
     })
 
     return result
@@ -610,7 +613,7 @@ export class DockerClientService {
   async findContainerById(
     hostId: string,
     containerId: string,
-    options?: { startIfNotRunning?: boolean },
+    options?: { start?: boolean },
   ): Promise<ContainerInfo | undefined> {
     const container = await this.withErrorGuard(
       async () => this.getContainerInspect(hostId, containerId),
@@ -645,7 +648,7 @@ export class DockerClientService {
       }
     })
 
-    if (options?.startIfNotRunning) {
+    if (options?.start) {
       return this.ensureContainerRunning(hostId, container)
     }
 
@@ -710,7 +713,7 @@ export class DockerClientService {
     )
 
     if (stoppedContainer) {
-      if (options.startIfNotRunning) {
+      if (options.start) {
         return this.ensureContainerRunning(hostId, stoppedContainer)
       }
       return stoppedContainer
@@ -738,7 +741,10 @@ export class DockerClientService {
           await this.pullImage(hostId, createOptions.image, registryAuth)
         }
 
-        const created = await this.createContainer(hostId, createOptions)
+        const created = await this.createContainer(hostId, {
+          ...createOptions,
+          start: true,
+        })
         await this.ensureContainerRunning(hostId, created)
         return created
       },
@@ -758,6 +764,79 @@ export class DockerClientService {
             },
           },
         ),
+    )
+  }
+
+  // ---------------------------------------------------------------------------
+  // Host state
+  // ---------------------------------------------------------------------------
+
+  async getDockerHostState(hostId: string): Promise<DockerHostState> {
+    let connection: ConnectionTestResult
+    try {
+      connection = await this.testHostConnection(hostId)
+    } catch (error) {
+      connection = {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+
+    let resources: DockerHostResources | undefined
+    if (connection.success) {
+      try {
+        resources = await this.getHostResources(hostId)
+      } catch {
+        resources = undefined
+      }
+    }
+
+    let containers: DockerHostContainerState[] = []
+    let containersError: string | undefined
+    try {
+      const rawContainers = await this.listContainersByLabels(hostId, {
+        [DOCKER_LABELS.PLATFORM_HOST]: this.config.platformHost,
+      })
+      containers = rawContainers.map((container): DockerHostContainerState => {
+        const isWorker =
+          container.labels[DOCKER_LABELS.CONTAINER_TYPE] ===
+          DOCKER_CONTAINER_TYPES.WORKER
+
+        if (isWorker) {
+          return {
+            ...container,
+            containerType: 'worker',
+            profileId: container.labels[DOCKER_LABELS.PROFILE_ID] ?? '',
+            profileHash: container.labels[DOCKER_LABELS.PROFILE_HASH] ?? '',
+          }
+        }
+
+        return {
+          ...container,
+          containerType: 'standalone',
+          standaloneContainerId:
+            container.labels[DOCKER_LABELS.STANDALONE_CONTAINER_ID] ?? '',
+        }
+      })
+    } catch (error) {
+      containersError = error instanceof Error ? error.message : String(error)
+    }
+
+    return {
+      id: hostId,
+      description: this.getHostDescription(hostId),
+      connection,
+      resources,
+      containers,
+      containersError,
+    }
+  }
+
+  async getDockerHostStates(): Promise<DockerHostState[]> {
+    const hosts = await this.dockerHostManagementService.listHosts()
+    const enabledHostIds = hosts.filter((h) => h.enabled).map((h) => h.id)
+    return Promise.all(
+      enabledHostIds.map((hostId) => this.getDockerHostState(hostId)),
     )
   }
 
@@ -1109,4 +1188,42 @@ export class DockerClientService {
         : ''
     return `${protocol}://${label}--${publicId}--${appIdentifier}.${platformHost}${portSuffix}`
   }
+}
+
+// ---------------------------------------------------------------------------
+// Host state types (exported for controller/DTO alignment)
+// ---------------------------------------------------------------------------
+
+interface DockerHostContainerStateBase {
+  id: string
+  image: string
+  labels: Record<string, string>
+  state: 'running' | 'exited' | 'paused' | 'created' | 'unknown'
+  createdAt: string
+}
+
+export interface DockerHostWorkerContainerState
+  extends DockerHostContainerStateBase {
+  containerType: 'worker'
+  profileId: string
+  profileHash: string
+}
+
+export interface DockerHostStandaloneContainerState
+  extends DockerHostContainerStateBase {
+  containerType: 'standalone'
+  standaloneContainerId: string
+}
+
+export type DockerHostContainerState =
+  | DockerHostWorkerContainerState
+  | DockerHostStandaloneContainerState
+
+export interface DockerHostState {
+  id: string
+  description: string
+  connection: ConnectionTestResult
+  resources?: DockerHostResources
+  containers: DockerHostContainerState[]
+  containersError?: string
 }

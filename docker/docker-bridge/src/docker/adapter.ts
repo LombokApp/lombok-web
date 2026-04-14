@@ -61,6 +61,7 @@ export interface CreateContainerOptions {
   pidMode?: string
   cgroupParent?: string
   runtime?: string
+  start: boolean
 }
 
 export interface BridgeContainerInfo {

@@ -427,7 +427,7 @@ describe('Docker Jobs', () => {
         'lombok.platform_url': 'http://localhost:3000',
       },
       networkMode: undefined,
-      startIfNotRunning: true,
+      start: true,
       volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
     })
 
@@ -545,7 +545,7 @@ describe('Docker Jobs', () => {
         'lombok.platform_url': 'http://localhost:3000',
       },
       networkMode: undefined,
-      startIfNotRunning: true,
+      start: true,
     })
   })
 

@@ -151,3 +151,7 @@ export type CustomSettingsSource = CustomSettingsData['sources'][string]
 
 export type CustomSettingsPutInput =
   paths['/api/v1/user/apps/{appIdentifier}/custom-settings']['put']['requestBody']['content']['application/json']
+
+export type DockerContainerResourceConfig = NonNullable<
+  paths['/api/v1/docker/profile-assignments/{id}']['put']['requestBody']['content']['application/json']['config']
+>

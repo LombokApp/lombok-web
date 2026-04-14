@@ -90,7 +90,7 @@ export class BridgeSessionController {
     const container = await this.dockerClientService.findContainerById(
       hostId,
       containerId,
-      { startIfNotRunning: true },
+      { start: true },
     )
 
     if (!container) {

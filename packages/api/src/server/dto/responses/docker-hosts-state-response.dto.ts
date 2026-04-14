@@ -8,15 +8,28 @@ export const dockerHostConnectionSchema = z.object({
   error: z.string().optional(),
 })
 
-export const dockerHostContainerStateSchema = z.object({
+const dockerHostContainerStateBase = z.object({
   id: z.string(),
   image: z.string(),
   labels: z.record(z.string(), z.string()),
   state: z.enum(['running', 'exited', 'paused', 'created', 'unknown']),
   createdAt: z.string(),
-  profileId: z.string().optional(),
-  profileHash: z.string().optional(),
 })
+
+export const dockerHostContainerStateSchema = z.discriminatedUnion(
+  'containerType',
+  [
+    dockerHostContainerStateBase.extend({
+      containerType: z.literal('worker'),
+      profileId: z.string(),
+      profileHash: z.string(),
+    }),
+    dockerHostContainerStateBase.extend({
+      containerType: z.literal('standalone'),
+      standaloneContainerId: z.string(),
+    }),
+  ],
+)
 
 export const dockerHostResourcesSchema = z.object({
   cpuCores: z.number().int().nonnegative().optional(),

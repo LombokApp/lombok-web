@@ -1,9 +1,5 @@
 import type { paths } from '@lombokapp/types'
 
-export type DockerHostsConfigResponse =
-  paths['/api/v1/server/docker-hosts']['get']['responses'][200]['content']['application/json']
-export type DockerHostConfigSummary = DockerHostsConfigResponse['hosts'][number]
-
 export type DockerHostsStateResponse =
   paths['/api/v1/server/docker-hosts/state']['get']['responses'][200]['content']['application/json']
 export type DockerHostState = DockerHostsStateResponse['hosts'][number]

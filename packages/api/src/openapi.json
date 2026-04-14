@@ -8577,7 +8577,18 @@
     "/api/v1/docker/standalone-containers": {
       "get": {
         "operationId": "DockerStandaloneContainers_list",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "dockerHostId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -8810,6 +8821,71 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DockerStandaloneContainerDeleteResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "DockerHostManagement"
+        ]
+      }
+    },
+    "/api/v1/docker/standalone-containers/{id}/desired-status": {
+      "post": {
+        "operationId": "DockerStandaloneContainers_setDesiredStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DockerStandaloneContainerDesiredStatusDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerStandaloneContainerResponse"
                 }
               }
             }
@@ -25504,43 +25580,97 @@
                 "containers": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "image": {
-                        "type": "string"
-                      },
-                      "labels": {
-                        "$ref": "#/components/schemas/StringMapDTO"
-                      },
-                      "state": {
-                        "type": "string",
-                        "enum": [
-                          "running",
-                          "exited",
-                          "paused",
-                          "created",
-                          "unknown"
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "image": {
+                            "type": "string"
+                          },
+                          "labels": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "running",
+                              "exited",
+                              "paused",
+                              "created",
+                              "unknown"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "containerType": {
+                            "type": "string",
+                            "const": "worker"
+                          },
+                          "profileId": {
+                            "type": "string"
+                          },
+                          "profileHash": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "image",
+                          "labels",
+                          "state",
+                          "createdAt",
+                          "containerType",
+                          "profileId",
+                          "profileHash"
                         ]
                       },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "profileId": {
-                        "type": "string"
-                      },
-                      "profileHash": {
-                        "type": "string"
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "image": {
+                            "type": "string"
+                          },
+                          "labels": {
+                            "$ref": "#/components/schemas/StringMapDTO"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "running",
+                              "exited",
+                              "paused",
+                              "created",
+                              "unknown"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "containerType": {
+                            "type": "string",
+                            "const": "standalone"
+                          },
+                          "standaloneContainerId": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "image",
+                          "labels",
+                          "state",
+                          "createdAt",
+                          "containerType",
+                          "standaloneContainerId"
+                        ]
                       }
-                    },
-                    "required": [
-                      "id",
-                      "image",
-                      "labels",
-                      "state",
-                      "createdAt"
                     ]
                   }
                 },
@@ -32603,36 +32733,7 @@
                   ]
                 },
                 "containerId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "ports": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "host": {
-                        "type": "number"
-                      },
-                      "container": {
-                        "type": "number"
-                      },
-                      "protocol": {
-                        "type": "string",
-                        "enum": [
-                          "tcp",
-                          "udp"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "host",
-                      "container",
-                      "protocol"
-                    ]
-                  }
+                  "type": "string"
                 },
                 "config": {
                   "type": "object",
@@ -32866,7 +32967,6 @@
                 "tag",
                 "desiredStatus",
                 "containerId",
-                "ports",
                 "config",
                 "configHashes",
                 "createdAt",
@@ -32908,36 +33008,7 @@
                 ]
               },
               "containerId": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "ports": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "host": {
-                      "type": "number"
-                    },
-                    "container": {
-                      "type": "number"
-                    },
-                    "protocol": {
-                      "type": "string",
-                      "enum": [
-                        "tcp",
-                        "udp"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "host",
-                    "container",
-                    "protocol"
-                  ]
-                }
+                "type": "string"
               },
               "config": {
                 "type": "object",
@@ -33171,7 +33242,6 @@
               "tag",
               "desiredStatus",
               "containerId",
-              "ports",
               "config",
               "configHashes",
               "createdAt",
@@ -33212,37 +33282,6 @@
               "running",
               "stopped"
             ]
-          },
-          "ports": {
-            "type": "array",
-            "default": [],
-            "items": {
-              "type": "object",
-              "properties": {
-                "host": {
-                  "type": "number",
-                  "exclusiveMinimum": 0,
-                  "maximum": 65535
-                },
-                "container": {
-                  "type": "number",
-                  "exclusiveMinimum": 0,
-                  "maximum": 65535
-                },
-                "protocol": {
-                  "default": "tcp",
-                  "type": "string",
-                  "enum": [
-                    "tcp",
-                    "udp"
-                  ]
-                }
-              },
-              "required": [
-                "host",
-                "container"
-              ]
-            }
           },
           "config": {
             "type": "object",
@@ -33496,37 +33535,6 @@
               "stopped"
             ]
           },
-          "ports": {
-            "type": "array",
-            "default": [],
-            "items": {
-              "type": "object",
-              "properties": {
-                "host": {
-                  "type": "number",
-                  "exclusiveMinimum": 0,
-                  "maximum": 65535
-                },
-                "container": {
-                  "type": "number",
-                  "exclusiveMinimum": 0,
-                  "maximum": 65535
-                },
-                "protocol": {
-                  "default": "tcp",
-                  "type": "string",
-                  "enum": [
-                    "tcp",
-                    "udp"
-                  ]
-                }
-              },
-              "required": [
-                "host",
-                "container"
-              ]
-            }
-          },
           "config": {
             "type": "object",
             "default": {},
@@ -33743,6 +33751,21 @@
             }
           }
         }
+      },
+      "DockerStandaloneContainerDesiredStatusDTO": {
+        "type": "object",
+        "properties": {
+          "desiredStatus": {
+            "type": "string",
+            "enum": [
+              "running",
+              "stopped"
+            ]
+          }
+        },
+        "required": [
+          "desiredStatus"
+        ]
       },
       "DockerStandaloneContainerDeleteResponse": {
         "type": "object",

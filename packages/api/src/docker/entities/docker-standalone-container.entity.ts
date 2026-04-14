@@ -30,11 +30,7 @@ export const dockerStandaloneContainersTable = pgTable(
       .notNull()
       .$type<'running' | 'stopped'>()
       .default('stopped'),
-    containerId: text('container_id'),
-    ports: jsonb('ports')
-      .$type<{ host: number; container: number; protocol: 'tcp' | 'udp' }[]>()
-      .notNull()
-      .default([]),
+    containerId: text('container_id').notNull(),
     config: jsonb('config').$type<DockerResourceConfig>().notNull().default({}),
     configHashes: jsonb('config_hashes')
       .$type<Record<string, string>>()

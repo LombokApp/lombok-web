@@ -65,7 +65,6 @@ export function transformDockerStandaloneContainerToDTO(
     tag: container.tag,
     desiredStatus: container.desiredStatus,
     containerId: container.containerId,
-    ports: container.ports,
     config: container.config,
     configHashes: container.configHashes,
     createdAt: container.createdAt.toISOString(),

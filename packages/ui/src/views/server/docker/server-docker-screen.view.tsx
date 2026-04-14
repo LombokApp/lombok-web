@@ -39,11 +39,11 @@ import { TableLinkColumn } from '@/src/components/table-link-column/table-link-c
 import { $api, $apiClient } from '@/src/services/api'
 
 import { CreateDockerHostDialog } from './create-docker-host-dialog'
+import { CreateStandaloneContainerDialog } from './create-standalone-container-dialog'
 import { ProfileAssignmentDialog } from './profile-assignment-dialog'
-import type {
-  DockerHostConnectionState,
-  DockerHostContainerState,
-} from './server-docker.types'
+import type { DockerHostConnectionState } from './server-docker.types'
+import { createContainerTableColumns } from './server-docker-host-containers-table-columns'
+import { useListContainers } from './use-list-containers'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -60,11 +60,6 @@ interface HostRow {
   runningContainerCount: number
 }
 
-interface ContainerRow extends DockerHostContainerState {
-  hostId: string
-  hostLabel: string
-}
-
 interface ProfileRow {
   appIdentifier: string
   appLabel: string
@@ -74,6 +69,7 @@ interface ProfileRow {
   assignedHostLabel: string | null
   assignmentId: string | null
   assignedHostId: string | null
+  currentConfig: Record<string, unknown> | null
 }
 
 // ─── Host columns ──────────────────────────────────────────────────────────
@@ -121,6 +117,7 @@ const createHostColumns = (
     enableSorting: false,
     enableHiding: false,
   },
+
   {
     id: 'connection',
     header: ({ column }) => (
@@ -142,7 +139,7 @@ const createHostColumns = (
         )
       }
       return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 w-min">
           <Badge
             variant={
               conn.success ? BadgeVariant.secondary : BadgeVariant.destructive
@@ -151,6 +148,34 @@ const createHostColumns = (
           >
             {conn.success ? 'Connected' : 'Offline'}
           </Badge>
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'version',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Version"
+      />
+    ),
+    cell: ({ row }) => {
+      const conn = row.original.connection
+      if (!conn) {
+        return (
+          <Badge variant={BadgeVariant.outline} className="text-xs">
+            {row.original.healthStatus === 'unknown'
+              ? '-'
+              : row.original.healthStatus}
+          </Badge>
+        )
+      }
+      return (
+        <div className="flex flex-col gap-1 w-min">
           {conn.success && conn.version && (
             <span className="text-xs text-muted-foreground">
               {conn.version}
@@ -190,7 +215,7 @@ const createHostColumns = (
             <div
               className={cn(
                 'h-full rounded-full',
-                ratio > 0 ? 'bg-primary/70' : 'bg-muted/30',
+                ratio > 0 ? 'bg-foreground/40' : 'bg-muted/30',
               )}
               style={{ width: `${Math.round(ratio * 100)}%` }}
             />
@@ -236,109 +261,6 @@ const createHostColumns = (
     enableSorting: false,
     enableHiding: false,
     zeroWidth: true,
-  },
-]
-
-// ─── Container columns ─────────────────────────────────────────────────────
-
-const containerColumns: HideableColumnDef<ContainerRow>[] = [
-  {
-    id: 'link',
-    cell: ({ row }) => (
-      <TableLinkColumn
-        to={`/server/docker/${row.original.hostId}/containers/${row.original.id}`}
-      />
-    ),
-    enableSorting: false,
-    zeroWidth: true,
-  },
-  {
-    accessorKey: 'id',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Container"
-      />
-    ),
-    cell: ({ row }) => (
-      <div className="flex flex-col gap-1">
-        <span className="font-mono text-xs" title={row.original.id}>
-          {row.original.id.slice(0, 12)}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {row.original.hostLabel}
-        </span>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'image',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Image"
-      />
-    ),
-    cell: ({ row }) => (
-      <span
-        className="max-w-72 truncate text-sm text-muted-foreground"
-        title={row.original.image}
-      >
-        {row.original.image}
-      </span>
-    ),
-    enableSorting: false,
-    enableHiding: true,
-  },
-  {
-    id: 'profileId',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Profile"
-      />
-    ),
-    cell: ({ row }) =>
-      row.original.profileId ? (
-        <Badge variant={BadgeVariant.outline} className="text-xs">
-          {row.original.profileId}
-        </Badge>
-      ) : (
-        <span className="italic opacity-50">—</span>
-      ),
-    enableSorting: false,
-    enableHiding: true,
-  },
-  {
-    id: 'state',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="State"
-      />
-    ),
-    cell: ({ row }) => {
-      const s = row.original.state
-      const variant =
-        s === 'running'
-          ? BadgeVariant.secondary
-          : s === 'exited'
-            ? BadgeVariant.destructive
-            : BadgeVariant.outline
-      return (
-        <Badge variant={variant} className="text-xs capitalize">
-          {s}
-        </Badge>
-      )
-    },
-    enableSorting: false,
-    enableHiding: true,
   },
 ]
 
@@ -435,9 +357,9 @@ const createProfileColumns = (
   {
     id: 'actions',
     cell: ({ row }) => (
-      <div className="relative z-20 justify-end">
+      <div className="relative z-20 flex justify-end">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           className="h-7 text-xs"
           onClick={() => onConfigure(row.original)}
@@ -458,11 +380,22 @@ const createProfileColumns = (
 
 export function ServerDockerScreen() {
   const [createHostOpen, setCreateHostOpen] = React.useState(false)
+  const [createContainerOpen, setCreateContainerOpen] = React.useState(false)
+  const [editContainerId, setEditContainerId] = React.useState<string | null>(
+    null,
+  )
 
   // Managed hosts (DB-backed)
   const hostsQuery = $api.useQuery('get', '/api/v1/docker/hosts')
   // Runtime state from bridge
   const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
+  // Combined container list (runtime + standalone DB)
+  const {
+    rows: containerRows,
+    isLoading: containersLoading,
+    refetch: refetchContainers,
+    standaloneRecords,
+  } = useListContainers()
   // Profile assignments
   const assignmentsQuery = $api.useQuery(
     'get',
@@ -474,6 +407,7 @@ export function ServerDockerScreen() {
   const isLoading =
     hostsQuery.isLoading ||
     stateQuery.isLoading ||
+    containersLoading ||
     assignmentsQuery.isLoading ||
     appsQuery.isLoading
 
@@ -502,22 +436,6 @@ export function ServerDockerScreen() {
           .length,
       }
     })
-  }, [hostsQuery.data, stateQuery.data])
-
-  // ─── Derive container rows ─────────────────────────────────────────────
-
-  const containerRows = React.useMemo<ContainerRow[]>(() => {
-    const hosts = hostsQuery.data?.result ?? []
-    const hostIdToLabel = new Map(hosts.map((h) => [h.id, h.label]))
-    const stateHosts = stateQuery.data?.hosts ?? []
-
-    return stateHosts.flatMap((hostState) =>
-      hostState.containers.map((container) => ({
-        ...container,
-        hostId: hostState.id,
-        hostLabel: hostIdToLabel.get(hostState.id) ?? hostState.id,
-      })),
-    )
   }, [hostsQuery.data, stateQuery.data])
 
   // ─── Derive profile rows ──────────────────────────────────────────────
@@ -551,6 +469,7 @@ export function ServerDockerScreen() {
             : null,
           assignmentId: assignment?.id ?? null,
           assignedHostId: assignment?.dockerHostId ?? null,
+          currentConfig: assignment?.config ?? null,
         }
       })
     })
@@ -586,6 +505,39 @@ export function ServerDockerScreen() {
   const handleProfileSaved = React.useCallback(() => {
     void assignmentsQuery.refetch()
   }, [assignmentsQuery])
+
+  // ─── Container columns + edit ─────────────────────────────────────────
+
+  const containerCols = React.useMemo(
+    () =>
+      createContainerTableColumns({
+        showHost: true,
+        onEditStandalone: (containerId) => setEditContainerId(containerId),
+      }),
+    [],
+  )
+
+  const editContainer = React.useMemo(() => {
+    if (!editContainerId) {
+      return undefined
+    }
+    // Find by containerId (runtime) or by id (DB record)
+    const sc = standaloneRecords.find(
+      (r) => r.containerId === editContainerId || r.id === editContainerId,
+    )
+    if (!sc) {
+      return undefined
+    }
+    return {
+      id: sc.id,
+      dockerHostId: sc.dockerHostId,
+      label: sc.label,
+      image: sc.image,
+      tag: sc.tag,
+      desiredStatus: sc.desiredStatus,
+      config: sc.config as Record<string, unknown>,
+    }
+  }, [editContainerId, standaloneRecords])
 
   // ─── Stats ─────────────────────────────────────────────────────────────
 
@@ -625,11 +577,20 @@ export function ServerDockerScreen() {
             onClick={() => {
               void hostsQuery.refetch()
               void stateQuery.refetch()
+              refetchContainers()
               void assignmentsQuery.refetch()
             }}
           >
             <RefreshCcw className="mr-2 size-4" />
             Refresh
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCreateContainerOpen(true)}
+          >
+            <Container className="mr-2 size-4" />
+            Create Container
           </Button>
           <Button size="sm" onClick={() => setCreateHostOpen(true)}>
             <Plus className="mr-2 size-4" />
@@ -730,18 +691,18 @@ export function ServerDockerScreen() {
             </Badge>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Live containers running across all hosts.
+            All platform containers across all hosts.
           </p>
         </CardHeader>
         <div className="px-6 pb-6">
           {containerRows.length === 0 && !isLoading ? (
             <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
-              No containers running on any host.
+              No containers on any host.
             </div>
           ) : (
             <DataTable
               data={containerRows}
-              columns={containerColumns}
+              columns={containerCols}
               rowCount={containerRows.length}
               className="border-muted/40 shadow-sm"
             />
@@ -785,6 +746,28 @@ export function ServerDockerScreen() {
         onCreated={() => void hostsQuery.refetch()}
       />
 
+      <CreateStandaloneContainerDialog
+        open={createContainerOpen}
+        onOpenChange={setCreateContainerOpen}
+        onCreated={() => refetchContainers()}
+      />
+
+      {editContainer && (
+        <CreateStandaloneContainerDialog
+          open={!!editContainer}
+          onOpenChange={(v) => {
+            if (!v) {
+              setEditContainerId(null)
+            }
+          }}
+          onCreated={() => {
+            setEditContainerId(null)
+            refetchContainers()
+          }}
+          editContainer={editContainer}
+        />
+      )}
+
       {configureProfile && (
         <ProfileAssignmentDialog
           open={!!configureProfile}
@@ -799,6 +782,7 @@ export function ServerDockerScreen() {
           image={configureProfile.image}
           assignmentId={configureProfile.assignmentId}
           currentHostId={configureProfile.assignedHostId}
+          currentConfig={configureProfile.currentConfig}
           onSaved={handleProfileSaved}
         />
       )}

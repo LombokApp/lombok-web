@@ -58,7 +58,7 @@ export class ServerDockerHostsController {
     }
 
     return {
-      hosts: await this.dockerJobsService.getDockerHostStates(),
+      hosts: await this.dockerClientService.getDockerHostStates(),
     }
   }
 

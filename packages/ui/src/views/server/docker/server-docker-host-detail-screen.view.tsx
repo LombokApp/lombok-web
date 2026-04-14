@@ -36,11 +36,13 @@ import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api, $apiClient } from '@/src/services/api'
 
+import { CreateStandaloneContainerDialog } from './create-standalone-container-dialog'
 import type {
   DockerHostConnectionState,
   DockerHostState,
 } from './server-docker.types'
-import { createServerDockerHostContainersTableColumns } from './server-docker-host-containers-table-columns'
+import { createContainerTableColumns } from './server-docker-host-containers-table-columns'
+import { useListContainers } from './use-list-containers'
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
@@ -94,23 +96,64 @@ const renderConnectionValue = (
 
 export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
   const navigate = useNavigate()
+  const [editContainerId, setEditContainerId] = React.useState<string | null>(
+    null,
+  )
 
-  // New DB-backed host detail
+  // DB-backed host detail
   const hostQuery = $api.useQuery('get', '/api/v1/docker/hosts/{id}', {
     params: { path: { id: hostId } },
   })
   // Runtime state from bridge
   const stateQuery = $api.useQuery('get', '/api/v1/server/docker-hosts/state')
+  // Combined container list for this host
+  const {
+    rows: containerRows,
+    isLoading: containersLoading,
+    refetch: refetchContainers,
+    standaloneRecords,
+  } = useListContainers({ hostId })
+
   const host = hostQuery.data?.result
   const hostState: DockerHostState | undefined = stateQuery.data?.hosts.find(
     (h) => h.id === hostId,
   )
-  const containers = hostState?.containers ?? []
-  const runningContainers = containers.filter(
+  const runningContainers = containerRows.filter(
     (c) => c.state === 'running',
   ).length
 
-  const isLoading = hostQuery.isLoading || stateQuery.isLoading
+  const isLoading =
+    hostQuery.isLoading || stateQuery.isLoading || containersLoading
+
+  const containerCols = React.useMemo(
+    () =>
+      createContainerTableColumns({
+        hostId,
+        onEditStandalone: (id) => setEditContainerId(id),
+      }),
+    [hostId],
+  )
+
+  const editContainer = React.useMemo(() => {
+    if (!editContainerId) {
+      return undefined
+    }
+    const sc = standaloneRecords.find(
+      (r) => r.containerId === editContainerId || r.id === editContainerId,
+    )
+    if (!sc) {
+      return undefined
+    }
+    return {
+      id: sc.id,
+      dockerHostId: sc.dockerHostId,
+      label: sc.label,
+      image: sc.image,
+      tag: sc.tag,
+      desiredStatus: sc.desiredStatus,
+      config: sc.config as Record<string, unknown>,
+    }
+  }, [editContainerId, standaloneRecords])
 
   // ─── Delete handler ───────────────────────────────────────────────────
 
@@ -184,6 +227,7 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
             onClick={() => {
               void hostQuery.refetch()
               void stateQuery.refetch()
+              refetchContainers()
             }}
           >
             <RefreshCcw className="mr-2 size-4" />
@@ -232,10 +276,10 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
           },
           {
             title: 'Containers',
-            label: containers.length
-              ? `${runningContainers}/${containers.length}`
+            label: containerRows.length
+              ? `${runningContainers}/${containerRows.length}`
               : '0',
-            subtitle: containers.length
+            subtitle: containerRows.length
               ? `${runningContainers} running`
               : 'No containers',
             icon: Container,
@@ -379,13 +423,13 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Container className="size-4 text-muted-foreground" />
-            Platform Containers
+            Containers
             <Badge variant={BadgeVariant.outline} className="text-xs">
-              {containers.length}
+              {containerRows.length}
             </Badge>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Live containers running on this host.
+            All containers managed on this host.
           </p>
         </CardHeader>
         <div className="px-6 pb-6">
@@ -393,20 +437,36 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
             <div className="text-sm text-destructive">
               {hostState.containersError}
             </div>
-          ) : containers.length === 0 ? (
+          ) : containerRows.length === 0 ? (
             <div className="rounded-lg border border-muted/40 p-6 text-center text-sm text-muted-foreground italic">
-              No containers running on this host.
+              No containers on this host.
             </div>
           ) : (
             <DataTable
-              data={containers}
-              columns={createServerDockerHostContainersTableColumns(hostId)}
-              rowCount={containers.length}
+              data={containerRows}
+              columns={containerCols}
+              rowCount={containerRows.length}
               className="border-muted/40 shadow-sm"
             />
           )}
         </div>
       </Card>
+
+      {editContainer && (
+        <CreateStandaloneContainerDialog
+          open={!!editContainer}
+          onOpenChange={(v) => {
+            if (!v) {
+              setEditContainerId(null)
+            }
+          }}
+          onCreated={() => {
+            setEditContainerId(null)
+            refetchContainers()
+          }}
+          editContainer={editContainer}
+        />
+      )}
     </div>
   )
 }

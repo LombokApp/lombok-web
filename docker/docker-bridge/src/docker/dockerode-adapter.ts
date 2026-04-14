@@ -271,9 +271,9 @@ export class DockerodeAdapter implements DockerAdapter {
       Devices: options.devices?.map((d) => {
         const [hostPath, containerPath, permissions] = d.split(':')
         return {
-          PathOnHost: hostPath ?? '',
-          PathInContainer: containerPath ?? hostPath ?? '',
-          CgroupPermissions: permissions ?? 'rwm',
+          PathOnHost: hostPath,
+          PathInContainer: containerPath,
+          CgroupPermissions: permissions,
         }
       }),
       Dns: options.dns,
@@ -348,7 +348,9 @@ export class DockerodeAdapter implements DockerAdapter {
     }
 
     const container = await this.docker.createContainer(createOpts)
-    await container.start()
+    if (options.start) {
+      await container.start()
+    }
     const inspect = await container.inspect()
 
     return {

@@ -48,7 +48,7 @@ export interface FindOrCreateContainerOptions {
   pidMode?: string
   cgroupParent?: string
   runtime?: string
-  startIfNotRunning?: boolean
+  start: boolean
 }
 
 export interface ConnectionTestResult {

@@ -1749,6 +1749,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/standalone-containers/{id}/desired-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DockerStandaloneContainers_setDesiredStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/objects/{folderObjectId}/comments": {
         parameters: {
             query?: never;
@@ -5634,16 +5650,28 @@ export interface components {
                     cpuCores?: number;
                     memoryBytes?: number;
                 };
-                containers: {
+                containers: ({
                     id: string;
                     image: string;
                     labels: components["schemas"]["StringMapDTO"];
                     /** @enum {string} */
                     state: "running" | "exited" | "paused" | "created" | "unknown";
                     createdAt: string;
-                    profileId?: string;
-                    profileHash?: string;
-                }[];
+                    /** @constant */
+                    containerType: "worker";
+                    profileId: string;
+                    profileHash: string;
+                } | {
+                    id: string;
+                    image: string;
+                    labels: components["schemas"]["StringMapDTO"];
+                    /** @enum {string} */
+                    state: "running" | "exited" | "paused" | "created" | "unknown";
+                    createdAt: string;
+                    /** @constant */
+                    containerType: "standalone";
+                    standaloneContainerId: string;
+                })[];
                 containersError?: string;
             }[];
         };
@@ -7410,13 +7438,7 @@ export interface components {
                 tag: string;
                 /** @enum {string} */
                 desiredStatus: "running" | "stopped";
-                containerId: string | null;
-                ports: {
-                    host: number;
-                    container: number;
-                    /** @enum {string} */
-                    protocol: "tcp" | "udp";
-                }[];
+                containerId: string;
                 config: {
                     volumes?: string[];
                     env?: components["schemas"]["StringMapDTO"];
@@ -7486,13 +7508,7 @@ export interface components {
                 tag: string;
                 /** @enum {string} */
                 desiredStatus: "running" | "stopped";
-                containerId: string | null;
-                ports: {
-                    host: number;
-                    container: number;
-                    /** @enum {string} */
-                    protocol: "tcp" | "udp";
-                }[];
+                containerId: string;
                 config: {
                     volumes?: string[];
                     env?: components["schemas"]["StringMapDTO"];
@@ -7565,16 +7581,6 @@ export interface components {
              * @enum {string}
              */
             desiredStatus: "running" | "stopped";
-            /** @default [] */
-            ports: {
-                host: number;
-                container: number;
-                /**
-                 * @default tcp
-                 * @enum {string}
-                 */
-                protocol: "tcp" | "udp";
-            }[];
             /** @default {} */
             config: {
                 volumes?: string[];
@@ -7644,16 +7650,6 @@ export interface components {
              * @enum {string}
              */
             desiredStatus: "running" | "stopped";
-            /** @default [] */
-            ports: {
-                host: number;
-                container: number;
-                /**
-                 * @default tcp
-                 * @enum {string}
-                 */
-                protocol: "tcp" | "udp";
-            }[];
             /** @default {} */
             config: {
                 volumes?: string[];
@@ -7710,6 +7706,10 @@ export interface components {
                 cgroupParent?: string;
                 runtime?: string;
             };
+        };
+        DockerStandaloneContainerDesiredStatusDTO: {
+            /** @enum {string} */
+            desiredStatus: "running" | "stopped";
         };
         DockerStandaloneContainerDeleteResponse: {
             /** @constant */
@@ -13380,7 +13380,9 @@ export interface operations {
     };
     DockerStandaloneContainers_list: {
         parameters: {
-            query?: never;
+            query?: {
+                dockerHostId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -13555,6 +13557,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DockerStandaloneContainerDeleteResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    DockerStandaloneContainers_setDesiredStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DockerStandaloneContainerDesiredStatusDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerStandaloneContainerResponse"];
                 };
             };
             /** @description Server Error */

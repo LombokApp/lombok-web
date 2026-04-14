@@ -32,9 +32,11 @@ import {
   DockerRegistryCredentialUpdateDTO,
 } from '../dto/docker-registry-credential-input.dto'
 import {
+  DockerStandaloneContainerDesiredStatusDTO,
   DockerStandaloneContainerInputDTO,
   DockerStandaloneContainerUpdateDTO,
 } from '../dto/docker-standalone-container-input.dto'
+import { DockerStandaloneContainerListQueryParamsDTO } from '../dto/docker-standalone-container-list-query-params.dto'
 import {
   DockerHostDeleteResponse,
   DockerHostListResponse,
@@ -296,9 +298,12 @@ export class DockerStandaloneContainersController {
   @Get()
   async list(
     @Req() req: express.Request,
+    @Query() query: DockerStandaloneContainerListQueryParamsDTO,
   ): Promise<DockerStandaloneContainerListResponse> {
     assertAdmin(req)
-    const containers = await this.service.listStandaloneContainers()
+    const containers = query.dockerHostId
+      ? await this.service.listStandaloneContainersByHost(query.dockerHostId)
+      : await this.service.listStandaloneContainers()
     return { result: containers.map(transformDockerStandaloneContainerToDTO) }
   }
 
@@ -338,6 +343,23 @@ export class DockerStandaloneContainersController {
     return {
       result: transformDockerStandaloneContainerToDTO(
         await this.service.updateStandaloneContainer(id, input),
+      ),
+    }
+  }
+
+  @Post('/:id/desired-status')
+  async setDesiredStatus(
+    @Req() req: express.Request,
+    @Param('id') id: string,
+    @Body() input: DockerStandaloneContainerDesiredStatusDTO,
+  ): Promise<DockerStandaloneContainerResponse> {
+    assertAdmin(req)
+    return {
+      result: transformDockerStandaloneContainerToDTO(
+        await this.service.setStandaloneContainerDesiredStatus(
+          id,
+          input.desiredStatus,
+        ),
       ),
     }
   }

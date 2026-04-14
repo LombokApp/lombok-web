@@ -7,8 +7,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common'
+import nestjsConfig from '@nestjs/config'
 import * as crypto from 'crypto'
 import { and, eq } from 'drizzle-orm'
+import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -18,8 +20,8 @@ import {
 } from '../entities/docker-host.entity'
 import {
   type DockerProfileResourceAssignment,
-  type DockerResourceConfig,
   dockerProfileResourceAssignmentsTable,
+  type DockerResourceConfig,
 } from '../entities/docker-profile-resource-assignment.entity'
 import {
   type DockerRegistryCredential,
@@ -29,7 +31,10 @@ import {
   type DockerStandaloneContainer,
   dockerStandaloneContainersTable,
 } from '../entities/docker-standalone-container.entity'
+import { DockerClientService } from './client/docker-client.service'
+import type { FindOrCreateContainerOptions } from './client/docker-client.types'
 import { DockerBridgeService } from './docker-bridge.service'
+import { DOCKER_CONTAINER_TYPES, DOCKER_LABELS } from './docker-jobs.service'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -57,13 +62,19 @@ export class DockerHostManagementService {
   private readonly logger = new Logger(DockerHostManagementService.name)
 
   dockerBridgeService: DockerBridgeService
+  dockerClientService: DockerClientService
 
   constructor(
     private readonly ormService: OrmService,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     @Inject(forwardRef(() => DockerBridgeService))
     _dockerBridgeService,
+    @Inject(forwardRef(() => DockerClientService))
+    _dockerClientService,
   ) {
     this.dockerBridgeService = _dockerBridgeService as DockerBridgeService
+    this.dockerClientService = _dockerClientService as DockerClientService
   }
 
   // ─── Docker Hosts ──────────────────────────────────────────────────────
@@ -394,6 +405,15 @@ export class DockerHostManagementService {
     })
   }
 
+  async listStandaloneContainersByHost(
+    dockerHostId: string,
+  ): Promise<DockerStandaloneContainer[]> {
+    return this.ormService.db.query.dockerStandaloneContainersTable.findMany({
+      where: eq(dockerStandaloneContainersTable.dockerHostId, dockerHostId),
+      orderBy: (c, { asc }) => [asc(c.label)],
+    })
+  }
+
   async getStandaloneContainer(
     id: string,
   ): Promise<DockerStandaloneContainer | undefined> {
@@ -408,24 +428,66 @@ export class DockerHostManagementService {
     image: string
     tag?: string
     desiredStatus?: 'running' | 'stopped'
-    ports?: { host: number; container: number; protocol: 'tcp' | 'udp' }[]
     config: DockerResourceConfig
   }): Promise<DockerStandaloneContainer> {
     await this.getHostOrThrow(input.dockerHostId)
 
     const now = new Date()
     const configHashes = computeConfigHashes(input.config)
+    const databaseId = uuidV4()
+    const desiredStatus = input.desiredStatus ?? 'stopped'
+    const tag = input.tag ?? 'latest'
+    const fullImage = `${input.image}:${tag}`
+
+    // Pull image with registry auth if configured
+    const authMap = await this.getRegistryAuthMap()
+    if (Object.keys(authMap).length > 0) {
+      const firstSegment = fullImage.split('/')[0] ?? ''
+      const hasRegistry =
+        firstSegment.includes('.') || firstSegment.includes(':')
+      const registry = hasRegistry ? firstSegment : 'docker.io'
+      const cred = authMap[registry]
+      if (cred) {
+        await this.dockerClientService.pullImage(
+          input.dockerHostId,
+          fullImage,
+          {
+            username: cred.username,
+            password: cred.password,
+            serveraddress: cred.serverAddress,
+          },
+        )
+      }
+    }
+
+    // Always create the Docker container (start only if desired)
+    const createOptions: FindOrCreateContainerOptions = {
+      ...input.config,
+      image: fullImage,
+      labels: {
+        ...input.config.labels,
+        [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
+        [DOCKER_LABELS.CONTAINER_TYPE]: DOCKER_CONTAINER_TYPES.STANDALONE,
+        [DOCKER_LABELS.STANDALONE_CONTAINER_ID]: databaseId,
+      },
+      start: desiredStatus === 'running',
+    }
+
+    const containerInfo = await this.dockerClientService.createContainer(
+      input.dockerHostId,
+      createOptions,
+    )
 
     const [created] = await this.ormService.db
       .insert(dockerStandaloneContainersTable)
       .values({
-        id: uuidV4(),
+        id: databaseId,
         dockerHostId: input.dockerHostId,
         label: input.label,
         image: input.image,
-        tag: input.tag ?? 'latest',
-        desiredStatus: input.desiredStatus ?? 'stopped',
-        ports: input.ports ?? [],
+        tag,
+        desiredStatus,
+        containerId: containerInfo.id,
         config: input.config,
         configHashes,
         createdAt: now,
@@ -438,6 +500,7 @@ export class DockerHostManagementService {
         'Failed to create standalone container',
       )
     }
+
     return created
   }
 
@@ -449,7 +512,6 @@ export class DockerHostManagementService {
       image: string
       tag: string
       desiredStatus: 'running' | 'stopped'
-      ports: { host: number; container: number; protocol: 'tcp' | 'udp' }[]
       config: DockerResourceConfig
     }>,
   ): Promise<DockerStandaloneContainer> {
@@ -471,6 +533,80 @@ export class DockerHostManagementService {
     if (!updated) {
       throw new NotFoundException(`Standalone container not found: ${id}`)
     }
+
+    // Reconcile container state with desired status
+    if (input.desiredStatus) {
+      const container = await this.dockerClientService.findContainerById(
+        updated.dockerHostId,
+        updated.containerId,
+      )
+
+      if (input.desiredStatus === 'running' && container?.state !== 'running') {
+        try {
+          await this.dockerClientService.startContainer(
+            updated.dockerHostId,
+            updated.containerId,
+          )
+        } catch {
+          // Container may have been started between the check and the call
+        }
+      } else if (
+        input.desiredStatus === 'stopped' &&
+        container?.state === 'running'
+      ) {
+        try {
+          await this.dockerClientService.stopContainer(
+            updated.dockerHostId,
+            updated.containerId,
+          )
+        } catch {
+          // Container may have been stopped between the check and the call
+        }
+      }
+    }
+
+    return updated
+  }
+
+  async setStandaloneContainerDesiredStatus(
+    id: string,
+    desiredStatus: 'running' | 'stopped',
+  ): Promise<DockerStandaloneContainer> {
+    const [updated] = await this.ormService.db
+      .update(dockerStandaloneContainersTable)
+      .set({ desiredStatus, updatedAt: new Date() })
+      .where(eq(dockerStandaloneContainersTable.id, id))
+      .returning()
+
+    if (!updated) {
+      throw new NotFoundException(`Standalone container not found: ${id}`)
+    }
+
+    const container = await this.dockerClientService.findContainerById(
+      updated.dockerHostId,
+      updated.containerId,
+    )
+
+    if (desiredStatus === 'running' && container?.state !== 'running') {
+      try {
+        await this.dockerClientService.startContainer(
+          updated.dockerHostId,
+          updated.containerId,
+        )
+      } catch {
+        // Container may have been started between the check and the call
+      }
+    } else if (desiredStatus === 'stopped' && container?.state === 'running') {
+      try {
+        await this.dockerClientService.stopContainer(
+          updated.dockerHostId,
+          updated.containerId,
+        )
+      } catch {
+        // Container may have been stopped between the check and the call
+      }
+    }
+
     return updated
   }
 

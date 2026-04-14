@@ -21,6 +21,7 @@ import { buildPlatformOrigin } from 'src/core/utils/platform-origin.util'
 import { waitForCondition } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
 
+import type { DockerResourceConfig } from '../entities/docker-profile-resource-assignment.entity'
 import {
   type ContainerCreateOptions,
   DockerExecuteJobOptions,
@@ -28,13 +29,9 @@ import {
 } from './client/docker.schema'
 import { DockerClientService } from './client/docker-client.service'
 import {
-  ConnectionTestResult,
-  DockerHostResources,
-  type FindOrCreateContainerOptions,
   DockerLogAccessError,
   DockerLogEntry,
 } from './client/docker-client.types'
-import type { DockerResourceConfig } from '../entities/docker-profile-resource-assignment.entity'
 import { DockerHostManagementService } from './docker-host-management.service'
 import { DockerWorkerHookService } from './docker-worker-hook.service'
 
@@ -44,15 +41,25 @@ const DEFAULT_WAIT_FOR_COMPLETION_OPTIONS = {
 }
 
 /** Labels applied to worker containers for discovery */
+export const DOCKER_CONTAINER_TYPES = {
+  WORKER: 'worker',
+  STANDALONE: 'standalone',
+} as const
+
+export type DockerContainerType =
+  (typeof DOCKER_CONTAINER_TYPES)[keyof typeof DOCKER_CONTAINER_TYPES]
+
 export const DOCKER_LABELS = {
   PLATFORM_HOST: 'lombok.platform_host',
   PLATFORM_URL: 'lombok.platform_url',
+  CONTAINER_TYPE: 'lombok.container_type',
   PROFILE_ID: 'lombok.container_profile_id',
   PROFILE_HASH: 'lombok.container_profile_hash',
   APP_ID: 'lombok.container_app_id',
   USER_ID: 'lombok.container_user_id',
   IMAGE: 'lombok.container_image',
   ISOLATION_KEY: 'lombok.container_isolation_key',
+  STANDALONE_CONTAINER_ID: 'lombok.standalone_container_id',
 } as const
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -60,6 +67,7 @@ export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
   dockerWorkerHookService: DockerWorkerHookService
   dockerClientService: DockerClientService
+  dockerHostManagementService: DockerHostManagementService
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
@@ -67,10 +75,13 @@ export class DockerJobsService {
     @Inject(forwardRef(() => DockerClientService)) _dockerClientService,
     @Inject(forwardRef(() => DockerWorkerHookService))
     _dockerWorkerHookService,
-    private readonly dockerHostManagementService: DockerHostManagementService,
+    @Inject(forwardRef(() => DockerHostManagementService))
+    _dockerHostManagementService,
   ) {
     this.dockerWorkerHookService =
       _dockerWorkerHookService as DockerWorkerHookService
+    this.dockerHostManagementService =
+      _dockerHostManagementService as DockerHostManagementService
     this.dockerClientService = _dockerClientService as DockerClientService
   }
 
@@ -163,7 +174,7 @@ export class DockerJobsService {
   /**
    * Build container labels for worker discovery and identification
    */
-  private buildContainerLabels(
+  private buildWorkerContainerLabels(
     profileIdentifier: string,
     profileHash: string,
     image: string,
@@ -174,6 +185,7 @@ export class DockerJobsService {
     return {
       [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
       [DOCKER_LABELS.PLATFORM_URL]: buildPlatformOrigin(this._coreConfig),
+      [DOCKER_LABELS.CONTAINER_TYPE]: DOCKER_CONTAINER_TYPES.WORKER,
       [DOCKER_LABELS.PROFILE_HASH]: profileHash,
       [DOCKER_LABELS.IMAGE]: image,
       [DOCKER_LABELS.PROFILE_ID]: profileIdentifier,
@@ -188,7 +200,7 @@ export class DockerJobsService {
    * If containerId is provided, destroy that specific container.
    * If profileKey is provided, find all containers by labels and destroy them.
    */
-  async destroyContainers(
+  async destroyAppWorkerContainers(
     params:
       | { hostId: string; containerId: string }
       | {
@@ -202,12 +214,25 @@ export class DockerJobsService {
   ): Promise<number> {
     if ('containerId' in params) {
       try {
-        await this.dockerClientService.removeContainer(
+        const foundContainer = await this.dockerClientService.findContainerById(
           params.hostId,
           params.containerId,
-          { force: true },
         )
-        return 1
+        if (
+          foundContainer &&
+          foundContainer.labels[DOCKER_LABELS.CONTAINER_TYPE] ===
+            DOCKER_CONTAINER_TYPES.WORKER &&
+          foundContainer.labels[DOCKER_LABELS.PLATFORM_HOST] ===
+            this._coreConfig.platformHost
+        ) {
+          await this.dockerClientService.removeContainer(
+            params.hostId,
+            params.containerId,
+            { force: true },
+          )
+          return 1
+        }
+        return 0
       } catch {
         return 0
       }
@@ -223,7 +248,7 @@ export class DockerJobsService {
     } = params
     const profileHash = this.hashProfileSpec(profileSpec)
     const containerProfileIdentifier = `lombok:profile_${profileKey}`
-    const labels = this.buildContainerLabels(
+    const labels = this.buildWorkerContainerLabels(
       containerProfileIdentifier,
       profileHash,
       profileSpec.image,
@@ -303,7 +328,7 @@ export class DockerJobsService {
       const { hostId, containerId: refContainerId } = attributes
 
       const host = await this.dockerHostManagementService.getHost(hostId)
-      if (!host || !host.enabled) {
+      if (!host?.enabled) {
         throw new AsyncWorkError({
           name: 'DockerClientError',
           origin: 'internal',
@@ -315,7 +340,7 @@ export class DockerJobsService {
       const container = await this.dockerClientService.findContainerById(
         hostId,
         refContainerId,
-        { startIfNotRunning: true },
+        { start: true },
       )
       if (!container) {
         throw new AsyncWorkError({
@@ -329,8 +354,9 @@ export class DockerJobsService {
     }
 
     // Profile path: resolve host config, find or create container
-    const { hostId, ...config } =
-      await this.resolveDockerHostConfigForProfile(attributes.profileKey)
+    const { hostId, ...config } = await this.resolveDockerHostConfigForProfile(
+      attributes.profileKey,
+    )
 
     const container = await this.dockerClientService.findOrCreateContainer(
       hostId,
@@ -338,7 +364,7 @@ export class DockerJobsService {
         ...config,
         image,
         labels: { ...config.labels, ...labels },
-        startIfNotRunning: true,
+        start: true,
         env: { ...config.env, ...extraEnv },
       },
     )
@@ -474,7 +500,7 @@ export class DockerJobsService {
         }
 
         // Build labels for provisioning (not for matching)
-        const labels = this.buildContainerLabels(
+        const labels = this.buildWorkerContainerLabels(
           containerProfileIdentifier,
           profileHash,
           profileSpec.image,
@@ -516,7 +542,7 @@ export class DockerJobsService {
           ? userId
           : undefined
 
-        const labels = this.buildContainerLabels(
+        const labels = this.buildWorkerContainerLabels(
           containerProfileIdentifier,
           profileHash,
           profileSpec.image,
@@ -541,7 +567,7 @@ export class DockerJobsService {
         )
       } else {
         // No containerTarget — shared container per profile (backward-compatible default)
-        const labels = this.buildContainerLabels(
+        const labels = this.buildWorkerContainerLabels(
           containerProfileIdentifier,
           profileHash,
           profileSpec.image,
@@ -1035,60 +1061,6 @@ export class DockerJobsService {
     return { message: exec.stdout.trim() || 'Purge completed.' }
   }
 
-  async getDockerHostState(hostId: string): Promise<DockerHostState> {
-    let connection: ConnectionTestResult
-    try {
-      connection = await this.dockerClientService.testHostConnection(hostId)
-    } catch (error) {
-      connection = {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-      }
-    }
-
-    let resources: DockerHostResources | undefined
-    if (connection.success) {
-      try {
-        resources = await this.dockerClientService.getHostResources(hostId)
-      } catch {
-        resources = undefined
-      }
-    }
-
-    let containers: DockerHostContainerState[] = []
-    let containersError: string | undefined
-    try {
-      const rawContainers =
-        await this.dockerClientService.listContainersByLabels(hostId, {
-          [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
-        })
-      containers = rawContainers.map((container) => ({
-        ...container,
-        profileId: container.labels[DOCKER_LABELS.PROFILE_ID],
-        profileHash: container.labels[DOCKER_LABELS.PROFILE_HASH],
-      }))
-    } catch (error) {
-      containersError = error instanceof Error ? error.message : String(error)
-    }
-
-    return {
-      id: hostId,
-      description: this.dockerClientService.getHostDescription(hostId),
-      connection,
-      resources,
-      containers,
-      containersError,
-    }
-  }
-
-  async getDockerHostStates(): Promise<DockerHostState[]> {
-    const hosts = await this.dockerHostManagementService.listHosts()
-    const enabledHostIds = hosts.filter((h) => h.enabled).map((h) => h.id)
-    return Promise.all(
-      enabledHostIds.map((hostId) => this.getDockerHostState(hostId)),
-    )
-  }
-
   private parseWorkerPort(workerId: string): number {
     const normalized = workerId.endsWith('.json')
       ? workerId.slice(0, -'.json'.length)
@@ -1112,25 +1084,6 @@ export class DockerJobsService {
     }
     return port
   }
-}
-
-interface DockerHostContainerState {
-  id: string
-  image: string
-  labels: Record<string, string>
-  state: 'running' | 'exited' | 'paused' | 'created' | 'unknown'
-  createdAt: string
-  profileId?: string
-  profileHash?: string
-}
-
-interface DockerHostState {
-  id: string
-  description: string
-  connection: ConnectionTestResult
-  resources?: DockerHostResources
-  containers: DockerHostContainerState[]
-  containersError?: string
 }
 
 type DockerJobResult =

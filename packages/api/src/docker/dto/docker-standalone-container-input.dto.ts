@@ -9,15 +9,6 @@ export const dockerStandaloneContainerInputSchema = z.object({
   image: z.string().min(1),
   tag: z.string().min(1).default('latest'),
   desiredStatus: z.enum(['running', 'stopped']).default('stopped'),
-  ports: z
-    .array(
-      z.object({
-        host: z.number().positive().max(65535),
-        container: z.number().positive().max(65535),
-        protocol: z.enum(['tcp', 'udp']).default('tcp'),
-      }),
-    )
-    .default([]),
   config: dockerResourceConfigDataSchema.default({}),
 })
 
@@ -30,4 +21,12 @@ export const dockerStandaloneContainerUpdateSchema =
 
 export class DockerStandaloneContainerUpdateDTO extends createZodDto(
   dockerStandaloneContainerUpdateSchema,
+) {}
+
+export const dockerStandaloneContainerDesiredStatusSchema = z.object({
+  desiredStatus: z.enum(['running', 'stopped']),
+})
+
+export class DockerStandaloneContainerDesiredStatusDTO extends createZodDto(
+  dockerStandaloneContainerDesiredStatusSchema,
 ) {}

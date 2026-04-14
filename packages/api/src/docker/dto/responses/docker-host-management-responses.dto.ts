@@ -122,14 +122,7 @@ export const dockerStandaloneContainerDTOSchema = z.object({
   image: z.string(),
   tag: z.string(),
   desiredStatus: z.enum(['running', 'stopped']),
-  containerId: z.string().nullable(),
-  ports: z.array(
-    z.object({
-      host: z.number(),
-      container: z.number(),
-      protocol: z.enum(['tcp', 'udp']),
-    }),
-  ),
+  containerId: z.string(),
   config: dockerResourceConfigDataSchema,
   configHashes: z.record(z.string(), z.string()),
   createdAt: z.string(),
